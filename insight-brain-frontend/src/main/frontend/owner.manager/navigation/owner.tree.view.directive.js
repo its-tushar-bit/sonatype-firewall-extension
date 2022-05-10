@@ -17,12 +17,10 @@ function OwnerTreeViewController(
   $ngRedux,
   CLMLocations,
   organizationStore,
-  applicationStore,
   OwnerEditor,
   PermissionService,
   ownerConstant,
   EventNameConstant,
-  LastSelectedOrganization,
   fuzzyFilter,
   scmOnboardingActions
 ) {
@@ -224,9 +222,16 @@ function OwnerTreeViewController(
   }
 
   function createApplication(parent) {
-    LastSelectedOrganization.set(parent);
-    var application = applicationStore.create();
-    var applications = vm.organizations.map(function (organization) {
+    const application = {
+      id: null,
+      publicId: null,
+      name: null,
+      organizationId: parent.id,
+      organizationName: parent.name,
+      contact: null,
+      isNew: true,
+    };
+    let applications = vm.organizations.map(function (organization) {
       return organization.applications;
     });
     applications = [].concat.apply([], applications);
@@ -335,12 +340,10 @@ OwnerTreeViewController.$inject = [
   '$ngRedux',
   'CLMLocations',
   'OrganizationStore',
-  'ApplicationStore',
   'OwnerEditorService',
   'PermissionService',
   'owner.constant',
   'event.name.constant',
-  'LastSelectedOrganization',
   'fuzzyFilter',
   'scmOnboardingActions',
   'SourceControlService',

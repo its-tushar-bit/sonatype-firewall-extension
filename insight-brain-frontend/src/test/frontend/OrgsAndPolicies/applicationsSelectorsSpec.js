@@ -5,6 +5,7 @@
  */
 import {
   selectApplicationsSlice,
+  selectDeleteModal,
   selectLoadApplicationsError,
   selectLoadEmptyError,
   selectLoadingApplications,
@@ -92,6 +93,24 @@ describe('applicationSelectors', () => {
       mockState.orgsAndPolicies.root.selectedOwner.name = null;
       mockState.orgsAndPolicies.applications.loadApplicationsError = null;
       expect(selectLoadEmptyError(mockState)).toBe('Could not find an application with ID alpine-test.');
+    });
+  });
+
+  describe('selectDeleteModal', () => {
+    it('is composed from the following selector', () => {
+      expect(selectDeleteModal.dependencies).toEqual([selectApplicationsSlice]);
+    });
+
+    it('selects deleteModal state', () => {
+      const deleteModal = {
+        success: true,
+        deleting: false,
+        errorState: 'someError',
+      };
+
+      const actualSelection = selectDeleteModal.resultFunc({ deleteModal: deleteModal });
+
+      expect(actualSelection).toEqual(deleteModal);
     });
   });
 });

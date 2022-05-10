@@ -3,28 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 
-describe('select.application.contact.controller.spec.js', function () {
+describe('select.application.contact.controller', function () {
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
       $provide.value('$cookies', {
         get: angular.noop,
       });
+      SpecUtil.mockNgRedux($provide);
     })
   );
 
-  var vm,
-    $q,
-    scope,
-    $timeout,
-    $httpBackend,
-    deleteServiceResourceDefer,
-    mockDeleteService,
-    mockOwner = ResourceUtils().createMockResource();
+  var vm, $q, scope, $rootScope, $timeout, $httpBackend, deleteServiceResourceDefer, mockDeleteService, mockOwner;
 
-  beforeEach(inject(function ($rootScope, _$q_, _$timeout_, _$httpBackend_) {
-    scope = $rootScope.$new();
+  beforeEach(inject(function (_$rootScope_, _$q_, _$timeout_, _$httpBackend_) {
+    scope = _$rootScope_.$new();
+    $rootScope = _$rootScope_;
     $q = _$q_;
     $timeout = _$timeout_;
     deleteServiceResourceDefer = $q.defer();
@@ -34,7 +30,34 @@ describe('select.application.contact.controller.spec.js', function () {
       },
     };
     $httpBackend = _$httpBackend_;
+    mockOwner = {};
+    spyOn($rootScope, '$broadcast').and.callThrough();
+    spyOn(applicationActions, 'updateApplication').and.returnValue($q.resolve());
   }));
+
+  describe('on component init', () => {
+    it('subscribes to the redux store', inject(($controller) => {
+      vm = $controller('select.application.contact.controller', {
+        $scope: scope,
+        owner: mockOwner,
+      });
+
+      expect(vm.unsubscribe).toBeDefined();
+    }));
+  });
+
+  describe('on $destroy()', () => {
+    it('unsubscribes from the redux store', inject(($controller) => {
+      vm = $controller('select.application.contact.controller', {
+        $scope: scope,
+        owner: mockOwner,
+      });
+
+      expect(vm.unsubscribe).not.toHaveBeenCalled();
+      scope.$destroy();
+      expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+    }));
+  });
 
   it('Selects current user in search results', function () {
     inject(function ($controller) {
@@ -76,11 +99,14 @@ describe('select.application.contact.controller.spec.js', function () {
     vm.selected = { internalName: 'Foo Bar' };
     vm.selectContactFormMask = { wrap: SpecUtil.promiseWrapper($q) };
     vm.updateContact();
-    mockOwner.resolveSave();
     $timeout.flush();
     $timeout(function () {}, 1000); // mask delay = 0.8s
     $timeout.flush();
-    expect(vm.owner.contactInternalName).toBe('Foo Bar');
+    expect($rootScope.$broadcast).toHaveBeenCalledWith('reload.owner.summary.data');
+    expect(applicationActions.updateApplication).toHaveBeenCalledOnceWith({
+      contact: { internalName: 'John Doe' },
+      contactInternalName: 'Foo Bar',
+    });
     expect(scope.$close).toHaveBeenCalled();
   });
 

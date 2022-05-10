@@ -35,16 +35,18 @@ describe('owner.editor.controller.js', function () {
 
   function createTests(type) {
     describe('New Owner: ' + type, function () {
-      var ownerResource;
+      var ownerResource,
+        isApp = type === 'application';
 
       beforeEach(inject(function ($controller, $rootScope, $q) {
-        ownerResource = {
-          $new: true,
-          $save: angular.noop,
-          isDirty: angular.noop,
-          $clone: angular.noop,
-        };
-
+        ownerResource = isApp
+          ? { id: 'someOwner', isNew: true }
+          : {
+              $new: true,
+              $save: angular.noop,
+              isDirty: angular.noop,
+              $clone: angular.noop,
+            };
         controllerScope = $rootScope.$new();
         controllerScope.$dismiss = jasmine.createSpy('dismiss');
         controllerScope.$close = jasmine.createSpy('close');
@@ -60,6 +62,7 @@ describe('owner.editor.controller.js', function () {
         vm.ownerEditor = {
           name: { $setPristine: jasmine.createSpy() },
         };
+        vm.updateApplication = jasmine.createSpy('updateApplication');
       }));
 
       describe('$onInit()', () => {
@@ -80,19 +83,36 @@ describe('owner.editor.controller.js', function () {
 
       describe('Page Changes', function () {
         it('clean', function () {
-          spyOn(vm.dirtyOwner, 'isDirty').and.returnValue(false);
+          if (isApp) {
+            spyOn(vm, 'isApplicationDirty').and.returnValue(false);
+          } else {
+            spyOn(vm.dirtyOwner, 'isDirty').and.returnValue(false);
+          }
 
           SpecUtil.expectStateChangeNotPrevented(controllerScope);
           expect(vm.unsavedModalVisible).toBeFalsy();
-          expect(vm.dirtyOwner.isDirty).toHaveBeenCalled();
+
+          if (isApp) {
+            expect(vm.isApplicationDirty).toHaveBeenCalledTimes(1);
+          } else {
+            expect(vm.dirtyOwner.isDirty).toHaveBeenCalledTimes(1);
+          }
         });
 
         it('dirty', function () {
-          spyOn(vm.dirtyOwner, 'isDirty').and.returnValue(true);
+          if (isApp) {
+            spyOn(vm, 'isApplicationDirty').and.returnValue(true);
+          } else {
+            spyOn(vm.dirtyOwner, 'isDirty').and.returnValue(true);
+          }
 
           SpecUtil.expectStateChangePrevented(controllerScope);
           expect(vm.unsavedModalVisible).toBeTruthy();
-          expect(vm.dirtyOwner.isDirty).toHaveBeenCalled();
+          if (isApp) {
+            expect(vm.isApplicationDirty).toHaveBeenCalledTimes(1);
+          } else {
+            expect(vm.dirtyOwner.isDirty).toHaveBeenCalledTimes(1);
+          }
         });
 
         it('Closes', inject(function ($rootScope) {
@@ -111,15 +131,21 @@ describe('owner.editor.controller.js', function () {
           $timeout = _$timeout_;
           saveDeferred = $q.defer();
 
-          spyOn(vm.dirtyOwner, '$save').and.returnValue(saveDeferred.promise);
+          if (!isApp) {
+            spyOn(vm.dirtyOwner, '$save').and.returnValue(saveDeferred.promise);
+          } else {
+            vm.updateApplication.and.returnValue(saveDeferred.promise);
+          }
 
           controllerScope.$apply(function () {
             vm.dirtyOwner.name = 'My new ' + type;
-            if (type === 'application') {
+            if (isApp) {
               vm.dirtyOwner.publicId = publicId;
             }
           });
-          expect(ownerResource.name).toEqual('My new ' + type); // new objects work with the original
+          if (!isApp) {
+            expect(ownerResource.name).toEqual('My new ' + type); // new objects work with the original
+          }
 
           vm.save();
         }));
@@ -139,7 +165,15 @@ describe('owner.editor.controller.js', function () {
           vm.dirtyOwner.publicId = publicId;
           vm.dirtyOwner.id = id;
           $httpBackend.expectPOST('/rest/' + type + '/icon/' + id).respond(500, 'Server Error');
-          saveDeferred.resolve(angular.extend({ id }, angular.copy(vm.dirtyOwner)));
+
+          const updatedOwner = angular.extend({ id }, angular.copy(vm.dirtyOwner));
+          if (isApp) {
+            saveDeferred.resolve({
+              payload: { application: updatedOwner },
+            });
+          } else {
+            saveDeferred.resolve(updatedOwner);
+          }
           $httpBackend.flush();
           $timeout.flush();
 
@@ -149,7 +183,7 @@ describe('owner.editor.controller.js', function () {
 
           expect($state.go).toHaveBeenCalledWith(
             'management.view.' + type,
-            type === 'application'
+            isApp
               ? {
                   applicationPublicId: publicId,
                 }
@@ -165,10 +199,16 @@ describe('owner.editor.controller.js', function () {
 
         it('Success', inject(function ($state, $httpBackend) {
           spyOn($state, 'go');
-
+          vm.dirtyOwner.publicId = publicId;
+          vm.dirtyOwner.id = id;
           $httpBackend.expectPOST('/rest/' + type + '/icon/' + id).respond('');
           const updatedOwner = angular.extend({ id }, angular.copy(vm.dirtyOwner));
-          saveDeferred.resolve(updatedOwner);
+          if (isApp) {
+            saveDeferred.resolve({ payload: { application: updatedOwner } });
+          } else {
+            saveDeferred.resolve(updatedOwner);
+          }
+
           $httpBackend.flush();
           $timeout.flush();
 
@@ -176,7 +216,7 @@ describe('owner.editor.controller.js', function () {
           expect(vm.ownerEditor.name.$setPristine).toHaveBeenCalled();
           expect($state.go).toHaveBeenCalledWith(
             'management.view.' + type,
-            type === 'application'
+            isApp
               ? {
                   applicationPublicId: publicId,
                 }
@@ -193,7 +233,7 @@ describe('owner.editor.controller.js', function () {
           saveDeferred.reject('retry with contact');
           $timeout.flush();
 
-          if (type === 'application') {
+          if (isApp) {
             vm.dirtyOwner.contact = { internalName: 'internalName' };
 
             vm.save();

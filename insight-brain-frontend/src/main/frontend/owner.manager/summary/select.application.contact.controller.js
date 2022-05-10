@@ -3,13 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+
 export default function SelectApplicationContactController(
+  $rootScope,
   $scope,
   $http,
   CLMContextLocations,
   owner,
   DeleteModalService,
-  Messages
+  Messages,
+  EventNameConstant,
+  $ngRedux
 ) {
   var vm = this;
 
@@ -26,6 +31,13 @@ export default function SelectApplicationContactController(
   vm.selectContactFormMask = undefined;
   vm.unsavedModalVisible = false;
   vm.users = undefined;
+  vm.unsubscribe = $ngRedux.connect(null, {
+    updateApplication: applicationActions.updateApplication,
+  })(vm);
+
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
 
   $scope.$on('pageChangeStarted', function (event) {
     if (vm.isDirty()) {
@@ -72,29 +84,31 @@ export default function SelectApplicationContactController(
 
   function updateContact() {
     delete vm.submitError;
-    owner.contactInternalName = vm.selected.internalName;
-    vm.selectContactFormMask.wrap(owner.$save()).then(
-      function () {
-        $scope.$close();
-      },
-      function (error) {
-        vm.submitError = Messages.getHttpErrorMessage(error);
-      }
-    );
+    vm.selectContactFormMask
+      .wrap(vm.updateApplication({ ...owner, contactInternalName: vm.selected.internalName }))
+      .then(
+        function () {
+          $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
+          $scope.$close();
+        },
+        function (error) {
+          vm.submitError = Messages.getHttpErrorMessage(error);
+        }
+      );
   }
 
   function removeContact() {
-    owner.contactInternalName = null;
     vm.deleteMode = true;
     DeleteModalService.deleteCustom(
       'Clear Contact',
       'You are about to remove ' + vm.owner.contact.displayName + '.',
       'Removing',
       function () {
-        return vm.owner.$save();
+        return vm.updateApplication({ ...vm.owner, contactInternalName: null });
       }
     ).then(
       function () {
+        $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
         $scope.$close();
       },
       function (error) {
@@ -114,10 +128,13 @@ export default function SelectApplicationContactController(
 }
 
 SelectApplicationContactController.$inject = [
+  '$rootScope',
   '$scope',
   '$http',
   'CLMContextLocations',
   'owner',
   'DeleteModalService',
   'Messages',
+  'event.name.constant',
+  '$ngRedux',
 ];

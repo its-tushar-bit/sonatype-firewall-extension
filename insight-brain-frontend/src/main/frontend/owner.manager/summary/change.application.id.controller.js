@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { unwrapResult } from '@reduxjs/toolkit';
+
+import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 export default function ChangeApplicationIdController(
   $scope,
   $rootScope,
@@ -10,20 +13,24 @@ export default function ChangeApplicationIdController(
   owner,
   siblings,
   Messages,
-  ApplicationStore,
   OwnerConstant,
-  EventNameConstant
+  EventNameConstant,
+  $ngRedux
 ) {
   var vm = this;
 
   vm.isDirty = isDirty;
   vm.changeApplicationId = changeApplicationId;
-  vm.originalApp = owner;
-  vm.dirtyApp = ApplicationStore.create();
+  vm.originalApp = angular.copy(owner);
+  vm.dirtyApp = {
+    publicId: null,
+  };
   vm.error = undefined;
   vm.siblings = siblings;
   vm.applicationIdEditorMask = undefined;
   vm.unsavedModalVisible = false;
+  vm.unsubscribe = $ngRedux.connect(null, { updateApplication: applicationActions.updateApplication })(vm);
+
   // Override messages to be used in the field validation popover
   const invalidCharactersMessage = 'Use valid characters: alphanumeric, "_", "." or "-"';
   vm.formMessages = {
@@ -31,6 +38,10 @@ export default function ChangeApplicationIdController(
     validNameCharacters: invalidCharactersMessage,
     noSpaces: invalidCharactersMessage,
   };
+
+  $scope.$on('$destroy', function () {
+    vm.unsubscribe();
+  });
 
   $scope.$on('pageChangeStarted', function (event) {
     if (vm.isDirty()) {
@@ -53,7 +64,8 @@ export default function ChangeApplicationIdController(
     }
     delete vm.error;
     vm.originalApp.publicId = vm.dirtyApp.publicId;
-    vm.applicationIdEditorMask.wrap(vm.originalApp.$save()).then(
+
+    vm.applicationIdEditorMask.wrap(vm.updateApplication(vm.originalApp).then(unwrapResult)).then(
       function () {
         $scope.$close();
         $rootScope.$broadcast(
@@ -84,7 +96,7 @@ ChangeApplicationIdController.$inject = [
   'owner',
   'siblings',
   'Messages',
-  'ApplicationStore',
   'owner.constant',
   'event.name.constant',
+  '$ngRedux',
 ];

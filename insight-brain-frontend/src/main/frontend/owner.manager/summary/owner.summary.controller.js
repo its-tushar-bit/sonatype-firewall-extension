@@ -4,8 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { unwrapResult } from '@reduxjs/toolkit';
+
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
 import {
   selectIsGrandfatheringSupported,
@@ -13,6 +15,8 @@ import {
   selectIsEvaluateApplicationAvailable,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
+import { find, propEq } from 'ramda';
+import { selectDeleteModal } from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function OwnerSummaryController(
@@ -23,7 +27,6 @@ export default function OwnerSummaryController(
   $http,
   $window,
   OwnerEditor,
-  ApplicationStore,
   OrganizationStore,
   CLMLocations,
   CLMContextLocations,
@@ -79,6 +82,8 @@ export default function OwnerSummaryController(
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
     loadDashboardStageTypes: stagesActions.loadDashboardStages,
+    loadApplications: applicationActions.loadApplications,
+    removeApplication: applicationActions.removeApplication,
     setSelectedOwner: rootActions.setSelectedOwner,
     setSelectedOwnerContact: rootActions.setSelectedOwnerContact,
   })(vm);
@@ -98,6 +103,7 @@ export default function OwnerSummaryController(
     });
 
     $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
+    $scope.$on(EventNameConstant.OWNER_UPDATED, doLoad);
   }
 
   $scope.$on('$destroy', function () {
@@ -105,38 +111,43 @@ export default function OwnerSummaryController(
   });
 
   function doLoad() {
-    var store = vm.isApp ? ApplicationStore : OrganizationStore,
-      promises = [store[vm.error ? 'refresh' : 'get'](), store.getById(id), vm.loadProductFeatures()];
-
+    var promises = [vm.loadProductFeatures()];
     if (vm.isApp) {
+      promises.push(vm.loadApplications());
       promises.push(vm.loadDashboardStageTypes());
       promises.push($http.get(CLMLocations.getApplicationSummaryUrl(id)));
       promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
-      promises.push(ApplicationStore.getById(CLMContextLocations.getEntityId()));
+    } else {
+      promises.push(OrganizationStore[vm.error ? 'refresh' : 'get'](), OrganizationStore.getById(id));
     }
 
-    $q.all(promises).then(
-      function (results) {
-        unwrapResult(results[2]);
-        siblings = results[0];
-        vm.setSelectedOwner(results[1]);
+    $q.all(promises)
+      .then(function (results) {
+        unwrapResult(results[0]);
 
         if (vm.isApp) {
-          unwrapResult(results[3]);
-          vm.applicationSummary = results[4].data;
-
+          siblings = unwrapResult(results[1]);
+          unwrapResult(results[2]);
+          const owner = find(propEq('publicId', id), siblings);
+          if (!owner) {
+            throw new Error(`Could not find an application with ID ${id}.`);
+          }
+          vm.setSelectedOwner(owner);
+          vm.applicationSummary = results[3].data;
           vm.setSelectedOwnerContact(vm.applicationSummary.contact);
+          vm.isGrandfatheringEnabled = results[4].calculatedEnabled;
 
-          vm.isGrandfatheringEnabled = results[5].calculatedEnabled;
           getAppChangePermissions();
           getAppEvaluatePermissions();
-          getSourceControl(results[6].id);
+          getSourceControl(vm.owner.id);
+        } else {
+          siblings = results[1];
+          vm.setSelectedOwner(results[2]);
         }
-      },
-      function (error) {
+      })
+      .catch(function (error) {
         vm.error = error;
-      }
-    );
+      });
 
     delete vm.error;
   }
@@ -198,10 +209,25 @@ export default function OwnerSummaryController(
   }
 
   function deleteOwner() {
-    DeleteModalService.deleteResource(vm.getResourceTypeName(), vm.owner.name, vm.owner).then(function () {
-      $rootScope.$broadcast('owner.deleted', vm.owner, type);
-      vm.goToParentView();
-    });
+    if (vm.isApp) {
+      const warningMessage = `You are about to permanently remove ${vm.owner.name}. This action cannot be undone.`;
+
+      DeleteModalService.deleteRedux(
+        'Delete Application',
+        warningMessage,
+        'Deleting',
+        () => vm.removeApplication(vm.owner),
+        selectDeleteModal
+      ).then(function () {
+        $rootScope.$broadcast('owner.deleted', vm.owner, type);
+        vm.goToParentView();
+      });
+    } else {
+      DeleteModalService.deleteResource(vm.getResourceTypeName(), vm.owner.name, vm.owner).then(function () {
+        $rootScope.$broadcast('owner.deleted', vm.owner, type);
+        vm.goToParentView();
+      });
+    }
   }
 
   function revokeGrandfathering() {
@@ -285,7 +311,6 @@ OwnerSummaryController.$inject = [
   '$http',
   '$window',
   'OwnerEditorService',
-  'ApplicationStore',
   'OrganizationStore',
   'CLMLocations',
   'CLMContextLocations',

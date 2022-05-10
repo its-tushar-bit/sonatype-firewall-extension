@@ -71,4 +71,123 @@ describe('applications reducer', () => {
       expect(expectedOtherState).toEqual(otherState);
     });
   });
+
+  describe('applications/updateApplication/fulfilled', () => {
+    it('sets newly created application', () => {
+      const newApplication = {
+        id: 'newApplication',
+      };
+      const state = Object.freeze({
+        applications: [],
+      });
+
+      const newState = reducer(state, {
+        type: 'applications/updateApplication/fulfilled',
+        payload: { application: newApplication, isNew: true },
+      });
+
+      expect(newState.applications).toEqual([newApplication]);
+    });
+
+    it('updates edited application', () => {
+      const editedApplication = {
+        id: 'newApplication',
+        name: 'newName',
+      };
+      const state = Object.freeze({
+        applications: [
+          {
+            id: 'newApplication',
+            name: 'oldName',
+          },
+        ],
+      });
+
+      const newState = reducer(state, {
+        type: 'applications/updateApplication/fulfilled',
+        payload: { application: editedApplication, isNew: false },
+      });
+
+      expect(newState.applications).toEqual([editedApplication]);
+    });
+  });
+
+  describe('applications/resetDeleteModalState', () => {
+    it('resets delete modal related properties property', () => {
+      const state = Object.freeze({
+        deleteModal: {
+          deleting: false,
+          success: false,
+          errorState: 'error',
+        },
+      });
+
+      const { deleteModal } = reducer(state, {
+        type: 'applications/resetDeleteModalState',
+      });
+
+      expect(deleteModal.deleting).toBeNull();
+      expect(deleteModal.success).toBeNull();
+      expect(deleteModal.errorState).toBeNull();
+    });
+  });
+
+  describe('applications/removeApplication/pending', () => {
+    it('sets deleting property to null', () => {
+      const state = Object.freeze({ deleting: false });
+
+      const { deleteModal } = reducer(state, {
+        type: 'applications/removeApplication/pending',
+      });
+
+      expect(deleteModal.deleting).toBeTrue();
+    });
+  });
+
+  describe('applications/removeApplication/fulfilled', () => {
+    it('sets currentCategory, serverCategory to initialState', () => {
+      const state = Object.freeze({
+        deleteModal: {
+          deleting: true,
+          errorState: null,
+          success: null,
+        },
+        applications: [
+          {
+            name: 'name',
+            id: 'id',
+          },
+        ],
+      });
+
+      const newState = reducer(state, {
+        type: 'applications/removeApplication/fulfilled',
+        payload: 'id',
+      });
+
+      expect(newState.deleteModal.deleting).toBeNull();
+      expect(newState.deleteModal.errorState).toBeNull();
+      expect(newState.deleteModal.success).toBeTrue();
+      expect(newState.applications).toEqual([]);
+    });
+  });
+
+  describe('applications/removeApplication/rejected', () => {
+    it('sets errorState, deleting', () => {
+      const state = Object.freeze({
+        deleteModal: {
+          deleting: true,
+          errorState: null,
+        },
+      });
+
+      const { deleteModal } = reducer(state, {
+        type: 'applications/removeApplication/rejected',
+        payload: 'error',
+      });
+
+      expect(deleteModal.deleting).toBeFalse();
+      expect(deleteModal.errorState).toBe('error');
+    });
+  });
 });

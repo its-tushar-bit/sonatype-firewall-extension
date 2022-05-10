@@ -22,3 +22,5 @@ export const selectLoadEmptyError = createSelector(
   (loading, loadError, ownerName, entityId) =>
     !loading && !ownerName ? loadError || `Could not find an application with ID ${entityId}.` : null
 );
+
+export const selectDeleteModal = createSelector(selectApplicationsSlice, prop('deleteModal'));

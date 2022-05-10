@@ -3,6 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { unwrapResult } from '@reduxjs/toolkit';
+import angular from 'angular';
+import { any, clone } from 'ramda';
+
+import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
 
 export default function OwnerEditorController(
@@ -30,12 +35,18 @@ export default function OwnerEditorController(
 
   vm.unsubscribe = $ngRedux.connect(null, {
     setSelectedOwner: rootActions.setSelectedOwner,
+    updateApplication: applicationActions.updateApplication,
   })(vm);
 
   vm.cancel = cancel;
   vm.csrfTokenName = $http.defaults.xsrfHeaderName;
   vm.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
-  vm.dirtyOwner = owner.$new ? owner : owner.$clone(); // only create a copy for an existing
+
+  const ownerIsResource = owner?.hasOwnProperty('$new');
+  const resourceOwner = ownerIsResource && (owner.$new ? owner : owner.$clone());
+  const nonResourceOwner = !ownerIsResource && clone(owner);
+  vm.originalDirtyOwner = nonResourceOwner;
+  vm.dirtyOwner = ownerIsResource ? resourceOwner : nonResourceOwner;
   vm.error = undefined;
   vm.iconWarning = undefined;
   vm.fileUploadComplete = fileUploadComplete;
@@ -47,6 +58,7 @@ export default function OwnerEditorController(
   vm.robot = robot;
   vm.robotUrl = robotUrl;
   vm.save = save;
+  vm.isApplicationDirty = isApplicationDirty;
   vm.siblings = siblings;
   vm.userIconPreview = undefined;
   vm.unsavedModalVisible = false;
@@ -98,8 +110,15 @@ export default function OwnerEditorController(
     vm.unsubscribe();
   });
 
+  function isApplicationDirty(currentOwner) {
+    const propertiesToCompare = ['name', 'contact', 'organizationId', 'organizationName', 'publicId'];
+
+    return any((prop) => currentOwner[prop] !== vm.originalDirtyOwner[prop], propertiesToCompare);
+  }
+
   function isDirty() {
-    return !(vm.icon.type === originalIconType || (!vm.icon.type && !originalIconType)) || vm.dirtyOwner.isDirty();
+    const ownerIsDirty = ownerIsResource ? vm.dirtyOwner.isDirty() : vm.isApplicationDirty(vm.dirtyOwner);
+    return !(vm.icon.type === originalIconType || (!vm.icon.type && !originalIconType)) || ownerIsDirty;
   }
 
   function fileUploadComplete(content) {
@@ -112,7 +131,7 @@ export default function OwnerEditorController(
   }
 
   function save() {
-    var isNew = owner.$new;
+    var isNew = ownerIsResource ? owner.$new : owner.isNew;
     delete vm.error;
     delete vm.iconWarning;
 
@@ -120,45 +139,55 @@ export default function OwnerEditorController(
       vm.dirtyOwner.contactInternalName = vm.dirtyOwner.contact.internalName;
     }
 
+    const saveEditor = ownerIsResource ? vm.dirtyOwner.$save() : vm.updateApplication(vm.dirtyOwner);
+
     vm.ownerEditorMask
       .wrap(
-        vm.dirtyOwner.$save().then(function (result) {
-          var form = $('#custom-icon-form'),
-            nameChanged = !vm.ownerEditor.name.$pristine,
-            iconUploadUrl = CLMContextLocations.getAddIconUrl(ownerType, result.id);
-          vm.ownerEditor.name.$setPristine();
-
-          if (vm.icon.type === '') {
-            // default icon
+        saveEditor
+          .then((result) => {
+            if (!ownerIsResource) {
+              return unwrapResult(result).application;
+            }
             return result;
-          } else if ($window.FormData) {
-            var formData = new FormData(form[0]);
-            deferred = $q.defer();
+          })
+          .then(function (result) {
+            var form = $('#custom-icon-form'),
+              nameChanged = !vm.ownerEditor.name.$pristine,
+              iconUploadUrl = CLMContextLocations.getAddIconUrl(ownerType, result.id);
+            vm.ownerEditor.name.$setPristine();
+            vm.originalDirtyOwner = result;
 
-            $http
-              .post(iconUploadUrl, formData)
-              .then(
-                function () {
-                  deferred.resolve(result);
-                },
-                function (error) {
-                  if (isNew || nameChanged === true) {
-                    // only show warning for new and mixed state
-                    vm.iconWarning = messages.getHttpErrorMessage(error);
+            if (vm.icon.type === '') {
+              // default icon
+              return result;
+            } else if ($window.FormData) {
+              var formData = new FormData(form[0]);
+              deferred = $q.defer();
+
+              $http
+                .post(iconUploadUrl, formData)
+                .then(
+                  function () {
+                    deferred.resolve(result);
+                  },
+                  function (error) {
+                    if (isNew || nameChanged === true) {
+                      // only show warning for new and mixed state
+                      vm.iconWarning = messages.getHttpErrorMessage(error);
+                    }
+                    deferred.reject(error);
                   }
-                  deferred.reject(error);
-                }
-              )
-              .finally(function () {
-                deferred = null;
-              });
-          } else {
-            deferred = $q.defer();
-            form[0].action = iconUploadUrl;
-            form.submit();
-          }
-          return deferred.promise;
-        })
+                )
+                .finally(function () {
+                  deferred = null;
+                });
+            } else {
+              deferred = $q.defer();
+              form[0].action = iconUploadUrl;
+              form.submit();
+            }
+            return deferred.promise;
+          })
       )
       .then(
         function (updatedOwner) {

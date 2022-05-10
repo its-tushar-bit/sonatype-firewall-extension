@@ -8,7 +8,7 @@ import { actions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import * as applicationsSelectors from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
 import { getApplicationsUrl } from 'MainRoot/util/CLMLocation';
 
-describe('orgsAndPoliciesApplicationsActions', () => {
+describe('applications actions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let store, state, applicationsSelectorsSpy;
 
@@ -155,6 +155,115 @@ describe('orgsAndPoliciesApplicationsActions', () => {
           'applications/loadApplications/rejected',
         ]);
         expect(actions[1].payload).toBe('could not load applications');
+
+        done();
+      });
+    });
+  });
+
+  describe('updateApplications', () => {
+    let applicationToSave, applicationUpdateResponse;
+
+    beforeEach(() => {
+      applicationToSave = {
+        id: 'id',
+        name: 'name',
+        publicId: 'publicId',
+        organizationId: 'organizationId',
+        contactInternalName: 'contactInternalName',
+        invalidProperty: null,
+      };
+
+      applicationUpdateResponse = {
+        id: 'id',
+        name: 'name',
+        publicId: 'publicId',
+        organizationId: 'organizationId',
+        contactInternalName: 'contactInternalName',
+      };
+    });
+
+    it('creates successfully', (done) => {
+      mockAxiosCalls({
+        post: {
+          [getApplicationsUrl()]: Promise.resolve({
+            data: applicationUpdateResponse,
+          }),
+        },
+      });
+      applicationToSave.isNew = true;
+
+      store.dispatch(actions.updateApplication(applicationToSave)).then(() => {
+        expect(axios.post).toHaveBeenCalledTimes(1);
+        expect(axios.post).toHaveBeenCalledOnceWith('/rest/application', applicationUpdateResponse);
+
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'applications/updateApplication/pending',
+          'applications/updateApplication/fulfilled',
+        ]);
+
+        expect(actions[1].payload).toEqual({
+          isNew: true,
+          application: applicationUpdateResponse,
+        });
+
+        done();
+      });
+    });
+
+    it('updates successfully', (done) => {
+      mockAxiosCalls({
+        put: {
+          [getApplicationsUrl()]: Promise.resolve({
+            data: applicationUpdateResponse,
+          }),
+        },
+      });
+
+      store.dispatch(actions.updateApplication(applicationToSave)).then(() => {
+        expect(axios.put).toHaveBeenCalledTimes(1);
+        expect(axios.put).toHaveBeenCalledOnceWith('/rest/application', applicationUpdateResponse);
+
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'applications/updateApplication/pending',
+          'applications/updateApplication/fulfilled',
+        ]);
+
+        expect(actions[1].payload).toEqual({
+          isNew: false,
+          application: applicationUpdateResponse,
+        });
+
+        done();
+      });
+    });
+
+    it('dispatches rejected action if update fails', (done) => {
+      mockAxiosCalls({
+        put: {
+          [getApplicationsUrl()]: () => Promise.reject('could not update application'),
+        },
+      });
+
+      store.dispatch(actions.updateApplication(applicationToSave)).then(() => {
+        expect(axios.put).toHaveBeenCalledTimes(1);
+        expect(axios.put).toHaveBeenCalledOnceWith('/rest/application', applicationUpdateResponse);
+
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'applications/updateApplication/pending',
+          'applications/updateApplication/rejected',
+        ]);
+
+        expect(actions[1].payload).toBe('could not update application');
 
         done();
       });

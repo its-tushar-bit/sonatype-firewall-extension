@@ -96,6 +96,10 @@ public final class AttributionReportFormPage
     return child("input[name='includeInnerSource']");
   }
 
+  public SelenideElement getIncludeSonatypeSpecialLicensesCheckboxInput() {
+    return child("input[name='includeSonatypeSpecialLicenses']");
+  }
+
   public SelenideElement getTemplatesDropdown() {
     return child(".nx-dropdown__toggle");
   }

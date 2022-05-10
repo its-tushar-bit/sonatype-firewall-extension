@@ -264,6 +264,7 @@ public class AttributionReportFormTest
     attrReportFormPage.getIncludeStandardLicenseTextsHiddenInput().shouldHave(value("false"));
     attrReportFormPage.getAppendixHiddenInput().shouldHave(value("false"));
     attrReportFormPage.getIncludeInnerSourceCheckboxInput().shouldHave(value("true"));
+    attrReportFormPage.getIncludeSonatypeSpecialLicensesCheckboxInput().shouldHave(value("false"));
   }
 
   @Test
@@ -313,6 +314,7 @@ public class AttributionReportFormTest
     attrReportFormPage.getIncludeStandardLicenseTextsHiddenInput().shouldHave(value("true"));
     attrReportFormPage.getAppendixHiddenInput().shouldHave(value("true"));
     attrReportFormPage.getIncludeInnerSourceCheckboxInput().shouldHave(value("false"));
+    attrReportFormPage.getIncludeSonatypeSpecialLicensesCheckboxInput().shouldHave(value("false"));
     this.testCustomValuesToTemplate(attrReportFormPage);
   }
 

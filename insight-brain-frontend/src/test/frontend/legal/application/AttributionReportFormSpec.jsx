@@ -31,6 +31,7 @@ describe('AttributionReportForm component', function () {
             footer: 'Footer 1',
             includeTableOfContents: true,
             includeAppendix: true,
+            includeSonatypeSpecialLicenses: false,
             includeStandardLicenseTexts: true,
             includeInnerSource: true,
             lastUpdatedAt: 1631210819988,
@@ -43,6 +44,7 @@ describe('AttributionReportForm component', function () {
             footer: 'Footer 2',
             includeTableOfContents: false,
             includeAppendix: true,
+            includeSonatypeSpecialLicenses: false,
             includeStandardLicenseTexts: true,
             includeInnerSource: false,
             lastUpdatedAt: 1631210809228,
@@ -200,6 +202,10 @@ describe('AttributionReportForm component', function () {
     expect(
       wrapper.find('input[name="includeAppendix"]').prop('value') ===
         selectedAttributionReportTemplate.includeAppendix.toString()
+    ).toBe(true);
+    expect(
+      wrapper.find('input[name="includeSonatypeSpecialLicenses"]').prop('value') ===
+        selectedAttributionReportTemplate.includeSonatypeSpecialLicenses
     ).toBe(true);
     expect(
       wrapper.find('input[name="includeInnerSource"]').prop('value') ===

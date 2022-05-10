@@ -60,6 +60,7 @@ export default function AttributionReportForm(props) {
     includeTableOfContents: true,
     includeStandardLicenseTexts: true,
     includeAppendix: true,
+    includeSonatypeSpecialLicenses: false,
     includeInnerSource: false,
   };
   const [formState, setFormState] = React.useState(defaultFormState);
@@ -92,6 +93,7 @@ export default function AttributionReportForm(props) {
       includeTableOfContents,
       includeStandardLicenseTexts,
       includeAppendix,
+      includeSonatypeSpecialLicenses,
       includeInnerSource,
     } = attributionReportTemplates.results[attributionReports.selectedTemplateIndex];
 
@@ -102,6 +104,7 @@ export default function AttributionReportForm(props) {
       includeTableOfContents,
       includeStandardLicenseTexts,
       includeAppendix,
+      includeSonatypeSpecialLicenses,
       includeInnerSource,
     });
   }
@@ -135,6 +138,7 @@ export default function AttributionReportForm(props) {
     includeTableOfContents: formState.includeTableOfContents,
     includeStandardLicenseTexts: formState.includeStandardLicenseTexts,
     includeAppendix: formState.includeAppendix,
+    includeSonatypeSpecialLicenses: formState.includeSonatypeSpecialLicenses,
     includeInnerSource: formState.includeInnerSource,
   });
 
@@ -352,6 +356,23 @@ export default function AttributionReportForm(props) {
               >
                 Include Appendix that displays all Standard Licence Texts at the end of the report and inserts
                 hyperlinks where relevant.
+              </NxCheckbox>
+            </NxFieldset>
+            <NxFieldset
+              label="Sonatype Special Licenses"
+              sublabel="(No Sources, Unassigned, Commercial, Not Supported, etc)."
+              isRequired
+            >
+              <NxCheckbox
+                onChange={toggle('includeSonatypeSpecialLicenses')}
+                isChecked={formState.includeSonatypeSpecialLicenses}
+                id="sonatype-special-licenses-checkbox"
+                inputAttributes={{
+                  name: 'includeSonatypeSpecialLicenses',
+                  value: formState.includeSonatypeSpecialLicenses,
+                }}
+              >
+                Include Sonatype special license detections.
               </NxCheckbox>
             </NxFieldset>
             <NxFieldset label="InnerSource Components" isRequired>

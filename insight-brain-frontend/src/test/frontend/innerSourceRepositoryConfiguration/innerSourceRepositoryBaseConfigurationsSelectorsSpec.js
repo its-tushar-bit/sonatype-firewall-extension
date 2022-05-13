@@ -23,15 +23,18 @@ describe('innerSourceRepositoryBaseConfigurationsSelectors', function () {
     selectRepositoryConnections,
     selectRepositoryConnectionStatus,
     selectServerData,
-    selectValidationErrors;
-
+    selectValidationErrors,
+    selectLoading,
+    selectLoadError,
+    selectEditLink,
+    selectInnerSourceRepositoriesEnabled;
   beforeEach(() => {
     spyGetOriginalValues = jasmine.createSpy('getOriginalValues').and.callFake((serverData) => {
       return getOriginalValues(serverData);
     });
     const module = require('inject-loader!../../../../src/main/frontend/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSelectors')(
       {
-        'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsUtil': {
+        './innerSourceRepositoryBaseConfigurationsUtil': {
           initialState: getInitialState(),
           getOriginalValues: spyGetOriginalValues,
         },
@@ -52,6 +55,10 @@ describe('innerSourceRepositoryBaseConfigurationsSelectors', function () {
       selectRepositoryConnectionStatus,
       selectServerData,
       selectValidationErrors,
+      selectLoading,
+      selectLoadError,
+      selectEditLink,
+      selectInnerSourceRepositoriesEnabled,
     } = module);
   });
 
@@ -264,6 +271,114 @@ describe('innerSourceRepositoryBaseConfigurationsSelectors', function () {
         },
       };
       expect(selectValidationErrors(state)).toBe(NO_CHANGES_MESSAGE);
+    });
+
+    it('selects the NO_CHANGES_MESSAGE if the form is not dirty', () => {});
+  });
+
+  describe('selectLoading', () => {
+    it('selects `loading`', () => {
+      const state = {
+        innerSourceRepositoryBaseConfigurations: {
+          loading: true,
+        },
+      };
+      expect(selectLoading(state)).toBeTrue();
+    });
+  });
+
+  describe('selectLoadError', () => {
+    it('selects `loadError`', () => {
+      const state = {
+        innerSourceRepositoryBaseConfigurations: {
+          loadError: 'error',
+        },
+      };
+      expect(selectLoadError(state)).toBe('error');
+    });
+  });
+
+  describe('selectEditLink', () => {
+    it('forms the editLink with application', () => {
+      const state = {
+        router: {
+          currentState: {
+            name: 'management.view.application',
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: 'id',
+            },
+          },
+        },
+      };
+      expect(selectEditLink(state)).toBe(`repositoryBaseConfigurations.application({applicationId:'id'})`);
+    });
+    it('forms the editLink with organization', () => {
+      const state = {
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: 'id',
+            },
+          },
+        },
+      };
+      expect(selectEditLink(state)).toBe(`repositoryBaseConfigurations.organization({organizationId:'id'})`);
+    });
+  });
+
+  describe('selectInnerSourceRepositoriesEnabled', () => {
+    it('constructs `InnerSourceRepositoriesEnabled` with inheritedFromOrgEnabled true', () => {
+      const state = {
+        innerSourceRepositoryBaseConfigurations: {
+          serverData: {
+            repositoryConnectionStatus: {
+              enabled: false,
+              inheritedFromOrgEnabled: true,
+              allowChange: false,
+            },
+          },
+        },
+      };
+      expect(selectInnerSourceRepositoriesEnabled(state)).toBeTrue();
+    });
+
+    it('constructs `InnerSourceRepositoriesEnabled` with inheritedFromOrgEnabled false', () => {
+      const state = {
+        innerSourceRepositoryBaseConfigurations: {
+          serverData: {
+            repositoryConnectionStatus: {
+              enabled: false,
+              inheritedFromOrgEnabled: false,
+              allowChange: true,
+            },
+          },
+        },
+      };
+      expect(selectInnerSourceRepositoriesEnabled(state)).toBeFalse();
+    });
+
+    it('constructs `InnerSourceRepositoriesEnabled` with enabled and allowChange true', () => {
+      const state = {
+        innerSourceRepositoryBaseConfigurations: {
+          serverData: {
+            repositoryConnectionStatus: {
+              enabled: true,
+              inheritedFromOrgEnabled: false,
+              allowChange: true,
+            },
+          },
+        },
+      };
+      expect(selectInnerSourceRepositoriesEnabled(state)).toBeTrue();
     });
   });
 });

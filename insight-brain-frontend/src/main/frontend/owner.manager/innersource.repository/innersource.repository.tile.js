@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { actions as innerSourceRepositoryBaseConfigurationsActions } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSlice';
 import {
   selectIsInnerSourceRepositorySupported,
   selectLoadErrorFeaturesSlice,
@@ -12,23 +13,27 @@ import {
 import template from './innersource.repository.tile.html';
 import { selectIsApplication, selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import {
+  selectEditLink,
+  selectInheritedFromOrganizationName,
+  selectInnerSourceRepositoriesEnabled,
+  selectLoadError,
+  selectLoading,
+  selectRepositoryConnections,
+} from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSelectors';
 export default {
   template: template,
   controllerAs: 'vm',
   controller: InnerSourceRepositoryTileController,
 };
 
-function InnerSourceRepositoryTileController($scope, Messages, InnerSourceRepositoryService, $ngRedux) {
+function InnerSourceRepositoryTileController($scope, $ngRedux) {
   var vm = this;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+    loadRepositoryConnections: innerSourceRepositoryBaseConfigurationsActions.load,
   })(vm);
-
-  vm.loading = false;
-  vm.innerSourceRepositories = [];
-  vm.ownerType = vm.isOrg ? 'organization' : 'application';
-  vm.loadRepositoryConnections = loadRepositoryConnections;
 
   $scope.$on('$destroy', function () {
     vm.unsubscribe();
@@ -36,43 +41,9 @@ function InnerSourceRepositoryTileController($scope, Messages, InnerSourceReposi
 
   $scope.$watch('vm.ownerId', function (newValue, oldValue) {
     if (newValue && newValue !== oldValue) {
-      vm.editLink = `repositoryBaseConfigurations.${vm.ownerType}({${vm.ownerType}Id:'${vm.ownerId}'})`;
-      if (vm.isInnerSourceRepositorySupported) vm.loadRepositoryConnections();
+      if (vm.isInnerSourceRepositorySupported) vm.loadRepositoryConnections({ ownerId: vm.ownerId, inherit: true });
     }
   });
-
-  $scope.$watch('vm.ownerType', function (newValue) {
-    if (newValue) {
-      vm.editLink = `repositoryBaseConfigurations.${vm.ownerType}({${vm.ownerType}Id:'${vm.ownerId}'})`;
-    }
-  });
-
-  function loadRepositoryConnections() {
-    vm.loading = true;
-    vm.error = undefined;
-    InnerSourceRepositoryService.getRepositoryConnections(vm.ownerType, vm.ownerId, true)
-      .then(function (result) {
-        if (!result) {
-          return;
-        }
-        if (Array.isArray(result.repositoryConnections) && result.repositoryConnections.length > 0) {
-          vm.innerSourceRepositories = result.repositoryConnections;
-        }
-        if (!result.repositoryConnectionStatus) {
-          return;
-        }
-        vm.innerSourceRepositoriesEnabled =
-          result.repositoryConnectionStatus.inheritedFromOrgEnabled ||
-          (result.repositoryConnectionStatus.allowChange && result.repositoryConnectionStatus.enabled);
-        vm.innerSourceRepositoriesInheritedFrom = result.repositoryConnectionStatus.inheritedFromOrganizationName;
-      })
-      .catch(function (e) {
-        vm.error = Messages.getHttpErrorMessage(e);
-      })
-      .finally(function () {
-        vm.loading = false;
-      });
-  }
 }
 
 const mapStateToThis = (state) => ({
@@ -82,6 +53,12 @@ const mapStateToThis = (state) => ({
   ownerId: selectSelectedOwnerId(state),
   loadingFeatures: selectLoadingFeaturesSlice(state),
   loadError: selectLoadErrorFeaturesSlice(state),
+  editLink: selectEditLink(state),
+  loading: selectLoading(state),
+  error: selectLoadError(state),
+  innerSourceRepositories: angular.copy(selectRepositoryConnections(state)),
+  innerSourceRepositoriesInheritedFrom: selectInheritedFromOrganizationName(state),
+  innerSourceRepositoriesEnabled: selectInnerSourceRepositoriesEnabled(state),
 });
 
-InnerSourceRepositoryTileController.$inject = ['$scope', 'Messages', 'InnerSourceRepositoryService', '$ngRedux'];
+InnerSourceRepositoryTileController.$inject = ['$scope', '$ngRedux'];

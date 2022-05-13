@@ -5,14 +5,18 @@
  */
 import { prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
-import { getOriginalValues } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsUtil';
-import { NO_CHANGES_MESSAGE } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModalSlice';
+import { getOriginalValues } from './innerSourceRepositoryBaseConfigurationsUtil';
+import { NO_CHANGES_MESSAGE } from './innerSourceRepositoryConfigurationModalSlice';
+import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const selectInnerSourceRepositoryBaseConfigurationsSlice = prop('innerSourceRepositoryBaseConfigurations');
 
 export const selectFormState = createSelector(selectInnerSourceRepositoryBaseConfigurationsSlice, prop('formState'));
 
 export const selectServerData = createSelector(selectInnerSourceRepositoryBaseConfigurationsSlice, prop('serverData'));
+export const selectLoading = createSelector(selectInnerSourceRepositoryBaseConfigurationsSlice, prop('loading'));
+export const selectLoadError = createSelector(selectInnerSourceRepositoryBaseConfigurationsSlice, prop('loadError'));
 
 export const selectRepositoryConnectionStatus = createSelector(selectServerData, prop('repositoryConnectionStatus'));
 
@@ -54,3 +58,15 @@ export const selectValidationErrors = createSelector(selectIsDirty, (isDirty) =>
   }
   return null;
 });
+
+export const selectEditLink = createSelector(selectIsOrganization, selectSelectedOwnerId, (isOrganization, ownerId) => {
+  const ownerType = isOrganization ? 'organization' : 'application';
+  return `repositoryBaseConfigurations.${ownerType}({${ownerType}Id:'${ownerId}'})`;
+});
+
+export const selectInnerSourceRepositoriesEnabled = createSelector(
+  selectInheritedFromOrgEnabled,
+  selectAllowChange,
+  selectEnabled,
+  (inheritedFromOrgEnabled, allowChange, enabled) => inheritedFromOrgEnabled || (allowChange && enabled)
+);

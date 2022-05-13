@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { pick } from 'ramda';
+import { compose, isNil, not, pick } from 'ramda';
 
 import commonServicesModule from '../utilAngular/CommonServices';
 import { toURIParams, uriTemplate } from './urlUtil';
@@ -847,12 +847,12 @@ export const getVulnerabilityOverrideUrl = (ownerType, ownerId, hash, vulnerabil
   return uriTemplate`/rest/securityVulnerabilityOverride/${ownerType}/${ownerId}`;
 };
 
-export const getRepositoryConnections = (ownerType, ownerId, inherit) =>
-  uriTemplate`/api/v2/config/repositoryConnection/${ownerType}/${ownerId}?inherit=${inherit}`;
-
-export const getRepositoryConnectionUrl = (ownerType, ownerId, repositoryConnectionId) => {
+export const getRepositoryConnectionUrl = (ownerType, ownerId, repositoryConnectionId, inherit) => {
   if (repositoryConnectionId) {
     return uriTemplate`/api/v2/config/repositoryConnection/${ownerType}/${ownerId}/${repositoryConnectionId}`;
+  }
+  if (compose(not, isNil)(inherit)) {
+    return uriTemplate`/api/v2/config/repositoryConnection/${ownerType}/${ownerId}?inherit=${inherit}`;
   }
   return uriTemplate`/api/v2/config/repositoryConnection/${ownerType}/${ownerId}`;
 };
@@ -1248,7 +1248,6 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       /**
        * @since 1.128.0
        */
-      getRepositoryConnections,
     };
   },
 ]);

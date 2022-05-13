@@ -5,7 +5,10 @@
  */
 import { prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectApplicationId as selectApplicationPublicId,
+  selectRouterCurrentParams,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   FAKE_PASSWORD,
   MISSING_OR_INVALID_DATA_MESSAGE,
@@ -23,13 +26,14 @@ export const selectApplicationId = createSelector(selectRouterCurrentParams, pro
 export const selectOwnerTypeAndOwnerId = createSelector(
   selectOrganizationId,
   selectApplicationId,
-  (organizationId, applicationId) => {
-    if (!organizationId && !applicationId) {
+  selectApplicationPublicId,
+  (organizationId, applicationId, applicationPublicId) => {
+    if (!organizationId && !applicationId && !applicationPublicId) {
       return undefined;
     }
     return {
       ownerType: organizationId ? 'organization' : 'application',
-      ownerId: organizationId ?? applicationId,
+      ownerId: organizationId ?? applicationId ?? applicationPublicId,
     };
   }
 );

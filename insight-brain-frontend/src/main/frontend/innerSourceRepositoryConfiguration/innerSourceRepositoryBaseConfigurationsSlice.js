@@ -46,15 +46,18 @@ function resetFormState(state) {
   };
 }
 
-const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWithValue }) => {
-  const state = getState(),
-    { ownerType, ownerId } = selectOwnerTypeAndOwnerId(state);
-
-  return axios
-    .get(getRepositoryConnectionUrl(ownerType, ownerId, null))
-    .then(({ data }) => data)
-    .catch(rejectWithValue);
-});
+const load = createAsyncThunk(
+  `${REDUCER_NAME}/load`,
+  //when the ownerId in the router slice is the publicApplicationID then the applicationId must be passed as a param
+  (data, { getState, rejectWithValue }) => {
+    const state = getState();
+    const { ownerType, ownerId } = selectOwnerTypeAndOwnerId(state);
+    return axios
+      .get(getRepositoryConnectionUrl(ownerType, data?.ownerId || ownerId, null, data?.inherit))
+      .then(({ data }) => data)
+      .catch(rejectWithValue);
+  }
+);
 
 function loadRequested(state) {
   return {

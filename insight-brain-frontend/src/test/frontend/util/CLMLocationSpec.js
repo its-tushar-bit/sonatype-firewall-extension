@@ -118,15 +118,6 @@ describe('CLMLocation.js', function () {
           '%7B%22coordinates%22%3A%22a-coordinate%22%7D'
       );
     });
-
-    it('should return the correct URL to query the InnerSource repository connections of an owner', () => {
-      expect(CLMLocationsService.getRepositoryConnections('ownerType', 'ownerId', true)).toBe(
-        'http://localhost/api/v2/config/repositoryConnection/ownerType/ownerId?inherit=true'
-      );
-      expect(CLMLocationsService.getRepositoryConnections('ownerType', 'ownerId', false)).toBe(
-        'http://localhost/api/v2/config/repositoryConnection/ownerType/ownerId?inherit=false'
-      );
-    });
   });
 
   // map of user-telemetry method names and their respective unique postfixes
@@ -708,6 +699,11 @@ describe('CLMLocation.js', function () {
       expect(
         clmLocation.getRepositoryConnectionUrl('some:OwnerType', 'some:OwnerId', 'some:RepositoryConnectionId')
       ).toEqual(expectedUrl);
+    });
+
+    it('should return a URL with inherit query param if it is provided', function () {
+      const expectedUrl = '/api/v2/config/repositoryConnection/some%3AOwnerType/some%3AOwnerId?inherit=true';
+      expect(clmLocation.getRepositoryConnectionUrl('some:OwnerType', 'some:OwnerId', null, true)).toEqual(expectedUrl);
     });
   });
 

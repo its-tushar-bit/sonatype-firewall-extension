@@ -3,11 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import OwnerUtils from '../owner.utils';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
 
-describe('owner.editor.controller.js', function () {
+describe('owner.editor.controller', function () {
   var controllerScope, vm, originalFormData, form, setSelectedOwnerSpy;
 
   beforeEach(
@@ -35,25 +35,16 @@ describe('owner.editor.controller.js', function () {
 
   function createTests(type) {
     describe('New Owner: ' + type, function () {
-      var ownerResource,
-        isApp = type === 'application';
+      var isApp = type === 'application';
 
       beforeEach(inject(function ($controller, $rootScope, $q) {
-        ownerResource = isApp
-          ? { id: 'someOwner', isNew: true }
-          : {
-              $new: true,
-              $save: angular.noop,
-              isDirty: angular.noop,
-              $clone: angular.noop,
-            };
         controllerScope = $rootScope.$new();
         controllerScope.$dismiss = jasmine.createSpy('dismiss');
         controllerScope.$close = jasmine.createSpy('close');
 
         vm = $controller('owner.editor.controller', {
           $scope: controllerScope,
-          owner: ownerResource,
+          owner: { id: 'someOwner', isNew: true },
           ownerType: type,
           siblings: [],
         });
@@ -62,7 +53,7 @@ describe('owner.editor.controller.js', function () {
         vm.ownerEditor = {
           name: { $setPristine: jasmine.createSpy() },
         };
-        vm.updateApplication = jasmine.createSpy('updateApplication');
+        vm.updateOwner = jasmine.createSpy('updateOwner');
       }));
 
       describe('$onInit()', () => {
@@ -83,36 +74,20 @@ describe('owner.editor.controller.js', function () {
 
       describe('Page Changes', function () {
         it('clean', function () {
-          if (isApp) {
-            spyOn(vm, 'isApplicationDirty').and.returnValue(false);
-          } else {
-            spyOn(vm.dirtyOwner, 'isDirty').and.returnValue(false);
-          }
+          spyOn(vm, 'isDirtyOwner').and.returnValue(false);
 
           SpecUtil.expectStateChangeNotPrevented(controllerScope);
           expect(vm.unsavedModalVisible).toBeFalsy();
 
-          if (isApp) {
-            expect(vm.isApplicationDirty).toHaveBeenCalledTimes(1);
-          } else {
-            expect(vm.dirtyOwner.isDirty).toHaveBeenCalledTimes(1);
-          }
+          expect(vm.isDirtyOwner).toHaveBeenCalledTimes(1);
         });
 
         it('dirty', function () {
-          if (isApp) {
-            spyOn(vm, 'isApplicationDirty').and.returnValue(true);
-          } else {
-            spyOn(vm.dirtyOwner, 'isDirty').and.returnValue(true);
-          }
+          spyOn(vm, 'isDirtyOwner').and.returnValue(true);
 
           SpecUtil.expectStateChangePrevented(controllerScope);
           expect(vm.unsavedModalVisible).toBeTruthy();
-          if (isApp) {
-            expect(vm.isApplicationDirty).toHaveBeenCalledTimes(1);
-          } else {
-            expect(vm.dirtyOwner.isDirty).toHaveBeenCalledTimes(1);
-          }
+          expect(vm.isDirtyOwner).toHaveBeenCalledTimes(1);
         });
 
         it('Closes', inject(function ($rootScope) {
@@ -131,21 +106,13 @@ describe('owner.editor.controller.js', function () {
           $timeout = _$timeout_;
           saveDeferred = $q.defer();
 
-          if (!isApp) {
-            spyOn(vm.dirtyOwner, '$save').and.returnValue(saveDeferred.promise);
-          } else {
-            vm.updateApplication.and.returnValue(saveDeferred.promise);
-          }
-
+          vm.updateOwner.and.returnValue(saveDeferred.promise);
           controllerScope.$apply(function () {
             vm.dirtyOwner.name = 'My new ' + type;
             if (isApp) {
               vm.dirtyOwner.publicId = publicId;
             }
           });
-          if (!isApp) {
-            expect(ownerResource.name).toEqual('My new ' + type); // new objects work with the original
-          }
 
           vm.save();
         }));
@@ -167,13 +134,9 @@ describe('owner.editor.controller.js', function () {
           $httpBackend.expectPOST('/rest/' + type + '/icon/' + id).respond(500, 'Server Error');
 
           const updatedOwner = angular.extend({ id }, angular.copy(vm.dirtyOwner));
-          if (isApp) {
-            saveDeferred.resolve({
-              payload: { application: updatedOwner },
-            });
-          } else {
-            saveDeferred.resolve(updatedOwner);
-          }
+          saveDeferred.resolve({
+            payload: { [isApp ? 'application' : 'organization']: updatedOwner },
+          });
           $httpBackend.flush();
           $timeout.flush();
 
@@ -203,11 +166,7 @@ describe('owner.editor.controller.js', function () {
           vm.dirtyOwner.id = id;
           $httpBackend.expectPOST('/rest/' + type + '/icon/' + id).respond('');
           const updatedOwner = angular.extend({ id }, angular.copy(vm.dirtyOwner));
-          if (isApp) {
-            saveDeferred.resolve({ payload: { application: updatedOwner } });
-          } else {
-            saveDeferred.resolve(updatedOwner);
-          }
+          saveDeferred.resolve({ payload: { [isApp ? 'application' : 'organization']: updatedOwner } });
 
           $httpBackend.flush();
           $timeout.flush();

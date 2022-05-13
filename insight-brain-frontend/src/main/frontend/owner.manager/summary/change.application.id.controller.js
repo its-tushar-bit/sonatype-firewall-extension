@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { unwrapResult } from '@reduxjs/toolkit';
+import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 
-import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 export default function ChangeApplicationIdController(
   $scope,
   $rootScope,
@@ -29,7 +29,7 @@ export default function ChangeApplicationIdController(
   vm.siblings = siblings;
   vm.applicationIdEditorMask = undefined;
   vm.unsavedModalVisible = false;
-  vm.unsubscribe = $ngRedux.connect(null, { updateApplication: applicationActions.updateApplication })(vm);
+  vm.unsubscribe = $ngRedux.connect(null, { updateOwner: ownerEditorActions.updateOwner })(vm);
 
   // Override messages to be used in the field validation popover
   const invalidCharactersMessage = 'Use valid characters: alphanumeric, "_", "." or "-"';
@@ -65,23 +65,25 @@ export default function ChangeApplicationIdController(
     delete vm.error;
     vm.originalApp.publicId = vm.dirtyApp.publicId;
 
-    vm.applicationIdEditorMask.wrap(vm.updateApplication(vm.originalApp).then(unwrapResult)).then(
-      function () {
-        $scope.$close();
-        $rootScope.$broadcast(
-          EventNameConstant.RELOAD_OWNER_TREE_DATA,
-          vm.originalApp,
-          OwnerConstant.APPLICATION_TYPE,
-          false
-        );
-        $state.go('management.view.application', {
-          applicationPublicId: vm.originalApp.publicId,
-        });
-      },
-      function (error) {
-        vm.error = Messages.getHttpErrorMessage(error);
-      }
-    );
+    vm.applicationIdEditorMask
+      .wrap(vm.updateOwner({ ownerToSave: vm.originalApp, isApp: true }).then(unwrapResult))
+      .then(
+        function () {
+          $scope.$close();
+          $rootScope.$broadcast(
+            EventNameConstant.RELOAD_OWNER_TREE_DATA,
+            vm.originalApp,
+            OwnerConstant.APPLICATION_TYPE,
+            false
+          );
+          $state.go('management.view.application', {
+            applicationPublicId: vm.originalApp.publicId,
+          });
+        },
+        function (error) {
+          vm.error = Messages.getHttpErrorMessage(error);
+        }
+      );
   }
 
   function isDirty() {

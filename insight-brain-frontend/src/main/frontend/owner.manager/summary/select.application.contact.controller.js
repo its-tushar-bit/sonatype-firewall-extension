@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 
 export default function SelectApplicationContactController(
   $rootScope,
@@ -32,7 +32,7 @@ export default function SelectApplicationContactController(
   vm.unsavedModalVisible = false;
   vm.users = undefined;
   vm.unsubscribe = $ngRedux.connect(null, {
-    updateApplication: applicationActions.updateApplication,
+    updateOwner: ownerEditorActions.updateOwner,
   })(vm);
 
   $scope.$on('$destroy', function () {
@@ -85,7 +85,7 @@ export default function SelectApplicationContactController(
   function updateContact() {
     delete vm.submitError;
     vm.selectContactFormMask
-      .wrap(vm.updateApplication({ ...owner, contactInternalName: vm.selected.internalName }))
+      .wrap(vm.updateOwner({ ownerToSave: { ...owner, contactInternalName: vm.selected.internalName }, isApp: true }))
       .then(
         function () {
           $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
@@ -104,7 +104,7 @@ export default function SelectApplicationContactController(
       'You are about to remove ' + vm.owner.contact.displayName + '.',
       'Removing',
       function () {
-        return vm.updateApplication({ ...vm.owner, contactInternalName: null });
+        return vm.updateOwner({ ownerToSave: { ...vm.owner, contactInternalName: null }, isApp: true });
       }
     ).then(
       function () {

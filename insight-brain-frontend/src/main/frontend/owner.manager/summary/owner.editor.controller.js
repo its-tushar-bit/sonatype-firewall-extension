@@ -7,8 +7,8 @@ import { unwrapResult } from '@reduxjs/toolkit';
 import angular from 'angular';
 import { any, clone } from 'ramda';
 
-import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
+import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 
 export default function OwnerEditorController(
   $scope,
@@ -35,18 +35,15 @@ export default function OwnerEditorController(
 
   vm.unsubscribe = $ngRedux.connect(null, {
     setSelectedOwner: rootActions.setSelectedOwner,
-    updateApplication: applicationActions.updateApplication,
+    updateOwner: ownerEditorActions.updateOwner,
   })(vm);
 
   vm.cancel = cancel;
   vm.csrfTokenName = $http.defaults.xsrfHeaderName;
   vm.csrfTokenValue = $cookies.get($http.defaults.xsrfCookieName);
 
-  const ownerIsResource = owner?.hasOwnProperty('$new');
-  const resourceOwner = ownerIsResource && (owner.$new ? owner : owner.$clone());
-  const nonResourceOwner = !ownerIsResource && clone(owner);
-  vm.originalDirtyOwner = nonResourceOwner;
-  vm.dirtyOwner = ownerIsResource ? resourceOwner : nonResourceOwner;
+  vm.originalDirtyOwner = clone(owner);
+  vm.dirtyOwner = clone(owner);
   vm.error = undefined;
   vm.iconWarning = undefined;
   vm.fileUploadComplete = fileUploadComplete;
@@ -58,7 +55,7 @@ export default function OwnerEditorController(
   vm.robot = robot;
   vm.robotUrl = robotUrl;
   vm.save = save;
-  vm.isApplicationDirty = isApplicationDirty;
+  vm.isDirtyOwner = isDirtyOwner;
   vm.siblings = siblings;
   vm.userIconPreview = undefined;
   vm.unsavedModalVisible = false;
@@ -110,14 +107,18 @@ export default function OwnerEditorController(
     vm.unsubscribe();
   });
 
-  function isApplicationDirty(currentOwner) {
-    const propertiesToCompare = ['name', 'contact', 'organizationId', 'organizationName', 'publicId'];
+  function isDirtyOwner(currentOwner) {
+    const applicationPropertiesToCompare = ['name', 'contact', 'organizationId', 'organizationName', 'publicId'];
+    const organizationPropertiesToCompare = ['name'];
 
-    return any((prop) => currentOwner[prop] !== vm.originalDirtyOwner[prop], propertiesToCompare);
+    const compareTo = ownerType === 'application' ? applicationPropertiesToCompare : organizationPropertiesToCompare;
+
+    return any((prop) => currentOwner[prop] !== vm.originalDirtyOwner[prop], compareTo);
   }
 
   function isDirty() {
-    const ownerIsDirty = ownerIsResource ? vm.dirtyOwner.isDirty() : vm.isApplicationDirty(vm.dirtyOwner);
+    const ownerIsDirty = vm.isDirtyOwner(vm.dirtyOwner);
+
     return !(vm.icon.type === originalIconType || (!vm.icon.type && !originalIconType)) || ownerIsDirty;
   }
 
@@ -131,7 +132,9 @@ export default function OwnerEditorController(
   }
 
   function save() {
-    var isNew = ownerIsResource ? owner.$new : owner.isNew;
+    const isNew = owner.isNew;
+    const isApp = ownerType === 'application';
+
     delete vm.error;
     delete vm.iconWarning;
 
@@ -139,16 +142,13 @@ export default function OwnerEditorController(
       vm.dirtyOwner.contactInternalName = vm.dirtyOwner.contact.internalName;
     }
 
-    const saveEditor = ownerIsResource ? vm.dirtyOwner.$save() : vm.updateApplication(vm.dirtyOwner);
-
     vm.ownerEditorMask
       .wrap(
-        saveEditor
+        vm
+          .updateOwner({ ownerToSave: vm.dirtyOwner, isApp })
           .then((result) => {
-            if (!ownerIsResource) {
-              return unwrapResult(result).application;
-            }
-            return result;
+            const res = unwrapResult(result);
+            return isApp ? res.application : res.organization;
           })
           .then(function (result) {
             var form = $('#custom-icon-form'),

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
-import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 
 describe('select.application.contact.controller', function () {
   beforeEach(
@@ -32,7 +32,7 @@ describe('select.application.contact.controller', function () {
     $httpBackend = _$httpBackend_;
     mockOwner = {};
     spyOn($rootScope, '$broadcast').and.callThrough();
-    spyOn(applicationActions, 'updateApplication').and.returnValue($q.resolve());
+    spyOn(ownerEditorActions, 'updateOwner').and.returnValue($q.resolve());
   }));
 
   describe('on component init', () => {
@@ -103,9 +103,12 @@ describe('select.application.contact.controller', function () {
     $timeout(function () {}, 1000); // mask delay = 0.8s
     $timeout.flush();
     expect($rootScope.$broadcast).toHaveBeenCalledWith('reload.owner.summary.data');
-    expect(applicationActions.updateApplication).toHaveBeenCalledOnceWith({
-      contact: { internalName: 'John Doe' },
-      contactInternalName: 'Foo Bar',
+    expect(ownerEditorActions.updateOwner).toHaveBeenCalledOnceWith({
+      ownerToSave: {
+        contact: { internalName: 'John Doe' },
+        contactInternalName: 'Foo Bar',
+      },
+      isApp: true,
     });
     expect(scope.$close).toHaveBeenCalled();
   });

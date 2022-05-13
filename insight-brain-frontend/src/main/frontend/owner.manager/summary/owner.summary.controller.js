@@ -3,20 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { propEq, find } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
-import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
+import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import {
   selectIsGrandfatheringSupported,
   selectIsInnerSourceRepositorySupported,
   selectIsEvaluateApplicationAvailable,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
-import { find, propEq } from 'ramda';
-import { selectDeleteModal } from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
+import { selectDeleteModal } from 'MainRoot/OrgsAndPolicies/ownerEditorSelectors';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function OwnerSummaryController(
@@ -27,7 +29,6 @@ export default function OwnerSummaryController(
   $http,
   $window,
   OwnerEditor,
-  OrganizationStore,
   CLMLocations,
   CLMContextLocations,
   DeleteModalService,
@@ -82,10 +83,12 @@ export default function OwnerSummaryController(
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
     loadDashboardStageTypes: stagesActions.loadDashboardStages,
-    loadApplications: applicationActions.loadApplications,
-    removeApplication: applicationActions.removeApplication,
     setSelectedOwner: rootActions.setSelectedOwner,
     setSelectedOwnerContact: rootActions.setSelectedOwnerContact,
+    loadApplications: applicationsActions.loadApplications,
+    loadOrganizations: organizationsActions.loadOrganizations,
+    removeOwner: ownerEditorActions.removeOwner,
+    resetDeleteModalState: ownerEditorActions.resetDeleteModalState,
   })(vm);
 
   vm.doLoad();
@@ -111,41 +114,38 @@ export default function OwnerSummaryController(
   });
 
   function doLoad() {
-    var promises = [vm.loadProductFeatures()];
+    const promises = [vm.isApp ? vm.loadApplications(true) : vm.loadOrganizations(true), vm.loadProductFeatures()];
+
     if (vm.isApp) {
-      promises.push(vm.loadApplications());
       promises.push(vm.loadDashboardStageTypes());
       promises.push($http.get(CLMLocations.getApplicationSummaryUrl(id)));
       promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
-    } else {
-      promises.push(OrganizationStore[vm.error ? 'refresh' : 'get'](), OrganizationStore.getById(id));
     }
 
     $q.all(promises)
-      .then(function (results) {
-        unwrapResult(results[0]);
+      .then((results) => {
+        siblings = unwrapResult(results[0]);
+
+        const entityId = CLMContextLocations.getEntityId();
+        const owner = find(propEq(vm.isApp ? 'publicId' : 'id', entityId))(siblings);
+        if (!owner) {
+          throw `Could not find an ${type} with ID ${entityId}.`;
+        }
+        vm.setSelectedOwner(owner);
 
         if (vm.isApp) {
-          siblings = unwrapResult(results[1]);
           unwrapResult(results[2]);
-          const owner = find(propEq('publicId', id), siblings);
-          if (!owner) {
-            throw new Error(`Could not find an application with ID ${id}.`);
-          }
-          vm.setSelectedOwner(owner);
           vm.applicationSummary = results[3].data;
           vm.setSelectedOwnerContact(vm.applicationSummary.contact);
+
           vm.isGrandfatheringEnabled = results[4].calculatedEnabled;
 
           getAppChangePermissions();
           getAppEvaluatePermissions();
-          getSourceControl(vm.owner.id);
-        } else {
-          siblings = results[1];
-          vm.setSelectedOwner(results[2]);
+          getSourceControl(owner.id);
         }
       })
-      .catch(function (error) {
+      .catch((error) => {
         vm.error = error;
       });
 
@@ -209,25 +209,19 @@ export default function OwnerSummaryController(
   }
 
   function deleteOwner() {
-    if (vm.isApp) {
-      const warningMessage = `You are about to permanently remove ${vm.owner.name}. This action cannot be undone.`;
+    const warningMessage = `You are about to permanently remove ${vm.owner.name}. This action cannot be undone.`;
+    vm.resetDeleteModalState();
 
-      DeleteModalService.deleteRedux(
-        'Delete Application',
-        warningMessage,
-        'Deleting',
-        () => vm.removeApplication(vm.owner),
-        selectDeleteModal
-      ).then(function () {
-        $rootScope.$broadcast('owner.deleted', vm.owner, type);
-        vm.goToParentView();
-      });
-    } else {
-      DeleteModalService.deleteResource(vm.getResourceTypeName(), vm.owner.name, vm.owner).then(function () {
-        $rootScope.$broadcast('owner.deleted', vm.owner, type);
-        vm.goToParentView();
-      });
-    }
+    DeleteModalService.deleteRedux(
+      `Delete ${vm.getResourceTypeName()}`,
+      warningMessage,
+      'Deleting',
+      () => vm.removeOwner({ ownerToDelete: vm.owner, isApp: vm.isApp }),
+      selectDeleteModal
+    ).then(function () {
+      $rootScope.$broadcast('owner.deleted', vm.owner, type);
+      vm.goToParentView();
+    });
   }
 
   function revokeGrandfathering() {
@@ -311,7 +305,6 @@ OwnerSummaryController.$inject = [
   '$http',
   '$window',
   'OwnerEditorService',
-  'OrganizationStore',
   'CLMLocations',
   'CLMContextLocations',
   'DeleteModalService',

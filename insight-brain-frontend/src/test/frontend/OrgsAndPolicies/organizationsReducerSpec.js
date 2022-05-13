@@ -1,0 +1,92 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import reducer from 'MainRoot/OrgsAndPolicies/organizationsSlice';
+
+describe('organizations reducer', () => {
+  const otherState = Object.freeze({
+    data: 'data',
+  });
+
+  describe('organizations/loadOrganizations/fulfilled', () => {
+    it('resets organizations', () => {
+      const state = Object.freeze({
+        otherState,
+        organizations: [],
+      });
+      const expected = [
+        {
+          id: '430b39e52a2e4ca48d708913f0f4b10d',
+          name: 'alpine test',
+        },
+      ];
+
+      const { organizations } = reducer(state, {
+        type: 'organizations/loadOrganizations/fulfilled',
+        payload: expected,
+      });
+
+      expect(organizations).toEqual(expected);
+    });
+  });
+
+  describe('organizations/removeOrganizationFromList', () => {
+    it('removes organization from the list by id', () => {
+      const state = Object.freeze({
+        organizations: [
+          {
+            id: '430b39e52a2e4ca48d708913f0f4b10d',
+            name: 'alpine test',
+          },
+        ],
+      });
+      const newState = reducer(state, {
+        type: 'organizations/removeOrganizationFromList',
+        payload: '430b39e52a2e4ca48d708913f0f4b10d',
+      });
+      expect(newState.organizations).toEqual([]);
+    });
+  });
+
+  describe('organizations/updateOrganization', () => {
+    it('sets newly created organization', () => {
+      const newOrganization = {
+        id: 'newOrganization',
+      };
+      const state = Object.freeze({
+        organizations: [],
+      });
+
+      const newState = reducer(state, {
+        type: 'organizations/updateOrganization',
+        payload: { organization: newOrganization, isNew: true },
+      });
+
+      expect(newState.organizations).toEqual([newOrganization]);
+    });
+
+    it('updates edited application', () => {
+      const editedOrganization = {
+        id: 'newOrganization',
+        name: 'newName',
+      };
+      const state = Object.freeze({
+        organizations: [
+          {
+            id: 'newOrganization',
+            name: 'oldName',
+          },
+        ],
+      });
+
+      const newState = reducer(state, {
+        type: 'organizations/updateOrganization',
+        payload: { organization: editedOrganization, isNew: false },
+      });
+
+      expect(newState.organizations).toEqual([editedOrganization]);
+    });
+  });
+});

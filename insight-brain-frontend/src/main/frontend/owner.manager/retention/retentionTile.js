@@ -12,16 +12,7 @@ export default {
   controller: RetentionTileController,
 };
 
-function RetentionTileController(
-  CLMContextLocations,
-  $scope,
-  EventNameConstant,
-  OrganizationStore,
-  retentionService,
-  $q,
-  Messages,
-  $ngRedux
-) {
+function RetentionTileController(CLMContextLocations, $scope, EventNameConstant, retentionService, Messages, $ngRedux) {
   const NOT_APPLICABLE = 'N/A';
   const NOT_ENABLED = "Don't Purge";
 
@@ -41,19 +32,16 @@ function RetentionTileController(
       }
 
       vm.error = undefined;
-      const promises = [];
-      promises.push(OrganizationStore.getById(CLMContextLocations.getEntityId()));
-      promises.push(retentionService.getRetentionPolicies());
 
-      $q.all(promises).then(
-        function (results) {
-          vm.applicationReports = results[1].applicationReports;
-          vm.successMetrics = results[1].successMetrics;
-        },
-        function (error) {
+      retentionService
+        .getRetentionPolicies()
+        .then(({ applicationReports, successMetrics }) => {
+          vm.applicationReports = applicationReports;
+          vm.successMetrics = successMetrics;
+        })
+        .catch((error) => {
           vm.error = Messages.getHttpErrorMessage(error);
-        }
-      );
+        });
     },
 
     getMaxReports(applicationReport) {
@@ -94,9 +82,7 @@ RetentionTileController.$inject = [
   'CLMContextLocations',
   '$scope',
   'event.name.constant',
-  'OrganizationStore',
   'retentionService',
-  '$q',
   'Messages',
   '$ngRedux',
 ];

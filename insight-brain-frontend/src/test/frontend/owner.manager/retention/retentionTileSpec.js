@@ -9,15 +9,12 @@ import { mapStateToThis } from 'MainRoot/owner.manager/retention/retentionTile';
 import { disabledRetentionPolicies, inheritedRetentionPolicies } from './retentionMockData';
 
 describe('retentionTile', function () {
-  const ORGANIZATION_ID = 'organizationId';
-
   let $rootScope,
     $scope,
     EventNameConstant,
     $q,
     $componentController,
     mockCLMContextLocations,
-    mockOrganizationStore,
     getByIdDeferred,
     getRetentionPoliciesDeferred,
     mockRetentionService,
@@ -35,9 +32,8 @@ describe('retentionTile', function () {
     EventNameConstant = $injector.get('event.name.constant');
     $q = _$q_;
     $componentController = _$componentController_;
-    mockCLMContextLocations = jasmine.createSpyObj('CLMContextLocations', ['isOrganization', 'getEntityId']);
+    mockCLMContextLocations = jasmine.createSpyObj('CLMContextLocations', ['isOrganization']);
     mockCLMContextLocations.isOrganization.and.returnValue(true);
-    mockCLMContextLocations.getEntityId.and.returnValue(ORGANIZATION_ID);
     getByIdDeferred = $q.defer();
     getRetentionPoliciesDeferred = $q.defer();
     mockRetentionService = {
@@ -45,15 +41,10 @@ describe('retentionTile', function () {
         return getRetentionPoliciesDeferred.promise;
       }),
     };
-    mockOrganizationStore = jasmine.createSpyObj('mockOrganizationStore', ['getById']);
-    mockOrganizationStore.getById.and.callFake(function (id) {
-      return id === 'organizationId' ? getByIdDeferred.promise : null;
-    });
     vm = $componentController('retentionTile', {
       $scope: $scope,
       CLMContextLocations: mockCLMContextLocations,
       retentionService: mockRetentionService,
-      OrganizationStore: mockOrganizationStore,
     });
   }));
 
@@ -92,11 +83,9 @@ describe('retentionTile', function () {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
         retentionService: mockRetentionService,
-        OrganizationStore: mockOrganizationStore,
       });
       expect(mockCLMContextLocations.isOrganization).toHaveBeenCalled();
       expect(vm.isOrganization).toBe(false);
-      expect(mockOrganizationStore.getById).toHaveBeenCalledTimes(1);
     });
 
     it('loads the owner name and reports on success', function () {
@@ -105,15 +94,13 @@ describe('retentionTile', function () {
 
       $scope.$digest();
 
-      expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-      expect(mockOrganizationStore.getById).toHaveBeenCalledWith(ORGANIZATION_ID);
       expect(vm.applicationReports).toEqual(inheritedRetentionPolicies.applicationReports);
       expect(vm.successMetrics).toEqual(inheritedRetentionPolicies.successMetrics);
       expect(vm.error).toBeUndefined();
     });
 
     it('sets the error message on failure', function () {
-      getByIdDeferred.reject({ status: 404, data: 'not found' });
+      getRetentionPoliciesDeferred.reject({ status: 404, data: 'not found' });
 
       $scope.$digest();
 

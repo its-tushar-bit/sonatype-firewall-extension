@@ -16,6 +16,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
+import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function OwnerDetailTreeViewController(
@@ -24,7 +25,6 @@ export default function OwnerDetailTreeViewController(
   $http,
   $state,
   CLMContextLocations,
-  OrganizationStore,
   LocalRoleService,
   $ngRedux
 ) {
@@ -52,6 +52,7 @@ export default function OwnerDetailTreeViewController(
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
     loadApplications: applicationActions.loadApplications,
+    loadOrganizations: organizationsActions.loadOrganizations,
     loadApplicableCategories: applicationCategoriesActions.loadApplicableCategories,
     setSelectedOwner: rootActions.setSelectedOwner,
   })(vm);
@@ -69,7 +70,7 @@ export default function OwnerDetailTreeViewController(
       promises.push(vm.loadApplications());
       promises.push(vm.loadApplicableCategories());
     } else if (!vm.isRepositories) {
-      promises.push(OrganizationStore.getById(CLMContextLocations.getEntityId()));
+      promises.push(vm.loadOrganizations());
     }
 
     $q.all(promises)
@@ -82,20 +83,19 @@ export default function OwnerDetailTreeViewController(
         vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(allMembersByRoles).length > 0;
 
         if (!vm.isRepositories) {
+          const siblings = unwrapResult(results[2]);
+          const entityId = CLMContextLocations.getEntityId();
+          const owner = find(propEq(vm.isApp ? 'publicId' : 'id', entityId))(siblings);
+
+          if (!owner) {
+            throw `Could not find an ${vm.isApp ? 'application' : 'organization'} with ID ${entityId}.`;
+          }
+
+          vm.setSelectedOwner(owner);
+
           if (vm.isApp) {
             const applicableCategories = unwrapResult(results[3]);
             vm.areAnyCategoriesDefined = !isEmpty(applicableCategories);
-
-            const applications = unwrapResult(results[2]);
-            const entityId = CLMContextLocations.getEntityId();
-            const owner = find(propEq('publicId', entityId))(applications);
-
-            if (!owner) {
-              throw `Could not find an application with ID ${entityId}.`;
-            }
-            vm.setSelectedOwner(owner);
-          } else {
-            vm.setSelectedOwner(results[2]);
           }
         } else {
           vm.setSelectedOwner({ name: 'Repositories' });
@@ -141,7 +141,6 @@ OwnerDetailTreeViewController.$inject = [
   '$http',
   '$state',
   'CLMContextLocations',
-  'OrganizationStore',
   'local.role.service',
   '$ngRedux',
 ];

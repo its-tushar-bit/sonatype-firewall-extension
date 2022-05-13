@@ -16,7 +16,6 @@ function OwnerTreeViewController(
   $http,
   $ngRedux,
   CLMLocations,
-  organizationStore,
   OwnerEditor,
   PermissionService,
   ownerConstant,
@@ -239,8 +238,13 @@ function OwnerTreeViewController(
   }
 
   function createOrganization() {
+    const organization = {
+      id: null,
+      name: null,
+      isNew: true,
+    };
     var organizations = vm.organizations.concat(vm.rootOrganization);
-    OwnerEditor.open(organizationStore.create(), ownerConstant.ORGANIZATION_TYPE, organizations);
+    OwnerEditor.open(organization, ownerConstant.ORGANIZATION_TYPE, organizations);
   }
 
   function filter() {
@@ -339,7 +343,6 @@ OwnerTreeViewController.$inject = [
   '$http',
   '$ngRedux',
   'CLMLocations',
-  'OrganizationStore',
   'OwnerEditorService',
   'PermissionService',
   'owner.constant',

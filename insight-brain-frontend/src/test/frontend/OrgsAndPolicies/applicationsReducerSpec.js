@@ -72,7 +72,7 @@ describe('applications reducer', () => {
     });
   });
 
-  describe('applications/updateApplication/fulfilled', () => {
+  describe('applications/updateApplication', () => {
     it('sets newly created application', () => {
       const newApplication = {
         id: 'newApplication',
@@ -82,7 +82,7 @@ describe('applications reducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'applications/updateApplication/fulfilled',
+        type: 'applications/updateApplication',
         payload: { application: newApplication, isNew: true },
       });
 
@@ -104,7 +104,7 @@ describe('applications reducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'applications/updateApplication/fulfilled',
+        type: 'applications/updateApplication',
         payload: { application: editedApplication, isNew: false },
       });
 
@@ -112,82 +112,21 @@ describe('applications reducer', () => {
     });
   });
 
-  describe('applications/resetDeleteModalState', () => {
-    it('resets delete modal related properties property', () => {
+  describe('applications/removeApplicationFromList', () => {
+    it('removes application from the list by id', () => {
       const state = Object.freeze({
-        deleteModal: {
-          deleting: false,
-          success: false,
-          errorState: 'error',
-        },
-      });
-
-      const { deleteModal } = reducer(state, {
-        type: 'applications/resetDeleteModalState',
-      });
-
-      expect(deleteModal.deleting).toBeNull();
-      expect(deleteModal.success).toBeNull();
-      expect(deleteModal.errorState).toBeNull();
-    });
-  });
-
-  describe('applications/removeApplication/pending', () => {
-    it('sets deleting property to null', () => {
-      const state = Object.freeze({ deleting: false });
-
-      const { deleteModal } = reducer(state, {
-        type: 'applications/removeApplication/pending',
-      });
-
-      expect(deleteModal.deleting).toBeTrue();
-    });
-  });
-
-  describe('applications/removeApplication/fulfilled', () => {
-    it('sets currentCategory, serverCategory to initialState', () => {
-      const state = Object.freeze({
-        deleteModal: {
-          deleting: true,
-          errorState: null,
-          success: null,
-        },
         applications: [
           {
-            name: 'name',
-            id: 'id',
+            id: '430b39e52a2e4ca48d708913f0f4b10d',
+            name: 'alpine test',
           },
         ],
       });
-
       const newState = reducer(state, {
-        type: 'applications/removeApplication/fulfilled',
-        payload: 'id',
+        type: 'applications/removeApplicationFromList',
+        payload: '430b39e52a2e4ca48d708913f0f4b10d',
       });
-
-      expect(newState.deleteModal.deleting).toBeNull();
-      expect(newState.deleteModal.errorState).toBeNull();
-      expect(newState.deleteModal.success).toBeTrue();
       expect(newState.applications).toEqual([]);
-    });
-  });
-
-  describe('applications/removeApplication/rejected', () => {
-    it('sets errorState, deleting', () => {
-      const state = Object.freeze({
-        deleteModal: {
-          deleting: true,
-          errorState: null,
-        },
-      });
-
-      const { deleteModal } = reducer(state, {
-        type: 'applications/removeApplication/rejected',
-        payload: 'error',
-      });
-
-      expect(deleteModal.deleting).toBeFalse();
-      expect(deleteModal.errorState).toBe('error');
     });
   });
 });

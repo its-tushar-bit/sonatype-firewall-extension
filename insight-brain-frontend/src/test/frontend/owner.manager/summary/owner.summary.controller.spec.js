@@ -10,6 +10,8 @@ import applicationResourceMockData from '../mock.data/application.resource.mock.
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
+import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
 
 describe('owner.summary.controller', function () {
@@ -22,7 +24,7 @@ describe('owner.summary.controller', function () {
     })
   );
 
-  function createTests(type, storeName, owner) {
+  function createTests(type, _, owner) {
     let vm,
       getVm,
       scope,
@@ -34,7 +36,6 @@ describe('owner.summary.controller', function () {
       mockState,
       mockWindow,
       isApp = type === 'application',
-      mockOwnerStore = StoreUtils().createMockStore(storeName),
       deleteOwnerDefer,
       mockDeleteService,
       isContextAuthorizedDefer,
@@ -44,11 +45,21 @@ describe('owner.summary.controller', function () {
       mockPolicyViolationGrandfatheringService,
       mockGrandfatherModalService,
       mockRevokeGrandfatheringModalService,
+      loadOrganizationActionSpy,
       loadApplicationsActionSpy;
+
     const loadApplicationsActionResponse = {
       payload: [
         {
           publicId: owner.publicId,
+          id: owner.id,
+          name: owner.name,
+        },
+      ],
+    };
+    const loadOrganizationsActionResponse = {
+      payload: [
+        {
           id: owner.id,
           name: owner.name,
         },
@@ -78,9 +89,6 @@ describe('owner.summary.controller', function () {
       isContextAuthorizedDefer = $q.defer();
       getGrandfatheringDefer = $q.defer();
       mockDeleteService = {
-        deleteResource: function () {
-          return deleteOwnerDefer.promise;
-        },
         deleteRedux: function () {
           return deleteOwnerDefer.promise;
         },
@@ -99,13 +107,18 @@ describe('owner.summary.controller', function () {
 
       spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
       spyOn(CLMContextLocations, 'isApplication').and.returnValue(isApp);
+      spyOn(CLMContextLocations, 'getEntityId').and.returnValue(isApp ? owner.publicId : owner.id);
       spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
       spyOn(stagesActions, 'loadDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
       loadApplicationsActionSpy = spyOn(applicationActions, 'loadApplications').and.returnValue(
         loadApplicationsActionResponse
       );
+      loadOrganizationActionSpy = spyOn(organizationsActions, 'loadOrganizations').and.returnValue(
+        loadOrganizationsActionResponse
+      );
       setSelectedOwnerSpy = spyOn(rootActions, 'setSelectedOwner');
       setSelectedOwnerContactSpy = spyOn(rootActions, 'setSelectedOwnerContact');
+      spyOn(ownerEditorActions, 'resetDeleteModalState').and.callThrough();
 
       mockState = {
         current: {
@@ -149,10 +162,7 @@ describe('owner.summary.controller', function () {
 
     it('Properly Loading Data', function () {
       vm = getVm();
-      if (!isApp) {
-        mockOwnerStore.resolveGet([owner]);
-        mockOwnerStore.resolveGetById(owner);
-      }
+
       resolveGetGrandfathering(true);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(mockApplicationSummary);
@@ -180,10 +190,7 @@ describe('owner.summary.controller', function () {
     it('Properly loads permissions when unauthorized', function () {
       vm = getVm();
       vm.isInnerSourceRepositorySupported = false;
-      if (!isApp) {
-        mockOwnerStore.resolveGet([owner]);
-        mockOwnerStore.resolveGetById(owner);
-      }
+
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(mockApplicationSummary);
@@ -206,10 +213,7 @@ describe('owner.summary.controller', function () {
 
     it('Properly routing to Build Report', function () {
       vm = getVm();
-      if (!isApp) {
-        mockOwnerStore.resolveGet([owner]);
-        mockOwnerStore.resolveGetById(owner);
-      }
+
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(mockApplicationSummary);
@@ -238,12 +242,12 @@ describe('owner.summary.controller', function () {
     it('Properly Displaying Error', function () {
       if (isApp) {
         loadApplicationsActionSpy.and.returnValue({ error: 'Could not find an ' + type });
+      } else {
+        loadOrganizationActionSpy.and.returnValue({ error: 'Could not find an ' + type });
       }
+
       vm = getVm();
-      if (!isApp) {
-        mockOwnerStore.resolveGet([{}, {}]);
-        mockOwnerStore.rejectGetById('Could not find an ' + type);
-      }
+
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(mockApplicationSummary);
@@ -260,12 +264,12 @@ describe('owner.summary.controller', function () {
     it('Refreshing Owner After Error', function () {
       if (isApp) {
         loadApplicationsActionSpy.and.returnValue({ error: 'Could not find an ' + type });
+      } else {
+        loadOrganizationActionSpy.and.returnValue({ error: 'Could not find an ' + type });
       }
       vm = getVm();
       vm.owner = undefined;
-      if (!isApp) {
-        mockOwnerStore.rejectGet('Error');
-      }
+
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(mockApplicationSummary);
@@ -282,13 +286,12 @@ describe('owner.summary.controller', function () {
       // reload successfully
       if (isApp) {
         loadApplicationsActionSpy.and.returnValue(loadApplicationsActionResponse);
+      } else {
+        loadOrganizationActionSpy.and.returnValue(loadOrganizationsActionResponse);
       }
       vm.owner = owner;
       vm.doLoad();
-      if (!isApp) {
-        mockOwnerStore.resolveRefresh([owner]);
-        mockOwnerStore.resolveGetById(owner);
-      }
+
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
@@ -309,10 +312,7 @@ describe('owner.summary.controller', function () {
 
     it('ApplicationSummary Loading Error', function () {
       vm = getVm();
-      if (!isApp) {
-        mockOwnerStore.resolveGet([owner]);
-        mockOwnerStore.resolveGetById(owner);
-      }
+
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(400, 'Bad Request');
@@ -329,10 +329,7 @@ describe('owner.summary.controller', function () {
 
     it('Stage Types Loading Error', function () {
       vm = getVm();
-      if (!isApp) {
-        mockOwnerStore.resolveGet([owner]);
-        mockOwnerStore.resolveGetById(owner);
-      }
+
       resolveGetGrandfathering(false);
       stageTypeStoreDefer.reject('Error');
       resolveApplicationSummary(mockApplicationSummary);
@@ -349,10 +346,7 @@ describe('owner.summary.controller', function () {
 
     it('Delete Owner goes to parent view', function () {
       vm = getVm();
-      if (!isApp) {
-        mockOwnerStore.resolveGet([owner]);
-        mockOwnerStore.resolveGetById(owner);
-      }
+
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(mockApplicationSummary);
@@ -587,10 +581,6 @@ describe('owner.summary.controller', function () {
         const { scmProvider, repoUrl, expectedIcon } = value;
 
         it('for ' + scmProvider + ' uses icon ' + expectedIcon, () => {
-          if (!isApp) {
-            mockOwnerStore.resolveGet([owner]);
-            mockOwnerStore.resolveGetById(owner);
-          }
           resolveGetGrandfathering(true);
           resolveStageTypeStore(MockData.getDashboardStageData());
           resolveApplicationSummary(mockApplicationSummary);
@@ -663,15 +653,11 @@ describe('owner.summary.controller', function () {
       }
     }
 
-    function createGrandfatheringMocks(isGrandfatheringEnabled, isGrandfatheringSuppored) {
-      if (!isApp) {
-        mockOwnerStore.resolveGet([owner]);
-        mockOwnerStore.resolveGetById(owner);
-      }
+    function createGrandfatheringMocks(isGrandfatheringEnabled, isGrandfatheringSupported) {
       resolveGetGrandfathering(isGrandfatheringEnabled);
       resolveStageTypeStore(MockData.getDashboardStageData());
 
-      vm.isGrandfatheringSupported = isGrandfatheringSuppored;
+      vm.isGrandfatheringSupported = isGrandfatheringSupported;
 
       resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
@@ -681,10 +667,6 @@ describe('owner.summary.controller', function () {
     }
 
     function createEvaluateAppMocks(hasEvaluateAppPermission, isEvaluateAppSupported) {
-      if (!isApp) {
-        mockOwnerStore.resolveGet([owner]);
-        mockOwnerStore.resolveGetById(owner);
-      }
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
 

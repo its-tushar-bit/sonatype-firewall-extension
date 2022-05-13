@@ -22,14 +22,14 @@ export default {
   },
   runTestsForAllOwnerTypes: function (createTestFunction) {
     describe('Organization', function () {
-      createTestFunction('organization', 'OrganizationStore', {
+      createTestFunction('organization', {
         id: 'abcd',
         name: 'My Org',
       });
     });
 
     describe('Application', function () {
-      createTestFunction('application', null, {
+      createTestFunction('application', {
         publicId: 'abcd',
         id: '0000abcd',
         name: 'My App',
@@ -37,7 +37,7 @@ export default {
     });
 
     describe('Repositories', function () {
-      createTestFunction('repositories', null, { name: 'Repositories' });
+      createTestFunction('repositories', { name: 'Repositories' });
     });
   },
 };

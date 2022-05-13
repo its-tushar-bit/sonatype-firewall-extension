@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
-import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigurationModule';
-import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
+import legacyConfigurationModule from 'MainRoot/LegacyConfigurationModule';
+import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 
 describe('change.application.id.controller', function () {
   beforeEach(
@@ -27,7 +27,7 @@ describe('change.application.id.controller', function () {
     spyOn($rootScope, '$broadcast').and.callThrough();
     scope.$close = jasmine.createSpy('$close');
 
-    spyOn(applicationActions, 'updateApplication').and.returnValue($q.resolve({}));
+    spyOn(ownerEditorActions, 'updateOwner').and.returnValue($q.resolve({}));
     vm = $controller('change.application.id.controller', {
       $scope: scope,
       $rootScope: $rootScope,

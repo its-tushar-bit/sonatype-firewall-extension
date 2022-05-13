@@ -7,6 +7,7 @@ import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import OwnerUtils from '../owner.utils';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as createEditApplicationCategoriesSelectors from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
@@ -25,14 +26,8 @@ describe('owner.detail.tree.view.directive', function () {
     })
   );
 
-  function createTests(type, storeName, owner) {
-    var vm,
-      $scope,
-      $timeout,
-      $httpBackend,
-      CLMContextLocations,
-      loadApplicationsIfNeededMock,
-      mockOwnerStore = storeName ? StoreUtils().createMockStore(storeName) : null;
+  function createTests(type, owner) {
+    var vm, $scope, $timeout, $httpBackend, CLMContextLocations, loadApplicationsMock;
 
     beforeEach(inject(function ($rootScope, $controller, _$timeout_, _$httpBackend_, _CLMContextLocations_) {
       $scope = $rootScope.$new();
@@ -46,7 +41,10 @@ describe('owner.detail.tree.view.directive', function () {
       spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
       spyOn(applicationCategoriesActions, 'loadApplicableCategories').and.returnValue({ payload: [] });
 
-      loadApplicationsIfNeededMock = spyOn(applicationActions, 'loadApplications').and.returnValue({
+      spyOn(organizationsActions, 'loadOrganizations').and.returnValue({
+        payload: [owner],
+      });
+      loadApplicationsMock = spyOn(applicationActions, 'loadApplications').and.returnValue({
         payload: [
           {
             contact: null,
@@ -78,14 +76,14 @@ describe('owner.detail.tree.view.directive', function () {
 
     describe('on component init', () => {
       it('subscribes to the redux store', () => {
-        resolveGet(owner, [SidebarResourceMockData.getOwnerDetailsUrl()]);
+        resolveGet([SidebarResourceMockData.getOwnerDetailsUrl()]);
         expect(vm.unsubscribe).toBeDefined();
       });
     });
 
     describe('on $destroy()', () => {
       it('unsubscribes from the redux store', () => {
-        resolveGet(owner, [SidebarResourceMockData.getOwnerDetailsUrl()]);
+        resolveGet([SidebarResourceMockData.getOwnerDetailsUrl()]);
         expect(vm.unsubscribe).not.toHaveBeenCalled();
         $scope.$destroy();
         expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
@@ -114,7 +112,7 @@ describe('owner.detail.tree.view.directive', function () {
     });
 
     it('Properly Loading Data', function () {
-      resolveGet(owner, [SidebarResourceMockData.getOwnerDetailsUrl()]);
+      resolveGet([SidebarResourceMockData.getOwnerDetailsUrl()]);
 
       expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
       expect(vm.error).toBeUndefined();
@@ -127,7 +125,7 @@ describe('owner.detail.tree.view.directive', function () {
     });
 
     it('Properly Detecting Details Loading Error', function () {
-      resolveGet(owner, [400, 'Bad Request']);
+      resolveGet([400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
       expect(vm.error).toBeDefined();
@@ -135,9 +133,9 @@ describe('owner.detail.tree.view.directive', function () {
     });
 
     it('Properly Displaying Owner Name Loading Error', function () {
-      loadApplicationsIfNeededMock.and.returnValue({ payload: [] });
+      loadApplicationsMock.and.returnValue({ payload: [] });
 
-      resolveGet(null, [SidebarResourceMockData.getOwnerDetailsUrl()]);
+      resolveGet([SidebarResourceMockData.getOwnerDetailsUrl()]);
 
       if (vm.isRepositories) {
         expect(vm.error).toBeFalsy();
@@ -145,16 +143,14 @@ describe('owner.detail.tree.view.directive', function () {
     });
 
     it('Properly Updating Data via broadcast', inject(function ($rootScope) {
-      resolveGet(owner, [400, 'Bad Request']);
+      resolveGet([400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
       expect(vm.error).toBeDefined();
       expect(vm.error.data).toEqual('Bad Request');
 
       $rootScope.$broadcast('resource.data.modified');
-      if (mockOwnerStore) {
-        mockOwnerStore.resolveGetById(owner);
-      }
+
       $httpBackend
         .expectGET(CLMContextLocations.getOwnerDetailsUrl())
         .respond(SidebarResourceMockData.getOwnerDetailsUrl());
@@ -167,7 +163,7 @@ describe('owner.detail.tree.view.directive', function () {
     }));
 
     it('watches vm.labels and calls vm.doLoad on change', function () {
-      resolveGet(owner, [400, 'Bad Request']);
+      resolveGet([400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
       expect(vm.error).toBeDefined();
@@ -188,10 +184,6 @@ describe('owner.detail.tree.view.directive', function () {
 
       $scope.$digest();
 
-      if (mockOwnerStore) {
-        mockOwnerStore.resolveGetById(owner);
-      }
-
       $httpBackend.flush();
       $timeout.flush();
 
@@ -200,7 +192,7 @@ describe('owner.detail.tree.view.directive', function () {
     });
 
     it('watches vm.categories and calls vm.doLoad on change', inject(function () {
-      resolveGet(owner, [400, 'Bad Request']);
+      resolveGet([400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
       expect(vm.error).toBeDefined();
@@ -213,10 +205,6 @@ describe('owner.detail.tree.view.directive', function () {
       vm.categories = 'test';
       $scope.$digest();
 
-      if (mockOwnerStore) {
-        mockOwnerStore.resolveGetById(owner);
-      }
-
       $httpBackend.flush();
       $timeout.flush();
 
@@ -225,7 +213,7 @@ describe('owner.detail.tree.view.directive', function () {
     }));
 
     it('watches vm.policies and calls vm.doLoad on change', inject(function () {
-      resolveGet(owner, [400, 'Bad Request']);
+      resolveGet([400, 'Bad Request']);
 
       expect(vm.details).toBeUndefined();
       expect(vm.error).toBeDefined();
@@ -238,10 +226,6 @@ describe('owner.detail.tree.view.directive', function () {
       vm.policies = 'test';
       $scope.$digest();
 
-      if (mockOwnerStore) {
-        mockOwnerStore.resolveGetById(owner);
-      }
-
       $httpBackend.flush();
       $timeout.flush();
 
@@ -249,16 +233,7 @@ describe('owner.detail.tree.view.directive', function () {
       expect(vm.error).toBeUndefined();
     }));
 
-    function resolveGet(ownerData, detailsDataArray) {
-      if (mockOwnerStore) {
-        if (ownerData) {
-          mockOwnerStore.resolveGetById(ownerData);
-        } else {
-          mockOwnerStore.rejectGetById(
-            'Could not find an ' + type + ' with ID ' + CLMContextLocations.getEntityId() + '.'
-          );
-        }
-      }
+    function resolveGet(detailsDataArray) {
       $httpBackend.expectGET(CLMContextLocations.getOwnerDetailsUrl()).respond.apply(this, detailsDataArray);
 
       $httpBackend.flush();

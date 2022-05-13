@@ -12,8 +12,10 @@ import policyMonitoring from './orgsAndPoliciesPolicyMonitoringSlice';
 import proprietarySlice from './proprietarySlice';
 import constraintSlice from './orgsAndPoliciesConstraintSlice';
 import applicationsSlice from './applicationsSlice';
+import organizationsSlice from './organizationsSlice';
 import stagesSlice from './orgsAndPoliciesStagesSlice';
 import policySlice from './policySlice';
+import ownerEditorSlice from './ownerEditorSlice';
 
 export default combineReducers({
   root: rootSlice,
@@ -26,6 +28,8 @@ export default combineReducers({
   proprietary: proprietarySlice,
   constraint: constraintSlice,
   applications: applicationsSlice,
+  organizations: organizationsSlice,
   stages: stagesSlice,
   policy: policySlice,
+  ownerEditor: ownerEditorSlice,
 });

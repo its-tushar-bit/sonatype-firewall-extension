@@ -434,15 +434,21 @@ export default function AttributionReportTemplateForm(props) {
                       Include Standard License Text when no licenses files are found.
                     </NxCheckbox>
                   </NxFieldset>
-                  <NxFieldset label="Appendix" isRequired>
+                  <NxFieldset
+                    label="Appendix"
+                    isRequired
+                    sublabel={
+                      'Displays all Standard License Texts at the end of the report and inserts ' +
+                      'hyperlinks where relevant.'
+                    }
+                  >
                     <NxCheckbox
                       onChange={toggle('includeAppendix')}
                       isChecked={formState.includeAppendix}
                       disabled={!formState.includeStandardLicenseTexts}
                       id="appendix-checkbox"
                     >
-                      Include Appendix that displays all Standard Licence Texts at the end of the report and inserts
-                      hyperlinks where relevant.
+                      Include Appendix.
                     </NxCheckbox>
                   </NxFieldset>
                   <NxFieldset
@@ -458,14 +464,20 @@ export default function AttributionReportTemplateForm(props) {
                       Include Sonatype special license detections.
                     </NxCheckbox>
                   </NxFieldset>
-                  <NxFieldset label="InnerSource Components" isRequired>
+                  <NxFieldset
+                    label="InnerSource Components"
+                    isRequired
+                    sublabel={
+                      'InnerSource components are internally ' +
+                      'developed components that are shared with other internal projects.'
+                    }
+                  >
                     <NxCheckbox
                       onChange={toggle('includeInnerSource')}
                       isChecked={formState.includeInnerSource}
                       id="include-inner-source-checkbox"
                     >
-                      Include InnerSource components. InnerSource components are internally developed components that
-                      are shared with other internal projects.
+                      Include InnerSource components.
                     </NxCheckbox>
                   </NxFieldset>
                   {templateIndexToSelect !== null && (

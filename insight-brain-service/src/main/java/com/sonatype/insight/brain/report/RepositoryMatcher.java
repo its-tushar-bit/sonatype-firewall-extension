@@ -289,7 +289,7 @@ public class RepositoryMatcher
     newBomNode.set(FIELD_LAST_MODIFIED_TIME, bomNode.get(FIELD_LAST_MODIFIED_TIME));
     newBomNode.set(FIELD_LAST_MODIFIED_ENTRY_TIME, bomNode.get(FIELD_LAST_MODIFIED_ENTRY_TIME));
     newBomNode.set(FIELD_WEBSITE, bomNode.get(FIELD_WEBSITE));
-    newBomNode.put(FIELD_IDENTIFICATION_SOURCE, IdentificationSource.SONATYPE.getId());
+    newBomNode.put(FIELD_IDENTIFICATION_SOURCE, IdentificationSource.SONATYPE_EXTERNAL_REPO.getId());
     newBomNode.set(FIELD_COMPONENT_CATEGORIES, convert(evaluation.componentCategories));
     newBomNode.set(FIELD_HYGIENE_RATING, convert(evaluation.hygieneRating));
     newBomNode.set(FIELD_ANALYZER_FEATURES, convert(createAnalyzerFeatures(componentIdentifier.getFormat(),

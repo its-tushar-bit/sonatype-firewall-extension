@@ -289,7 +289,7 @@ public class RepositoryMatcherTest
   }
 
   @Test
-  public void testIdentify_NoRecognizablResults() throws Exception {
+  public void testIdentify_NoRecognizableResults() throws Exception {
     ArtifactoryChecksumSearchResults mockResult = ArtifactoryChecksumSearchResults.create("invalid uri");
     artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256,
         "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941", mockResult);
@@ -502,7 +502,7 @@ public class RepositoryMatcherTest
   }
 
   @Test
-  public void testResolveComponentIdentifierFromUri_maven() throws Exception {
+  public void testResolveComponentIdentifierFromUri_maven() {
     ComponentIdentifier identifier = RepositoryMatcher.resolveComponentIdentifierFromUri("http://localhost/" +
         "artifactory/api/storage/reponame/org/apache/struts/struts2-core/2.3.4/struts2-core-2.3.4.jar");
     ComponentIdentifier expectedId =
@@ -511,20 +511,20 @@ public class RepositoryMatcherTest
   }
 
   @Test
-  public void testResolveComponentIdentifierFromUri_InvalidUri() throws Exception {
+  public void testResolveComponentIdentifierFromUri_InvalidUri() {
     ComponentIdentifier identifier = RepositoryMatcher.resolveComponentIdentifierFromUri("not a uri");
     assertThat(identifier).isNull();
   }
 
   @Test
-  public void testResolveComponentIdentifierFromUri_InvalidUri_MissingRequiredCoordinates() throws Exception {
+  public void testResolveComponentIdentifierFromUri_InvalidUri_MissingRequiredCoordinates() {
     ComponentIdentifier identifier = RepositoryMatcher.resolveComponentIdentifierFromUri(
         "http://localhost/artifactory/api/storage/reponame/1.1-SNAPSHOT/a-1.1-SNAPSHOT.jar");
     assertThat(identifier).isNull();
   }
 
   @Test
-  public void testResolveComponentIdentifierFromUri_InvalidUri_MissingExtension() throws Exception {
+  public void testResolveComponentIdentifierFromUri_InvalidUri_MissingExtension() {
     ComponentIdentifier expectedId = ComponentIdentifier.createMavenCoordinates("g.org", "a", "1.1-SNAPSHOT", null, "");
     ComponentIdentifier identifier = RepositoryMatcher.resolveComponentIdentifierFromUri(
         "http://localhost/artifactory/api/storage/reponame/g/org/a/1.1-SNAPSHOT/a-1/");
@@ -637,7 +637,8 @@ public class RepositoryMatcherTest
 
     try (MockedStatic<RepositoryMatcher> repositoryMatcher = Mockito.mockStatic(RepositoryMatcher.class,
         CALLS_REAL_METHODS)) {
-      RepositoryMatcher.updateBomJson(bomJson, componentIdentifier, bomNode, false, new ComponentEvaluationData());
+      RepositoryMatcher.updateBomJson(bomJson, componentIdentifier, bomNode, false,
+          new ComponentEvaluationData());
 
       repositoryMatcher.verify(() -> RepositoryMatcher.updateComponentIdentifier(any(), eq(componentIdentifier)));
     }
@@ -650,7 +651,8 @@ public class RepositoryMatcherTest
     ObjectNode bomNode = aaData.addObject();
     bomNode.put(RepositoryMatcher.FIELD_HASH, "hash");
 
-    RepositoryMatcher.updateBomJson(bomJson, ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"),
+    RepositoryMatcher.updateBomJson(bomJson,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"),
         bomNode, true, new ComponentEvaluationData());
 
     assertThat(aaData).hasSize(1);
@@ -665,7 +667,8 @@ public class RepositoryMatcherTest
     ObjectNode bomNode = aaData.addObject();
     bomNode.put(RepositoryMatcher.FIELD_HASH, "hash");
 
-    RepositoryMatcher.updateBomJson(bomJson, ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"),
+    RepositoryMatcher.updateBomJson(bomJson,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"),
         bomNode, false, new ComponentEvaluationData());
 
     assertThat(aaData).hasSize(1);
@@ -717,8 +720,8 @@ public class RepositoryMatcherTest
     assertThat(bomNode.get(RepositoryMatcher.FIELD_DEPENDENCY_DATA_INCLUDED)).isEqualTo(
         oldBomNode.get(RepositoryMatcher.FIELD_DEPENDENCY_DATA_INCLUDED));
     assertThat(bomNode.get(RepositoryMatcher.FIELD_MATCH_STATE).asText()).isEqualTo(MatchState.EXACT.getId());
-    assertThat(bomNode.get(RepositoryMatcher.FIELD_IDENTIFICATION_SOURCE).asText()).isEqualTo(
-        IdentificationSource.SONATYPE.getId());
+    assertThat(bomNode.get(RepositoryMatcher.FIELD_IDENTIFICATION_SOURCE).asText())
+        .isEqualTo(IdentificationSource.SONATYPE_EXTERNAL_REPO.getId());
     assertThat(bomNode.get(RepositoryMatcher.FIELD_RELATIVE_POPULARITY)).isEqualTo(NullNode.getInstance());
     assertThat(bomNode.get(RepositoryMatcher.FIELD_CREATE_TIME)).isEqualTo(NullNode.getInstance());
     assertThat(bomNode.get(RepositoryMatcher.FIELD_COMPONENT_CATEGORIES)).isEqualTo(NullNode.getInstance());
@@ -747,14 +750,15 @@ public class RepositoryMatcherTest
     evaluation.analyzerFeatures = new AnalyzerFeatures(null, null, null, false, false, false);
     evaluation.integrityRating = new IntegrityRating(1, "label");
 
-    RepositoryMatcher.updateBomJson(bomJson, ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"),
+    RepositoryMatcher.updateBomJson(bomJson,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"),
         bomNode, false, evaluation);
 
     assertThat(aaData).hasSize(1);
     bomNode = (ObjectNode) aaData.get(0);
     assertThat(bomNode.get(RepositoryMatcher.FIELD_MATCH_STATE).asText()).isEqualTo(MatchState.EXACT.getId());
-    assertThat(bomNode.get(RepositoryMatcher.FIELD_IDENTIFICATION_SOURCE).asText()).isEqualTo(
-        IdentificationSource.SONATYPE.getId());
+    assertThat(bomNode.get(RepositoryMatcher.FIELD_IDENTIFICATION_SOURCE).asText())
+        .isEqualTo(IdentificationSource.SONATYPE_EXTERNAL_REPO.getId());
     assertThat(bomNode.get(RepositoryMatcher.FIELD_RELATIVE_POPULARITY).asInt()).isEqualTo(
         evaluation.relativePopularity);
     assertThat(bomNode.get(RepositoryMatcher.FIELD_CREATE_TIME).asLong()).isEqualTo(evaluation.catalogDate);
@@ -779,7 +783,8 @@ public class RepositoryMatcherTest
 
     try (MockedStatic<RepositoryMatcher> repositoryMatcher = Mockito.mockStatic(RepositoryMatcher.class,
         CALLS_REAL_METHODS)) {
-      RepositoryMatcher.updateLicensesJson(licensesNode, componentIdentifier, hash, false, evaluation);
+      RepositoryMatcher.updateLicensesJson(licensesNode, componentIdentifier, hash, false,
+          evaluation);
 
       assertThat(arrayNode).hasSize(1);
       repositoryMatcher.verify(
@@ -925,7 +930,8 @@ public class RepositoryMatcherTest
 
     try (MockedStatic<RepositoryMatcher> repositoryMatcher = Mockito.mockStatic(RepositoryMatcher.class,
         CALLS_REAL_METHODS)) {
-      RepositoryMatcher.updateSecurityJson(securityNode, componentIdentifier, hash, false, evaluation);
+      RepositoryMatcher.updateSecurityJson(securityNode, componentIdentifier, hash, false,
+          evaluation);
 
       assertThat(arrayNode).hasSize(2);
       repositoryMatcher.verify(
@@ -1165,17 +1171,23 @@ public class RepositoryMatcherTest
       assertThat(componentIdentifiers).containsExactlyInAnyOrder(componentIdentifier1, componentIdentifier2);
       assertThat(summaryJson.get(RepositoryMatcher.FIELD_KNOWN_ARTIFACT_COUNT).asInt()).isEqualTo(2);
       repositoryMatcher.verify(
-          () -> RepositoryMatcher.updateBomJson(any(), eq(componentIdentifier1), any(), eq(true), any()));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateLicensesJson(any(), eq(componentIdentifier1), anyString(),
-          eq(true), any()));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateSecurityJson(any(), eq(componentIdentifier1), anyString(),
-          eq(true), any()));
+          () -> RepositoryMatcher.updateBomJson(any(), eq(componentIdentifier1), any(), eq(true),
+              any()));
       repositoryMatcher.verify(
-          () -> RepositoryMatcher.updateBomJson(any(), eq(componentIdentifier2), any(), eq(false), any()));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateLicensesJson(any(), eq(componentIdentifier2), anyString(),
-          eq(false), any()));
-      repositoryMatcher.verify(() -> RepositoryMatcher.updateSecurityJson(any(), eq(componentIdentifier2), anyString(),
-          eq(false), any()));
+          () -> RepositoryMatcher.updateLicensesJson(any(), eq(componentIdentifier1), anyString(),
+              eq(true), any()));
+      repositoryMatcher.verify(
+          () -> RepositoryMatcher.updateSecurityJson(any(), eq(componentIdentifier1), anyString(),
+              eq(true), any()));
+      repositoryMatcher.verify(
+          () -> RepositoryMatcher.updateBomJson(any(), eq(componentIdentifier2), any(), eq(false),
+              any()));
+      repositoryMatcher.verify(
+          () -> RepositoryMatcher.updateLicensesJson(any(), eq(componentIdentifier2), anyString(),
+              eq(false), any()));
+      repositoryMatcher.verify(
+          () -> RepositoryMatcher.updateSecurityJson(any(), eq(componentIdentifier2), anyString(),
+              eq(false), any()));
       repositoryMatcher.verify(() -> RepositoryMatcher.updateDataJson(any(), anyInt(), anyInt()));
       repositoryMatcher.verify(() -> RepositoryMatcher.updateSummaryJson(any(), anyInt(), anyInt()));
       proprietaryConfigService.verify(() -> ProprietaryConfigService.createIsProprietary(eq(application.getId())));

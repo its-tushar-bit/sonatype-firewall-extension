@@ -2213,7 +2213,11 @@ public class TemporaryEntity
   }
 
   public RepositoryComponent newRepositoryComponent(String repositoryId, Date evalTime) {
-    return newRepositoryComponent(repositoryId, "path" + evalTime.getTime(), null, null, evalTime);
+    return newRepositoryComponent(repositoryId, "path" + evalTime.getTime(), evalTime);
+  }
+
+  public RepositoryComponent newRepositoryComponent(String repositoryId, String pathname, Date evalTime) {
+    return newRepositoryComponent(repositoryId, pathname, null, null, evalTime);
   }
 
   public RepositoryComponent newRepositoryComponent(String repositoryId, String pathname) {

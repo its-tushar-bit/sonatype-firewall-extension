@@ -108,7 +108,7 @@ public class RepositoryComponentDeleteService
       repositoryComponentDAO.delete(tx, component);
 
       tx.commit();
-      log.info("Deleted ignored repository component {} (hash: {}).", componentPath, componentHash);
+      log.info("Deleted repository component {} (hash: {}).", componentPath, componentHash);
 
       if (!repositoryPolicyViolations.isEmpty()) {
         Repository repository = new RepositoryDAO().getById(component.getRepositoryId());

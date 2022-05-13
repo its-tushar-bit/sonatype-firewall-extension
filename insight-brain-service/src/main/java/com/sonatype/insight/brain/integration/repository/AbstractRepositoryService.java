@@ -76,9 +76,9 @@ public abstract class AbstractRepositoryService
 
   private static final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
-  private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
+  protected static final RepositoryDAO repositoryDAO = new RepositoryDAO();
 
-  private static final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  protected static final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
   private static final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
@@ -120,7 +120,7 @@ public abstract class AbstractRepositoryService
     this.quarantineHdsClient = quarantineHdsClient;
   }
 
-  private void checkLicenseFeature() {
+  protected void checkLicenseFeature() {
     productLicense.validateFeature(requiredFeature);
   }
 

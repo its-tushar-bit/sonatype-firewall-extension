@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration.repository;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -66,5 +67,32 @@ public class RepositoryServiceAuthzTest
 
     repositoryService.evaluateComponentsAdhoc(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID,
         null /* componentEvaluationDataRequestList */, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testRemoveExtraComponents_Unauthenticated() {
+    tempEntity.newRepository(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
+    repositoryService.removeExtraComponents(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID,
+        null /* repositoryComponentPathnames */);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testRemoveExtraComponents_Unauthorized() {
+    tempEntity.newRepository(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
+
+    login();
+
+    repositoryService.removeExtraComponents(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID,
+        null /* repositoryComponentPathnames */);
+  }
+
+  @Test
+  public void testRemoveExtraComponents_Authorized() {
+    Repository repo = tempEntity.newRepository(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
+
+    grantEvaluateComponentPermission(repo.getId());
+
+    repositoryService.removeExtraComponents(MANUAL_REPO_MAN_INSTANCE_ID, REPOSITORY_PUBLIC_ID,
+        null /* repositoryComponentPathnames */);
   }
 }

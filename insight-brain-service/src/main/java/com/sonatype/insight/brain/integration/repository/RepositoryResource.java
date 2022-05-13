@@ -23,6 +23,7 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
@@ -69,6 +70,8 @@ public class RepositoryResource
 
   static final String QUARANTINED_COMPONENT_REPORT_URL_PATH =
       REPOSITORY_PATH + "components/{pathname: .+}/quarantinedComponentReportUrl";
+
+  static final String REMOVE_EXTRA_COMPONENTS_PATH = REPOSITORY_PATH + "removeExtraComponents";
 
   private final RepositoryService repositoryService;
 
@@ -289,5 +292,26 @@ public class RepositoryResource
             repositoryManagerInstanceId, repositoryPublicId, pathname,
             DefaultHdsClient.getClientUserAgent(request)
         );
+  }
+
+  /**
+   * Removes all components from the given repository that have paths not in the given pathname list and with timestamp
+   * before or equal to the given timestamp.
+   * 
+   * @param repositoryComponentPathnames the pathname list and timestamp used to filter the components to be deleted.
+   * 
+   * @since 1.137
+   */
+  @POST
+  @Path(REMOVE_EXTRA_COMPONENTS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Timed
+  public void removeExtraComponents(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      RepositoryComponentPathnames repositoryComponentPathnames)
+  {
+    repositoryService.removeExtraComponents(repositoryManagerInstanceId, repositoryPublicId,
+        repositoryComponentPathnames);
   }
 }

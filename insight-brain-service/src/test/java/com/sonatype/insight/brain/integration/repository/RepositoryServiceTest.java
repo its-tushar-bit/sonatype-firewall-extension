@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration.repository;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
@@ -33,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -57,6 +60,43 @@ public class RepositoryServiceTest
   @Override
   protected AbstractRepositoryService getRepositoryService() {
     return repositoryService;
+  }
+
+  @Test
+  public void testRemoveExtraComponents() {
+    Date now = new Date();
+    RepositoryManager repoManager = tempEntity.newRepositoryManager("testRepoManagerInstanceId");
+    Repository repository1 = tempEntity.newRepository(repoManager, "testRepoPublicId1", true);
+    RepositoryComponent componentRepo1ToKeep =
+        tempEntity.newRepositoryComponent(repository1.getId(), "pathname1_1", now);
+    RepositoryComponent componentRepo1ToDelete =
+        tempEntity.newRepositoryComponent(repository1.getId(), "pathname1_2", now);
+    RepositoryComponent componentRepo1ToKeepBecauseItIsNewer =
+        tempEntity.newRepositoryComponent(repository1.getId(), "pathname1_3", new Date(now.getTime() + 1));
+
+    Repository repository2 = tempEntity.newRepository(repoManager, "testRepoPublicId2", true);
+    RepositoryComponent componentRepo2 = tempEntity.newRepositoryComponent(repository2.getId(), "pathname2_1", now);
+
+    RepositoryComponentPathnames repositoryComponentPathnames = new RepositoryComponentPathnames();
+    repositoryComponentPathnames.time = now;
+    repositoryComponentPathnames.pathnames.add(componentRepo1ToKeep.getPathname());
+
+    repositoryService.removeExtraComponents("testRepoManagerInstanceId", "testRepoPublicId1",
+        repositoryComponentPathnames);
+
+    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+    assertThat(repositoryComponentDAO.getById(componentRepo1ToKeep.getId())).isNotNull();
+    assertThat(repositoryComponentDAO.getById(componentRepo1ToDelete.getId())).isNull();
+    assertThat(repositoryComponentDAO.getById(componentRepo1ToKeepBecauseItIsNewer.getId())).isNotNull();
+    assertThat(repositoryComponentDAO.getById(componentRepo2.getId())).isNotNull();
+  }
+
+  @Test
+  public void testRemoveExtraComponents_MissingLicenseFeature() {
+    testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      repositoryService.removeExtraComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null);
+    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Test

@@ -27,6 +27,8 @@ import {
   selectCurrentPolicyActions,
   selectShouldShowQuarantineWarning,
   selectIsCurrentPolicyDirty,
+  selectCategoriesForPolicyLoadError,
+  selectPolicyLoadError,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
@@ -166,19 +168,59 @@ describe('policySelectors', () => {
     });
   });
 
-  describe('selectLoadError', () => {
+  describe('selectPolicyLoadError', () => {
     it('is composed from the following selector', () => {
-      expect(selectLoadError.dependencies).toEqual([selectPolicySlice]);
+      expect(selectPolicyLoadError.dependencies).toEqual([selectPolicySlice]);
     });
 
-    it('selects loadError', () => {
+    it('selects policy loadError', () => {
       const policySlice = {
         loadError: 'someError',
       };
 
-      const selected = selectLoadError.resultFunc(policySlice);
+      const selected = selectPolicyLoadError.resultFunc(policySlice);
 
       expect(selected).toBe('someError');
+    });
+  });
+
+  describe('selectCategoriesForPolicyLoadError', () => {
+    it('is composed from the following selector', () => {
+      expect(selectCategoriesForPolicyLoadError.dependencies).toEqual([selectPolicySlice]);
+    });
+
+    it('selects categories for policy loadError', () => {
+      const policySlice = {
+        categoriesForPolicyLoadError: 'someError',
+      };
+
+      const selected = selectCategoriesForPolicyLoadError.resultFunc(policySlice);
+
+      expect(selected).toBe('someError');
+    });
+  });
+
+  describe('selectLoadError', () => {
+    it('is composed from the following selector', () => {
+      expect(selectLoadError.dependencies).toEqual([selectPolicyLoadError, selectCategoriesForPolicyLoadError]);
+    });
+
+    it('selects policy load error when its defined', () => {
+      const loadError = 'someError';
+      const categoriesForPolicyLoadError = 'ignoredError';
+
+      const selected = selectLoadError.resultFunc(loadError, categoriesForPolicyLoadError);
+
+      expect(selected).toBe('someError');
+    });
+
+    it('selects categories for policy load error when its defined and policy load error is not defined', () => {
+      const loadError = null;
+      const categoriesForPolicyLoadError = 'foundError';
+
+      const selected = selectLoadError.resultFunc(loadError, categoriesForPolicyLoadError);
+
+      expect(selected).toBe('foundError');
     });
   });
 

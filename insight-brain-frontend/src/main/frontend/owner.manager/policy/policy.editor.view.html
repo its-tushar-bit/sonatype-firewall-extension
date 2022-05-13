@@ -37,10 +37,8 @@
   scrollspy="#policy-editor-summary"
 >
   <div
+    ng-if="!vm.loadError && !vm.loading"
     class="iq-tile iq-tile--form-tile"
-    load-wrapper="vm.loadError"
-    loading="vm.loading"
-    reload="vm.doLoad()"
     pad-to-top="#policy-edit-endofpage"
   >
     <form

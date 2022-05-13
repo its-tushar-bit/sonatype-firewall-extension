@@ -595,14 +595,14 @@ describe('policySlice reducers', () => {
   });
 
   describe('policy/loadCategoriesForPolicy/pending', () => {
-    it('sets loadError and loading', () => {
-      const state = Object.freeze({ loadError: 'error', loading: false });
+    it('sets categoriesForPolicyLoadError and loading', () => {
+      const state = Object.freeze({ categoriesForPolicyLoadError: 'error', loading: false });
 
-      const { loadError, loading } = reducer(state, {
+      const { categoriesForPolicyLoadError, loading } = reducer(state, {
         type: 'policy/loadCategoriesForPolicy/pending',
       });
 
-      expect(loadError).toBeNull();
+      expect(categoriesForPolicyLoadError).toBeNull();
       expect(loading).toBeTrue();
     });
   });
@@ -610,7 +610,7 @@ describe('policySlice reducers', () => {
   describe('policy/loadCategoriesForPolicy/fulfilled', () => {
     it('sets payload into state', () => {
       const state = Object.freeze({
-        loadError: 'error',
+        categoriesForPolicyLoadError: 'error',
         loading: false,
         hasPolicyCategories: false,
         originalHasPolicyCategories: false,
@@ -623,7 +623,7 @@ describe('policySlice reducers', () => {
         categories: [],
       };
       const {
-        loadError,
+        categoriesForPolicyLoadError,
         loading,
         hasPolicyCategories,
         originalHasPolicyCategories,
@@ -634,7 +634,7 @@ describe('policySlice reducers', () => {
         payload: fulfilledPayload,
       });
 
-      expect(loadError).toBeNull();
+      expect(categoriesForPolicyLoadError).toBeNull();
       expect(loading).toBeFalse();
       expect(hasPolicyCategories).toBeTrue();
       expect(originalHasPolicyCategories).toBeTrue();
@@ -645,14 +645,14 @@ describe('policySlice reducers', () => {
 
   describe('policy/loadCategoriesForPolicy/failed', () => {
     it('sets loadError and loading', () => {
-      const state = Object.freeze({ loadError: null, loading: true });
+      const state = Object.freeze({ categoriesForPolicyLoadError: null, loading: true });
 
-      const { loadError, loading } = reducer(state, {
+      const { categoriesForPolicyLoadError, loading } = reducer(state, {
         type: 'policy/loadCategoriesForPolicy/rejected',
         payload: 'error',
       });
 
-      expect(loadError).toBe('error');
+      expect(categoriesForPolicyLoadError).toBe('error');
       expect(loading).toBeFalse();
     });
   });

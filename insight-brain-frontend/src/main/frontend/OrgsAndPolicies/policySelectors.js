@@ -26,7 +26,20 @@ export const selectIsRootOrg = createSelector(selectPolicySlice, prop('isRootOrg
 
 export const selectOriginalProxyStageAction = createSelector(selectPolicySlice, prop('originalProxyStageAction'));
 
-export const selectLoadError = createSelector(selectPolicySlice, prop('loadError'));
+export const selectPolicyLoadError = createSelector(selectPolicySlice, prop('loadError'));
+
+export const selectCategoriesForPolicyLoadError = createSelector(
+  selectPolicySlice,
+  prop('categoriesForPolicyLoadError')
+);
+
+export const selectLoadError = createSelector(
+  selectPolicyLoadError,
+  selectCategoriesForPolicyLoadError,
+  (policyLoadError, categoriesForPolicyLoadError) => {
+    return policyLoadError || categoriesForPolicyLoadError;
+  }
+);
 
 export const selectLoading = createSelector(selectPolicySlice, prop('loading'));
 

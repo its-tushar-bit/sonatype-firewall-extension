@@ -38,6 +38,7 @@ const REDUCER_NAME = 'policy';
 export const initialState = {
   loading: false,
   loadError: null,
+  categoriesForPolicyLoadError: null,
   submitError: null,
   currentPolicy: {
     id: undefined,
@@ -142,12 +143,12 @@ const loadCategoriesForPolicy = createAsyncThunk(
 
 const loadCategoriesForPolicyRequested = (state) => {
   state.loading = true;
-  state.loadError = null;
+  state.categoriesForPolicyLoadError = null;
 };
 
 const loadCategoriesForPolicyFulfilled = (state, { payload }) => {
   state.loading = false;
-  state.loadError = null;
+  state.categoriesForPolicyLoadError = null;
   const { hasPolicyCategories, categories } = payload;
   state.hasPolicyCategories = hasPolicyCategories;
   state.originalHasPolicyCategories = hasPolicyCategories;
@@ -157,7 +158,9 @@ const loadCategoriesForPolicyFulfilled = (state, { payload }) => {
 
 const loadCategoriesForPolicyFailed = (state, { payload }) => {
   state.loading = false;
-  state.loadError = Messages.getHttpErrorMessage(payload);
+  state.categoriesForPolicyLoadError = Messages.getHttpErrorMessage(payload);
+  state.isDirty = false;
+  state.currentPolicy = state.originalPolicy;
 };
 
 const loadApplicablePoliciesByOwner = createAsyncThunk(
@@ -271,6 +274,8 @@ const loadPolicyEditorFulfilled = (state, { payload }) => {
 const loadPolicyEditorFailed = (state, { payload }) => {
   state.loading = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
+  state.isDirty = false;
+  state.currentPolicy = state.originalPolicy;
 };
 
 function reloadPageAfterDuration(dispatch) {

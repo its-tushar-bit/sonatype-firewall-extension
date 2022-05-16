@@ -14,9 +14,9 @@ import {
   selectPolicyMonitoringMonitoredStage,
   selectPoliciesByOwner,
   selectPoliciesByOwnerWithEnforcementActions,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSelectors';
+} from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
 
-describe('orgsAndPoliciesPolicyMonitoringSelectors', () => {
+describe('policyMonitoringSelectors', () => {
   let mockState;
 
   beforeEach(() => {

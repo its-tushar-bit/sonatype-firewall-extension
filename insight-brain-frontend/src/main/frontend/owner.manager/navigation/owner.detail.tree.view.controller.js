@@ -7,9 +7,9 @@ import { isEmpty, propEq, find } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { selectSiblings as selectPolicySiblings } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
-import { selectLabelsSiblings } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
+import { selectLabelsSiblings } from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import {
   selectIsMonitoringSupported,
   selectIsGrandfatheringSupported,

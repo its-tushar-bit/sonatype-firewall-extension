@@ -3,8 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { selectCliStageTypes, selectActionStageTypes } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
 import {
+  selectCliStageTypes,
+  selectActionStageTypes,
   selectActionStagesIsLoading,
   selectActionStagesLoadError,
   selectDashboardStagesIsLoading,
@@ -13,9 +14,9 @@ import {
   selectCliStagesIsLoading,
   selectCliStagesLoadError,
   selectCliStagesWithInheritOrNoMonitorOption,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
+} from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 
-describe('orgsAndPoliciesPolicyMonitoringSelectors', () => {
+describe('policyMonitoringSelectors', () => {
   let mockState;
 
   beforeEach(() => {

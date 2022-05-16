@@ -5,7 +5,7 @@
  */
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { selectIsNotificationsSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function EvaluateApplicationModalController(

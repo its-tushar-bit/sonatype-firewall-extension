@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesConstraintSlice';
+import reducer from 'MainRoot/OrgsAndPolicies/constraintSlice';
 
-describe('orgsAndPoliciesConstraint reducer', () => {
-  describe('orgsAndPoliciesConstraint/updateEditConstraintId', () => {
+describe('constraint reducer', () => {
+  describe('constraint/updateEditConstraintId', () => {
     it('sets editConstraintMap timestamp to true', () => {
       const state = Object.freeze({
         editConstraintMap: {
@@ -15,7 +15,7 @@ describe('orgsAndPoliciesConstraint reducer', () => {
       });
 
       const { editConstraintMap } = reducer(state, {
-        type: 'orgsAndPoliciesConstraint/updateEditConstraintId',
+        type: 'constraint/updateEditConstraintId',
         payload: 87654321,
       });
 
@@ -24,7 +24,7 @@ describe('orgsAndPoliciesConstraint reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesConstraint/loadConstraint/pending', () => {
+  describe('constraint/loadConstraint/pending', () => {
     it('resets loading, loadError', () => {
       const state = Object.freeze({
         loading: false,
@@ -32,7 +32,7 @@ describe('orgsAndPoliciesConstraint reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'orgsAndPoliciesConstraint/loadConstraint/pending',
+        type: 'constraint/loadConstraint/pending',
         payload: 87654321,
       });
 
@@ -41,7 +41,7 @@ describe('orgsAndPoliciesConstraint reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesConstraint/loadConstraint/fulfilled', () => {
+  describe('constraint/loadConstraint/fulfilled', () => {
     it('resets loading, loadError', () => {
       const state = Object.freeze({
         loading: true,
@@ -51,7 +51,7 @@ describe('orgsAndPoliciesConstraint reducer', () => {
       });
 
       const { loading, conditionTypesMap, editConstraintMap, conditionTypes } = reducer(state, {
-        type: 'orgsAndPoliciesConstraint/loadConstraint/fulfilled',
+        type: 'constraint/loadConstraint/fulfilled',
         payload: {
           conditionTypes: [
             {
@@ -110,7 +110,7 @@ describe('orgsAndPoliciesConstraint reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesConstraint/loadConstraint/rejected', () => {
+  describe('constraint/loadConstraint/rejected', () => {
     it('sets loading, loadError', () => {
       const state = Object.freeze({
         loading: false,
@@ -118,7 +118,7 @@ describe('orgsAndPoliciesConstraint reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'orgsAndPoliciesConstraint/loadConstraint/rejected',
+        type: 'constraint/loadConstraint/rejected',
         payload: 'error',
       });
 

@@ -29,7 +29,7 @@ const selectedOwnerParentOrganizationUpdated = (state, { payload: { organization
   state.selectedOwner.organizationId = organizationId;
 };
 
-const orgsAndPoliciesRootSlice = createSlice({
+const rootSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
@@ -40,7 +40,7 @@ const orgsAndPoliciesRootSlice = createSlice({
 });
 
 export const actions = {
-  ...orgsAndPoliciesRootSlice.actions,
+  ...rootSlice.actions,
 };
 
-export default orgsAndPoliciesRootSlice.reducer;
+export default rootSlice.reducer;

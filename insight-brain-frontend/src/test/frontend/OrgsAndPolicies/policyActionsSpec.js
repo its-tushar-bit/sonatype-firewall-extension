@@ -280,7 +280,7 @@ describe('policy actions', () => {
           'productFeatures/fetchProductFeaturesIfNeeded/pending',
           'policy/loadApplicablePoliciesByOwner/fulfilled',
           'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
-          'orgsAndPoliciesConstraint/loadConstraint/pending',
+          'constraint/loadConstraint/pending',
           'policy/loadPolicyEditor/fulfilled',
         ]);
 
@@ -371,7 +371,7 @@ describe('policy actions', () => {
           'productFeatures/fetchProductFeaturesIfNeeded/pending',
           'policy/loadApplicablePoliciesByOwner/fulfilled',
           'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
-          'orgsAndPoliciesConstraint/loadConstraint/pending',
+          'constraint/loadConstraint/pending',
           'policy/loadCategoriesForPolicy/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/rejected',

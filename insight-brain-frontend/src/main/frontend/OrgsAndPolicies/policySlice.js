@@ -29,7 +29,7 @@ import { deriveEditRoute } from './utility/util';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet, pathSet } from 'MainRoot/util/jsUtil';
 import { pathSetConst, propSet as reduxPropSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
-import { actions as constraintActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesConstraintSlice';
+import { actions as constraintActions } from 'MainRoot/OrgsAndPolicies/constraintSlice';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { stateReload } from '../reduxUiRouter/routerActions';
 

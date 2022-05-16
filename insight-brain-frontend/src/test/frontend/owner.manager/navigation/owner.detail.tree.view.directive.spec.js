@@ -12,7 +12,7 @@ import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicie
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as createEditApplicationCategoriesSelectors from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
 import * as policySelectors from 'MainRoot/OrgsAndPolicies/policySelectors';
-import * as orgsAndPoliciesLabelsSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
+import * as labelsSelectors from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { mapStateToThis } from 'MainRoot/owner.manager/navigation/owner.detail.tree.view.controller';
 
@@ -93,7 +93,7 @@ describe('owner.detail.tree.view.directive', function () {
     describe('mapStateToThis', () => {
       it('maps redux properties to component', () => {
         resolveGet(owner, [SidebarResourceMockData.getOwnerDetailsUrl()]);
-        spyOn(orgsAndPoliciesLabelsSelectors, 'selectLabelsSiblings').and.returnValue('labels');
+        spyOn(labelsSelectors, 'selectLabelsSiblings').and.returnValue('labels');
         spyOn(createEditApplicationCategoriesSelectors, 'selectSiblings').and.returnValue('categories');
         spyOn(policySelectors, 'selectSiblings').and.returnValue('policies');
         spyOn(productFeaturesSelectors, 'selectIsMonitoringSupported').and.returnValue('isMonitoringSupported');

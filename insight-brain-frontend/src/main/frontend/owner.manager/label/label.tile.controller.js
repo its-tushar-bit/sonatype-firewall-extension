@@ -3,13 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/labelsSlice';
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectApplicableLabels,
   selectLabelsLoading,
   selectLabelsLoadError,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
+} from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 
 export default function LabelTileController($scope, EventNameConstant, $ngRedux) {
   const vm = this;

@@ -11,9 +11,9 @@ import {
   selectEditConstraintMap,
   selectConditionTypesMap,
   selectConditionTypes,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesConstraintSelectors';
+} from 'MainRoot/OrgsAndPolicies/constraintSelectors';
 
-describe('orgsAndPoliciesConstraintSelectors', () => {
+describe('constraintSelectors', () => {
   let mockState;
 
   beforeEach(() => {

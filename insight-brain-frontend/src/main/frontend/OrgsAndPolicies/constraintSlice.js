@@ -10,7 +10,7 @@ import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
-const REDUCER_NAME = 'orgsAndPoliciesConstraint';
+const REDUCER_NAME = 'constraint';
 
 export const initialState = {
   loading: false,
@@ -77,7 +77,7 @@ const loadConstraint = createAsyncThunk(
   }
 );
 
-const orgsAndPoliciesConstrainSlice = createSlice({
+const constraintSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
@@ -91,8 +91,8 @@ const orgsAndPoliciesConstrainSlice = createSlice({
 });
 
 export const actions = {
-  ...orgsAndPoliciesConstrainSlice.actions,
+  ...constraintSlice.actions,
   loadConstraint,
 };
 
-export default orgsAndPoliciesConstrainSlice.reducer;
+export default constraintSlice.reducer;

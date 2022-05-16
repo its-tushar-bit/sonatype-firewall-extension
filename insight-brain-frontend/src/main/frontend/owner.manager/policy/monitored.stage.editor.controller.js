@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSlice';
-import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { selectIsMonitoringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectLastSavedMonitoredStage,
@@ -13,8 +13,8 @@ import {
   selectPolicyMonitoringLoading,
   selectPolicyMonitoringSubmitError,
   selectSelectedMonitoredStage,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSelectors';
-import { selectCliStagesWithInheritOrNoMonitorOption } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
+} from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
+import { selectCliStagesWithInheritOrNoMonitorOption } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 
 export default function MonitoredStageEditorController($scope, $ngRedux) {
   const vm = this;

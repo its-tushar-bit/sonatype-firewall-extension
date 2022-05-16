@@ -10,7 +10,7 @@ import { fromPairs, keys, map, pair, __ } from 'ramda';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getDashboardStageUrl, getActionStageUrl, getCliStageUrl } from 'MainRoot/util/CLMLocation';
 
-const REDUCER_NAME = 'orgsAndPoliciesStages';
+const REDUCER_NAME = 'stages';
 
 const urlsByPurpose = {
   dashboard: getDashboardStageUrl(),
@@ -57,7 +57,7 @@ const loadStageTypesFailed = (state, { payload, meta }) => {
   state[meta.arg] = { ...initialPurposeState, error: Messages.getHttpErrorMessage(payload) };
 };
 
-const orgsAndPoliciesStagesSlice = createSlice({
+const stagesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {},
@@ -72,7 +72,7 @@ export const loadCliStages = () => loadStageTypes('cli');
 export const loadActionStages = () => loadStageTypes('action');
 export const loadDashboardStages = () => loadStageTypes('dashboard');
 
-export default orgsAndPoliciesStagesSlice.reducer;
+export default stagesSlice.reducer;
 export const actions = {
   loadCliStages,
   loadActionStages,

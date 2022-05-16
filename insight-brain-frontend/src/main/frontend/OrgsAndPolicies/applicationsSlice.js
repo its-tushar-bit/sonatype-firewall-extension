@@ -10,7 +10,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getApplicationsUrl, getMoveApplicationUrl } from '../util/CLMLocation';
 import { selectApplications } from './applicationsSelectors';
-import { actions as rootActions } from './orgsAndPoliciesRootSlice';
+import { actions as rootActions } from './rootSlice';
 import moveApplicationErrorMessages from 'MainRoot/owner.manager/move.application/move.application.messages';
 
 const REDUCER_NAME = 'applications';

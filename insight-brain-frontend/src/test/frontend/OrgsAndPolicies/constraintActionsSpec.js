@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesConstraintSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/constraintSlice';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getConditionTypeUrl, getConditionValueTypeUrl } from 'MainRoot/util/CLMLocation';
 
-describe('orgsAndPoliciesConstraintActions', () => {
+describe('constraintActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let store, state;
 
@@ -79,8 +79,8 @@ describe('orgsAndPoliciesConstraintActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesConstraint/loadConstraint/pending',
-          'orgsAndPoliciesConstraint/loadConstraint/fulfilled',
+          'constraint/loadConstraint/pending',
+          'constraint/loadConstraint/fulfilled',
         ]);
 
         expect(actions[1].payload).toEqual({
@@ -164,8 +164,8 @@ describe('orgsAndPoliciesConstraintActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesConstraint/loadConstraint/pending',
-          'orgsAndPoliciesConstraint/loadConstraint/rejected',
+          'constraint/loadConstraint/pending',
+          'constraint/loadConstraint/rejected',
         ]);
         expect(actions[1].payload).toBe('could not load condition types');
 

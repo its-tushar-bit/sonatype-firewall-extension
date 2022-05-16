@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { unwrapResult } from '@reduxjs/toolkit';
-import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
 import { actions as proprietaryConfigActions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
-import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import {
   selectIsMonitoringSupported,
@@ -14,14 +14,13 @@ import {
   selectIsEnforcementSupported,
   selectIsFirewallSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectMonitoredStageFromActionStages } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSelectors';
-import { selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectMonitoredStageFromActionStages } from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
+import { selectOwnerProperties, selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectIsLoading as selectProprietaryConfigIsLoading,
   selectProprietaryConfigInheritedMatchersCount,
   selectProprietaryConfigLocalMatchersCount,
 } from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
-import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function PolicyTileController(
   $scope,

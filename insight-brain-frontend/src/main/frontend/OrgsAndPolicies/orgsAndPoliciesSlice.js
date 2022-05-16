@@ -6,14 +6,14 @@
 import { combineReducers } from 'redux';
 import createEditApplicationCategoriesSlice from './createEditApplicationCategoriesSlice';
 import assignApplicationCategoriesSlice from './assignApplicationCategoriesSlice';
-import labelsSlice from './orgsAndPoliciesLabelsSlice';
-import rootSlice from './orgsAndPoliciesRootSlice';
-import policyMonitoring from './orgsAndPoliciesPolicyMonitoringSlice';
+import labelsSlice from './labelsSlice';
+import rootSlice from './rootSlice';
+import policyMonitoring from './policyMonitoringSlice';
 import proprietarySlice from './proprietarySlice';
-import constraintSlice from './orgsAndPoliciesConstraintSlice';
+import constraintSlice from './constraintSlice';
 import applicationsSlice from './applicationsSlice';
 import organizationsSlice from './organizationsSlice';
-import stagesSlice from './orgsAndPoliciesStagesSlice';
+import stagesSlice from './stagesSlice';
 import policySlice from './policySlice';
 import ownerEditorSlice from './ownerEditorSlice';
 

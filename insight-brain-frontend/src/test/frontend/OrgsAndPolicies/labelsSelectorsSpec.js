@@ -13,9 +13,9 @@ import {
   selectLabelsIsEditMode,
   selectLabelsSiblings,
   selectLabelsCurrentLabel,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
+} from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 
-describe('orgsAndPoliciesLabelsSelectors', () => {
+describe('labelsSelectors', () => {
   let mockState;
 
   beforeEach(() => {

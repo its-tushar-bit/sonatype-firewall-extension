@@ -5,7 +5,7 @@
  */
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 
 describe('evaluate.application.modal.controller', function () {
   var scope, vm, $timeout, $httpBackend, CLMLocations, mockSelectedApplication;

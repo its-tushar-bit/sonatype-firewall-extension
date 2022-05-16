@@ -3,11 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import reducer from 'MainRoot/OrgsAndPolicies/stagesSlice';
 
 const stagesTypes = ['cli', 'action', 'dashboard'];
 
-describe('orgsAndPoliciesStages reducer', function () {
+describe('stages reducer', function () {
   describe('unknown action', function () {
     it('returns original state', function () {
       const state = Object.freeze({ foo: 'bar' });
@@ -66,12 +66,12 @@ describe('orgsAndPoliciesStages reducer', function () {
     });
   });
 
-  describe('orgsAndPoliciesStages/loadStageTypes/pending action', function () {
+  describe('stages/loadStageTypes/pending action', function () {
     stagesTypes.forEach((stagesType) => {
       it(`sets the loading flag on ${stagesType} stages to true`, function () {
         const initialState = reducer(undefined, {});
         const newState = reducer(initialState, {
-          type: 'orgsAndPoliciesStages/loadStageTypes/pending',
+          type: 'stages/loadStageTypes/pending',
           meta: { arg: stagesType },
         });
 
@@ -86,7 +86,7 @@ describe('orgsAndPoliciesStages reducer', function () {
     });
   });
 
-  describe('orgsAndPoliciesStages/loadStageTypes/fulfilled action', function () {
+  describe('stages/loadStageTypes/fulfilled action', function () {
     stagesTypes.forEach((stagesType) => {
       it('resets error and loading and sets stageTypes to the provided data', function () {
         const initialState = {
@@ -107,7 +107,7 @@ describe('orgsAndPoliciesStages reducer', function () {
             },
           },
           newState = reducer(initialState, {
-            type: 'orgsAndPoliciesStages/loadStageTypes/fulfilled',
+            type: 'stages/loadStageTypes/fulfilled',
             payload: {
               purpose: stagesType,
               data: [
@@ -143,7 +143,7 @@ describe('orgsAndPoliciesStages reducer', function () {
     });
   });
 
-  describe('orgsAndPoliciesStages/loadStageTypes/rejected action', function () {
+  describe('stages/loadStageTypes/rejected action', function () {
     it('resets stageTypes and loading and sets error to the specified value', function () {
       const initialState = {
           dashboard: {
@@ -163,7 +163,7 @@ describe('orgsAndPoliciesStages reducer', function () {
           },
         },
         newState = reducer(initialState, {
-          type: 'orgsAndPoliciesStages/loadStageTypes/rejected',
+          type: 'stages/loadStageTypes/rejected',
           meta: { arg: 'cli' },
           payload: "It's broken",
         });

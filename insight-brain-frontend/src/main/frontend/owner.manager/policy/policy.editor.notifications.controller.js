@@ -7,11 +7,8 @@ import { findIndex, propEq } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
-import {
-  selectActionStagesLoadError,
-  selectActionStageTypes,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
+import { selectActionStagesLoadError, selectActionStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import {
   selectIsMonitoringSupported,
   selectIsNotificationsSupported,

@@ -6,11 +6,7 @@
 import axios from 'axios';
 
 import { getDashboardStageUrl, getCliStageUrl, getActionStageUrl } from 'MainRoot/util/CLMLocation';
-import {
-  validPurposes,
-  loadStageTypes,
-  actions as stagesActions,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import { validPurposes, loadStageTypes, actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 
 const responseData = [
   { stageTypeId: 1, stageName: 'name 1' },
@@ -44,10 +40,7 @@ describe('stages actions', function () {
 
       const actions = store.getActions();
 
-      expect(actions).toHaveActionTypesInOrder([
-        'orgsAndPoliciesStages/loadStageTypes/pending',
-        'orgsAndPoliciesStages/loadStageTypes/rejected',
-      ]);
+      expect(actions).toHaveActionTypesInOrder(['stages/loadStageTypes/pending', 'stages/loadStageTypes/rejected']);
       expect(actions[1].payload).toEqual('purpose must be one of dashboard, action, cli');
     });
 
@@ -62,10 +55,7 @@ describe('stages actions', function () {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(axios.get).not.toHaveBeenCalled();
-        expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesStages/loadStageTypes/pending',
-          'orgsAndPoliciesStages/loadStageTypes/fulfilled',
-        ]);
+        expect(actions).toHaveActionTypesInOrder(['stages/loadStageTypes/pending', 'stages/loadStageTypes/fulfilled']);
       });
     });
 
@@ -80,10 +70,7 @@ describe('stages actions', function () {
 
         const actions = store.getActions();
         expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesStages/loadStageTypes/pending',
-          'orgsAndPoliciesStages/loadStageTypes/fulfilled',
-        ]);
+        expect(actions).toHaveActionTypesInOrder(['stages/loadStageTypes/pending', 'stages/loadStageTypes/fulfilled']);
         expect(actions[1].payload.data).toEqual([
           { stageTypeId: 1, stageName: 'name 1', shortName: 'name 1' },
           { stageTypeId: 2, stageName: 'name 2', shortName: 'name 2' },
@@ -127,7 +114,7 @@ describe('stages actions', function () {
         expect(axios.get).toHaveBeenCalledWith(getCliStageUrl());
       });
 
-      it('dispatches orgsAndPoliciesStages/loadStageTypes/rejected when the response fails', async function () {
+      it('dispatches stages/loadStageTypes/rejected when the response fails', async function () {
         const mockState = {
           stages: {
             cli: {
@@ -145,10 +132,7 @@ describe('stages actions', function () {
         const actions = store.getActions();
         expect(axios.get).toHaveBeenCalledWith(getCliStageUrl());
         expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesStages/loadStageTypes/pending',
-          'orgsAndPoliciesStages/loadStageTypes/rejected',
-        ]);
+        expect(actions).toHaveActionTypesInOrder(['stages/loadStageTypes/pending', 'stages/loadStageTypes/rejected']);
         expect(actions[1].payload).toEqual(responseError);
       });
     });

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesConstraintSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/constraintSlice';
 import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 
 import {
@@ -12,7 +12,7 @@ import {
   selectEditConstraintMap,
   selectConditionTypesMap,
   selectConditionTypes,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesConstraintSelectors';
+} from 'MainRoot/OrgsAndPolicies/constraintSelectors';
 import { conditionString } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
 import { remove } from 'ramda';
 

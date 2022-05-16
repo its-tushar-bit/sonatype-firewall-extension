@@ -6,7 +6,7 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { prop } from 'ramda';
 import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
-import { selectActionStageTypes, selectCliStagesWithInheritOrNoMonitorOption } from './orgsAndPoliciesStagesSelectors';
+import { selectActionStageTypes, selectCliStagesWithInheritOrNoMonitorOption } from './stagesSelectors';
 import {
   createInheritOrNoMonitorOption,
   getMonitoredStage,

@@ -5,7 +5,7 @@
  */
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import OwnerUtils from '../owner.utils';
-import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
 describe('owner.editor.controller', function () {
   var controllerScope, vm, originalFormData, form, setSelectedOwnerSpy;

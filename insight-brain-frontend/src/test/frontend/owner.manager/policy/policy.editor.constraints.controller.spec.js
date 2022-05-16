@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
-import * as constraintSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesConstraintSelectors';
+import * as constraintSelectors from 'MainRoot/OrgsAndPolicies/constraintSelectors';
 import { mapStateToThis } from 'MainRoot/owner.manager/policy/policy.editor.constraints.controller';
 
 describe('policy.editor.constraints.controller', () => {

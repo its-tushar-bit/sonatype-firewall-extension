@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
@@ -13,7 +13,7 @@ import {
   getProductFeaturesUrl,
 } from 'MainRoot/util/CLMLocation';
 
-describe('orgsAndPoliciesPolicyMonitoringActions', () => {
+describe('policyMonitoringActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const policyMonitoringUrl = getPolicyMonitoringUrl('application', 'application');
   const applicablePolicyMonitoringUrl = getApplicablePolicyMonitoringUrl('application', 'application');
@@ -59,12 +59,12 @@ describe('orgsAndPoliciesPolicyMonitoringActions', () => {
 
         expect(actions.length).toBe(6);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/pending',
+          'policyMonitoring/loadApplicablePolicyMonitoring/pending',
           'productFeatures/fetchProductFeaturesIfNeeded/pending',
           'productFeatures/fetchProductFeatures/pending',
           'productFeatures/fetchProductFeatures/fulfilled',
           'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
-          'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
+          'policyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
         ]);
         done();
       });
@@ -86,10 +86,10 @@ describe('orgsAndPoliciesPolicyMonitoringActions', () => {
 
         expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/pending',
+          'policyMonitoring/loadApplicablePolicyMonitoring/pending',
           'productFeatures/fetchProductFeaturesIfNeeded/pending',
           'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
-          'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/rejected',
+          'policyMonitoring/loadApplicablePolicyMonitoring/rejected',
         ]);
         done();
       });
@@ -108,8 +108,8 @@ describe('orgsAndPoliciesPolicyMonitoringActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesPolicyMonitoring/savePolicyMonitoring/pending',
-          'orgsAndPoliciesPolicyMonitoring/savePolicyMonitoring/fulfilled',
+          'policyMonitoring/savePolicyMonitoring/pending',
+          'policyMonitoring/savePolicyMonitoring/fulfilled',
         ]);
 
         expect(actions[1].payload).toEqual({});
@@ -129,8 +129,8 @@ describe('orgsAndPoliciesPolicyMonitoringActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesPolicyMonitoring/savePolicyMonitoring/pending',
-          'orgsAndPoliciesPolicyMonitoring/savePolicyMonitoring/rejected',
+          'policyMonitoring/savePolicyMonitoring/pending',
+          'policyMonitoring/savePolicyMonitoring/rejected',
         ]);
 
         expect(actions[1].payload).toEqual('could not save label');
@@ -152,8 +152,8 @@ describe('orgsAndPoliciesPolicyMonitoringActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesPolicyMonitoring/removePolicyMonitoring/pending',
-          'orgsAndPoliciesPolicyMonitoring/removePolicyMonitoring/fulfilled',
+          'policyMonitoring/removePolicyMonitoring/pending',
+          'policyMonitoring/removePolicyMonitoring/fulfilled',
         ]);
 
         expect(actions[1].payload).toEqual({});
@@ -173,8 +173,8 @@ describe('orgsAndPoliciesPolicyMonitoringActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesPolicyMonitoring/removePolicyMonitoring/pending',
-          'orgsAndPoliciesPolicyMonitoring/removePolicyMonitoring/rejected',
+          'policyMonitoring/removePolicyMonitoring/pending',
+          'policyMonitoring/removePolicyMonitoring/rejected',
         ]);
 
         expect(actions[1].payload).toBe('could not remove label');

@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSlice';
-import * as labelsSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
+import { actions } from 'MainRoot/OrgsAndPolicies/labelsSlice';
+import * as labelsSelectors from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getApplicableLabelsUrl, getLabelsUrl, getDeleteLabelsUrl } from 'MainRoot/util/CLMLocation';
 
-describe('orgsAndPoliciesLabelsActions', () => {
+describe('labelsActions', () => {
   const fn = () => {};
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let store, state;
@@ -45,10 +45,7 @@ describe('orgsAndPoliciesLabelsActions', () => {
         const actions = store.getActions();
 
         expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/loadLabels/pending',
-          'orgsAndPoliciesLabels/loadLabels/fulfilled',
-        ]);
+        expect(actions).toHaveActionTypesInOrder(['labels/loadLabels/pending', 'labels/loadLabels/fulfilled']);
         done();
       });
     });
@@ -66,10 +63,7 @@ describe('orgsAndPoliciesLabelsActions', () => {
         const actions = store.getActions();
 
         expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/loadLabels/pending',
-          'orgsAndPoliciesLabels/loadLabels/rejected',
-        ]);
+        expect(actions).toHaveActionTypesInOrder(['labels/loadLabels/pending', 'labels/loadLabels/rejected']);
         done();
       });
     });
@@ -93,9 +87,9 @@ describe('orgsAndPoliciesLabelsActions', () => {
 
         expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/goToCreateLabel/pending',
+          'labels/goToCreateLabel/pending',
           '@@reduxUiRouter/stateGo',
-          'orgsAndPoliciesLabels/goToCreateLabel/fulfilled',
+          'labels/goToCreateLabel/fulfilled',
         ]);
 
         expect(actions[1].payload).toEqual({
@@ -129,9 +123,9 @@ describe('orgsAndPoliciesLabelsActions', () => {
 
         expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/goToEditLabel/pending',
+          'labels/goToEditLabel/pending',
           '@@reduxUiRouter/stateGo',
-          'orgsAndPoliciesLabels/goToEditLabel/fulfilled',
+          'labels/goToEditLabel/fulfilled',
         ]);
 
         expect(actions[1].payload).toEqual({
@@ -173,8 +167,8 @@ describe('orgsAndPoliciesLabelsActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/pending',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/fulfilled',
+          'labels/loadApplicableLabelsByOwner/pending',
+          'labels/loadApplicableLabelsByOwner/fulfilled',
         ]);
         done();
       });
@@ -194,8 +188,8 @@ describe('orgsAndPoliciesLabelsActions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/pending',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/rejected',
+          'labels/loadApplicableLabelsByOwner/pending',
+          'labels/loadApplicableLabelsByOwner/rejected',
         ]);
         done();
       });
@@ -258,10 +252,10 @@ describe('orgsAndPoliciesLabelsActions', () => {
 
         expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/loadApplicableLabels/pending',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/pending',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/fulfilled',
-          'orgsAndPoliciesLabels/loadApplicableLabels/fulfilled',
+          'labels/loadApplicableLabels/pending',
+          'labels/loadApplicableLabelsByOwner/pending',
+          'labels/loadApplicableLabelsByOwner/fulfilled',
+          'labels/loadApplicableLabels/fulfilled',
         ]);
 
         expect(actions[3].payload).toEqual([
@@ -317,10 +311,10 @@ describe('orgsAndPoliciesLabelsActions', () => {
 
         expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/loadApplicableLabels/pending',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/pending',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/rejected',
-          'orgsAndPoliciesLabels/loadApplicableLabels/rejected',
+          'labels/loadApplicableLabels/pending',
+          'labels/loadApplicableLabelsByOwner/pending',
+          'labels/loadApplicableLabelsByOwner/rejected',
+          'labels/loadApplicableLabels/rejected',
         ]);
         expect(actions[3].payload).toBe('something went wrong');
 
@@ -405,16 +399,16 @@ describe('orgsAndPoliciesLabelsActions', () => {
         expect(actions.length).toBe(10);
 
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/loadLabelsEditor/pending',
-          'orgsAndPoliciesLabels/loadLabels/pending',
-          'orgsAndPoliciesLabels/resetIsDirty',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/pending',
-          'orgsAndPoliciesLabels/setCurrentOwnerProps',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/pending',
-          'orgsAndPoliciesLabels/loadLabels/fulfilled',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/fulfilled',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
-          'orgsAndPoliciesLabels/loadLabelsEditor/fulfilled',
+          'labels/loadLabelsEditor/pending',
+          'labels/loadLabels/pending',
+          'labels/resetIsDirty',
+          'labels/loadApplicableLabelsByOwnerIfNeeded/pending',
+          'labels/setCurrentOwnerProps',
+          'labels/loadApplicableLabelsByOwner/pending',
+          'labels/loadLabels/fulfilled',
+          'labels/loadApplicableLabelsByOwner/fulfilled',
+          'labels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
+          'labels/loadLabelsEditor/fulfilled',
         ]);
 
         expect(actions[9].payload).toEqual({
@@ -486,13 +480,13 @@ describe('orgsAndPoliciesLabelsActions', () => {
         expect(actions.length).toBe(7);
 
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/loadLabelsEditor/pending',
-          'orgsAndPoliciesLabels/loadLabels/pending',
-          'orgsAndPoliciesLabels/resetIsDirty',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/pending',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
-          'orgsAndPoliciesLabels/loadLabels/fulfilled',
-          'orgsAndPoliciesLabels/loadLabelsEditor/fulfilled',
+          'labels/loadLabelsEditor/pending',
+          'labels/loadLabels/pending',
+          'labels/resetIsDirty',
+          'labels/loadApplicableLabelsByOwnerIfNeeded/pending',
+          'labels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
+          'labels/loadLabels/fulfilled',
+          'labels/loadLabelsEditor/fulfilled',
         ]);
 
         expect(actions[6].payload).toEqual({
@@ -575,16 +569,16 @@ describe('orgsAndPoliciesLabelsActions', () => {
         expect(actions.length).toBe(10);
 
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/loadLabelsEditor/pending',
-          'orgsAndPoliciesLabels/loadLabels/pending',
-          'orgsAndPoliciesLabels/resetIsDirty',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/pending',
-          'orgsAndPoliciesLabels/setCurrentOwnerProps',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/pending',
-          'orgsAndPoliciesLabels/loadLabels/fulfilled',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/fulfilled',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
-          'orgsAndPoliciesLabels/loadLabelsEditor/rejected',
+          'labels/loadLabelsEditor/pending',
+          'labels/loadLabels/pending',
+          'labels/resetIsDirty',
+          'labels/loadApplicableLabelsByOwnerIfNeeded/pending',
+          'labels/setCurrentOwnerProps',
+          'labels/loadApplicableLabelsByOwner/pending',
+          'labels/loadLabels/fulfilled',
+          'labels/loadApplicableLabelsByOwner/fulfilled',
+          'labels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
+          'labels/loadLabelsEditor/rejected',
         ]);
 
         expect(actions[9].payload).toBe('Unable to locate label.');
@@ -637,14 +631,14 @@ describe('orgsAndPoliciesLabelsActions', () => {
         expect(actions.length).toBe(8);
 
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/loadLabelsEditor/pending',
-          'orgsAndPoliciesLabels/resetIsDirty',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/pending',
-          'orgsAndPoliciesLabels/setCurrentOwnerProps',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/pending',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/fulfilled',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
-          'orgsAndPoliciesLabels/loadLabelsEditor/fulfilled',
+          'labels/loadLabelsEditor/pending',
+          'labels/resetIsDirty',
+          'labels/loadApplicableLabelsByOwnerIfNeeded/pending',
+          'labels/setCurrentOwnerProps',
+          'labels/loadApplicableLabelsByOwner/pending',
+          'labels/loadApplicableLabelsByOwner/fulfilled',
+          'labels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
+          'labels/loadLabelsEditor/fulfilled',
         ]);
 
         expect(actions[7].payload).toEqual({
@@ -683,11 +677,11 @@ describe('orgsAndPoliciesLabelsActions', () => {
         expect(actions.length).toBe(5);
 
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/loadLabelsEditor/pending',
-          'orgsAndPoliciesLabels/resetIsDirty',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/pending',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
-          'orgsAndPoliciesLabels/loadLabelsEditor/fulfilled',
+          'labels/loadLabelsEditor/pending',
+          'labels/resetIsDirty',
+          'labels/loadApplicableLabelsByOwnerIfNeeded/pending',
+          'labels/loadApplicableLabelsByOwnerIfNeeded/fulfilled',
+          'labels/loadLabelsEditor/fulfilled',
         ]);
         expect(actions[4].payload).toEqual({
           siblings: null,
@@ -714,14 +708,14 @@ describe('orgsAndPoliciesLabelsActions', () => {
         expect(actions.length).toBe(8);
 
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/loadLabelsEditor/pending',
-          'orgsAndPoliciesLabels/resetIsDirty',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/pending',
-          'orgsAndPoliciesLabels/setCurrentOwnerProps',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/pending',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwner/rejected',
-          'orgsAndPoliciesLabels/loadApplicableLabelsByOwnerIfNeeded/rejected',
-          'orgsAndPoliciesLabels/loadLabelsEditor/rejected',
+          'labels/loadLabelsEditor/pending',
+          'labels/resetIsDirty',
+          'labels/loadApplicableLabelsByOwnerIfNeeded/pending',
+          'labels/setCurrentOwnerProps',
+          'labels/loadApplicableLabelsByOwner/pending',
+          'labels/loadApplicableLabelsByOwner/rejected',
+          'labels/loadApplicableLabelsByOwnerIfNeeded/rejected',
+          'labels/loadLabelsEditor/rejected',
         ]);
         expect(actions[5].payload).toBe('oops, rejected');
 
@@ -785,10 +779,7 @@ describe('orgsAndPoliciesLabelsActions', () => {
         const actions = store.getActions();
 
         expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/saveLabel/pending',
-          'orgsAndPoliciesLabels/saveLabel/fulfilled',
-        ]);
+        expect(actions).toHaveActionTypesInOrder(['labels/saveLabel/pending', 'labels/saveLabel/fulfilled']);
 
         expect(actions[1].payload).toEqual({
           label: {
@@ -846,10 +837,7 @@ describe('orgsAndPoliciesLabelsActions', () => {
         const actions = store.getActions();
 
         expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/saveLabel/pending',
-          'orgsAndPoliciesLabels/saveLabel/fulfilled',
-        ]);
+        expect(actions).toHaveActionTypesInOrder(['labels/saveLabel/pending', 'labels/saveLabel/fulfilled']);
 
         expect(actions[1].payload).toEqual({
           label: {
@@ -881,10 +869,7 @@ describe('orgsAndPoliciesLabelsActions', () => {
         const actions = store.getActions();
 
         expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/saveLabel/pending',
-          'orgsAndPoliciesLabels/saveLabel/rejected',
-        ]);
+        expect(actions).toHaveActionTypesInOrder(['labels/saveLabel/pending', 'labels/saveLabel/rejected']);
 
         expect(actions[1].payload).toEqual('could not save label');
 
@@ -930,12 +915,12 @@ describe('orgsAndPoliciesLabelsActions', () => {
 
         expect(actions.length).toBe(6);
         expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/removeLabel/pending',
-          'orgsAndPoliciesLabels/resetIsDirty',
-          'orgsAndPoliciesLabels/goToCreateLabel/pending',
+          'labels/removeLabel/pending',
+          'labels/resetIsDirty',
+          'labels/goToCreateLabel/pending',
           '@@reduxUiRouter/stateGo',
-          'orgsAndPoliciesLabels/goToCreateLabel/fulfilled',
-          'orgsAndPoliciesLabels/removeLabel/fulfilled',
+          'labels/goToCreateLabel/fulfilled',
+          'labels/removeLabel/fulfilled',
         ]);
 
         expect(actions[5].payload).toBe('ae63051b2e304c3bbabf94c2443b03fb');
@@ -961,10 +946,7 @@ describe('orgsAndPoliciesLabelsActions', () => {
         const actions = store.getActions();
 
         expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder([
-          'orgsAndPoliciesLabels/removeLabel/pending',
-          'orgsAndPoliciesLabels/removeLabel/rejected',
-        ]);
+        expect(actions).toHaveActionTypesInOrder(['labels/removeLabel/pending', 'labels/removeLabel/rejected']);
 
         expect(actions[1].payload).toBe('could not remove label');
 

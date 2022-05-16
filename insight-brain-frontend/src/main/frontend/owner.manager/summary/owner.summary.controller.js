@@ -7,18 +7,18 @@ import { propEq, find } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
 import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
-import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import {
   selectIsGrandfatheringSupported,
   selectIsInnerSourceRepositorySupported,
   selectIsEvaluateApplicationAvailable,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
 import { selectDeleteModal } from 'MainRoot/OrgsAndPolicies/ownerEditorSelectors';
+import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function OwnerSummaryController(

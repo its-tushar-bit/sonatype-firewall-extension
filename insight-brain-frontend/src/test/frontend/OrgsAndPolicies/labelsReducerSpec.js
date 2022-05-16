@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer, { initialState } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSlice';
+import reducer, { initialState } from 'MainRoot/OrgsAndPolicies/labelsSlice';
 
-describe('orgsAndPoliciesLabels reducer', () => {
-  describe('orgsAndPoliciesLabels/setLabelDescription', () => {
+describe('labels reducer', () => {
+  describe('labels/setLabelDescription', () => {
     it('sets description to currentLabel and isDirty property', () => {
       const state = Object.freeze({
         currentLabel: {
@@ -19,7 +19,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const { isDirty, currentLabel } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/setLabelDescription',
+        type: 'labels/setLabelDescription',
         payload: 'label description',
       });
 
@@ -28,7 +28,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/setCurrentOwnerProps', () => {
+  describe('labels/setCurrentOwnerProps', () => {
     it('sets description to currentLabel and isDirty property', () => {
       const state = Object.freeze({
         ownerType: null,
@@ -36,7 +36,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const { ownerType, ownerId } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/setCurrentOwnerProps',
+        type: 'labels/setCurrentOwnerProps',
         payload: {
           ownerType: 'ownerType',
           ownerId: 'ownerId',
@@ -48,7 +48,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/setLabelColor', () => {
+  describe('labels/setLabelColor', () => {
     it('sets color to currentLabel and isDirty property', () => {
       const state = Object.freeze({
         currentLabel: {
@@ -61,7 +61,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const { isDirty, currentLabel } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/setLabelColor',
+        type: 'labels/setLabelColor',
         payload: 'light-green',
       });
 
@@ -70,7 +70,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/setLabelName', () => {
+  describe('labels/setLabelName', () => {
     it('sets label to currentLabel and isDirty property', () => {
       const state = Object.freeze({
         currentLabel: {
@@ -83,7 +83,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const { isDirty, currentLabel } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/setLabelName',
+        type: 'labels/setLabelName',
         payload: 'name',
       });
 
@@ -92,19 +92,19 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/resetIsDirty', () => {
+  describe('labels/resetIsDirty', () => {
     it('resets isDirty property', () => {
       const state = Object.freeze({ isDirty: true });
 
       const { isDirty } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/resetIsDirty',
+        type: 'labels/resetIsDirty',
       });
 
       expect(isDirty).toBeFalse();
     });
   });
 
-  describe('orgsAndPoliciesLabels/resetDeleteModalState', () => {
+  describe('labels/resetDeleteModalState', () => {
     it('resets delete modal related properties property', () => {
       const state = Object.freeze({
         deleting: false,
@@ -113,7 +113,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const { deleting, success, errorState } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/resetDeleteModalState',
+        type: 'labels/resetDeleteModalState',
       });
 
       expect(deleting).toBeNull();
@@ -122,19 +122,19 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/saveLabel/pending', () => {
+  describe('labels/saveLabel/pending', () => {
     it('sets submitError property to null', () => {
       const state = Object.freeze({ submitError: 'error' });
 
       const { submitError } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/saveLabel/pending',
+        type: 'labels/saveLabel/pending',
       });
 
       expect(submitError).toBeNull();
     });
   });
 
-  describe('orgsAndPoliciesLabels/saveLabel/fulfilled', () => {
+  describe('labels/saveLabel/fulfilled', () => {
     it('sets currentLabel and serverCurrentLable to payload, resets isDirty in edit mode', () => {
       const state = Object.freeze({
         submitError: 'error',
@@ -152,7 +152,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'orgsAndPoliciesLabels/saveLabel/fulfilled',
+        type: 'labels/saveLabel/fulfilled',
         payload: {
           isEditMode: true,
           label: {
@@ -202,7 +202,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'orgsAndPoliciesLabels/saveLabel/fulfilled',
+        type: 'labels/saveLabel/fulfilled',
         payload: {
           isEditMode: false,
           label: {
@@ -230,12 +230,12 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/saveLabel/rejected', () => {
+  describe('labels/saveLabel/rejected', () => {
     it('sets submitError property to error', () => {
       const state = Object.freeze({ submitError: null });
 
       const { submitError } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/saveLabel/rejected',
+        type: 'labels/saveLabel/rejected',
         payload: 'error',
       });
 
@@ -243,19 +243,19 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/removeLabel/pending', () => {
+  describe('labels/removeLabel/pending', () => {
     it('sets deleting property to null', () => {
       const state = Object.freeze({ deleting: false });
 
       const { deleting } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/removeLabel/pending',
+        type: 'labels/removeLabel/pending',
       });
 
       expect(deleting).toBeTrue();
     });
   });
 
-  describe('orgsAndPoliciesLabels/removeLabel/fulfilled', () => {
+  describe('labels/removeLabel/fulfilled', () => {
     it('sets currentlabel, serverCurrentLabel to initialState', () => {
       const state = Object.freeze({
         deleting: true,
@@ -285,7 +285,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'orgsAndPoliciesLabels/removeLabel/fulfilled',
+        type: 'labels/removeLabel/fulfilled',
         payload: 'id',
       });
 
@@ -300,7 +300,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/removeLabel/rejected', () => {
+  describe('labels/removeLabel/rejected', () => {
     it('sets errorState, deletins properties', () => {
       const state = Object.freeze({
         deleting: true,
@@ -308,7 +308,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const { deleting, errorState } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/removeLabel/rejected',
+        type: 'labels/removeLabel/rejected',
         payload: 'error',
       });
 
@@ -317,7 +317,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/loadApplicableLabels/pending', () => {
+  describe('labels/loadApplicableLabels/pending', () => {
     it('resets loading, loadError properties', () => {
       const state = Object.freeze({
         loading: false,
@@ -325,7 +325,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/loadApplicableLabels/pending',
+        type: 'labels/loadApplicableLabels/pending',
       });
 
       expect(loading).toBeTrue();
@@ -333,7 +333,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/loadApplicableLabels/fulfilled', () => {
+  describe('labels/loadApplicableLabels/fulfilled', () => {
     it('sets loading, loadError, applicableLabels, ownerName properties', () => {
       const state = Object.freeze({
         loading: true,
@@ -342,7 +342,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const newStore = reducer(state, {
-        type: 'orgsAndPoliciesLabels/loadApplicableLabels/fulfilled',
+        type: 'labels/loadApplicableLabels/fulfilled',
         payload: [
           {
             ownerId: '6b365e8a8000449aa924f194a7ed0d21',
@@ -384,7 +384,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/loadApplicableLabels/rejected', () => {
+  describe('labels/loadApplicableLabels/rejected', () => {
     it('sets loading, loadError properties', () => {
       const state = Object.freeze({
         loading: true,
@@ -392,7 +392,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/loadApplicableLabels/rejected',
+        type: 'labels/loadApplicableLabels/rejected',
         payload: 'error',
       });
 
@@ -401,7 +401,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/loadLabelsEditor/pending', () => {
+  describe('labels/loadLabelsEditor/pending', () => {
     it('resets loading, loadError properties', () => {
       const state = Object.freeze({
         loading: false,
@@ -409,7 +409,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/loadLabelsEditor/pending',
+        type: 'labels/loadLabelsEditor/pending',
       });
 
       expect(loading).toBeTrue();
@@ -417,7 +417,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/loadLabelsEditor/fulfilled', () => {
+  describe('labels/loadLabelsEditor/fulfilled', () => {
     it('sets loading, loadError, currentLabel, serverCurrentLabel, siblings properties', () => {
       const state = Object.freeze({
         loading: true,
@@ -428,7 +428,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'orgsAndPoliciesLabels/loadLabelsEditor/fulfilled',
+        type: 'labels/loadLabelsEditor/fulfilled',
         payload: {
           currentLabel: {
             color: 'light-green',
@@ -491,7 +491,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'orgsAndPoliciesLabels/loadLabelsEditor/fulfilled',
+        type: 'labels/loadLabelsEditor/fulfilled',
         payload: {
           currentLabel: {
             color: 'light-green',
@@ -527,7 +527,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesLabels/loadLabelsEditor/rejected', () => {
+  describe('labels/loadLabelsEditor/rejected', () => {
     it('sets loading, loadError properties', () => {
       const state = Object.freeze({
         loading: true,
@@ -535,7 +535,7 @@ describe('orgsAndPoliciesLabels reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'orgsAndPoliciesLabels/loadLabelsEditor/rejected',
+        type: 'labels/loadLabelsEditor/rejected',
         payload: 'error',
       });
 

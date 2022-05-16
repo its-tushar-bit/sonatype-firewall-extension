@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
+import reducer from 'MainRoot/OrgsAndPolicies/rootSlice';
 
-describe('orgsAndPolicies reducer', () => {
+describe('root reducer', () => {
   describe('orgsAndPolicies/setSelectedOwner', () => {
     it('sets owner object', () => {
       const state = Object.freeze({

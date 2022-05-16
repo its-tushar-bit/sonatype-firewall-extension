@@ -6,15 +6,12 @@
 import { omit } from 'ramda';
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import {
   selectIsEnforcementSupported,
   selectIsFirewallSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import {
-  selectActionStagesLoadError,
-  selectActionStageTypes,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
+import { selectActionStagesLoadError, selectActionStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import { selectShouldShowQuarantineWarning } from '../../OrgsAndPolicies/policySelectors';
 
 export default function PolicyEditorActionsController($scope, $ngRedux) {

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesPolicyMonitoringSlice';
+import reducer from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
 
 const applicablePolicyMonitoring = {
   policyMonitoringByOwner: [
@@ -20,8 +20,8 @@ const applicablePolicyMonitoring = {
   ],
 };
 
-describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
-  describe('orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/pending', () => {
+describe('policyMonitoring reducer', () => {
+  describe('policyMonitoring/loadApplicablePolicyMonitoring/pending', () => {
     it('resets loading, loadError properties', () => {
       const state = Object.freeze({
         loading: false,
@@ -29,7 +29,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/pending',
+        type: 'policyMonitoring/loadApplicablePolicyMonitoring/pending',
       });
 
       expect(loading).toBeTrue();
@@ -37,7 +37,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/fulfilled', () => {
+  describe('policyMonitoring/loadApplicablePolicyMonitoring/fulfilled', () => {
     it('sets loading, loadError, policyMonitoringByOwner properties', () => {
       const state = Object.freeze({
         loading: true,
@@ -46,7 +46,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
       });
 
       const newState = reducer(state, {
-        type: 'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
+        type: 'policyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
         payload: [applicablePolicyMonitoring, { policiesByOwner: [], actionStages: [] }],
       });
 
@@ -67,7 +67,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/rejected', () => {
+  describe('policyMonitoring/loadApplicablePolicyMonitoring/rejected', () => {
     it('sets loading, loadError properties', () => {
       const state = Object.freeze({
         loading: true,
@@ -75,7 +75,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'orgsAndPoliciesPolicyMonitoring/loadApplicablePolicyMonitoring/rejected',
+        type: 'policyMonitoring/loadApplicablePolicyMonitoring/rejected',
         payload: 'error',
       });
 
@@ -84,7 +84,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesPolicyMonitoring/savePolicyMonitoring/pending', () => {
+  describe('policyMonitoring/savePolicyMonitoring/pending', () => {
     it('resets loading, submitError properties', () => {
       const state = Object.freeze({
         loading: false,
@@ -92,7 +92,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
       });
 
       const { loading, submitError } = reducer(state, {
-        type: 'orgsAndPoliciesPolicyMonitoring/savePolicyMonitoring/pending',
+        type: 'policyMonitoring/savePolicyMonitoring/pending',
       });
 
       expect(loading).toBeTrue();
@@ -100,7 +100,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesPolicyMonitoring/savePolicyMonitoring/fulfilled', () => {
+  describe('policyMonitoring/savePolicyMonitoring/fulfilled', () => {
     it('resets loading, submitError properties', () => {
       const state = Object.freeze({
         loading: false,
@@ -108,7 +108,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
       });
 
       const { loading, submitError, originalStage } = reducer(state, {
-        type: 'orgsAndPoliciesPolicyMonitoring/savePolicyMonitoring/fulfilled',
+        type: 'policyMonitoring/savePolicyMonitoring/fulfilled',
         payload: { policyMonitoring: 'policy monitoring' },
       });
 
@@ -118,7 +118,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesPolicyMonitoring/savePolicyMonitoring/rejected', () => {
+  describe('policyMonitoring/savePolicyMonitoring/rejected', () => {
     it('sets loading, submitError properties', () => {
       const state = Object.freeze({
         loading: true,
@@ -126,7 +126,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
       });
 
       const { loading, submitError } = reducer(state, {
-        type: 'orgsAndPoliciesPolicyMonitoring/savePolicyMonitoring/rejected',
+        type: 'policyMonitoring/savePolicyMonitoring/rejected',
         payload: 'error',
       });
 
@@ -135,7 +135,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesPolicyMonitoring/removePolicyMonitoring/pending', () => {
+  describe('policyMonitoring/removePolicyMonitoring/pending', () => {
     it('resets loading, submitError properties', () => {
       const state = Object.freeze({
         loading: false,
@@ -143,7 +143,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
       });
 
       const { loading, submitError } = reducer(state, {
-        type: 'orgsAndPoliciesPolicyMonitoring/removePolicyMonitoring/pending',
+        type: 'policyMonitoring/removePolicyMonitoring/pending',
       });
 
       expect(loading).toBeTrue();
@@ -151,7 +151,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesPolicyMonitoring/removePolicyMonitoring/fulfilled', () => {
+  describe('policyMonitoring/removePolicyMonitoring/fulfilled', () => {
     it('resets loading, submitError properties', () => {
       const state = Object.freeze({
         loading: false,
@@ -159,7 +159,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
       });
 
       const { loading, submitError } = reducer(state, {
-        type: 'orgsAndPoliciesPolicyMonitoring/removePolicyMonitoring/fulfilled',
+        type: 'policyMonitoring/removePolicyMonitoring/fulfilled',
       });
 
       expect(loading).toBeFalse();
@@ -167,7 +167,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
     });
   });
 
-  describe('orgsAndPoliciesPolicyMonitoring/removePolicyMonitoring/rejected', () => {
+  describe('policyMonitoring/removePolicyMonitoring/rejected', () => {
     it('sets loading, submitError properties', () => {
       const state = Object.freeze({
         loading: true,
@@ -175,7 +175,7 @@ describe('orgsAndPoliciesPolicyMonitoring reducer', () => {
       });
 
       const { loading, submitError } = reducer(state, {
-        type: 'orgsAndPoliciesPolicyMonitoring/removePolicyMonitoring/rejected',
+        type: 'policyMonitoring/removePolicyMonitoring/rejected',
         payload: 'error',
       });
 

@@ -7,8 +7,8 @@ import { unwrapResult } from '@reduxjs/toolkit';
 import angular from 'angular';
 import { any, clone } from 'ramda';
 
-import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
 import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
 export default function OwnerEditorController(
   $scope,

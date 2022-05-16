@@ -8,11 +8,11 @@ import legacyConfigurationModule from 'MainRoot/LegacyConfigurationModule';
 import ownerUtils from '../owner.utils';
 import applicationResourceMockData from '../mock.data/application.resource.mock.data';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
-import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesRootSlice';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
 describe('owner.summary.controller', function () {
   beforeEach(

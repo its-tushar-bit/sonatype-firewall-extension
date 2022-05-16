@@ -7,11 +7,8 @@
 import commonServicesModule from '../utilAngular/CommonServices';
 import CLMLocationModule from '../util/CLMLocation';
 import storesModule from '../utilAngular/Stores';
-import { actions } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSlice';
-import {
-  selectDashboardStagesLoadError,
-  selectDashboardStageTypes,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
+import { actions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
+import { selectDashboardStagesLoadError, selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 
 var componentModule = angular.module('ComponentModule', [
   'ui.router',

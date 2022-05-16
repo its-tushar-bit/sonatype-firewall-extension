@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as policySelectors from 'MainRoot/OrgsAndPolicies/policySelectors';
-import * as stagesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesStagesSelectors';
+import * as stagesSelectors from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { mapStateToThis } from 'MainRoot/owner.manager/policy/policy.editor.actions.controller';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';

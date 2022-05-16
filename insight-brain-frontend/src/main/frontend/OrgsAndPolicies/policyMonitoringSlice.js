@@ -10,10 +10,10 @@ import { pick, prop } from 'ramda';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getPolicyMonitoringUrl, getApplicablePolicyMonitoringUrl } from 'MainRoot/util/CLMLocation';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
-import { selectPolicyMonitoringMonitoredStage } from './orgsAndPoliciesPolicyMonitoringSelectors';
+import { selectPolicyMonitoringMonitoredStage } from './policyMonitoringSelectors';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
-const REDUCER_NAME = 'orgsAndPoliciesPolicyMonitoring';
+const REDUCER_NAME = 'policyMonitoring';
 
 export const initialState = {
   loadError: null,
@@ -115,7 +115,7 @@ const removePolicyMonitoringFailed = (state, { payload }) => {
   state.submitError = Messages.getHttpErrorMessage(payload);
 };
 
-const orgsAndPoliciesPolicyMonitoringSlice = createSlice({
+const policyMonitoringSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: { setMonitoredStage },
@@ -134,9 +134,9 @@ const orgsAndPoliciesPolicyMonitoringSlice = createSlice({
   },
 });
 
-export default orgsAndPoliciesPolicyMonitoringSlice.reducer;
+export default policyMonitoringSlice.reducer;
 export const actions = {
-  ...orgsAndPoliciesPolicyMonitoringSlice.actions,
+  ...policyMonitoringSlice.actions,
   loadApplicablePolicyMonitoring,
   savePolicyMonitoring,
   removePolicyMonitoring,

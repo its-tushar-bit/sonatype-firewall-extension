@@ -16,11 +16,11 @@ import {
   selectLabelsIsEditMode,
   selectPrevOwnerType,
   selectPrevOwnerId,
-} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesLabelsSelectors';
+} from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 
-const REDUCER_NAME = 'orgsAndPoliciesLabels';
+const REDUCER_NAME = 'labels';
 
 export const initialState = {
   applicableLabels: null,
@@ -272,7 +272,7 @@ const setTextInput = curryN(3, function setTextInput(fieldName, state, { payload
   return computeIsDirty(pathSet(['currentLabel', fieldName], payload, state));
 });
 
-const orgsAndPoliciesLabelsSlice = createSlice({
+const labelsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
@@ -302,9 +302,9 @@ const orgsAndPoliciesLabelsSlice = createSlice({
   },
 });
 
-export default orgsAndPoliciesLabelsSlice.reducer;
+export default labelsSlice.reducer;
 export const actions = {
-  ...orgsAndPoliciesLabelsSlice.actions,
+  ...labelsSlice.actions,
   loadLabels,
   loadApplicableLabels,
   loadLabelsEditor,

@@ -528,35 +528,27 @@ public class CLMLicenseManager
       features.add(LicensedFeature.QUALITY);
       stageTypes.addAll(StageTypes.getAll());
     }
-    if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)) {
+    if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL) ||
+        products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY)) {
       features.add(LicensedFeature.FIREWALL);
+      features.add(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
     }
-    if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_V2)) {
+    if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_V2) ||
+        products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2)) {
       features.add(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
       features.add(LicensedFeature.RELEASE_INTEGRITY);
       features.add(LicensedFeature.FIREWALL);
+      features.add(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);
-    }
-    if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY)) {
-      features.add(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
-      features.add(LicensedFeature.RM_STAGING_INTEGRATION);
-      features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
-    }
-    if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2)) {
-      features.add(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
-      features.add(LicensedFeature.RELEASE_INTEGRITY);
-      features.add(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
-      features.add(LicensedFeature.RM_STAGING_INTEGRATION);
-      features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK)) {
       features.add(LicensedFeature.ADVANCED_LEGAL_PACK);
@@ -581,6 +573,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
       features.add(LicensedFeature.RELEASE_INTEGRITY);
       features.add(LicensedFeature.FIREWALL);
+      features.add(LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
       features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);

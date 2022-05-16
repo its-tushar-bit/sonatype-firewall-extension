@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 import com.sonatype.insight.brain.repository.RepositoryComponentDeleteService;
@@ -37,9 +36,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.license.model.ProductLicenseDetails.PRODUCT_FIREWALL;
-import static com.sonatype.insight.license.model.ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD;
-import static com.sonatype.insight.license.model.ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -79,7 +75,7 @@ public class RepositoryService extends AbstractRepositoryService
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
       String clientUserAgent)
   {
-    checkLicenseProduct();
+    checkLicenseFeature();
     auditRepoComponentEvalList(componentEvaluationDataRequestList);
     Repository repository = getOrCreateRepository(repositoryManagerInstanceId, repositoryPublicId);
 
@@ -107,19 +103,12 @@ public class RepositoryService extends AbstractRepositoryService
     return repository;
   }
 
-  private void checkLicenseProduct() {
-    if (!(productLicense.hasProduct(PRODUCT_RISK_AND_REMEDIATION) || productLicense.hasProduct(PRODUCT_FIREWALL) ||
-        productLicense.hasProduct(PRODUCT_LIFECYCLE_CLOUD))) {
-      throw new InvalidLicenseException();
-    }
-  }
-
   /**
    * Removes all components from the given repository that have paths not in the given pathname list and with timestamp
    * before or equal to the given timestamp.
-   * 
+   *
    * @param repositoryComponentPathnames the pathname list and timestamp used to filter the components to be deleted.
-   * 
+   *
    * @since 1.137
    */
   void removeExtraComponents(
@@ -144,9 +133,9 @@ public class RepositoryService extends AbstractRepositoryService
   /**
    * Removes all components from the given repository that have paths not in the given pathname list and with timestamp
    * before or equal to the given timestamp.
-   * 
+   *
    * @param repositoryComponentPathnames the pathname list and timestamp used to filter the components to be deleted.
-   * 
+   *
    * @since 1.137
    */
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -165,7 +154,7 @@ public class RepositoryService extends AbstractRepositoryService
         .collect(toList());
     log.debug("Retrieved {} components to be deleted in {} ms.", extraComponents.size(),
         System.currentTimeMillis() - start);
-    
+
     extraComponents.forEach(repositoryComponentDeleteService::deleteComponent);
 
     return extraComponents.size();

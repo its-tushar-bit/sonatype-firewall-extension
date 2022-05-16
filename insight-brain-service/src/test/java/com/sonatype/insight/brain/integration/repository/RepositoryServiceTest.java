@@ -38,7 +38,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.error.exception.BadRequestException;
-import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
@@ -447,31 +446,18 @@ public class RepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentsAdhoc_CheckLicensedProducts() {
+  public void testEvaluateComponentsAdhoc_MissingLicenseFeature() {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest =
         new RepositoryComponentEvaluationDataRequest("npm", "foobar", "hash");
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         newRepositoryComponentEvaluationDataRequestList(Collections.singletonList(componentEvaluationDataRequest));
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("foobar", "1.0.0");
-    mockHdsRequestForComponent(componentEvaluationDataRequestList,
-        ImmutableMap.of(componentEvaluationDataRequest, componentIdentifier), Collections.emptyList());
 
-    for (String product : ProductLicenseDetails.PRODUCTS) {
-      testProductLicense.setProducts(product);
-      if (product.equals(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION) ||
-          product.equals(ProductLicenseDetails.PRODUCT_FIREWALL) ||
-          product.equals(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD)) {
-        repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-            componentEvaluationDataRequestList, null);
-      }
-      else {
-        assertThatExceptionOfType(InvalidLicenseException.class).as("Product " + product + " is not allowed")
-            .isThrownBy(() -> {
-              repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-                  componentEvaluationDataRequestList, null);
-            });
-      }
-    }
+    testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
+      repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+          componentEvaluationDataRequestList, null);;
+    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+
   }
 }

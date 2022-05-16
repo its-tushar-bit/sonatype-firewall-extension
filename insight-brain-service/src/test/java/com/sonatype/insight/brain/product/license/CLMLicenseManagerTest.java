@@ -302,6 +302,7 @@ public class CLMLicenseManagerTest
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.FIREWALL, //
+        LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
@@ -313,8 +314,10 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     installLicense();
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
+        LicensedFeature.FIREWALL,
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
         LicensedFeature.RM_STAGING_INTEGRATION);
   }
 
@@ -326,9 +329,11 @@ public class CLMLicenseManagerTest
     assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
         LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
         LicensedFeature.RELEASE_INTEGRITY,
+        LicensedFeature.FIREWALL,
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY, //
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
-        LicensedFeature.RM_STAGING_INTEGRATION);
+        LicensedFeature.RM_STAGING_INTEGRATION,
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
   }
 
   @Test
@@ -340,6 +345,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, //
         LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.FIREWALL, //
+        LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
@@ -354,6 +360,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, //
         LicensedFeature.RELEASE_INTEGRITY, //
         LicensedFeature.FIREWALL, //
+        LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
         LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
@@ -414,7 +421,9 @@ public class CLMLicenseManagerTest
     installLicense();
 
     assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
-        StageTypes.PROXY);
+        StageTypes.PROXY,
+        StageTypes.STAGE_RELEASE,
+        StageTypes.RELEASE);
   }
 
   @Test
@@ -424,7 +433,9 @@ public class CLMLicenseManagerTest
     installLicense();
 
     assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
-        StageTypes.PROXY);
+        StageTypes.PROXY,
+        StageTypes.RELEASE,
+        StageTypes.STAGE_RELEASE);
   }
 
   @Test

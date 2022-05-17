@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-public class ApiRepositoryConnectionStatusDTO
+public class ApiArtifactoryConnectionStatusResponseDTO
 {
   /**
-   * Whether repository connections are enabled for this org/app. If null, then this will be inherited.
+   * Whether artifactory connections are enabled for this org/app. If null, then this will be inherited.
    */
   public Boolean enabled;
 

@@ -14,7 +14,8 @@ import javax.inject.Singleton;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory;
@@ -142,7 +143,7 @@ public class ApiArtifactoryConnectionService
   public void updateOwnerArtifactoryConnectionStatus(
       @AuthzContext(Key.TYPE) OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) String ownerId,
-      ApiArtifactoryConnectionStatusDTO dto)
+      ApiArtifactoryConnectionStatusRequestDTO dto)
   {
     if (dto == null) {
       throw new BadRequestException("missing artifactory connection configuration data for update");
@@ -299,11 +300,11 @@ public class ApiArtifactoryConnectionService
   }
 
   // Visible for testing
-  public ApiArtifactoryConnectionStatusDTO getOwnerArtifactoryConnectionStatus(
+  public ApiArtifactoryConnectionStatusResponseDTO getOwnerArtifactoryConnectionStatus(
       OwnerType ownerType,
       String internalOwnerId)
   {
-    ApiArtifactoryConnectionStatusDTO dto = new ApiArtifactoryConnectionStatusDTO();
+    ApiArtifactoryConnectionStatusResponseDTO dto = new ApiArtifactoryConnectionStatusResponseDTO();
     dto.allowChange = true;
 
     String parentOrgId;

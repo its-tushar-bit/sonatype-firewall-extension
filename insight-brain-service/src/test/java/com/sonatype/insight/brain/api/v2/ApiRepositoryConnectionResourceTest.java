@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -530,7 +530,7 @@ public class ApiRepositoryConnectionResourceTest
   @Test
   public void testUpdateOwnerRepositoryConnectionStatus_Application() throws Exception {
     String appId = tempEntity.newApplicationWithParent().getId();
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
     dto.allowOverride = false;
     dto.enabled = true;
 
@@ -544,7 +544,7 @@ public class ApiRepositoryConnectionResourceTest
   @Test
   public void testUpdateOwnerRepositoryConnectionStatus_Organization() throws Exception {
     String orgId = tempEntity.newOrganization().getId();
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
     dto.allowOverride = false;
     dto.enabled = true;
 
@@ -559,7 +559,7 @@ public class ApiRepositoryConnectionResourceTest
   public void testUpdateOwnerRepositoryConnectionStatus_FeatureDisabled() throws Exception {
     insightConfig.setFeatures(
         ImmutableMap.of(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, "appId")

@@ -17,7 +17,8 @@ import javax.ws.rs.core.Response.Status;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusResponseDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -153,7 +154,7 @@ public class ApiRepositoryConnectionService
   public void updateOwnerRepositoryConnectionStatus(
       @AuthzContext(AuthzContext.Key.TYPE) OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.INTERNAL_ID) String ownerId,
-      ApiRepositoryConnectionStatusDTO dto)
+      ApiRepositoryConnectionStatusRequestDTO dto)
   {
     if (dto == null) {
       throw new BadRequestException("missing repository connection configuration data for update");
@@ -314,11 +315,11 @@ public class ApiRepositoryConnectionService
   }
 
   // Visible for testing
-  public ApiRepositoryConnectionStatusDTO getOwnerRepositoryConnectionStatus(
+  public ApiRepositoryConnectionStatusResponseDTO getOwnerRepositoryConnectionStatus(
       OwnerType ownerType,
       String internalOwnerId)
   {
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    ApiRepositoryConnectionStatusResponseDTO dto = new ApiRepositoryConnectionStatusResponseDTO();
     dto.allowChange = true;
 
     String parentOrgId;

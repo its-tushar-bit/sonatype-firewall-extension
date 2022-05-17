@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.model.OwnerType;
 
@@ -42,7 +42,7 @@ public interface ApiRepositoryConnectionResourceV2
   void updateOwnerRepositoryConnectionStatus(
       OwnerType ownerType,
       String internalOwnerId,
-      ApiRepositoryConnectionStatusDTO repositoryConnectionStatusDTO);
+      ApiRepositoryConnectionStatusRequestDTO repositoryConnectionStatusDTO);
 
   ApiStatusDTO testRepositoryConnection(
       OwnerType ownerType,

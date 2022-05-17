@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -497,7 +497,7 @@ public class ApiArtifactoryConnectionResourceTest
   public void testUpdateOwnerArtifactoryConnectionStatus_Application() throws Exception {
     feature(true);
     String appId = tempEntity.newApplicationWithParent().getId();
-    ApiArtifactoryConnectionStatusDTO dto = new ApiArtifactoryConnectionStatusDTO();
+    ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
     dto.allowOverride = false;
     dto.enabled = true;
 
@@ -512,7 +512,7 @@ public class ApiArtifactoryConnectionResourceTest
   public void testUpdateOwnerArtifactoryConnectionStatus_Organization() throws Exception {
     feature(true);
     String orgId = tempEntity.newOrganization().getId();
-    ApiArtifactoryConnectionStatusDTO dto = new ApiArtifactoryConnectionStatusDTO();
+    ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
     dto.allowOverride = false;
     dto.enabled = true;
 
@@ -525,7 +525,7 @@ public class ApiArtifactoryConnectionResourceTest
 
   @Test
   public void testUpdateOwnerArtifactoryConnectionStatus_FeatureDisabled() throws Exception {
-    ApiArtifactoryConnectionStatusDTO dto = new ApiArtifactoryConnectionStatusDTO();
+    ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
 
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, "appId")

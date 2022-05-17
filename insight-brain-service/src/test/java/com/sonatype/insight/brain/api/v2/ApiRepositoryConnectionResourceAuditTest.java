@@ -9,7 +9,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusRequestDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRepositoryConnectionService;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -102,7 +102,7 @@ public class ApiRepositoryConnectionResourceAuditTest
   @Test
   public void testAudit_UpdateRepositoryConnectionStatus_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization();
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
     dto.enabled = true;
     dto.allowOverride = false;
 
@@ -120,7 +120,7 @@ public class ApiRepositoryConnectionResourceAuditTest
 
   @Test
   public void testAudit_UpdateRepositoryConnectionStatus_Application() throws Exception {
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
     dto.enabled = true;
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER)

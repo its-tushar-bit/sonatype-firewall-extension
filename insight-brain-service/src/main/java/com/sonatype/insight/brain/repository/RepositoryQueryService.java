@@ -20,7 +20,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
-import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusResponseDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRepositoryConnectionService;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.Owner;
@@ -113,7 +113,7 @@ public class RepositoryQueryService
     }
     RepositoryFormat finalRepositoryFormat = repositoryFormat;
 
-    ApiRepositoryConnectionStatusDTO statusDTO =
+    ApiRepositoryConnectionStatusResponseDTO statusDTO =
         repositoryConnectionService.getOwnerRepositoryConnectionStatus(owner.getType(), owner.getId());
     String effectiveOwnerId = null;
 

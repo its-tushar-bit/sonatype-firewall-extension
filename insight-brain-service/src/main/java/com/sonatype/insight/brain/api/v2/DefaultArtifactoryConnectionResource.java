@@ -22,9 +22,9 @@ import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -181,7 +181,7 @@ public class DefaultArtifactoryConnectionResource
   public void updateOwnerArtifactoryConnectionStatus(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId,
-      ApiArtifactoryConnectionStatusDTO artifactoryConnectionStatusDTO)
+      ApiArtifactoryConnectionStatusRequestDTO artifactoryConnectionStatusDTO)
   {
     checkArtifactoryIntegrationEnabled();
     artifactoryConnectionService

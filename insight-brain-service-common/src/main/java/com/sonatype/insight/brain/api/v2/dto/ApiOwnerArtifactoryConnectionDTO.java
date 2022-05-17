@@ -9,7 +9,7 @@ public class ApiOwnerArtifactoryConnectionDTO
 {
   public ApiArtifactoryConnectionDTO artifactoryConnection;
 
-  public ApiArtifactoryConnectionStatusDTO artifactoryConnectionStatus;
+  public ApiArtifactoryConnectionStatusResponseDTO artifactoryConnectionStatus;
 
   public ApiOwnerDTO ownerDTO;
 }

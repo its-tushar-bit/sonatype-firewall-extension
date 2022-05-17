@@ -10,7 +10,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusRequestDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiArtifactoryConnectionService;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -99,7 +99,7 @@ public class ApiArtifactoryConnectionResourceAuditTest
   @Test
   public void testAudit_UpdateArtifactoryConnectionStatus_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization();
-    ApiArtifactoryConnectionStatusDTO dto = new ApiArtifactoryConnectionStatusDTO();
+    ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
     dto.enabled = true;
     dto.allowOverride = false;
 
@@ -117,7 +117,7 @@ public class ApiArtifactoryConnectionResourceAuditTest
 
   @Test
   public void testAudit_UpdateArtifactoryConnectionStatus_Application() throws Exception {
-    ApiArtifactoryConnectionStatusDTO dto = new ApiArtifactoryConnectionStatusDTO();
+    ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
     dto.enabled = true;
 
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER)

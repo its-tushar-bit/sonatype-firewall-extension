@@ -12,7 +12,8 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory;
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory.ArtifactoryClientBuilder;
@@ -859,7 +860,7 @@ public class ApiArtifactoryConnectionServiceTest
       boolean expectedAllowChange,
       Boolean expectedInheritedEnabled)
   {
-    ApiArtifactoryConnectionStatusDTO result =
+    ApiArtifactoryConnectionStatusResponseDTO result =
         artifactoryConnectionService.getOwnerArtifactoryConnectionStatus(owner.getType(), owner.getId());
     assertThat(result).isNotNull();
     assertThat(result.enabled).isEqualTo(expectedEnabled);
@@ -871,7 +872,7 @@ public class ApiArtifactoryConnectionServiceTest
 
   @Test
   public void testUpdateOwnerArtifactoryConnectionStatus_Organization() {
-    ApiArtifactoryConnectionStatusDTO dto = new ApiArtifactoryConnectionStatusDTO();
+    ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
     dto.allowOverride = false;
     dto.enabled = false;
     testUpdateOwnerArtifactoryConnectionStatus_Organization(dto);
@@ -879,13 +880,13 @@ public class ApiArtifactoryConnectionServiceTest
 
   @Test
   public void testUpdateOwnerArtifactoryConnectionStatus_Organization_Inherit() {
-    ApiArtifactoryConnectionStatusDTO dto = new ApiArtifactoryConnectionStatusDTO();
+    ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
     dto.allowOverride = false;
     dto.enabled = null;
     testUpdateOwnerArtifactoryConnectionStatus_Organization(dto);
   }
 
-  private void testUpdateOwnerArtifactoryConnectionStatus_Organization(ApiArtifactoryConnectionStatusDTO dto) {
+  private void testUpdateOwnerArtifactoryConnectionStatus_Organization(ApiArtifactoryConnectionStatusRequestDTO dto) {
     String orgId = tempEntity.newOrganization().getId();
     artifactoryConnectionService.updateOwnerArtifactoryConnectionStatus(OwnerType.ORGANIZATION, orgId, dto);
 
@@ -896,20 +897,20 @@ public class ApiArtifactoryConnectionServiceTest
 
   @Test
   public void testUpdateOwnerArtifactoryConnectionStatus_Application() {
-    ApiArtifactoryConnectionStatusDTO dto = new ApiArtifactoryConnectionStatusDTO();
+    ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
     dto.enabled = false;
     testUpdateOwnerArtifactoryConnectionStatus_Application(dto, false);
   }
 
   @Test
   public void testUpdateOwnerArtifactoryConnectionStatus_Application_Inherit() {
-    ApiArtifactoryConnectionStatusDTO dto = new ApiArtifactoryConnectionStatusDTO();
+    ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
     dto.enabled = null;
     testUpdateOwnerArtifactoryConnectionStatus_Application(dto, null);
   }
 
   private void testUpdateOwnerArtifactoryConnectionStatus_Application(
-      final ApiArtifactoryConnectionStatusDTO dto, final Boolean expectedEnabled)
+      final ApiArtifactoryConnectionStatusRequestDTO dto, final Boolean expectedEnabled)
   {
     Application app = tempEntity.newApplicationWithParent();
 
@@ -931,7 +932,7 @@ public class ApiArtifactoryConnectionServiceTest
 
   @Test
   public void testUpdateOwnerArtifactoryConnectionStatus_AllowedForOwner_InvalidOrgId() {
-    ApiArtifactoryConnectionStatusDTO dto = new ApiArtifactoryConnectionStatusDTO();
+    ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
     dto.enabled = true;
     dto.allowOverride = false;
     assertThatExceptionOfType(NotFoundException.class)
@@ -943,7 +944,7 @@ public class ApiArtifactoryConnectionServiceTest
 
   @Test
   public void testUpdateOwnerArtifactoryConnectionStatus_AllowedForOwner_InvalidAppId() {
-    ApiArtifactoryConnectionStatusDTO dto = new ApiArtifactoryConnectionStatusDTO();
+    ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
     dto.enabled = true;
     dto.allowOverride = false;
     assertThatExceptionOfType(NotFoundException.class)
@@ -1032,7 +1033,7 @@ public class ApiArtifactoryConnectionServiceTest
 
   @Test
   public void testUpdateOwnerArtifactoryConnectionStatus_RootOrgCannotInherit() {
-    ApiArtifactoryConnectionStatusDTO dto = new ApiArtifactoryConnectionStatusDTO();
+    ApiArtifactoryConnectionStatusRequestDTO dto = new ApiArtifactoryConnectionStatusRequestDTO();
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> artifactoryConnectionService.updateOwnerArtifactoryConnectionStatus(OwnerType.ORGANIZATION,

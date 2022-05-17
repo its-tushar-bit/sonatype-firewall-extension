@@ -23,7 +23,7 @@ import javax.ws.rs.core.Response.Status;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiRepositoryConnectionService;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -187,7 +187,7 @@ public class DefaultRepositoryConnectionResource
   public void updateOwnerRepositoryConnectionStatus(
       @PathParam("ownerType") OwnerType ownerType,
       @PathParam("internalOwnerId") String internalOwnerId,
-      ApiRepositoryConnectionStatusDTO repositoryConnectionStatusDTO)
+      ApiRepositoryConnectionStatusRequestDTO repositoryConnectionStatusDTO)
   {
     checkInnerSourceRepositoryIntegrationEnabled();
     repositoryConnectionService

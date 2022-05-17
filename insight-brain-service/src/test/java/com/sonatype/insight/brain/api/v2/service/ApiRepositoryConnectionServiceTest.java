@@ -14,7 +14,8 @@ import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
-import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusRequestDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusResponseDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -908,7 +909,7 @@ public class ApiRepositoryConnectionServiceTest
       boolean expectedAllowChange,
       Boolean expectedInheritedEnabled)
   {
-    ApiRepositoryConnectionStatusDTO result =
+    ApiRepositoryConnectionStatusResponseDTO result =
         repositoryConnectionService.getOwnerRepositoryConnectionStatus(owner.getType(), owner.getId());
     assertThat(result).isNotNull();
     assertThat(result.enabled).isEqualTo(expectedEnabled);
@@ -920,7 +921,7 @@ public class ApiRepositoryConnectionServiceTest
 
   @Test
   public void testUpdateOwnerRepositoryConnectionStatus_Organization() {
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
     dto.allowOverride = false;
     dto.enabled = false;
     testUpdateOwnerRepositoryConnectionStatus_Organization(dto);
@@ -928,13 +929,13 @@ public class ApiRepositoryConnectionServiceTest
 
   @Test
   public void testUpdateOwnerRepositoryConnectionStatus_Organization_Inherit() {
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
     dto.allowOverride = false;
     dto.enabled = null;
     testUpdateOwnerRepositoryConnectionStatus_Organization(dto);
   }
 
-  private void testUpdateOwnerRepositoryConnectionStatus_Organization(ApiRepositoryConnectionStatusDTO dto) {
+  private void testUpdateOwnerRepositoryConnectionStatus_Organization(ApiRepositoryConnectionStatusRequestDTO dto) {
     String orgId = tempEntity.newOrganization().getId();
     repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION, orgId, dto);
 
@@ -945,20 +946,20 @@ public class ApiRepositoryConnectionServiceTest
 
   @Test
   public void testUpdateOwnerRepositoryConnectionStatus_Application() {
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
     dto.enabled = false;
     testUpdateOwnerRepositoryConnectionStatus_Application(dto, false);
   }
 
   @Test
   public void testUpdateOwnerRepositoryConnectionStatus_Application_Inherit() {
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
     dto.enabled = null;
     testUpdateOwnerRepositoryConnectionStatus_Application(dto, null);
   }
 
   private void testUpdateOwnerRepositoryConnectionStatus_Application(
-      final ApiRepositoryConnectionStatusDTO dto, final Boolean expectedEnabled)
+      final ApiRepositoryConnectionStatusRequestDTO dto, final Boolean expectedEnabled)
   {
     Application app = tempEntity.newApplicationWithParent();
 
@@ -980,7 +981,7 @@ public class ApiRepositoryConnectionServiceTest
 
   @Test
   public void testUpdateOwnerRepositoryConnectionStatus_AllowedForOwner_InvalidOrgId() {
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
     dto.enabled = true;
     dto.allowOverride = false;
     assertThatExceptionOfType(NotFoundException.class)
@@ -992,7 +993,7 @@ public class ApiRepositoryConnectionServiceTest
 
   @Test
   public void testUpdateOwnerRepositoryConnectionStatus_AllowedForOwner_InvalidAppId() {
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
     dto.enabled = true;
     dto.allowOverride = false;
     assertThatExceptionOfType(NotFoundException.class)
@@ -1075,7 +1076,7 @@ public class ApiRepositoryConnectionServiceTest
 
   @Test
   public void testUpdateOwnerRepositoryConnectionStatus_RootOrgCannotInherit() {
-    ApiRepositoryConnectionStatusDTO dto = new ApiRepositoryConnectionStatusDTO();
+    ApiRepositoryConnectionStatusRequestDTO dto = new ApiRepositoryConnectionStatusRequestDTO();
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> repositoryConnectionService.updateOwnerRepositoryConnectionStatus(OwnerType.ORGANIZATION,

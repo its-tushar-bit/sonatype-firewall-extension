@@ -12,7 +12,7 @@ public class ApiOwnerRepositoryConnectionsDTO
 {
   public List<ApiRepositoryConnectionDTO> repositoryConnections = new ArrayList<>();
 
-  public ApiRepositoryConnectionStatusDTO repositoryConnectionStatus;
+  public ApiRepositoryConnectionStatusResponseDTO repositoryConnectionStatus;
 
   public ApiOwnerDTO ownerDTO;
 }

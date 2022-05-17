@@ -589,6 +589,7 @@ public class OrganizationSourceControlEditorTest
 
   @Override
   void verifyStartNoSourceControl() {
+    System.out.println("verifyStartNoSourceControl: Organization id: " + organization.getId());
     SourceControlEditorPage.root().shouldBe(visible);
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
     SourceControlEditorPage.subTitle().shouldHave(text(String

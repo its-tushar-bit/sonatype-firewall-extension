@@ -1059,6 +1059,8 @@ public class ApplicationSourceControlEditorTest
 
   @Override
   void verifyStartNoSourceControl() {
+    System.out.println("verifyStartNoSourceControl: Application id: " + application.getId() + ", public id: "
+        + application.getPublicId());
     SourceControlEditorPage.root().shouldBe(visible);
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
     SourceControlEditorPage.subTitle().shouldHave(text(String

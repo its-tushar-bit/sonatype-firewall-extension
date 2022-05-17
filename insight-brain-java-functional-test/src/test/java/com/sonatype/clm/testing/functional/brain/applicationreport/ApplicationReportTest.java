@@ -283,6 +283,7 @@ public class ApplicationReportTest
     optionsDropdown.menu().entries().last().shouldHave(text("View legacy report")).click();
 
     ApplicationReportContainerPage.getIframe().shouldBe(visible);
+    eyesWatcher.eyesCheck();
   }
 
   @Test

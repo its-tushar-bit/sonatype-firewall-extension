@@ -490,7 +490,7 @@ public class DefaultHdsClient
     }
     catch (IOException e) {
       log.error(e.getMessage(), e);
-      throw new BadGatewayException("The request to Sonatype Data Services failed, please retry in a bit.");
+      throw new BadGatewayException("The request to Sonatype Data Services failed, please retry in a bit.", e);
     }
     finally {
       log.debug("Completed request{} in {} ms. {}", formatRequestId(" %s", requestId),

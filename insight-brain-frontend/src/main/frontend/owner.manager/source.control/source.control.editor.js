@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { propEq, find } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import {
@@ -11,6 +12,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import template from './source.control.editor.view.html';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { selectSelectedOwnerId, selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default {
@@ -25,7 +27,6 @@ const PROVIDERS_WITH_USERNAME = ['azure', 'bitbucket'];
 
 function SourceControlEditorController(
   CLMContextLocations,
-  OrganizationStore,
   $q,
   Messages,
   SameOwnerStateNavigationService,
@@ -40,6 +41,7 @@ function SourceControlEditorController(
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
     loadApplications: applicationActions.loadApplications,
+    loadOrganizations: organizationsActions.loadOrganizations,
   })(vm);
 
   vm.ownerType = undefined;
@@ -155,7 +157,7 @@ function SourceControlEditorController(
       ownerPromise = vm.loadApplications();
       vm.ownerType = 'application';
     } else if (vm.isOrg) {
-      ownerPromise = OrganizationStore.getById(CLMContextLocations.getEntityId());
+      ownerPromise = vm.loadOrganizations();
       vm.ownerType = 'organization';
     }
 
@@ -164,9 +166,17 @@ function SourceControlEditorController(
 
       $q.all(promises)
         .then(function (results) {
-          unwrapResult(results[1]);
-          if (vm.isApp) {
-            unwrapResult(results[0]);
+          const isOwnerIdSet = vm.ownerId;
+
+          if (!isOwnerIdSet) {
+            const siblings = unwrapResult(results[0]);
+            const entityId = CLMContextLocations.getEntityId();
+            const owner = find(propEq(vm.isApp ? 'publicId' : 'id', entityId))(siblings);
+
+            if (!owner) {
+              throw `Could not find an ${vm.ownerType} with ID ${entityId}.`;
+            }
+            vm.ownerId = owner.id;
           }
 
           if (vm.isSourceControlSupported) {
@@ -619,7 +629,6 @@ const mapStateToThis = (state) => ({
 
 SourceControlEditorController.$inject = [
   'CLMContextLocations',
-  'OrganizationStore',
   '$q',
   'Messages',
   'SameOwnerStateNavigationService',

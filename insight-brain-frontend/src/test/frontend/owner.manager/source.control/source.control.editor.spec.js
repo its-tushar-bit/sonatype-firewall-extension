@@ -8,6 +8,7 @@ import utilityModule from 'MainRoot/utility/utility.module';
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 
 describe('source.control.editor', function () {
   const ROOT_ORG_ID = 'rootOrganizationId';
@@ -26,7 +27,6 @@ describe('source.control.editor', function () {
     $q,
     $componentController,
     mockCLMContextLocations,
-    mockOrganizationStore,
     getByIdDeferred,
     vm,
     mockSourceControlService,
@@ -50,12 +50,16 @@ describe('source.control.editor', function () {
       goEdit: jasmine.createSpy(),
     },
     $timeout;
-  let loadApplicationsIfNeededSpy;
+  let loadApplicationsSpy;
 
   let setExpectations = function (sourceControlName, sourceControlId, sourceControlResult) {
     getByIdDeferred.resolve({
-      name: sourceControlName,
-      id: sourceControlId,
+      payload: [
+        {
+          name: sourceControlName,
+          id: sourceControlId,
+        },
+      ],
     });
 
     if (sourceControlResult) {
@@ -123,7 +127,6 @@ describe('source.control.editor', function () {
       'isApplication',
       'isRootOrg',
     ]);
-    mockOrganizationStore = jasmine.createSpyObj('mockOrganizationStore', ['getById']);
     mockSourceControlService = jasmine.createSpyObj('mockSourceControlService', [
       'getCompositeSourceControlRecord',
       'getProviderTypes',
@@ -143,7 +146,8 @@ describe('source.control.editor', function () {
     $timeout = _$timeout_;
 
     spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
-    loadApplicationsIfNeededSpy = spyOn(applicationActions, 'loadApplications').and.returnValue({
+    spyOn(organizationsActions, 'loadOrganizations').and.returnValue(getByIdDeferred.promise);
+    loadApplicationsSpy = spyOn(applicationActions, 'loadApplications').and.returnValue({
       payload: [
         {
           contact: null,
@@ -260,10 +264,6 @@ describe('source.control.editor', function () {
       mockCLMContextLocations.getEntityId.and.returnValue(ROOT_ORG_ID);
       mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
-
-      mockOrganizationStore.getById.and.callFake(function (id) {
-        return id === ROOT_ORG_ID ? getByIdDeferred.promise : null;
-      });
       mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
         return ownerType === 'organization' && id === ROOT_ORG_ID ? getSourceControlDeferred.promise : null;
       });
@@ -274,7 +274,6 @@ describe('source.control.editor', function () {
       vm = $componentController('sourceControlEditor', {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
-        OrganizationStore: mockOrganizationStore,
         SourceControlService: mockSourceControlService,
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
@@ -304,7 +303,6 @@ describe('source.control.editor', function () {
         vm = $componentController('sourceControlEditor', {
           $scope: $scope,
           CLMContextLocations: mockCLMContextLocations,
-          OrganizationStore: mockOrganizationStore,
           SourceControlService: mockSourceControlService,
         });
         vm.isAutomationSupported = true;
@@ -318,20 +316,22 @@ describe('source.control.editor', function () {
       it('loads the root org owner name and reports on success', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID);
 
-        expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-        expect(mockOrganizationStore.getById).toHaveBeenCalledWith(ROOT_ORG_ID);
+        expect(vm.loadOrganizations).toHaveBeenCalled();
         expect(vm.ownerName).toBe(ROOT_ORG_NAME);
         expect(vm.loadError).toBeUndefined();
       });
 
       it('sets the error message on failure for root organization owner id', function () {
         vm.ownerName = undefined;
-        getByIdDeferred.reject({ status: 404, data: 'not found' });
+        vm.ownerId = undefined;
+
+        mockCLMContextLocations.getEntityId.and.returnValue(SUB_ORG_ID);
+        getByIdDeferred.resolve({ payload: [{ name: ROOT_ORG_NAME, id: ROOT_ORG_ID }] });
 
         $scope.$digest();
 
         expect(vm.ownerName).toBeUndefined();
-        expect(vm.loadError).toEqual('not found');
+        expect(vm.loadError).toEqual(`Could not find an organization with ID ${SUB_ORG_ID}.`);
       });
 
       it('sets the error message on failure for the root organization source control', function () {
@@ -755,10 +755,7 @@ describe('source.control.editor', function () {
       });
 
       it('is set to true while waiting for product features', function () {
-        getByIdDeferred.resolve({
-          name: ROOT_ORG_NAME,
-          id: ROOT_ORG_ID,
-        });
+        getByIdDeferred.resolve({ payload: [{ name: ROOT_ORG_NAME, id: ROOT_ORG_ID }] });
         $scope.$digest();
         expect(vm.loadError).toEqual(undefined);
         expect(vm.loading).toBeTruthy();
@@ -865,12 +862,9 @@ describe('source.control.editor', function () {
       mockCLMContextLocations.isOrganization.and.returnValue(true);
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(false);
-      mockCLMContextLocations.getEntityId.and.returnValue(SUB_ORG_ID);
       mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
-      mockOrganizationStore.getById.and.callFake(function (id) {
-        return id === SUB_ORG_ID ? getByIdDeferred.promise : null;
-      });
+
       mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
         return ownerType === 'organization' && id === SUB_ORG_ID ? getSourceControlDeferred.promise : null;
       });
@@ -878,7 +872,6 @@ describe('source.control.editor', function () {
       vm = $componentController('sourceControlEditor', {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
-        OrganizationStore: mockOrganizationStore,
         SourceControlService: mockSourceControlService,
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
@@ -908,7 +901,6 @@ describe('source.control.editor', function () {
         vm = $componentController('sourceControlEditor', {
           $scope: $scope,
           CLMContextLocations: mockCLMContextLocations,
-          OrganizationStore: mockOrganizationStore,
           SourceControlService: mockSourceControlService,
         });
         vm.isAutomationSupported = true;
@@ -922,8 +914,7 @@ describe('source.control.editor', function () {
 
       it('loads the owner name of the sub organization and reports on success', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID);
-        expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-        expect(mockOrganizationStore.getById).toHaveBeenCalledWith(SUB_ORG_ID);
+        expect(vm.loadOrganizations).toHaveBeenCalled();
         expect(vm.ownerName).toBe(SUB_ORG_NAME);
         expect(vm.loadError).toBeUndefined();
       });
@@ -1533,15 +1524,13 @@ describe('source.control.editor', function () {
       mockCLMContextLocations.isOrganization.and.returnValue(false);
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(true);
-      mockCLMContextLocations.getEntityId.and.returnValue(UNKNOWN_APP_ID);
 
-      loadApplicationsIfNeededSpy.and.returnValue({
+      loadApplicationsSpy.and.returnValue({
         error: `Could not find an application with ID ${UNKNOWN_APP_ID}.`,
       });
       vm = $componentController('sourceControlEditor', {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
-        OrganizationStore: mockOrganizationStore,
         SourceControlService: mockSourceControlService,
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
@@ -1651,7 +1640,6 @@ describe('source.control.editor', function () {
       mockCLMContextLocations.isOrganization.and.returnValue(false);
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(true);
-      mockCLMContextLocations.getEntityId.and.returnValue(APPLICATION_ID);
       mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
@@ -1661,7 +1649,6 @@ describe('source.control.editor', function () {
       vm = $componentController('sourceControlEditor', {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
-        OrganizationStore: mockOrganizationStore,
         SourceControlService: mockSourceControlService,
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
@@ -1691,7 +1678,6 @@ describe('source.control.editor', function () {
         vm = $componentController('sourceControlEditor', {
           $scope: $scope,
           CLMContextLocations: mockCLMContextLocations,
-          OrganizationStore: mockOrganizationStore,
           SourceControlService: mockSourceControlService,
         });
         vm.isAutomationSupported = true;

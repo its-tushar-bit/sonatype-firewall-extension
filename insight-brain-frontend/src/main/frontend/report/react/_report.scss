@@ -29,6 +29,18 @@ reports-page {
         .iq-violation-show-contact-name {
           margin-top: var(--nx-spacing-base);
         }
+        .iq-violation-contact-name-error {
+          color: var(--nx-color-validation-invalid);
+          margin-top: var(--nx-spacing-base);
+          font-size: var(--nx-font-size-xs);
+          .iq-violation-contact-name-error-icon {
+            margin-left: 0;
+            font-size: var(--nx-font-size);
+          }
+          .iq-violation-contact-name-error-text {
+            vertical-align: text-bottom;
+          }
+        }
       }
     }
     .iq-report-violation-cell {

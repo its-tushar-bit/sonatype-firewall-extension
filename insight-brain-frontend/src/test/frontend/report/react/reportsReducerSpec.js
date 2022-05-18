@@ -138,16 +138,13 @@ describe('Reports reducer', () => {
         loadingPublicIds: new Set([publicId]),
       });
 
-      const payload = 'Error';
-
       const { applicationsInformationList, loadingPublicIds } = reducer(state, {
         type: 'reports/loadContactName/rejected',
-        payload,
         meta: { arg: publicId },
       });
 
       expect(loadingPublicIds.has(publicId)).toEqual(false);
-      expect(applicationsInformationList[0].contact.error).toEqual('Error');
+      expect(applicationsInformationList[0].contact.error).toEqual(true);
     });
   });
 

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { Fragment, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   NxButton,
@@ -14,7 +14,10 @@ import {
   NxTile,
   NxPageTitle,
   NxLoadWrapper,
+  NxLoadingSpinner,
+  NxFontAwesomeIcon,
 } from '@sonatype/react-shared-components';
+import { faExclamationCircle } from '@fortawesome/pro-solid-svg-icons';
 import {
   selectReportsLoadError,
   selectReportsLoading,
@@ -67,29 +70,51 @@ export default function ReportsPage() {
   const filteredStages = () =>
     availStages.filter((stage) => allStages.find((stageId) => stage.stageTypeId === stageId));
 
-  const renderContact = ({ contact, publicId }) => {
-    if (!contact?.internalName || !publicId) {
-      return null;
-    }
-
-    const isLoadingOrHasContactNameOrHasError =
-      loadingPublicIds.has(publicId) || contact?.displayName || contact?.error;
-
-    return isLoadingOrHasContactNameOrHasError ? (
-      <NxLoadWrapper
-        loading={loadingPublicIds.has(publicId)}
-        error={contact.error}
-        retryHandler={() => loadContactName(publicId)}
-      >
-        <NxOverflowTooltip>
-          <div className="nx-truncate-ellipsis iq-violation-contact-name">{contact?.displayName}</div>
-        </NxOverflowTooltip>
-      </NxLoadWrapper>
-    ) : (
+  const showContactButton = (publicId) => {
+    return (
       <button className="nx-text-link iq-violation-show-contact-name" onClick={() => loadContactName(publicId)}>
         Show Contact
       </button>
     );
+  };
+
+  /*
+    Render Show Contact button with click handler, loading state,
+    error state, or contact display name
+  */
+  const renderContact = ({ contact, publicId }) => {
+    // If no contact defined, render nothing
+    if (!contact?.internalName || !publicId) {
+      return null;
+    }
+
+    if (loadingPublicIds.has(publicId)) {
+      // If contact in loading state, show loading spinner only
+      return <NxLoadingSpinner />;
+    } else if (contact?.error) {
+      // If error exists, display Show Contact button and error
+      return (
+        <Fragment>
+          {showContactButton(publicId)}
+          <NxOverflowTooltip>
+            <div className="nx-truncate-ellipsis iq-violation-contact-name-error">
+              <NxFontAwesomeIcon className="iq-violation-contact-name-error-icon" icon={faExclamationCircle} />
+              <span className="iq-violation-contact-name-error-text">Error loading contact</span>
+            </div>
+          </NxOverflowTooltip>
+        </Fragment>
+      );
+    } else if (contact?.displayName) {
+      // If contact name exists, show contact name only
+      return (
+        <NxOverflowTooltip>
+          <div className="nx-truncate-ellipsis iq-violation-contact-name">{contact?.displayName}</div>
+        </NxOverflowTooltip>
+      );
+    } else {
+      // Display Show Contact button by default
+      return showContactButton(publicId);
+    }
   };
 
   const violationHeader = (stage) => {

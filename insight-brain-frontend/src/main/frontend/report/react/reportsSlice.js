@@ -129,7 +129,7 @@ const loadStagesAndReports = createAsyncThunk(
 
 const loadContactNamePending = (state, { meta: { arg: publicId } }) => {
   state.loadingPublicIds.add(publicId);
-  getContactInAppListByPublicId(state.applicationsInformationList, publicId).error = null;
+  getContactInAppListByPublicId(state.applicationsInformationList, publicId).error = false;
 };
 
 const loadContactNameFulfilled = (state, { payload, meta: { arg: publicId } }) => {
@@ -138,13 +138,14 @@ const loadContactNameFulfilled = (state, { payload, meta: { arg: publicId } }) =
       payload.contact.displayName;
   }
   if (payload?.contact?.error) {
-    getContactInAppListByPublicId(state.applicationsInformationList, publicId).error = payload.contact.error;
+    getContactInAppListByPublicId(state.applicationsInformationList, publicId).error = true;
   }
+
   state.loadingPublicIds.delete(publicId);
 };
 
-const loadContactNameRejected = (state, { payload, meta: { arg: publicId } }) => {
-  getContactInAppListByPublicId(state.applicationsInformationList, publicId).error = payload?.message ?? payload;
+const loadContactNameRejected = (state, { meta: { arg: publicId } }) => {
+  getContactInAppListByPublicId(state.applicationsInformationList, publicId).error = true;
   state.loadingPublicIds.delete(publicId);
 };
 

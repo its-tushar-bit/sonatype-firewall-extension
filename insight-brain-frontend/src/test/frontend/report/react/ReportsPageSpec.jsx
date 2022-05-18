@@ -405,22 +405,8 @@ describe('ReportsPage', () => {
         setTimeout(() => {
           expect(loadContactNameSpy).toHaveBeenCalledWith('TestAppId3');
           expect(loadContactNameSpy).toHaveBeenCalledTimes(1);
-          expect(screen.getByText('An error occurred loading data. User not found')).toBeVisible();
-          done();
-        }, 10);
-      }, 10);
-    });
-
-    it('Renders the error message and retry the request', (done) => {
-      renderComponent();
-
-      setTimeout(() => {
-        const [, , lastContactButton] = screen.getAllByText('Show Contact');
-        fireEvent.click(lastContactButton);
-
-        setTimeout(() => {
-          fireEvent.click(screen.getByText('Retry'));
-          expect(loadContactNameSpy).toHaveBeenCalledTimes(2);
+          expect(screen.getByText('Error loading contact')).toBeVisible();
+          expect(lastContactButton).toBeVisible();
           done();
         }, 10);
       }, 10);

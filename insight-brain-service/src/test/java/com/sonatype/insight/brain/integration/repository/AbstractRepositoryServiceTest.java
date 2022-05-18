@@ -2340,6 +2340,62 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
+  public void testEvaluateComponentMetadata_MultipleComponents_ScopedNpmComponents() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
+
+    Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
+    policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
+    new PolicyDAO().update(policy);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Prepare request and mock the HDS request
+    int componentCount = 2;
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    hdsResult.components = new ArrayList<>();
+    String packageId = "@testScope/testPackageId";
+    for (int i = 0; i < componentCount; i++) {
+      String version = "testVersion" + i;
+      String hash = "testHash" + i;
+      ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates(packageId, version);
+      componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("npm",
+          "/" + packageId + "/-/testPackageId-" + version + ".tgz", hash));
+      List<SecurityVulnerability> securityVulnerabilities = null;
+      // Add security vulnerabilities only to the first version/component,
+      // so only the first one should be quarantined.
+      if (i == 0) {
+        securityVulnerabilities = createSecurityVulnerabilities();
+      }
+      hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, i /* index */,
+          null, null, securityVulnerabilities, 0 /* popularity */));
+    }
+    mockHdsRequestForMetadata(hdsResult);
+
+    // Call the service
+    RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
+        getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, "testClientUserAgent");
+
+    assertThat(repositoryComponentEvaluationResultList.componentEvalResults).hasSize(2);
+
+    for (int i = 0; i < componentCount; i++) {
+      RepositoryComponentEvaluationData repositoryComponentEvaluationData =
+          repositoryComponentEvaluationResultList.componentEvalResults.get(i);
+      assertThat(repositoryComponentEvaluationData.requestIndex).isEqualTo(i);
+      if (i == 0) {
+        assertThat(repositoryComponentEvaluationData.quarantine).isTrue();
+      }
+      else {
+        assertThat(repositoryComponentEvaluationData.quarantine).isFalse();
+      }
+    }
+
+    assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
+  }
+
+  @Test
   public void testEvaluateComponentMetadata_UnknownComponent() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);

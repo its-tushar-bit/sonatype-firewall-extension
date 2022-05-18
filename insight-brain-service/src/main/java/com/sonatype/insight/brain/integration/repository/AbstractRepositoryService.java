@@ -332,6 +332,10 @@ public abstract class AbstractRepositoryService
         repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, componentDetailsFromHds,
             true /* withQuarantine */, false /* persistEvaluationResults */, false /* forMonitoring */);
 
+    for (int i = 0; i < componentEvaluationDataRequestList.components.size(); i++) {
+      log.trace("Path {}: {}", componentEvaluationDataRequestList.components.get(i).pathname,
+          result.componentEvalResults.get(i).quarantine);
+    }
     updateUserAgent(clientUserAgent, repository);
 
     log.debug("Evaluated component metadata for repository {}:{} ({}) for {} components in {} ms.",
@@ -342,8 +346,18 @@ public abstract class AbstractRepositoryService
   }
 
   private static String toNpmPath(ComponentIdentifier componentIdentifier) {
+    String npmPath;
+
     String packageId = componentIdentifier.get(ComponentIdentifier.NPM_PACKAGE_ID);
-    return packageId + "/-/" + packageId + "-" + componentIdentifier.get(ComponentIdentifier.VERSION) + ".tgz";
+    int slashAt = packageId.indexOf('/');
+    if (slashAt <= 0) {
+      npmPath = packageId + "/-/" + packageId;
+    }
+    else {
+      npmPath = packageId + "/-/" + packageId.substring(slashAt + 1);
+    }
+    npmPath = npmPath + "-" + componentIdentifier.get(ComponentIdentifier.VERSION) + ".tgz";
+    return npmPath;
   }
   
   private ComponentEvaluationDataList matchHdsComponentDetailsToRequestListByPathname(

@@ -5,19 +5,23 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.api.v2.service.ReverseProxyAuthenticationConfigurationListener;
+import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -35,26 +39,31 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class ReverseProxyAuthenticationFilter
     extends AuthenticatingFilter
+    implements ReverseProxyAuthenticationConfigurationListener
 {
   private static final Logger log = LoggerFactory.getLogger(ReverseProxyAuthenticationFilter.class);
 
   public static final String NO_SESSION_CREATION = "noSessionCreation";
 
-  private final String usernameHeader;
+  private static final String USERNAME_HEADER_NAME_ATTRIBUTE = "USERNAME_HEADER_NAME_ATTRIBUTE";
+
+  private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
+
+  private final AtomicReference<ReverseProxyAuthenticationConfiguration>
+      reverseProxyAuthenticationConfigurationAtomicReference = new AtomicReference<>();
 
   @Inject
-  public ReverseProxyAuthenticationFilter(InsightConfig config) {
-    this(config.getReverseProxyAuthentication());
-  }
-
-  private ReverseProxyAuthenticationFilter(ReverseProxyAuthenticationConfig reverseProxyAuthentication) {
-    setEnabled(reverseProxyAuthentication.isEnabled());
-    this.usernameHeader = reverseProxyAuthentication.getUsernameHeader();
+  public ReverseProxyAuthenticationFilter(
+      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO)
+  {
+    this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
+    reverseProxyAuthenticationConfigurationChanged();
   }
 
   private String getUsername(ServletRequest request) {
+    String usernameHeaderName = (String) request.getAttribute(USERNAME_HEADER_NAME_ATTRIBUTE);
     HttpServletRequest httpRequest = (HttpServletRequest) request;
-    return httpRequest.getHeader(usernameHeader);
+    return httpRequest.getHeader(usernameHeaderName);
   }
 
   @Override
@@ -83,10 +92,11 @@ public class ReverseProxyAuthenticationFilter
   }
 
   @Override
-  protected boolean onLoginFailure(final AuthenticationToken token,
-                                   final AuthenticationException e,
-                                   final ServletRequest request,
-                                   final ServletResponse response)
+  protected boolean onLoginFailure(
+      final AuthenticationToken token,
+      final AuthenticationException e,
+      final ServletRequest request,
+      final ServletResponse response)
   {
     LoginErrorResponseHandler.sendError((HttpServletResponse) response, e);
     return super.onLoginFailure(token, e, request, response);
@@ -120,5 +130,34 @@ public class ReverseProxyAuthenticationFilter
   @Override
   protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  protected boolean isEnabled(ServletRequest request, ServletResponse response) throws ServletException, IOException {
+    ReverseProxyAuthenticationConfiguration reverseProxyAuthenticationConfiguration =
+        reverseProxyAuthenticationConfigurationAtomicReference.get();
+    if (reverseProxyAuthenticationConfiguration == null) {
+      return false;
+    }
+    if (!reverseProxyAuthenticationConfiguration.isEnabled()) {
+      return false;
+    }
+    request.setAttribute(USERNAME_HEADER_NAME_ATTRIBUTE, reverseProxyAuthenticationConfiguration.getUsernameHeader());
+    return true;
+  }
+
+  @Override
+  public boolean isEnabled() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void reverseProxyAuthenticationConfigurationChanged() {
+    reverseProxyAuthenticationConfigurationAtomicReference.set(reverseProxyAuthenticationConfigurationDAO.get());
   }
 }

@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -25,12 +26,15 @@ public class FirewallAuditHdsClient
     extends DefaultHdsClient
 {
   @Inject
-  public FirewallAuditHdsClient(final InsightProxy proxy,
-                                ProductLicense productLicense,
-                                InsightConfig insightConfig,
-                                VersionService versionService,
-                                TelemetryId telemetryId)
+  public FirewallAuditHdsClient(
+      final InsightProxy proxy,
+      ProductLicense productLicense,
+      InsightConfig insightConfig,
+      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
+      VersionService versionService,
+      TelemetryId telemetryId)
   {
-    super(proxy, productLicense, insightConfig, versionService, telemetryId, 20);
+    super(proxy, productLicense, insightConfig, reverseProxyAuthenticationConfigurationDAO, versionService,
+        telemetryId, 20);
   }
 }

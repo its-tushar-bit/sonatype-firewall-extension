@@ -12,6 +12,7 @@ import java.util.NoSuchElementException;
 import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -74,7 +75,8 @@ public class HdsIdeResourcePerformanceUtils
     ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
         .setPort(8877);
     return new DefaultHdsClient(new InsightProxy(config, new ProxyServerConfigurationDAO(), new PasswordHandler(null)),
-        mock(ProductLicense.class), config, new VersionService(), new TelemetryId(config));
+        mock(ProductLicense.class), config, new ReverseProxyAuthenticationConfigurationDAO(), new VersionService(),
+        new TelemetryId(config));
   }
 
   static TelemetrySender createTelemetrySender() {

@@ -6,21 +6,19 @@
 package com.sonatype.insight.brain.security;
 
 import java.net.HttpCookie;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.service.ApiReverseProxyAuthenticationConfigurationService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
+import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.test.LogOutput;
 
 import org.apache.http.HttpStatus;
@@ -47,14 +45,6 @@ public class ReverseProxyAuthcTest
   private boolean ldapUser;
 
   private boolean localUser;
-
-  private static final Configurator ENABLED = new Configurator()
-  {
-    @Override
-    public void configure(InsightConfig config) {
-      config.getReverseProxyAuthentication().setEnabled(true);
-    }
-  };
 
   public ReverseProxyAuthcTest(boolean setupLdap, boolean ldapUser, boolean localUser) {
     this.setupLdap = setupLdap;
@@ -96,11 +86,8 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
-  @ManualServerInit
   public void testDisabledByDefault() throws Exception {
-    initServer(null);
-
-    ReverseProxyAuthenticationConfig reverseProxyAuthcConfig = new ReverseProxyAuthenticationConfig();
+    ReverseProxyAuthenticationConfiguration reverseProxyAuthcConfig = new ReverseProxyAuthenticationConfiguration();
     assertThat(reverseProxyAuthcConfig.isEnabled()).isFalse();
     assertThat(reverseProxyAuthcConfig.getUsernameHeader()).isEqualTo("REMOTE_USER");
     HttpResponse response = restRequest().path("rest/anything").header("REMOTE_USER", "testuser").anon().get();
@@ -109,9 +96,11 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
-  @ManualServerInit
   public void testEnabled_DefaultHeader() throws Exception {
-    initServer(ENABLED);
+    tempEntity.newReverseProxyAuthenticationConfiguration(true,
+        ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, true, null);
+    getCLMServer().getInstance(ApiReverseProxyAuthenticationConfigurationService.class)
+        .applyReverseProxyAuthenticationConfigurationToClients();
 
     HttpRequest request = restRequest().header("REMOTE_USER", "testuser").anon();
     HttpResponse response = request.subpath(UserSessionResource.RESOURCE_PATH).get();
@@ -128,19 +117,15 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
-  @ManualServerInit
   public void testLogout_reverseProxyIsEnabledWithLogoutUrl() throws Exception {
-    final URI logoutUrl = new URI("http://localhost/logout");
-    initServer(new Configurator()
-    {
-      @Override
-      public void configure(final InsightConfig config) {
-        config.getReverseProxyAuthentication().setEnabled(true);
-        config.getReverseProxyAuthentication().setLogoutUrl(logoutUrl);
-      }
-    });
+    String logoutUrl = "http://localhost/logout";
+    tempEntity.newReverseProxyAuthenticationConfiguration(true,
+          ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, false, logoutUrl);
+    getCLMServer().getInstance(ApiReverseProxyAuthenticationConfigurationService.class)
+        .applyReverseProxyAuthenticationConfigurationToClients();
 
-    HttpRequest request = restRequest().header("REMOTE_USER", "testuser").anon();
+    HttpRequest request =
+        restRequest().header(ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, "testuser").anon();
     HttpResponse response = request.subpath(UserSessionResource.RESOURCE_PATH).get();
     assertResponseStatus(HttpStatus.SC_OK, response);
     HttpCookie sessionCookie = response.getSessionCookie();
@@ -153,20 +138,12 @@ public class ReverseProxyAuthcTest
     response = request.subpath(UserSessionResource.RESOURCE_PATH, UserSessionResource.LOGOUT_PATH).cookie(sessionCookie)
         .delete();
     assertResponseStatus(HttpStatus.SC_NO_CONTENT, response);
-    assertThat(response.getHeader("Location")).isEqualTo(logoutUrl.toString());
+    assertThat(response.getHeader("Location")).isEqualTo(logoutUrl);
   }
 
   @Test
-  @ManualServerInit
   public void testLogout_reverseProxyIsEnabledWithoutLogoutUrl() throws Exception {
-    initServer(new Configurator()
-    {
-      @Override
-      public void configure(final InsightConfig config) {
-        config.getReverseProxyAuthentication().setEnabled(true);
-        config.getReverseProxyAuthentication().setLogoutUrl(null);
-      }
-    });
+    enableReverseProxyAuthentication();
 
     HttpRequest request = restRequest().header("REMOTE_USER", "testuser").anon();
     HttpResponse response = request.subpath(UserSessionResource.RESOURCE_PATH).get();
@@ -185,16 +162,10 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
-  @ManualServerInit
   public void testEnabled_CustomHeader() throws Exception {
-    initServer(new Configurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        config.getReverseProxyAuthentication().setEnabled(true);
-        config.getReverseProxyAuthentication().setUsernameHeader("X-Remote-User");
-      }
-    });
+    tempEntity.newReverseProxyAuthenticationConfiguration(true, "X-Remote-User", false, null);
+    getCLMServer().getInstance(ApiReverseProxyAuthenticationConfigurationService.class)
+        .applyReverseProxyAuthenticationConfigurationToClients();
 
     HttpRequest request = restRequest().header("X-Remote-User", "testuser").anon();
     HttpResponse response = request.subpath(UserSessionResource.RESOURCE_PATH).get();
@@ -207,9 +178,8 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
-  @ManualServerInit
   public void testEnabled_SessionCreatedForAnyRequest() throws Exception {
-    initServer(ENABLED);
+    enableReverseProxyAuthentication();
 
     HttpRequest request = restRequest().header("REMOTE_USER", "testuser").anon();
     HttpResponse response = request.subpath("rest/anything").get();
@@ -218,9 +188,8 @@ public class ReverseProxyAuthcTest
   }
 
   @Test
-  @ManualServerInit
   public void testEnabled_HeaderWithValidUserDoesNotMatchSession() throws Exception {
-    initServer(ENABLED);
+    enableReverseProxyAuthentication();
 
     tempEntity.newUser("Beta", "Beta", "User", "beta.user@company.com");
 
@@ -237,5 +206,12 @@ public class ReverseProxyAuthcTest
     assertThat(logOutput).atInfoLevel()
         .contains("Detected mismatch between user specified by reverse proxy authentication (Beta)"
             + " and user specified by session cookie (testuser)");
+  }
+
+  private void enableReverseProxyAuthentication() {
+    tempEntity.newReverseProxyAuthenticationConfiguration(true,
+        ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, false, null);
+    getCLMServer().getInstance(ApiReverseProxyAuthenticationConfigurationService.class)
+        .applyReverseProxyAuthenticationConfigurationToClients();
   }
 }

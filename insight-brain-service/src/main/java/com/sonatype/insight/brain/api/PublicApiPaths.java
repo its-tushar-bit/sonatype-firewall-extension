@@ -88,6 +88,9 @@ public class PublicApiPaths
 
   public static final String CROWD_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/crowd";
 
+  public static final String REVERSE_PROXY_AUTHENTICATION_CONFIG_RESOURCE_PATH_V2 =
+      API_VERSION_PATH_V2 + "config/reverseProxyAuthentication";
+
   public static final String USER_TOKEN_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "userTokens";
 
   public static final String COMPOSITE_SOURCE_CONTROL_PATH_V2 = API_VERSION_PATH_V2 + "compositeSourceControl";

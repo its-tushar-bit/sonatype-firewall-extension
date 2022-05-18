@@ -24,6 +24,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.api.v2.service.ProxyServerConfigurationListener;
+import com.sonatype.insight.brain.api.v2.service.ReverseProxyAuthenticationConfigurationListener;
+import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -69,7 +72,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class DefaultHdsClient
-    implements HdsClient, Managed, ProxyServerConfigurationListener
+    implements HdsClient, Managed, ProxyServerConfigurationListener, ReverseProxyAuthenticationConfigurationListener
 {
   // Logger is instance variable so that subclasses will have a different one which can be configured differently
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -89,6 +92,8 @@ public class DefaultHdsClient
   private final TelemetryId telemetryId;
 
   private final VersionService versionService;
+  
+  private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
 
   private static volatile String version;
 
@@ -96,7 +101,7 @@ public class DefaultHdsClient
 
   public static final String CLM_CLIENT_USER_AGENT_HEADER = "X-CLM-Client-User-Agent";
 
-  private final String rutHeader;
+  private volatile String rutHeader;
 
   static final String OWNER_TYPE_HEADER = "X-CLM-Owner-Type";
 
@@ -107,21 +112,26 @@ public class DefaultHdsClient
   public static final String CLIENT_INSTANCE_ID_HEADER = "X-CLM-Client-Instance-Id";
 
   @Inject
-  public DefaultHdsClient(final InsightProxy proxy,
-                          ProductLicense productLicense,
-                          InsightConfig insightConfig,
-                          VersionService versionService,
-                          TelemetryId telemetryId)
+  public DefaultHdsClient(
+      final InsightProxy proxy,
+      ProductLicense productLicense,
+      InsightConfig insightConfig,
+      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
+      VersionService versionService,
+      TelemetryId telemetryId)
   {
-    this(proxy, productLicense, insightConfig, versionService, telemetryId, 20);
+    this(proxy, productLicense, insightConfig, reverseProxyAuthenticationConfigurationDAO, versionService,
+        telemetryId, 20);
   }
 
-  protected DefaultHdsClient(final InsightProxy proxy,
-                             ProductLicense productLicense,
-                             InsightConfig insightConfig,
-                             VersionService versionService,
-                             TelemetryId telemetryId,
-                             int poolSize)
+  protected DefaultHdsClient(
+      final InsightProxy proxy,
+      ProductLicense productLicense,
+      InsightConfig insightConfig,
+      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
+      VersionService versionService,
+      TelemetryId telemetryId,
+      int poolSize)
   {
     this.proxy = proxy;
     this.productLicense = productLicense;
@@ -129,8 +139,8 @@ public class DefaultHdsClient
     connectionPoolSize = poolSize;
     updateClient();
     this.versionService = versionService;
-    rutHeader = insightConfig.getReverseProxyAuthentication().isEnabled()
-        ? insightConfig.getReverseProxyAuthentication().getUsernameHeader() : null;
+    this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
+    reverseProxyAuthenticationConfigurationChanged();
     // TODO Need to determine if there is additional information we should be sending to the HDS
     loadVersion();
     this.telemetryId = telemetryId;
@@ -624,5 +634,13 @@ public class DefaultHdsClient
     }
 
     version = versionService.getVersion("Unknown");
+  }
+
+  @Override
+  public void reverseProxyAuthenticationConfigurationChanged() {
+    ReverseProxyAuthenticationConfiguration reverseProxyAuthenticationConfiguration =
+        reverseProxyAuthenticationConfigurationDAO.get();
+    rutHeader = reverseProxyAuthenticationConfiguration != null && reverseProxyAuthenticationConfiguration.isEnabled() ?
+        reverseProxyAuthenticationConfiguration.getUsernameHeader() : null;
   }
 }

@@ -10,8 +10,10 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.insight.brain.SslSettings;
+import com.sonatype.insight.brain.api.v2.service.ApiReverseProxyAuthenticationConfigurationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.security.PasswordService;
@@ -57,9 +59,12 @@ public abstract class DefaultPolicyEvaluatorReverseProxyAuthTest
   @Override
   protected void initServer() throws Exception {
     initServer(config -> {
-      config.getReverseProxyAuthentication().setEnabled(rutEnabled);
       config.setImportRefrencePoliciesFromHDS(false);
     });
+    tempEntity.newReverseProxyAuthenticationConfiguration(rutEnabled,
+          ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, false, null);
+    getCLMServer().getInstance(ApiReverseProxyAuthenticationConfigurationService.class)
+        .applyReverseProxyAuthenticationConfigurationToClients();
   }
 
   @Before

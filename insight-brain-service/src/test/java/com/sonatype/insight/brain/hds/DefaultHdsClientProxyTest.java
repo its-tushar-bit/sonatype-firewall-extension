@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -61,6 +62,9 @@ public class DefaultHdsClientProxyTest
   @Inject
   private TelemetryId telemetryId;
 
+  @Inject
+  private ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
+
   @Before
   public void init() throws Exception {
     server = new Server(0);
@@ -87,7 +91,7 @@ public class DefaultHdsClientProxyTest
     ProductLicense productLicense = mock(ProductLicense.class);
     lenient().when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
     client = new DefaultHdsClient(new InsightProxy(config, new ProxyServerConfigurationDAO(), passwordHandler),
-        productLicense, config, new VersionService(), telemetryId);
+        productLicense, config, reverseProxyAuthenticationConfigurationDAO, new VersionService(), telemetryId);
   }
 
   @After

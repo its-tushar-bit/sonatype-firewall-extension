@@ -124,28 +124,6 @@ server:
     # Example 'datetime' type custom field
     #customfield_14000: "2016-11-01"
 
-# Configures reverse proxy authentication for the web UI.
-#reverseProxyAuthentication:
-
-    # Enables/disables authentication via a reverse proxy. Once the reverse proxy has authenticated a user's identity,
-    # it is expected to forward the username to the CLM server via the HTTP header configured below. The CLM server
-    # will then consider the user logged in without further password prompt.
-    #
-    # WARNING: If improperly configured, this feature poses a security vulnerability. To guard against authentication
-    #   bypass it is crucial that all HTTP access to the CLM server is proxied such that the designated username header
-    #   is only settable by the reverse proxy that performs authentication and cannot be forged by end users themselves.
-    #
-    #enabled: false
-
-    # The name of the HTTP request header that carries the username of an authenticated user.
-    #usernameHeader: "REMOTE_USER"
-
-    # For backwards compatibility of client requests - skips CSRF protection when using RUT
-    #csrfProtectionDisabled: false
-
-    # The service URL that will be redirected to when a user requests logout.
-    #logoutUrl: http://localhost/logout/index.html
-
 # Logging settings.
 logging:
 

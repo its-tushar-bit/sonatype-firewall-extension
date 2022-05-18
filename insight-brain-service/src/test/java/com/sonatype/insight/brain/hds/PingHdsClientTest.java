@@ -9,11 +9,13 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 
+import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
@@ -41,11 +43,14 @@ public class PingHdsClientTest
   @Rule
   public LogOutput logOutput = new LogOutput(PingHdsClient.class);
 
+  @Inject
+  private ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
+
   @Override
   protected void initClient() {
     ProductLicense productLicense = mock(ProductLicense.class);
     client = new PingHdsClient(new InsightProxy(config, new ProxyServerConfigurationDAO(), passwordHandler),
-        productLicense, config, new VersionService(), telemetryId);
+        productLicense, config, reverseProxyAuthenticationConfigurationDAO, new VersionService(), telemetryId);
   }
 
   @Test

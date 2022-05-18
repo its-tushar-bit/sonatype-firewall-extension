@@ -48,6 +48,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
@@ -135,6 +136,7 @@ import com.sonatype.insight.brain.model.configuration.ProductLicense;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration;
+import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
@@ -442,6 +444,9 @@ public class TemporaryEntity
   private final RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO =
       new RepositoryIdentifiedComponentDAO();
 
+  private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO =
+      new ReverseProxyAuthenticationConfigurationDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -694,6 +699,7 @@ public class TemporaryEntity
     componentSourceLinkDAO.getAll().forEach(componentSourceLinkDAO::delete);
     crowdConfigurationDAO.delete();
     repositoryClientConfigurationDAO.delete();
+    reverseProxyAuthenticationConfigurationDAO.delete();
   }
 
   private <E> void detachEntity(E entity) {
@@ -3442,5 +3448,23 @@ public class TemporaryEntity
     repositoryIdentifiedComponentDAO.insert(repositoryIdentifiedComponent);
     repositoryIdentifiedComponents.add(repositoryIdentifiedComponent);
     return repositoryIdentifiedComponent;
+  }
+
+  public ReverseProxyAuthenticationConfiguration newReverseProxyAuthenticationConfiguration() {
+    ReverseProxyAuthenticationConfiguration config = new ReverseProxyAuthenticationConfiguration();
+    reverseProxyAuthenticationConfigurationDAO.insert(config);
+    return config;
+  }
+
+  public ReverseProxyAuthenticationConfiguration newReverseProxyAuthenticationConfiguration(
+      boolean enabled,
+      String usernameHeader,
+      boolean csrfProtectionDisabled,
+      String logoutUrl)
+  {
+    ReverseProxyAuthenticationConfiguration config =
+        new ReverseProxyAuthenticationConfiguration(enabled, usernameHeader, csrfProtectionDisabled, logoutUrl);
+    reverseProxyAuthenticationConfigurationDAO.insert(config);
+    return config;
   }
 }

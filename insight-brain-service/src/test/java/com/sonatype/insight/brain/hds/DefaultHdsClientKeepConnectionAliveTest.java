@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -42,6 +43,9 @@ public class DefaultHdsClientKeepConnectionAliveTest
 {
   @Inject
   private PasswordHandler passwordHandler;
+
+  @Inject
+  private ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
 
   private InsightConfig config;
 
@@ -111,7 +115,7 @@ public class DefaultHdsClientKeepConnectionAliveTest
   @Test
   public void testConnectTimeoutMustNotAffectRequestConfigSocketTimeout() throws InterruptedException {
     HdsClient client = new DefaultHdsClient(insightProxy, productLicense, config,
-        new VersionService(), telemetryId, 20);
+        reverseProxyAuthenticationConfigurationDAO, new VersionService(), telemetryId, 20);
 
     stallingServerThread.start();
 

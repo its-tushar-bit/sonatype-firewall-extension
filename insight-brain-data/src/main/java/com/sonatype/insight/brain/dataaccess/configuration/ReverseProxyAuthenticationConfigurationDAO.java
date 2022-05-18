@@ -1,0 +1,119 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.dataaccess.configuration;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
+import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
+
+import org.apache.commons.lang3.StringUtils;
+
+public class ReverseProxyAuthenticationConfigurationDAO
+    extends AbstractOperationalSqlDAO<ReverseProxyAuthenticationConfiguration>
+{
+  public static final String SINGLETON_ENTITY_ID = "reverse-proxy-authentication-configuration";
+
+  // Visible for testing
+  static final int MAX_USERNAME_HEADER_LENGTH = 255;
+
+  // Visible for testing
+  static final int MAX_LOGOUT_URL_LENGTH = 2048;
+
+  // Visible for testing
+  static final String NO_CONFIG_ERROR_MSG = "A configuration must be given.";
+
+  // Visible for testing
+  static final String NO_USERNAME_HEADER_ERROR_MSG = "The username header is required.";
+
+  // Visible for testing
+  static final String LONG_USERNAME_HEADER_ERROR_MSG = "The username header cannot exceed 255 characters.";
+
+  // Visible for testing
+  static final String EMPTY_LOGOUT_URL_ERROR_MSG = "The logout URL cannot be empty.";
+
+  // Visible for testing
+  static final String LONG_LOGOUT_URL_ERROR_MSG = "The logout URL cannot exceed 2048 characters.";
+
+  // Visible for testing
+  static final String INVALID_LOGOUT_URL_ERROR_MSG = "The logout URL is invalid.";
+  
+  public static final String NOT_FOUND_ERROR_MSG = "Reverse proxy authentication not configured.";
+
+  public ReverseProxyAuthenticationConfiguration get() {
+    return getById(SINGLETON_ENTITY_ID);
+  }
+
+  public ReverseProxyAuthenticationConfiguration getNotNull() {
+    ReverseProxyAuthenticationConfiguration config = get();
+    if (config == null) {
+      throw new NotFoundException(NOT_FOUND_ERROR_MSG);
+    }
+    return config;
+  }
+
+  @Override
+  protected ReverseProxyAuthenticationConfiguration getById(TransactionContext tx, String id) {
+    String sQuery = "SELECT entity FROM ReverseProxyAuthenticationConfiguration entity" + //
+        " WHERE entity.id=?1";
+    return get(tx, sQuery, SINGLETON_ENTITY_ID);
+  }
+
+  public void set(ReverseProxyAuthenticationConfiguration configuration) {
+    update(configuration);
+  }
+
+  @Override
+  public void insert(TransactionContext tx, ReverseProxyAuthenticationConfiguration configuration) {
+    validate(configuration);
+    configuration.setId(SINGLETON_ENTITY_ID);
+    super.insert(tx, configuration);
+  }
+
+  @Override
+  public void update(TransactionContext tx, ReverseProxyAuthenticationConfiguration configuration) {
+    validate(configuration);
+    configuration.setId(SINGLETON_ENTITY_ID);
+    super.update(tx, configuration);
+  }
+
+  public void delete() {
+    ReverseProxyAuthenticationConfiguration configuration = get();
+    if (configuration != null) {
+      delete(configuration);
+    }
+  }
+
+  private void validate(ReverseProxyAuthenticationConfiguration config) {
+    if (config == null) {
+      throw new BadRequestException(NO_CONFIG_ERROR_MSG);
+    }
+    if (StringUtils.isBlank(config.getUsernameHeader())) {
+      throw new BadRequestException(NO_USERNAME_HEADER_ERROR_MSG);
+    }
+    if (config.getUsernameHeader().length() > MAX_USERNAME_HEADER_LENGTH) {
+      throw new BadRequestException(LONG_USERNAME_HEADER_ERROR_MSG);
+    }
+    if (config.getLogoutUrl() != null) {
+      if (StringUtils.isBlank(config.getLogoutUrl())) {
+        throw new BadRequestException(EMPTY_LOGOUT_URL_ERROR_MSG);
+      }
+      if (config.getLogoutUrl().length() > MAX_LOGOUT_URL_LENGTH) {
+        throw new BadRequestException(LONG_LOGOUT_URL_ERROR_MSG);
+      }
+      try {
+        new URI(config.getLogoutUrl());
+      }
+      catch (URISyntaxException e) {
+        throw new BadRequestException(INVALID_LOGOUT_URL_ERROR_MSG, e);
+      }
+    }
+  }
+}

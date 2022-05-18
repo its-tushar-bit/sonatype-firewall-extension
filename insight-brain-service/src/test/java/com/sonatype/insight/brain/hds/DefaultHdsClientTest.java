@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.inject.Inject;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMultipart;
@@ -31,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.NetworkingHelper;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightProxy;
@@ -68,12 +70,15 @@ import static org.mockito.Mockito.when;
 public class DefaultHdsClientTest
     extends AbstractHdsClientTest
 {
+  @Inject
+  private ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
+
   @Override
   protected void initClient() {
     ProductLicense productLicense = mock(ProductLicense.class);
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
     client = new DefaultHdsClient(new InsightProxy(config, new ProxyServerConfigurationDAO(), passwordHandler),
-        productLicense, config, new VersionService(), telemetryId);
+        productLicense, config, reverseProxyAuthenticationConfigurationDAO, new VersionService(), telemetryId);
   }
 
   /**
@@ -258,8 +263,7 @@ public class DefaultHdsClientTest
   @Test
   public void testDoNotLeakUserCredentialsToHds() throws Exception {
     String usernameHeader = "My-User-Header";
-    config.getReverseProxyAuthentication().setUsernameHeader(usernameHeader);
-    config.getReverseProxyAuthentication().setEnabled(true);
+    tempEntity.newReverseProxyAuthenticationConfiguration(true, usernameHeader, false, null);
     initClient();
 
     final Set<String> headers = new HashSet<>();

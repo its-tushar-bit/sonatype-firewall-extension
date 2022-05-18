@@ -18,6 +18,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -49,6 +50,9 @@ public class DefaultHdsClientProxyTimeOutTest
 
   @Inject
   private PasswordHandler passwordHandler;
+  
+  @Inject
+  private ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
 
   private InsightConfig config;
 
@@ -120,7 +124,7 @@ public class DefaultHdsClientProxyTimeOutTest
   @Test(timeout = 5000)
   public void testMustTimeOutAndNotWaitForever() throws InterruptedException {
     HdsClient client = new DefaultHdsClient(insightProxy, productLicense, config,
-        new VersionService(), telemetryId, 20);
+        reverseProxyAuthenticationConfigurationDAO, new VersionService(), telemetryId, 20);
 
     nonResponsiveServerThread.start();
 

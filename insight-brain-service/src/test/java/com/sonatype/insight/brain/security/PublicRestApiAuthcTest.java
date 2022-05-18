@@ -10,10 +10,10 @@ import java.net.HttpCookie;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.service.ApiReverseProxyAuthenticationConfigurationService;
+import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import com.google.common.net.HttpHeaders;
 import org.junit.Test;
@@ -26,14 +26,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PublicRestApiAuthcTest
     extends AbstractBrainServiceTest
 {
-  private static final Configurator REVERSE_PROXY_ENABLED = new Configurator()
-  {
-    @Override
-    public void configure(InsightConfig config) {
-      config.getReverseProxyAuthentication().setEnabled(true);
-    }
-  };
-
   @Test
   public void testSessionCookieSufficientWithoutCsrfTokenForSafeRequests() throws Exception {
     HttpResponse response = restRequest().path(UserSessionResource.RESOURCE_PATH).post();
@@ -144,7 +136,8 @@ public class PublicRestApiAuthcTest
     assertResponseStatus(404, response);
     assertThat(response.getSessionCookie()).isNull();
 
-    initServer(REVERSE_PROXY_ENABLED);
+    initServer();
+    enableReverseProxyAuthentication();
     request = restRequest().header("REMOTE_USER", "admin").anon();
 
     request.path(PublicApiPaths.BASE_PATH, "any/thing");
@@ -166,9 +159,9 @@ public class PublicRestApiAuthcTest
   }
 
   @Test
-  @ManualServerInit
   public void testReverseProxy() throws Exception {
-    initServer(REVERSE_PROXY_ENABLED);
+    enableReverseProxyAuthentication();
+
     HttpRequest request = restRequest().header("REMOTE_USER", "admin").anon();
 
     request.path(PublicApiPaths.BASE_PATH, "any/thing");
@@ -176,9 +169,9 @@ public class PublicRestApiAuthcTest
   }
 
   @Test
-  @ManualServerInit
   public void testReverseProxyBeforeBasicAuthentication() throws Exception {
-    initServer(REVERSE_PROXY_ENABLED);
+    enableReverseProxyAuthentication();
+
     HttpRequest request = restRequest().header("REMOTE_USER", "admin").auth("admin", "wrong password");
 
     request.path(PublicApiPaths.BASE_PATH, "any/thing");
@@ -186,9 +179,9 @@ public class PublicRestApiAuthcTest
   }
 
   @Test
-  @ManualServerInit
   public void testReverseProxyMissingHeaderFallbackToBasicAuthentication() throws Exception {
-    initServer(REVERSE_PROXY_ENABLED);
+    enableReverseProxyAuthentication();
+
     HttpRequest request = restRequest();
 
     request.path(PublicApiPaths.BASE_PATH, "any/thing");
@@ -216,9 +209,9 @@ public class PublicRestApiAuthcTest
   }
 
   @Test
-  @ManualServerInit
   public void testReverseProxyAuthenticationRequiresCsrfTokenForUnsafeRequests() throws Exception {
-    initServer(REVERSE_PROXY_ENABLED);
+    enableReverseProxyAuthentication();
+
     HttpRequest request = restRequest().header("REMOTE_USER", "admin").anon().noCsrfToken();
     request.path(PublicApiPaths.BASE_PATH, "any/thing");
 
@@ -233,5 +226,12 @@ public class PublicRestApiAuthcTest
 
     response = request.delete();
     assertResponse401(response, AntiCsrfFilter.ERROR_MSG);
+  }
+
+  private void enableReverseProxyAuthentication() {
+    tempEntity.newReverseProxyAuthenticationConfiguration(true,
+        ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, false, null);
+    getCLMServer().getInstance(ApiReverseProxyAuthenticationConfigurationService.class)
+        .applyReverseProxyAuthenticationConfigurationToClients();
   }
 }

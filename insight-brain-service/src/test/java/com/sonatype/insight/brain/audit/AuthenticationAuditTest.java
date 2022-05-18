@@ -7,13 +7,14 @@ package com.sonatype.insight.brain.audit;
 
 import java.net.HttpCookie;
 
+import com.sonatype.insight.brain.api.v2.service.ApiReverseProxyAuthenticationConfigurationService;
+import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.organization.ApplicationResource;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.security.UserSessionResource;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
-import com.sonatype.insight.brain.service.ReverseProxyAuthenticationConfig;
 
 import org.junit.Test;
 
@@ -55,12 +56,12 @@ public class AuthenticationAuditTest
   }
 
   @Test
-  @ManualServerInit
   public void testImplicitLoginByReverseProxy() throws Exception {
-    ReverseProxyAuthenticationConfig rutConfig = new ReverseProxyAuthenticationConfig();
-    rutConfig.setEnabled(true);
+    ReverseProxyAuthenticationConfiguration rutConfig = tempEntity.newReverseProxyAuthenticationConfiguration(true,
+        ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, false, null);
+    getCLMServer().getInstance(ApiReverseProxyAuthenticationConfigurationService.class)
+        .applyReverseProxyAuthenticationConfigurationToClients();
     String username = "rut-user";
-    initServer(config -> config.setReverseProxyAuthentication(rutConfig));
 
     restRequest().path(RESTRICTED_PATH).anon().header(rutConfig.getUsernameHeader(), username).get();
 
@@ -118,10 +119,11 @@ public class AuthenticationAuditTest
     assertAuditLog(log, "GET", RESTRICTED_PATH, AuditRecorder.SERVER_ERROR);
   }
 
-  private void assertAuditLog(final AuditDTO auditDTO,
-                              final String method,
-                              final String resourcePath,
-                              final String error)
+  private void assertAuditLog(
+      final AuditDTO auditDTO,
+      final String method,
+      final String resourcePath,
+      final String error)
   {
     assertThat(auditDTO.requestMethod).isEqualTo(method);
     assertThat(auditDTO.requestUri).isEqualTo(resourcePath);

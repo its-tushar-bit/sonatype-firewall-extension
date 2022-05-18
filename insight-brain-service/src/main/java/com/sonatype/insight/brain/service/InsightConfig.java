@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.jira.JiraConfig;
 import com.sonatype.insight.brain.migration.MailConfigurationMigrator;
 import com.sonatype.insight.brain.migration.ProxyServerConfigurationMigrator;
+import com.sonatype.insight.brain.migration.ReverseProxyAuthenticationConfigurationMigrator.ReverseProxyAuthenticationConfig;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -149,9 +150,8 @@ public class InsightConfig
   /**
    * @since 1.16.0
    */
-  @NotNull
   @JsonProperty
-  private ReverseProxyAuthenticationConfig reverseProxyAuthentication = new ReverseProxyAuthenticationConfig();
+  private ReverseProxyAuthenticationConfig reverseProxyAuthentication;
 
   /**
    * @since 1.21.0

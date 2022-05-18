@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.net.URI;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -18,9 +21,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.sonatype.insight.brain.api.v2.service.ReverseProxyAuthenticationConfigurationListener;
+import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
+import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
-import com.sonatype.insight.brain.service.InsightConfig;
 
 import com.codahale.metrics.annotation.Timed;
 import org.apache.shiro.SecurityUtils;
@@ -34,18 +39,25 @@ import org.apache.shiro.subject.Subject;
 @Path(UserSessionResource.RESOURCE_PATH)
 @UnlicensedPath
 @Named
+@Singleton
 @Timed
 public class UserSessionResource
+    implements ReverseProxyAuthenticationConfigurationListener
 {
   public static final String RESOURCE_PATH = "rest/user/session";
 
   public static final String LOGOUT_PATH = "logout";
 
-  private final InsightConfig insightConfig;
+  private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
+
+  private final AtomicReference<ReverseProxyAuthenticationConfiguration>
+      reverseProxyAuthenticationConfigurationAtomicReference = new AtomicReference<>();
 
   @Inject
-  public UserSessionResource(InsightConfig insightConfig) {
-    this.insightConfig = insightConfig;
+  public UserSessionResource(
+      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO)
+  {
+    this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
   }
 
   /**
@@ -59,7 +71,7 @@ public class UserSessionResource
   /**
    * Logout the currently logged in user.
    * 
-   * Conciously not doing this in a RESTful manner. The use of a separate resource path is because we want to allow
+   * Consciously not doing this in a RESTful manner. The use of a separate resource path is because we want to allow
    * anonymous access but Shiro doesn't have the capability to apply different authc per HTTP method.
    * See https://issues.apache.org/jira/browse/SHIRO-200 .
    */
@@ -67,10 +79,13 @@ public class UserSessionResource
   @Path(LOGOUT_PATH)
   public Response logout() {
     SecurityUtils.getSubject().logout();
-    if (insightConfig.getReverseProxyAuthentication().isEnabled() &&
-        insightConfig.getReverseProxyAuthentication().getLogoutUrl() != null) {
+    ReverseProxyAuthenticationConfiguration reverseProxyAuthenticationConfiguration =
+        reverseProxyAuthenticationConfigurationAtomicReference.get();
+    if (reverseProxyAuthenticationConfiguration != null &&
+        reverseProxyAuthenticationConfiguration.isEnabled() &&
+        reverseProxyAuthenticationConfiguration.getLogoutUrl() != null) {
       return Response.status(Status.NO_CONTENT)
-          .location(insightConfig.getReverseProxyAuthentication().getLogoutUrl()).build();
+          .location(URI.create(reverseProxyAuthenticationConfiguration.getLogoutUrl())).build();
     }
     return Response.status(Status.NO_CONTENT).build();
   }
@@ -172,5 +187,10 @@ public class UserSessionResource
     public void setGroups(Set<String> groups) {
       this.groups = groups;
     }
+  }
+
+  @Override
+  public void reverseProxyAuthenticationConfigurationChanged() {
+    reverseProxyAuthenticationConfigurationAtomicReference.set(reverseProxyAuthenticationConfigurationDAO.get());
   }
 }

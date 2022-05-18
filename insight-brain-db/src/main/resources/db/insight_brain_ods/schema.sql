@@ -698,6 +698,7 @@ INSERT INTO migration_tracker(migration_tracker_id) VALUES('inactive-repository-
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('mail-config');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('proxy-server-configuration');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('source-control-file-storage');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('reverse-proxy-authentication-config');
 
 CREATE TABLE search_index_change (
   search_index_change_id varchar(50) NOT NULL,
@@ -1180,4 +1181,14 @@ CREATE TABLE repository_identified_component (
   create_time timestamp NOT NULL,
   last_access_time timestamp NOT NULL,
   CONSTRAINT hash_pk PRIMARY KEY (hash)
+);
+
+-- Since 1.138
+CREATE TABLE reverse_proxy_authentication_configuration (
+  reverse_proxy_authentication_configuration_id varchar(50) NOT NULL,
+  enabled boolean NOT NULL,
+  username_header varchar(255) NOT NULL,
+  csrf_protection_disabled boolean NOT NULL,
+  logout_url varchar(2048),
+  CONSTRAINT reverse_proxy_authentication_configuration_pk PRIMARY KEY (reverse_proxy_authentication_configuration_id)
 );

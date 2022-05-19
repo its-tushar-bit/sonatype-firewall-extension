@@ -158,7 +158,7 @@ export default function ReportFilterPopover() {
           name="inner-source-filter"
           id="inner-source-filter"
         >
-          <span>Inner Source</span>
+          <span>InnerSource</span>
         </NxStatefulTreeViewMultiSelect>
 
         <NxStatefulTreeViewMultiSelect

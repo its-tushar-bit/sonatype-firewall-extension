@@ -93,7 +93,7 @@ describe('DependencyTree', () => {
     expect(screen.getAllByRole('img')[2]).toHaveClassName('nx-threat-indicator--severe');
   });
 
-  it('renders an inner source icon', () => {
+  it('renders an InnerSource icon', () => {
     const mockTree = [
       {
         displayName: 'taglibs : standard : 1.1.2',

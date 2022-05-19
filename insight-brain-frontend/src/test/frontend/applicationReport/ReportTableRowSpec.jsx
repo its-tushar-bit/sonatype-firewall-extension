@@ -212,7 +212,7 @@ describe('ReportTableRow component', function () {
     });
   });
 
-  it('renders dependency indicators for a transitive inner source dependency type', function () {
+  it('renders dependency indicators for a transitive InnerSource dependency type', function () {
     const component = {
       derivedDependencyType: 'transitive',
       isOnlyInnerSourceTransitiveDependency: true,
@@ -224,7 +224,7 @@ describe('ReportTableRow component', function () {
     expect(screen.getByText('IS')).toBeVisible();
   });
 
-  it('renders dependency indicators for a direct inner source dependency type', function () {
+  it('renders dependency indicators for a direct InnerSource dependency type', function () {
     const component = {
       derivedDependencyType: 'direct',
       innerSource: true,
@@ -280,7 +280,7 @@ describe('ReportTableRow component', function () {
     expect(grandfatheredIndicator).toBeVisible();
   });
 
-  it('renders inner source parents tooltip message when the component is brought in by an inner source dependency', async function () {
+  it('renders InnerSource parents tooltip message when the component is brought in by an InnerSource dependency', async function () {
     const props = {
       component: {
         policyName: 'None',

@@ -1091,7 +1091,7 @@ describe('applicationReportService', function () {
       expect(bazHashEntry.derivedDependencyType).toBe('unknown');
     });
 
-    it('report entries with inner source data', function () {
+    it('report entries with InnerSource data', function () {
       const bomData = {
           aaData: [
             {

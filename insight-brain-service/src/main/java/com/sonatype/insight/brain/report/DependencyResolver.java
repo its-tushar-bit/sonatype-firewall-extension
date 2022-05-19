@@ -637,7 +637,7 @@ public class DependencyResolver
         }
       }
       catch (IOException e) {
-        log.debug("Failed to parse inner source data " + innerSourceNode, e);
+        log.debug("Failed to parse InnerSource data " + innerSourceNode, e);
       }
     }
     return false;

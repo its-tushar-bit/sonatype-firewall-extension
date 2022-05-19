@@ -370,7 +370,7 @@ public class ApplicationDAO
     ClusterLock.deleteForPolicyEvaluations(tx, application);
     ClusterLock.deleteForAuditJsonFileStore(tx, application.getId());
 
-    // Cascade to Inner Source components
+    // Cascade to InnerSource components
     InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
     List<InnerSourceComponent> innerSourceComponents =
         innerSourceComponentDAO.getByApplicationId(tx, application.getId());

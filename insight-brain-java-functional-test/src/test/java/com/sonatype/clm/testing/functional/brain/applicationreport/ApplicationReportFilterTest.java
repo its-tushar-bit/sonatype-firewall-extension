@@ -159,6 +159,7 @@ public class ApplicationReportFilterTest
 
     // InnerSource filter
     InnerSourceFilter innerSourceFilter = reportPage.filterPanel().innerSourceFilter();
+    innerSourceFilter.shouldHave(text("InnerSource"));
     innerSourceFilter.counter().shouldHave(exactText("2"));
     innerSourceFilter.multiSelectList().shouldHaveSize(3);
     innerSourceFilter.multiSelectList().forEach(child -> child.shouldNotBe(visible));

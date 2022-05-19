@@ -62,7 +62,7 @@ describe('OverviewComponentInformation', () => {
     expect(content).toExist();
   });
 
-  it('renders the inner source containers', () => {
+  it('renders the InnerSource containers', () => {
     let component, innerSourceReportContainer, innerSourcePermissionsContainer, innerSourceAlertContainer;
 
     component = getShallow();
@@ -96,7 +96,7 @@ describe('OverviewComponentInformation', () => {
     expect(innerSourceAlertContainer).toExist();
   });
 
-  it('renders the repository source alert for an inner source component', () => {
+  it('renders the repository source alert for an InnerSource component', () => {
     const props = {
       versionExplorerData: {
         sourceResponse: {

@@ -85,7 +85,7 @@ describe('ReportFilterPopover', () => {
       expect(proprietaryOptions[2]).toHaveClassName(uncheckedClass);
     });
 
-    it('Handles the click in the inner source items', () => {
+    it('Handles the click in the InnerSource items', () => {
       renderComponent();
       const innerSourceList = screen.getAllByRole('list')[1];
       const innerSourceOptions = getAllByRole(innerSourceList, 'listitem');

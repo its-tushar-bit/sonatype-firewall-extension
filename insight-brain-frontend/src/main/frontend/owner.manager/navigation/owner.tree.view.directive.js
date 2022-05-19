@@ -108,14 +108,6 @@ function OwnerTreeViewController(
     delete vm.error;
     delete vm.rootOrganization;
 
-    if (
-      vm.state === undefined ||
-      vm.state.scmOnboarding === undefined ||
-      vm.state.scmOnboarding.isScmOnboardingFeatureEnabled === undefined
-    ) {
-      vm.loadConfig();
-    }
-
     var loadPromises = [
       $http.get(CLMLocations.getOwnerListUrl()),
       PermissionService.isContextAuthorized(['READ'], 'repository_container'),
@@ -329,7 +321,6 @@ function OwnerTreeViewController(
 
   function mapStateToThis(state) {
     return {
-      isScmOnboardingFeatureEnabled: state.scmOnboarding.configState.isScmOnboardingFeatureEnabled,
       isSourceControlSupported: selectIsSourceControlSupported(state),
     };
   }

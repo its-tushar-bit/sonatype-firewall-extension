@@ -173,10 +173,6 @@ export function getAdvancedSearchUrl(query, page, isShowAllComponents) {
   return uriTemplate`/api/v2/search/advanced?query=${query}&page=${page}&allComponents=${isShowAllComponents}`;
 }
 
-export function getScmOnboardingConfigUrl() {
-  return uriTemplate`/api/experimental/config/scmOnboarding`;
-}
-
 export function getScmRepositoriesUrl(organizationId, defaultHostUrl) {
   return uriTemplate`/rest/onboarding/loadRepositories?\
 orgId=${organizationId}&defaultHostUrl=${defaultHostUrl}`;

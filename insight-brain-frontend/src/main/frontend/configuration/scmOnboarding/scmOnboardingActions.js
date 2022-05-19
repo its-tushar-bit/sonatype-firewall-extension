@@ -10,7 +10,6 @@ import { debounce } from 'debounce';
 import {
   getCompositeSourceControlUrl,
   getValidateScmConfigUrl,
-  getScmOnboardingConfigUrl,
   getScmOrganizationsUrl,
   getScmRepositoriesUrl,
   getScmDefaultHostUrl,
@@ -18,9 +17,6 @@ import {
   getOrganizationsUrl,
 } from '../../util/CLMLocation';
 import { valueFromHierarchy, tokenForOrg } from './utils/providers';
-
-export const SCM_ONBOARDING_LOAD_CONFIG_FULFILLED = 'SCM_ONBOARDING_LOAD_CONFIG_FULFILLED';
-export const SCM_ONBOARDING_LOAD_CONFIG_FAILED = 'SCM_ONBOARDING_CONFIG_LOAD_FAILED';
 
 export const SCM_ONBOARDING_LOAD_PAGE_REQUESTED = 'SCM_ONBOARDING_LOAD_PAGE_REQUESTED';
 export const SCM_ONBOARDING_LOAD_PAGE_FULFILLED = 'SCM_ONBOARDING_LOAD_PAGE_FULFILLED';
@@ -79,7 +75,6 @@ export function loadPage(orgId) {
     }
     dispatch(loadPageRequested(orgId));
 
-    let config = axios.get(getScmOnboardingConfigUrl());
     let organizations = axios.get(getScmOrganizationsUrl());
     let scm = orgId ? axios.get(getCompositeSourceControlUrl('organization', orgId)) : Promise.resolve(null);
     let hostUrl = scm.then((compositeSCResults) => {
@@ -90,11 +85,10 @@ export function loadPage(orgId) {
       return provider !== null ? axios.get(getScmDefaultHostUrl(orgId, provider)) : Promise.resolve(null);
     });
 
-    return Promise.all([config, organizations, scm, hostUrl])
-      .then(([configResults, organizationsResults, compositeSourceControlResults, hostUrlResult]) => {
+    return Promise.all([organizations, scm, hostUrl])
+      .then(([organizationsResults, compositeSourceControlResults, hostUrlResult]) => {
         dispatch(
           loadPageFulfilled({
-            configResults: configResults.data,
             organizationsResults: organizationsResults.data,
             compositeSourceControlResults: compositeSourceControlResults ? compositeSourceControlResults.data : null,
             hostUrlResult: hostUrlResult ? hostUrlResult.data : null,
@@ -111,23 +105,6 @@ export function loadPage(orgId) {
       })
       .catch((error) => {
         dispatch(loadPageFailed(error));
-      });
-  };
-}
-
-/*
- this should be only be used to determine whether to render menu items, not to determine if the page
- itself should load
- */
-export function loadConfig() {
-  return function (dispatch) {
-    return axios
-      .get(getScmOnboardingConfigUrl())
-      .then(({ data }) => {
-        dispatch(loadConfigFulfilled(data));
-      })
-      .catch((error) => {
-        dispatch(loadConfigFailed(error));
       });
   };
 }
@@ -287,9 +264,6 @@ export function setIsGitHostNeeded(isNeeded) {
   };
 }
 
-const loadConfigFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_CONFIG_FULFILLED);
-const loadConfigFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_CONFIG_FAILED);
-
 const loadPageRequested = payloadParamActionCreator(SCM_ONBOARDING_LOAD_PAGE_REQUESTED);
 const loadPageFulfilled = payloadParamActionCreator(SCM_ONBOARDING_LOAD_PAGE_FULFILLED);
 const loadPageFailed = payloadParamActionCreator(SCM_ONBOARDING_LOAD_PAGE_FAILED);
@@ -330,7 +304,6 @@ export default function scmOnboarding() {
     addOrganization,
     setCurrentHostUrl,
     validateScmHostUrl,
-    loadConfig,
     loadPage,
     loadRepositories,
     onRepositorySelectionChanged,

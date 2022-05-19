@@ -113,7 +113,6 @@ describe('scmOnboardingReducer', function () {
 
         // and several orgs returned in the payload
         const payload = {
-          configResults: { scmOnboardingFeatureEnabled: true },
           organizationsResults: defaultOrganizationsPayload,
           compositeSourceControlResults: {
             provider: { value: null, parentValue: 'github' },
@@ -138,7 +137,6 @@ describe('scmOnboardingReducer', function () {
             isSelectingOrganization: false,
           },
           configState: {
-            isScmOnboardingFeatureEnabled: true,
             isScmTokenConfigured: true,
             isScmTokenOverridden: false,
             isRootScmConfigured: true,
@@ -168,7 +166,6 @@ describe('scmOnboardingReducer', function () {
 
         // and several orgs returned in the payload but not selected details
         const payload = {
-          configResults: { scmOnboardingFeatureEnabled: true },
           organizationsResults: defaultOrganizationsPayload,
           compositeSourceControlResults: null,
           hostUrlResult: { defaultHostUrl: null },
@@ -190,7 +187,6 @@ describe('scmOnboardingReducer', function () {
             isSelectingOrganization: false,
           },
           configState: {
-            isScmOnboardingFeatureEnabled: true,
             isScmTokenConfigured: false,
             isRootScmConfigured: true,
             scmProvider: 'github',
@@ -213,7 +209,6 @@ describe('scmOnboardingReducer', function () {
 
         // and the token is configured in the root organization
         const payload = {
-          configResults: { scmOnboardingFeatureEnabled: true },
           organizationsResults: defaultOrganizationsPayload,
           compositeSourceControlResults: {
             provider: { value: null, parentValue: 'github' },
@@ -238,7 +233,6 @@ describe('scmOnboardingReducer', function () {
             isSelectingOrganization: false,
           },
           configState: {
-            isScmOnboardingFeatureEnabled: true,
             isScmTokenConfigured: true,
             isScmTokenOverridden: false,
             isRootScmConfigured: true,
@@ -277,7 +271,6 @@ describe('scmOnboardingReducer', function () {
 
         // and the token is configured in the root organization
         const payload = {
-          configResults: { scmOnboardingFeatureEnabled: true },
           organizationsResults: orgPayload,
           compositeSourceControlResults: {
             provider: { value: null, parentValue: null },
@@ -302,7 +295,6 @@ describe('scmOnboardingReducer', function () {
             isSelectingOrganization: false,
           },
           configState: {
-            isScmOnboardingFeatureEnabled: true,
             isScmTokenConfigured: true,
             isScmTokenOverridden: false,
             isRootScmConfigured: false,
@@ -332,7 +324,6 @@ describe('scmOnboardingReducer', function () {
 
         // and the provider is configured in the newly selected organization
         const payload = {
-          configResults: { scmOnboardingFeatureEnabled: true },
           organizationsResults: defaultOrganizationsPayload,
           hostUrlResult: { defaultHostUrl: '' },
         };
@@ -352,7 +343,6 @@ describe('scmOnboardingReducer', function () {
           scmProvider: 'gitlab',
           rootOrgHasToken: true,
           rootProvider: 'github',
-          isScmOnboardingFeatureEnabled: true,
         });
         expect(newState.viewState).toEqual({
           loadingPage: false,
@@ -374,7 +364,6 @@ describe('scmOnboardingReducer', function () {
 
         // and an initial load with no host URL or selected org
         const payload = {
-          configResults: { scmOnboardingFeatureEnabled: true },
           organizationsResults: defaultOrganizationsPayload,
           compositeSourceControlResults: null,
           hostUrlResult: { defaultHostUrl: '' },
@@ -403,9 +392,6 @@ describe('scmOnboardingReducer', function () {
             loadingPage: true,
             generalError: null,
             isImporting: true,
-          },
-          configState: {
-            isScmOnboardingFeatureEnabled: null,
           },
         });
 
@@ -1283,10 +1269,6 @@ describe('scmOnboardingReducer', function () {
     it('retains only configState', () => {
       // given a state with lots of values set
       const state = Object.freeze({
-        configState: {
-          isScmOnboardingFeatureEnabled: true,
-          customProp: 'configValue',
-        },
         viewState: {
           customProp: 'viewValue',
         },
@@ -1359,10 +1341,6 @@ describe('scmOnboardingReducer', function () {
     it('retains all state when organizationId changes', () => {
       // given a state with lots of values set
       const state = Object.freeze({
-        configState: {
-          isScmOnboardingFeatureEnabled: true,
-          customProp: 'configValue',
-        },
         viewState: {
           customProp: 'viewValue',
         },

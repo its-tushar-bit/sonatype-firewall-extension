@@ -13,7 +13,6 @@ function mapStateToProps({ scmOnboarding, router }) {
   return {
     // config
     loadingPage: scmOnboarding.viewState.loadingPage,
-    isScmOnboardingFeatureEnabled: scmOnboarding.configState.isScmOnboardingFeatureEnabled,
     scmProvider: scmOnboarding.configState.scmProvider,
     isRootScmConfigured: scmOnboarding.configState.isRootScmConfigured,
 

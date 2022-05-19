@@ -5,7 +5,6 @@
  */
 import axios from 'axios';
 import {
-  getScmOnboardingConfigUrl,
   getScmOrganizationsUrl,
   getScmDefaultHostUrl,
   getScmRepositoriesUrl,
@@ -25,11 +24,7 @@ import {
 
 describe('scmOnboardingActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
-    scmOnboardingConfigUrl = getScmOnboardingConfigUrl(),
     validateScmHostUrl = getValidateScmConfigUrl('provider', 'http://host/'),
-    scmOnboardingConfigPayload = {
-      scmOnboardingFeatureEnabled: true,
-    },
     scmOrganizationsUrl = getScmOrganizationsUrl(),
     defaultScmHostUrl = getScmDefaultHostUrl('ownerId', 'github');
 
@@ -69,9 +64,6 @@ describe('scmOnboardingActions', function () {
       beforeEach(() => {
         mockAxiosCalls({
           get: {
-            [scmOnboardingConfigUrl]: Promise.resolve({
-              data: scmOnboardingConfigPayload,
-            }),
             [getCompositeSourceControlUrl('organization', 'id1')]: Promise.resolve({
               data: compositeSourceControlPayload,
             }),
@@ -121,7 +113,6 @@ describe('scmOnboardingActions', function () {
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created with the expected payload
           expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
-          expect(actions[1].payload.configResults).toEqual(scmOnboardingConfigPayload);
           expect(actions[1].payload.organizationsResults).toEqual(orgResults);
           expect(actions[1].payload.compositeSourceControlResults).toBeNull();
           expect(actions[1].payload.hostUrlResult).toBeNull();
@@ -144,7 +135,6 @@ describe('scmOnboardingActions', function () {
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created with the expected payload
           expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
-          expect(actions[1].payload.configResults).toEqual(scmOnboardingConfigPayload);
           expect(actions[1].payload.organizationsResults).toEqual(orgResults);
           expect(actions[1].payload.compositeSourceControlResults).toEqual(compositeSourceControlPayload);
           expect(actions[1].payload.hostUrlResult).toEqual(scmDefaultHostPayload);
@@ -165,7 +155,6 @@ describe('scmOnboardingActions', function () {
           expect(actions[0].payload).toEqual('id2');
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created with the expected payload
-          expect(actions[1].payload.configResults).toEqual(scmOnboardingConfigPayload);
           expect(actions[1].payload.organizationsResults).toEqual(orgResults);
           expect(actions[1].payload.compositeSourceControlResults).toEqual(unconfiguredCompositeSourceControlPayload);
           expect(actions[1].payload.hostUrlResult).toEqual(null);
@@ -186,7 +175,6 @@ describe('scmOnboardingActions', function () {
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created using the gitlab provider
           // rather than the parent provider
           expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
-          expect(actions[1].payload.configResults).toEqual(scmOnboardingConfigPayload);
           expect(actions[1].payload.organizationsResults).toEqual(orgResults);
           expect(actions[1].payload.compositeSourceControlResults).toEqual(
             providerOverriddenCompositeSourceControlPayload
@@ -238,9 +226,6 @@ describe('scmOnboardingActions', function () {
       testFailure('organizationsUrl', () => {
         return {
           get: {
-            [scmOnboardingConfigUrl]: Promise.resolve({
-              data: scmOnboardingConfigPayload,
-            }),
             [compositeSourceControlUrl]: Promise.resolve({
               data: compositeSourceControlPayload,
             }),
@@ -251,28 +236,9 @@ describe('scmOnboardingActions', function () {
           },
         };
       });
-      testFailure('scmOnboardingConfig', () => {
-        return {
-          get: {
-            [scmOnboardingConfigUrl]: () => Promise.reject('failed call'),
-            [compositeSourceControlUrl]: Promise.resolve({
-              data: compositeSourceControlPayload,
-            }),
-            [scmOrganizationsUrl]: Promise.resolve({
-              data: organizationsPayload,
-            }),
-            [defaultScmHostUrl]: Promise.resolve({
-              data: scmDefaultHostPayload,
-            }),
-          },
-        };
-      });
       testFailure('compositeSourceControlUrl', () => {
         return {
           get: {
-            [scmOnboardingConfigUrl]: Promise.resolve({
-              data: scmOnboardingConfigPayload,
-            }),
             [compositeSourceControlUrl]: () => Promise.reject('failed call'),
             [scmOrganizationsUrl]: Promise.resolve({
               data: organizationsPayload,
@@ -286,9 +252,6 @@ describe('scmOnboardingActions', function () {
       testFailure('defaultScmHostUrl', () => {
         return {
           get: {
-            [scmOnboardingConfigUrl]: Promise.resolve({
-              data: scmOnboardingConfigPayload,
-            }),
             [compositeSourceControlUrl]: Promise.resolve({
               data: compositeSourceControlPayload,
             }),

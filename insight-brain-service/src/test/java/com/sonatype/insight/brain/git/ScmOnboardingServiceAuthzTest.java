@@ -36,22 +36,12 @@ public class ScmOnboardingServiceAuthzTest
 
   @Test
   public void testLoadRepositories_Authorized() throws Exception {
-    grantManageAutomaticSourceControlPermission();
+    grantAddApplicationPermission(org.getId());
 
     assertThatThrownBy(() -> {
       scmOnboardingService.loadRepositories(org.getId(), GITHUB_COM);
     }).isInstanceOf(BadRequestException.class)
         .hasMessage("No provider configured");
-  }
-
-  @Test
-  public void testLoadRepositories_Authorized_nullOrg() throws Exception {
-    grantManageAutomaticSourceControlPermission();
-
-    assertThatThrownBy(() -> {
-      scmOnboardingService.loadRepositories(null, GITHUB_COM);
-    }).isInstanceOf(BadRequestException.class)
-        .hasMessage("No organization specified");
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -70,15 +60,9 @@ public class ScmOnboardingServiceAuthzTest
     scmOnboardingService.loadRepositories(org.getId(), GITHUB_COM);
   }
 
-  @Test(expected = UnauthorizedException.class)
-  public void testLoadRepositories_Unauthorized_nullOrg() throws Exception {
-    login();
-    scmOnboardingService.loadRepositories(null, GITHUB_COM);
-  }
-
   @Test
   public void testGetDefaultHostUrl_Authorized() throws Exception {
-    grantManageAutomaticSourceControlPermission();
+    grantAddApplicationPermission(org.getId());
     scmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
   }
 
@@ -95,7 +79,7 @@ public class ScmOnboardingServiceAuthzTest
 
   @Test
   public void testImportRepositories_Authorized() throws Exception {
-    grantManageAutomaticSourceControlPermission();
+    grantAddApplicationPermission(org.getId());
     scmOnboardingService
         .importRepositories(org.getId(), new ImportRepositoriesRequest(Collections.emptyList(), 0, 0));
   }

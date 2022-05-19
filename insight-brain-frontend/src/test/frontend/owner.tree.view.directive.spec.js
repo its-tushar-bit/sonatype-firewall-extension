@@ -158,10 +158,6 @@ describe('owner.tree.view.directive.spec.js', function () {
         $timeout.flush();
       }));
 
-      it('loads feature flag', () => {
-        expect(scope.vm.loadConfig).toHaveBeenCalledTimes(1);
-      });
-
       it('loads organizations and applications', function () {
         expect(scope.vm.showRepositories).toBe(permissions.length > 0);
 

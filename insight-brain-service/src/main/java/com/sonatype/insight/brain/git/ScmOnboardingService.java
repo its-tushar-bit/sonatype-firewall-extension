@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -141,8 +142,11 @@ public class ScmOnboardingService
     this.sourceControlUtils = sourceControlUtils;
   }
 
-  @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
-  public SCMRepositories loadRepositories(final String orgId, final String hostUrl) throws IOException {
+  @Authorize(permission = Permission.ADD_APPLICATION)
+  public SCMRepositories loadRepositories(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) final String orgId,
+      final String hostUrl) throws IOException
+  {
     log.debug("loadRepositories returning data for org {} and hostUrl {}", orgId, hostUrl);
 
     if (orgId == null) {
@@ -197,8 +201,11 @@ public class ScmOnboardingService
    *
    * @param orgId optional, if provided will attempt to use existing SCM repos in this org
    */
-  @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
-  public String getDefaultHostUrl(final String providerString, final String orgId) {
+  @Authorize(permission = Permission.ADD_APPLICATION)
+  public String getDefaultHostUrl(
+      final String providerString,
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) final String orgId)
+  {
     if (StringUtils.isBlank(providerString)) {
       throw new BadRequestException("Provider has not been specified");
     }
@@ -289,8 +296,11 @@ public class ScmOnboardingService
    * @param importReposRequest the repositories to import with associated telemetry data
    * @return list of all imported repositories
    */
-  @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
-  public ImportResults importRepositories(final String orgId, final ImportRepositoriesRequest importReposRequest) {
+  @Authorize(permission = Permission.ADD_APPLICATION)
+  public ImportResults importRepositories(
+      @AuthzContext(AuthzContext.Key.ORGANIZATION_ID) final String orgId,
+      final ImportRepositoriesRequest importReposRequest)
+  {
     log.debug("importing repositories into org {}, using: {}", orgId, importReposRequest);
 
     // validate org ID

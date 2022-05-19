@@ -8,8 +8,6 @@ import {
   SCM_ONBOARDING_IMPORT_REPOS_FAILED,
   SCM_ONBOARDING_IMPORT_REPOS_FULFILLED,
   SCM_ONBOARDING_IMPORT_REPOS_REQUESTED,
-  SCM_ONBOARDING_LOAD_CONFIG_FAILED,
-  SCM_ONBOARDING_LOAD_CONFIG_FULFILLED,
   SCM_ONBOARDING_LOAD_PAGE_REQUESTED,
   SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
   SCM_ONBOARDING_LOAD_PAGE_FAILED,
@@ -43,7 +41,6 @@ import { valueFromHierarchy, tokenForOrg } from './utils/providers';
 
 const initialState = {
   configState: {
-    isScmOnboardingFeatureEnabled: null,
     isScmTokenConfigured: null,
     isScmTokenOverridden: null,
     isRootScmConfigured: null,
@@ -104,30 +101,6 @@ function onRouterFinish(payload, state) {
   };
 }
 
-function loadConfigFulfilled(payload, state) {
-  return {
-    ...state,
-    configState: {
-      ...state.configState,
-      isScmOnboardingFeatureEnabled: payload.scmOnboardingFeatureEnabled,
-    },
-  };
-}
-
-function loadConfigFailed(payload, state) {
-  return {
-    ...state,
-    viewState: {
-      ...state.viewState,
-      generalError: payload,
-    },
-    configState: {
-      ...state.configState,
-      isScmOnboardingFeatureEnabled: null,
-    },
-  };
-}
-
 function loadPageRequested(payload) {
   return {
     ...initialState,
@@ -154,12 +127,13 @@ function loadPageFailed(payload) {
 }
 
 function loadPageFulfilled(payload, state) {
-  const rootOrg = payload.organizationsResults.find(
-    (org) => org.organization.id === ownerConstant.ROOT_ORGANIZATION_ID
-  );
+  let rootOrg = payload.organizationsResults.find((org) => org.organization.id === ownerConstant.ROOT_ORGANIZATION_ID);
   const selectedOrganization = payload.organizationsResults.find(
     (org) => org.organization.id === state.formState.preselectedOrganizationId
   );
+  if (!rootOrg) {
+    rootOrg = selectedOrganization;
+  }
   const selectedOrgProvider = !selectedOrganization
     ? null
     : valueFromHierarchy(selectedOrganization.sourceControl.provider);
@@ -173,7 +147,6 @@ function loadPageFulfilled(payload, state) {
     },
     configState: {
       ...state.configState,
-      isScmOnboardingFeatureEnabled: payload.configResults.scmOnboardingFeatureEnabled,
       isScmTokenConfigured: hasToken,
       scmProvider: selectedOrgProvider !== null ? selectedOrgProvider : rootOrgProvider,
       rootOrgHasToken: rootOrg !== null && !!rootOrg.sourceControl.token.value,
@@ -556,9 +529,6 @@ function setCurrentHostUrl(payload, state) {
 }
 
 const reducerActionMap = {
-  [SCM_ONBOARDING_LOAD_CONFIG_FULFILLED]: loadConfigFulfilled,
-  [SCM_ONBOARDING_LOAD_CONFIG_FAILED]: loadConfigFailed,
-
   [SCM_ONBOARDING_LOAD_PAGE_REQUESTED]: loadPageRequested,
   [SCM_ONBOARDING_LOAD_PAGE_FULFILLED]: loadPageFulfilled,
   [SCM_ONBOARDING_LOAD_PAGE_FAILED]: loadPageFailed,

@@ -89,7 +89,7 @@ function routes($stateProvider) {
       isAuthorized: [
         'PermissionService',
         function (PermissionService) {
-          const configPromise = PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+          const configPromise = PermissionService.isAuthorized(['ADD_APPLICATION'], false);
           const automationPromise = PermissionService.isAutomationFeatureEnabled();
           return Promise.all([configPromise, automationPromise]).then((data) => {
             return data[0] && data[1];

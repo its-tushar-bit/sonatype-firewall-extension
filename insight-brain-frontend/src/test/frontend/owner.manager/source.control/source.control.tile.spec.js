@@ -7,6 +7,8 @@ import sourceControlModule from 'MainRoot/owner.manager/source.control/module';
 import utilityModule from 'MainRoot/utility/utility.module';
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 
 describe('source.control.tile', function () {
   const ROOT_ORGANIZATION_ID = 'rootOrganizationId';
@@ -19,8 +21,6 @@ describe('source.control.tile', function () {
     $q,
     $componentController,
     mockCLMContextLocations,
-    mockOrganizationStore,
-    mockApplicationStore,
     getByIdDeferred,
     vm,
     mockSourceControlService,
@@ -48,8 +48,6 @@ describe('source.control.tile', function () {
       'isApplication',
       'isRootOrg',
     ]);
-    mockOrganizationStore = jasmine.createSpyObj('mockOrganizationStore', ['getById']);
-    mockApplicationStore = jasmine.createSpyObj('mockApplicationsStore', ['getById']);
     mockSourceControlService = jasmine.createSpyObj('mockSourceControlService', [
       'getCompositeSourceControlRecord',
       'getProviderTypesMap',
@@ -62,6 +60,8 @@ describe('source.control.tile', function () {
       github: 'GitHub',
     });
     spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
+    spyOn(organizationsActions, 'loadOrganizations').and.returnValue(getByIdDeferred.promise);
+    spyOn(applicationActions, 'loadApplications').and.returnValue(getByIdDeferred.promise);
   }));
 
   describe('load root organization', function () {
@@ -70,9 +70,6 @@ describe('source.control.tile', function () {
       mockCLMContextLocations.isRootOrg.and.returnValue(true);
       mockCLMContextLocations.isApplication.and.returnValue(false);
       mockCLMContextLocations.getEntityId.and.returnValue(ROOT_ORGANIZATION_ID);
-      mockOrganizationStore.getById.and.callFake(function (id) {
-        return id === ROOT_ORGANIZATION_ID ? getByIdDeferred.promise : null;
-      });
       mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
         return ownerType === 'organization' && id === ROOT_ORGANIZATION_ID ? getSourceControlDeferred.promise : null;
       });
@@ -80,8 +77,6 @@ describe('source.control.tile', function () {
       vm = $componentController('sourceControlTile', {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
-        OrganizationStore: mockOrganizationStore,
-        ApplicationStore: mockApplicationStore,
         SourceControlService: mockSourceControlService,
       });
       vm.isSourceControlSupported = true;
@@ -97,14 +92,11 @@ describe('source.control.tile', function () {
     });
 
     it('loads the root org owner name and reports on success', function () {
-      getByIdDeferred.resolve({
-        name: 'rootOrganizationName',
-        id: ROOT_ORGANIZATION_ID,
-      });
+      getByIdDeferred.resolve({ payload: [{ name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID }] });
       $scope.$digest();
 
       expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-      expect(mockOrganizationStore.getById).toHaveBeenCalledWith(ROOT_ORGANIZATION_ID);
+      expect(vm.loadOrganizations).toHaveBeenCalled();
       expect(vm.error).toBeUndefined();
     });
 
@@ -117,10 +109,7 @@ describe('source.control.tile', function () {
     });
 
     it('sets the error message on failure for the root organization source control', function () {
-      getByIdDeferred.resolve({
-        name: 'rootOrganizationName',
-        id: ROOT_ORGANIZATION_ID,
-      });
+      getByIdDeferred.resolve({ payload: [{ name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID }] });
       getSourceControlDeferred.reject({ status: 400, data: 'bad request' });
 
       $scope.$digest();
@@ -129,10 +118,7 @@ describe('source.control.tile', function () {
     });
 
     it('sets the source control and does not report an error for the sub organization', function () {
-      getByIdDeferred.resolve({
-        name: 'rootOrganizationName',
-        id: ROOT_ORGANIZATION_ID,
-      });
+      getByIdDeferred.resolve({ payload: [{ name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID }] });
       getSourceControlDeferred.resolve({ provider: { value: 'github' }, token: { value: 'TOKEN' } });
 
       $scope.$digest();
@@ -142,10 +128,7 @@ describe('source.control.tile', function () {
     });
 
     it('reloads on broadcasted owner summary reload event', function () {
-      getByIdDeferred.resolve({
-        name: 'rootOrganizationName',
-        id: ROOT_ORGANIZATION_ID,
-      });
+      getByIdDeferred.resolve({ payload: [{ name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID }] });
 
       $scope.$digest();
 
@@ -153,10 +136,7 @@ describe('source.control.tile', function () {
 
       $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
-      getByIdDeferred.resolve({
-        name: 'organizationNameUpdated',
-        id: ROOT_ORGANIZATION_ID,
-      });
+      getByIdDeferred.resolve({ payload: [{ name: 'organizationNameUpdated', id: ROOT_ORGANIZATION_ID }] });
 
       $scope.$digest();
 
@@ -164,10 +144,7 @@ describe('source.control.tile', function () {
     });
 
     it('loads the source control and provides the correct text if provider is not defined', function () {
-      getByIdDeferred.resolve({
-        name: 'rootOrganizationName',
-        id: ROOT_ORGANIZATION_ID,
-      });
+      getByIdDeferred.resolve({ payload: [{ name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID }] });
       getSourceControlDeferred.resolve({ provider: { value: null, parentValue: null }, token: {} });
 
       $scope.$digest();
@@ -179,10 +156,7 @@ describe('source.control.tile', function () {
     });
 
     it('loads the source control and provides the correct text if provider is defined', function () {
-      getByIdDeferred.resolve({
-        name: 'rootOrganizationName',
-        id: ROOT_ORGANIZATION_ID,
-      });
+      getByIdDeferred.resolve({ payload: [{ name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID }] });
       getSourceControlDeferred.resolve({ provider: { value: 'github' }, token: {} });
 
       $scope.$digest();
@@ -195,10 +169,7 @@ describe('source.control.tile', function () {
 
     describe('vm.loading', function () {
       it('is set to false when all calls success', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORGANIZATION_ID,
-        });
+        getByIdDeferred.resolve({ payload: [{ name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID }] });
         getSourceControlDeferred.resolve({ provider: { value: 'github' }, token: {} });
 
         $scope.$digest();
@@ -214,10 +185,7 @@ describe('source.control.tile', function () {
       });
 
       it('is set to false when composite source control cannot be retrieved', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORGANIZATION_ID,
-        });
+        getByIdDeferred.resolve({ payload: [{ name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID }] });
         getSourceControlDeferred.reject({ status: 400, data: 'bad request' });
 
         $scope.$digest();
@@ -232,20 +200,14 @@ describe('source.control.tile', function () {
       });
 
       it('is set to true while waiting for product features', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORGANIZATION_ID,
-        });
+        getByIdDeferred.resolve({ payload: [{ name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID }] });
         $scope.$digest();
         expect(vm.error).toEqual(undefined);
         expect(vm.loading).toBeTruthy();
       });
 
       it('is set to true while waiting for composite source control', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORGANIZATION_ID,
-        });
+        getByIdDeferred.resolve({ payload: [{ name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID }] });
         $scope.$digest();
         expect(vm.error).toEqual(undefined);
         expect(vm.loading).toBeTruthy();
@@ -259,9 +221,6 @@ describe('source.control.tile', function () {
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(false);
       mockCLMContextLocations.getEntityId.and.returnValue(SUB_ORGANIZATION_ID);
-      mockOrganizationStore.getById.and.callFake(function (id) {
-        return id === SUB_ORGANIZATION_ID ? getByIdDeferred.promise : null;
-      });
       mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
         return ownerType === 'organization' && id === SUB_ORGANIZATION_ID ? getSourceControlDeferred.promise : null;
       });
@@ -269,8 +228,6 @@ describe('source.control.tile', function () {
       vm = $componentController('sourceControlTile', {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
-        OrganizationStore: mockOrganizationStore,
-        ApplicationStore: mockApplicationStore,
         SourceControlService: mockSourceControlService,
       });
       vm.isSourceControlSupported = true;
@@ -286,23 +243,17 @@ describe('source.control.tile', function () {
     });
 
     it('loads the owner name of the sub organization and reports on success', function () {
-      getByIdDeferred.resolve({
-        name: 'subOrganizationName',
-        id: SUB_ORGANIZATION_ID,
-      });
+      getByIdDeferred.resolve({ payload: [{ name: 'subOrganizationName', id: SUB_ORGANIZATION_ID }] });
 
       $scope.$digest();
 
       expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-      expect(mockOrganizationStore.getById).toHaveBeenCalledWith(SUB_ORGANIZATION_ID);
+      expect(vm.loadOrganizations).toHaveBeenCalled();
       expect(vm.error).toBeUndefined();
     });
 
     it('loads the source control and provides the correct text if provider is not defined', function () {
-      getByIdDeferred.resolve({
-        name: 'subOrganizationName',
-        id: SUB_ORGANIZATION_ID,
-      });
+      getByIdDeferred.resolve({ payload: [{ name: 'subOrganizationName', id: SUB_ORGANIZATION_ID }] });
       getSourceControlDeferred.resolve({ provider: { value: null, parentValue: null }, token: {} });
 
       $scope.$digest();
@@ -314,10 +265,7 @@ describe('source.control.tile', function () {
     });
 
     it('loads source control and provides correct text if provider is defined and nothing to inherit', function () {
-      getByIdDeferred.resolve({
-        name: 'subOrganizationName',
-        id: SUB_ORGANIZATION_ID,
-      });
+      getByIdDeferred.resolve({ payload: [{ name: 'subOrganizationName', id: SUB_ORGANIZATION_ID }] });
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: null, parentValue: null },
@@ -332,10 +280,7 @@ describe('source.control.tile', function () {
     });
 
     it('loads source control and provides correct text if provider is defined and inherited value', function () {
-      getByIdDeferred.resolve({
-        name: 'subOrganizationName',
-        id: SUB_ORGANIZATION_ID,
-      });
+      getByIdDeferred.resolve({ payload: [{ name: 'subOrganizationName', id: SUB_ORGANIZATION_ID }] });
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: 'Root Organization', parentValue: 'token' },
@@ -350,10 +295,7 @@ describe('source.control.tile', function () {
     });
 
     it('loads source control and provides correct text if provider is defined and token specified', function () {
-      getByIdDeferred.resolve({
-        name: 'subOrganizationName',
-        id: SUB_ORGANIZATION_ID,
-      });
+      getByIdDeferred.resolve({ payload: [{ name: 'subOrganizationName', id: SUB_ORGANIZATION_ID }] });
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: 'token', parentName: 'Root Organization', parentValue: 'token' },
@@ -375,9 +317,6 @@ describe('source.control.tile', function () {
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(true);
       mockCLMContextLocations.getEntityId.and.returnValue(APPLICATION_ID);
-      mockApplicationStore.getById.and.callFake(function (id) {
-        return id === APPLICATION_ID ? getByIdDeferred.promise : null;
-      });
       mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
         return ownerType === 'application' && id === APPLICATION_ID ? getSourceControlDeferred.promise : null;
       });
@@ -385,8 +324,6 @@ describe('source.control.tile', function () {
       vm = $componentController('sourceControlTile', {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
-        OrganizationStore: mockOrganizationStore,
-        ApplicationStore: mockApplicationStore,
         SourceControlService: mockSourceControlService,
       });
       vm.isSourceControlSupported = true;
@@ -402,17 +339,17 @@ describe('source.control.tile', function () {
     });
 
     it('loads the owner name of the application and reports on success', function () {
-      getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
+      getByIdDeferred.resolve({ payload: [{ name: 'applicationName', publicId: APPLICATION_ID, id: APPLICATION_ID }] });
 
       $scope.$digest();
 
       expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-      expect(mockApplicationStore.getById).toHaveBeenCalledWith(APPLICATION_ID);
+      expect(vm.loadApplications).toHaveBeenCalled();
       expect(vm.error).toBeUndefined();
     });
 
     it('loads the source control and provides the correct subtext if provider is not defined', function () {
-      getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
+      getByIdDeferred.resolve({ payload: [{ name: 'applicationName', publicId: APPLICATION_ID, id: APPLICATION_ID }] });
       getSourceControlDeferred.resolve({
         provider: { value: null, parentValue: null },
         token: { value: null, parentValue: null },
@@ -427,7 +364,7 @@ describe('source.control.tile', function () {
     });
 
     it('loads source control and provides correct subtext if provider is defined and nothing to inherit', function () {
-      getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
+      getByIdDeferred.resolve({ payload: [{ name: 'applicationName', publicId: APPLICATION_ID, id: APPLICATION_ID }] });
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: null, parentValue: null },
@@ -442,7 +379,7 @@ describe('source.control.tile', function () {
     });
 
     it('loads source control and provides correct subtext if provider is defined and inherited value', function () {
-      getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
+      getByIdDeferred.resolve({ payload: [{ name: 'applicationName', publicId: APPLICATION_ID, id: APPLICATION_ID }] });
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: 'Root Organization', parentValue: 'token' },
@@ -457,7 +394,7 @@ describe('source.control.tile', function () {
     });
 
     it('loads source control and provides correct subtext if provider is defined and token specified', function () {
-      getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
+      getByIdDeferred.resolve({ payload: [{ name: 'applicationName', publicId: APPLICATION_ID, id: APPLICATION_ID }] });
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: 'token', parentName: 'Root Organization', parentValue: 'token' },
@@ -473,7 +410,7 @@ describe('source.control.tile', function () {
     });
 
     it('loads the source control and provides the correct text if provider is not defined', function () {
-      getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
+      getByIdDeferred.resolve({ payload: [{ name: 'applicationName', publicId: APPLICATION_ID, id: APPLICATION_ID }] });
       getSourceControlDeferred.resolve({ provider: null, token: {} });
 
       $scope.$digest();
@@ -485,7 +422,7 @@ describe('source.control.tile', function () {
     });
 
     it('loads source control and provides correct text if provider is defined and no url', function () {
-      getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
+      getByIdDeferred.resolve({ payload: [{ name: 'applicationName', publicId: APPLICATION_ID, id: APPLICATION_ID }] });
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: null, parentValue: null },
@@ -500,7 +437,7 @@ describe('source.control.tile', function () {
     });
 
     it('loads source control and provides correct text if provider is defined and has url', function () {
-      getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
+      getByIdDeferred.resolve({ payload: [{ name: 'applicationName', publicId: APPLICATION_ID, id: APPLICATION_ID }] });
       getSourceControlDeferred.resolve({
         provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: null, parentValue: null },

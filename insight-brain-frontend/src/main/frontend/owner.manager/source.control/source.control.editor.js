@@ -13,7 +13,7 @@ import {
 import template from './source.control.editor.view.html';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
-import { selectSelectedOwnerId, selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default {
   template: template,
@@ -166,18 +166,16 @@ function SourceControlEditorController(
 
       $q.all(promises)
         .then(function (results) {
-          const isOwnerIdSet = vm.ownerId;
+          unwrapResult(results[1]);
+          const siblings = unwrapResult(results[0]);
+          const entityId = CLMContextLocations.getEntityId();
+          const owner = find(propEq(vm.isApp ? 'publicId' : 'id', entityId))(siblings);
 
-          if (!isOwnerIdSet) {
-            const siblings = unwrapResult(results[0]);
-            const entityId = CLMContextLocations.getEntityId();
-            const owner = find(propEq(vm.isApp ? 'publicId' : 'id', entityId))(siblings);
-
-            if (!owner) {
-              throw `Could not find an ${vm.ownerType} with ID ${entityId}.`;
-            }
-            vm.ownerId = owner.id;
+          if (!owner) {
+            throw `Could not find an ${vm.ownerType} with ID ${entityId}.`;
           }
+
+          vm.ownerId = owner.id;
 
           if (vm.isSourceControlSupported) {
             return getSourceControl();
@@ -624,7 +622,6 @@ const mapStateToThis = (state) => ({
   isAutomationSupported: selectIsSourceControlSupported(state),
   isSourceControlSupported: selectIsSourceControlForSourceTileSupported(state),
   ownerName: selectSelectedOwnerName(state),
-  ownerId: selectSelectedOwnerId(state),
 });
 
 SourceControlEditorController.$inject = [

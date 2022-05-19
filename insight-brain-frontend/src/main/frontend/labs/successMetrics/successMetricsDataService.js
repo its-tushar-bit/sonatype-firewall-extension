@@ -110,4 +110,4 @@ export default function successMetricsDataService($q, $http, CLMLocations) {
   }
 }
 
-successMetricsDataService.$inject = ['$q', '$http', 'CLMLocations', 'ApplicationStore'];
+successMetricsDataService.$inject = ['$q', '$http', 'CLMLocations'];

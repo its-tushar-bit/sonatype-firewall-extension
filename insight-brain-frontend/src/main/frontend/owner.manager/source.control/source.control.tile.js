@@ -3,10 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { find, propEq } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { selectIsSourceControlForSourceTileSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 
 import template from './source.control.tile.html';
 import { valueFromHierarchy } from '../../configuration/scmOnboarding/utils/providers';
@@ -47,6 +50,8 @@ function SourceControlTileController(
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
+    loadApplications: applicationActions.loadApplications,
+    loadOrganizations: organizationsActions.loadOrganizations,
   })(vm);
 
   vm.doLoad();
@@ -66,10 +71,10 @@ function SourceControlTileController(
     let ownerPromise;
 
     if (vm.isApp) {
-      ownerPromise = ApplicationStore.getById(CLMContextLocations.getEntityId());
+      ownerPromise = vm.loadApplications();
       vm.ownerType = 'application';
     } else if (vm.isOrg) {
-      ownerPromise = OrganizationStore.getById(CLMContextLocations.getEntityId());
+      ownerPromise = vm.loadOrganizations();
       vm.ownerType = 'organization';
     }
 
@@ -78,10 +83,14 @@ function SourceControlTileController(
 
       $q.all(promises)
         .then(function (results) {
+          const siblings = unwrapResult(results[0]);
           unwrapResult(results[1]);
 
+          const entityId = CLMContextLocations.getEntityId();
+          const owner = find(propEq(vm.isApp ? 'publicId' : 'id', entityId))(siblings);
+
           if (vm.isSourceControlSupported) {
-            return getSourceControl(results[0].id);
+            return getSourceControl(owner.id);
           }
         })
         .catch(function (e) {

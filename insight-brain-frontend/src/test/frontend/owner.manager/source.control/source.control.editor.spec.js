@@ -316,6 +316,7 @@ describe('source.control.editor', function () {
       it('loads the root org owner name and reports on success', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID);
 
+        expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
         expect(vm.loadOrganizations).toHaveBeenCalled();
         expect(vm.ownerName).toBe(ROOT_ORG_NAME);
         expect(vm.loadError).toBeUndefined();
@@ -862,6 +863,7 @@ describe('source.control.editor', function () {
       mockCLMContextLocations.isOrganization.and.returnValue(true);
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(false);
+      mockCLMContextLocations.getEntityId.and.returnValue(SUB_ORG_ID);
       mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
 
@@ -914,6 +916,7 @@ describe('source.control.editor', function () {
 
       it('loads the owner name of the sub organization and reports on success', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID);
+        expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
         expect(vm.loadOrganizations).toHaveBeenCalled();
         expect(vm.ownerName).toBe(SUB_ORG_NAME);
         expect(vm.loadError).toBeUndefined();
@@ -1524,6 +1527,7 @@ describe('source.control.editor', function () {
       mockCLMContextLocations.isOrganization.and.returnValue(false);
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(true);
+      mockCLMContextLocations.getEntityId.and.returnValue(UNKNOWN_APP_ID);
 
       loadApplicationsSpy.and.returnValue({
         error: `Could not find an application with ID ${UNKNOWN_APP_ID}.`,
@@ -1640,6 +1644,7 @@ describe('source.control.editor', function () {
       mockCLMContextLocations.isOrganization.and.returnValue(false);
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(true);
+      mockCLMContextLocations.getEntityId.and.returnValue(APPLICATION_ID);
       mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {

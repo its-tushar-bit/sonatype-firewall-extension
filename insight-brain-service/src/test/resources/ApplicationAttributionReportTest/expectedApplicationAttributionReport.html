@@ -11,28 +11,28 @@
   </thead>
   <tbody>
   <tr>
-    <td><a href="#purl1">component 1</a></td>
-    <td> <span> <a href="#purl1-license-files">LicenseOne</a><span>, </span> </span><span> <a href="#purl1-license-files">LicenseTwo</a><span></span> </span> </td>
+    <td><a class="componentLinks" href="#purl1">component 1</a></td>
+    <td> <span> <a class="licenseLinks" href="#purl1-license-files">LicenseOne</a><span>, </span> </span><span> <a class="licenseLinks" href="#purl1-license-files">LicenseTwo</a><span></span> </span> </td>
     <td> </td>
   </tr>
   <tr>
-    <td><a href="#purl2">component 2</a></td>
-    <td> <span> <a href="#purl2">License Three</a><span></span> </span> </td>
+    <td><a class="componentLinks" href="#purl2">component 2</a></td>
+    <td> <span> <a class="licenseLinks" href="#purl2">License Three</a><span></span> </span> </td>
     <td> <span> <a rel="noreferrer" target="_blank" href="http://localhost">http://localhost</a> </span> </td>
   </tr>
   <tr>
-    <td><a href="#purl3">component 3</a></td>
-    <td> <span> <a href="#standard-LicenseOne">LicenseOne</a><span></span> </span> </td>
+    <td><a class="componentLinks" href="#purl3">component 3</a></td>
+    <td> <span> <a class="licenseLinks" href="#standard-LicenseOne">LicenseOne</a><span></span> </span> </td>
     <td><span> <a rel="noreferrer" target="_blank" href="http://test/more/than/56/characters/test/test/test/test/test/test/test/test">http://test/more/than/56/characters/test/test/test/test...</a> </span> </td>
   </tr>
   <tr>
-    <td><a href="#purl4">component 4</a></td>
-    <td> <span> <a href="#standard-LicenseOne">LicenseOne</a><span></span> </span> </td>
-    <td> <span><a rel="noreferrer" target="_blank" href="http://abc">http://abc, </a> <span> <a href="#original-sources-purl4">(2)</a> </span> </span> </td>
+    <td><a class="componentLinks" href="#purl4">component 4</a></td>
+    <td> <span> <a class="licenseLinks" href="#standard-LicenseOne">LicenseOne</a><span></span> </span> </td>
+    <td> <span><a rel="noreferrer" target="_blank" href="http://abc">http://abc, </a> <span> <a class="multipleSourceCodeLinks" href="#original-sources-purl4">(2)</a> </span> </span> </td>
   </tr>
   <tr>
-    <td><a href="#purl5">component 5</a></td>
-    <td> <span> <a href="#standard-LicenseOne">LicenseOne</a><span></span> </span> </td>
+    <td><a class="componentLinks" href="#purl5">component 5</a></td>
+    <td> <span> <a class="licenseLinks" href="#standard-LicenseOne">LicenseOne</a><span></span> </span> </td>
     <td> <span> <a rel="noreferrer" target="_blank" href="http://test/more/than/56/characters/test/test/test/test/test/test/test/test/2">http://test/more/than/56/characters/test/test/test/test...</a></span> </td>
   </tr>
   </tbody>
@@ -164,4 +164,23 @@
     </blockquote>
   </div>
 </div>
+<script>
+  const tableOfContentsLinks = document.querySelectorAll(".componentLinks, .licenseLinks, .multipleSourceCodeLinks");
+  const tableOfContentsLinksArray = Array.from(tableOfContentsLinks);
+
+  const formatToRelativeLink = (link) => {
+      if (link === "") {
+        return "";
+      }
+      return "#" + link.split("#")[1];
+    };
+
+  const replaceToRelativeLinks = (links) => {
+    links.forEach(link => {
+      link.setAttribute("href", formatToRelativeLink(link.getAttribute("href")));
+    });
+  }
+
+  replaceToRelativeLinks(tableOfContentsLinksArray);
+</script>  
 </body>

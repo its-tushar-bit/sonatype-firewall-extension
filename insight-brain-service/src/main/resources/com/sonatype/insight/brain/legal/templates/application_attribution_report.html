@@ -184,20 +184,21 @@
   <tbody>
   <tr     th:if="${applicationReport.components != null}"
           th:each="component : ${applicationReport.components}">
-    <td><a th:href="${'#' + component.packageUrl}" th:text="${component.displayName}">Link to component</a></td>
+    <td><a class="componentLinks" th:href="${'#' + component.packageUrl}" th:text="${component.displayName}">Link to component</a></td>
     <td>
         <span th:each="license,iterState : ${component.licenseLegalData.effectiveLicenses}">
-          <a
+          <a      class="licenseLinks"
                   th:href="${'#' + purlLicenseToLicenseLink.get(component.packageUrl+'-'+license)}"
                   th:text="${license}">License</a><span th:text="${!iterState.last? ', ' : ''}"></span>
         </span>
     </td>
     <td th:with="links=${enabledSourceLinks.get(component.packageUrl)}">
-      <span  th:if="${links !=null && links.length > 0}">
+      <span th:if="${links != null && links.length > 0}">
           <a rel="noreferrer" target="_blank" th:href="${links[0].content}"
              th:text="${formattedSourceLinks.get(component.packageUrl)}">Source Link</a>
           <span th:if="${links.length > 1}">
-            <a th:href="'#original-sources-' + ${component.packageUrl}" th:text="'(' + ${links.length} + ')'"></a>
+            <a class="multipleSourceCodeLinks" th:href="'#original-sources-' + ${component.packageUrl}" 
+               th:text="'(' + ${links.length} + ')'"></a>
           </span>
       </span>
     </td>
@@ -317,6 +318,24 @@
    id="footer"
    th:text="${reportParameters.footer}">Report Footer</p>
 
+  <script>
+    const tableOfContentsLinks = document.querySelectorAll(".componentLinks, .licenseLinks, .multipleSourceCodeLinks");
+    const tableOfContentsLinksArray = Array.from(tableOfContentsLinks);
 
+    const formatToRelativeLink = (link) => {
+        if (link === "") {
+          return "";
+        }
+        return "#" + link.split("#")[1];
+      };
+
+    const replaceToRelativeLinks = (links) => {
+      links.forEach(link => {
+        link.setAttribute("href", formatToRelativeLink(link.getAttribute("href")));
+      });
+    }
+
+    replaceToRelativeLinks(tableOfContentsLinksArray);
+  </script>
 </body>
 </html>

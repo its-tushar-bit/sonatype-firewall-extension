@@ -5,22 +5,31 @@
  */
 package com.sonatype.insight.brain.search.query;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
+import java.io.Writer;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
@@ -47,6 +56,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.model.HasStringId;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -65,7 +76,19 @@ import org.apache.lucene.search.TotalHits.Relation;
 import org.apache.lucene.store.Directory;
 import org.codehaus.plexus.util.StringUtils;
 
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getManagementPath;
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getItemManagementPathEdit;
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getReportUrl;
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getVulnerabilityDetailsUrl;
+import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.*;
 import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.*;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.APPLICATION;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.APPLICATION_CATEGORY;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.COMPONENT_LABEL;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.NON_VULNERABLE_COMPONENT;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.ORGANIZATION;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.POLICY;
+import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.SECURITY_VULNERABILITY;
 
 /**
  * @since 1.88
@@ -84,7 +107,7 @@ public class SearchService
   private final PermissionService permissionService;
 
   private final CurrentUser currentUser;
-  
+
   private final OwnerDAO ownerDAO;
 
   private final InsightConfig insightConfig;
@@ -109,6 +132,17 @@ public class SearchService
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page, boolean allComponents)
       throws IOException
   {
+    return searchIndex(searchQuery, pageSize, page, allComponents, false);
+  }
+
+  public SearchResultDTO searchIndex(
+      String searchQuery,
+      int pageSize,
+      int page,
+      boolean allComponents,
+      boolean isExportable)
+      throws IOException
+  {
     boolean initialSearch = false;
     if (page == 0) {
       // when actually paging through the results, a positive page index is used
@@ -117,13 +151,19 @@ public class SearchService
       initialSearch = true;
     }
 
-    AuditData.get() //
-        .setData("searchQuery", searchQuery) //
-        .setData("searchPageSize", pageSize) //
-        .setData("searchPageIndex", page - 1);
-
     try (Directory directory = openSearchIndex(); //
-        IndexReader indexReader = DirectoryReader.open(directory)) {
+         IndexReader indexReader = DirectoryReader.open(directory)) {
+
+      if (isExportable) {
+        //Get all results
+        pageSize = Math.max(1, indexReader.maxDoc());
+      }
+
+      AuditData.get() //
+          .setData("searchQuery", searchQuery) //
+          .setData("searchPageSize", pageSize) //
+          .setData("searchPageIndex", page - 1);
+
       SearchResultDTO searchResultDTO = new SearchResultDTO();
       searchResultDTO.searchQuery = searchQuery;
       searchResultDTO.page = page;
@@ -132,7 +172,7 @@ public class SearchService
       IndexSearcher indexSearcher = new IndexSearcher(indexReader);
 
       searchQuery = allComponents ? searchQuery :
-          searchQuery + " -" + ITEM_TYPE.label + ":" + ItemType.NON_VULNERABLE_COMPONENT.name();
+          searchQuery + " -" + ITEM_TYPE.label + ":" + NON_VULNERABLE_COMPONENT.name();
       Query query = createQuery(searchQuery);
 
       Set<String> fieldNames = getFieldNames(query);
@@ -207,6 +247,26 @@ public class SearchService
       searchResultDTO.isExactTotalNumberOfHits = topDocs.totalHits.relation == Relation.EQUAL_TO;
       AuditData.get().setData("resultRecordCount", resultIndex - startIndex - 1);
       return searchResultDTO;
+    }
+  }
+
+  public Response exportSearch(String searchQuery, boolean allComponents) {
+    try {
+      List<SearchResultItemDTO> searchResultItemsDTO =
+          searchIndex(searchQuery, 0, 0, allComponents, true)
+              .groupingByDTOS.stream()
+              .flatMap(g -> g.searchResultItemDTOS.stream())
+              .collect(Collectors.toList());
+
+      ResponseBuilder responseBuilder = Response.ok(createAdvancedSearchCSV(searchResultItemsDTO))
+          .type("application/csv; charset=UTF-8")
+          .encoding("UTF-8")
+          .header("Content-Disposition",
+              "attachment; filename=\"" + URLEncoder.encode(EXPORT_FILE_NAME, "UTF-8") + "\"");
+      return responseBuilder.build();
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException("The response with CSV file could not be sent", e);
     }
   }
 
@@ -388,5 +448,110 @@ public class SearchService
       }
     }
     return childContextIds;
+  }
+
+  private StreamingOutput createAdvancedSearchCSV(List<SearchResultItemDTO> searchResultItemsDTOS) {
+    CSVFormat csvFormat = CSVFormat.Builder.create()
+        .setHeader(EXPORT_SEARCH_HEADERS)
+        .setDelimiter(insightConfig.getAdvancedSearchCSVExportDelimiter())
+        .build();
+
+    String baseUrl = Objects.toString(insightConfig.getBaseUrl(), "");
+
+    return os -> {
+      try (Writer writer = new BufferedWriter(new OutputStreamWriter(os));
+           CSVPrinter printer = new CSVPrinter(writer, csvFormat)) {
+        for (SearchResultItemDTO searchResultItemDTO : searchResultItemsDTOS) {
+          printer.printRecord(getAdvancedSearchCVSRowFromSearchResultItem(searchResultItemDTO, baseUrl));
+        }
+        printer.flush();
+        writer.flush();
+      }
+    };
+  }
+
+  private List<String> getAdvancedSearchCVSRowFromSearchResultItem(
+      SearchResultItemDTO searchResultItemDTO,
+      String baseUrl)
+  {
+    List<String> row = new ArrayList<>(Collections.nCopies(15, ""));
+
+    switch (ItemType.valueOf(searchResultItemDTO.itemType)) {
+      case ORGANIZATION:
+        row.set(0, ORGANIZATION.name());
+        row.set(1, searchResultItemDTO.organizationName);
+        row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
+        break;
+      case APPLICATION:
+        row.set(0, APPLICATION.name());
+        row.set(1, searchResultItemDTO.organizationName);
+        row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
+        row.set(3, searchResultItemDTO.applicationName);
+        row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
+        break;
+      case APPLICATION_CATEGORY:
+        row.set(0, APPLICATION_CATEGORY.name());
+        row.set(1, searchResultItemDTO.organizationName);
+        row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
+        row.set(5, searchResultItemDTO.applicationCategoryName);
+        row.set(6, baseUrl + getItemManagementPathEdit(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId,
+            APPLICATION_CATEGORY_PATH_VARIABLE, searchResultItemDTO.applicationCategoryId));
+        break;
+      case COMPONENT_LABEL:
+        row.set(0, COMPONENT_LABEL.name());
+        row.set(7, searchResultItemDTO.componentLabelName);
+        if (!Objects.isNull(searchResultItemDTO.organizationId)) {
+          row.set(1, searchResultItemDTO.organizationName);
+          row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
+          row.set(8, baseUrl + getItemManagementPathEdit(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId,
+              LABEL_PATH_VARIABLE, searchResultItemDTO.componentLabelId));
+        }
+        else {
+          row.set(3, searchResultItemDTO.applicationName);
+          row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
+          row.set(8,
+              baseUrl + getItemManagementPathEdit(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId,
+                  LABEL_PATH_VARIABLE, searchResultItemDTO.componentLabelId));
+        }
+        break;
+      case POLICY:
+        row.set(0, POLICY.name());
+        row.set(9, searchResultItemDTO.policyName);
+        row.set(10, String.valueOf(searchResultItemDTO.policyThreatLevel));
+        if (!Objects.isNull(searchResultItemDTO.organizationId)) {
+          row.set(1, searchResultItemDTO.organizationName);
+          row.set(2, baseUrl + getManagementPath(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId));
+          row.set(11,
+              baseUrl + getItemManagementPathEdit(ORGANIZATION_PATH_VARIABLE, searchResultItemDTO.organizationId,
+                  POLICY_PATH_VARIABLE, searchResultItemDTO.policyId));
+        }
+        else {
+          row.set(3, searchResultItemDTO.applicationName);
+          row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
+          row.set(11, baseUrl +
+              getItemManagementPathEdit(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId,
+                  POLICY_PATH_VARIABLE, searchResultItemDTO.policyId));
+        }
+        break;
+      case SECURITY_VULNERABILITY:
+        row.set(0, SECURITY_VULNERABILITY.name());
+        row.set(3, searchResultItemDTO.applicationName);
+        row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
+        row.set(12, searchResultItemDTO.componentName);
+        row.set(13, baseUrl + getReportUrl(searchResultItemDTO.applicationPublicId, searchResultItemDTO.reportId));
+        row.set(14, baseUrl + getVulnerabilityDetailsUrl(searchResultItemDTO.vulnerabilityId));
+        break;
+      case NON_VULNERABLE_COMPONENT:
+        row.set(0, NON_VULNERABLE_COMPONENT.name());
+        row.set(3, searchResultItemDTO.applicationName);
+        row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
+        row.set(12, searchResultItemDTO.componentName);
+        row.set(13, baseUrl + getReportUrl(searchResultItemDTO.applicationPublicId, searchResultItemDTO.reportId));
+        break;
+      default:
+        Collections.fill(row, "");
+        break;
+    }
+    return row;
   }
 }

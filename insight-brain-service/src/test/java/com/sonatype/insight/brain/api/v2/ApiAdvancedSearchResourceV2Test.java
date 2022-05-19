@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -28,6 +29,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.EXPORT_SEARCH_HEADERS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -99,6 +101,18 @@ public class ApiAdvancedSearchResourceV2Test
         restRequest().anon().query("query", FieldIdentifier.APPLICATION_ID.label + ":" + "i-am-anon").get();
 
     assertResponseStatus(401, response);
+  }
+
+  @Test
+  public void testGetExportResults() throws Exception {
+    restRequest().path(DefaultApiAdvancedSearchResourceV2.INDEX_PATH).post();
+    awaitIndexCompletion();
+
+    HttpResponse response = restRequest().path(DefaultApiAdvancedSearchResourceV2.EXPORT_CSV_REPORT_PATH).get();
+    assertResponseStatus(200, response);
+    String[] csvExportSearchHeaders =
+        Arrays.stream(response.getBodyText().split(",")).map(String::trim).toArray(String[]::new);
+    assertThat(csvExportSearchHeaders).isEqualTo(EXPORT_SEARCH_HEADERS);
   }
 
   @Override

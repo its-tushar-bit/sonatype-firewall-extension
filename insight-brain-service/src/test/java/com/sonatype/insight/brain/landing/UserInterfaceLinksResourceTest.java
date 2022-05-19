@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 
@@ -60,6 +59,34 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
+  public void testLinkToManagementEdit_Category() throws Exception {
+    HttpResponse response =
+        get(UserInterfaceLinksHelper.ITEM_MANAGEMENT_EDIT_PATH, "organization", "test id", "category", "category id");
+    assertRedirect(response, "assets/index.html#/management/edit/organization/test%20id/category/category%20id");
+    response =
+        get(UserInterfaceLinksHelper.ITEM_MANAGEMENT_EDIT_PATH, "application", "test id", "category", "category id");
+    assertRedirect(response, "assets/index.html#/management/edit/application/test%20id/category/category%20id");
+  }
+
+  @Test
+  public void testLinkToManagementEdit_Label() throws Exception {
+    HttpResponse response =
+        get(UserInterfaceLinksHelper.ITEM_MANAGEMENT_EDIT_PATH, "organization", "test id", "label", "label id");
+    assertRedirect(response, "assets/index.html#/management/edit/organization/test%20id/label/label%20id");
+    response = get(UserInterfaceLinksHelper.ITEM_MANAGEMENT_EDIT_PATH, "application", "test id", "label", "label id");
+    assertRedirect(response, "assets/index.html#/management/edit/application/test%20id/label/label%20id");
+  }
+
+  @Test
+  public void testLinkToManagementEdit_Policy() throws Exception {
+    HttpResponse response =
+        get(UserInterfaceLinksHelper.ITEM_MANAGEMENT_EDIT_PATH, "organization", "test id", "policy", "policy id");
+    assertRedirect(response, "assets/index.html#/management/edit/organization/test%20id/policy/policy%20id");
+    response = get(UserInterfaceLinksHelper.ITEM_MANAGEMENT_EDIT_PATH, "application", "test id", "policy", "policy id");
+    assertRedirect(response, "assets/index.html#/management/edit/application/test%20id/policy/policy%20id");
+  }
+
+  @Test
   public void testLinkToReport() throws Exception {
     assertThat(UserInterfaceLinksHelper.getReportUrl("app id", "scan id"))
         .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/application/app%20id/report/scan%20id");
@@ -101,7 +128,7 @@ public class UserInterfaceLinksResourceTest
     HttpRequest request = restRequest()
         .path(UserInterfaceLinksHelper.RESOURCE_PATH, UserInterfaceLinksHelper.REPORT_PATH)
         .parameter(appPublicId, "scan id").query("source=Foo");
-    
+
     if (anonymous) {
       request.anon();
     }
@@ -111,7 +138,7 @@ public class UserInterfaceLinksResourceTest
       HttpCookie sessionCookie = restRequest().path(UserSessionResource.RESOURCE_PATH).post().getSessionCookie();
       request.cookie(sessionCookie);
     }
-    
+
     HttpResponse redirect = request.get();
     assertRedirect(redirect, "assets/index.html?source=Foo#/applicationReport/" + appPublicId + "/scan%20id/policy");
 

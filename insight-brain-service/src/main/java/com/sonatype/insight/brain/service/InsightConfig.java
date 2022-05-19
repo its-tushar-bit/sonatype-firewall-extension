@@ -369,6 +369,14 @@ public class InsightConfig
   @JsonProperty
   private int maxAdvancedSearchClauseCount = 2048;
 
+  /**
+   * Default delimiter for Advanced Search CSV export file
+   *
+   * @since 1.137
+   */
+  @JsonProperty
+  private String advancedSearchCSVExportDelimiter = ",";
+
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -1099,5 +1107,13 @@ public class InsightConfig
 
   public void setMaxAdvancedSearchClauseCount(int maxAdvancedSearchClauseCount) {
     this.maxAdvancedSearchClauseCount = maxAdvancedSearchClauseCount;
+  }
+
+  public String getAdvancedSearchCSVExportDelimiter() {
+    return advancedSearchCSVExportDelimiter;
+  }
+
+  public void setAdvancedSearchCSVExportDelimiter(String advancedSearchCSVExportDelimiter) {
+    this.advancedSearchCSVExportDelimiter = advancedSearchCSVExportDelimiter;
   }
 }

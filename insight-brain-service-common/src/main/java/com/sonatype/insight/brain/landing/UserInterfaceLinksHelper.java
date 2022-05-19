@@ -13,6 +13,9 @@ public class UserInterfaceLinksHelper
 
   public static final String MANAGEMENT_PATH = "{ownerType: application|organization}/{ownerId}/management";
 
+  public static final String ITEM_MANAGEMENT_EDIT_PATH =
+      "{ownerType: application|organization}/{ownerId}/{itemType: category|label|policy}/{itemId}/management/edit";
+
   public static final String LATEST_REPORT_PATH = "application/{applicationPublicId}/latestReport/{stageId}";
 
   public static final String REPORT_PATH = "application/{applicationPublicId}/report/{scanId}";
@@ -82,5 +85,24 @@ public class UserInterfaceLinksHelper
    */
   public static String getQuarantinedComponentReportPath(String token) {
     return buildStableUrl(QUARANTINED_COMPONENT_REPORT_PATH, token);
+  }
+
+  /**
+   * Gets the relative URL to the stable hyperlink for the management path given owner type and owner id
+   *
+   * @since 1.138
+   */
+  public static String getManagementPath(String ownerType, String ownerId) {
+    return buildStableUrl(MANAGEMENT_PATH, ownerType, ownerId);
+  }
+
+  /**
+   * Gets the relative URL to the stable hyperlink for the management edit path given owner type, owner id, item type
+   * and item id
+   *
+   * @since 1.138
+   */
+  public static String getItemManagementPathEdit(String ownerType, String ownerId, String itemType, String itemId) {
+    return buildStableUrl(ITEM_MANAGEMENT_EDIT_PATH, ownerType, ownerId, itemType, itemId);
   }
 }

@@ -5,21 +5,34 @@
  */
 package com.sonatype.insight.brain.search.query;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
+import javax.ws.rs.core.StreamingOutput;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.report.ReportTestUtils;
+import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.index.IndexService;
+import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
+import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -30,13 +43,18 @@ import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.inject.Binder;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES;
 import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES_BY_FIELD_NAME;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 
 public class SearchServiceTest
     extends AbstractComponentTest
@@ -55,6 +73,16 @@ public class SearchServiceTest
 
   @Inject
   private InsightConfig insightConfig;
+
+  @Mock
+  private VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
+
+  @Override
+  public void configure(Binder binder) {
+    lenient().when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(anyString())).thenReturn("");
+    binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
+    super.configure(binder);
+  }
 
   @Test
   public void testSearchIndex_NoSearchIndexDirectory() {
@@ -354,5 +382,82 @@ public class SearchServiceTest
     finally {
       insightConfig.setMaxAdvancedSearchClauseCount(maxAdvancedSearchClauseCount);
     }
+  }
+
+  @Test
+  public void testSearchIndex_ExportAdvancedSearch() throws Exception {
+
+    Role role = tempEntity.newRole(false, Permission.READ);
+
+    Organization org1 = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplication(org1.getId());
+    Policy policyOrg1 = tempEntity.newPolicy(org1);
+    Tag tag = tempEntity.newTag(org1.getId(), "Free Apps", "Free apps for customers", Color.light_blue);
+    Label label = tempEntity.newLabel(org1.getId(), "My new label");
+    tempEntity.newComponentLabel(org1.getId(), label.getId());
+
+    newAppReport(app1.getId(), Stage.ID_RELEASE, "report-id",
+        "/IndexSearchingTest/nonVulnerableComponents");
+
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+
+    tempEntity.newMembershipMapping(org1.getId(), role.getId(), userPrincipal.getUsername());
+
+    lenient().when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(anyString())).thenReturn("");
+
+    indexService.createSearchIndex();
+
+    SearchResultDTO searchResultDTO = searchService.searchIndex("itemType:*", 100, 0, true, true);
+
+    List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
+        .flatMap(groupingByDTO -> groupingByDTO.searchResultItemDTOS.stream())
+        .collect(toList());
+    assertThat(results.stream().map(e -> e.itemType).collect(toList()))
+        .containsExactlyInAnyOrderElementsOf(Arrays.stream(ItemType.values()).map(Enum::name).collect(toList()));
+
+    StreamingOutput stream = (StreamingOutput) searchService.exportSearch("itemType:*", true).getEntity();
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    stream.write(baos);
+    List<String> export = Arrays.stream(baos.toString().split("\n")).collect(Collectors.toList());
+
+    assertThat(export).hasSize(8);
+    assertThat(export.size() - 1).isEqualTo(results.size());
+    assertThat(export.get(0).split(",")).hasSize(15);
+
+    Map<String, List<List<String>>> items = export.stream().skip(1)
+        .map(s -> Arrays.stream(s.split(",")).collect(toList()))
+        .collect(groupingBy(l -> l.get(0)));
+
+    assertThat(items.get(ItemType.ORGANIZATION.name()).get(0).get(1)).isEqualTo(org1.getName());
+    assertThat(items.get(ItemType.APPLICATION.name()).get(0).get(3)).isEqualTo(app1.getName());
+    assertThat(items.get(ItemType.APPLICATION_CATEGORY.name()).get(0).get(5)).isEqualTo(tag.getName());
+    assertThat(items.get(ItemType.COMPONENT_LABEL.name()).get(0).get(7)).isEqualTo(label.getLabel());
+    assertThat(items.get(ItemType.POLICY.name()).get(0).get(9)).isEqualTo(policyOrg1.getName());
+
+    List<SearchResultItemDTO> components = results.stream()
+        .filter(sri -> sri.itemType.equals(ItemType.SECURITY_VULNERABILITY.name()) ||
+            sri.itemType.equals(ItemType.NON_VULNERABLE_COMPONENT.name()))
+        .collect(toList());
+
+    assertThat(items.get(ItemType.SECURITY_VULNERABILITY.name()).get(0).get(12)).isEqualTo(
+        components.get(0).componentName);
+    assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(12)).isEqualTo(
+        components.get(1).componentName);
+
+    insightConfig.setAdvancedSearchCSVExportDelimiter(";");
+    stream = (StreamingOutput) searchService.exportSearch("itemType:*", true).getEntity();
+    baos = new ByteArrayOutputStream();
+    stream.write(baos);
+    export = Arrays.stream(baos.toString().split("\n")).collect(Collectors.toList());
+    assertThat(export.get(0).split(";")).hasSize(15);
+  }
+
+  private PolicyEvaluation newAppReport(String appId, String stageId, String reportId, String reportResourceName)
+      throws Exception
+  {
+    PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(appId, stageId, reportId);
+    ReportTestUtils.createReportFile(policyEval.getApplicationId(), policyEval.getScanId(),
+        ReportTestUtils.zipReportDir(reportResourceName, tempDir), insightWork);
+    return policyEval;
   }
 }

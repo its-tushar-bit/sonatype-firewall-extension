@@ -15,6 +15,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -40,6 +41,8 @@ public class DefaultApiAdvancedSearchResourceV2
 
   static final String INDEX_PATH = "index";
 
+  static final String EXPORT_CSV_REPORT_PATH = "export/csv";
+
   @Inject
   public DefaultApiAdvancedSearchResourceV2(SearchService searchService, IndexService indexService) {
     this.searchService = searchService;
@@ -64,5 +67,15 @@ public class DefaultApiAdvancedSearchResourceV2
   @Path(INDEX_PATH)
   public void createSearchIndexAsync() {
     indexService.createSearchIndexAsync();
+  }
+
+  @GET
+  @Path(EXPORT_CSV_REPORT_PATH)
+  @Produces("application/csv")
+  public Response getExportResults(
+      @QueryParam("query") String searchQuery,
+      @DefaultValue("false") @QueryParam("allComponents") boolean allComponents)
+  {
+    return searchService.exportSearch(searchQuery, allComponents);
   }
 }

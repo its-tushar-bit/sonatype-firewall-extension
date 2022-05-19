@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.landing;
 
 import java.net.URI;
 import java.util.Locale;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
@@ -45,7 +44,7 @@ import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.*;
  * issue a redirect to the actual HTML page. The URLs to the REST resources are supposed to be more stable than the
  * direct URLs to the relevant HTML pages, thereby decoupling external clients from the specifics of the UI structure,
  * easing its evolution.
- * 
+ *
  * @since 1.7
  */
 @Named
@@ -95,6 +94,21 @@ public class UserInterfaceLinksResource
   }
 
   @GET
+  @Path(ITEM_MANAGEMENT_EDIT_PATH)
+  public Response linkToItemManagementEdit(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("itemType") String itemType,
+      @PathParam("itemId") String itemId)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html")
+        .fragment("/management/edit/{ownerType: application|organization}/" +
+            "{ownerId}/{itemType: category|label|policy}/{itemId}");
+    return redirect(uriBuilder, ownerType, ownerId, itemType, itemId);
+  }
+
+  @GET
   @Path(LATEST_REPORT_PATH)
   public Response linkToLatestReport(
       @PathParam("applicationPublicId") String applicationPublicId,
@@ -110,9 +124,10 @@ public class UserInterfaceLinksResource
 
   @GET
   @Path(REPORT_PATH)
-  public Response linkToReport(@PathParam("applicationPublicId") String applicationPublicId,
-                               @PathParam("scanId") String scanId,
-                               @QueryParam("source") String source)
+  public Response linkToReport(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("scanId") String scanId,
+      @QueryParam("source") String source)
   {
     Application application = applicationDAO.getByPublicId(applicationPublicId);
     sendSourceTelemetryData(application != null ? application.getId() : applicationPublicId, scanId, source);
@@ -124,8 +139,9 @@ public class UserInterfaceLinksResource
    */
   @GET
   @Path(EMBEDDABLE_REPORT_PATH)
-  public Response linkToEmbeddableReport(@PathParam("applicationPublicId") String applicationPublicId,
-                                         @PathParam("scanId") String scanId)
+  public Response linkToEmbeddableReport(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("scanId") String scanId)
   {
     return linkToReport(applicationPublicId, scanId, true);
   }
@@ -144,8 +160,9 @@ public class UserInterfaceLinksResource
    */
   @GET
   @Path(PDF_PATH)
-  public Response linkToPdf(@PathParam("applicationPublicId") String applicationPublicId,
-                            @PathParam("scanId") String scanId)
+  public Response linkToPdf(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("scanId") String scanId)
   {
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(ReportResource.RESOURCE_PATH).path(ReportResource.PRINT_PATH);

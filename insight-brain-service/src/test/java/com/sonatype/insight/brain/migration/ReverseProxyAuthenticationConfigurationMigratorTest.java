@@ -9,6 +9,7 @@ import java.net.URI;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ReverseProxyAuthenticationConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
@@ -19,12 +20,15 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.LogOutput;
 
+import com.google.inject.Binder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 public class ReverseProxyAuthenticationConfigurationMigratorTest
     extends AbstractComponentTest
@@ -41,8 +45,18 @@ public class ReverseProxyAuthenticationConfigurationMigratorTest
   @Inject
   private ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
 
+  @Mock
+  private ReverseProxyAuthenticationConfigurationListener mockReverseProxyAuthenticationConfigurationListener;
+
   @Inject
   private ReverseProxyAuthenticationConfigurationMigrator reverseProxyAuthenticationConfigurationMigrator;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(ReverseProxyAuthenticationConfigurationListener.class)
+        .toInstance(mockReverseProxyAuthenticationConfigurationListener);
+    super.configure(binder);
+  }
 
   @Before
   @After
@@ -78,6 +92,7 @@ public class ReverseProxyAuthenticationConfigurationMigratorTest
         ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER);
     assertThat(reverseProxyAuthenticationConfiguration.isCsrfProtectionDisabled()).isFalse();
     assertThat(reverseProxyAuthenticationConfiguration.getLogoutUrl()).isNull();
+    verify(mockReverseProxyAuthenticationConfigurationListener).reverseProxyAuthenticationConfigurationChanged();
     assertThat(logOutput).doesNotContain(ReverseProxyAuthenticationConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
   }
 
@@ -142,6 +157,7 @@ public class ReverseProxyAuthenticationConfigurationMigratorTest
     assertThat(reverseProxyAuthenticationConfiguration.getLogoutUrl()).isEqualTo(
         reverseProxyAuthenticationConfig.getLogoutUrl() == null ? null : reverseProxyAuthenticationConfig.getLogoutUrl()
             .toString());
+    verify(mockReverseProxyAuthenticationConfigurationListener).reverseProxyAuthenticationConfigurationChanged();
     assertThat(logOutput).atWarnLevel()
         .contains(ReverseProxyAuthenticationConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
   }

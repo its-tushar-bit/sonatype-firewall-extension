@@ -6,10 +6,12 @@
 package com.sonatype.insight.brain.migration;
 
 import java.net.URI;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.v2.service.ReverseProxyAuthenticationConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
@@ -41,15 +43,19 @@ public class ReverseProxyAuthenticationConfigurationMigrator
 
   private final InsightConfig insightConfig;
 
+  private final List<ReverseProxyAuthenticationConfigurationListener> reverseProxyAuthenticationConfigurationListeners;
+
   @Inject
   public ReverseProxyAuthenticationConfigurationMigrator(
       MigrationTrackerDAO migrationTrackerDAO,
       ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
-      InsightConfig insightConfig)
+      InsightConfig insightConfig,
+      List<ReverseProxyAuthenticationConfigurationListener> reverseProxyAuthenticationConfigurationListeners)
   {
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
     this.insightConfig = insightConfig;
+    this.reverseProxyAuthenticationConfigurationListeners = reverseProxyAuthenticationConfigurationListeners;
   }
 
   void migrate() {
@@ -87,6 +93,8 @@ public class ReverseProxyAuthenticationConfigurationMigrator
     }
 
     log.info("Migrated reverse proxy authentication configuration to the database.");
+    reverseProxyAuthenticationConfigurationListeners.forEach(
+        ReverseProxyAuthenticationConfigurationListener::reverseProxyAuthenticationConfigurationChanged);
   }
 
   /**

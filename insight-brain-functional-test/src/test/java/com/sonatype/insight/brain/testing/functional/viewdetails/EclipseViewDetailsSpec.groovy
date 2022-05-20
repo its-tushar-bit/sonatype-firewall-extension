@@ -123,6 +123,7 @@ class EclipseViewDetailsSpec
 
       row.threatLevel == Math.floor(mockSecurityVulnerability.severity)
       row.problemCode.text() == mockSecurityVulnerability.refId
+      row.problemCode.attr('href').endsWith('/vulnerabilities/' + mockSecurityVulnerability.refId)
       row.status == mockSecurityVulnerability.status ?: 'Open'
       row.summary == mockSecurityVulnerability.summary
   }

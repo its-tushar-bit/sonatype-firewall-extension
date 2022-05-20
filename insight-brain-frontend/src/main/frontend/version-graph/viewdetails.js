@@ -286,10 +286,17 @@ module.controller('view', [
     $scope.getSvUrl = function (item) {
       if (item.url) {
         return item.url;
-      } else if (item.source === 'osvdb') {
-        return 'http://osvdb.org/' + item.refId;
-      } else if (item.source === 'cve') {
-        return 'http://cve.mitre.org/cgi-bin/cvename.cgi?name=' + item.refId;
+      }
+      if (clmEndpoint.type === 'rm') {
+        if (item.source === 'osvdb') {
+          return 'http://osvdb.org/' + item.refId;
+        }
+        if (item.source === 'cve') {
+          return 'http://cve.mitre.org/cgi-bin/cvename.cgi?name=' + item.refId;
+        }
+      } else {
+        // clmEndpoint.type === 'ide'
+        return '../../../index.html#/vulnerabilities/' + item.refId;
       }
     };
     $scope.getSvName = function (issue) {

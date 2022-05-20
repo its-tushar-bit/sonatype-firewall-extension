@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -17,9 +16,11 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -33,6 +34,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ProjectScanItem;
+import com.sonatype.insight.util.SbomUtils;
 
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
@@ -56,11 +58,10 @@ import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.ExtensibleType;
 import org.cyclonedx.model.Extension;
-import org.cyclonedx.model.Hash;
-import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
+import org.cyclonedx.model.Property;
 import org.cyclonedx.model.vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
@@ -95,6 +96,8 @@ public class SbomResultHandler
   private final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO = new ThirdPartyCoordinateSecurityDAO();
 
   private final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO = new ThirdPartyCoordinateLicenseDAO();
+
+  private final LicenseDAO licenseDAO = new LicenseDAO();
 
   @Override
   public FilteredThirdPartyContent handleAndFilterContents(
@@ -284,7 +287,7 @@ public class SbomResultHandler
     }
     else {
       // This scenario is only possible when only the hash is sent without coordinates nor purl
-      String sha1 = getSha1(sourceComponent);
+      String sha1 = SbomUtils.getSha1(sourceComponent);
       if (StringUtils.isNotBlank(sha1)) {
         Component component = new Component();
         component.setType(sourceComponent.getType());
@@ -319,18 +322,6 @@ public class SbomResultHandler
     return packageURLBuilder.build().toString();
   }
 
-  private String getSha1(Component component) {
-    List<Hash> hashes = component.getHashes();
-    if (hashes != null) {
-      return hashes.stream()
-          .filter(h -> Algorithm.SHA1.getSpec().equals(h.getAlgorithm()))
-          .findFirst()
-          .map(Hash::getValue)
-          .orElse(null);
-    }
-    return null;
-  }
-
   private Pair<ComponentIdentifier, Component> createComponent(
       final Component sourceComponent,
       final PackageUrlIdentifier packageUrlIdentifier,
@@ -341,7 +332,7 @@ public class SbomResultHandler
     component.setType(sourceComponent.getType());
     component.setBomRef(sourceComponent.getBomRef());
 
-    String sha1 = getSha1(sourceComponent);
+    String sha1 = SbomUtils.getSha1(sourceComponent);
     boolean hasHash = StringUtils.isNotBlank(sha1);
     if (hasHash) {
       setHash(sha1, component);
@@ -362,8 +353,10 @@ public class SbomResultHandler
   }
 
   private void setHash(final String sha1, final Component component) {
-    component.setHashes(
-        Collections.singletonList(new Hash(Algorithm.SHA1, StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH))));
+    Property property = new Property();
+    property.setName(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
+    property.setValue(StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH));
+    component.addProperty(property);
   }
 
   private PackageUrlIdentifier resolvePackageUrl(String packageUrlIdentifier) {
@@ -600,8 +593,13 @@ public class SbomResultHandler
       }
       else {
         for (License license : licenseChoice.getLicenses()) {
-          if (StringUtils.isNotBlank(license.getId())) {
-            saveLicense(license, fileCoordinateId, tx);
+          com.sonatype.insight.brain.model.license.License sonatypeLicense = getSonatypeLicense(license);
+          if (sonatypeLicense != null) {
+            saveLicense(sonatypeLicense.getId(), sonatypeLicense.getShortDisplayName(), license.getUrl(),
+                fileCoordinateId, tx);
+          }
+          else if (StringUtils.isNotBlank(license.getId())) {
+            saveLicense(license.getId(), license.getName(), license.getUrl(), fileCoordinateId, tx);
           }
           else {
             log.debug("Component with packageUrl {} has license with null/empty ID", packageUrl);
@@ -611,13 +609,29 @@ public class SbomResultHandler
     }
   }
 
-  private void saveLicense(License license, String fileCoordinateId, TransactionContext tx) {
+  private com.sonatype.insight.brain.model.license.License getSonatypeLicense(License license) {
+    if (StringUtils.isNotBlank(license.getId())) {
+      return licenseDAO.getById(license.getId());
+    }
+    if (StringUtils.isNotBlank(license.getName())) {
+      return licenseDAO.getByName(license.getName());
+    }
+    return null;
+  }
+
+  private void saveLicense(
+      String licenseId,
+      String licenseName,
+      String licenseUrl,
+      String fileCoordinateId,
+      TransactionContext tx)
+  {
     ThirdPartyCoordinateLicense coordinateLicense = new ThirdPartyCoordinateLicense();
     coordinateLicense.setFileCoordinateId(fileCoordinateId);
 
-    coordinateLicense.setLicenseId(license.getId());
-    coordinateLicense.setName(license.getName());
-    coordinateLicense.setUrl(license.getUrl());
+    coordinateLicense.setLicenseId(licenseId);
+    coordinateLicense.setName(licenseName);
+    coordinateLicense.setUrl(licenseUrl);
     thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
   }
 
@@ -872,7 +886,7 @@ public class SbomResultHandler
   String generateFilteredSbom(Bom sbom)
       throws ParserConfigurationException, GeneratorException
   {
-    BomXmlGenerator generator = BomGeneratorFactory.createXml(Version.VERSION_13, sbom);
+    BomXmlGenerator generator = BomGeneratorFactory.createXml(Version.VERSION_14, sbom);
     generator.generate();
     return generator.toXmlString();
   }

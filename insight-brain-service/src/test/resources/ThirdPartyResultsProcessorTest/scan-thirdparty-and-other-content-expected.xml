@@ -40,16 +40,16 @@ bcrypt==3.1.7</content>
 </item>
 <item contentType="SBOM" lastModified="1571789481391" path="test-bom.xml" sha1="c963081e41394dfafc76">
 <content><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.3">
+<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.4">
   <components>
     <component type="library">
       <group>org.apache.tomcat</group>
       <name>tomcat-catalina</name>
       <version>9.0.14</version>
-      <hashes>
-        <hash alg="SHA-1">e6b1000b94e835ffd37f</hash>
-      </hashes>
       <purl>pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar</purl>
+      <properties>
+        <property name="Sonatype truncated SHA1">e6b1000b94e835ffd37f</property>
+      </properties>
     </component>
     <component type="library">
       <name>abc</name>

@@ -26,7 +26,7 @@
   </configuration>
   <item contentType="SBOM" lastModified="1571788783929" sha1="80d8ce5924b4b67314bf" path="scan-multiformat-bom.xml">
     <content><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.3">
+<bom version="1" xmlns="http://cyclonedx.org/schema/bom/1.4">
   <metadata>
     <timestamp>2021-12-03T12:18:22Z</timestamp>
     <component type="application" bom-ref="acme-app">

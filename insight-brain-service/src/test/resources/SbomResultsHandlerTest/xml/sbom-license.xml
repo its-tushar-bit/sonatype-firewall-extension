@@ -8,8 +8,11 @@
       <licenses>
         <license>
           <id>Apache-2.0</id>
-          <text>name</text>
-          <url>url</url>
+          <url>url1</url>
+        </license>
+        <license>
+          <name>Acoustic-License-Non-Warranted-Programs</name>
+          <url>url2</url>
         </license>
       </licenses>
       <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</purl>

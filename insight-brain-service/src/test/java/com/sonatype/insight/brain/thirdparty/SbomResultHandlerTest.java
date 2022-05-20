@@ -17,9 +17,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -32,6 +34,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.insight.util.SbomUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
@@ -42,10 +45,9 @@ import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.ExtensibleType;
 import org.cyclonedx.model.Extension;
 import org.cyclonedx.model.Extension.ExtensionType;
-import org.cyclonedx.model.Hash;
-import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.Metadata;
+import org.cyclonedx.model.Property;
 import org.cyclonedx.model.vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
@@ -78,6 +80,9 @@ public class SbomResultHandlerTest
 
   @Inject
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
+
+  @Inject
+  private LicenseDAO licenseDAO;
 
   @Spy
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
@@ -142,14 +147,14 @@ public class SbomResultHandlerTest
     assertThat(components).extracting(Component::getPurl)
         .containsExactlyInAnyOrder("pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar", null,
             "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9", null);
-    assertThat(components).extracting("hashes.size")
+    assertThat(components).extracting("properties.size")
         .containsOnly(null, 1, null, 1);
-    assertThat(components.get(1).getHashes())
-        .flatExtracting(Hash::getValue, Hash::getAlgorithm)
-        .contains("e6b1000b94e835ffd37f", "SHA-1");
-    assertThat(components.get(3).getHashes())
-        .flatExtracting(Hash::getValue, Hash::getAlgorithm)
-        .contains("9188560f22e0b73070d2", "SHA-1");
+    assertThat(components.get(1).getProperties())
+        .flatExtracting(Property::getValue)
+        .contains("e6b1000b94e835ffd37f");
+    assertThat(components.get(3).getProperties())
+        .flatExtracting(Property::getValue)
+        .contains("9188560f22e0b73070d2");
   }
 
   @Test
@@ -170,11 +175,11 @@ public class SbomResultHandlerTest
         .containsOnly("library", "library");
     assertThat(components).extracting(Component::getPurl)
         .containsOnly(null, "pkg:library/com.fasterxml.jackson.core/jackson-databind@2.9.9");
-    assertThat(components).extracting("hashes.size")
+    assertThat(components).extracting("properties.size")
         .containsOnly(1, null);
-    assertThat(components.get(0).getHashes())
-        .flatExtracting(Hash::getValue, Hash::getAlgorithm)
-        .contains("e6b1000b94e835ffd37f", "SHA-1");
+    assertThat(components.get(0).getProperties())
+        .flatExtracting(Property::getValue)
+        .contains("e6b1000b94e835ffd37f");
   }
 
   @Test
@@ -285,9 +290,13 @@ public class SbomResultHandlerTest
       assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
       List<ThirdPartyCoordinateLicense> coordinatesLicense =
           thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
-      assertThat(coordinatesLicense).hasSize(1);
-      assertThirdPartyCoordinateLicense(unfilteredSbom.getComponents().get(0), thirdPartyFileCoordinate.getId(),
+      assertThat(coordinatesLicense).hasSize(2);
+      assertThirdPartyCoordinateLicense(unfilteredSbom.getComponents().get(0).getLicenseChoice().getLicenses().get(0),
+          thirdPartyFileCoordinate.getId(),
           coordinatesLicense.get(0));
+      assertThirdPartyCoordinateLicense(unfilteredSbom.getComponents().get(0).getLicenseChoice().getLicenses().get(1),
+          thirdPartyFileCoordinate.getId(),
+          coordinatesLicense.get(1));
     }
   }
   
@@ -1161,7 +1170,7 @@ public class SbomResultHandlerTest
       assertThat(component.getCopyright()).isNull();
       assertThat(component.getEvidence()).isNull();
       assertThat(component.getPedigree()).isNull();
-      assertThat(component.getProperties()).isNull();
+      assertThat(component.getHashes()).isNull();
       assertThat(component.getExternalReferences()).isNull();
       assertThat(component.getSwid()).isNull();
       assertThat(component.getExtensibleTypes()).isNull();
@@ -1265,9 +1274,9 @@ public class SbomResultHandlerTest
 
     // check filtered content (will be sent to HDS) has only coordinates, hash or purl
     Bom filteredSbom = getBom(filteredContent);
-    assertFilteredSbomFile(filteredContent, 2);
+    assertFilteredSbomFile(filteredContent, 3);
     List<Component> components = filteredSbom.getComponents();
-    assertThat(components).hasSize(2)
+    assertThat(components).hasSize(3)
         .allSatisfy(component -> {
           assertThat(component.getExtensions()).isNull();
           assertThat(component.getLicenseChoice()).isNull();
@@ -1277,16 +1286,26 @@ public class SbomResultHandlerTest
         });
     Component component1 = components.get(0);
     Component component2 = components.get(1);
+    Component component3 = components.get(2);
     assertThat(component1.getName()).isEqualTo("jackson-databind");
     assertThat(component2.getName()).isEqualTo("tomcat-catalina");
+    assertThat(component3.getName()).isEqualTo("sample-library");
     assertThat(component1.getVersion()).isEqualTo("2.9.9");
     assertThat(component2.getVersion()).isEqualTo("9.0.14");
+    assertThat(component3.getVersion()).isEqualTo("1.0.0");
     assertThat(component1.getPurl()).isEqualTo("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
     assertThat(component2.getPurl()).isNull();
-    assertThat(component2.getHashes()).hasSize(1);
-    assertThat(component2.getHashes().get(0).getAlgorithm()).isEqualTo(Algorithm.SHA1.getSpec());
-    assertThat(component2.getHashes().get(0).getValue()).isEqualTo("e6b1000b94e835ffd37f");
-
+    assertThat(component3.getPurl()).isNull();
+    assertThat(component1.getHashes()).isNull();
+    assertThat(component2.getHashes()).isNull();
+    assertThat(component3.getHashes()).isNull();
+    assertThat(component1.getProperties()).isNull();
+    assertThat(component2.getProperties()).hasSize(1);
+    assertThat(component2.getProperties().get(0).getName()).isEqualTo(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
+    assertThat(component2.getProperties().get(0).getValue()).isEqualTo("e6b1000b94e835ffd37f");
+    assertThat(component3.getProperties()).hasSize(1);
+    assertThat(component3.getProperties().get(0).getName()).isEqualTo(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
+    assertThat(component3.getProperties().get(0).getValue()).isEqualTo("716e4909ac2db42da409");
   }
 
   @Test
@@ -1513,13 +1532,25 @@ public class SbomResultHandlerTest
   }
 
   private void assertThirdPartyCoordinateLicense(
-      Component component,
+      License licenseSbom,
       String coordinateId,
       ThirdPartyCoordinateLicense coordinateLicense)
   {
-    License licenseSbom = component.getLicenseChoice().getLicenses().get(0);
-    assertThat(coordinateLicense.getLicenseId()).isEqualTo(licenseSbom.getId());
-    assertThat(coordinateLicense.getName()).isEqualTo(licenseSbom.getName());
+    com.sonatype.insight.brain.model.license.License sonatypeLicense = null;
+    if (StringUtils.isNotEmpty(licenseSbom.getId())) {
+      sonatypeLicense = licenseDAO.getById(licenseSbom.getId());
+    }
+    else if (StringUtils.isNotEmpty(licenseSbom.getName())) {
+      sonatypeLicense = licenseDAO.getByName(licenseSbom.getName());
+    }
+    if (sonatypeLicense != null) {
+      assertThat(coordinateLicense.getLicenseId()).isEqualTo(sonatypeLicense.getId());
+      assertThat(coordinateLicense.getName()).isEqualTo(sonatypeLicense.getShortDisplayName());
+    }
+    else {
+      assertThat(coordinateLicense.getLicenseId()).isEqualTo(licenseSbom.getId());
+      assertThat(coordinateLicense.getName()).isEqualTo(licenseSbom.getName());
+    }
     assertThat(coordinateLicense.getUrl()).isEqualTo(licenseSbom.getUrl());
     assertThat(coordinateLicense.getFileCoordinateId()).isEqualTo(coordinateId);
   }

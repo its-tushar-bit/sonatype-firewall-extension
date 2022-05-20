@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -43,9 +44,11 @@ import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.util.SbomUtils;
 
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
+import org.apache.shiro.util.CollectionUtils;
 import org.cyclonedx.BomGeneratorFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.exception.GeneratorException;
@@ -55,11 +58,11 @@ import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
 import org.cyclonedx.model.ExternalReference;
-import org.cyclonedx.model.Hash;
-import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
+import org.cyclonedx.model.Property;
+import org.cyclonedx.util.LicenseResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -149,8 +152,9 @@ public class ApiCycloneDxServiceV2
       }
       bom.addExternalReference(createExternalReference(url, "IQ Report", ExternalReference.Type.BOM));
 
-      createBomComponents(data.components.stream().filter(c -> !MatchState.UNKNOWN.getId().equals(c.matchState))
-          .collect(Collectors.toList())).forEach(bom::addComponent);
+      createBomComponents(version,
+          data.components.stream().filter(c -> !MatchState.UNKNOWN.getId().equals(c.matchState))
+              .collect(Collectors.toList())).forEach(bom::addComponent);
 
       if (MediaType.APPLICATION_JSON.equals(acceptType)) {
         BomJsonGenerator generator = BomGeneratorFactory.createJson(version, bom);
@@ -178,7 +182,7 @@ public class ApiCycloneDxServiceV2
     return scanId;
   }
 
-  private static List<Component> createBomComponents(List<ApiReportComponentDTOV2> reportComponents) {
+  private static List<Component> createBomComponents(Version version, List<ApiReportComponentDTOV2> reportComponents) {
     Map<String, ApiReportComponentDTOV2> pathToComponent = new HashMap<>();
 
     reportComponents.stream()
@@ -189,7 +193,7 @@ public class ApiCycloneDxServiceV2
 
     Map<ApiReportComponentDTOV2, Component> converted = new HashMap<>();
 
-    reportComponents.stream().forEach(component -> converted.put(component, createComponent(component)));
+    reportComponents.stream().forEach(component -> converted.put(component, createComponent(version, component)));
 
     childToParents.forEach((child, parents) -> {
       parents.stream().filter(p -> p != null).forEach(parent -> {
@@ -242,15 +246,25 @@ public class ApiCycloneDxServiceV2
   }
 
   private static Set<License> convert(ApiLicenseDTO apiLicense) {
-    return new MultiLicenseDAO().getLicensesByMultiLicenseIdNotNull(apiLicense.licenseId).stream().map(l -> {
-      License license = new License();
-      license.setId(l.getId());
-      license.setName(l.getShortDisplayName());
-      return license;
-    }).collect(Collectors.toSet());
+    return new MultiLicenseDAO().getLicensesByMultiLicenseIdNotNull(apiLicense.licenseId).stream()
+        .map(l -> createLicense(l.getId(), l.getShortDisplayName())).collect(Collectors.toSet());
   }
 
-  private static Component createComponent(ApiReportComponentDTOV2 reportComponent) {
+  private static License createLicense(String id, String name) {
+    License license = new License();
+    LicenseChoice licenseChoice = LicenseResolver.resolve(id);
+    if (licenseChoice == null || CollectionUtils.isEmpty(licenseChoice.getLicenses()) ||
+        licenseChoice.getLicenses().get(0) == null) {
+      // The given id cannot be resolved to an SPDX license, so instead we have to use the name
+      license.setName(name);
+    }
+    else {
+      license.setId(id);
+    }
+    return license;
+  }
+
+  private static Component createComponent(Version version, ApiReportComponentDTOV2 reportComponent) {
     Component bomComponent = new Component();
 
     bomComponent.setType(Type.LIBRARY);
@@ -285,8 +299,12 @@ public class ApiCycloneDxServiceV2
       bomComponent.getLicenseChoice().setLicenses(new ArrayList<>(licenses));
     }
     bomComponent.setModified(MatchState.SIMILAR.getId().equals(reportComponent.matchState));
-    if (reportComponent.hash != null) {
-      bomComponent.addHash(new Hash(Algorithm.SHA1, reportComponent.hash));
+    if (version.compareTo(Version.VERSION_12) > 0 && reportComponent.hash != null) {
+      // Properties are only supported for xml/json schema version 1.3+
+      Property property = new Property();
+      property.setName(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
+      property.setValue(reportComponent.hash);
+      bomComponent.addProperty(property);
     }
 
     return bomComponent;

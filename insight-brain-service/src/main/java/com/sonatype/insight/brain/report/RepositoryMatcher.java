@@ -19,6 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -109,8 +110,6 @@ public class RepositoryMatcher
 
   public static final String FIELD_WEBSITE = "website";
 
-  public static final String FIELD_DEPENDENCY_DATA_INCLUDED = "dependencyDataIncluded";
-
   public static final String FIELD_IDENTIFICATION_SOURCE = "identificationSource";
 
   public static final String FIELD_COMPONENT_CATEGORIES = "componentCategories";
@@ -153,7 +152,7 @@ public class RepositoryMatcher
 
   public static final String FIELD_AA_DATA = "aaData";
 
-  private static final String UNSPECIFIED_LICENSE_NAME = "Not Provided";
+  public static final String NOT_SUPPORTED_LICENSE_NAME = "Not Supported";
 
   private final ArtifactoryConnectionDAO artifactoryConnectionDao;
 
@@ -234,43 +233,67 @@ public class RepositoryMatcher
     }
     Set<ComponentIdentifier> result = new HashSet<>();
     Predicate<String> isProprietary = ProprietaryConfigService.createIsProprietary(application.getId());
-    int unknown = 0;
-    int similar = 0;
+    AtomicInteger unknown = new AtomicInteger();
+    AtomicInteger similar = new AtomicInteger();
     for (Entry<ComponentIdentifier, ComponentEvaluationData> entry : evaluationByIdentifier.entrySet()) {
-      try {
-        ComponentIdentifier componentIdentifier = entry.getKey();
-        ComponentEvaluationData evaluation = entry.getValue();
-        ObjectNode bomNode = bomNodeByIdentifier.get(componentIdentifier);
-        String hash = bomNode.get(FIELD_HASH).asText();
-        boolean proprietary = componentIdentifier.getProprietaryCoordinates().stream().anyMatch(isProprietary);
-        result.add(componentIdentifier);
-        MatchState matchState = MatchState.getById(bomNode.get(FIELD_MATCH_STATE).asText());
-        if (MatchState.UNKNOWN.equals(matchState)) {
-          unknown++;
-        }
-        else if (MatchState.SIMILAR.equals(matchState)) {
-          similar++;
-        }
-        updateBomJson(bomJson, componentIdentifier, bomNode, proprietary, evaluation);
-        updateLicensesJson(licensesJson, componentIdentifier, hash, proprietary, evaluation);
-        updateSecurityJson(securityJson, componentIdentifier, hash, proprietary, evaluation);
+      updateComponentInformation(entry, bomNodeByIdentifier, isProprietary, result, bomJson, licensesJson, securityJson,
+          unknown, similar);
+    }
+    updateDataJson(dataJson, unknown.intValue(), similar.intValue());
+    updateSummaryJson(summaryJson, unknown.intValue(), similar.intValue());
+    return result;
+  }
+
+  private static void updateComponentInformation(
+      final Entry<ComponentIdentifier, ComponentEvaluationData> entry,
+      final Map<ComponentIdentifier, ObjectNode> bomNodeByIdentifier,
+      final Predicate<String> isProprietary,
+      final Set<ComponentIdentifier> result,
+      final ObjectNode bomJson,
+      final ObjectNode licensesJson,
+      final ObjectNode securityJson,
+      final AtomicInteger unknown,
+      final AtomicInteger similar)
+  {
+    try {
+      ComponentIdentifier componentIdentifier = entry.getKey();
+      ComponentEvaluationData evaluation = entry.getValue();
+      ObjectNode bomNode = bomNodeByIdentifier.get(componentIdentifier);
+      String hash = bomNode.get(FIELD_HASH).asText();
+      boolean proprietary = componentIdentifier.getProprietaryCoordinates().stream().anyMatch(isProprietary);
+      result.add(componentIdentifier);
+      MatchState matchState = MatchState.getById(bomNode.get(FIELD_MATCH_STATE).asText());
+      if (MatchState.UNKNOWN.equals(matchState)) {
+        unknown.getAndIncrement();
       }
-      catch (Exception e) {
-        log.error("Failed to update json files for component {}.", entry.getKey(), e);
+      else if (MatchState.SIMILAR.equals(matchState)) {
+        similar.getAndIncrement();
+      }
+
+      if (StringUtils.isNotBlank(evaluation.matchState)) {
+        boolean shouldIdentifyAsExternalRepository =
+            MatchState.UNKNOWN.equals(MatchState.getById(evaluation.matchState));
+        updateBomJson(bomJson, componentIdentifier, bomNode, proprietary, evaluation,
+            shouldIdentifyAsExternalRepository);
+        updateLicensesJson(licensesJson, componentIdentifier, hash, proprietary, evaluation,
+            shouldIdentifyAsExternalRepository);
+        updateSecurityJson(securityJson, componentIdentifier, hash, proprietary, evaluation,
+            shouldIdentifyAsExternalRepository);
       }
     }
-    updateDataJson(dataJson, unknown, similar);
-    updateSummaryJson(summaryJson, unknown, similar);
-    return result;
+    catch (Exception e) {
+      log.error("Failed to update json files for component {}.", entry.getKey(), e);
+    }
   }
 
   // Visible for testing
   static void updateBomJson(
-      ObjectNode bomJson,
-      ComponentIdentifier componentIdentifier,
-      ObjectNode bomNode,
-      boolean proprietary,
-      ComponentEvaluationData evaluation)
+      final ObjectNode bomJson,
+      final ComponentIdentifier componentIdentifier,
+      final ObjectNode bomNode,
+      final boolean proprietary,
+      final ComponentEvaluationData evaluation,
+      final boolean isExternalRepositoryIdentified)
   {
     ArrayNode bomNodes = (ArrayNode) bomJson.get(FIELD_AA_DATA);
     removeNodesByHash(bomNodes, bomNode.get(FIELD_HASH).asText());
@@ -282,20 +305,43 @@ public class RepositoryMatcher
     newBomNode.put(FIELD_MATCH_STATE, MatchState.EXACT.getId());
     newBomNode.set(FIELD_SCAN_ERROR, bomNode.get(FIELD_SCAN_ERROR));
     newBomNode.put(FIELD_PROPRIETARY, proprietary);
-    newBomNode.set(FIELD_HASH, bomNode.get(FIELD_HASH));
     newBomNode.set(FIELD_SHA256, bomNode.get(FIELD_SHA256));
-    newBomNode.put(FIELD_RELATIVE_POPULARITY, evaluation.relativePopularity);
-    newBomNode.put(FIELD_CREATE_TIME, evaluation.catalogDate);
-    newBomNode.set(FIELD_LAST_MODIFIED_TIME, bomNode.get(FIELD_LAST_MODIFIED_TIME));
-    newBomNode.set(FIELD_LAST_MODIFIED_ENTRY_TIME, bomNode.get(FIELD_LAST_MODIFIED_ENTRY_TIME));
-    newBomNode.set(FIELD_WEBSITE, bomNode.get(FIELD_WEBSITE));
-    newBomNode.put(FIELD_IDENTIFICATION_SOURCE, IdentificationSource.SONATYPE_EXTERNAL_REPO.getId());
-    newBomNode.set(FIELD_COMPONENT_CATEGORIES, convert(evaluation.componentCategories));
-    newBomNode.set(FIELD_HYGIENE_RATING, convert(evaluation.hygieneRating));
-    newBomNode.set(FIELD_ANALYZER_FEATURES, convert(createAnalyzerFeatures(componentIdentifier.getFormat(),
-        bomNode.path(FIELD_ANALYZER_FEATURES).path(FIELD_SCAN_CLIENT).asText(CLI_SCAN_CLIENT))));
-    newBomNode.set(FIELD_INTEGRITY_RATING, convert(evaluation.integrityRating));
-    setIfNotNull(newBomNode, FIELD_DEPENDENCY_DATA_INCLUDED, bomNode.get(FIELD_DEPENDENCY_DATA_INCLUDED));
+
+    if (isExternalRepositoryIdentified) {
+      newBomNode.put(FIELD_IDENTIFICATION_SOURCE, IdentificationSource.EXTERNAL_REPO.getId());
+      newBomNode.set(FIELD_RELATIVE_POPULARITY, NullNode.getInstance());
+      newBomNode.set(FIELD_CREATE_TIME, NullNode.getInstance());
+      newBomNode.set(FIELD_LAST_MODIFIED_TIME, NullNode.getInstance());
+      newBomNode.set(FIELD_LAST_MODIFIED_ENTRY_TIME, NullNode.getInstance());
+      newBomNode.set(FIELD_WEBSITE, NullNode.getInstance());
+      newBomNode.putArray(FIELD_COMPONENT_CATEGORIES);
+      newBomNode.set(FIELD_HYGIENE_RATING, NullNode.getInstance());
+      newBomNode.set(FIELD_INTEGRITY_RATING, NullNode.getInstance());
+      newBomNode.set(FIELD_HASH, bomNode.get(FIELD_HASH));
+
+      newBomNode.set(FIELD_ANALYZER_FEATURES, JsonUtils.asTree(new AnalyzerFeatures(AnalysisSource.THIRD_PARTY,
+          AnalysisType.COORDINATE,
+          bomNode.path(FIELD_ANALYZER_FEATURES).path(FIELD_SCAN_CLIENT).asText(CLI_SCAN_CLIENT), null)));
+    }
+    else {
+      newBomNode.put(FIELD_RELATIVE_POPULARITY, evaluation.relativePopularity);
+      newBomNode.put(FIELD_CREATE_TIME, evaluation.catalogDate);
+      newBomNode.set(FIELD_LAST_MODIFIED_TIME, bomNode.get(FIELD_LAST_MODIFIED_TIME));
+      newBomNode.set(FIELD_LAST_MODIFIED_ENTRY_TIME, bomNode.get(FIELD_LAST_MODIFIED_ENTRY_TIME));
+      newBomNode.set(FIELD_WEBSITE, bomNode.get(FIELD_WEBSITE));
+      newBomNode.put(FIELD_IDENTIFICATION_SOURCE, IdentificationSource.SONATYPE_EXTERNAL_REPO.getId());
+      if (CollectionUtils.isNotEmpty(evaluation.componentCategories)) {
+        newBomNode.set(FIELD_COMPONENT_CATEGORIES, convert(evaluation.componentCategories));
+      }
+      else {
+        newBomNode.putArray(FIELD_COMPONENT_CATEGORIES);
+      }
+      newBomNode.set(FIELD_HYGIENE_RATING, convert(evaluation.hygieneRating));
+      newBomNode.set(FIELD_INTEGRITY_RATING, convert(evaluation.integrityRating));
+      newBomNode.put(FIELD_HASH, evaluation.hash);
+      newBomNode.set(FIELD_ANALYZER_FEATURES, convert(createAnalyzerFeatures(componentIdentifier.getFormat(),
+          bomNode.path(FIELD_ANALYZER_FEATURES).path(FIELD_SCAN_CLIENT).asText(CLI_SCAN_CLIENT))));
+    }
   }
 
   // Visible for testing
@@ -316,34 +362,49 @@ public class RepositoryMatcher
 
   // Visible for testing
   static void updateLicensesJson(
-      ObjectNode licensesJson,
-      ComponentIdentifier componentIdentifier,
-      String hash,
-      boolean proprietary,
-      ComponentEvaluationData evaluation)
+      final ObjectNode licensesJson,
+      final ComponentIdentifier componentIdentifier,
+      final String hash,
+      final boolean proprietary,
+      final ComponentEvaluationData evaluation,
+      final boolean isExternalRepositoryIdentified)
   {
     ArrayNode licenseNodes = (ArrayNode) licensesJson.get(FIELD_AA_DATA);
     removeNodesByHash(licenseNodes, hash);
     ObjectNode licenseNode = licenseNodes.addObject();
-    licenseNode.put(FIELD_HASH, hash);
     updateComponentIdentifier(licenseNode, componentIdentifier);
-    Set<String> declaredLicenseIds = convert(evaluation.declaredLicenses);
+    Set<String> declaredLicenseIds = new HashSet<>();
+    Set<String> observedLicenseIds = new HashSet<>();
+
+    if (!isExternalRepositoryIdentified) {
+      licenseNode.put(FIELD_HASH, evaluation.hash);
+      licenseNode.put(FIELD_CATALOG_DATE, evaluation.catalogDate);
+      declaredLicenseIds = convert(evaluation.declaredLicenses);
+      observedLicenseIds = convert(evaluation.observedLicenses);
+    }
+    else {
+      licenseNode.put(FIELD_HASH, hash);
+      licenseNode.set(FIELD_CATALOG_DATE, NullNode.getInstance());
+    }
+
     if (declaredLicenseIds.isEmpty()) {
-      declaredLicenseIds.add(UNSPECIFIED_LICENSE_NAME);
+      declaredLicenseIds.add(NOT_SUPPORTED_LICENSE_NAME);
     }
-    licenseNode.set(FIELD_DECLARED_LICENSES, convert(declaredLicenseIds));
-    Set<String> observedLicenseIds = convert(evaluation.observedLicenses);
+
     if (observedLicenseIds.isEmpty()) {
-      observedLicenseIds.add(UNSPECIFIED_LICENSE_NAME);
+      observedLicenseIds.add(NOT_SUPPORTED_LICENSE_NAME);
     }
-    licenseNode.set(FIELD_OBSERVED_LICENSES, convert(observedLicenseIds));
+
     Set<String> effectiveLicenseIds =
         ComponentDetailsLoader.calculateEffectiveLicenses(declaredLicenseIds, observedLicenseIds);
     licenseNode.set(FIELD_EFFECTIVE_LICENSES, convert(effectiveLicenseIds));
+
+    licenseNode.set(FIELD_DECLARED_LICENSES, convert(declaredLicenseIds));
+    licenseNode.set(FIELD_OBSERVED_LICENSES, convert(observedLicenseIds));
+
     licenseNode.put(FIELD_MATCH_STATE, MatchState.EXACT.getId());
     licenseNode.put(FIELD_PROPRIETARY, proprietary);
     licenseNode.put(FIELD_MATCHED_BY_COORDINATES, true);
-    licenseNode.put(FIELD_CATALOG_DATE, evaluation.catalogDate);
   }
 
   private static Set<String> convert(Set<License> licenses) {
@@ -359,16 +420,17 @@ public class RepositoryMatcher
       ComponentIdentifier componentIdentifier,
       String hash,
       boolean proprietary,
-      ComponentEvaluationData evaluation)
+      ComponentEvaluationData evaluation,
+      boolean isExternalRepositoryIdentified)
   {
     ArrayNode securityNodes = (ArrayNode) securityJson.get(FIELD_AA_DATA);
     removeNodesByHash(securityNodes, hash);
-    if (evaluation.securityVulnerabilities == null) {
+    if (evaluation.securityVulnerabilities == null || isExternalRepositoryIdentified) {
       return;
     }
     for (SecurityVulnerability securityVulnerability : evaluation.securityVulnerabilities) {
       ObjectNode securityVulnerabilityNode = securityNodes.addObject();
-      securityVulnerabilityNode.put(FIELD_HASH, hash);
+      securityVulnerabilityNode.put(FIELD_HASH, evaluation.hash);
       updateComponentIdentifier(securityVulnerabilityNode, componentIdentifier);
       securityVulnerabilityNode.put(FIELD_URL, securityVulnerability.getUrl());
       securityVulnerabilityNode.put(FIELD_REFERENCE, securityVulnerability.getRefId());
@@ -619,12 +681,6 @@ public class RepositoryMatcher
       return NullNode.getInstance();
     }
     return JsonUtils.asTree(object);
-  }
-
-  private static void setIfNotNull(ObjectNode objectNode, String name, JsonNode value) {
-    if (value != null) {
-      objectNode.set(name, value);
-    }
   }
 
   private static void removeNodesByHash(ArrayNode arrayNode, String hash) {

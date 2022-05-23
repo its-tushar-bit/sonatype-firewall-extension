@@ -1613,6 +1613,25 @@ public class ComponentInfoServiceTest
     assertCategories(componentDetails);
   }
 
+  @Test
+  public void testGetComponentDetails_ReadPermission_ExternalRepo() throws Exception {
+    String scanId = "scanId";
+    String identificationSource = IdentificationSource.EXTERNAL_REPO.getId();
+    NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
+    hdsComponentDetails.setMatchState(MatchState.UNKNOWN.getId());
+
+    mockHdsGetComponentDetailsException(hdsComponentDetails);
+
+    ComponentDetails componentDetails = componentInfoService.getComponentDetails_ReadPermission(application.getType(),
+        applicationPublicId, MAVEN_A1_COORDINATES, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */,
+        httpRequestMock, identificationSource, scanId, null);
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
+    assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
+    assertThat(componentDetails.getIdentificationSource()).isEqualTo(identificationSource);
+    assertCategories(componentDetails);
+  }
+
   @Deprecated
   private void testGetComponentDetailsList_ReadPermission(final Owner owner, final String ownerId) throws Exception {
     ComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
@@ -2561,6 +2580,30 @@ public class ComponentInfoServiceTest
             DependencyType.DIRECT).getLeft();
 
     assertThat(result.getList()).containsExactly(componentDetails);
+  }
+
+  @Test
+  public void testGetComponentDetailsList_ExternalRepo() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    String scanId = "scanId";
+
+    mockHdsGetComponentDetailsList(new ComponentDetailsList(), componentIdentifier);
+
+    NamedComponentDetails details = new NamedComponentDetails();
+    details.setComponentIdentifier(componentIdentifier);
+    details.setMatchState(MatchState.EXACT.getId());
+    details.setIdentificationSource(IdentificationSource.EXTERNAL_REPO.getId());
+    details.setHash("b6341755d9028ef36c51");
+    Set<License> license = Collections.singleton(new License("UNSPECIFIED", "Not Provided"));
+    details.setDeclaredLicenses(license);
+    details.setObservedLicenses(license);
+    details.setSecurityVulnerabilities(Collections.emptyList());
+
+    ComponentDetailsList result = componentInfoService.getComponentDetailsList(componentIdentifier, app,
+        IdentificationSource.EXTERNAL_REPO.getId(), scanId, DependencyType.DIRECT).getLeft();
+
+    assertThat(result.getList().get(0)).usingRecursiveComparison().isEqualTo(details);
   }
 
   private void assertGetLicensesResults(final License license, final ComponentLicenses retrievedLicenses) {

@@ -277,8 +277,9 @@ public class ComponentInfoService
             }
             catch (NotFoundException e) {
               // Identifier is unknown to HDS, still want to provide minimal data for details view
-              if (isPackageManifestIdentificationSource(identificationSource)) {
-                componentDetails = createComponentDetails(hash, identifier, IdentificationSource.PACKAGE_MANIFEST);
+              if (isPackageManifestOrExternalRepoIdentificationSource(identificationSource)) {
+                componentDetails =
+                    createComponentDetails(hash, identifier, IdentificationSource.getById(identificationSource));
               }
               else {
                 componentDetails = createEmptyComponentDetails(hash, identifier);
@@ -663,7 +664,7 @@ public class ComponentInfoService
 
       if (CollectionUtils.isNotEmpty(componentDetailsList.getList()) && componentDetailsList.getList().size() == 1) {
         return isThirdPartyIdentificationSource(identificationSource) ||
-            isPackageManifestIdentificationSource(identificationSource);
+            isPackageManifestOrExternalRepoIdentificationSource(identificationSource);
       }
     }
     return false;
@@ -771,10 +772,11 @@ public class ComponentInfoService
       throw e;
     }
     if (CollectionUtils.isEmpty(componentDetailsList.getList()) &&
-        isPackageManifestIdentificationSource(identificationSource)) {
+        isPackageManifestOrExternalRepoIdentificationSource(identificationSource)) {
       componentDetailsList = new ComponentDetailsList();
-      componentDetailsList.setList(Collections.singletonList(
-          createComponentDetails(identifier, generateFakeHash(identifier), IdentificationSource.PACKAGE_MANIFEST)));
+      componentDetailsList.setList(Collections
+          .singletonList(createComponentDetails(identifier, generateFakeHash(identifier),
+              IdentificationSource.getById(identificationSource))));
     }
     //In case it's a third-party component, the data must be replaced with the local information
     updateThirdPartyInformation(identifier, identificationSource, componentDetailsList, owner, scanId);
@@ -1011,8 +1013,9 @@ public class ComponentInfoService
     return result;
   }
 
-  private static boolean isPackageManifestIdentificationSource(String identificationSource) {
-    return IdentificationSource.PACKAGE_MANIFEST.getId().equals(identificationSource);
+  private static boolean isPackageManifestOrExternalRepoIdentificationSource(String identificationSource) {
+    return IdentificationSource.PACKAGE_MANIFEST.getId().equals(identificationSource) ||
+        IdentificationSource.EXTERNAL_REPO.getId().equals(identificationSource);
   }
 
   /**

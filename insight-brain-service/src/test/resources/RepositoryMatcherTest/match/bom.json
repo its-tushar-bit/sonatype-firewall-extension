@@ -1,0 +1,100 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "activeio",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "activeio",
+        "version" : "1.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/activeio/activeio@1.0?type=jar",
+    "groupId" : "activeio",
+    "artifactId" : "activeio",
+    "version" : "1.0",
+    "filenames" : [ "activeio-1.0.jar" ],
+    "pathnames" : [ "built/activeio-1.0.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "similar",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ff31c33c120892ac3ff4",
+    "sha256" : "44ba611acde81de4319b2c4412d3379c74527bf4f433d78f89b213e08f7e6418",
+    "relativePopularity" : 1.0,
+    "createTime" : 1135095471000,
+    "lastModifiedTime" : 1652123770000,
+    "lastModifiedEntryTime" : 1651674204000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 63,
+      "path" : "Data Transport"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "1.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.springframework/spring-web@1.0?type=jar",
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-web",
+    "version" : "1.0",
+    "filenames" : [ "spring-web-1.0.jar" ],
+    "pathnames" : [ "built/spring-web-1.0.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "similar",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "714d123d4df81c096bed",
+    "sha256" : "70fda5d53b25ec6535178cb557d46de37575d336e89ae1ea080e12c67d10811f",
+    "relativePopularity" : 0.0,
+    "createTime" : 1135355877000,
+    "lastModifiedTime" : 1652224784000,
+    "lastModifiedEntryTime" : 1651674204000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 110,
+      "path" : "Web Frameworks"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    }
+  } ]
+}

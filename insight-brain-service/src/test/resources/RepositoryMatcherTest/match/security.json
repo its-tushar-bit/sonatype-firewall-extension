@@ -1,0 +1,28 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "spring-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework",
+        "version" : "1.0"
+      }
+    },
+    "groupId" : "org.springframework",
+    "artifactId" : "spring-web",
+    "version" : "1.0",
+    "hash" : "714d123d4df81c096bed",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-2730",
+    "reference" : "CVE-2011-2730",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "16",
+    "cvssVectorString" : "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "similar",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "functional", "data" ]
+  } ]
+}

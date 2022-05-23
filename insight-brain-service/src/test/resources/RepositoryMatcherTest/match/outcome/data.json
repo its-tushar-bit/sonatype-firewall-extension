@@ -1,0 +1,21 @@
+{
+  "commitHash": "21e7dda39b47af911f3c26cc24ce3c53eda313e1",
+  "copyleftLicenseCount": 0,
+  "exactlyMatchedComponentCount": 2,
+  "globals": {
+    "currentDate": 1652796812099,
+    "dataVersion": null,
+    "earliestReleaseDate": 1125993840000,
+    "exceededRowLimit": false,
+    "hideFilename": true,
+    "scanErrorCount": 0
+  },
+  "knownArtifactCount": 2,
+  "liberalLicenseCount": 1,
+  "nonStandardLicenseCount": 0,
+  "notProvidedLicenseCount": 1,
+  "partiallyMatchedComponentCount": 0,
+  "scanLabel": null,
+  "totalArtifactCount": 2,
+  "weakcopyleftLicenseCount": 0
+}

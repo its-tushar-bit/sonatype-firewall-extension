@@ -116,6 +116,7 @@
 @use '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModal';
 @use '../innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurations';
 @use '../configuration/administrators/administrators';
+@use '../OrgsAndPolicies/ComponentLabels/createComponentLabel';
 @use '../firewall/firewallComponentDetailsPage/firewallComponentDetailsPage';
 
 // CIP

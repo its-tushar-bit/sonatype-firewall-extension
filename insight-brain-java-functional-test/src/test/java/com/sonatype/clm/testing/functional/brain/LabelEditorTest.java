@@ -6,9 +6,8 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.pages.LabelEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -22,6 +21,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
@@ -29,9 +29,8 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.insight.brain.model.Color.dark_red;
 import static com.sonatype.insight.brain.model.Color.light_green;
+import static com.sonatype.insight.brain.model.Color.dark_red;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LabelEditorTest
@@ -73,7 +72,7 @@ public class LabelEditorTest
     // when
     LabelEditorPage.labelName().val(LABEL_NAME);
     LabelEditorPage.description().val("a description");
-    LabelEditorPage.colorPicker().color(light_green).click();
+    LabelEditorPage.nxColorPicker().color("kiwi").click();
     LabelEditorPage.saveButton().click();
     // then
     assertInitialStateIsCorrect();
@@ -86,29 +85,30 @@ public class LabelEditorTest
   }
 
   @Test
-  public void testLabelEdit() {
+ public void testLabelEdit() {
     // given
     Label label = tempEntity.newLabel(app.getOrganizationId(), "original name", "original description", light_green);
     refreshOrOpen(OwnerSummaryPage.url(OwnerType.ORGANIZATION, app.getOrganizationId()));
     OwnerSummaryPage.labelTile().localLabel(label.getLabel()).click();
     LabelEditorPage.title().shouldHave(text("Edit"));
-    LabelEditorPage.labelName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("original name"));
-    LabelEditorPage.description().shouldBe(visible).shouldHave(CLM.PRISTINE)
-        .shouldHave(value("original description"));
-    LabelEditorPage.colorPicker().shouldBe(visible).color(light_green).shouldBe(CLM.SELECTED);
-    LabelEditorPage.saveButton().shouldHave(DISABLED);
+    LabelEditorPage.labelNameDiv().shouldHave(cssClass("pristine"));
+    LabelEditorPage.labelName().shouldBe(visible).shouldHave(value("original name"));
+    LabelEditorPage.descriptionDiv().shouldHave(cssClass("pristine"));
+    LabelEditorPage.description().shouldBe(visible).shouldHave(value("original description"));
+    LabelEditorPage.nxColorPicker().shouldBe(visible).color("kiwi").shouldHave(cssClass("selected"));
+    LabelEditorPage.saveButton().shouldHave(cssClass("disabled"));
     // when
     LabelEditorPage.labelName().val("updated name");
     LabelEditorPage.description().val("updated description");
-    LabelEditorPage.colorPicker().color(dark_red).click();
+    LabelEditorPage.nxColorPicker().color("red").click();
     eyesWatcher.eyesCheck();
-    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED).click();
+    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(cssClass("disabled")).click();
     // then
     LabelEditorPage.title().shouldHave(text("Edit"));
     LabelEditorPage.labelName().shouldBe(visible).shouldHave(value("updated name"));
     LabelEditorPage.description().shouldBe(visible).shouldHave(value("updated description"));
-    LabelEditorPage.colorPicker().shouldBe(visible).color(dark_red).shouldBe(CLM.SELECTED);
-    LabelEditorPage.saveButton().shouldHave(DISABLED);
+    LabelEditorPage.nxColorPicker().shouldBe(visible).color("red").shouldHave(cssClass("selected"));
+    LabelEditorPage.saveButton().shouldHave(cssClass("disabled"));
 
     label = getLabelByName(app.getOrganizationId(), "updated name");
     assertThat(label).isNotNull();
@@ -126,13 +126,14 @@ public class LabelEditorTest
     // when
     LabelEditorPage.deleteButton().shouldBe(visible).click();
     // then
-    DeleteModal.root().shouldBe(visible);
-    DeleteModal.header().shouldHave(DeleteModal.headerText("Label"));
-    DeleteModal.body().shouldHave(DeleteModal.bodyText(label.getLabel()));
+    NxDeleteModal labelEditorDeleteModal = LabelEditorPage.getDeleteModal();
+    labelEditorDeleteModal.shouldBe(visible);
+    labelEditorDeleteModal.header().shouldHave(text("Delete Label"));
+    labelEditorDeleteModal.alertContent().shouldHave(text(label.getLabel()));
     // when
-    DeleteModal.cancelButton().click();
+    labelEditorDeleteModal.closeButton().click();
     // then
-    DeleteModal.root().shouldBe(hidden);
+    labelEditorDeleteModal.shouldBe(hidden);
     LabelEditorPage.labelName().shouldHave(value(label.getLabel()));
     label = labelDAO.getById(label.getId());
     assertThat(label).isNotNull();
@@ -145,9 +146,10 @@ public class LabelEditorTest
     refreshOrOpen(LabelEditorPage.urlToEdit(OwnerType.ORGANIZATION, app.getOrganizationId(), label.getId()));
     // when
     LabelEditorPage.deleteButton().shouldBe(visible).click();
-    DeleteModal.continueButton().shouldBe(visible).click();
+    NxDeleteModal labelEditorDeleteModal = LabelEditorPage.getDeleteModal();
+    labelEditorDeleteModal.submitButton().shouldBe(visible).click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldBe(hidden);
+    labelEditorDeleteModal.shouldBe(hidden);
 
     String createLabelUrl = LabelEditorPage.urlToCreate(OwnerType.ORGANIZATION, app.getOrganizationId());
     waitUntilUrl(createLabelUrl);
@@ -160,34 +162,35 @@ public class LabelEditorTest
     // when invalid name
     LabelEditorPage.labelName().val("$$$");
     // then error on name, disabled save
-    popoverViolations(LabelEditorPage.labelName()).shouldBe(visible).shouldHave(text("Use valid characters"));
-    LabelEditorPage.saveButton().shouldHave(DISABLED);
+    LabelEditorPage.labelInvalidMessage().shouldBe(visible).shouldHave(text("Use valid characters"));
+    LabelEditorPage.saveButton().shouldHave(cssClass("disabled"));
     // when valid name, but no color
     LabelEditorPage.labelName().val("valid name");
     // then error on name is gone, but save still disabled. TODO check color 'field' validation error after CLM-5436
-    popoverViolations(LabelEditorPage.labelName()).shouldNot(exist);
-    LabelEditorPage.saveButton().shouldHave(DISABLED);
+    LabelEditorPage.labelInvalidMessage().shouldHave(text(""));
+    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(cssClass("disabled"));
     // when select color
-    LabelEditorPage.colorPicker().color(light_green).click();
+    LabelEditorPage.nxColorPicker().color("kiwi").click();
     // then save enabled
-    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED);
+    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(cssClass("disabled"));
     // when invalid description - too long
     LabelEditorPage.description().val(StringUtils.repeat("a", 256));
     // then error on description and disabled save
-    popoverViolations(LabelEditorPage.description()).shouldBe(visible).shouldHave(text("Maximum length"));
-    LabelEditorPage.saveButton().shouldHave(DISABLED);
+    LabelEditorPage.descriptionInvalidMessage().shouldBe(visible)
+            .shouldHave(text("Please enter less than 255 characters"));
+    LabelEditorPage.saveButton().shouldHave(cssClass("disabled"));
     // when valid description
     LabelEditorPage.description().val("Description");
-    popoverViolations(LabelEditorPage.description()).shouldNot(exist);
-    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED);
+    LabelEditorPage.descriptionInvalidMessage().shouldHave(text(""));
+    LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(cssClass("disabled"));
   }
 
   private void assertInitialStateIsCorrect() {
     LabelEditorPage.title().shouldHave(text("New"));
-    LabelEditorPage.labelName().shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
-    LabelEditorPage.description().shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
-    LabelEditorPage.colorPicker().shouldBe(visible).selectedColor().shouldNot(exist);
-    LabelEditorPage.saveButton().shouldHave(DISABLED);
+    LabelEditorPage.labelNameDiv().shouldBe(visible, empty).shouldHave(cssClass("pristine"));
+    LabelEditorPage.descriptionDiv().shouldBe(visible, empty).shouldHave(cssClass("pristine"));
+    LabelEditorPage.nxColorPicker().shouldBe(visible).selectedColor().shouldNot(exist);
+    LabelEditorPage.saveButton().shouldHave(cssClass("disabled"));
   }
 
   private Label getLabelByName(String ownerId, String labelName) {

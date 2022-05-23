@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { react2angular } from 'react2angular';
+import withStoreProvider from '../reactAdapter/StoreProvider';
 
 import moveApplicationModule from './move.application/module';
 import formsModule from '../FormsModule';
@@ -28,7 +30,6 @@ import ApplicationCategoryEditorController from './category/application.category
 import ApplicationCategoryTileControllerApp from './category/application.category.tile.controller.app';
 import ApplicationCategoryTileControllerOrg from './category/application.category.tile.controller.org';
 import CategoryEditorController from './category/category.editor.controller';
-import LabelEditorController from './label/label.editor.controller';
 import LabelTileController from './label/label.tile.controller';
 import LicenseThreatGroupEditorController from './license.threat.group/license.threat.group.editor.controller';
 import LicenseThreatGroupTileController from './license.threat.group/license.threat.group.tile.controller';
@@ -75,7 +76,6 @@ import viewTemplate from './state/owner.manager.view.html';
 import repoSummaryTemplate from './repositories/repositories.summary.view.html';
 import accessEditorTemplate from './access/access.editor.view.html';
 import summaryViewTemplate from './summary/owner.summary.view.html';
-import labelEditorTemplate from './label/label.editor.view.html';
 import policyEditorTemplate from './policy/policy.editor.view.html';
 import continuousMonitoringEditorTemplate from './policy/monitored.stage.editor.view.html';
 import proprietaryEditorTemplate from './policy/proprietary.config.editor.view.html';
@@ -84,6 +84,7 @@ import categoryEditorTemplate from './category/category.editor.view.html';
 import appCategoryEditorTemplate from './category/application.category.editor.view.html';
 import SourceControlService from './source.control/source.control.service';
 import innerSourceRepositoryModule from './innersource.repository/module';
+import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/ComponentLabels/CreateComponentLabel';
 
 export default angular
   .module('owner.manager.module', [
@@ -114,7 +115,6 @@ export default angular
   .controller('ApplicationCategoryTileControllerApp', ApplicationCategoryTileControllerApp)
   .controller('ApplicationCategoryTileControllerOrg', ApplicationCategoryTileControllerOrg)
   .controller('category.editor.controller', CategoryEditorController)
-  .controller('label.editor.controller', LabelEditorController)
   .controller('LabelTileController', LabelTileController)
   .controller('license.threat.group.editor.controller', LicenseThreatGroupEditorController)
   .controller('LicenseThreatGroupTileController', LicenseThreatGroupTileController)
@@ -158,6 +158,7 @@ export default angular
   .directive('numberInputWithStringValue', NumberInputWithStringValue)
   .directive('sameOwnerEditSref', SameOwnerEditSref)
   .directive('sameOwnerViewSref', SameOwnerViewSref)
+  .component('createComponentLabel', react2angular(withStoreProvider(CreateComponentLabel), [], ['$ngRedux', '$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {
@@ -268,12 +269,11 @@ export default angular
             url: '/label/{labelId}',
             data: {
               title: ownerType.name + ' Labels',
+              isDirty: ['orgsAndPolicies', 'labels', 'isDirty'],
             },
             views: {
               '@management.edit': {
-                controller: 'label.editor.controller',
-                controllerAs: 'vm',
-                template: labelEditorTemplate,
+                component: 'createComponentLabel',
               },
             },
           })
@@ -281,12 +281,11 @@ export default angular
             url: '/label',
             data: {
               title: ownerType.name + ' Labels',
+              isDirty: ['orgsAndPolicies', 'labels', 'isDirty'],
             },
             views: {
               '@management.edit': {
-                controller: 'label.editor.controller',
-                controllerAs: 'vm',
-                template: labelEditorTemplate,
+                component: 'createComponentLabel',
               },
             },
           })

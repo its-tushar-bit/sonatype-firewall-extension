@@ -6,6 +6,8 @@
 import { applyTo, curryN, isNil, map, prop, reject, test, isEmpty, none, any, values } from 'ramda';
 import isValidHostname from 'is-valid-hostname';
 
+export const GLOBAL_FORM_VALIDATION_ERROR = 'Unable to save: fields with invalid or missing data';
+
 export const validateDoubleWhitespace = (payload) =>
   test(/ {2,}|\t/, payload) ? 'No leading, trailing or double spaces or tabs' : null;
 
@@ -78,6 +80,6 @@ export const validateForm = (inputs) => {
   const validationErrorsByProp = map(prop('validationErrors'), inputs);
 
   return any(hasValidationErrors, values(validationErrorsByProp)) || !none(isEmpty, values(valuesByProp))
-    ? 'Unable to save: fields with invalid or missing data'
+    ? GLOBAL_FORM_VALIDATION_ERROR
     : null;
 };

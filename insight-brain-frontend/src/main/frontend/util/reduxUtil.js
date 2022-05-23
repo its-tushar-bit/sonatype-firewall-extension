@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { always, curry, lensPath, lensProp, set } from 'ramda';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { Messages } from '../utilAngular/CommonServices';
 /*
  * like `./jsUtil.js#propSet` but is meant to be partially applied in 2 args.
@@ -56,3 +57,10 @@ export const toggleBooleanProp = (propName) => (state) => {
     [propName]: !state[propName],
   };
 };
+
+export const startSaveMaskSuccessTimer = (dispatch, actionFunc) =>
+  new Promise((res) =>
+    setTimeout(() => {
+      res(dispatch(actionFunc()));
+    }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS)
+  );

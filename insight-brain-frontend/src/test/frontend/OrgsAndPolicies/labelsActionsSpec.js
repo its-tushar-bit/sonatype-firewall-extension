@@ -8,6 +8,10 @@ import { actions } from 'MainRoot/OrgsAndPolicies/labelsSlice';
 import * as labelsSelectors from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getApplicableLabelsUrl, getLabelsUrl, getDeleteLabelsUrl } from 'MainRoot/util/CLMLocation';
+import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+
+const { initialState: rscInitialState } = nxTextInputStateHelpers;
 
 describe('labelsActions', () => {
   const fn = () => {};
@@ -15,6 +19,7 @@ describe('labelsActions', () => {
   let store, state;
 
   beforeEach(function () {
+    jasmine.clock().install();
     state = {
       router: {
         currentParams: {
@@ -23,6 +28,10 @@ describe('labelsActions', () => {
       },
     };
     store = SpecUtil.mockReduxStore(state);
+  });
+
+  afterEach(function () {
+    jasmine.clock().uninstall();
   });
 
   describe('loadLabels', () => {
@@ -660,7 +669,7 @@ describe('labelsActions', () => {
               ownerType: 'APPLICATION',
             },
           ],
-          currentLabel: undefined,
+          currentLabel: { color: 'light-purple', description: '', label: '' },
         });
 
         done();
@@ -685,7 +694,7 @@ describe('labelsActions', () => {
         ]);
         expect(actions[4].payload).toEqual({
           siblings: null,
-          currentLabel: undefined,
+          currentLabel: { color: 'light-purple', description: '', label: '' },
         });
 
         done();
@@ -729,9 +738,9 @@ describe('labelsActions', () => {
     beforeEach(() => {
       orgsAndPoliciesSelectorsSpy = spyOn(labelsSelectors, 'selectLabelsCurrentLabel').and.returnValue({
         color: 'light-green',
-        description: null,
+        description: rscInitialState(''),
         id: 'ae63051b2e304c3bbabf94c2443b03fb',
-        label: 'n3',
+        label: rscInitialState('n3'),
         ownerId: '6b365e8a8000449aa924f194a7ed0d27',
         ownerType: 'APPLICATION',
       });
@@ -755,9 +764,9 @@ describe('labelsActions', () => {
           [getLabelsUrl('application', 'application', 'ae63051b2e304c3bbabf94c2443b03fb')]: Promise.resolve({
             data: {
               color: 'light-green',
-              description: null,
+              description: rscInitialState(''),
               id: 'ae63051b2e304c3bbabf94c2443b03fb',
-              label: 'n3',
+              label: rscInitialState('n3'),
               ownerId: '6b365e8a8000449aa924f194a7ed0d27',
               ownerType: 'APPLICATION',
             },
@@ -765,11 +774,11 @@ describe('labelsActions', () => {
         },
       });
 
-      store.dispatch(actions.saveLabel({ setPristine: fn })).then(() => {
+      store.dispatch(actions.saveLabel()).then(() => {
         expect(axios.put).toHaveBeenCalledTimes(1);
         expect(axios.put).toHaveBeenCalledWith('/api/v2/labels/application/application', {
           color: 'light-green',
-          description: null,
+          description: '',
           id: 'ae63051b2e304c3bbabf94c2443b03fb',
           label: 'n3',
           ownerId: '6b365e8a8000449aa924f194a7ed0d27',
@@ -784,9 +793,9 @@ describe('labelsActions', () => {
         expect(actions[1].payload).toEqual({
           label: {
             color: 'light-green',
-            description: null,
+            description: rscInitialState(''),
             id: 'ae63051b2e304c3bbabf94c2443b03fb',
-            label: 'n3',
+            label: rscInitialState('n3'),
             ownerId: '6b365e8a8000449aa924f194a7ed0d27',
             ownerType: 'APPLICATION',
           },
@@ -801,9 +810,9 @@ describe('labelsActions', () => {
       selectLabelsIsEditModeSpy.and.returnValue(false);
       orgsAndPoliciesSelectorsSpy.and.returnValue({
         color: 'light-green',
-        description: null,
+        description: rscInitialState(''),
         id: 'newId',
-        label: 'n3',
+        label: rscInitialState('n3'),
         ownerId: '6b365e8a8000449aa924f194a7ed0d27',
         ownerType: 'APPLICATION',
       });
@@ -813,9 +822,9 @@ describe('labelsActions', () => {
           [getLabelsUrl('application', 'application', 'newId')]: Promise.resolve({
             data: {
               color: 'light-green',
-              description: null,
+              description: rscInitialState(''),
               id: 'newId',
-              label: 'n3',
+              label: rscInitialState('n3'),
               ownerId: '6b365e8a8000449aa924f194a7ed0d27',
               ownerType: 'APPLICATION',
             },
@@ -827,7 +836,7 @@ describe('labelsActions', () => {
         expect(axios.post).toHaveBeenCalledTimes(1);
         expect(axios.post).toHaveBeenCalledWith('/api/v2/labels/application/application', {
           color: 'light-green',
-          description: null,
+          description: '',
           id: 'newId',
           label: 'n3',
           ownerId: '6b365e8a8000449aa924f194a7ed0d27',
@@ -839,12 +848,21 @@ describe('labelsActions', () => {
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder(['labels/saveLabel/pending', 'labels/saveLabel/fulfilled']);
 
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+
+        expect(actions.length).toBe(3);
+        expect(actions).toHaveActionTypesInOrder([
+          'labels/saveLabel/pending',
+          'labels/saveLabel/fulfilled',
+          'labels/saveMaskTimerDone',
+        ]);
+
         expect(actions[1].payload).toEqual({
           label: {
             color: 'light-green',
-            description: null,
+            description: rscInitialState(''),
             id: 'newId',
-            label: 'n3',
+            label: rscInitialState('n3'),
             ownerId: '6b365e8a8000449aa924f194a7ed0d27',
             ownerType: 'APPLICATION',
           },

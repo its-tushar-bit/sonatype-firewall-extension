@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as reduxUtil from '../../../main/frontend/util/reduxUtil';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 describe('reduxUtil', function () {
   describe('noPayloadActionCreator', function () {
@@ -38,5 +39,36 @@ describe('reduxUtil', function () {
         });
       }
     );
+  });
+  describe('startSaveMaskSuccessTimer', function () {
+    it('calls(dispatches) a function(promise) after certain timeout', function (done) {
+      jasmine.clock().install();
+
+      const dispatch = (func) => func;
+      let value = jasmine.createSpy('whatAmI');
+
+      const action = () => value("I'm tester");
+
+      reduxUtil.startSaveMaskSuccessTimer(dispatch, action);
+      expect(value).not.toHaveBeenCalled();
+      jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+      expect(value).toHaveBeenCalledOnceWith("I'm tester");
+
+      jasmine.clock().uninstall();
+      done();
+    });
+
+    it('calls(dispatches) a function as promise', async function (done) {
+      const dispatch = (func) => func;
+      let value = jasmine.createSpy('whatAmI');
+
+      const action = () => value("I'm tester");
+
+      reduxUtil.startSaveMaskSuccessTimer(dispatch, action).then(() => {
+        expect(value).toHaveBeenCalled();
+        expect(value).toHaveBeenCalledOnceWith("I'm tester");
+        done();
+      });
+    });
   });
 });

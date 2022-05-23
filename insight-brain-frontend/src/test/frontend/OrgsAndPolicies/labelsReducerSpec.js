@@ -4,6 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reducer, { initialState } from 'MainRoot/OrgsAndPolicies/labelsSlice';
+import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+
+const { initialState: rscInitialState } = nxTextInputStateHelpers;
 
 describe('labels reducer', () => {
   describe('labels/setLabelDescription', () => {
@@ -11,8 +14,8 @@ describe('labels reducer', () => {
       const state = Object.freeze({
         currentLabel: {
           color: null,
-          description: null,
-          label: null,
+          description: rscInitialState(''),
+          label: rscInitialState(''),
         },
         serverCurrentLabel: null,
         isDirty: false,
@@ -24,7 +27,12 @@ describe('labels reducer', () => {
       });
 
       expect(isDirty).toBeTrue();
-      expect(currentLabel.description).toBe('label description');
+      expect(currentLabel.description).toEqual({
+        isPristine: false,
+        value: 'label description',
+        trimmedValue: 'label description',
+        validationErrors: null,
+      });
     });
   });
 
@@ -53,8 +61,8 @@ describe('labels reducer', () => {
       const state = Object.freeze({
         currentLabel: {
           color: null,
-          description: null,
-          label: null,
+          description: rscInitialState(''),
+          label: rscInitialState(''),
         },
         serverCurrentLabel: null,
         isDirty: false,
@@ -75,7 +83,7 @@ describe('labels reducer', () => {
       const state = Object.freeze({
         currentLabel: {
           color: null,
-          description: null,
+          description: '',
           label: null,
         },
         serverCurrentLabel: null,
@@ -88,7 +96,12 @@ describe('labels reducer', () => {
       });
 
       expect(isDirty).toBeTrue();
-      expect(currentLabel.label).toBe('name');
+      expect(currentLabel.label).toEqual({
+        isPristine: false,
+        value: 'name',
+        trimmedValue: 'name',
+        validationErrors: [],
+      });
     });
   });
 
@@ -157,7 +170,7 @@ describe('labels reducer', () => {
           isEditMode: true,
           label: {
             color: 'dark-green',
-            description: null,
+            description: '',
             label: 'label name',
             id: '1242345',
           },
@@ -168,20 +181,20 @@ describe('labels reducer', () => {
       expect(newState.isDirty).toBeFalse();
       expect(newState.currentLabel).toEqual({
         color: 'dark-green',
-        description: null,
-        label: 'label name',
+        description: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+        label: { isPristine: true, value: 'label name', trimmedValue: 'label name', validationErrors: null },
         id: '1242345',
       });
       expect(newState.serverCurrentLabel).toEqual({
         color: 'dark-green',
-        description: null,
+        description: '',
         label: 'label name',
         id: '1242345',
       });
       expect(newState.siblings).toEqual([
         {
           color: 'dark-green',
-          description: null,
+          description: '',
           label: 'label name',
           id: '1242345',
         },
@@ -207,7 +220,7 @@ describe('labels reducer', () => {
           isEditMode: false,
           label: {
             color: 'dark-green',
-            description: null,
+            description: '',
             label: 'label name',
             id: '1242345',
           },
@@ -222,7 +235,7 @@ describe('labels reducer', () => {
       expect(newState.siblings).toEqual([
         {
           color: 'dark-green',
-          description: null,
+          description: '',
           label: 'label name',
           id: '1242345',
         },
@@ -251,17 +264,16 @@ describe('labels reducer', () => {
         type: 'labels/removeLabel/pending',
       });
 
-      expect(deleting).toBeTrue();
+      expect(deleting).toBeFalse();
     });
   });
 
   describe('labels/removeLabel/fulfilled', () => {
     it('sets currentlabel, serverCurrentLabel to initialState', () => {
       const state = Object.freeze({
-        deleting: true,
-        errorState: null,
+        deleteError: null,
         isDirty: true,
-        success: null,
+        deleteMaskState: null,
         currentLabel: {
           color: 'foo',
           description: 'description',
@@ -289,11 +301,10 @@ describe('labels reducer', () => {
         payload: 'id',
       });
 
-      expect(newState.deleting).toBeNull();
-      expect(newState.errorState).toBeNull();
+      expect(newState.deleteError).toBeNull();
 
       expect(newState.isDirty).toBeFalse();
-      expect(newState.success).toBeTrue();
+      expect(newState.deleteMaskState).toBeTrue();
       expect(newState.currentLabel).toEqual(initialState.currentLabel);
       expect(newState.serverCurrentLabel).toEqual(initialState.currentLabel);
       expect(newState.siblings).toEqual([]);
@@ -303,17 +314,15 @@ describe('labels reducer', () => {
   describe('labels/removeLabel/rejected', () => {
     it('sets errorState, deletins properties', () => {
       const state = Object.freeze({
-        deleting: true,
-        errorState: null,
+        deleteError: null,
       });
 
-      const { deleting, errorState } = reducer(state, {
+      const { deleteError } = reducer(state, {
         type: 'labels/removeLabel/rejected',
         payload: 'error',
       });
 
-      expect(deleting).toBeFalse();
-      expect(errorState).toBe('error');
+      expect(deleteError).toBe('error');
     });
   });
 
@@ -351,9 +360,9 @@ describe('labels reducer', () => {
             labels: [
               {
                 color: 'light-green',
-                description: null,
+                description: '',
                 id: 'ae63051b2e304c3bbabf94c2443b03fb',
-                label: 'n3',
+                label: rscInitialState('n3'),
                 ownerId: '6b365e8a8000449aa924f194a7ed0d21',
                 ownerType: 'APPLICATION',
               },
@@ -372,9 +381,9 @@ describe('labels reducer', () => {
           labels: [
             {
               color: 'light-green',
-              description: null,
+              description: '',
               id: 'ae63051b2e304c3bbabf94c2443b03fb',
-              label: 'n3',
+              label: rscInitialState('n3'),
               ownerId: '6b365e8a8000449aa924f194a7ed0d21',
               ownerType: 'APPLICATION',
             },
@@ -432,7 +441,7 @@ describe('labels reducer', () => {
         payload: {
           currentLabel: {
             color: 'light-green',
-            description: null,
+            description: '',
             id: 'ae63051b2e304c3bbabf94c2443b03fb',
             label: 'n3',
             ownerId: '6b365e8a8000449aa924f194a7ed0d21',
@@ -441,7 +450,7 @@ describe('labels reducer', () => {
           siblings: [
             {
               color: 'light-green',
-              description: null,
+              description: '',
               id: 'ae63051b2e304c3bbabf94c2443b03fb',
               label: 'n3',
               ownerId: '6b365e8a8000449aa924f194a7ed0d21',
@@ -455,15 +464,15 @@ describe('labels reducer', () => {
       expect(newState.loadError).toBeNull();
       expect(newState.currentLabel).toEqual({
         color: 'light-green',
-        description: null,
+        description: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
         id: 'ae63051b2e304c3bbabf94c2443b03fb',
-        label: 'n3',
+        label: { isPristine: true, value: 'n3', trimmedValue: 'n3', validationErrors: null },
         ownerId: '6b365e8a8000449aa924f194a7ed0d21',
         ownerType: 'APPLICATION',
       });
       expect(newState.serverCurrentLabel).toEqual({
         color: 'light-green',
-        description: null,
+        description: '',
         id: 'ae63051b2e304c3bbabf94c2443b03fb',
         label: 'n3',
         ownerId: '6b365e8a8000449aa924f194a7ed0d21',
@@ -472,7 +481,7 @@ describe('labels reducer', () => {
       expect(newState.siblings).toEqual([
         {
           color: 'light-green',
-          description: null,
+          description: '',
           id: 'ae63051b2e304c3bbabf94c2443b03fb',
           label: 'n3',
           ownerId: '6b365e8a8000449aa924f194a7ed0d21',
@@ -495,7 +504,7 @@ describe('labels reducer', () => {
         payload: {
           currentLabel: {
             color: 'light-green',
-            description: null,
+            description: '',
             id: 'ae63051b2e304c3bbabf94c2443b03fb',
             label: 'n3',
             ownerId: '6b365e8a8000449aa924f194a7ed0d21',
@@ -509,15 +518,15 @@ describe('labels reducer', () => {
       expect(newState.loadError).toBeNull();
       expect(newState.currentLabel).toEqual({
         color: 'light-green',
-        description: null,
+        description: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
         id: 'ae63051b2e304c3bbabf94c2443b03fb',
-        label: 'n3',
+        label: { isPristine: true, value: 'n3', trimmedValue: 'n3', validationErrors: null },
         ownerId: '6b365e8a8000449aa924f194a7ed0d21',
         ownerType: 'APPLICATION',
       });
       expect(newState.serverCurrentLabel).toEqual({
         color: 'light-green',
-        description: null,
+        description: '',
         id: 'ae63051b2e304c3bbabf94c2443b03fb',
         label: 'n3',
         ownerId: '6b365e8a8000449aa924f194a7ed0d21',

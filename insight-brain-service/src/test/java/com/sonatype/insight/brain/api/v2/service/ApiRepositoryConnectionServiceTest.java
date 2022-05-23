@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
@@ -772,7 +773,7 @@ public class ApiRepositoryConnectionServiceTest
     dto.baseUrl = "baseUrl";
     dto.username = "user";
     dto.password = "pass";
-    Status response = repositoryConnectionService.testRepositoryConnection(OwnerType.APPLICATION, appId, dto);
+    StatusType response = repositoryConnectionService.testRepositoryConnection(OwnerType.APPLICATION, appId, dto);
 
     assertThat(response).isEqualTo(status);
   }
@@ -1045,7 +1046,7 @@ public class ApiRepositoryConnectionServiceTest
     repositoryConnection.setPassword(passwordHandler.encryptPassword(repositoryConnection.getPassword()));
     dao.update(repositoryConnection);
 
-    Status response = repositoryConnectionService.testRepositoryConnection(OwnerType.APPLICATION, appId,
+    StatusType response = repositoryConnectionService.testRepositoryConnection(OwnerType.APPLICATION, appId,
         repositoryConnection.getId());
 
     assertThat(response).isEqualTo(Status.BAD_GATEWAY);

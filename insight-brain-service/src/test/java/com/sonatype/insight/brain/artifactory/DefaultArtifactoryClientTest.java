@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.artifactory;
 
+import java.util.Locale;
+
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchErrors;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResults;
@@ -20,6 +23,10 @@ import com.sonatype.insight.error.exception.NotAuthenticatedException;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -100,7 +107,7 @@ public class DefaultArtifactoryClientTest
     artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256, DefaultArtifactoryClient.TEST_SHA256,
         new ArtifactoryChecksumSearchResults());
 
-    Status status = artifactoryClient.getServerStatus();
+    StatusType status = artifactoryClient.getServerStatus();
 
     assertThat(status).isEqualTo(Status.fromStatusCode(200));
   }
@@ -114,7 +121,7 @@ public class DefaultArtifactoryClientTest
     artifactoryMockServer.mockSearchChecksum(username, password, ChecksumType.SHA256,
         DefaultArtifactoryClient.TEST_SHA256, new ArtifactoryChecksumSearchResults());
 
-    Status status = artifactoryClient.getServerStatus();
+    StatusType status = artifactoryClient.getServerStatus();
 
     assertThat(status).isEqualTo(Status.fromStatusCode(200));
   }
@@ -125,9 +132,26 @@ public class DefaultArtifactoryClientTest
         artifactoryClientFactory.create().forArtifactory(artifactoryMockServer.getBaseUrl(), null, null);
     artifactoryMockServer.mockSearchChecksumError(ChecksumType.SHA256, DefaultArtifactoryClient.TEST_SHA256, 500);
 
-    Status status = artifactoryClient.getServerStatus();
+    StatusType status = artifactoryClient.getServerStatus();
 
     assertThat(status).isEqualTo(Status.fromStatusCode(500));
+  }
+
+  @Test
+  public void testGetServerStatus_MissingHeader() throws Exception {
+    ArtifactoryClient artifactoryClient =
+        artifactoryClientFactory.create().forArtifactory(artifactoryMockServer.getBaseUrl(), null, null);
+    artifactoryMockServer.getWireMockServer().stubFor(get(urlPathMatching(
+        artifactoryMockServer.getUrlPath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))).withQueryParam(
+            ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), equalTo(DefaultArtifactoryClient.TEST_SHA256))
+        .willReturn(aResponse().withStatus(200)));
+
+    StatusType status = artifactoryClient.getServerStatus();
+
+    assertThat(status).isNotNull();
+    assertThat(status.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+    assertThat(status.getFamily()).isEqualTo(Status.BAD_REQUEST.getFamily());
+    assertThat(status.getReasonPhrase()).isEqualTo("Bad Request. Not a valid Artifactory server.");
   }
 
   @Test

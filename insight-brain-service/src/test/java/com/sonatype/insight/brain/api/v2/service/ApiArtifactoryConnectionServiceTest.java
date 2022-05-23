@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusRequestDTO;
@@ -723,7 +724,7 @@ public class ApiArtifactoryConnectionServiceTest
     dto.baseUrl = "baseUrl";
     dto.username = "user";
     dto.password = "pass";
-    Status response = artifactoryConnectionService.testArtifactoryConnection(OwnerType.APPLICATION, appId, dto);
+    StatusType response = artifactoryConnectionService.testArtifactoryConnection(OwnerType.APPLICATION, appId, dto);
 
     assertThat(response).isEqualTo(status);
   }
@@ -1001,7 +1002,7 @@ public class ApiArtifactoryConnectionServiceTest
     artifactoryConnection.setPassword(passwordHandler.encryptPassword(artifactoryConnection.getPassword()));
     dao.update(artifactoryConnection);
 
-    Status response = artifactoryConnectionService.testArtifactoryConnection(OwnerType.APPLICATION, appId,
+    StatusType response = artifactoryConnectionService.testArtifactoryConnection(OwnerType.APPLICATION, appId,
         artifactoryConnection.getId());
 
     assertThat(response).isEqualTo(Status.BAD_GATEWAY);

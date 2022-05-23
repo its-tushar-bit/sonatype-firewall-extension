@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
@@ -285,7 +286,7 @@ public class ApiRepositoryConnectionService
   }
 
   @Authorize(permission = Permission.READ)
-  public Status testRepositoryConnection(
+  public StatusType testRepositoryConnection(
       @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
       @SuppressWarnings("unused") @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       ApiRepositoryConnectionDTO repositoryConnectionDTO)
@@ -297,7 +298,7 @@ public class ApiRepositoryConnectionService
   }
 
   @Authorize(permission = Permission.READ)
-  public Status testRepositoryConnection(
+  public StatusType testRepositoryConnection(
       @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
       @SuppressWarnings("unused") @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       String repositoryConnectionId)
@@ -360,7 +361,12 @@ public class ApiRepositoryConnectionService
     return dto;
   }
 
-  private Status testRepositoryConnection(String baseUrl, RepositoryFormat format, String username, char[] password) {
+  private StatusType testRepositoryConnection(
+      String baseUrl,
+      RepositoryFormat format,
+      String username,
+      char[] password)
+  {
     AuditData.get().setData(REPOSITORY_URL_AUDIT_KEY, baseUrl)
         .setData(REPOSITORY_FORMAT_AUDIT_KEY, format);
     RepositoryClient client = repositoryClientFactory.create()

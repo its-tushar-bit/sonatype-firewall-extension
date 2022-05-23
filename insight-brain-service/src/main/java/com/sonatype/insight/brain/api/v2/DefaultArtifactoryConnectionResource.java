@@ -18,7 +18,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
@@ -145,9 +145,9 @@ public class DefaultArtifactoryConnectionResource
       ApiArtifactoryConnectionDTO artifactoryConnectionDTO)
   {
     checkArtifactoryIntegrationEnabled();
-    Status status =
+    StatusType status =
         artifactoryConnectionService.testArtifactoryConnection(ownerType, internalOwnerId, artifactoryConnectionDTO);
-    return ApiStatusDTO.fromStatus(status);
+    return ApiStatusDTO.fromStatusType(status);
   }
 
   @Override
@@ -160,9 +160,9 @@ public class DefaultArtifactoryConnectionResource
       @PathParam("artifactoryConnectionId") String artifactoryConnectionId)
   {
     checkArtifactoryIntegrationEnabled();
-    Status status =
+    StatusType status =
         artifactoryConnectionService.testArtifactoryConnection(ownerType, internalOwnerId, artifactoryConnectionId);
-    return ApiStatusDTO.fromStatus(status);
+    return ApiStatusDTO.fromStatusType(status);
   }
 
   private void checkArtifactoryIntegrationEnabled() {

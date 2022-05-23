@@ -11,6 +11,8 @@ import java.net.URISyntaxException;
 import java.util.Locale;
 
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.Status.Family;
+import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchError;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchErrors;
@@ -25,6 +27,7 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotAuthenticatedException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -46,6 +49,10 @@ public class DefaultArtifactoryClient
   public static final String CHECKSUM_SEARCH_PATH = "/api/search/checksum";
 
   public static final String TEST_SHA256 = "4909fb971d8373b5a1f5998fb788d6708a626c043a94b05378c54ce5760e4000";
+
+  public static final String ARTIFACTORY_VERSION_HEADER_NAME = "X-JFrog-Version";
+
+  private static final String ARTIFACTORY_VERSION_HEADER_CONTENT_LOWERCASE = "artifactory";
 
   private final Configuration configuration;
 
@@ -108,10 +115,30 @@ public class DefaultArtifactoryClient
   }
 
   @Override
-  public Status getServerStatus() throws IOException {
+  public StatusType getServerStatus() throws IOException {
     HttpGet request = new HttpGet(this.configuration.getServerUrl() + CHECKSUM_SEARCH_PATH +
         UrlUtils.appendQueryParams(ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), TEST_SHA256));
     HttpResponse response = httpClient.execute(request, httpClientContext);
+    Header serverHeader = response.getFirstHeader(ARTIFACTORY_VERSION_HEADER_NAME);
+    String server = serverHeader == null ? null : serverHeader.getValue();
+    if (server == null || !server.toLowerCase(Locale.ROOT).contains(ARTIFACTORY_VERSION_HEADER_CONTENT_LOWERCASE)) {
+      return new StatusType() {
+        @Override
+        public int getStatusCode() {
+          return Status.BAD_REQUEST.getStatusCode();
+        }
+
+        @Override
+        public Family getFamily() {
+          return Status.BAD_REQUEST.getFamily();
+        }
+
+        @Override
+        public String getReasonPhrase() {
+          return Status.BAD_REQUEST.getReasonPhrase() + ". Not a valid Artifactory server.";
+        }
+      };
+    }
     return Status.fromStatusCode(response.getStatusLine().getStatusCode());
   }
 }

@@ -8,7 +8,8 @@ package com.sonatype.insight.brain.repository;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
-import javax.ws.rs.core.Response.Status;
+
+import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 
@@ -24,5 +25,5 @@ public interface RepositoryClient
 
   RepositoryAllVersionsResponse getAllVersions(Map<String, String> queryParams) throws IOException;
 
-  Status getServerStatus() throws IOException;
+  StatusType getServerStatus() throws IOException;
 }

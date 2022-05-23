@@ -18,7 +18,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
@@ -152,9 +152,9 @@ public class DefaultRepositoryConnectionResource
       ApiRepositoryConnectionDTO repositoryConnectionDTO)
   {
     checkInnerSourceRepositoryIntegrationEnabled();
-    Status status =
+    StatusType status =
         repositoryConnectionService.testRepositoryConnection(ownerType, internalOwnerId, repositoryConnectionDTO);
-    return ApiStatusDTO.fromStatus(status);
+    return ApiStatusDTO.fromStatusType(status);
   }
 
   @Override
@@ -167,9 +167,9 @@ public class DefaultRepositoryConnectionResource
       @PathParam("repositoryConnectionId") String repositoryConnectionId)
   {
     checkInnerSourceRepositoryIntegrationEnabled();
-    Status status =
+    StatusType status =
         repositoryConnectionService.testRepositoryConnection(ownerType, internalOwnerId, repositoryConnectionId);
-    return ApiStatusDTO.fromStatus(status);
+    return ApiStatusDTO.fromStatusType(status);
   }
 
   private void checkInnerSourceRepositoryIntegrationEnabled() {

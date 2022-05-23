@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration;
@@ -42,6 +43,8 @@ public class NexusRepository3ClientTest
 {
   @Rule
   public WireMockRule nxrm3MockSever = new WireMockRule(wireMockConfig().dynamicPort());
+  
+  public static final String NXRM_VERSION_HEADER_MOCK_VALUE = "Nexus/3.37.3-02 (PRO)";
 
   @Mock
   private RepositoryClientConfigurationDAO clientConfigurationDAO;
@@ -229,16 +232,33 @@ public class NexusRepository3ClientTest
   public void testGetServerStatus_OK() throws Exception {
     nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/status"))
         .withBasicAuth("user", "pass")
-        .willReturn(aResponse().withStatus(200)));
+        .willReturn(aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
+            NexusRepository3ClientTest.NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(200)));
 
     RepositoryClient client = factory.create().forNexus3(baseUrl, "user", "pass".toCharArray());
     assertThat(client.getServerStatus()).isEqualTo(Status.OK);
   }
 
   @Test
+  public void testGetServerStatus_MissingHeader_BadRequest() throws Exception {
+    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/status"))
+        .withBasicAuth("user", "pass")
+        .willReturn(aResponse().withStatus(200)));
+    RepositoryClient client = factory.create().forNexus3(baseUrl, "user", "pass".toCharArray());
+
+    StatusType status = client.getServerStatus();
+
+    assertThat(status).isNotNull();
+    assertThat(status.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+    assertThat(status.getFamily()).isEqualTo(Status.BAD_REQUEST.getFamily());
+    assertThat(status.getReasonPhrase()).isEqualTo("Bad Request. Not a valid Nexus Repository Manager 3 server.");
+  }
+
+  @Test
   public void testGetServerStatus_Unauthorized() throws Exception {
     nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/status"))
-        .willReturn(aResponse().withStatus(401)));
+        .willReturn(aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
+            NexusRepository3ClientTest.NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(401)));
 
     RepositoryClient client = factory.create().forNexus3(baseUrl, "BLAH", "BLAH".toCharArray());
     assertThat(client.getServerStatus()).isEqualTo(Status.UNAUTHORIZED);

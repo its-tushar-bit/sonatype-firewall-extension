@@ -9,12 +9,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.Status.Family;
+import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
@@ -57,6 +60,10 @@ public class NexusRepository3Client
 
   public static final String NXRM_STATUS_RESOURCE = "/service/rest/v1/status";
 
+  public static final String NXRM_VERSION_HEADER_NAME = "Server";
+
+  private static final String NXRM_VERSION_HEADER_CONTENT_LOWERCASE = "nexus";
+
   NexusRepository3Client(final Configuration configuration) {
     super(configuration);
   }
@@ -95,8 +102,27 @@ public class NexusRepository3Client
    * @throws IOException
    */
   @Override
-  public Status getServerStatus() throws IOException {
+  public StatusType getServerStatus() throws IOException {
     Result result = path(NXRM_STATUS_RESOURCE).get();
+    String server = result.header(NXRM_VERSION_HEADER_NAME);
+    if (server == null || !server.toLowerCase(Locale.ROOT).contains(NXRM_VERSION_HEADER_CONTENT_LOWERCASE)) {
+      return new StatusType() {
+        @Override
+        public int getStatusCode() {
+          return Status.BAD_REQUEST.getStatusCode();
+        }
+
+        @Override
+        public Family getFamily() {
+          return Status.BAD_REQUEST.getFamily();
+        }
+
+        @Override
+        public String getReasonPhrase() {
+          return Status.BAD_REQUEST.getReasonPhrase() + ". Not a valid Nexus Repository Manager 3 server.";
+        }
+      };
+    }
     return Status.fromStatusCode(result.status());
   }
 

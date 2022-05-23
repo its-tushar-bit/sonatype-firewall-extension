@@ -22,6 +22,8 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
+import com.sonatype.insight.brain.repository.client.NexusRepository3Client;
+import com.sonatype.insight.brain.repository.client.NexusRepository3ClientTest;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -410,7 +412,8 @@ public class ApiRepositoryConnectionResourceTest
 
     nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE))
         .withBasicAuth("user", "pass")
-        .willReturn(aResponse().withStatus(200)));
+        .willReturn(aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
+            NexusRepository3ClientTest.NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(200)));
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId)
@@ -429,7 +432,8 @@ public class ApiRepositoryConnectionResourceTest
 
     nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE))
         .withBasicAuth("user", "pass")
-        .willReturn(aResponse().withStatus(401)));
+        .willReturn(aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
+            NexusRepository3ClientTest.NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(401)));
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId)
@@ -481,7 +485,8 @@ public class ApiRepositoryConnectionResourceTest
     nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE))
         .withBasicAuth(repositoryConnection.getUsername(),
             String.valueOf(pwHandler.decryptPassword(repositoryConnection.getPassword())))
-        .willReturn(aResponse().withStatus(200)));
+        .willReturn(aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
+            NexusRepository3ClientTest.NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(200)));
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId, repositoryConnection.getId())
@@ -503,7 +508,8 @@ public class ApiRepositoryConnectionResourceTest
     nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE))
         .withBasicAuth(repositoryConnection.getUsername(),
             String.valueOf(pwHandler.decryptPassword(repositoryConnection.getPassword())))
-        .willReturn(aResponse().withStatus(401)));
+        .willReturn(aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
+            NexusRepository3ClientTest.NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(401)));
 
     HttpResponse response = restRequest().path(DefaultRepositoryConnectionResource.BY_REPOSITORY_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId, repositoryConnection.getId())

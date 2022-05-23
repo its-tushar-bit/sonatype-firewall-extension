@@ -13,7 +13,7 @@ public class ApiStatusDTO
 
   public String message;
 
-  public static ApiStatusDTO fromStatus(Response.Status status) {
+  public static ApiStatusDTO fromStatusType(Response.StatusType status) {
     ApiStatusDTO dto = new ApiStatusDTO();
     dto.code = status.getStatusCode();
     dto.message = status.getReasonPhrase();

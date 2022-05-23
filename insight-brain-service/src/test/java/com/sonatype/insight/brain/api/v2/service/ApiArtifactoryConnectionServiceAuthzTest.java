@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerArtifactoryConnectionDTO;
@@ -219,7 +220,7 @@ public class ApiArtifactoryConnectionServiceAuthzTest
     dto.baseUrl = "baseUrl";
     dto.username = "user";
     dto.password = "pass";
-    Status status = artifactoryConnectionService.testArtifactoryConnection(OwnerType.APPLICATION, app.getId(), dto);
+    StatusType status = artifactoryConnectionService.testArtifactoryConnection(OwnerType.APPLICATION, app.getId(), dto);
 
     assertThat(status).isEqualTo(Status.OK);
   }

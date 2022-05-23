@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiArtifactoryConnectionStatusRequestDTO;
@@ -272,7 +273,7 @@ public class ApiArtifactoryConnectionService
   }
 
   @Authorize(permission = Permission.READ)
-  public Status testArtifactoryConnection(
+  public StatusType testArtifactoryConnection(
       @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
       @SuppressWarnings("unused") @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       ApiArtifactoryConnectionDTO artifactoryConnectionDTO)
@@ -283,7 +284,7 @@ public class ApiArtifactoryConnectionService
   }
 
   @Authorize(permission = Permission.READ)
-  public Status testArtifactoryConnection(
+  public StatusType testArtifactoryConnection(
       @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
       @SuppressWarnings("unused") @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
       String artifactoryConnectionId)
@@ -345,7 +346,7 @@ public class ApiArtifactoryConnectionService
     return dto;
   }
 
-  private Status testArtifactoryConnection(String baseUrl, String username, char[] password) {
+  private StatusType testArtifactoryConnection(String baseUrl, String username, char[] password) {
     AuditData.get().setData(ARTIFACTORY_URL_AUDIT_KEY, baseUrl);
     ArtifactoryClient client = artifactoryClientFactory.create().forArtifactory(baseUrl, username, password);
     try {

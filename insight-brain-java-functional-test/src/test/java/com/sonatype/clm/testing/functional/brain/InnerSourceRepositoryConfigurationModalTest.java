@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
+import com.sonatype.insight.brain.repository.client.NexusRepository3Client;
 import com.sonatype.insight.brain.security.PasswordHandler;
 
 import com.codeborne.selenide.Condition;
@@ -39,6 +40,8 @@ public class InnerSourceRepositoryConfigurationModalTest
 {
   @Rule
   public WireMockRule nxrm3MockSever = new WireMockRule(wireMockConfig().dynamicPort());
+
+  public static final String NXRM_VERSION_HEADER_MOCK_VALUE = "Nexus/3.37.3-02 (PRO)";
 
   private final RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
 
@@ -271,7 +274,9 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     modal.baseUrl().input().setValue(nxrm3MockSever.baseUrl());
 
-    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE)).willReturn(aResponse().withStatus(200)));
+    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE)).willReturn(
+        aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
+            NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(200)));
 
     modal.test().click();
 
@@ -288,7 +293,9 @@ public class InnerSourceRepositoryConfigurationModalTest
     InnerSourceRepositoryConfigurationModal modal = new InnerSourceRepositoryConfigurationModal();
 
     modal.baseUrl().input().setValue(nxrm3MockSever.baseUrl());
-    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE)).willReturn(aResponse().withStatus(404)));
+    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE)).willReturn(
+        aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
+            NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(404)));
 
     modal.test().click();
 
@@ -313,7 +320,9 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     InnerSourceRepositoryConfigurationModal modal = new InnerSourceRepositoryConfigurationModal();
 
-    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE)).willReturn(aResponse().withStatus(200)));
+    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE)).willReturn(
+        aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
+            NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(200)));
     modal.test().click();
 
     modal.getElement().find(".nx-alert--success").shouldBe(Condition.visible)
@@ -337,7 +346,9 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     repositoryConnectionRow.edit().click();
 
-    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE)).willReturn(aResponse().withStatus(404)));
+    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE)).willReturn(
+        aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
+            NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(404)));
 
     modal.test().click();
 
@@ -360,7 +371,9 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     repositoryConnectionRow.edit().click();
 
-    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE)).willReturn(aResponse().withStatus(200)));
+    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE)).willReturn(
+        aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
+            NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(200)));
 
     InnerSourceRepositoryConfigurationModal modal = new InnerSourceRepositoryConfigurationModal();
 
@@ -388,7 +401,9 @@ public class InnerSourceRepositoryConfigurationModalTest
 
     repositoryConnectionRow.edit().click();
 
-    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE)).willReturn(aResponse().withStatus(404)));
+    nxrm3MockSever.stubFor(get(urlPathMatching(NXRM_STATUS_RESOURCE)).willReturn(
+        aResponse().withHeader(NexusRepository3Client.NXRM_VERSION_HEADER_NAME,
+            NXRM_VERSION_HEADER_MOCK_VALUE).withStatus(404)));
 
     InnerSourceRepositoryConfigurationModal modal = new InnerSourceRepositoryConfigurationModal();
 

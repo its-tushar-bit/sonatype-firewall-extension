@@ -24,6 +24,8 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 public class ArtifactoryMockServerRule
     extends ExternalResource
 {
+  public static final String ARTIFACTORY_VERSION_HEADER_MOCK_VALUE = "Artifactory/7.37.14 73714900";
+
   private WireMockServer artifactoryMockServer;
 
   private String path;
@@ -56,7 +58,7 @@ public class ArtifactoryMockServerRule
     this.path = path;
   }
 
-  private String getUrlPath(String path) {
+  public String getUrlPath(String path) {
     return this.path + path;
   }
 
@@ -64,7 +66,9 @@ public class ArtifactoryMockServerRule
     artifactoryMockServer.stubFor(
         get(urlPathMatching(getUrlPath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)))
             .withQueryParam(checksumType.name().toLowerCase(Locale.ROOT), equalTo(checksum))
-            .willReturn(aResponse().withBody(JsonUtils.format(results)).withStatus(200))
+            .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_VERSION_HEADER_NAME,
+                    ARTIFACTORY_VERSION_HEADER_MOCK_VALUE)
+                .withBody(JsonUtils.format(results)).withStatus(200))
     );
   }
 
@@ -79,7 +83,9 @@ public class ArtifactoryMockServerRule
         get(urlPathMatching(getUrlPath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)))
             .withBasicAuth(username, String.valueOf(password))
             .withQueryParam(checksumType.name().toLowerCase(Locale.ROOT), equalTo(checksum))
-            .willReturn(aResponse().withBody(JsonUtils.format(results)).withStatus(200))
+            .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_VERSION_HEADER_NAME,
+                    ARTIFACTORY_VERSION_HEADER_MOCK_VALUE)
+                .withBody(JsonUtils.format(results)).withStatus(200))
     );
   }
 
@@ -91,7 +97,9 @@ public class ArtifactoryMockServerRule
     artifactoryMockServer.stubFor(
         get(urlPathMatching(getUrlPath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)))
             .withQueryParam(checksumType.name().toLowerCase(Locale.ROOT), equalTo(checksum))
-            .willReturn(aResponse().withBody(JsonUtils.format(errors)).withStatus(errors.errors.get(0).status))
+            .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_VERSION_HEADER_NAME,
+                    ARTIFACTORY_VERSION_HEADER_MOCK_VALUE)
+                .withBody(JsonUtils.format(errors)).withStatus(errors.errors.get(0).status))
     );
   }
 
@@ -99,7 +107,8 @@ public class ArtifactoryMockServerRule
     artifactoryMockServer.stubFor(
         get(urlPathMatching(getUrlPath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)))
             .withQueryParam(checksumType.name().toLowerCase(Locale.ROOT), equalTo(checksum))
-            .willReturn(aResponse().withStatus(status))
+            .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_VERSION_HEADER_NAME,
+                ARTIFACTORY_VERSION_HEADER_MOCK_VALUE).withStatus(status))
     );
   }
 }

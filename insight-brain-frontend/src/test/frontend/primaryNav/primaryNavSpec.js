@@ -5,18 +5,9 @@
  */
 import navigationContainerModule from 'MainRoot/navigationContainer/module';
 import legacyConfigurationModule from 'MainRoot/LegacyConfigurationModule';
-import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 describe('navigationContainerSpec', function () {
-  var $scope,
-    $rootScope,
-    $ngRedux,
-    unsubscribeSpy,
-    mockCurrentUser,
-    loginDeferred,
-    vm,
-    clmServerVersion,
-    fetchProductFeaturesSpy;
+  var $scope, $rootScope, $ngRedux, unsubscribeSpy, mockCurrentUser, loginDeferred, vm, clmServerVersion;
 
   beforeEach(
     angular.mock.module(navigationContainerModule.name, legacyConfigurationModule.name, function ($provide) {
@@ -37,7 +28,6 @@ describe('navigationContainerSpec', function () {
     };
 
     $ngRedux.dispatch = jasmine.createSpy('dispatch');
-    fetchProductFeaturesSpy = spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
 
     vm = $componentController('navigationContainer', {
       CurrentUser: mockCurrentUser,
@@ -146,14 +136,6 @@ describe('navigationContainerSpec', function () {
       expect(output.isDashboardSupported).toBeTrue();
       expect(output.isReportListSupported).toBeTrue();
     });
-  });
-
-  it('calls fetchProductFeaturesIfNeeded action on init', function () {
-    vm.$onInit();
-    loginDeferred.resolve();
-    $scope.$digest();
-
-    expect(fetchProductFeaturesSpy).toHaveBeenCalled();
   });
 
   it('calls unsubscribe when the $scope is destroyed', function () {

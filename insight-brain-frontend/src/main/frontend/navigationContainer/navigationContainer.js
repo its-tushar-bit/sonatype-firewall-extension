@@ -7,7 +7,6 @@ import { path } from 'ramda';
 import template from './navigationContainer.html';
 import { load as loadAdvancedSearchConfig } from '../configuration/advancedSearch/advancedSearchConfigActions';
 import { loadConfiguration as loadSuccessMetricsConfig } from '../configuration/successMetricsConfiguration/successMetricsConfigurationActions';
-import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import {
   selectIsAdvancedLegalPackSupported,
   selectIsFirewallSupportedForNavigationContainer,
@@ -56,7 +55,6 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
     CurrentUser.waitForLogin().then(function () {
       $ngRedux.dispatch(loadAdvancedSearchConfig());
       $ngRedux.dispatch(loadSuccessMetricsConfig());
-      $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded());
     });
   }
 

@@ -60,10 +60,6 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
     it('subscribes to the redux store', () => {
       expect(vm.unsubscribe).toBeDefined();
     });
-
-    it('calls loadProductFeatures', () => {
-      expect(vm.loadProductFeatures).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe('on $destroy()', () => {
@@ -100,7 +96,6 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
       $timeout.flush();
 
       expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
-      expect(vm.loadProductFeatures).toHaveBeenCalled();
       expect(vm.currentConfiguration).toEqual(undefined);
       expect(vm.originalConfiguration).toEqual(undefined);
       expect(vm.statusMessage).toEqual(undefined);
@@ -110,7 +105,6 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
 
   describe('saving configuration', function () {
     it('saves configuration and reloads on success', function () {
-      vm.loadProductFeatures = jasmine.createSpy().and.returnValue([]);
       const oldConfig = {
         enabled: true,
         allowOverride: true,
@@ -131,7 +125,6 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
 
       expect(mockPolicyViolationGrandfatheringService.setGrandfathering).toHaveBeenCalledWith(newConfig);
       expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
-      expect(vm.loadProductFeatures).toHaveBeenCalled();
       expect(vm.currentConfiguration).toEqual(newConfig);
       expect(vm.originalConfiguration).toEqual(newConfig);
     });

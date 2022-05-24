@@ -5,7 +5,6 @@
  */
 import mainHeaderModule from 'MainRoot/mainHeader/module';
 import legacyConfigurationModule from 'MainRoot/LegacyConfigurationModule';
-import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { mapStateToThis } from 'MainRoot/mainHeader/mainHeader';
 
 describe('mainHeaderSpec', function () {
@@ -20,8 +19,7 @@ describe('mainHeaderSpec', function () {
     loginDeferred,
     unsubscribeSpy,
     vm,
-    clmServerVersion,
-    fetchProductFeaturesSpy;
+    clmServerVersion;
 
   beforeEach(
     angular.mock.module(mainHeaderModule.name, legacyConfigurationModule.name, function ($provide) {
@@ -48,8 +46,6 @@ describe('mainHeaderSpec', function () {
     mockPermissionService = {
       getValidPermissions: jasmine.createSpy().and.returnValue($q.resolve()),
     };
-
-    fetchProductFeaturesSpy = spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
 
     mockRouteStateUtilService = jasmine.createSpyObj('mockRouteStateUtilService', [
       'stateRequiresAuthenticationSync',
@@ -89,14 +85,6 @@ describe('mainHeaderSpec', function () {
       expect(output.isLabsDataInsightsEnabled).toBeTrue();
       expect(output.isSourceControlSupported).toBeTrue();
     });
-  });
-
-  it('calls fetchProductFeaturesIfNeeded action on init', function () {
-    vm.$onInit();
-    loginDeferred.resolve();
-    $scope.$digest();
-
-    expect(fetchProductFeaturesSpy).toHaveBeenCalled();
   });
 
   it('calls unsubscribe when the $scope is destroyed', function () {

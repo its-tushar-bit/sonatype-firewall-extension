@@ -61,10 +61,6 @@ describe('policy.editor.actions.controller', function () {
     it('calls loadActionStageTypes', () => {
       expect(vm.loadActionStageTypes).toHaveBeenCalledTimes(1);
     });
-
-    it('calls loadProductFeatures', () => {
-      expect(vm.loadProductFeatures).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe('$destroy()', () => {

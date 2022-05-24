@@ -4,9 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { findIndex, propEq } from 'ramda';
-import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
-import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { selectActionStagesLoadError, selectActionStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import {
@@ -75,7 +73,6 @@ export default function PolicyEditorNotificationsController(
     setRoleNotificationStageIdsAction: actions.setRoleNotificationStageIds,
     setJiraNotificationStageIdsAction: actions.setJiraNotificationStageIds,
     setWebhookNotificationStageIdsAction: actions.setWebhookNotificationStageIds,
-    loadProductFeatures: productFeaturesActions.fetchProductFeaturesIfNeeded,
   })(vm);
 
   vm.doLoad();
@@ -89,6 +86,25 @@ export default function PolicyEditorNotificationsController(
       return;
     }
     loadRecipients();
+  });
+
+  $scope.$watch('vm.isWebhooksSupported', function (newValue, oldValue) {
+    if (newValue !== oldValue && newValue) {
+      loadWebhooks().then((webhookResults) => {
+        if (!webhookResults || !vm.isWebhooksSupported) {
+          // webhooks is disabled or not licensed
+        } else if (webhookResults.webhookError) {
+          vm.webhookError = webhookResults.webhookError;
+        } else {
+          vm.webhooks = webhookResults.webhooks;
+        }
+
+        updateAvailableWebhooks();
+        if (vm.recipientTypeOptions.indexOf(vm.recipientTypes.WEBHOOK) === -1) {
+          vm.recipientTypeOptions.push(vm.recipientTypes.WEBHOOK);
+        }
+      });
+    }
   });
 
   function doLoad() {
@@ -113,32 +129,13 @@ export default function PolicyEditorNotificationsController(
           return getJiraDeferred.promise;
         }
       }),
-      vm.loadProductFeatures(),
     ];
 
     $q.all(promises)
       .then(
         function (results) {
-          unwrapResult(results[2]);
           vm.roles = results[0].membersByRole;
           var jiraResults = results[1];
-
-          if (vm.isWebhooksSupported) {
-            loadWebhooks().then((webhookResults) => {
-              if (!webhookResults || !vm.isWebhooksSupported) {
-                // webhooks is disabled or not licensed
-              } else if (webhookResults.webhookError) {
-                vm.webhookError = webhookResults.webhookError;
-              } else {
-                vm.webhooks = webhookResults.webhooks;
-              }
-
-              updateAvailableWebhooks();
-              if (vm.recipientTypeOptions.indexOf(vm.recipientTypes.WEBHOOK) === -1) {
-                vm.recipientTypeOptions.push(vm.recipientTypes.WEBHOOK);
-              }
-            });
-          }
 
           if (!jiraResults) {
             // JIRA is disabled

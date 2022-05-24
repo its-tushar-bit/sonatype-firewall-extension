@@ -23,7 +23,6 @@ import {
   selectIsEditMode,
   selectIsOrgOwner,
 } from './policySelectors';
-import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
 import { deriveEditRoute } from './utility/util';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
@@ -174,13 +173,8 @@ const loadApplicablePoliciesByOwner = createAsyncThunk(
 const loadPolicyEditor = createAsyncThunk(
   `${REDUCER_NAME}/loadPolicyEditor`,
   (_, { getState, rejectWithValue, dispatch }) => {
-    const promises = [
-      dispatch(actions.loadApplicablePoliciesByOwner()),
-      dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()),
-    ];
-
-    return Promise.all(promises)
-      .then(([loadApplicablePoliciesByOwnerAction]) => {
+    return dispatch(actions.loadApplicablePoliciesByOwner())
+      .then((loadApplicablePoliciesByOwnerAction) => {
         const { policiesByOwner } = unwrapResult(loadApplicablePoliciesByOwnerAction);
         const siblings = policiesByOwner.flatMap(prop('policies'));
 

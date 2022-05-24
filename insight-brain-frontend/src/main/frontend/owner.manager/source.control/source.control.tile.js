@@ -25,8 +25,6 @@ function SourceControlTileController(
   SameOwnerStateNavigationService,
   EventNameConstant,
   CLMContextLocations,
-  OrganizationStore,
-  ApplicationStore,
   $q,
   Messages,
   SourceControlService,
@@ -80,7 +78,8 @@ function SourceControlTileController(
 
     if (ownerPromise !== undefined) {
       const promises = [ownerPromise, vm.loadProductFeatures()];
-
+      // TODO: once SourceControlService is migrated to redux getting the owner from ownerPromise won't be necessary and vm.loadProductFeatures()
+      // won't be either as they can be gotten from a higher controller
       $q.all(promises)
         .then(function (results) {
           const siblings = unwrapResult(results[0]);
@@ -168,8 +167,6 @@ SourceControlTileController.$inject = [
   'SameOwnerStateNavigationService',
   'event.name.constant',
   'CLMContextLocations',
-  'OrganizationStore',
-  'ApplicationStore',
   '$q',
   'Messages',
   'SourceControlService',

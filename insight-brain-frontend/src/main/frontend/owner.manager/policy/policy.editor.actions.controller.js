@@ -5,7 +5,6 @@
  */
 import { omit } from 'ramda';
 import { actions } from 'MainRoot/OrgsAndPolicies/policySlice';
-import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import {
   selectIsEnforcementSupported,
@@ -25,7 +24,6 @@ export default function PolicyEditorActionsController($scope, $ngRedux) {
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadActionStageTypes: stagesActions.loadActionStages,
     setActions: actions.setActions,
-    loadProductFeatures: productFeaturesActions.fetchProductFeaturesIfNeeded,
   })(vm);
 
   vm.doLoad();
@@ -37,7 +35,6 @@ export default function PolicyEditorActionsController($scope, $ngRedux) {
   function doLoad() {
     delete vm.loadError;
     vm.loadActionStageTypes();
-    vm.loadProductFeatures();
   }
 
   function isEnforcementSupportedForStage(stage) {

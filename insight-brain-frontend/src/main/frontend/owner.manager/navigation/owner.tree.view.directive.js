@@ -3,8 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { unwrapResult } from '@reduxjs/toolkit';
-import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { selectIsSourceControlSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import template from './owner.tree.view.directive.html';
 
@@ -41,7 +39,6 @@ function OwnerTreeViewController(
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     ...scmOnboardingActions,
-    loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
   })(vm);
 
   $scope.$watch('vm.filter.value', filter, function (error) {
@@ -111,13 +108,10 @@ function OwnerTreeViewController(
     var loadPromises = [
       $http.get(CLMLocations.getOwnerListUrl()),
       PermissionService.isContextAuthorized(['READ'], 'repository_container'),
-      vm.loadProductFeatures(),
     ];
 
     $q.all(loadPromises).then(
       function (results) {
-        unwrapResult(results[2]);
-
         vm.organizations = results[0].data.organizations;
         vm.showRepositories = results[1];
 

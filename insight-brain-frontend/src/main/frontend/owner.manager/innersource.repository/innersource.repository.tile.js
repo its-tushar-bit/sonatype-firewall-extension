@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as innerSourceRepositoryBaseConfigurationsActions } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSlice';
 import {
   selectIsInnerSourceRepositorySupported,
@@ -31,7 +30,6 @@ function InnerSourceRepositoryTileController($scope, $ngRedux) {
   var vm = this;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-    loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
     loadRepositoryConnections: innerSourceRepositoryBaseConfigurationsActions.load,
   })(vm);
 

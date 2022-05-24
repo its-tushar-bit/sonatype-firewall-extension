@@ -47,7 +47,7 @@ describe('policyMonitoring reducer', () => {
 
       const newState = reducer(state, {
         type: 'policyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
-        payload: [applicablePolicyMonitoring, { policiesByOwner: [], actionStages: [] }],
+        payload: applicablePolicyMonitoring,
       });
 
       expect(newState.loading).toBeFalse();

@@ -11,7 +11,6 @@ import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getPolicyMonitoringUrl, getApplicablePolicyMonitoringUrl } from 'MainRoot/util/CLMLocation';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { selectPolicyMonitoringMonitoredStage } from './policyMonitoringSelectors';
-import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 const REDUCER_NAME = 'policyMonitoring';
 
@@ -30,12 +29,9 @@ export const initialState = {
 
 const loadApplicablePolicyMonitoring = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicablePolicyMonitoring`,
-  (_, { getState, dispatch, rejectWithValue }) => {
+  (_, { getState, rejectWithValue }) => {
     const { ownerType, ownerId } = selectOwnerProperties(getState());
-    return Promise.all([
-      axios.get(getApplicablePolicyMonitoringUrl(ownerType, ownerId)).then(prop('data')),
-      dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()),
-    ]).catch(rejectWithValue);
+    return axios.get(getApplicablePolicyMonitoringUrl(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
   }
 );
 
@@ -69,7 +65,7 @@ const loadApplicablePolicyMonitoringRequested = (state) => {
 };
 
 const loadApplicablePolicyMonitoringFulfilled = (state, { payload }) => {
-  const [{ policyMonitoringByOwner }] = payload;
+  const { policyMonitoringByOwner } = payload;
 
   state.loading = false;
   state.loadError = null;

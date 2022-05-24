@@ -51,19 +51,14 @@ describe('policyMonitoringActions', () => {
       });
 
       store.dispatch(actions.loadApplicablePolicyMonitoring()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(2);
+        expect(axios.get).toHaveBeenCalledTimes(1);
         expect(axios.get).toHaveBeenCalledWith('/rest/policyMonitoring/application/application/applicable');
-        expect(axios.get).toHaveBeenCalledWith('/rest/product/features');
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(6);
+        expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
           'policyMonitoring/loadApplicablePolicyMonitoring/pending',
-          'productFeatures/fetchProductFeaturesIfNeeded/pending',
-          'productFeatures/fetchProductFeatures/pending',
-          'productFeatures/fetchProductFeatures/fulfilled',
-          'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
           'policyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
         ]);
         done();
@@ -84,11 +79,9 @@ describe('policyMonitoringActions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(4);
+        expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
           'policyMonitoring/loadApplicablePolicyMonitoring/pending',
-          'productFeatures/fetchProductFeaturesIfNeeded/pending',
-          'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
           'policyMonitoring/loadApplicablePolicyMonitoring/rejected',
         ]);
         done();

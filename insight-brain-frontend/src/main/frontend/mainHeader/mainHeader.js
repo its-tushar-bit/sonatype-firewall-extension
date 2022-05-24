@@ -5,7 +5,6 @@
  */
 import { faUserAlt } from '@fortawesome/pro-regular-svg-icons';
 import template from './mainHeader.html';
-import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import {
   selectIsSourceControlSupported,
   selectIsDataInsightsSupported,
@@ -26,9 +25,7 @@ function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser
   vm.shouldShowLoginButton = false;
   vm.majorMinorVersion = globalMajorMinorVersion;
 
-  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-    fetchProductFeaturesIfNeeded: actions.fetchProductFeaturesIfNeeded,
-  })(vm);
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
 
   function hasAnyPermission() {
     return !angular.equals({}, vm.permissions);
@@ -61,10 +58,7 @@ function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser
         });
         vm.permissions = perms;
       });
-
-      vm.fetchProductFeaturesIfNeeded();
     });
-
     checkShowLoginButton();
   }
 

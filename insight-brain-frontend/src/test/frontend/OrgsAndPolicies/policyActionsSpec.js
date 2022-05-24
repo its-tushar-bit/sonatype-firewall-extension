@@ -273,18 +273,16 @@ describe('policy actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(7);
+        expect(actions.length).toBe(5);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadPolicyEditor/pending',
           'policy/loadApplicablePoliciesByOwner/pending',
-          'productFeatures/fetchProductFeaturesIfNeeded/pending',
           'policy/loadApplicablePoliciesByOwner/fulfilled',
-          'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
           'constraint/loadConstraint/pending',
           'policy/loadPolicyEditor/fulfilled',
         ]);
 
-        expect(actions[6].payload).toEqual({
+        expect(actions[4].payload).toEqual({
           readOnly: undefined,
           originalProxyStageAction: undefined,
           siblings: [
@@ -344,7 +342,7 @@ describe('policy actions', () => {
         const actions = store.getActions();
 
         expect(actions).toHaveActionType('policy/loadCategoriesForPolicy/pending');
-        expect(actions[9].payload).toEqual(jasmine.objectContaining({ isOrgOwner: true }));
+        expect(actions[7].payload).toEqual(jasmine.objectContaining({ isOrgOwner: true }));
 
         done();
       });
@@ -364,13 +362,11 @@ describe('policy actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(10);
+        expect(actions.length).toBe(8);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadPolicyEditor/pending',
           'policy/loadApplicablePoliciesByOwner/pending',
-          'productFeatures/fetchProductFeaturesIfNeeded/pending',
           'policy/loadApplicablePoliciesByOwner/fulfilled',
-          'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
           'constraint/loadConstraint/pending',
           'policy/loadCategoriesForPolicy/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
@@ -378,7 +374,7 @@ describe('policy actions', () => {
           'policy/loadPolicyEditor/fulfilled',
         ]);
 
-        expect(actions[9].payload).toEqual({
+        expect(actions[7].payload).toEqual({
           siblings: [
             {
               id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
@@ -457,13 +453,11 @@ describe('policy actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(6);
+        expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadPolicyEditor/pending',
           'policy/loadApplicablePoliciesByOwner/pending',
           'policy/loadApplicablePoliciesByOwner/rejected',
-          'productFeatures/fetchProductFeaturesIfNeeded/pending',
-          'productFeatures/fetchProductFeaturesIfNeeded/fulfilled',
           'policy/loadPolicyEditor/rejected',
         ]);
 

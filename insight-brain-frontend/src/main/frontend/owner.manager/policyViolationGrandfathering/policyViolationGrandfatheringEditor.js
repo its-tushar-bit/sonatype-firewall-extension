@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './policyViolationGrandfatheringEditor.html';
-import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default {
@@ -15,19 +14,17 @@ export default {
 
 function PolicyViolationGrandfatheringEditorController(
   $scope,
-  $q,
   Messages,
   CLMContextLocations,
   PolicyViolationGrandfatheringService,
   $ngRedux
 ) {
   const vm = this;
-  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-    loadProductFeatures: productFeaturesActions.fetchProductFeaturesIfNeeded,
-  })(vm);
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
 
   Object.assign(vm, {
     loadError: undefined,
+    loading: false,
     submitError: undefined,
     originalConfiguration: undefined,
     currentConfiguration: undefined,
@@ -39,15 +36,16 @@ function PolicyViolationGrandfatheringEditorController(
 
     doLoad() {
       delete vm.loadError;
-      const promises = [PolicyViolationGrandfatheringService.getGrandfathering(), vm.loadProductFeatures()];
-
-      $q.all(promises).then(
-        function (results) {
-          vm.originalConfiguration = results[0];
-          vm.currentConfiguration = angular.copy(results[0]);
+      vm.loading = true;
+      PolicyViolationGrandfatheringService.getGrandfathering().then(
+        function (result) {
+          vm.loading = false;
+          vm.originalConfiguration = result;
+          vm.currentConfiguration = angular.copy(result);
           vm.statusMessage = PolicyViolationGrandfatheringService.getStatusMessage(vm.originalConfiguration);
         },
         function (error) {
+          vm.loading = false;
           vm.loadError = Messages.getHttpErrorMessage(error);
         }
       );
@@ -88,7 +86,6 @@ export const mapStateToThis = (state) => ({
 
 PolicyViolationGrandfatheringEditorController.$inject = [
   '$scope',
-  '$q',
   'Messages',
   'CLMContextLocations',
   'policyViolationGrandfatheringService',

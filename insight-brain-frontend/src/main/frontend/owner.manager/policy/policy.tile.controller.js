@@ -77,8 +77,6 @@ export default function PolicyTileController(
         function (results) {
           vm.policiesByOwner = unwrapResult(results[0]).policiesByOwner;
           vm.actionStages = unwrapResult(results[1]).data;
-          unwrapResult(results[2]);
-          unwrapResult(results[3]);
 
           vm.policiesByOwner.forEach(function (policyOwner, index) {
             policyOwner.inherited = index > 0;

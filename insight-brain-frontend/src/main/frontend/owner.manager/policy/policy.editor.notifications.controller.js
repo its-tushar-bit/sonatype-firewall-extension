@@ -88,8 +88,8 @@ export default function PolicyEditorNotificationsController(
     loadRecipients();
   });
 
-  $scope.$watch('vm.isWebhooksSupported', function (newValue, oldValue) {
-    if (newValue !== oldValue && newValue) {
+  $scope.$watch('vm.isWebhooksSupported', function (newValue) {
+    if (newValue) {
       loadWebhooks().then((webhookResults) => {
         if (!webhookResults || !vm.isWebhooksSupported) {
           // webhooks is disabled or not licensed

@@ -364,7 +364,7 @@ public abstract class AbstractPolicyEditorTest
 
     // add jira notifications
     addNotification.notificationType().selectedItem().click();
-    addNotification.notificationType().listItem(2).click();
+    addNotification.notificationType().listItem(3).click();
     addNotification.addButton().shouldHave(DISABLED);
 
     addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)

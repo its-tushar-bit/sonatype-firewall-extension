@@ -74,6 +74,7 @@ export default function OwnerSummaryController(
   vm.getDisabledEvaluateTooltipMessage = getDisabledEvaluateTooltipMessage;
   vm.repositoryUrl = undefined;
   vm.scmProvider = undefined;
+  vm.loading = false;
 
   var siblings,
     stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
@@ -114,6 +115,7 @@ export default function OwnerSummaryController(
   });
 
   function doLoad() {
+    vm.loading = true;
     const promises = [vm.isApp ? vm.loadApplications(true) : vm.loadOrganizations(true), vm.loadProductFeatures()];
 
     if (vm.isApp) {
@@ -147,6 +149,9 @@ export default function OwnerSummaryController(
       })
       .catch((error) => {
         vm.error = error;
+      })
+      .finally(() => {
+        vm.loading = false;
       });
 
     delete vm.error;

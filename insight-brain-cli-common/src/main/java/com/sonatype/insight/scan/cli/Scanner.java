@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,7 +31,6 @@ import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.insight.scan.model.io.ScanWriter;
 import com.sonatype.insight.scan.model.io.ScanWriterFactory;
-import com.sonatype.insight.scan.module.model.Artifact;
 import com.sonatype.insight.scan.module.model.Dependency;
 import com.sonatype.insight.scan.module.model.Module;
 import com.sonatype.insight.scan.module.model.io.ModuleIoManager;
@@ -135,8 +133,6 @@ public class Scanner
       FileScanner fileScanner) throws IOException
   {
     List<Module> modules = getModules(moduleIndices);
-    Set<File> monitoredArtifactPaths = modules.stream().flatMap(module -> module.getConsumedArtifacts().stream())
-        .filter(Artifact::isMonitored).map(artifact -> new File(artifact.getPathname())).collect(Collectors.toSet());
 
     for (Module module : modules) {
       ModuleScanRequest scanRequest = createModuleScanRequest(scanSession);
@@ -146,10 +142,9 @@ public class Scanner
       scanRequest.setModule(module.getId(), module.getIdKind(), module.getPathname());
 
       module.getConsumedArtifacts().forEach(artifact -> {
-        File file = new File(artifact.getPathname());
-
-        if (monitoredArtifactPaths.contains(file)) {
+        if (artifact.isMonitored()) {
           String id = StringUtils.defaultIfBlank(artifact.getId(), "unknown:unknown:unknown");
+          File file = new File(artifact.getPathname());
           scanRequest.addConsumedFile(file, id);
         }
       });

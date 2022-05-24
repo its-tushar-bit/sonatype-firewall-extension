@@ -31,6 +31,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class ScannerTest
@@ -123,6 +124,7 @@ public class ScannerTest
         new File("path2\\commons-codec\\commons-codec\\1.11\\commons-codec-1.11.jar"),
         "commons-codec:commons-codec:jar:1.11"
     );
+    verify(moduleScanRequest1Spy, times(4)).addConsumedFile(any(), any());
     verify(moduleScanRequest1Spy).addDependency(
         "org.apache.httpcomponents:httpclient:jar:4.5.13",
         true,
@@ -143,6 +145,7 @@ public class ScannerTest
         true,
         Collections.emptyList()
     );
+
     verify(mockFileScanner).scan(moduleScanRequest1Spy);
     ModuleScanRequest moduleScanRequest2Spy = scanRequests.get(1);
     assertThat(moduleScanRequest2Spy.getScanSession()).isEqualTo(scanSession);
@@ -152,6 +155,7 @@ public class ScannerTest
         new File("path2\\com\\novell\\ldap\\jldap\\2009-10-07\\jldap-2009-10-07.jar"),
         "com.novell.ldap:jldap:jar:2009-10-07"
     );
+    verify(moduleScanRequest2Spy, times(1)).addConsumedFile(any(), any());
     verify(moduleScanRequest2Spy).addDependency(
         "com.novell.ldap:jldap:jar:2009-10-07",
         true,

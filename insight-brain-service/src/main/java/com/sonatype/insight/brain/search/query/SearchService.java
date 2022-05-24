@@ -154,10 +154,8 @@ public class SearchService
     try (Directory directory = openSearchIndex(); //
          IndexReader indexReader = DirectoryReader.open(directory)) {
 
-      if (isExportable) {
-        //Get all results
-        pageSize = Math.max(1, indexReader.maxDoc());
-      }
+      //Get all results
+      pageSize = isExportable ? Math.max(1, indexReader.maxDoc()) : pageSize;
 
       AuditData.get() //
           .setData("searchQuery", searchQuery) //
@@ -474,7 +472,7 @@ public class SearchService
       SearchResultItemDTO searchResultItemDTO,
       String baseUrl)
   {
-    List<String> row = new ArrayList<>(Collections.nCopies(15, ""));
+    List<String> row = new ArrayList<>(Collections.nCopies(16, ""));
 
     switch (ItemType.valueOf(searchResultItemDTO.itemType)) {
       case ORGANIZATION:
@@ -540,6 +538,7 @@ public class SearchService
         row.set(12, searchResultItemDTO.componentName);
         row.set(13, baseUrl + getReportUrl(searchResultItemDTO.applicationPublicId, searchResultItemDTO.reportId));
         row.set(14, baseUrl + getVulnerabilityDetailsUrl(searchResultItemDTO.vulnerabilityId));
+        row.set(15, searchResultItemDTO.policyEvaluationStage);
         break;
       case NON_VULNERABLE_COMPONENT:
         row.set(0, NON_VULNERABLE_COMPONENT.name());
@@ -547,6 +546,7 @@ public class SearchService
         row.set(4, baseUrl + getManagementPath(APPLICATION_PATH_VARIABLE, searchResultItemDTO.applicationPublicId));
         row.set(12, searchResultItemDTO.componentName);
         row.set(13, baseUrl + getReportUrl(searchResultItemDTO.applicationPublicId, searchResultItemDTO.reportId));
+        row.set(15, searchResultItemDTO.policyEvaluationStage);
         break;
       default:
         Collections.fill(row, "");

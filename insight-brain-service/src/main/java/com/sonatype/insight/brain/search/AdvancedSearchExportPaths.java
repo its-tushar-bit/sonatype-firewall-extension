@@ -14,7 +14,7 @@ public final class AdvancedSearchExportPaths
   public static final String[] EXPORT_SEARCH_HEADERS = {
       "Item Type", "Organization", "Organization Link", "Application", "Application Link", "Application Category",
       "Application Category Link", "Component Label", "Component Label Link", "Policy", "Threat",
-      "Policy Link", "Component Name", "Report", "Security Issue"
+      "Policy Link", "Component Name", "Report", "Security Issue", "Stage"
   };
 
   public static final String ORGANIZATION_PATH_VARIABLE = "organization";

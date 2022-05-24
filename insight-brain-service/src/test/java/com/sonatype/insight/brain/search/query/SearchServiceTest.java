@@ -422,7 +422,7 @@ public class SearchServiceTest
 
     assertThat(export).hasSize(8);
     assertThat(export.size() - 1).isEqualTo(results.size());
-    assertThat(export.get(0).split(",")).hasSize(15);
+    assertThat(export.get(0).split(",")).hasSize(16);
 
     Map<String, List<List<String>>> items = export.stream().skip(1)
         .map(s -> Arrays.stream(s.split(",")).collect(toList()))
@@ -449,7 +449,7 @@ public class SearchServiceTest
     baos = new ByteArrayOutputStream();
     stream.write(baos);
     export = Arrays.stream(baos.toString().split("\n")).collect(Collectors.toList());
-    assertThat(export.get(0).split(";")).hasSize(15);
+    assertThat(export.get(0).split(";")).hasSize(16);
   }
 
   private PolicyEvaluation newAppReport(String appId, String stageId, String reportId, String reportResourceName)

@@ -54,6 +54,7 @@ import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.collections.CollectionUtils;
 
 import static com.sonatype.insight.brain.api.experimental.legal.LegalComponentIdentifierUtil.removeClassifierAndExtension;
 
@@ -104,7 +105,9 @@ public class LegalReportBuilder
             componentLegalCommentsByComponentIdentifier,
             componentLegalFilesByComponentIdentifier,
             componentReportLegalMap,
-            componentSourceLinksMap);
+            componentSourceLinksMap,
+            multiLicenseToSingleLicense
+        );
     return new ApiLicenseLegalApplicationReportDTO(components, licenseLegalMetadata);
   }
 
@@ -142,7 +145,8 @@ public class LegalReportBuilder
         ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), componentLegalComments),
         ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), componentLegalFiles),
         ImmutableMap.of(apiReportComponentDTOV2, componentIdentifierLegalData),
-        ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), sourceLinks)
+        ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), sourceLinks),
+        multiLicenseToSingleLicense
     ).get(0);
 
     return new ApiLicenseLegalComponentReportDTO(componentDTO, licenseLegalMetadata);
@@ -154,7 +158,9 @@ public class LegalReportBuilder
       Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier,
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
       Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData> apiReportComponentDTOV2ComponentIdentifierLegalDataMap,
-      Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> sourceLinks)
+      Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> sourceLinks,
+      Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense
+  )
   {
     return apiComponentDTOV2s.stream()
         .filter(apiReportComponentDTOV2 -> apiReportComponentDTOV2.componentIdentifier != null)
@@ -178,7 +184,9 @@ public class LegalReportBuilder
                   componentIdentifierLegalData.getNoticeOverrides(),
                   componentIdentifierLegalData.getObligations(),
                   componentIdentifierLegalData.getAttributions(),
-                  sourceLinks.getOrDefault(key, new LinkedHashSet<>())),
+                  sourceLinks.getOrDefault(key, new LinkedHashSet<>()),
+                  multiLicenseToSingleLicense
+              ),
               componentIdentifierLegalData.getStageScans());
         })
         .collect(Collectors.toList());
@@ -198,7 +206,9 @@ public class LegalReportBuilder
       List<LegalFileOverride> noticeOverrides,
       List<ComponentObligation> obligations,
       List<ComponentObligationAttribution> attributions,
-      Set<LegalSourceLinkDTO> sourceLinks)
+      Set<LegalSourceLinkDTO> sourceLinks,
+      Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense
+  )
   {
     if (apiLicenseDataDTOV2 == null) {
       return null;
@@ -212,7 +222,8 @@ public class LegalReportBuilder
         getCopyrights(componentLegalComments, copyrightOverrides),
         getLegalFiles(LegalFileType.LICENSE, componentLegalFiles, licenseOverrides),
         getLegalFiles(LegalFileType.NOTICE, componentLegalFiles, noticeOverrides),
-        getObligations(obligations, apiLicenseDataDTOV2.effectiveLicenses, licenseLegalMetadata),
+        getObligations(obligations, apiLicenseDataDTOV2.effectiveLicenses, licenseLegalMetadata,
+            multiLicenseToSingleLicense),
         getAttributions(attributions),
         sourceLinks,
         apiLicenseDataDTOV2.status,
@@ -313,12 +324,22 @@ public class LegalReportBuilder
   private List<ApiLicenseLegalObligationDTO> getObligations(
       final List<ComponentObligation> obligations,
       final List<ApiLicenseDTO> effectiveLicenses,
-      final Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata)
+      final Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata,
+      final Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense
+  )
   {
     List<ApiLicenseLegalObligationDTO> licenseLegalObligation = new ArrayList<>();
     Set<String> obligationNames = new HashSet<>();
     for (ApiLicenseDTO licenseDTO : effectiveLicenses) {
-      obligationNames.addAll(getObligationNamesForLicense(licenseDTO.licenseId, licenseLegalMetadata));
+      Set<License> singleLicenses = multiLicenseToSingleLicense.get(licenseDTO);
+      if (CollectionUtils.isNotEmpty(singleLicenses)) {
+        obligationNames.addAll(singleLicenses.stream()
+            .flatMap(license -> getObligationNamesForLicense(license.getId(), licenseLegalMetadata).stream())
+            .collect(Collectors.toSet()));
+      }
+      else {
+        obligationNames.addAll(getObligationNamesForLicense(licenseDTO.licenseId, licenseLegalMetadata));
+      }
     }
 
     Map<String, ComponentObligation> nameToObligation = obligations.stream()

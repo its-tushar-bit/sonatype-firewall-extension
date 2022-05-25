@@ -2456,6 +2456,68 @@ public class ApiLicenseLegalServiceTest
   }
 
   @Test
+  public void testGetLicenseLegalComponentReport_multiLicense_mergeObligations() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c", "e");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails(
+        Arrays.asList("BSD-3-Clause-GPL-2.0"),
+        Arrays.asList("MIT"));
+
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+
+    Set<String> licenses =  new LinkedHashSet<>(Arrays.asList("MIT", "BSD-3-Clause", "GPL-2.0"));
+    List<LicenseMetadataDTO> licenseMetadataDTOs = createLicenseMetadataDTOs(licenses);
+    licenseMetadataDTOs.get(0).setLicenseObligations(new LinkedHashSet<>(
+        Arrays.asList(
+            new LicenseObligationDTO("a", Collections.emptySet()),
+            new LicenseObligationDTO("b", Collections.emptySet()),
+            new LicenseObligationDTO("c", Collections.emptySet())
+        )));
+    licenseMetadataDTOs.get(1).setLicenseObligations(new LinkedHashSet<>(Arrays
+        .asList(
+            new LicenseObligationDTO("x", Collections.emptySet()),
+            new LicenseObligationDTO("y", Collections.emptySet())
+        )));
+    licenseMetadataDTOs.get(2).setLicenseObligations(Collections.emptySet());
+    doReturn(licenseMetadataDTOs)
+        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(argThat(list -> list.containsAll(licenses)));
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    assertThat(licenseLegalComponentReport.licenseLegalMetadata).isNotNull().isNotEmpty().hasSize(4);
+    assertThat(licenseLegalComponentReport.licenseLegalMetadata)
+        .extracting(dto -> dto.licenseId)
+        .containsExactlyInAnyOrder("MIT", "GPL-2.0", "BSD-3-Clause", "BSD-3-Clause-GPL-2.0");
+
+    licenseLegalComponentReport.licenseLegalMetadata.stream().map( l ->  {
+      LicenseObligationDTO[] tmpObligationDTOs = l.obligations
+          .toArray(new LicenseObligationDTO[l.obligations.size()]);
+      if (l.licenseId.equals("MIT")) {
+        assertThat(tmpObligationDTOs).hasSize(3);
+        assertThat(tmpObligationDTOs[0].getName()).isEqualTo("a");
+        assertThat(tmpObligationDTOs[1].getName()).isEqualTo("b");
+        assertThat(tmpObligationDTOs[2].getName()).isEqualTo("c");
+      }
+      else if (l.licenseId.equals("GPL-2.0")) {
+        assertThat(tmpObligationDTOs).isEmpty();
+      }
+      else if (l.licenseId.equals("BSD-3-Clause")) {
+        assertThat(tmpObligationDTOs).hasSize(2);
+        assertThat(tmpObligationDTOs[0].getName()).isEqualTo("x");
+        assertThat(tmpObligationDTOs[1].getName()).isEqualTo("y");
+      }
+      else if (l.licenseId.equals("BSD-3-Clause-GPL-2.0")) {
+        assertThat(tmpObligationDTOs).isEmpty();
+      }
+      return l;
+    }).collect(Collectors.toSet());
+  }
+
+  @Test
   public void testGetLicenseLegalComponentReport_HasHighestEffectiveLicenseThreatGroup_overrides() throws Exception {
     Owner owner = tempEntity.newApplicationWithParent();
 

@@ -183,8 +183,8 @@ public class ApiPolicyViolationServiceV2
       apiApplicationViolationListDTOV2.applicationViolations.add(apiApplicationViolationDTOV2);
     }
 
-    log.debug("Retrieved policy violations for {} applications and {} policies in {} ms", applicationIds.size(),
-        policyIds.size(), System.currentTimeMillis() - start);
+    log.debug("Retrieved {} policy violations for {} applications and {} policies in {} ms", policyViolations.size(),
+        applicationIds.size(), policyIds.size(), System.currentTimeMillis() - start);
 
     return apiApplicationViolationListDTOV2;
   }

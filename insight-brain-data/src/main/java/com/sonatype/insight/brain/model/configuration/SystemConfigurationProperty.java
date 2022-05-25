@@ -46,6 +46,8 @@ public class SystemConfigurationProperty
 
   public static final String CROWD_INTEGRATION = "CROWD_INTEGRATION";
 
+  public static final String TRANSITIVE_SOLVER_DISABLED = "TRANSITIVE_SOLVER_DISABLED";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

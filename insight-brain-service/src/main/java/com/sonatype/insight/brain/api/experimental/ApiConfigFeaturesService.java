@@ -32,6 +32,8 @@ public class ApiConfigFeaturesService
 
   static final String FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION = "vulnerabilitySource";
 
+  static final String FEATURE_TRANSITIVE_SOLVER = "transitiveSolver";
+
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   /**
@@ -72,7 +74,8 @@ public class ApiConfigFeaturesService
     VULNERABILITY_SOURCE(
         SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED, true, true),
     BUILT_FROM_SOURCE(SystemConfigurationProperty.BUILT_FROM_SOURCE, false),
-    CROWD_INTEGRATION(SystemConfigurationProperty.CROWD_INTEGRATION, true);
+    CROWD_INTEGRATION(SystemConfigurationProperty.CROWD_INTEGRATION, true), 
+    TRANSITIVE_SOLVER(SystemConfigurationProperty.TRANSITIVE_SOLVER_DISABLED, false);
 
     private final String propertyName;
 
@@ -224,6 +227,8 @@ public class ApiConfigFeaturesService
         return SystemConfigurationProperty.REPORTS_LIST_DISABLED;
       case FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION:
         return SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
+      case FEATURE_TRANSITIVE_SOLVER:
+        return SystemConfigurationProperty.TRANSITIVE_SOLVER_DISABLED;
       default:
         return feature;
     }

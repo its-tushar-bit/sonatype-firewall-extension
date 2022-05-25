@@ -21,9 +21,11 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_DASHBOARD;
 import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_REPORTS_LIST;
 import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION;
+import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_TRANSITIVE_SOLVER;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.REPORTS_LIST_DISABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.TRANSITIVE_SOLVER_DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -53,6 +55,7 @@ public class ApiConfigFeaturesServiceTest
     assertThat(service.getPropertyNameForFeature(FEATURE_REPORTS_LIST)).isEqualTo(REPORTS_LIST_DISABLED);
     assertThat(service.getPropertyNameForFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION)).isEqualTo(
         SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED);
+    assertThat(service.getPropertyNameForFeature(FEATURE_TRANSITIVE_SOLVER)).isEqualTo(TRANSITIVE_SOLVER_DISABLED);
     assertThat(service.getPropertyNameForFeature("default-value")).isEqualTo("default-value");
   }
 
@@ -81,11 +84,41 @@ public class ApiConfigFeaturesServiceTest
         SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED);
     assertThat(service.getSystemConfigurationPropertyFeature(REPORTS_LIST_DISABLED)).isEqualTo(
         SystemConfigurationPropertyFeature.REPORTS_LIST_CAN_BE_ENABLED);
+    assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_TRANSITIVE_SOLVER))
+        .isEqualTo(SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER);
     assertThat(service.getSystemConfigurationPropertyFeature(
         SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED)).isEqualTo(
         SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE);
     assertThatThrownBy(() -> service.getSystemConfigurationPropertyFeature("bogus-feature")).isInstanceOf(
         BadRequestException.class).hasMessage("Feature not supported: bogus-feature");
+  }
+
+  @Test
+  public void testEnableTransitive_solver_feature() {
+    service.enableFeature(FEATURE_TRANSITIVE_SOLVER);
+    assertThat(systemConfigurationPropertyDAO.getByName(TRANSITIVE_SOLVER_DISABLED).getValue()).isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableTransitive_solver_feature_AlreadyEnabled() {
+    tempEntity.newSystemConfigurationProperty(TRANSITIVE_SOLVER_DISABLED, "true");
+    assertThatThrownBy(() -> {
+      service.enableFeature(FEATURE_TRANSITIVE_SOLVER);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableTransitive_solver_feature() {
+    tempEntity.newSystemConfigurationProperty(TRANSITIVE_SOLVER_DISABLED, "true");
+    service.disableFeature(FEATURE_TRANSITIVE_SOLVER);
+    assertThat(systemConfigurationPropertyDAO.getByName(TRANSITIVE_SOLVER_DISABLED)).isNull();
+  }
+
+  @Test
+  public void testDisableTransitive_solver_feature_AlreadyDisabled() {
+    assertThatThrownBy(() -> {
+      service.disableFeature(FEATURE_TRANSITIVE_SOLVER);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
   @Test

@@ -20,6 +20,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChang
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -280,6 +282,8 @@ public class ComponentRemediationServiceTest
     policy.addConstraint(constraint);
     policy.setAction(DevelopStageType.ID, Action.ID_WARN);
     tempEntity.newPolicy(policy);
+
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.TRANSITIVE_SOLVER_DISABLED, "false");
   }
 
   private ComponentDetails buildComponentDetails(ComponentIdentifier identifier, List<PolicyAlert> alerts) {
@@ -298,6 +302,16 @@ public class ComponentRemediationServiceTest
         .thenReturn(includeAdvancedStrategies);
   }
 
+  private void turnOffTransitiveSolver(boolean turnOffTransitiveSolver) {
+    boolean status = SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.getPropertyValue();
+    if (turnOffTransitiveSolver && !status) {
+      SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.setEnabled(true);
+    }
+    if (!turnOffTransitiveSolver && status) {
+      SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.setEnabled(false);
+    }
+  }
+
   /*
    --- Advanced strategies = false ---
    */
@@ -309,11 +323,26 @@ public class ComponentRemediationServiceTest
    * a1v1 has failing alert, a1v2 has warning alert, and a1v3 has no alerts.
    */
   @Test
-  public void testGetSuggestedRemediation_NoAdvanced_NoDependencies() {
+  public void testGetSuggestedRemediation_Advanced_NoDependencies_NoTransitive() {
+    testGetSuggestedRemediation_NoDependencies(true, true);
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_NoAdvanced_NoDependencies_TransitiveEnabled() {
+    testGetSuggestedRemediation_NoDependencies(false, false);
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_NoAdvanced_NoDependencies_NoTransitive() {
+    testGetSuggestedRemediation_NoDependencies(false, true);
+  }
+
+  public void testGetSuggestedRemediation_NoDependencies(boolean advanced, boolean disableTransitiveSolver) {
+    turnOffTransitiveSolver(disableTransitiveSolver);
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>());
     List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3);
     mockHdsGetComponentDependencies(returnDto);
-    mockLicenseFeature(false);
+    mockLicenseFeature(advanced);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
         allVersions, org.getType(), org.getId(), DevelopStageType.ID);
 
@@ -334,7 +363,22 @@ public class ComponentRemediationServiceTest
    * a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts, and a2v4 has no alerts.
    */
   @Test
-  public void testGetSuggestedRemediation_NoAdvanced_WithDependencies() {
+  public void testGetSuggestedRemediation_Advanced_WithDependencies_NoTransitive() {
+    testGetSuggestedRemediation_WithDependencies(true, true);
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_NoAdvanced_WithDependencies_TransitiveEnabled() {
+    testGetSuggestedRemediation_WithDependencies(false, false);
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_NoAdvanced_WithDependencies_NoTransitive() {
+    testGetSuggestedRemediation_WithDependencies(false, true);
+  }
+
+  public void testGetSuggestedRemediation_WithDependencies(boolean advanced, boolean disableTransitiveSolver) {
+    turnOffTransitiveSolver(disableTransitiveSolver);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -352,7 +396,7 @@ public class ComponentRemediationServiceTest
     List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3,
         detailsDtoA1V4);
     mockHdsGetComponentDependencies(returnDto);
-    mockLicenseFeature(false);
+    mockLicenseFeature(advanced);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V2,
         allVersions, org.getType(), org.getId(), DevelopStageType.ID);
 
@@ -373,6 +417,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_NoDependencies() {
+    turnOffTransitiveSolver(false);
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>());
     List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3);
     mockHdsGetComponentDependencies(returnDto);
@@ -396,6 +441,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_EmptyDependencies() {
+    turnOffTransitiveSolver(false);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
 
     dependenciesMap.put(purlA1V1, Collections.emptyList());
@@ -428,6 +474,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_NonMaven() {
+    turnOffTransitiveSolver(false);
     ComponentIdentifier compIdNgA1 = ComponentIdentifier.createNugetCoordinates("a1", "v");
     ComponentIdentifier compIdNgA2 = ComponentIdentifier.createNugetCoordinates("a2", "v");
     ComponentIdentifier compIdNgA3 = ComponentIdentifier.createNugetCoordinates("a3", "v");
@@ -487,6 +534,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_NoStage() {
+    turnOffTransitiveSolver(false);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -526,6 +574,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_CurrentVersionNotFirstInAllVersions() {
+    turnOffTransitiveSolver(false);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -569,6 +618,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_CurrentVersionLastInAllVersions() {
+    turnOffTransitiveSolver(false);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -607,6 +657,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_CurrentVersionNonViolatingWithDependencies() {
+    turnOffTransitiveSolver(false);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -638,6 +689,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_CurrentVersionNonFailingWithDependencies() {
+    turnOffTransitiveSolver(false);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -668,6 +720,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_AllViolating() {
+    turnOffTransitiveSolver(false);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -701,6 +754,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_AllFailing() {
+    turnOffTransitiveSolver(false);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -717,7 +771,7 @@ public class ComponentRemediationServiceTest
         allVersions, org.getType(), org.getId(), DevelopStageType.ID);
 
     assertRemediations(dto, null);
-    assertThat(dto.versionChanges).hasSize(0);
+    assertThat(dto.versionChanges).isEmpty();
   }
 
   /**
@@ -728,6 +782,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_SingleVersion_DependenciesFailing() {
+    turnOffTransitiveSolver(false);
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -757,6 +812,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_WithClassifier() {
+    turnOffTransitiveSolver(false);
     PackageUrlIdentifier purlA1V11WithClassifier = PackageUrlIdentifier.fromComponentIdentifier(
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v11", "c1", "jar"));
     PackageUrlIdentifier purlA2V11WithClassifier = PackageUrlIdentifier.fromComponentIdentifier(
@@ -797,6 +853,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_NullClassifier() {
+    turnOffTransitiveSolver(false);
     PackageUrlIdentifier purlA1V11NullClassifier = PackageUrlIdentifier.fromComponentIdentifier(
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v11", null, "jar"));
     PackageUrlIdentifier purlA2V11NullClassifier = PackageUrlIdentifier.fromComponentIdentifier(
@@ -836,6 +893,7 @@ public class ComponentRemediationServiceTest
    */
   @Test
   public void testGetSuggestedRemediation_Advanced_DependencyTypePolicy() {
+    turnOffTransitiveSolver(false);
     new PolicyDAO().delete(policyG1A2V1);
     Policy policy = new Policy("policyG1A2V1", "policyG1A2V1");
     policy.setOwnerId(org.getParentOwnerId());
@@ -939,6 +997,7 @@ public class ComponentRemediationServiceTest
 
   @Test
   public void testGetSuggestedRemediation_InvalidPackageURLException_BadRequestException() {
+    turnOffTransitiveSolver(false);
     ComponentIdentifier currentComponent = ComponentIdentifier.createMavenCoordinates("g", "a", null, null, null);
     ComponentDetailsDTO componentDetailsDTO = new ComponentDetailsDTO();
     componentDetailsDTO.componentIdentifier = currentComponent;

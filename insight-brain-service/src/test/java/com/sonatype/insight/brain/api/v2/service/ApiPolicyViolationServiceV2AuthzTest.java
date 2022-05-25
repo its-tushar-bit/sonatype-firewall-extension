@@ -50,6 +50,8 @@ public class ApiPolicyViolationServiceV2AuthzTest
   @Inject
   private ApiPolicyViolationServiceV2 apiPolicyViolationService;
 
+  private Application app2;
+
   private Policy orgPolicy;
 
   private PolicyEvaluation pe1App1;
@@ -66,14 +68,15 @@ public class ApiPolicyViolationServiceV2AuthzTest
     pv1App1 = tempEntity.newPolicyViolation(pe1App1, orgPolicy, "g1", "a1", "v1", "h1", "r1");
 
     Organization org2 = tempEntity.newOrganization();
-    Application app2 = tempEntity.newApplication(org2.getId());
+    app2 = tempEntity.newApplication(org2.getId());
 
     tempEntity.newPolicy(org2.getId(), ORG_POLICY_NAME2);
     Policy app2Policy = tempEntity.newPolicy(app2.getId(), APP_POLICY_NAME2);
 
-    // One policy violation for app2
+    // Policy violations for app2
     PolicyEvaluation pe1App2 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1App2");
     tempEntity.newPolicyViolation(pe1App2, app2Policy, "g2", "a2", "v2", "h2", "r2");
+    tempEntity.newPolicyViolation(pe1App2, orgPolicy, "g1", "a1", "v1", "h1", "r1");
   }
 
   @Test
@@ -122,6 +125,20 @@ public class ApiPolicyViolationServiceV2AuthzTest
     ApiConstraintViolationReasonDTO apiConstraintViolationReasonDTO = apiConstraintViolationDTO.reasons.get(0);
     assertThat(apiConstraintViolationReasonDTO.reason)
         .isEqualTo(pv1App1.getConstraintFacts().get(0).getConditionFacts().get(0).getReason());
+  }
+
+  @Test
+  public void testGetPolicyViolations_AuthorizedTwoApps() {
+    grantReadPermission(app.getId());
+    grantReadPermission(app2.getId());
+
+    Set<String> policyIds = Sets.newHashSet(orgPolicy.getId());
+    ApiApplicationViolationListDTOV2 apiApplicationViolationListDTO = apiPolicyViolationService
+        .getPolicyViolations(policyIds);
+
+    assertThat(apiApplicationViolationListDTO.applicationViolations)
+        .extracting(applicationViolations -> applicationViolations.application.id)
+        .containsExactlyInAnyOrder(app.getId(), app2.getId());
   }
 
   @Test

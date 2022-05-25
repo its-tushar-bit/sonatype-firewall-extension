@@ -191,6 +191,18 @@ public class PolicyViolationDAO
     return getUnfixed(sQuery, applicationIds, stageTypeIds);
   }
 
+  public List<PolicyViolation> getActiveByApplicationIdsAndPolicyIds(
+      Collection<String> applicationIds,
+      Collection<String> policyIds)
+  {
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId=?1 AND entity.policyId IN (?2)" + //
+        " AND entity.fixTime IS NULL" + //
+        " AND entity.waiveTime IS NULL" + //
+        " AND entity.grandfatherTime IS NULL";
+    return getUnfixed(sQuery, applicationIds, policyIds);
+  }
+
   private List<PolicyViolation> getUnfixed(String sQuery,
                                            Collection<String> applicationIds,
                                            Object... otherParameters)

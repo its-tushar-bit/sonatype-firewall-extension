@@ -13,7 +13,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -39,6 +42,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -55,9 +59,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
-import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.report.Report;
@@ -78,6 +80,8 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.stream.Collectors.toSet;
+
 /**
  * @since 1.13.0
  */
@@ -86,8 +90,6 @@ public class ApiPolicyViolationServiceV2
 {
   private static final Logger log = LoggerFactory.getLogger(ApiPolicyViolationServiceV2.class);
 
-  private final PolicyViolationLoader policyViolationLoader;
-
   private final ApplicationService applicationService;
 
   private final ApiApplicationAdapter applicationAdapter;
@@ -95,6 +97,8 @@ public class ApiPolicyViolationServiceV2
   private final ApplicationComponentDAO applicationComponentDAO;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  private final PolicyViolationDAO policyViolationDAO;
 
   private final OwnerDAO ownerDAO;
 
@@ -106,21 +110,21 @@ public class ApiPolicyViolationServiceV2
 
   @Inject
   public ApiPolicyViolationServiceV2(
-      final PolicyViolationLoader policyViolationLoader,
       final ApplicationService applicationService,
       final ApiApplicationAdapter applicationAdapter,
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
+      final PolicyViolationDAO policyViolationDAO,
       final OwnerDAO ownerDAO,
       final ReportService reportService,
       final StageTypeService stageTypeService,
       final InsightConfig insightConfig)
   {
-    this.policyViolationLoader = policyViolationLoader;
     this.applicationService = applicationService;
     this.applicationAdapter = applicationAdapter;
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.policyViolationDAO = policyViolationDAO;
     this.ownerDAO = ownerDAO;
     this.reportService = reportService;
     this.stageTypeService = stageTypeService;
@@ -128,67 +132,119 @@ public class ApiPolicyViolationServiceV2
   }
 
   public ApiApplicationViolationListDTOV2 getPolicyViolations(final Set<String> policyIds) {
+    if (policyIds == null || policyIds.isEmpty()) {
+      return new ApiApplicationViolationListDTOV2();
+    }
+
+    long start = System.currentTimeMillis();
+
+    // Returns all apps the user has READ permission for.
     List<Application> applications = applicationService.getApplications();
 
     AuditData.get().setData("selectedPolicies", PolicyAuditDTO.transcribe(policyIds))
         .setData("inspectedApplicationCount", applications.size());
 
-    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, null,
-        true, violation -> policyIds.contains(violation.getPolicyId()));
+    Map<String, Application> applicationsById =
+        applications.stream().collect(Collectors.toMap(Application::getId, Function.identity()));
+    Set<String> applicationIds = applicationsById.keySet();
 
-    return buildApplicationDTOs(appViews);
+    Collection<PolicyEvaluation> policyEvaluations = loadPolicyEvaluations(applicationIds);
+    // Filter app ids to those that have policy evaluations
+    applicationIds = policyEvaluations.stream().map(PolicyEvaluation::getApplicationId).collect(toSet());
+
+    Collection<PolicyViolation> policyViolations = loadPolicyViolations(applicationIds, policyIds);
+    Map<String, List<PolicyViolation>> policyViolationsByAppId =
+        policyViolations.stream().collect(Collectors.groupingBy(PolicyViolation::getApplicationId));
+
+    // Sort violations using the standard violation comparator in order to get consistent results.
+    sortPolicyViolations(policyViolationsByAppId);
+
+    Map<String, PolicyEvaluation> policyEvaluationsByAppIdAndStageId = policyEvaluations.stream()
+        .collect(Collectors.toMap(
+            policyEvaluation -> policyEvaluation.getApplicationId() + policyEvaluation.getStageTypeId(),
+            Function.identity()));
+    ApiApplicationViolationListDTOV2 apiApplicationViolationListDTOV2 = new ApiApplicationViolationListDTOV2();
+    for (Entry<String, List<PolicyViolation>> entry : policyViolationsByAppId.entrySet()) {
+      String appId = entry.getKey();
+      List<PolicyViolation> policyViolationsForApp = entry.getValue();
+
+      ApiApplicationViolationDTOV2 apiApplicationViolationDTOV2 = new ApiApplicationViolationDTOV2();
+      Application application = applicationsById.get(appId);
+      apiApplicationViolationDTOV2.application = applicationAdapter.convertToApplicationBaseDTO(application);
+      apiApplicationViolationDTOV2.policyViolations = new ArrayList<>();
+      for (PolicyViolation policyViolation : policyViolationsForApp) {
+        PolicyEvaluation policyEvaluation = policyEvaluationsByAppIdAndStageId
+            .get(policyViolation.getApplicationId() + policyViolation.getStageTypeId());
+        ApiEnhancedPolicyViolationDTOV2 apiEnhancedPolicyViolationDTOV2 =
+            toApiEnhancedPolicyViolationDTOV2(application, policyEvaluation, policyViolation);
+        apiApplicationViolationDTOV2.policyViolations.add(apiEnhancedPolicyViolationDTOV2);
+      }
+
+      apiApplicationViolationListDTOV2.applicationViolations.add(apiApplicationViolationDTOV2);
+    }
+
+    log.debug("Retrieved policy violations for {} applications and {} policies in {} ms", applicationIds.size(),
+        policyIds.size(), System.currentTimeMillis() - start);
+
+    return apiApplicationViolationListDTOV2;
   }
 
-  private ApiApplicationViolationListDTOV2 buildApplicationDTOs(Collection<ApplicationView> appViews) {
-    ApiApplicationViolationListDTOV2 apiViolationListDTO = new ApiApplicationViolationListDTOV2();
-    for (ApplicationView appView : appViews) {
-      List<ApiEnhancedPolicyViolationDTOV2> policyViolationDTOs = buildPolicyViolationDTOs(appView);
-      if (!policyViolationDTOs.isEmpty()) {
-        ApiApplicationViolationDTOV2 apiApplicationViolationDTO = new ApiApplicationViolationDTOV2();
-        apiViolationListDTO.applicationViolations.add(apiApplicationViolationDTO);
-        apiApplicationViolationDTO.application =
-            applicationAdapter.convertToApplicationBaseDTO(appView.getApplication());
-        apiApplicationViolationDTO.policyViolations = policyViolationDTOs;
-      }
+  private void sortPolicyViolations(Map<String, List<PolicyViolation>> policyViolationsByAppId) {
+    for (List<PolicyViolation> policyViolations : policyViolationsByAppId.values()) {
+      policyViolations.sort(PolicyViolationComparator.COMPARATOR);
     }
-    return apiViolationListDTO;
   }
 
-  private List<ApiEnhancedPolicyViolationDTOV2> buildPolicyViolationDTOs(ApplicationView appView) {
-    List<ApiEnhancedPolicyViolationDTOV2> apiPolicyViolationDTOs = new ArrayList<>();
-    Application application = appView.getApplication();
-    for (ApplicationStageView appStageView : appView.getStageViews()) {
-      PolicyEvaluation policyEvaluation = appStageView.getLastEvaluation();
-      for (PolicyViolation policyViolation : appStageView.getFilteredViolations()) {
-        ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO = new ApiEnhancedPolicyViolationDTOV2();
-        apiPolicyViolationDTOs.add(apiPolicyViolationDTO);
-        apiPolicyViolationDTO.policyId = policyViolation.getPolicyId();
-        apiPolicyViolationDTO.policyName = policyViolation.getPolicyName();
-        apiPolicyViolationDTO.policyViolationId = policyViolation.getId();
-        apiPolicyViolationDTO.threatLevel = policyViolation.getThreatLevel();
-        apiPolicyViolationDTO.openTime = policyViolation.getOpenTime();
-        apiPolicyViolationDTO.reportUrl = UserInterfaceLinksHelper.getReportUrl(application.getPublicId(),
-            policyEvaluation.getScanId());
-        apiPolicyViolationDTO.stageId = policyEvaluation.getStageTypeId();
-        apiPolicyViolationDTO.reportId = policyEvaluation.getScanId();
-        ApplicationComponent applicationComponent = applicationComponentDAO.getByApplicationIdAndStageTypeIdAndHash(
-            application.getId(), policyEvaluation.getStageTypeId(), policyViolation.getHash());
-        apiPolicyViolationDTO.component = new ApiComponentDTOV2();
-        apiPolicyViolationDTO.component.hash = policyViolation.getHash();
-        apiPolicyViolationDTO.component.proprietary = applicationComponent != null
-            && applicationComponent.isProprietary();
-        apiPolicyViolationDTO.component.componentIdentifier = ApiComponentIdentifierDTOV2
-            .fromComponentIdentifier(policyViolation.getComponentIdentifier());
-        apiPolicyViolationDTO.component.packageUrl =
-            PackageUrlIdentifier.toPackageUrl(policyViolation.getComponentIdentifier());
-        ComponentDisplayName componentDisplayName =
-            ComponentDisplayNameUtil.fromIdentifier(policyViolation.getComponentIdentifier());
-        apiPolicyViolationDTO.component.displayName =
-            componentDisplayName != null ? componentDisplayName.toString() : null;
-        apiPolicyViolationDTO.constraintViolations = PolicyViolationAdapter.convert(policyViolation);
-      }
-    }
-    return apiPolicyViolationDTOs;
+  private Collection<PolicyViolation> loadPolicyViolations(Set<String> applicationIds, Set<String> policyIds) {
+    long start = System.currentTimeMillis();
+
+    Collection<PolicyViolation> policyViolations =
+        policyViolationDAO.getActiveByApplicationIdsAndPolicyIds(applicationIds, policyIds);
+    log.debug("Loaded {} policy violations for {} applications and {} policies in {} ms", policyViolations.size(),
+        applicationIds.size(), policyIds.size(), System.currentTimeMillis() - start);
+
+    return policyViolations;
+  }
+
+  private Collection<PolicyEvaluation> loadPolicyEvaluations(Set<String> applicationIds) {
+    long start = System.currentTimeMillis();
+
+    Collection<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getLastByApplicationIds(applicationIds);
+    log.debug("Loaded {} policy evaluations for {} applications across all stages in {} ms", policyEvaluations.size(),
+        applicationIds.size(), System.currentTimeMillis() - start);
+
+    return policyEvaluations;
+  }
+
+  private ApiEnhancedPolicyViolationDTOV2 toApiEnhancedPolicyViolationDTOV2(
+      Application application,
+      PolicyEvaluation policyEvaluation,
+      PolicyViolation policyViolation)
+  {
+    ApiEnhancedPolicyViolationDTOV2 apiPolicyViolationDTO = new ApiEnhancedPolicyViolationDTOV2();
+    apiPolicyViolationDTO.policyId = policyViolation.getPolicyId();
+    apiPolicyViolationDTO.policyName = policyViolation.getPolicyName();
+    apiPolicyViolationDTO.policyViolationId = policyViolation.getId();
+    apiPolicyViolationDTO.threatLevel = policyViolation.getThreatLevel();
+    apiPolicyViolationDTO.openTime = policyViolation.getOpenTime();
+    apiPolicyViolationDTO.reportUrl =
+        UserInterfaceLinksHelper.getReportUrl(application.getPublicId(), policyEvaluation.getScanId());
+    apiPolicyViolationDTO.stageId = policyViolation.getStageTypeId();
+    apiPolicyViolationDTO.reportId = policyEvaluation.getScanId();
+    ApplicationComponent applicationComponent = applicationComponentDAO.getByApplicationIdAndStageTypeIdAndHash(
+        application.getId(), policyViolation.getStageTypeId(), policyViolation.getHash());
+    apiPolicyViolationDTO.component = new ApiComponentDTOV2();
+    apiPolicyViolationDTO.component.hash = policyViolation.getHash();
+    apiPolicyViolationDTO.component.proprietary = applicationComponent != null && applicationComponent.isProprietary();
+    apiPolicyViolationDTO.component.componentIdentifier =
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(policyViolation.getComponentIdentifier());
+    apiPolicyViolationDTO.component.packageUrl =
+        PackageUrlIdentifier.toPackageUrl(policyViolation.getComponentIdentifier());
+    ComponentDisplayName componentDisplayName =
+        ComponentDisplayNameUtil.fromIdentifier(policyViolation.getComponentIdentifier());
+    apiPolicyViolationDTO.component.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
+    apiPolicyViolationDTO.constraintViolations = PolicyViolationAdapter.convert(policyViolation);
+    return apiPolicyViolationDTO;
   }
 
   public void ensureInnerSourceTransitiveWaiverEnabled() {

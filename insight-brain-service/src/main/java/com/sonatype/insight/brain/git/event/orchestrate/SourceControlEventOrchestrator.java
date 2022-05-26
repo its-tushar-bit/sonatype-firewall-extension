@@ -24,8 +24,6 @@ import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.SystemRunnable;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
@@ -60,10 +58,6 @@ import static java.lang.System.currentTimeMillis;
  * generally allow requests from different users to be sent in parallel
  * - also, if this instance is processing events, this class regularly polls the database to get the untagged events
  * coming from other instances of IQ and sends them to the UserEventManagers for processing
- *
- * This class is used by default as the main driver for event processing. If the 'orchestratedEventProcessing' feature
- * flag is set to {@code false}, the {@link com.sonatype.insight.brain.git.event.SourceControlEventProcessingScheduler}
- * class, which has been marked as deprecated, is used instead.
  */
 @Named
 @Singleton
@@ -77,8 +71,6 @@ public class SourceControlEventOrchestrator
   private static final int STALE_EVENT_CUTOFF_MS = 1_000 * 120;
 
   private final Map<String, UserEventManager> userEventManagerMap = new HashMap<>();
-
-  private final InsightConfig insightConfig;
 
   private final SourceControlEventDAO sourceControlEventDAO;
 
@@ -102,7 +94,6 @@ public class SourceControlEventOrchestrator
 
   @Inject
   public SourceControlEventOrchestrator(
-      InsightConfig insightConfig,
       SourceControlEventDAO sourceControlEventDAO,
       SourceControlEventProcessor sourceControlEventProcessor,
       SourceControlEventPublisher sourceControlEventPublisher,
@@ -110,7 +101,6 @@ public class SourceControlEventOrchestrator
       IqForScmLicenseChecker licenseChecker,
       SourceControlUtils sourceControlUtils)
   {
-    this.insightConfig = insightConfig;
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlEventProcessor = sourceControlEventProcessor;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
@@ -133,7 +123,7 @@ public class SourceControlEventOrchestrator
 
   @Override
   public void start() {
-    if (insightConfig.isFeatureEnabled(Feature.ORCHESTRATED_EVENT_PROCESSING) && !disableForTesting) {
+    if (!disableForTesting) {
       sourceControlEventPublisher.setSourceControlEventListener(this);
       startEventProcessingExecutorService();
     }

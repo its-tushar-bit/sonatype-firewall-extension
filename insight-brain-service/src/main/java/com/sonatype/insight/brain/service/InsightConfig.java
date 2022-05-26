@@ -997,7 +997,6 @@ public class InsightConfig
     DEPENDENCY_DATA_IN_API("dependencyDataInApi"),
     INNER_SOURCE_TRANSITIVE_WAIVER("innerSourceTransitiveWaiver"),
     INNER_SOURCE_REPOSITORY_INTEGRATION("innerSourceRepositoryIntegration"),
-    ORCHESTRATED_EVENT_PROCESSING("orchestratedEventProcessing"),
     PR_COMMENTING("prCommenting"),
     PR_LINE_COMMENTING("prLineCommenting"),
     ENABLE_UNAUTHENTICATED_PAGES("enableUnauthenticatedPages"),

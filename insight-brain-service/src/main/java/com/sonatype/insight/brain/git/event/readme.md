@@ -14,8 +14,6 @@ How we manage the interactions with the various source control providers with re
 * That served us well for a while but still did not scale as we'd like and had some inefficiencies.  We noticed we were throwing more work at the event service than it could reasonably process during a given cycle and that work wasn't organized beyond some simplistic prioritization.
 * We then invented the SourceControlEventOrchestrator to process and sequence events in a more orderly and thoughtful manner.
 
-In that light, the SourceControlEventOrchestrator takes over for the SourceControlEventProcessingScheduler and the SourceControlEventProcessor takes over for the SourceControlEventService (and is a near copy of it).  The former classes are deprecated (and still available via configuration) and should be reoved at some point in the future.
-
 Also, a new key piece of the puzzle is the UserEventManager which handles the events for a particular configured SCM user (so we can make better use of parallelization).
 
 ## The orchestrator

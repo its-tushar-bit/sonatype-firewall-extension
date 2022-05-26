@@ -11,10 +11,10 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -36,9 +36,9 @@ public class ApiSearchServiceV2AuthzTest
     super.configure(binder);
   }
 
-  @Override
-  protected void customizeConfig(InsightConfig config) {
-    config.setBaseUrl("http://localhost:8070");
+  @Before
+  public void before() {
+    setBaseUrl("http://localhost:8070");
   }
 
   @Test

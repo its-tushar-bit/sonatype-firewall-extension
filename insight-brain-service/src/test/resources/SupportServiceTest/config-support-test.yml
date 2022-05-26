@@ -7,9 +7,6 @@ sonatypeWork: ./sonatype-work/clm-server
 
 clusterDirectory: ./sonatype-work/cluster-directory
 
-# Base URL of the Sonatype CLM server for user facing links back to the server.
-#baseUrl: http://localhost:8070/
-
 # Hour of the day(0-23) to schedule Policy Monitoring execution. The default is midnight.
 #policyMonitoringHour: 0
 

@@ -23,9 +23,6 @@ public class BaseUrlTest
   @Inject
   private BaseUrl baseUrl;
 
-  @Inject
-  private InsightConfig appConfig;
-
   @Mock(lenient = true)
   private HttpServletRequest httpRequest;
 
@@ -51,8 +48,7 @@ public class BaseUrlTest
   }
 
   @Test
-  public void testGet_OutsideHttpRequest_BaseUrlNotConfigured() throws Exception {
-    appConfig.setBaseUrl(null);
+  public void testGet_OutsideHttpRequest_BaseUrlNotConfigured() {
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       baseUrl.get();
     }).withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
@@ -60,7 +56,7 @@ public class BaseUrlTest
 
   @Test
   public void testGet_UsesBaseUriFromHttpRequest() {
-    appConfig.setBaseUrl("http://localhost:8070");
+    setBaseUrl("http://localhost:8070");
     baseUrl.capture(httpRequest);
 
     mockHttpRequest("http://clm.sonatype.com:8080", "", "", "");
@@ -74,23 +70,22 @@ public class BaseUrlTest
   }
 
   @Test
-  public void testGet_UsesInsightConfigBaseUrl() throws Exception {
-    appConfig.setBaseUrl("http://test.sonatype.com");
+  public void testGet_UsesInsightConfigBaseUrl() {
+    setBaseUrl("http://test.sonatype.com");
     assertThat(baseUrl.get()).isEqualTo("http://test.sonatype.com/");
 
-    appConfig.setBaseUrl("http://test.sonatype.com/");
+    setBaseUrl("http://test.sonatype.com/");
     assertThat(baseUrl.get()).isEqualTo("http://test.sonatype.com/");
   }
 
   @Test
-  public void testGet_ForceInsightConfigBaseUrl() throws Exception {
-    appConfig.setForceBaseUrl(true);
+  public void testGet_ForceInsightConfigBaseUrl() {
     baseUrl.capture(httpRequest);
 
-    appConfig.setBaseUrl("http://test.sonatype.com");
+    setBaseUrl("http://test.sonatype.com", true);
     assertThat(baseUrl.get()).isEqualTo("http://test.sonatype.com/");
 
-    appConfig.setBaseUrl("http://test.sonatype.com/");
+    setBaseUrl("http://test.sonatype.com/", true);
     assertThat(baseUrl.get()).isEqualTo("http://test.sonatype.com/");
 
     verifyNoInteractions(httpRequest);
@@ -111,14 +106,13 @@ public class BaseUrlTest
   @Test
   public void testGetConfigured_BaseUrlConfigured() {
     String configuredBaseUrl = "http://testBaseUrl:8070/";
-    appConfig.setBaseUrl(configuredBaseUrl);
+    setBaseUrl(configuredBaseUrl);
 
     assertThat(baseUrl.getConfigured()).isEqualTo(configuredBaseUrl);
   }
 
   @Test
   public void testGetConfigured_BaseUrlNotConfigured() {
-    appConfig.setBaseUrl(null);
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       baseUrl.getConfigured();
     }).withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);

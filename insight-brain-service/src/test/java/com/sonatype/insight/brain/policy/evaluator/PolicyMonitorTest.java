@@ -80,7 +80,6 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
@@ -105,19 +104,13 @@ public class PolicyMonitorTest
 
   private InsightWork insightWork;
 
-  private InsightConfig insightConfig;
-
-  private String savedBaseUrl;
-
   private AsyncEventBus asyncEventBus;
 
   private TestEventHandler<ApplicationEvaluationEvent> handler;
 
   @Before
   public void setup() {
-    insightConfig = getCLMServer().getInstance(InsightConfig.class);
-    savedBaseUrl = insightConfig.getBaseUrl();
-    insightConfig.setBaseUrl("http://clm.sonatype.com/test");
+    setBaseUrl("http://clm.sonatype.com/test");
     insightWork = getCLMServer().getInstance(InsightWork.class);
     policyMonitor = getCLMServer().getInstance(PolicyMonitor.class);
     asyncEventBus = getCLMServer().getInstance(AsyncEventBus.class);
@@ -131,8 +124,6 @@ public class PolicyMonitorTest
 
   @After
   public void cleanup() {
-    insightConfig.setBaseUrl(savedBaseUrl);
-
     if (handler != null) {
       asyncEventBus.unregister(handler);
     }

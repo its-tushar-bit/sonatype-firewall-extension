@@ -13,7 +13,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
@@ -33,15 +32,12 @@ public class ApiCycloneDxServiceV2AuthzTest
   @Inject
   private InsightWork work;
 
-  @Inject
-  InsightConfig config;
-
   private String scanId;
 
   @Before
   public void setup() {
     scanId = tempEntity.uuid();
-    config.setBaseUrl("http://localhost:8070/");
+    setBaseUrl("http://localhost:8070/");
   }
 
   private void createReportAndPolicyEvaluation() throws IOException {

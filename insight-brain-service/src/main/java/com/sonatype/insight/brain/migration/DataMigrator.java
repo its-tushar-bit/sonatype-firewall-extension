@@ -12,7 +12,7 @@ import javax.inject.Named;
 
 /**
  * Migrates operational data from an earlier schema/format to the latest version.
- * 
+ *
  * @since 1.11
  */
 @Named
@@ -45,8 +45,10 @@ public class DataMigrator
   private final SourceControlFileStorageMigrator sourceControlFileStorageMigrator;
 
   private final AdminInitialPasswordMigrator adminInitialPasswordMigrator;
-  
+
   private final ReverseProxyAuthenticationConfigurationMigrator reverseProxyAuthenticationConfigurationMigrator;
+
+  private final BaseUrlConfigurationMigrator baseUrlConfigurationMigrator;
 
   @Inject
   public DataMigrator(
@@ -64,7 +66,8 @@ public class DataMigrator
       InternalSourceControlPolicyEvaluationsConfigMigrator internalSourceControlEvaluationsConfigMigrator,
       SourceControlFileStorageMigrator sourceControlFileStorageMigrator,
       AdminInitialPasswordMigrator adminInitialPasswordMigrator,
-      ReverseProxyAuthenticationConfigurationMigrator reverseProxyAuthenticationConfigurationMigrator)
+      ReverseProxyAuthenticationConfigurationMigrator reverseProxyAuthenticationConfigurationMigrator,
+      BaseUrlConfigurationMigrator baseUrlConfigurationMigrator)
   {
     this.policyJsonMigrator = policyJsonMigrator;
     this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
@@ -81,6 +84,7 @@ public class DataMigrator
     this.sourceControlFileStorageMigrator = sourceControlFileStorageMigrator;
     this.adminInitialPasswordMigrator = adminInitialPasswordMigrator;
     this.reverseProxyAuthenticationConfigurationMigrator = reverseProxyAuthenticationConfigurationMigrator;
+    this.baseUrlConfigurationMigrator = baseUrlConfigurationMigrator;
   }
 
   /**
@@ -102,5 +106,6 @@ public class DataMigrator
     sourceControlFileStorageMigrator.migrate();
     adminInitialPasswordMigrator.migrate();
     reverseProxyAuthenticationConfigurationMigrator.migrate();
+    baseUrlConfigurationMigrator.migrate();
   }
 }

@@ -93,7 +93,7 @@ public class JiraPolicyAlertNotifierTest
 
   @Before
   public void before() {
-    config.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
     config.setJiraConfig(new JiraConfig());
   }
 
@@ -238,7 +238,7 @@ public class JiraPolicyAlertNotifierTest
 
   @Test
   public void testCreatePolicyMailModel_BaseUrlNotConfigured() {
-    config.setBaseUrl(null);
+    setBaseUrl(null);
 
     Application app = tempEntity.newApplicationWithParent();
 

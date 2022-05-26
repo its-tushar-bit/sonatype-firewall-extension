@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.DefaultBaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -44,9 +43,6 @@ public class ApiMailConfigurationServiceTest
 
   @Inject
   private InsightMail insightMail;
-
-  @Inject
-  private InsightConfig insightConfig;
 
   @Test
   public void testGetConfiguration() {
@@ -400,7 +396,7 @@ public class ApiMailConfigurationServiceTest
     mailConfigurationDAO.set(mailConfiguration);
 
     Mailbox.clearAll();
-    insightConfig.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
 
     char[] password = "smtppass".toCharArray();
     ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
@@ -441,7 +437,7 @@ public class ApiMailConfigurationServiceTest
     mailConfigurationDAO.set(mailConfiguration);
 
     Mailbox.clearAll();
-    insightConfig.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
 
     ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
     configurationDTO.hostname = "otherhost";
@@ -470,7 +466,7 @@ public class ApiMailConfigurationServiceTest
     mailConfigurationDAO.set(mailConfiguration);
 
     Mailbox.clearAll();
-    insightConfig.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
 
     ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
     configurationDTO.hostname = mailConfiguration.getHostname();
@@ -499,7 +495,7 @@ public class ApiMailConfigurationServiceTest
     mailConfigurationDAO.set(mailConfiguration);
 
     Mailbox.clearAll();
-    insightConfig.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
 
     ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
     configurationDTO.hostname = mailConfiguration.getHostname();
@@ -520,7 +516,7 @@ public class ApiMailConfigurationServiceTest
   @Test
   public void testTestConfiguration_PasswordNotNull() throws Exception {
     Mailbox.clearAll();
-    insightConfig.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
 
     char[] password = "smtppass".toCharArray();
     ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
@@ -541,7 +537,7 @@ public class ApiMailConfigurationServiceTest
   @Test
   public void testTestConfiguration_PasswordNull() throws Exception {
     Mailbox.clearAll();
-    insightConfig.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
 
     ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
     configurationDTO.hostname = "smtpserver";

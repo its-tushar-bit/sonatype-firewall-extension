@@ -38,7 +38,6 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.DefaultBaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -106,16 +105,13 @@ public class PullRequestFeedbackDetailsTest
   @Inject
   private SourceControlComponentLoader sourceControlComponentLoader;
 
-  @Inject
-  private InsightConfig config;
-
   private Application app;
 
   private TimeZone initialTimezone;
 
   @Before
   public void before() {
-    config.setBaseUrl("http://localhost:1122");
+    setBaseUrl("http://localhost:1122");
     tempEntity.newOrganizationWithSpecificId(ORG_ID, ORG_NAME);
     app = tempEntity.newApplicationWithSpecificId(APP_INTERNAL_ID, APP_NAME, APP_PUBLIC_ID, ORG_ID);
     initialTimezone = TimeZone.getDefault();
@@ -568,7 +564,7 @@ public class PullRequestFeedbackDetailsTest
     // when
     final List<Map<String, Object>> result = details.getNewComponentFeedbackList(new HashMap<>(),
         remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber,
-        config.getBaseUrl());
+        getBaseUrl());
 
     // then
     assertThat(result).isEmpty();
@@ -597,7 +593,7 @@ public class PullRequestFeedbackDetailsTest
     // when
     final List<Map<String, Object>> result = details.getNewComponentFeedbackList(componentMap,
         remediationVersionMap, pullRequestLineComments, githubGitRepositoryInfo, pullRequestNumber,
-        config.getBaseUrl());
+        getBaseUrl());
 
     // then
     assertThat(result).hasSize(2);
@@ -628,7 +624,7 @@ public class PullRequestFeedbackDetailsTest
   @Test
   public void testGetPoliciesViolatedMap_noPolicies() {
     assertThat(
-        PullRequestFeedbackDetails.getPoliciesViolatedMap(Collections.emptyList(), config.getBaseUrl(), CONVERT_URLS))
+        PullRequestFeedbackDetails.getPoliciesViolatedMap(Collections.emptyList(), getBaseUrl(), CONVERT_URLS))
         .isEmpty();
   }
 
@@ -638,7 +634,7 @@ public class PullRequestFeedbackDetailsTest
 
     final List<Map<String, Object>> result = PullRequestFeedbackDetails.getPoliciesViolatedMap(
         diff.getAppeared().stream().peek(policyViolation -> policyViolation.setPolicyId("1"))
-            .collect(Collectors.toList()), config.getBaseUrl(), CONVERT_URLS);
+            .collect(Collectors.toList()), getBaseUrl(), CONVERT_URLS);
 
     assertThat(result).hasSize(1);
   }
@@ -646,7 +642,7 @@ public class PullRequestFeedbackDetailsTest
   @Test
   public void testGetConstraintsForPolicyViolationsPerPolicy_NoViolations() {
     assertThat(PullRequestFeedbackDetails
-        .getConstraintsForPolicyViolationsPerPolicy(Collections.emptyList(), config.getBaseUrl(), CONVERT_URLS))
+        .getConstraintsForPolicyViolationsPerPolicy(Collections.emptyList(), getBaseUrl(), CONVERT_URLS))
         .isEmpty();
   }
 
@@ -656,7 +652,7 @@ public class PullRequestFeedbackDetailsTest
 
     final List<Map<String, Object>> result = PullRequestFeedbackDetails
         .getConstraintsForPolicyViolationsPerPolicy(Collections.singletonList(diff.getAppeared().get(0)),
-            config.getBaseUrl(), CONVERT_URLS);
+            getBaseUrl(), CONVERT_URLS);
 
     assertThat(result).hasSize(1);
   }
@@ -672,7 +668,7 @@ public class PullRequestFeedbackDetailsTest
           policyViolation.setPolicyId("1");
           policyViolation.setConstraintFacts(new ArrayList<>(policyViolation.getConstraintFacts()));
           policyViolation.getConstraintFacts().clear();
-        }).collect(Collectors.toList()), config.getBaseUrl(), CONVERT_URLS);
+        }).collect(Collectors.toList()), getBaseUrl(), CONVERT_URLS);
 
     assertThat(result).isEmpty();
   }
@@ -686,7 +682,7 @@ public class PullRequestFeedbackDetailsTest
     final List<Map<String, Object>> result = PullRequestFeedbackDetails
         .getConstraintsForPolicyViolationsPerPolicy(diff.getAppeared().stream().peek(policyViolation -> {
           policyViolation.setPolicyId("1");
-        }).collect(Collectors.toList()), config.getBaseUrl(), CONVERT_URLS);
+        }).collect(Collectors.toList()), getBaseUrl(), CONVERT_URLS);
 
     assertThat(result).hasSize(6);
   }
@@ -701,7 +697,7 @@ public class PullRequestFeedbackDetailsTest
 
     final List<Map<String, Object>> result = PullRequestFeedbackDetails
         .getConstraintsForPolicyViolationsPerPolicy(Collections.singletonList(diff.getAppeared().get(0)),
-            config.getBaseUrl(), CONVERT_URLS);
+            getBaseUrl(), CONVERT_URLS);
 
     assertThat(result).isEmpty();
   }

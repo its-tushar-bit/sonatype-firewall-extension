@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.ImmutableMap;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -43,9 +44,9 @@ public class ApiSearchServiceV2Test
   @Inject
   private InsightConfig insightConfig;
 
-  @Override
-  protected void customizeConfig(InsightConfig config) {
-    config.setBaseUrl("http://localhost:8070");
+  @Before
+  public void before() {
+    setBaseUrl("http://localhost:8070");
   }
 
   @Test

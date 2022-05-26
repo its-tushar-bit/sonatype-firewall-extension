@@ -48,6 +48,10 @@ public class SystemConfigurationProperty
 
   public static final String TRANSITIVE_SOLVER_DISABLED = "TRANSITIVE_SOLVER_DISABLED";
 
+  public static final String BASE_URL = "baseUrl";
+
+  public static final String FORCE_BASE_URL = "forceBaseUrl";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

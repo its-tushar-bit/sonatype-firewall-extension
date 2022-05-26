@@ -40,7 +40,6 @@ import com.sonatype.insight.brain.policy.evaluator.ComponentFactory;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.PullRequestCommentTelemetry;
@@ -71,14 +70,11 @@ public class PullRequestFeedbackMarkupServiceTest
   @Inject
   private InsightWork insightWork;
 
-  @Inject
-  private InsightConfig config;
-
   private TimeZone initialTimezone;
 
   @Before
   public void before() {
-    config.setBaseUrl("http://localhost:1122");
+    setBaseUrl("http://localhost:1122");
     initialTimezone = TimeZone.getDefault();
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
   }

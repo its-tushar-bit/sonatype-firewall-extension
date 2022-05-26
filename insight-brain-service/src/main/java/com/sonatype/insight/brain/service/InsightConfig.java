@@ -67,7 +67,7 @@ public class InsightConfig
    * @since 1.41
    */
   @JsonProperty
-  private boolean forceBaseUrl;
+  private Boolean forceBaseUrl;
 
   @NotNull
   @JsonProperty
@@ -468,39 +468,20 @@ public class InsightConfig
 
   public void setBaseUrl(String baseUrl) {
     this.baseUrl = baseUrl;
-    if (baseUrl != null && !baseUrl.endsWith("/")) {
-      this.baseUrl += '/';
-    }
   }
 
   /**
    * @since 1.41
    */
-  public boolean isForceBaseUrl() {
+  public Boolean isForceBaseUrl() {
     return forceBaseUrl;
   }
 
   /**
    * @since 1.41
    */
-  public void setForceBaseUrl(boolean forceBaseUrl) {
+  public void setForceBaseUrl(Boolean forceBaseUrl) {
     this.forceBaseUrl = forceBaseUrl;
-  }
-
-  @JsonIgnore
-  @ValidationMethod(message = "baseUrl is invalid")
-  public boolean isValidBaseUrl() {
-    try {
-      String url = getBaseUrl();
-      if (url != null) {
-        new URL(url);
-      }
-      return true;
-    }
-    catch (Exception e) {
-      log.error("Invalid baseUrl: {}", e.getMessage());
-      return false;
-    }
   }
 
   public String getCdnUrl() {

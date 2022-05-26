@@ -178,7 +178,7 @@ public class PolicyEvaluateServiceTest
   @Test
   public void testEvaluate() throws Exception {
     InsightConfig insightConfig = lookup(InsightConfig.class);
-    insightConfig.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
     insightConfig.setJiraConfig(new JiraConfig());
     JiraClient mockJiraClient = mock(JiraClient.class);
     when(mockJiraClientFactory.create()).thenReturn(mockJiraClient);
@@ -358,7 +358,7 @@ public class PolicyEvaluateServiceTest
     PolicyAlertEmailer emailer = lookup(PolicyAlertEmailer.class);
 
     String serverUrl = "http://localhost/";
-    lookup(InsightConfig.class).setBaseUrl(serverUrl);
+    setBaseUrl(serverUrl);
     ContactDTO appContact =
         ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
     Map<String, Object> model =
@@ -388,8 +388,7 @@ public class PolicyEvaluateServiceTest
 
     Stage stage = new Stage(Stage.ID_BUILD);
 
-    InsightConfig insightConfig = lookup(InsightConfig.class);
-    insightConfig.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
 
     List<Message> notifications = Mailbox.get("manager@test.corp");
     notifications.clear();
@@ -448,7 +447,7 @@ public class PolicyEvaluateServiceTest
   {
     productLicenseManager.setFeatures(requiredFeature, LicensedFeature.NOTIFICATIONS);
     InsightConfig insightConfig = lookup(InsightConfig.class);
-    insightConfig.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
     insightConfig.setJiraConfig(new JiraConfig());
     JiraClient mockJiraClient = mock(JiraClient.class);
     when(mockJiraClientFactory.create()).thenReturn(mockJiraClient);
@@ -554,8 +553,7 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluateWithPolling_Pending_StatusId() throws Exception {
-    InsightConfig insightConfig = lookup(InsightConfig.class);
-    insightConfig.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
 
     final Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -880,8 +878,7 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluateSynchronousNoAuth() throws Exception {
-    InsightConfig insightConfig = lookup(InsightConfig.class);
-    insightConfig.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
 
     String mail = "userSynchronous@example.com";
 

@@ -31,24 +31,6 @@ public class InsightConfigTest
   public TemporaryFolder tempDir = new TemporaryFolder();
 
   @Test
-  public void testBaseUrl() {
-    InsightConfig config = new InsightConfig();
-    assertThat(config.getBaseUrl()).isNull();
-    assertThat(config.isValidBaseUrl()).isTrue();
-
-    config.setBaseUrl("https://clm.sonatype.com/");
-    assertThat(config.getBaseUrl()).isEqualTo("https://clm.sonatype.com/");
-    assertThat(config.isValidBaseUrl()).isTrue();
-
-    config.setBaseUrl("https://clm.sonatype.com");
-    assertThat(config.getBaseUrl()).isEqualTo("https://clm.sonatype.com/");
-    assertThat(config.isValidBaseUrl()).isTrue();
-
-    config.setBaseUrl("invalid");
-    assertThat(config.isValidBaseUrl()).isFalse();
-  }
-
-  @Test
   public void testCdnUrl() {
     InsightConfig config = new InsightConfig();
     assertThat(config.getCdnUrl()).isEqualTo("https://cdn.sonatype.com/");

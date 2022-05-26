@@ -699,6 +699,7 @@ INSERT INTO migration_tracker(migration_tracker_id) VALUES('mail-config');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('proxy-server-configuration');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('source-control-file-storage');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('reverse-proxy-authentication-config');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('base-url-config');
 
 CREATE TABLE search_index_change (
   search_index_change_id varchar(50) NOT NULL,

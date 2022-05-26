@@ -20,8 +20,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -41,6 +43,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
@@ -49,6 +52,7 @@ import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.model.PerpetualLock;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -78,6 +82,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
+import io.dropwizard.util.Sets;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -94,7 +99,7 @@ import static org.mockito.Mockito.when;
 public abstract class AbstractBrainServiceTest
 {
   @Retention(RetentionPolicy.RUNTIME)
-  @Target({ ElementType.METHOD })
+  @Target({ElementType.METHOD})
   public @interface ManualServerInit
   {
   }
@@ -189,6 +194,7 @@ public abstract class AbstractBrainServiceTest
       testCLMServer = new TestCLMServer(isProxyRequiredToReachHds(), getBrainModules(), configurator, hdsMockServer);
       testCLMServer.start();
     }
+    setBaseUrl("http://localhost");
   }
 
   @After
@@ -225,6 +231,7 @@ public abstract class AbstractBrainServiceTest
         getCLMServer().getConfiguration().setFeatures(Collections.emptyMap());
         getCLMServer().getConfiguration().setExperimentalFeatures(Collections.emptyMap());
       }
+      resetBaseUrl();
     }
     releaseScmPerpetualLock();
   }
@@ -507,6 +514,29 @@ public abstract class AbstractBrainServiceTest
       assertThat(zipEntryData.getName()).isEqualTo(TelemetrySender.DATA_ENTRY_NAME);
       telemetryDataReceived = objectMapper.readValue(zipInputStream, new TypeReference<List<TelemetryData>>() { });
       return this;
+    }
+  }
+
+  public void setBaseUrl(String baseUrl) {
+    setBaseUrl(baseUrl, false);
+  }
+
+  public void setBaseUrl(String baseUrl, boolean forceBaseUrl) {
+    ApiConfigurationService service = getCLMServer().getInstance(ApiConfigurationService.class);
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(SystemConfigurationProperty.BASE_URL, baseUrl);
+    properties.put(SystemConfigurationProperty.FORCE_BASE_URL, forceBaseUrl);
+    service.setConfigurationNoAuthz(properties);
+    service.applyConfigurationToClients(properties.keySet());
+  }
+
+  public void resetBaseUrl() {
+    ApiConfigurationService service = getCLMServer().getInstance(ApiConfigurationService.class);
+    if (service != null) {
+      Set<String> propertyNames =
+          Sets.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
+      service.deleteConfigurationNoAuthz(propertyNames);
+      service.applyConfigurationToClients(propertyNames);
     }
   }
 }

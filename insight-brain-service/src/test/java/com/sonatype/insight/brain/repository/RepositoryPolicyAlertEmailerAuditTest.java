@@ -64,7 +64,7 @@ public class RepositoryPolicyAlertEmailerAuditTest
 
   @Before
   public void before() {
-    config.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
     when(mockInsightMail.getCdnUrl()).thenReturn(config.getCdnUrl());
     repository = tempEntity.newRepository();
   }

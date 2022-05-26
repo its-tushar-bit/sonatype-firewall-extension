@@ -64,7 +64,6 @@ import com.sonatype.insight.brain.security.Member;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.DefaultBaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
@@ -99,9 +98,6 @@ public class PolicyAlertEmailerTest
 
   @Rule
   public LogOutput logOutput = new LogOutput(1, PolicyAlertEmailer.class);
-
-  @Inject
-  private InsightConfig config;
 
   @Inject
   private PolicyAlertEmailer policyAlertEmailer;
@@ -143,7 +139,7 @@ public class PolicyAlertEmailerTest
 
   @Before
   public void before() {
-    config.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
   }
 
   @Test
@@ -730,8 +726,7 @@ public class PolicyAlertEmailerTest
 
     String emailBody = policyAlertEmailer.createPolicyMailBody(model);
     assertThat(emailBody)
-        .contains(mailer.getCdnUrl(),
-            config.getBaseUrl() + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId))
+        .contains(mailer.getCdnUrl(), getBaseUrl() + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId))
         .contains(app.getPublicId()) //
         .contains(StageTypes.STAGE_RELEASE.getName()) //
         .contains(ComponentDisplayNameUtil.fromIdentifier(componentIdentifierMaven).toString(),
@@ -745,7 +740,7 @@ public class PolicyAlertEmailerTest
 
   @Test
   public void testCreatePolicyMailModel_BaseUrlNotConfigured() {
-    config.setBaseUrl(null);
+    setBaseUrl(null);
 
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app);

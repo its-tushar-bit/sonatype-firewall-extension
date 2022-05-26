@@ -14,7 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import org.apache.shiro.subject.support.DefaultSubjectContext;
@@ -52,9 +51,6 @@ public class SamlFilterTest
 
   @Inject
   private BaseUrl baseUrl;
-
-  @Inject
-  private InsightConfig appConfig;
 
   @Mock
   private HttpServletRequest mockHttpServletRequest;
@@ -229,8 +225,7 @@ public class SamlFilterTest
 
   @Test
   public void testGetDestinationOrDefault_ForcedBaseUrl() {
-    appConfig.setBaseUrl("https://host.test:1234/iq");
-    appConfig.setForceBaseUrl(true);
+    setBaseUrl("https://host.test:1234/iq", true);
     HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
     baseUrl.capture(mockHttpServletRequest);
 

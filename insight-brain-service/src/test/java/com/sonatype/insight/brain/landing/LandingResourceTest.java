@@ -248,8 +248,6 @@ public class LandingResourceTest
     {
       @Override
       public void configure(final InsightConfig config) {
-        config.setForceBaseUrl(forceBaseUrl);
-        config.setBaseUrl(BASE_URL);
         if (ssl) {
           HttpsConnectorFactory applicationHttpsConnector = new HttpsConnectorFactory();
           applicationHttpsConnector.setUseForwardedHeaders(true);
@@ -262,5 +260,6 @@ public class LandingResourceTest
         }
       }
     });
+    setBaseUrl(BASE_URL, forceBaseUrl);
   }
 }

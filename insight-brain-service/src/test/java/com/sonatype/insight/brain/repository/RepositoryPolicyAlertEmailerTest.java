@@ -37,7 +37,10 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.service.*;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.service.DefaultBaseUrl;
+import com.sonatype.insight.brain.service.InsightMail;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -59,9 +62,6 @@ public class RepositoryPolicyAlertEmailerTest
   private RepositoryPolicyAlertEmailer emailer;
 
   @Inject
-  private InsightConfig insightConfig;
-
-  @Inject
   private BaseUrl baseUrl;
 
   @Mock
@@ -75,7 +75,7 @@ public class RepositoryPolicyAlertEmailerTest
 
   @Before
   public void before() {
-    insightConfig.setBaseUrl("http://baseUrl");
+    setBaseUrl("http://baseUrl");
   }
 
   @Test
@@ -150,7 +150,7 @@ public class RepositoryPolicyAlertEmailerTest
   @Test
   public void testCreatePolicyMailModel_BaseUrlNotConfigured() {
     when(mail.getCdnUrl()).thenReturn("http://cdnUrl");
-    insightConfig.setBaseUrl(null);
+    setBaseUrl(null);
 
     Repository repository = new Repository("repoManagerId", "repoPublicId");
     repository.setId("repoId");

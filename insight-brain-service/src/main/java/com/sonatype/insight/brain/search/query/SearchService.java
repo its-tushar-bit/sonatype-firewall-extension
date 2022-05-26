@@ -24,6 +24,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -35,9 +36,11 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -76,11 +79,17 @@ import org.apache.lucene.search.TotalHits.Relation;
 import org.apache.lucene.store.Directory;
 import org.codehaus.plexus.util.StringUtils;
 
-import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getManagementPath;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getItemManagementPathEdit;
+import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getManagementPath;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getReportUrl;
 import static com.sonatype.insight.brain.landing.UserInterfaceLinksHelper.getVulnerabilityDetailsUrl;
-import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.*;
+import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.APPLICATION_CATEGORY_PATH_VARIABLE;
+import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.APPLICATION_PATH_VARIABLE;
+import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.EXPORT_FILE_NAME;
+import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.EXPORT_SEARCH_HEADERS;
+import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.LABEL_PATH_VARIABLE;
+import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.ORGANIZATION_PATH_VARIABLE;
+import static com.sonatype.insight.brain.search.AdvancedSearchExportPaths.POLICY_PATH_VARIABLE;
 import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.*;
 import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.APPLICATION;
 import static com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType.APPLICATION_CATEGORY;
@@ -112,6 +121,8 @@ public class SearchService
 
   private final InsightConfig insightConfig;
 
+  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
   @Inject
   public SearchService(
       LuceneComponents luceneComponents,
@@ -119,7 +130,8 @@ public class SearchService
       PermissionService permissionService,
       CurrentUser currentUser,
       OwnerDAO ownerDAO,
-      InsightConfig insightConfig)
+      InsightConfig insightConfig,
+      SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
   {
     this.luceneComponents = luceneComponents;
     this.advancedSearchTelemetryMetrics = advancedSearchTelemetryMetrics;
@@ -127,6 +139,7 @@ public class SearchService
     this.currentUser = currentUser;
     this.ownerDAO = ownerDAO;
     this.insightConfig = insightConfig;
+    this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
   public SearchResultDTO searchIndex(String searchQuery, int pageSize, int page, boolean allComponents)
@@ -454,7 +467,7 @@ public class SearchService
         .setDelimiter(insightConfig.getAdvancedSearchCSVExportDelimiter())
         .build();
 
-    String baseUrl = Objects.toString(insightConfig.getBaseUrl(), "");
+    String baseUrl = Objects.toString(systemConfigurationPropertyDAO.get(SystemConfigurationProperty.BASE_URL), "");
 
     return os -> {
       try (Writer writer = new BufferedWriter(new OutputStreamWriter(os));

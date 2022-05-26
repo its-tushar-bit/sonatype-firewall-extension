@@ -13,6 +13,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -410,6 +411,42 @@ public class TaskSchedulerTest
           .isEqualTo(SimpleTrigger.MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY);
       assertThat(simpleTrigger.getKey().getName()).isEqualTo(TestJob.NAME + "For" + nodeId);
       assertThat(simpleTrigger.getJobDataMap().getString(TaskScheduler.QUARTZ_NODE_ID)).isEqualTo(nodeId);
+      Date now = new Date();
+      assertThat(simpleTrigger.getStartTime()).isBeforeOrEqualTo(now).isCloseTo(now, 10000);
+    });
+  }
+
+  @Test
+  public void testScheduleOneTimeTaskForAllOtherNodes_WithParameters() throws Exception {
+    TaskScheduler taskSchedulerSpy = spy(taskScheduler);
+    Scheduler scheduler = taskSchedulerSpy.createScheduler();
+    Set<String> nodeIds = Sets.newHashSet("node1", "node2");
+    when(taskSchedulerSpy.getOtherNodeIds()).thenReturn(nodeIds);
+    Map<String, String> parameters = new HashMap<>();
+    parameters.put("key1", "value1");
+    parameters.put("key2", "value2");
+
+    taskSchedulerSpy.scheduleOneTimeTaskForAllOtherNodes(getTestJobClass(), TestJob.NAME, parameters);
+
+    JobKey jobKey = JobKey.jobKey(TestJob.NAME);
+    JobDetail job = scheduler.getJobDetail(jobKey);
+    assertThat(job).isNotNull();
+    assertThat(job.getJobClass()).isEqualTo(TestJob.class);
+    assertThat(job.isDurable()).isFalse();
+    assertThat(job.requestsRecovery()).isFalse();
+    List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
+    assertThat(triggers).hasSize(2);
+    nodeIds.forEach(nodeId -> {
+      Trigger trigger = triggers.stream().filter(t -> t.getKey().getName()
+          .equals(TestJob.NAME + "For" + nodeId)).findFirst().orElse(null);
+      assertThat(trigger).isInstanceOf(SimpleTrigger.class);
+      SimpleTrigger simpleTrigger = (SimpleTrigger) trigger;
+      assertThat(simpleTrigger.getMisfireInstruction())
+          .isEqualTo(SimpleTrigger.MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY);
+      assertThat(simpleTrigger.getKey().getName()).isEqualTo(TestJob.NAME + "For" + nodeId);
+      assertThat(simpleTrigger.getJobDataMap().getString(TaskScheduler.QUARTZ_NODE_ID)).isEqualTo(nodeId);
+      assertThat(simpleTrigger.getJobDataMap().getString("key1")).isEqualTo("value1");
+      assertThat(simpleTrigger.getJobDataMap().getString("key2")).isEqualTo("value2");
       Date now = new Date();
       assertThat(simpleTrigger.getStartTime()).isBeforeOrEqualTo(now).isCloseTo(now, 10000);
     });

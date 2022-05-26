@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.test.LogOutput;
@@ -59,9 +58,6 @@ public class ApiSamlConfigurationServiceTest
   @Inject
   private SamlDeploymentManager samlDeploymentManager;
 
-  @Inject
-  private InsightConfig config;
-
   @Mock
   private TaskScheduler taskSchedulerMock;
 
@@ -73,7 +69,7 @@ public class ApiSamlConfigurationServiceTest
 
   @Before
   public void setBaseUrl() {
-    config.setBaseUrl("http://iq-server:8070/");
+    setBaseUrl("http://iq-server:8070/");
   }
 
   @Rule
@@ -124,7 +120,7 @@ public class ApiSamlConfigurationServiceTest
 
       SamlConfiguration persisted = samlConfigurationDAO.get();
       assertThat(persisted.getIdentityProviderMetadataXml()).isEqualTo(validIdentityProviderXml());
-      assertThat(persisted.getEntityId()).isEqualTo(config.getBaseUrl() + "api/v2/config/saml/metadata");
+      assertThat(persisted.getEntityId()).isEqualTo(getBaseUrl() + "api/v2/config/saml/metadata");
       assertConfigIdentical(persisted, dto);
     }
     finally {
@@ -142,7 +138,7 @@ public class ApiSamlConfigurationServiceTest
       SamlConfiguration persisted = samlConfigurationDAO.get();
       assertThat(persisted.getIdentityProviderMetadataXml()).isEqualTo(validIdentityProviderXml());
       // Should have default values
-      assertThat(persisted.getEntityId()).isEqualTo(config.getBaseUrl() + "api/v2/config/saml/metadata");
+      assertThat(persisted.getEntityId()).isEqualTo(getBaseUrl() + "api/v2/config/saml/metadata");
       assertConfigIdentical(persisted, new SamlConfiguration());
     }
     finally {
@@ -160,7 +156,7 @@ public class ApiSamlConfigurationServiceTest
       SamlConfiguration persisted = samlConfigurationDAO.get();
       assertThat(persisted.getIdentityProviderMetadataXml()).isEqualTo(idpXml);
       // Should have default values
-      assertThat(persisted.getEntityId()).isEqualTo(config.getBaseUrl() + "api/v2/config/saml/metadata");
+      assertThat(persisted.getEntityId()).isEqualTo(getBaseUrl() + "api/v2/config/saml/metadata");
       assertConfigIdentical(persisted, new SamlConfiguration());
     }
     finally {
@@ -332,7 +328,7 @@ public class ApiSamlConfigurationServiceTest
     // xml is updated
     assertThat(persisted.getIdentityProviderMetadataXml()).isEqualTo(validIdentityProviderXml());
     // Config is overridden with defaults
-    assertThat(persisted.getEntityId()).isEqualTo(config.getBaseUrl() + "api/v2/config/saml/metadata");
+    assertThat(persisted.getEntityId()).isEqualTo(getBaseUrl() + "api/v2/config/saml/metadata");
     assertConfigIdentical(persisted, new SamlConfiguration());
   }
 
@@ -453,7 +449,7 @@ public class ApiSamlConfigurationServiceTest
           assertThat(nodes.getLength()).isEqualTo(1);
           assertThat(nodes.item(0).getTextContent()).isEqualTo(expectedCertificatePem);
         });
-    String expectedUrl = config.getBaseUrl() + "saml";
+    String expectedUrl = getBaseUrl() + "saml";
     assertThat(spssoDescriptorType.getSingleLogoutService())
         .extracting(endpoint -> endpoint.getLocation().toString(), endpoint -> endpoint.getBinding().toString())
         .containsExactly(tuple(expectedUrl, "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"));

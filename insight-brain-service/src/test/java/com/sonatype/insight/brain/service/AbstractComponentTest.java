@@ -9,15 +9,21 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.DatamartUpdaterState;
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.model.PerpetualLock;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
@@ -39,6 +45,7 @@ import com.google.inject.spi.InjectionListener;
 import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
 import io.dropwizard.lifecycle.Managed;
+import io.dropwizard.util.Sets;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
@@ -107,6 +114,32 @@ public class AbstractComponentTest
     releaseScmPerpetualLock();
     stopManagedComponents();
     tearDownSecurity();
+    resetBaseUrl();
+  }
+
+  public String getBaseUrl() {
+    return new SystemConfigurationPropertyDAO().get(SystemConfigurationProperty.BASE_URL);
+  }
+
+  public void setBaseUrl(String baseUrl) {
+    setBaseUrl(baseUrl, false);
+  }
+
+  public void setBaseUrl(String baseUrl, boolean forceBaseUrl) {
+    ApiConfigurationService service = lookup(ApiConfigurationService.class);
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(SystemConfigurationProperty.BASE_URL, baseUrl);
+    properties.put(SystemConfigurationProperty.FORCE_BASE_URL, forceBaseUrl);
+    service.setConfigurationNoAuthz(properties);
+    service.applyConfigurationToClients(properties.keySet());
+  }
+
+  public void resetBaseUrl() {
+    ApiConfigurationService service = lookup(ApiConfigurationService.class);
+    Set<String> propertyNames =
+        Sets.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
+    service.deleteConfigurationNoAuthz(propertyNames);
+    service.applyConfigurationToClients(propertyNames);
   }
 
   private void releaseScmPerpetualLock() {

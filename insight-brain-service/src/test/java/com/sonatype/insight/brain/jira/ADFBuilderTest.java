@@ -47,7 +47,7 @@ public class ADFBuilderTest
 
   @Before
   public void before() {
-    config.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
     config.setJiraConfig(new JiraConfig());
     app = tempEntity.newApplicationWithParent();
     adfBuilder = new ADFBuilder(baseUrl);

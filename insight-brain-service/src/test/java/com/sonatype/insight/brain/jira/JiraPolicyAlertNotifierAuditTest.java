@@ -69,7 +69,7 @@ public class JiraPolicyAlertNotifierAuditTest
 
   @Before
   public void before() {
-    insightConfig.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
     insightConfig.setJiraConfig(new JiraConfig());
 
     when(mockJiraService.isEnabled()).thenReturn(true);

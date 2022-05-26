@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -58,14 +57,11 @@ public class ApiCycloneDxServiceV2Test
 
   private String scanId;
 
-  @Inject
-  InsightConfig config;
-
   @Before
   public void setup() {
     scanId = tempEntity.uuid();
     application = tempEntity.newApplication(tempEntity.newOrganization().getId());
-    config.setBaseUrl("http://localhost:8070/");
+    setBaseUrl("http://localhost:8070/");
   }
 
   private void createReportAndPolicyEvaluation() throws IOException {

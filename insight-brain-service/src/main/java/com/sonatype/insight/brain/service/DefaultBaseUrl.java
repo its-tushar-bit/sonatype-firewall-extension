@@ -5,28 +5,46 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+
+import io.dropwizard.util.Sets;
+
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @Named
 @Singleton
-public class DefaultBaseUrl implements BaseUrl
+public class DefaultBaseUrl
+    implements BaseUrl, ConfigurationListener
 {
   public static final String ERR_MSG_BASE_URL_NOT_CONFIGURED = "The server base URL (baseUrl) is not configured. "
       + "More information at https://links.sonatype.com/products/clm/docs/base-url";
 
-  private final InsightConfig appConfig;
+  private final ApiConfigurationService configurationService;
+
+  private final AtomicReference<Map<String, Object>> baseUrlConfigurationAtomicReference =
+      new AtomicReference<>();
 
   private final ThreadLocal<HttpServletRequest> currentHttpRequest = new ThreadLocal<>();
 
   @Inject
-  public DefaultBaseUrl(final InsightConfig appConfig) {
-    this.appConfig = appConfig;
+  public DefaultBaseUrl(final ApiConfigurationService configurationService) {
+    this.configurationService = configurationService;
+    configurationChanged(
+        new HashSet<>(Arrays.asList(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL)));
   }
 
   @Override
@@ -49,18 +67,23 @@ public class DefaultBaseUrl implements BaseUrl
 
   @Override
   public String get() {
-    if (!appConfig.isForceBaseUrl()) {
+    Map<String, Object> baseUrlConfiguration = baseUrlConfigurationAtomicReference.get();
+    if (!(boolean) baseUrlConfiguration.get(SystemConfigurationProperty.FORCE_BASE_URL)) {
       String url = tryGetBaseUriWithEndingForwardSlash();
       if (url != null) {
         return url;
       }
     }
-    return getConfigured();
+    return getConfigured(baseUrlConfiguration);
   }
 
   @Override
   public String getConfigured() {
-    String url = appConfig.getBaseUrl();
+    return getConfigured(baseUrlConfigurationAtomicReference.get());
+  }
+
+  private String getConfigured(Map<String, Object> baseUrlConfiguration) {
+    String url = (String) baseUrlConfiguration.get(SystemConfigurationProperty.BASE_URL);
     if (!isBlank(url)) {
       return url;
     }
@@ -88,5 +111,14 @@ public class DefaultBaseUrl implements BaseUrl
   @Override
   public UriBuilder redirect() {
     return UriBuilder.fromUri(get()).replaceQuery(getHttpRequest().getQueryString());
+  }
+
+  @Override
+  public void configurationChanged(Set<String> propertyNames) {
+    if (propertyNames.contains(SystemConfigurationProperty.BASE_URL) ||
+        propertyNames.contains(SystemConfigurationProperty.FORCE_BASE_URL)) {
+      baseUrlConfigurationAtomicReference.set(configurationService.getConfigurationNoAuthz(
+          Sets.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL)));
+    }
   }
 }

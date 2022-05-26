@@ -770,7 +770,7 @@ public class DefaultHdsClientTest
   @Test
   public void testLabsProxy_Headers() throws Exception {
     final Map<String, String> headers = new HashMap<>();
-    config.setBaseUrl("http://localhost:8070");
+    setBaseUrl("http://localhost:8070");
     handler = new AbstractHandler()
     {
       @Override

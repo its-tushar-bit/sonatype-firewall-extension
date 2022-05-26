@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.scheduler;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -208,6 +209,14 @@ public class TaskScheduler
   }
 
   public void scheduleOneTimeTaskForAllOtherNodes(Class<? extends Job> jobClass, String name) {
+    scheduleOneTimeTaskForAllOtherNodes(jobClass, name, Collections.emptyMap());
+  }
+
+  public void scheduleOneTimeTaskForAllOtherNodes(
+      Class<? extends Job> jobClass,
+      String name,
+      Map<String, String> parameters)
+  {
     Set<String> otherNodeIds = getOtherNodeIds();
     if (otherNodeIds.isEmpty()) {
       return;
@@ -226,9 +235,11 @@ public class TaskScheduler
     // create one trigger for each node
     log.debug("Scheduling {} to be executed once on nodes {}.", name, otherNodeIds);
     for (String nodeId : otherNodeIds) {
+      JobDataMap jobDataMap = new JobDataMap(parameters);
+      jobDataMap.put(QUARTZ_NODE_ID, nodeId); // bind to node
       Trigger trigger = TriggerBuilder.newTrigger() //
           .withIdentity(job.getKey().getName() + "For" + nodeId, job.getKey().getGroup()) //
-          .usingJobData(QUARTZ_NODE_ID, nodeId) // bind to node
+          .usingJobData(jobDataMap)
           .withSchedule(rightNowSchedule) //
           .startNow() //
           .build();

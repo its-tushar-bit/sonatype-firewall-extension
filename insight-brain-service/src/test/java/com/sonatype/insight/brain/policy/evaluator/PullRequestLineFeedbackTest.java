@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -32,7 +30,6 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.DefaultBaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.ImmutableMap;
@@ -62,14 +59,11 @@ public class PullRequestLineFeedbackTest
 
   private static final String SCM_ON_PREM_BASE_URL = "https://scm.mycompany.com";
 
-  @Inject
-  private InsightConfig config;
-
   private Map<String, PullRequestLineFeedback> testCases;
 
   @Before
   public void before() {
-    config.setBaseUrl("http://localhost:1122");
+    setBaseUrl("http://localhost:1122");
     String iqBaseUrl = lookup(DefaultBaseUrl.class).getConfigured();
     testCases = ImmutableMap.<String, PullRequestLineFeedback>builder()
         .put(MULTIPLE_NO_SUGGESTIONS, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",

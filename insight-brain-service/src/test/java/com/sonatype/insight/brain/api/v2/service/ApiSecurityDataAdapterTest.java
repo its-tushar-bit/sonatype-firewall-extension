@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,12 +28,9 @@ public class ApiSecurityDataAdapterTest extends AbstractComponentTest
   @Inject
   private ApiSecurityDataAdapter adapter;
 
-  @Inject
-  InsightConfig config;
-
   @Before
   public void setup() {
-    config.setBaseUrl("http://localhost:8070/");
+    setBaseUrl("http://localhost:8070/");
   }
 
   @Test

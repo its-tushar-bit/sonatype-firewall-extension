@@ -58,4 +58,45 @@ public class SystemConfigurationPropertyDAO
     property.setId(existingProperty.getId());
     super.update(tx, property);
   }
+
+  public String get(String name) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return get(tx, name);
+    }
+  }
+
+  public String get(TransactionContext tx, String name) {
+    SystemConfigurationProperty property = getByName(tx, name);
+    if (property == null) {
+      return null;
+    }
+    return property.getValue();
+  }
+
+  public void set(String name, String value) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      set(tx, name, value);
+      tx.commit();
+    }
+  }
+
+  public void set(TransactionContext tx, String name, String value) {
+    SystemConfigurationProperty property = getByName(tx, name);
+    if (value == null) {
+      if (property != null) {
+        delete(tx, property);
+      }
+    }
+    else {
+      if (property == null) {
+        property = new SystemConfigurationProperty(name, value);
+        insert(tx, property);
+      }
+      else {
+        property.setValue(value);
+        update(tx, property);
+      }
+    }
+  }
 }

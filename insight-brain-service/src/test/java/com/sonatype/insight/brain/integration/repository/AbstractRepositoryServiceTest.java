@@ -76,7 +76,6 @@ import com.sonatype.insight.brain.repository.RepositoryPolicyAlertEmailer;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -171,9 +170,7 @@ public abstract class AbstractRepositoryServiceTest
     lenient().when(
         hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
-
-    InsightConfig insightConfig = lookup(InsightConfig.class);
-    insightConfig.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
 
     MailConfiguration mailConfiguration = new MailConfiguration();
     mailConfiguration.setHostname("127.0.0.1");

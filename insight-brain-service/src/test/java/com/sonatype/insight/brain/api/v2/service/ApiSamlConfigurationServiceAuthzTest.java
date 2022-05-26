@@ -10,7 +10,6 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -25,9 +24,6 @@ public class ApiSamlConfigurationServiceAuthzTest
 {
   @Inject
   private ApiSamlConfigurationService apiSamlConfigurationService;
-
-  @Inject
-  private InsightConfig config;
 
   @Mock
   private TaskScheduler taskSchedulerMock;
@@ -58,7 +54,7 @@ public class ApiSamlConfigurationServiceAuthzTest
 
   @Test(expected = BadRequestException.class)
   public void testInsertOrUpdateSamlConfiguration_Authorized() {
-    config.setBaseUrl("http://iq-server:8070/");
+    setBaseUrl("http://iq-server:8070/");
     grantConfigureSystemPermission();
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration("", new ApiSamlConfigurationDTO());
   }

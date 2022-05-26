@@ -71,7 +71,7 @@ public class PolicyAlertEmailerAuditTest
 
   @Before
   public void before() {
-    config.setBaseUrl("http://localhost");
+    setBaseUrl("http://localhost");
     when(mockInsightMail.getCdnUrl()).thenReturn(config.getCdnUrl());
     application = tempEntity.newApplicationWithParent();
   }

@@ -36,7 +36,6 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.DefaultBaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
@@ -112,9 +111,6 @@ public class PullRequestCodeInsightsDetailsTest
   private InsightWork insightWork;
 
   @Inject
-  private InsightConfig config;
-
-  @Inject
   private SourceControlComponentLoader sourceControlComponentLoader;
 
   private Application app;
@@ -142,7 +138,7 @@ public class PullRequestCodeInsightsDetailsTest
 
   @Before
   public void before() {
-    config.setBaseUrl("http://localhost:1122");
+    setBaseUrl("http://localhost:1122");
     tempEntity.newOrganizationWithSpecificId(ORG_ID, ORG_NAME);
     app = tempEntity.newApplicationWithSpecificId(APP_INTERNAL_ID, APP_NAME, APP_PUBLIC_ID, ORG_ID);
     PullRequestCodeInsightsDetails.clock = Clock

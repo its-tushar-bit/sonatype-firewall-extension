@@ -15,8 +15,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -35,7 +33,6 @@ import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.ImmutableList;
@@ -47,9 +44,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PullRequestRemediationDetailsTest
     extends AbstractComponentTest
 {
-  @Inject
-  private InsightConfig config;
-
   private static final String SCAN_ID = "5ea5363997ee2ba0c8730a5f785ae2c6";
 
   private static final String TEST_SCM_URL = "https://scm.mycompany.com";
@@ -58,7 +52,7 @@ public class PullRequestRemediationDetailsTest
 
   @Before
   public void before() {
-    config.setBaseUrl("http://localhost:1122");
+    setBaseUrl("http://localhost:1122");
     app = tempEntity.newApplicationWithParent("my-public-app-id", "MyTestApp", "Integrations");
     PullRequestRemediationDetails.clock = Clock
         .fixed(Instant.parse("2019-11-26T18:15:30Z"), ZoneId.of("America/Los_Angeles"));
@@ -138,7 +132,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", breakingChangesCount, "pullRequest",
-            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider, TEST_SCM_URL);
+            policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL);
 
     assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
 
@@ -185,7 +179,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "1.1", null, "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider, TEST_SCM_URL);
+            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL);
 
     assertThat(details.getTitle()).isEqualTo("Bump @sonatype/foo to 1.1");
 
@@ -229,7 +223,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "v0.3.3", null, "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), provider, TEST_SCM_URL);
+            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL);
 
     assertThat(details.getTitle()).isEqualTo("Bump golang.org/x/text to v0.3.3");
 
@@ -245,7 +239,7 @@ public class PullRequestRemediationDetailsTest
 
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", null, "pullRequest", policyNotifications, app,
-            SCAN_ID, Stage.ID_BUILD, config.getBaseUrl(), SourceControlProvider.GITHUB, TEST_SCM_URL);
+            SCAN_ID, Stage.ID_BUILD, getBaseUrl(), SourceControlProvider.GITHUB, TEST_SCM_URL);
 
     assertThat(details.getContents().replace("\r\n", "\n"))
         .startsWith("## :shield: Automated pull request: Nexus IQ found 1 Policy Violation\n");

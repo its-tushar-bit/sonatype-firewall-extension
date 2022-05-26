@@ -11,21 +11,25 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
-import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.utils.PageTweakingWebDriver;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.jira.JiraService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
@@ -140,7 +144,6 @@ public abstract class AbstractFunctionalTest
     {
       @Override
       public void configure(InsightConfig config) {
-        config.setBaseUrl(Configuration.baseUrl);
         ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
       }
     });
@@ -152,12 +155,20 @@ public abstract class AbstractFunctionalTest
 
       Configuration.baseUrl = resolveBaseUrl(getBaseUrl(contextPath));
       Configuration.reportsFolder = "target/selenide-reports";
-      testCLMServer.getCLMServer().getConfiguration().setBaseUrl(Configuration.baseUrl);
+      setBaseUrl(Configuration.baseUrl);
     }
     catch (Throwable e) {
       e.printStackTrace();
       System.exit(1);
     }
+  }
+
+  public static void setBaseUrl(String baseUrl) {
+    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(SystemConfigurationProperty.BASE_URL, baseUrl);
+    service.setConfigurationNoAuthz(properties);
+    service.applyConfigurationToClients(properties.keySet());
   }
 
   @ClassRule

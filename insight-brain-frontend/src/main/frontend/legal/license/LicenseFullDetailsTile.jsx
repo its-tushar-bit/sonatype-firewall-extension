@@ -7,7 +7,7 @@ import React, { Fragment, useEffect, useState } from 'react';
 import { selectableColorClasses } from '@sonatype/react-shared-components';
 import { licenseLegalMetadataPropType } from '../advancedLegalPropTypes';
 import * as PropTypes from 'prop-types';
-import { partial } from 'ramda';
+import { partial, uniqWith } from 'ramda';
 
 export default function LicenseFullDetailsTile(props) {
   const { componentLicenseDetails, licenseLegalMetadata } = props;
@@ -71,8 +71,11 @@ export default function LicenseFullDetailsTile(props) {
 
     licenseSpans.sort((a, b) => a.start - b.start);
 
-    return licenseSpans;
+    return uniqWith(uniqueObligationsTextSpan, licenseSpans);
   };
+
+  const uniqueObligationsTextSpan = (obligationFirst, obligationSecond) =>
+    obligationFirst.obligationText === obligationSecond.obligationText;
 
   const licenseTextWithHighlights = (text) => {
     const spans = obligationHighlightSpans(text);
@@ -120,7 +123,7 @@ export default function LicenseFullDetailsTile(props) {
    * @param string Input snippet to be escaped
    */
   function escapeTextSnippetForRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/(\n| )+/g, '[ \\r\\n]+');
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/(\n| |\t)+/g, '[ \\r\\n]+');
   }
 
   return (
@@ -135,7 +138,7 @@ export default function LicenseFullDetailsTile(props) {
           id="license-full-details-tile__obligations-and-license"
           className="nx-grid-row nx-grid-h-keyline nx-viewport-sized__container"
         >
-          <div className="nx-grid-col nx-scrollable nx-viewport-sized__scrollable">
+          <div className="nx-grid-col nx-scrollable nx-viewport-sized__scrollable" data-testid="obligationsTexts">
             <dl className="nx-read-only" id="license-full-details-tile__obligations-container">
               {obligations.map((obligation, index) => {
                 const texts = obligation.obligationTexts.map((obligationText) =>
@@ -151,6 +154,7 @@ export default function LicenseFullDetailsTile(props) {
             </dl>
           </div>
           <div
+            data-testid="licenseText"
             className={
               'nx-grid-col nx-scrollable nx-viewport-sized__scrollable ' + 'component-license-details-license-container'
             }

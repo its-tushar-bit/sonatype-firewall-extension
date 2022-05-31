@@ -484,12 +484,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
     });
   });
 
-  /*
-    See: CLM-21127 (https://issues.sonatype.org/browse/CLM-21127)
-    This test block needs refactoring to manage jasmine clock and promise resolution
-  */
-
-  xdescribe('fetchAdvanceLegalPackFeatures', () => {
+  describe('fetchAdvanceLegalPackFeatures', () => {
     let store;
     beforeEach(() => {
       const editWebhookState = {
@@ -497,9 +492,14 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
       };
 
       store = SpecUtil.mockReduxStore({ webhooks: editWebhookState });
+      jasmine.clock().install();
     });
 
-    it('retrieves from backend features and found that Advance Legal Pack feature is enabled', () => {
+    afterEach(() => {
+      jasmine.clock().uninstall();
+    });
+
+    it('retrieves from backend features and found that Advance Legal Pack feature is enabled', (done) => {
       mockAxiosCalls({
         get: {
           [getProductFeaturesUrl()]: () => Promise.resolve({ data: ['advanced-legal-pack'] }),
@@ -509,14 +509,17 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
       store.dispatch(fetchAdvanceLegalPackFeatures()).then(() => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-        expect(store.getActions()[0]).toEqual({
+        const actions = store.getActions();
+        expect(actions).toHaveAction({
           type: 'componentDetailsLicenseDetectionsTile/fetchAdvanceLegalPackFeatures/fulfilled',
           payload: true,
         });
+
+        done();
       });
     });
 
-    it('retrieves from backend features and found that Advance Legal Pack feature is NOT enabled', () => {
+    it('retrieves from backend features and found that Advance Legal Pack feature is NOT enabled', (done) => {
       mockAxiosCalls({
         get: {
           [getProductFeaturesUrl()]: () => Promise.resolve({ data: [] }),
@@ -526,10 +529,13 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
       store.dispatch(fetchAdvanceLegalPackFeatures()).then(() => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-        expect(store.getActions()[0]).toEqual({
+        const actions = store.getActions();
+        expect(actions).toHaveAction({
           type: 'componentDetailsLicenseDetectionsTile/fetchAdvanceLegalPackFeatures/fulfilled',
           payload: false,
         });
+
+        done();
       });
     });
   });

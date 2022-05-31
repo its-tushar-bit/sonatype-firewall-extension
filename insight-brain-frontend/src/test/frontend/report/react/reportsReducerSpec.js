@@ -3,9 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
 import reducer, { actions } from 'MainRoot/report/react/reportsSlice';
-import { getApplicationSummariesUrl } from 'MainRoot/util/CLMLocation';
 
 describe('Reports reducer', () => {
   describe('reports/loadStages/pending', () => {
@@ -320,50 +318,6 @@ describe('Reports reducer', () => {
 
   describe('filterReports', () => {
     const filterValue = 'test';
-    const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
-      applicationSummariesUrlPayload = [
-        {
-          id: '2e340b54c696423f8e228423f6a9d5b9',
-          publicId: 'a-org-app',
-          name: 'a-org-app',
-          organizationId: '93ade64c3e0d4549b326fc5264fd2d65',
-          organizationName: 'a-org',
-        },
-        {
-          id: '7f3726e9cc9c4137893b4910ef1380fe',
-          publicId: 'apptest1',
-          name: 'apptest',
-          organizationId: '373a0f41024f4c5ebe93a20464599c4f',
-          organizationName: 'org-test very long name to an org in this world but it happens',
-        },
-        {
-          id: '31db96d8cc624113a756aa02f3ff8ed4',
-          publicId: 'apptestb',
-          name: 'apptestB',
-          organizationId: '053de74d5513477094250cf7143ea453',
-          organizationName: 'my-org',
-        },
-        {
-          id: '5bee9f16c0ca4f87af587f2adb039548',
-          publicId: 'b-org-app',
-          name: 'b-org-app',
-          organizationId: 'e6542935d99a418daaf0a75dfc436d8c',
-          organizationName: 'b-org',
-        },
-      ];
-
-    let store;
-    let state = Object.freeze({
-      reports: {
-        appFilter: filterValue,
-        applicationsInformationList: [],
-        pages: 1,
-      },
-    });
-
-    beforeEach(() => {
-      store = SpecUtil.mockReduxStore(state);
-    });
 
     it('set appFilter and pages to 1 when setting filter', () => {
       const state = Object.freeze({
@@ -380,57 +334,27 @@ describe('Reports reducer', () => {
       expect(pages).toEqual(1);
     });
 
-    // these tests are going to be optimesed in CLM-21521
-    it('dispatches a reports/setFilter and reports/loadReports/fulfilled actions', (done) => {
-      mockAxiosCalls({
-        get: {
-          [getApplicationSummariesUrl(filterValue, 'APP_NAME_ASC', 1, 50)]: Promise.resolve({
-            data: applicationSummariesUrlPayload,
-          }),
+    it('dispatches a loadReports action after a debounced time', (done) => {
+      const state = Object.freeze({
+        reports: {
+          appFilter: filterValue,
+          applicationsInformationList: [],
+          pages: 1,
         },
       });
+      const store = SpecUtil.mockReduxStore(state);
+      const loadReportsSpy = spyOn(actions, 'loadReports').and.resolveTo({});
 
-      store.dispatch(actions.filterReports(filterValue));
-
+      store.dispatch(actions.filterReports('filterValue'));
       expect(store.getActions().length).toBe(1);
+      expect(loadReportsSpy).not.toHaveBeenCalled();
 
       setTimeout(() => {
-        const actions = store.getActions();
-        expect(actions.length).toBe(3);
-        expect(actions[0].type).toBe('reports/setFilter');
-        expect(actions[0].payload).toBe(filterValue);
-        expect(actions[1].type).toBe('reports/loadReports/pending');
-        expect(actions[1].payload).toBeUndefined();
-        expect(actions[2].type).toBe('reports/loadReports/fulfilled');
-        expect(actions[2].payload).not.toBeUndefined();
+        const storeActions = store.getActions();
+        expect(storeActions.length).toBe(2);
+        expect(loadReportsSpy).toHaveBeenCalled();
         done();
-      }, 1000);
-    });
-
-    // these tests are going to be optimesed in CLM-21521
-    it('dispatches a reports/setFilter and reports/loadReports/rejected actions', (done) => {
-      const error = 'error';
-      mockAxiosCalls({
-        get: {
-          [getApplicationSummariesUrl(filterValue, 'APP_NAME_ASC', 1, 50)]: () => Promise.reject({ error }),
-        },
-      });
-
-      store.dispatch(actions.filterReports(filterValue));
-
-      expect(store.getActions().length).toBe(1);
-
-      setTimeout(() => {
-        const actions = store.getActions();
-        expect(actions.length).toBe(3);
-        expect(actions[0].type).toBe('reports/setFilter');
-        expect(actions[0].payload).toBe(filterValue);
-        expect(actions[1].type).toBe('reports/loadReports/pending');
-        expect(actions[1].payload).toBeUndefined();
-        expect(actions[2].type).toBe('reports/loadReports/rejected');
-        expect(actions[2].payload).not.toBeUndefined();
-        done();
-      }, 1000);
+      }, 600);
     });
   });
 });

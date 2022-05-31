@@ -83,6 +83,17 @@ public class OrganizationSummaryViewTest
     SidebarNavigation.closeNavigationSidebar();
   }
 
+  @Test
+  public void testActionsDropdownOptions() {
+    ActionDropDown.actionButton().click();
+    ActionDropDown.editOwner().shouldBe(visible);
+    ActionDropDown.importPoliciesButton().shouldBe(visible);
+    ActionDropDown.deleteOwnerButton().shouldBe(visible);
+    ActionDropDown.actions().shouldHaveSize(3);
+
+    eyesWatcher.eyesCheck("organization actions dropdown");
+  }
+
   @Override
   @Test
   public void testReportLinks() {

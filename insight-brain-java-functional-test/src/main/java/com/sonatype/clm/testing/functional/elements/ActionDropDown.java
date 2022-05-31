@@ -61,6 +61,10 @@ public class ActionDropDown
     return $("#import-policies-link");
   }
 
+  public static SelenideElement copyAppIdButton() {
+    return $("#copy-app-id-link");
+  }
+
   public static SelenideElement actionButton() {
     return $(createSelector(ROOT, "button"));
   }
@@ -76,5 +80,9 @@ public class ActionDropDown
 
   public static SelenideElement reportLink(int num) {
     return reportLinks().get(num);
+  }
+
+  public static ElementsCollection actions() {
+    return menu().findAll("a.iq-btn--dropdown");
   }
 }

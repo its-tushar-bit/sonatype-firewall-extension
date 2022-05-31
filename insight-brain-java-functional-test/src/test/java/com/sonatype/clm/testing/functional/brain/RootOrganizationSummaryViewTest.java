@@ -128,4 +128,14 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
 
     tile.itemSubText().shouldBe(visible);
   }
+
+  @Test
+  public void testActionsDropdownOptions() {
+    ActionDropDown.actionButton().click();
+    ActionDropDown.editOwner().shouldBe(visible);
+    ActionDropDown.importPoliciesButton().shouldBe(visible);
+    ActionDropDown.actions().shouldHaveSize(2);
+
+    eyesWatcher.eyesCheck("root organization actions dropdown");
+  }
 }

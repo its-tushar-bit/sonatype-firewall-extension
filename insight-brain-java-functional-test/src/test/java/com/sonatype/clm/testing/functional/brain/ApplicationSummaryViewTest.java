@@ -176,6 +176,25 @@ public class ApplicationSummaryViewTest
     OwnerSummaryPage.summaryTile().contact().shouldBe(visible).shouldHave(text(tempUser.calculateDisplayName()));
   }
 
+  @Test
+  public void testActionsDropdownOptions() {
+    ActionDropDown.actionButton().click();
+    ActionDropDown.copyAppIdButton().shouldBe(visible);
+    ActionDropDown.selectContact().shouldBe(visible);
+    ActionDropDown.editOwner().shouldBe(visible);
+
+    ActionDropDown.changeApplicationId().shouldBe(visible);
+    ActionDropDown.moveApplication().shouldBe(visible);
+    ActionDropDown.deleteOwnerButton().shouldBe(visible);
+    ActionDropDown.grandfather().shouldBe(visible);
+    ActionDropDown.revokeGrandfathered().shouldBe(visible);
+    ActionDropDown.evaluateBinaryButton().shouldBe(visible);
+
+    ActionDropDown.actions().shouldHaveSize(9);
+
+    eyesWatcher.eyesCheck("application actions dropdown");
+  }
+
   @Override
   @Test
   public void testReportLinks() {

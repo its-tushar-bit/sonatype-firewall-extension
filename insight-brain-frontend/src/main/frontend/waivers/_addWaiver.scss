@@ -47,3 +47,15 @@ add-waiver-page {
 .iq-add-waiver-form__vulnerability_details_link {
   margin-bottom: var(--nx-spacing-8x);
 }
+
+div.iq-add-waiver-form__date-input {
+  margin-left: var(--nx-spacing-8x);
+  margin-bottom: 0;
+}
+
+.iq-add-waiver-form__expiration-days-diff {
+  font-size: var(--nx-font-size-xs);
+  line-height: var(--nx-spacing-4x);
+  position: absolute;
+  margin-top: var(--nx-spacing-2x);
+}

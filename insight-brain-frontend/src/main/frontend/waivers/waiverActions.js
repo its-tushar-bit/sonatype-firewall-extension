@@ -7,7 +7,7 @@ import axios from 'axios';
 import { compose, path } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-import { capitalize } from '../util/jsUtil';
+import { capitalize, getISODateFromDateInput } from '../util/jsUtil';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { Messages } from '../utilAngular/CommonServices';
 import { getAddPolicyViolationWaiverUrl, getOwnerContextHierarchyUrl, deleteWaiverUrl } from '../util/CLMLocation';
@@ -33,6 +33,7 @@ export const WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT = 'WAIVERS_ADD_WAIVER_SET_WAI
 export const WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE = 'WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE';
 export const WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS = 'WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS';
 export const WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME = 'WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME';
+export const WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME = 'WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME';
 export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED';
 export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED';
 export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED';
@@ -85,7 +86,7 @@ function saveWaiver(policyViolationId, waiverScope, ownerId, comment, applyToAll
     payload = {
       comment,
       applyToAllComponents,
-      expiryTime: getExpiryTime(expiration),
+      expiryTime: typeof expiration === 'string' ? getISODateFromDateInput(expiration) : getExpiryTime(expiration),
     };
   return axios.post(url, payload).then(() => {
     startSubmitMaskTimer(dispatch);
@@ -198,6 +199,8 @@ export const setWaiverScope = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_W
 export const setApplyToAllComponents = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS);
 
 export const setExpiryTime = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME);
+
+export const setCustomExpiryTime = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME);
 
 function loadOwnerContextHierarchy(ownerType, ownerId, policyId) {
   return axios

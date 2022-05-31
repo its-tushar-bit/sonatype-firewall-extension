@@ -89,6 +89,18 @@ public class AddWaiverPage
     return children("#waiver-expiration-select option");
   }
 
+  public SelenideElement customExpiryTime() {
+    return child(".iq-add-waiver-form__date-input .nx-text-input__input");
+  }
+
+  public SelenideElement customExpiryTimeErrorMessage() {
+    return child(".iq-add-waiver-form__date-input .nx-text-input__invalid-message");
+  }
+
+  public SelenideElement expiryTimeMessage() {
+    return child(".iq-add-waiver-form__expiration-days-diff");
+  }
+
   public SelenideElement comments() {
     return child(".iq-add-waiver-form__comments .nx-text-input textarea");
   }

@@ -97,7 +97,7 @@ public class AddWaiverTest
     addWaiverPage.component(0).label().shouldHave(text("Group1 : Artifact1 : Version1"));
     addWaiverPage.component(1).label().shouldHave(text("All Components"));
     addWaiverPage.comments().shouldHave(text(""));
-    addWaiverPage.expiryTimesOptions().shouldHaveSize(7);
+    addWaiverPage.expiryTimesOptions().shouldHaveSize(8);
     addWaiverPage.expiryTimesOptions().get(0).shouldHave(text("Never"));
     addWaiverPage.expiryTimesOptions().get(1).shouldHave(text("7 Days"));
     addWaiverPage.expiryTimesOptions().get(2).shouldHave(text("14 Days"));
@@ -105,6 +105,7 @@ public class AddWaiverTest
     addWaiverPage.expiryTimesOptions().get(4).shouldHave(text("60 Days"));
     addWaiverPage.expiryTimesOptions().get(5).shouldHave(text("90 Days"));
     addWaiverPage.expiryTimesOptions().get(6).shouldHave(text("120 Days"));
+    addWaiverPage.expiryTimesOptions().get(7).shouldHave(text("Custom"));
     addWaiverPage.expiryTimesSelect().getSelectedOption().shouldHave(text("Never"));
 
     eyesWatcher.eyesCheck();
@@ -232,6 +233,48 @@ public class AddWaiverTest
   }
 
   @Test
+  public void testSubmit_ApplicationWaiver_CustomExpiringWaiver() {
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(3);
+      NxRadio chosenScope = addWaiverPage.scope(0);
+      chosenScope.label().shouldHave(text("Application - App 1"));
+      chosenScope.click();
+      addWaiverPage.availableComponents().shouldHaveSize(2);
+      NxRadio chosenComponent = addWaiverPage.component(1);
+      chosenComponent.label().shouldHave(text("All Components"));
+      chosenComponent.click();
+      addWaiverPage.expiryTimesSelect().selectOptionContainingText("Custom");
+
+      addWaiverPage.customExpiryTime().val("01-01-0001");
+      addWaiverPage.customExpiryTimeErrorMessage().shouldHave(text("Date must be in the future"));
+
+      addWaiverPage.customExpiryTime().val("01-01-9999");
+      addWaiverPage.expiryTimeMessage().shouldBe(visible);
+      chosenComponent.label().shouldHave(text("All Components"));
+      addWaiverPage.comments().setValue("Some comments");
+
+      eyesWatcher.eyesCheck();
+      
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+
+      waivers = policyWaiverDAO.getActiveByOwnerId(application.getId());
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+      assertThat(waivers.get(0).getHash()).isNull();
+      assertThat(waivers.get(0).getExpiryTime()).isNotNull();
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
+  }
+
+  @Test
   public void testSubmit_OrgWaiver_SingleComponent() {
     List<PolicyWaiver> waivers = Collections.emptyList();
     try {
@@ -310,6 +353,43 @@ public class AddWaiverTest
 
       addWaiverPage.expiryTimesSelect().selectOptionContainingText("14 Days");
 
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+
+      waivers = policyWaiverDAO.getApplicableToComponent(organization.getId(), "hash1");
+      assertThat(waivers.size()).isEqualTo(1);
+      assertThat(waivers.get(0).getPolicyId()).isEqualTo(policyViolation.getPolicyId());
+      assertThat(waivers.get(0).getExpiryTime()).isNotNull();
+    }
+    finally {
+      cleanupCreatedWaivers(waivers);
+    }
+  }
+
+  @Test
+  public void testSubmit_OrgWaiver_CustomExpiringWaiver() {
+    List<PolicyWaiver> waivers = Collections.emptyList();
+    try {
+      refreshOrOpen(AddWaiverPage.url(policyViolation.getId()));
+
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(3);
+      NxRadio chosenScope = addWaiverPage.scope(1);
+      chosenScope.label().shouldHave(text("Organization - Org 1"));
+      chosenScope.click();
+      addWaiverPage.availableComponents().shouldHaveSize(2);
+      NxRadio chosenComponent = addWaiverPage.component(0);
+      chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
+      chosenComponent.click();
+      addWaiverPage.expiryTimesSelect().selectOptionContainingText("Custom");
+
+      addWaiverPage.customExpiryTime().val("01-01-0001");
+      addWaiverPage.customExpiryTimeErrorMessage().shouldHave(text("Date must be in the future"));
+      
+      addWaiverPage.customExpiryTime().val("01-01-9999");
+      addWaiverPage.expiryTimeMessage().shouldBe(visible);
       addWaiverPage.comments().setValue("Some comments");
       addWaiverPage.saveButton().click();
       NxSubmitMask.seeAndWaitForDismissal();

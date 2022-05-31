@@ -9,6 +9,7 @@ import AddWaiverForm from '../../../main/frontend/waivers/AddWaiverForm';
 import { NxSubmitMask } from '@sonatype/react-shared-components';
 import AddWaiverPage from '../../../main/frontend/waivers/AddWaiverPage';
 import AddAndRequestWaiversBackButton from 'MainRoot/waivers/AddAndRequestWaiversBackButton';
+import { nxDateInputStateHelpers } from '@sonatype/react-shared-components';
 
 describe('AddWaiverPage', function () {
   let minimalProps,
@@ -33,6 +34,7 @@ describe('AddWaiverPage', function () {
         isPristine: true,
       },
       expiryTime: null,
+      customExpiryTime: nxDateInputStateHelpers.initialState(''),
       loadAddWaiverData: loadAddWaiverDataSpy,
       prevStateName: null,
       prevParams: {
@@ -46,6 +48,7 @@ describe('AddWaiverPage', function () {
       setWaiverScope: () => {},
       setApplyToAllComponents: () => {},
       setExpiryTime: () => {},
+      setCustomExpiryTime: () => {},
       cancelAction: () => {},
     };
 

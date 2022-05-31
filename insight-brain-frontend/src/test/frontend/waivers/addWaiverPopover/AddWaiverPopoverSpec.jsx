@@ -6,6 +6,7 @@
 import { NxSubmitMask } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../enzymeUtils';
+import { nxDateInputStateHelpers } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 import AddWaiverForm from '../../../../main/frontend/waivers/AddWaiverForm';
 import AddWaiverPopover from '../../../../main/frontend/waivers/addWaiverPopover/AddWaiverPopover';
@@ -30,6 +31,7 @@ describe('AddWaiverPopover', function () {
         isPristine: true,
       },
       expiryTime: null,
+      customExpiryTime: nxDateInputStateHelpers.initialState(''),
       loadAddWaiverData: loadAddWaiverDataSpy,
       saveWaiver: () => {},
       setWaiverComment: () => {},

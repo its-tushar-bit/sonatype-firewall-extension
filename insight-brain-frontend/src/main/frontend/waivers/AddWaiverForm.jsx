@@ -7,7 +7,15 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { find, propEq } from 'ramda';
 import classnames from 'classnames';
-import { NxButton, NxFieldset, NxTextInput, NxRadio } from '@sonatype/react-shared-components';
+import moment from 'moment';
+import {
+  NxButton,
+  NxFieldset,
+  NxTextInput,
+  NxRadio,
+  NxDateInput,
+  NxFormSelect,
+} from '@sonatype/react-shared-components';
 
 import ViolationExclamation from '../react/ViolationExclamation';
 import ArtifactNameDisplay from '../react/ArtifactNameDisplay';
@@ -16,6 +24,13 @@ import LoadError from '../react/LoadError';
 import { waiverExpirations } from '../util/waiverUtils';
 
 const ALL_COMPONENTS = 'ALL_COMPONENTS';
+
+export const isCustomExpiryTimeValid = (value) => {
+  if (!value) {
+    return false;
+  }
+  return new Date(value) > new Date();
+};
 
 export default function AddWaiverForm(props) {
   const {
@@ -32,6 +47,7 @@ export default function AddWaiverForm(props) {
     availableWaiverScopes,
     selectedWaiverScope,
     expiryTime,
+    customExpiryTime,
     submitError,
     openVulnerabilityDetailsModal,
     closeVulnerabilityDetailsModal,
@@ -39,6 +55,7 @@ export default function AddWaiverForm(props) {
     setWaiverComment,
     setApplyToAllComponents,
     setExpiryTime,
+    setCustomExpiryTime,
     saveWaiver,
     vulnerabilityId,
     cancelAction,
@@ -49,12 +66,30 @@ export default function AddWaiverForm(props) {
     return () => closeVulnerabilityDetailsModal();
   }, []);
 
+  const isCustomExpiryTimeSelected = expiryTime === 'custom';
+
+  const isNeverExpiryTimeSelected = expiryTime === 'never' || expiryTime === null;
+
+  const getExpiration = () => {
+    if (isCustomExpiryTimeSelected) {
+      return customExpiryTime.value;
+    }
+    if (isNeverExpiryTimeSelected) {
+      return null;
+    }
+    return parseInt(expiryTime, 10);
+  };
+
   const onSubmit = (evt) => {
     evt.preventDefault();
 
+    if (isCustomExpiryTimeSelected && !isCustomExpiryTimeValid(customExpiryTime.value)) {
+      return;
+    }
+
     const { type, id } = selectedWaiverScope;
     const { value } = waiverComments;
-    const expiration = expiryTime === 'never' ? null : parseInt(expiryTime, 10);
+    const expiration = getExpiration();
 
     saveWaiver(policyViolationId, type, id, value, applyToAllComponents, expiration);
   };
@@ -81,6 +116,19 @@ export default function AddWaiverForm(props) {
   };
 
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
+
+  const daysDiff = () => {
+    if (isCustomExpiryTimeSelected && isCustomExpiryTimeValid(customExpiryTime.value)) {
+      const today = moment().startOf('day');
+      const customDate = moment(customExpiryTime.value, 'YYYY-MM-DD');
+      const diff = Math.floor(moment.duration(customDate.diff(today)).asDays());
+      return `This waiver will expire in ${diff} days`;
+    }
+    if (!isCustomExpiryTimeSelected && !isNeverExpiryTimeSelected) {
+      return `This waiver will expire in ${expiryTime} days`;
+    }
+    return '';
+  };
 
   return (
     <form className="nx-form iq-add-waiver-form" onSubmit={onSubmit}>
@@ -170,13 +218,26 @@ export default function AddWaiverForm(props) {
 
         {/* Expiry time */}
         <NxFieldset className="iq-add-waiver-form__expiryTime" label="Waiver Expiration" isRequired>
-          <select id="waiver-expiration-select" onChange={onExpiryTimeChange} value={expiryTime || ''}>
-            {waiverExpirations.map(({ name, value }, index) => (
-              <option key={index} value={value}>
-                {name}
-              </option>
-            ))}
-          </select>
+          <div className="nx-form-row iq-add-waiver-form__expiryTime-block">
+            <div className="iq-add-waiver-form__select-block">
+              <NxFormSelect id="waiver-expiration-select" onChange={onExpiryTimeChange}>
+                {waiverExpirations.map(({ name, value }, index) => (
+                  <option key={index} value={value}>
+                    {name}
+                  </option>
+                ))}
+              </NxFormSelect>
+              <div className="iq-add-waiver-form__expiration-days-diff">{daysDiff()}</div>
+            </div>
+            {isCustomExpiryTimeSelected && (
+              <NxDateInput
+                className="iq-add-waiver-form__date-input"
+                {...customExpiryTime}
+                onChange={setCustomExpiryTime}
+                validatable={true}
+              />
+            )}
+          </div>
         </NxFieldset>
 
         {/* Comments */}
@@ -199,7 +260,12 @@ export default function AddWaiverForm(props) {
             Cancel
           </NxButton>
 
-          <NxButton type="submit" id="add-waiver-submit" variant="primary">
+          <NxButton
+            disabled={isCustomExpiryTimeSelected && !isCustomExpiryTimeValid(customExpiryTime.value)}
+            type="submit"
+            id="add-waiver-submit"
+            variant="primary"
+          >
             Submit
           </NxButton>
         </div>
@@ -231,10 +297,15 @@ AddWaiverForm.propTypes = {
   availableWaiverScopes: PropTypes.arrayOf(PropTypes.shape(waiverScopePropTypes)).isRequired,
   selectedWaiverScope: PropTypes.shape(waiverScopePropTypes).isRequired,
   expiryTime: PropTypes.string,
+  customExpiryTime: PropTypes.shape({
+    value: PropTypes.string,
+    isPristine: PropTypes.bool,
+  }).isRequired,
   submitError: PropTypes.instanceOf(Error),
   setWaiverScope: PropTypes.func.isRequired,
   setApplyToAllComponents: PropTypes.func.isRequired,
   setExpiryTime: PropTypes.func.isRequired,
+  setCustomExpiryTime: PropTypes.func.isRequired,
   setWaiverComment: PropTypes.func.isRequired,
   saveWaiver: PropTypes.func.isRequired,
   openVulnerabilityDetailsModal: PropTypes.func.isRequired,

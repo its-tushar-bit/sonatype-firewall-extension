@@ -117,6 +117,14 @@ export function getFutureDate(daysToAdd = 0) {
 }
 
 /**
+ * Returns an ISO date (with offset) created from a date with format YYYY-MM-DD
+ * @param {String} date date created with the NxDateInput component (YYYY-MM-DD)
+ */
+export function getISODateFromDateInput(date) {
+  return moment(date).format('YYYY-MM-DDTHH:mm:ss.SSSZZ');
+}
+
+/**
  * Returns a mapping function that includes the index similar to Array.prototype.map
  */
 export const mapIndexed = addIndex(map);

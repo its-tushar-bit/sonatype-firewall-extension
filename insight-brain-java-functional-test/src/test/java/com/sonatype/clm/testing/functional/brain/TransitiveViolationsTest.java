@@ -314,7 +314,7 @@ public class TransitiveViolationsTest
     waiveTransitiveViolationsPopover.scope().shouldHave(
         Condition.text(StringUtils.capitalise(application.getType().toString()) + " - " + application.getName()));
     waiveTransitiveViolationsPopover.expiryTimesSelect().getSelectedOption().shouldHave(text("Never"));
-    waiveTransitiveViolationsPopover.expiryTimesOptions().shouldHaveSize(7);
+    waiveTransitiveViolationsPopover.expiryTimesOptions().shouldHaveSize(8);
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(0).shouldHave(text("Never"));
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(1).shouldHave(text("7 Days"));
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(2).shouldHave(text("14 Days"));
@@ -322,6 +322,7 @@ public class TransitiveViolationsTest
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(4).shouldHave(text("60 Days"));
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(5).shouldHave(text("90 Days"));
     waiveTransitiveViolationsPopover.expiryTimesOptions().get(6).shouldHave(text("120 Days"));
+    waiveTransitiveViolationsPopover.expiryTimesOptions().get(7).shouldHave(text("Custom"));
     waiveTransitiveViolationsPopover.comments().shouldHave(Condition.text(""));
     eyesWatcher.eyesCheck();
   }

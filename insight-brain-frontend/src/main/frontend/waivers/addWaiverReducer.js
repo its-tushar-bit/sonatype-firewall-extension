@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { nxDateInputStateHelpers } from '@sonatype/react-shared-components';
 import { initialState, userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { always, equals } from 'ramda';
 
@@ -21,9 +22,12 @@ import {
   WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE,
   WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS,
   WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME,
+  WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME,
   WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL,
   WAIVERS_RESET_ADD_WAIVER_DATA,
 } from './waiverActions';
+
+import { isCustomExpiryTimeValid } from './AddWaiverForm';
 
 const initState = Object.freeze({
   isDirty: false,
@@ -38,6 +42,7 @@ const initState = Object.freeze({
   selectedWaiverScope: null,
   applyToAllComponents: false,
   expiryTime: null,
+  customExpiryTime: nxDateInputStateHelpers.initialState(''),
   fieldsPristineState: null,
 });
 
@@ -122,6 +127,15 @@ const setExpiryTime = (payload, state) =>
   setIsDirtyFlag({
     ...state,
     expiryTime: payload,
+    customExpiryTime: nxDateInputStateHelpers.initialState(''),
+  });
+
+const customDateValidator = (value) => (isCustomExpiryTimeValid(value) ? null : 'Date must be in the future');
+
+const setCustomExpiryTime = (payload, state) =>
+  setIsDirtyFlag({
+    ...state,
+    customExpiryTime: nxDateInputStateHelpers.userInput(customDateValidator, payload),
   });
 
 const saveWaiverFulfilled = (payload, state) => ({
@@ -147,6 +161,7 @@ const reducerActionMap = {
   [WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE]: setSelectedWaiverScope,
   [WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS]: setApplyToAllComponents,
   [WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME]: setExpiryTime,
+  [WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME]: setCustomExpiryTime,
   [WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL]: setShowUnsavedChangesModal,
   [WAIVERS_RESET_ADD_WAIVER_DATA]: always(initState),
   [UI_ROUTER_ON_FINISH]: always(initState),

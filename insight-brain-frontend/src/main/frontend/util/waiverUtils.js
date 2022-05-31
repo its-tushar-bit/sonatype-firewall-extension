@@ -14,6 +14,7 @@ export const waiverExpirations = [
   { name: '60 Days', value: '60' },
   { name: '90 Days', value: '90' },
   { name: '120 Days', value: '120' },
+  { name: 'Custom', value: 'custom' },
 ];
 
 export const getExpiryTime = (expiration) => {

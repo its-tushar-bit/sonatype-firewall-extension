@@ -15,6 +15,7 @@ import {
   setWaiverScope,
   setApplyToAllComponents,
   setExpiryTime,
+  setCustomExpiryTime,
   setShowUnsavedChangesModal,
   resetAddWaiverData,
 } from '../waiverActions';
@@ -35,6 +36,7 @@ const mapDispatchToProps = {
   setWaiverScope,
   setApplyToAllComponents,
   setExpiryTime,
+  setCustomExpiryTime,
   setShowUnsavedChangesModal,
   resetAddWaiverData,
 };

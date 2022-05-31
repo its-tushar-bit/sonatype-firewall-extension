@@ -5,6 +5,7 @@
  */
 import reducer from '../../../main/frontend/waivers/addWaiverReducer';
 import { initialState as initState } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
+import { nxDateInputStateHelpers } from '@sonatype/react-shared-components';
 
 describe('addWaiverReducer', function () {
   describe('unknown action', function () {
@@ -407,6 +408,7 @@ describe('addWaiverReducer', function () {
         applyToAllComponents: null,
         violationDetails: null,
         expiryTime: null,
+        customExpiryTime: nxDateInputStateHelpers.initialState(''),
         otherProp: { prop: 'foo' },
         fieldsPristineState: {
           selectedWaiverScope: null,
@@ -422,6 +424,12 @@ describe('addWaiverReducer', function () {
       });
       expect(newState.isDirty).toBe(true);
       expect(newState.expiryTime).toEqual('7');
+      expect(newState.customExpiryTime).toEqual({
+        isPristine: true,
+        value: '',
+        trimmedValue: '',
+        validationErrors: null,
+      });
       expect(newState.otherProp).toBe(initialState.otherProp);
 
       newState = reducer(initialState, {
@@ -431,6 +439,12 @@ describe('addWaiverReducer', function () {
 
       expect(newState.isDirty).toBe(true);
       expect(newState.expiryTime).toEqual('60');
+      expect(newState.customExpiryTime).toEqual({
+        isPristine: true,
+        value: '',
+        trimmedValue: '',
+        validationErrors: null,
+      });
       expect(newState.otherProp).toBe(initialState.otherProp);
 
       newState = reducer(initialState, {
@@ -440,6 +454,12 @@ describe('addWaiverReducer', function () {
 
       expect(newState.isDirty).toBe(true);
       expect(newState.expiryTime).toEqual(null);
+      expect(newState.customExpiryTime).toEqual({
+        isPristine: true,
+        value: '',
+        trimmedValue: '',
+        validationErrors: null,
+      });
       expect(newState.otherProp).toBe(initialState.otherProp);
 
       newState = reducer(initialState, {
@@ -449,7 +469,89 @@ describe('addWaiverReducer', function () {
 
       expect(newState.isDirty).toBe(true);
       expect(newState.expiryTime).toEqual('never');
+      expect(newState.customExpiryTime).toEqual({
+        isPristine: true,
+        value: '',
+        trimmedValue: '',
+        validationErrors: null,
+      });
       expect(newState.otherProp).toBe(initialState.otherProp);
+
+      newState = reducer(initialState, {
+        type: 'WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME',
+        payload: 'custom',
+      });
+
+      expect(newState.isDirty).toBe(true);
+      expect(newState.expiryTime).toEqual('custom');
+      expect(newState.customExpiryTime).toEqual({
+        isPristine: true,
+        value: '',
+        trimmedValue: '',
+        validationErrors: null,
+      });
+      expect(newState.otherProp).toBe(initialState.otherProp);
+    });
+  });
+
+  describe('WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME action', () => {
+    let initialState, newState;
+    beforeEach(function () {
+      initialState = {
+        isDirty: false,
+        loading: false,
+        loadError: null,
+        submitMaskState: null,
+        submitError: null,
+        showUnsavedChangesModal: false,
+        waiverComments: {},
+        availableWaiverScopes: null,
+        selectedWaiverScope: null,
+        applyToAllComponents: false,
+        expiryTime: null,
+        customExpiryTime: nxDateInputStateHelpers.initialState(''),
+        fieldsPristineState: null,
+      };
+    });
+
+    it('sets customExpiryTime prop in the state', () => {
+      newState = reducer(initialState, {
+        type: 'WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME',
+        payload: '3049-11-11',
+      });
+
+      expect(newState.customExpiryTime).toEqual({
+        isPristine: false,
+        value: '3049-11-11',
+        trimmedValue: '3049-11-11',
+        validationErrors: null,
+      });
+
+      newState = reducer(initialState, {
+        type: 'WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME',
+        payload: '1000-11-11',
+      });
+
+      expect(newState.customExpiryTime).toEqual({
+        isPristine: false,
+        value: '1000-11-11',
+        trimmedValue: '1000-11-11',
+        validationErrors: 'Date must be in the future',
+      });
+    });
+
+    it('sets customExpiryTime validation error to "Date must be in the future" when payload is a past date', () => {
+      newState = reducer(initialState, {
+        type: 'WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME',
+        payload: '1000-11-11',
+      });
+
+      expect(newState.customExpiryTime).toEqual({
+        isPristine: false,
+        value: '1000-11-11',
+        trimmedValue: '1000-11-11',
+        validationErrors: 'Date must be in the future',
+      });
     });
   });
 

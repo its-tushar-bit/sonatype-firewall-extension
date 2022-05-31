@@ -32,7 +32,7 @@ public class ApiConfigFeaturesService
 
   static final String FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION = "vulnerabilitySource";
 
-  static final String FEATURE_TRANSITIVE_SOLVER = "transitiveSolver";
+  static final String FEATURE_TRANSITIVE_SOLVER = "transitiveSolverDisable";
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 

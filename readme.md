@@ -95,6 +95,31 @@ about timing of (asynchronous) operations. A delay of 500 ms doesn't delay tests
 typically sufficient to trigger errors where tests are badly coded and fail to wait on page changes. PhantomJS is known
 to not support this slow motion mode properly so other browsers should be used.
 
+## Adding Configuration
+
+We can generally categorize IQ Server configurations as either simple configurations or complex configurations.
+
+A simple configuration is a name-value pair where the name is a String and the value can be converted into a primitive.
+
+A complex configuration is one where the value is an object with fields which themselves may be objects.
+
+For a simple configuration, the recommended way to add this is to add to the
+[`ConfigurationProperty.PROPERTIES`](https://github.com/sonatype/insight-brain/blob/main/insight-brain-service/src/main/java/com/sonatype/insight/brain/api/v2/service/ConfigurationProperty.java#L19)
+array and add tests to check the conversions from primitive value to String and from String to primitive value. Once done, in code
+the simple configuration will be accessible using the
+[`ApiConfigurationService`](https://github.com/sonatype/insight-brain/blob/main/insight-brain-service/src/main/java/com/sonatype/insight/brain/api/v2/service/ApiConfigurationService.java)
+or [`SystemConfigurationPropertyDAO`](https://github.com/sonatype/insight-brain/blob/main/insight-brain-data/src/main/java/com/sonatype/insight/brain/dataaccess/configuration/SystemConfigurationPropertyDAO.java),
+or via REST API using the
+[`DefaultApiConfigurationResource`](https://github.com/sonatype/insight-brain/blob/main/insight-brain-service/src/main/java/com/sonatype/insight/brain/api/v2/DefaultApiConfigurationResource.java).
+
+For a complex configuration, it is expected to have its own table/DAO/service/resource.
+
+In either case, we should ensure that any configuration changes take effect in all relevant places on each node in a
+cluster. For simple configurations this means implementing
+[`ConfigurationListener`](https://github.com/sonatype/insight-brain/blob/main/insight-brain-service/src/main/java/com/sonatype/insight/brain/api/v2/service/ConfigurationListener.java)
+in the relevant places and accounting for changes to the properties you're interested in. For complex configurations you
+would typically implement your own listener in the right places and ensure they get triggered in your service.
+
 ## Experimental Feature Flags ##
 
 As new work is being developed, it can be hidden behind feature flags. New feature flags should be stored in the 

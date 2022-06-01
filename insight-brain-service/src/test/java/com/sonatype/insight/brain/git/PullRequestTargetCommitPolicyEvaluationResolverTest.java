@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -281,6 +282,74 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
 
     verify(mockSourceControlScanService, never()).doSynchronousSourceControlScan(eq(application.getId()), any(), any(),
         any());
+  }
+
+  @Test
+  public void testGetOrPerformTargetCommitPolicyEvaluation_featureBranchOnDefaultBranch_noExistingPolicyEvaluations() //
+      throws Exception //
+  {
+    // setup
+    String defaultBranchName = "branch-default";
+    String featureBranchName = "branch-feature";
+    String featureBranchCommit = "commit-feature";
+    String commonCommit = "common-commit";
+
+    gitRepositoryInfo.baseBranch = defaultBranchName;
+
+    PolicyEvaluation defaultBranchPolicyEvaluation =
+        createPolicyEvaluation(Stage.ID_SOURCE, ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    PullRequestTargetCommitPolicyEvaluationResolver policyEvaluationResolver =
+        new TestableTargetCommitPolicyEvaluationBuilder().hasExternalPolicyEvaluations(false)
+            .withCommonAncestor(commonCommit).build();
+    doReturn(defaultBranchPolicyEvaluation).when(mockSourceControlScanService)
+        .doSynchronousSourceControlScan(eq(application.getId()), any(), eq(defaultBranchName), eq(commonCommit));
+
+    // when
+    PolicyEvaluation targetCommitPolicyEvaluation = policyEvaluationResolver.getOrPerformTargetCommitPolicyEvaluation(
+        application, gitRepositoryInfo, defaultBranchName, featureBranchCommit, featureBranchName);
+    // Sanity check
+    assertThat(targetCommitPolicyEvaluation).isEqualTo(defaultBranchPolicyEvaluation);
+    assertThat(targetCommitPolicyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_SOURCE);
+
+    // then: a policy evaluation at develop stage is performed for defaultBranchName/commonCommit
+    ArgumentCaptor<Stage> stageArgumentCaptor = ArgumentCaptor.forClass(Stage.class);
+    verify(mockSourceControlScanService, times(1)).doSynchronousSourceControlScan(eq(application.getId()),
+        stageArgumentCaptor.capture(), eq(defaultBranchName), eq(commonCommit));
+    assertThat(stageArgumentCaptor.getValue().getStageTypeId()).isEqualTo(Stage.ID_SOURCE);
+  }
+
+  @Test
+  public void testGetOrPerformTargetCommitPolicyEvaluation_featureBranchOnFeatureBranch_noExistingPolicyEvaluations() //
+      throws Exception //
+  {
+    // setup
+    String baseBranchName = "branch-base";
+    String childBranchName = "branch-child";
+    String childBranchCommit = "commit-child";
+    String commonCommit = "common-commit";
+
+    PolicyEvaluation baseBranchPolicyEvaluation =
+        createPolicyEvaluation(Stage.ID_DEVELOP, ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST);
+
+    PullRequestTargetCommitPolicyEvaluationResolver policyEvaluationResolver =
+        new TestableTargetCommitPolicyEvaluationBuilder()
+            .hasExternalPolicyEvaluations(false).withCommonAncestor(commonCommit).build();
+    doReturn(baseBranchPolicyEvaluation).when(mockSourceControlScanService)
+        .doSynchronousSourceControlScan(eq(application.getId()), any(), eq(baseBranchName), eq(commonCommit));
+
+    // when
+    PolicyEvaluation targetCommitPolicyEvaluation = policyEvaluationResolver.getOrPerformTargetCommitPolicyEvaluation(
+        application, gitRepositoryInfo, baseBranchName, childBranchCommit, childBranchName);
+    // Sanity check
+    assertThat(targetCommitPolicyEvaluation).isEqualTo(baseBranchPolicyEvaluation);
+    assertThat(targetCommitPolicyEvaluation.getStageTypeId()).isEqualTo(Stage.ID_DEVELOP);
+
+    // then: a policy evaluation at develop stage is performed for baseBranchName/commonCommit
+    ArgumentCaptor<Stage> stageArgumentCaptor = ArgumentCaptor.forClass(Stage.class);
+    verify(mockSourceControlScanService, times(1)).doSynchronousSourceControlScan(eq(application.getId()),
+        stageArgumentCaptor.capture(), eq(baseBranchName), eq(commonCommit));
+    assertThat(stageArgumentCaptor.getValue().getStageTypeId()).isEqualTo(Stage.ID_DEVELOP);
   }
 
   @Test

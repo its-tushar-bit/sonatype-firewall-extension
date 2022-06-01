@@ -262,9 +262,8 @@ public class PullRequestPolicyEvaluationResolverTest
     // then: result is empty
     assertThat(policyEvaluationsDTO).isNull();
     assertThatLogMessagesEqual(
-        debug("Cannot comment - missing default branch policy evaluation for application " + application.getPublicId() +
-            " repository https://gitlab.com/test/project1")
-    );
+        debug("Cannot comment - missing base branch policy evaluation for application " + application.getPublicId()
+            + " repository https://gitlab.com/test/project1"));
   }
 
   @Test
@@ -330,7 +329,7 @@ public class PullRequestPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testResolveForPullRequest_haveNeededPolicyEvaluations() throws GitException, IOException {
+  public void testResolveForPullRequest_haveNeededPolicyEvaluations_FeatureBranchOnDefaultBranch() throws Exception {
     // given: default and feature branch policy evals
     final String defaultBranchPolicyEvaluationId = "default-policy-3";
     final String featureBranchPolicyEvaluationId = "feature-policy-3";
@@ -357,6 +356,39 @@ public class PullRequestPolicyEvaluationResolverTest
     assertThat(policyEvaluationsDTO.getPullRequestHeadCommit()).isEqualTo(featureCommit);
     assertThat(policyEvaluationsDTO.getTargetPolicyEvaluationId()).isEqualTo(defaultBranchPolicyEvaluationId);
     assertThat(policyEvaluationsDTO.getFeatureBranchPolicyEvaluationId()).isEqualTo(featureBranchPolicyEvaluationId);
+  }
+
+  @Test
+  public void testResolveForPullRequest_haveNeededPolicyEvaluations_FeatureBranchOnFeatureBranch() {
+    // given: policy evals for two feature branches
+    String baseFeatureBranchName = "baseFeatureBranchName";
+    String baseFeatureCommit = "baseFeatureCommit";
+    String baseFeatureBranchPolicyEvaluationId = "baseFeatureBranchPolicyEvaluationId";
+    String childFeatureBranchName = "childFeatureBranchName";
+    String childFeatureCommit = "childFeatureCommit";
+    String childFeatureBranchPolicyEvaluationId = "childFeatureBranchPolicyEvaluationId";
+    GitRepositoryInfo gitRepositoryInfo = createDefaultGitRepositoryInfo();
+
+    PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver = new TestablePolicyEvaluationResolver()
+        .withFeatureBranchPolicyEvaluationForCommit(application.getId(), baseFeatureBranchPolicyEvaluationId,
+            baseFeatureCommit, true)
+        .withFeatureBranchPolicyEvaluationForCommit(application.getId(), childFeatureBranchPolicyEvaluationId,
+            childFeatureCommit, true)
+        .withPullRequest(2, childFeatureBranchName, childFeatureCommit, true).build();
+
+    // when: resolve policy evaluations
+    PullRequestPolicyEvaluationsDTO policyEvaluationsDTO =
+        pullRequestPolicyEvaluationResolver.resolveForPullRequest(application.getId(), gitRepositoryInfo, 2,
+            childFeatureBranchName, baseFeatureBranchName, childFeatureCommit, baseFeatureCommit);
+
+    // then: we have a PR we can comment on
+    assertThat(policyEvaluationsDTO).isNotNull();
+    assertThat(policyEvaluationsDTO.getApplicationId()).isEqualTo(application.getId());
+    assertThat(policyEvaluationsDTO.getFeatureBranchName()).isEqualTo(childFeatureBranchName);
+    assertThat(policyEvaluationsDTO.getPullRequestHeadCommit()).isEqualTo(childFeatureCommit);
+    assertThat(policyEvaluationsDTO.getTargetPolicyEvaluationId()).isEqualTo(baseFeatureBranchPolicyEvaluationId);
+    assertThat(policyEvaluationsDTO.getFeatureBranchPolicyEvaluationId())
+        .isEqualTo(childFeatureBranchPolicyEvaluationId);
   }
 
   @Test
@@ -452,7 +484,7 @@ public class PullRequestPolicyEvaluationResolverTest
 
   private GitRepositoryInfo createDefaultGitRepositoryInfo() {
     return new GitRepositoryInfo("https://gitlab.com/test/project1", null, "user", "token",
-        SourceControlProvider.GITLAB, "master", true, true, true, true, false, null);
+        SourceControlProvider.GITLAB, "main", true, true, true, true, false, null);
   }
 
   private class TestablePolicyEvaluationResolver

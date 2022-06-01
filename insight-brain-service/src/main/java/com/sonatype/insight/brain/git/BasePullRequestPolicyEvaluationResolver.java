@@ -18,6 +18,8 @@ public abstract class BasePullRequestPolicyEvaluationResolver
 
   protected static final Stage SOURCE_STAGE = new Stage(Stage.ID_SOURCE);
 
+  protected static final Stage DEVELOP_STAGE = new Stage(Stage.ID_DEVELOP);
+
   private static final int EXTERNAL_EVALUATION_WINDOW_IN_DAYS = 7;
 
   protected final PolicyEvaluationDAO policyEvaluationDAO;

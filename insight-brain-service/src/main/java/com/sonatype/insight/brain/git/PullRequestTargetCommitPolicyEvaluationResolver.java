@@ -7,11 +7,13 @@ package com.sonatype.insight.brain.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -82,8 +84,9 @@ public class PullRequestTargetCommitPolicyEvaluationResolver
 
       // if not found, and no externally triggered evaluations, perform the policy evaluation for the target commit
       if (null == targetCommitPolicyEvaluation && !hasExternalPolicyEvaluations) {
+        Stage stage = Objects.equals(gitRepositoryInfo.getBaseBranch(), baseBranchName) ? SOURCE_STAGE : DEVELOP_STAGE;
         targetCommitPolicyEvaluation = sourceControlScanService
-            .doSynchronousSourceControlScan(application.getId(), SOURCE_STAGE, baseBranchName, targetCommitHash);
+            .doSynchronousSourceControlScan(application.getId(), stage, baseBranchName, targetCommitHash);
       }
     }
 

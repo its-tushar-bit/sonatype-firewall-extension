@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.git;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -181,8 +183,14 @@ public class PullRequestPolicyEvaluationResolver
 
       // otherwise, we get the latest policy evaluation available
       if (null == targetPolicyEvaluation) {
-        targetPolicyEvaluation = defaultBranchPolicyEvaluationResolver
-            .getOrPerformDefaultBranchPolicyEvaluation(applicationId, gitRepositoryInfo, pullRequestHeadCommitHash);
+        if (Objects.equals(gitRepositoryInfo.getBaseBranch(), baseBranchName)) {
+          targetPolicyEvaluation = defaultBranchPolicyEvaluationResolver
+              .getOrPerformDefaultBranchPolicyEvaluation(applicationId, gitRepositoryInfo, pullRequestHeadCommitHash);
+        }
+        else {
+          targetPolicyEvaluation =
+              getOrPerformFeatureBranchPolicyEvaluation(applicationId, pullRequestBaseCommitHash, baseBranchName, true);
+        }
       }
 
       if (null != targetPolicyEvaluation) {
@@ -213,7 +221,7 @@ public class PullRequestPolicyEvaluationResolver
         }
       }
       else {
-        log.debug("Cannot comment - missing default branch policy evaluation for application {} repository {}",
+        log.debug("Cannot comment - missing base branch policy evaluation for application {} repository {}",
             application.getPublicId(), gitRepositoryInfo.getRepositoryUrl());
       }
     }

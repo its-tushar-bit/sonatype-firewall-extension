@@ -227,7 +227,7 @@ export default function AddWaiverForm(props) {
                   </option>
                 ))}
               </NxFormSelect>
-              <div className="iq-add-waiver-form__expiration-days-diff">{daysDiff()}</div>
+              <div className="iq-add-waiver-form__expiration-days-diff visual-testing-ignore">{daysDiff()}</div>
             </div>
             {isCustomExpiryTimeSelected && (
               <NxDateInput

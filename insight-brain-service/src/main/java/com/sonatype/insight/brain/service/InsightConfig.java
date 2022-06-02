@@ -10,7 +10,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.Map;
 
-import javax.annotation.Nullable;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -19,7 +18,7 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
-import com.sonatype.insight.brain.jira.JiraConfig;
+import com.sonatype.insight.brain.migration.JiraConfigurationMigrator;
 import com.sonatype.insight.brain.migration.MailConfigurationMigrator;
 import com.sonatype.insight.brain.migration.ProxyServerConfigurationMigrator;
 import com.sonatype.insight.brain.migration.ReverseProxyAuthenticationConfigurationMigrator.ReverseProxyAuthenticationConfig;
@@ -156,10 +155,8 @@ public class InsightConfig
   /**
    * @since 1.21.0
    */
-  @Valid
-  @Nullable
   @JsonProperty
-  private JiraConfig jira;
+  private JiraConfigurationMigrator.JiraConfig jira;
 
   /**
    * @since 1.20
@@ -617,15 +614,14 @@ public class InsightConfig
   /**
    * @since 1.21.0
    */
-  @Nullable
-  public JiraConfig getJiraConfig() {
+  public JiraConfigurationMigrator.JiraConfig getJiraConfig() {
     return jira;
   }
 
   /**
    * @since 1.21.0
    */
-  public void setJiraConfig(@Nullable final JiraConfig jira) {
+  public void setJiraConfig(JiraConfigurationMigrator.JiraConfig jira) {
     this.jira = jira;
   }
 

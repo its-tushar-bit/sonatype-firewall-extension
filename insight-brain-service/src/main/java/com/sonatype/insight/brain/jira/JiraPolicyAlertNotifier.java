@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateResponse;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.organization.ApplicationContactLoader;
@@ -36,7 +37,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.TemplateUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -54,8 +54,6 @@ import org.slf4j.LoggerFactory;
 public class JiraPolicyAlertNotifier
 {
   private static final Logger log = LoggerFactory.getLogger(JiraPolicyAlertNotifier.class);
-
-  private final InsightConfig insightConfig;
 
   private final ADFBuilder adfBuilder;
 
@@ -75,14 +73,12 @@ public class JiraPolicyAlertNotifier
 
   @Inject
   public JiraPolicyAlertNotifier(
-      final InsightConfig insightConfig,
       final UserDirectory userDirectory,
       final JiraService jiraService,
       final BaseUrl baseUrl,
       final AuditRecorder auditRecorder,
       final ProductLicense productLicense)
   {
-    this.insightConfig = insightConfig;
     this.userDirectory = userDirectory;
     this.jiraService = jiraService;
     this.baseUrl = baseUrl;
@@ -101,17 +97,19 @@ public class JiraPolicyAlertNotifier
     adfBuilder = new ADFBuilder(baseUrl);
   }
 
-  public void sendNotifications(final Application app,
-                                final String scanId,
-                                final Stage stage,
-                                final List<PolicyNotification> policyNotifications)
+  public void sendNotifications(
+      final Application app,
+      final String scanId,
+      final Stage stage,
+      final List<PolicyNotification> policyNotifications)
   {
     if (!productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)) {
       log.debug("Not sending JIRA notifications for application {} and scan {} in stage {}" +
           ", license does not support notifications", app.getPublicId(), scanId, stage.getStageTypeId());
       return;
     }
-    if (!jiraService.isEnabled()) {
+    JiraConfiguration jiraConfiguration = jiraService.getConfiguration();
+    if (jiraConfiguration == null) {
       log.debug("JIRA integration is not enabled; skipping issue creation");
       return;
     }
@@ -122,8 +120,7 @@ public class JiraPolicyAlertNotifier
     {
       @Override
       public void run() {
-        JiraConfig jiraConfig = insightConfig.getJiraConfig();
-        Map<String, Object> customFields = jiraConfig.getCustomFields();
+        Map<String, Object> customFields = jiraConfiguration.getCustomFields();
 
         Map<JiraNotification, List<PolicyFact>> policyFactsByJiraNotifications = getPolicyFactsByJiraNotifications(
             policyNotifications);
@@ -164,11 +161,12 @@ public class JiraPolicyAlertNotifier
                   .format("Nexus IQ: Application %s; %s stage; %d Policy alerts", app.getName(), stage.getStageName(),
                       counts.getTotal()));
               request.description(
-                  createDescription(app, appContact, scanId, stage, counts, policyFacts, isCloudDeployment()));
+                  createDescription(app, appContact, scanId, stage, counts, policyFacts,
+                      isCloudDeployment(jiraConfiguration)));
 
               log.debug("Creating JIRA issue: {}", request);
-              JiraClient client = jiraService.client();
-              JiraIssueCreateResponse response = client.createIssue(request, isCloudDeployment());
+              JiraClient client = jiraService.client(jiraConfiguration);
+              JiraIssueCreateResponse response = client.createIssue(request, isCloudDeployment(jiraConfiguration));
               log.info("Created JIRA issue: {}", response.getKey());
             }
             catch (Exception e) {
@@ -244,9 +242,9 @@ public class JiraPolicyAlertNotifier
     return policyFactsByJiraNotifications;
   }
 
-  private boolean isCloudDeployment() throws IOException {
+  private boolean isCloudDeployment(JiraConfiguration jiraConfiguration) throws IOException {
     if (cloudDeployment == null) {
-      JiraClient client = jiraService.client();
+      JiraClient client = jiraService.client(jiraConfiguration);
       cloudDeployment = client.isCloudDeployment();
     }
     return cloudDeployment;

@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -59,6 +60,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
+import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.legal.AttributionReportTemplateDAO;
@@ -152,6 +154,7 @@ import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
+import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
@@ -232,6 +235,7 @@ import com.google.common.collect.Table;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.openjpa.enhance.PersistenceCapable;
+import org.assertj.core.util.Maps;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.joda.time.LocalDate;
@@ -446,6 +450,8 @@ public class TemporaryEntity
 
   private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO =
       new ReverseProxyAuthenticationConfigurationDAO();
+
+  private final JiraConfigurationDAO jiraConfigurationDAO = new JiraConfigurationDAO();
 
   private MailConfiguration savedMailConfiguration;
 
@@ -700,6 +706,7 @@ public class TemporaryEntity
     crowdConfigurationDAO.delete();
     repositoryClientConfigurationDAO.delete();
     reverseProxyAuthenticationConfigurationDAO.delete();
+    jiraConfigurationDAO.delete();
   }
 
   private <E> void detachEntity(E entity) {
@@ -3465,6 +3472,21 @@ public class TemporaryEntity
     ReverseProxyAuthenticationConfiguration config =
         new ReverseProxyAuthenticationConfiguration(enabled, usernameHeader, csrfProtectionDisabled, logoutUrl);
     reverseProxyAuthenticationConfigurationDAO.insert(config);
+    return config;
+  }
+
+  public JiraConfiguration newJiraConfiguration() {
+    return newJiraConfiguration("http://url", "username", "password".toCharArray(), Maps.newHashMap("field", "value"));
+  }
+
+  public JiraConfiguration newJiraConfiguration(
+      String url,
+      String username,
+      char[] password,
+      Map<String, Object> customFields)
+  {
+    JiraConfiguration config = new JiraConfiguration(url, username, password, customFields);
+    jiraConfigurationDAO.insert(config);
     return config;
   }
 }

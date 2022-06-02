@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -34,7 +35,6 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.DefaultBaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
@@ -68,9 +68,6 @@ public class JiraPolicyAlertNotifierTest
   private JiraPolicyAlertNotifier jiraPolicyAlertNotifier;
 
   @Inject
-  private InsightConfig config;
-
-  @Inject
   private TestProductLicense testProductLicense;
 
   @Inject
@@ -84,8 +81,8 @@ public class JiraPolicyAlertNotifierTest
 
   @Override
   public void configure(Binder binder) {
-    lenient().when(jiraService.client()).thenReturn(jiraClient);
-    lenient().when(jiraService.isEnabled()).thenReturn(true);
+    lenient().when(jiraService.client(any())).thenReturn(jiraClient);
+    lenient().when(jiraService.getConfiguration()).thenReturn(new JiraConfiguration());
 
     binder.bind(JiraService.class).toInstance(jiraService);
     super.configure(binder);
@@ -94,7 +91,6 @@ public class JiraPolicyAlertNotifierTest
   @Before
   public void before() {
     setBaseUrl("http://localhost");
-    config.setJiraConfig(new JiraConfig());
   }
 
   @Test
@@ -226,7 +222,7 @@ public class JiraPolicyAlertNotifierTest
 
   @Test
   public void test_sendNotifications_NotEnabled() throws IOException {
-    when(jiraService.isEnabled()).thenReturn(false);
+    when(jiraService.getConfiguration()).thenReturn(null);
 
     jiraPolicyAlertNotifier.sendNotifications(new Application(), "", new Stage(), Collections.emptyList());
 

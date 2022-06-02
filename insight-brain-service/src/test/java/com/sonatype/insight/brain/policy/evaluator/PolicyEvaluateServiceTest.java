@@ -43,7 +43,6 @@ import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
-import com.sonatype.insight.brain.jira.JiraConfig;
 import com.sonatype.insight.brain.jira.JiraField;
 import com.sonatype.insight.brain.jira.JiraIssueCreateRequest;
 import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateResponse;
@@ -71,9 +70,9 @@ import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ScanHelper;
@@ -136,6 +135,7 @@ public class PolicyEvaluateServiceTest
     binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
     mockScanHandler = mock(ScanHandler.class);
     binder.bind(ScanHandler.class).toInstance(mockScanHandler);
+    binder.bind(TaskScheduler.class).toInstance(mock(TaskScheduler.class));
 
     super.configure(binder);
   }
@@ -177,11 +177,10 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluate() throws Exception {
-    InsightConfig insightConfig = lookup(InsightConfig.class);
     setBaseUrl("http://localhost");
-    insightConfig.setJiraConfig(new JiraConfig());
+    createJiraConfiguration(null);
     JiraClient mockJiraClient = mock(JiraClient.class);
-    when(mockJiraClientFactory.create()).thenReturn(mockJiraClient);
+    when(mockJiraClientFactory.create(any())).thenReturn(mockJiraClient);
     JiraIssueCreateResponse createResponse = new JiraIssueCreateResponse();
     when(mockJiraClient.createIssue(any(JiraIssueCreateRequest.class), anyBoolean())).thenReturn(createResponse);
 
@@ -446,11 +445,10 @@ public class PolicyEvaluateServiceTest
       throws Exception
   {
     productLicenseManager.setFeatures(requiredFeature, LicensedFeature.NOTIFICATIONS);
-    InsightConfig insightConfig = lookup(InsightConfig.class);
     setBaseUrl("http://localhost");
-    insightConfig.setJiraConfig(new JiraConfig());
+    createJiraConfiguration(null);
     JiraClient mockJiraClient = mock(JiraClient.class);
-    when(mockJiraClientFactory.create()).thenReturn(mockJiraClient);
+    when(mockJiraClientFactory.create(any())).thenReturn(mockJiraClient);
     JiraIssueCreateResponse createResponse = new JiraIssueCreateResponse();
     when(mockJiraClient.createIssue(any(JiraIssueCreateRequest.class), anyBoolean())).thenReturn(createResponse);
 

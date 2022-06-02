@@ -12,15 +12,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sonatype.insight.brain.service.InsightConfig;
+import javax.inject.Inject;
 
-import org.junit.Before;
-import org.junit.Rule;
+import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+
+import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.quality.Strictness;
 
 import static com.sonatype.insight.brain.jira.JiraField.DESCRIPTION;
 import static com.sonatype.insight.brain.jira.JiraField.ISSUETYPE;
@@ -28,60 +28,56 @@ import static com.sonatype.insight.brain.jira.JiraField.PROJECT;
 import static com.sonatype.insight.brain.jira.JiraField.REPORTER;
 import static com.sonatype.insight.brain.jira.JiraField.SUMMARY;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 public class JiraServiceTest
+    extends AbstractComponentTest
 {
-  @Rule
-  public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
+  @Mock
+  private JiraClientFactory mockJiraClientFactory;
 
   @Mock
-  private InsightConfig insightConfig;
+  private JiraClient mockJiraClient;
 
   @Mock
-  private JiraConfig jiraConfig;
+  private TaskScheduler mockTaskScheduler;
 
-  @Mock
-  private JiraClientFactory jiraClientFactory;
+  @Inject
+  private JiraService jiraService;
 
-  @Mock
-  private JiraClient jiraClient;
+  private final Map<String, Object> customFields = new HashMap<>();
 
-  private JiraService underTest;
-
-  @Before
-  public void setUp() {
+  {
     Map<String, String> reporterMap = new HashMap<>();
     reporterMap.put("name", "reporter_name");
-
-    Map<String, Object> customFields = new HashMap<>();
     customFields.put(REPORTER, reporterMap);
+  }
 
-    lenient().when(insightConfig.getJiraConfig()).thenReturn(jiraConfig);
-    lenient().when(jiraConfig.getCustomFields()).thenReturn(customFields);
-
-    underTest = new JiraService(insightConfig, jiraClientFactory);
+  @Override
+  public void configure(Binder binder) {
+    lenient().when(mockJiraClientFactory.create(any())).thenReturn(mockJiraClient);
+    binder.bind(JiraClientFactory.class).toInstance(mockJiraClientFactory);
+    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
+    super.configure(binder);
   }
 
   @Test
   public void testIsEnabled() {
     // default null configuration should NOT be enabled
-    when(insightConfig.getJiraConfig()).thenReturn(null);
-
-    assertThat(underTest.isEnabled()).isFalse();
+    assertThat(jiraService.isEnabled()).isFalse();
 
     // install configuration and it should be enabled
-    when(insightConfig.getJiraConfig()).thenReturn(jiraConfig);
-
-    assertThat(underTest.isEnabled()).isTrue();
+    createJiraConfiguration(null);
+    assertThat(jiraService.isEnabled()).isTrue();
   }
 
   @Test
   public void testIsAcceptableIssueType_IsAcceptable() {
     JiraIssueType issueType = createIssueType();
 
-    assertThat(underTest.isAcceptableIssueType(issueType)).isTrue();
+    assertThat(jiraService.isAcceptableIssueType(customFields, issueType)).isTrue();
   }
 
   @Test
@@ -89,7 +85,7 @@ public class JiraServiceTest
     JiraIssueType issueType = createIssueType();
     issueType.setSubtask(true);
 
-    assertThat(underTest.isAcceptableIssueType(issueType)).isFalse();
+    assertThat(jiraService.isAcceptableIssueType(customFields, issueType)).isFalse();
   }
 
   /**
@@ -103,7 +99,7 @@ public class JiraServiceTest
     field.setRequired(true);
     issueType.getFields().put("custom", field);
 
-    assertThat(underTest.isAcceptableIssueType(issueType)).isFalse();
+    assertThat(jiraService.isAcceptableIssueType(customFields, issueType)).isFalse();
   }
 
   /**
@@ -117,7 +113,7 @@ public class JiraServiceTest
     field.setRequired(false);
     issueType.getFields().put("custom", field);
 
-    assertThat(underTest.isAcceptableIssueType(issueType)).isTrue();
+    assertThat(jiraService.isAcceptableIssueType(customFields, issueType)).isTrue();
   }
 
   @Test
@@ -153,10 +149,10 @@ public class JiraServiceTest
 
     jiraIssueCreateMeta.setProjects(jiraProjectList);
 
-    when(jiraClient.getIssueCreateMeta()).thenReturn(jiraIssueCreateMeta);
-    when(jiraClientFactory.create()).thenReturn(jiraClient);
+    when(mockJiraClient.getIssueCreateMeta()).thenReturn(jiraIssueCreateMeta);
 
-    JiraService underTest = new JiraService(insightConfig, jiraClientFactory);
+    createJiraConfiguration(customFields);
+    JiraService underTest = new JiraService(new JiraConfigurationDAO(), mockJiraClientFactory);
     jiraProjectList = underTest.getProjectsWithAcceptableIssueTypes();
 
     assertThat(jiraProjectList).hasSize(1);

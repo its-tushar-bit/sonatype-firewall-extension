@@ -8,13 +8,17 @@ package com.sonatype.insight.brain.jira;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.api.v2.service.JiraConfigurationListener;
+import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
+import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -32,49 +36,55 @@ import static com.sonatype.insight.brain.jira.JiraField.SUMMARY;
 @Named
 @Singleton
 public class JiraService
+    implements JiraConfigurationListener
 {
   private static final Logger log = LoggerFactory.getLogger(JiraService.class);
 
-  private final InsightConfig insightConfig;
+  private final JiraConfigurationDAO jiraConfigurationDAO;
 
   private final JiraClientFactory clientFactory;
 
+  private final AtomicReference<JiraConfiguration> jiraConfigurationAtomicReference = new AtomicReference<>();
+
   @Inject
-  public JiraService(final InsightConfig insightConfig,
-                     final JiraClientFactory clientFactory)
+  public JiraService(
+      final JiraConfigurationDAO jiraConfigurationDAO,
+      final JiraClientFactory clientFactory)
   {
-    this.insightConfig = insightConfig;
+    this.jiraConfigurationDAO = jiraConfigurationDAO;
     this.clientFactory = clientFactory;
+    jiraConfigurationChanged();
+  }
+
+  public JiraConfiguration getConfiguration() {
+    return jiraConfigurationAtomicReference.get();
   }
 
   public boolean isEnabled() {
-    return insightConfig.getJiraConfig() != null;
+    return getConfiguration() != null;
   }
 
-  private void ensureEnabled() {
-    checkState(isEnabled(), "JIRA client was accessed but not enabled by configuration");
-  }
-
-  public JiraClient client() {
-    ensureEnabled();
-    return clientFactory.create();
+  public JiraClient client(JiraConfiguration jiraConfiguration) {
+    checkState(jiraConfiguration != null, "JIRA client was accessed but not enabled by configuration");
+    return clientFactory.create(jiraConfiguration);
   }
 
   /**
    * Returns a list of projects which have acceptable issue-types.
-   *
+   * <p>
    * Projects which have some acceptable issue-types have unacceptable omitted.
    */
   public List<JiraProject> getProjectsWithAcceptableIssueTypes() throws IOException {
     List<JiraProject> projects = new ArrayList<>();
 
-    JiraClient client = client();
+    JiraConfiguration jiraConfiguration = getConfiguration();
+    JiraClient client = client(jiraConfiguration);
     JiraIssueCreateMeta createMeta = client.getIssueCreateMeta();
 
     for (JiraProject project : createMeta.getProjects()) {
       List<JiraIssueType> acceptable = new ArrayList<>();
       for (JiraIssueType issueType : project.getIssueTypes()) {
-        if (isAcceptableIssueType(issueType)) {
+        if (isAcceptableIssueType(jiraConfiguration.getCustomFields(), issueType)) {
           acceptable.add(issueType);
         }
         else {
@@ -97,18 +107,16 @@ public class JiraService
 
   /**
    * Returns {@code true} if the issue type is acceptable for notification creation.
-   *
-   * Must not be a sub-task and have any required fields (w/o default values) other than:
-   * project, summary, issuetype or description
+   * <p>
+   * Must not be a sub-task and have any required fields (w/o default values) other than: project, summary, issuetype or
+   * description
    */
   @VisibleForTesting
-  boolean isAcceptableIssueType(final JiraIssueType issueType) {
+  boolean isAcceptableIssueType(final Map<String, Object> customFields, final JiraIssueType issueType) {
     // all sub-tasks are not acceptable
     if (issueType.isSubtask()) {
       return false;
     }
-
-    JiraConfig jiraConfig = insightConfig.getJiraConfig();
 
     for (Entry<String, JiraField> entry : issueType.getFields().entrySet()) {
       String key = entry.getKey();
@@ -119,7 +127,7 @@ public class JiraService
             ISSUETYPE.equals(key) ||
             DESCRIPTION.equals(key) ||
             field.isHasDefaultValue() ||
-            jiraConfig.getCustomFields().containsKey(key)) {
+            (customFields != null && customFields.containsKey(key))) {
           // accept the minimum set of required fields, required fields with default value,
           // or required fields with custom field defined for it
           continue;
@@ -130,5 +138,10 @@ public class JiraService
       }
     }
     return true;
+  }
+
+  @Override
+  public void jiraConfigurationChanged() {
+    jiraConfigurationAtomicReference.set(jiraConfigurationDAO.get());
   }
 }

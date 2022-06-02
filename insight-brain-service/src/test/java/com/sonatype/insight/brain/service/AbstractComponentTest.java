@@ -15,7 +15,9 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService;
 import com.sonatype.insight.brain.dataaccess.DatamartUpdaterState;
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -34,6 +36,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
 import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
@@ -220,5 +223,14 @@ public class AbstractComponentTest
 
   protected void customizeConfig(@SuppressWarnings("unused") InsightConfig config) {
     // hook for tests to tweak config before components grab it
+  }
+
+  public void createJiraConfiguration(Map<String, Object> customFields) {
+    ApiJiraConfigurationDTO dto = new ApiJiraConfigurationDTO();
+    dto.url = "http://url";
+    dto.customFields = customFields;
+    ApiJiraConfigurationService jiraConfigurationService = lookup(ApiJiraConfigurationService.class);
+    jiraConfigurationService.setConfigurationNoAuthz(JsonUtils.asTree(dto));
+    jiraConfigurationService.applyJiraConfigurationToClients();
   }
 }

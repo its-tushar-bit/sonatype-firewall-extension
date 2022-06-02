@@ -43,7 +43,9 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService;
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
@@ -67,6 +69,7 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.client.utils.Authentication;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.mock.hds.HdsMockResponse;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -93,6 +96,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -264,7 +268,7 @@ public abstract class AbstractBrainServiceTest
 
         mockJiraClient = mock(JiraClient.class);
         JiraClientFactory jiraClientFactory = mock(JiraClientFactory.class);
-        when(jiraClientFactory.create()).thenReturn(mockJiraClient);
+        when(jiraClientFactory.create(any())).thenReturn(mockJiraClient);
         bind(JiraClientFactory.class).toInstance(jiraClientFactory);
       }
     });
@@ -538,5 +542,14 @@ public abstract class AbstractBrainServiceTest
       service.deleteConfigurationNoAuthz(propertyNames);
       service.applyConfigurationToClients(propertyNames);
     }
+  }
+
+  public void createJiraConfiguration() {
+    ApiJiraConfigurationDTO dto = new ApiJiraConfigurationDTO();
+    dto.url = "http://url";
+    ApiJiraConfigurationService jiraConfigurationService =
+        getCLMServer().getInstance(ApiJiraConfigurationService.class);
+    jiraConfigurationService.setConfigurationNoAuthz(JsonUtils.asTree(dto));
+    jiraConfigurationService.applyJiraConfigurationToClients();
   }
 }

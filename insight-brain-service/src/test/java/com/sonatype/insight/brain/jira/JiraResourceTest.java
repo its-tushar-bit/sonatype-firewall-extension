@@ -11,8 +11,6 @@ import java.util.HashMap;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -30,14 +28,7 @@ public class JiraResourceTest
 
   @Before
   public void setup() throws Exception {
-    initServer(new Configurator()
-    {
-      @Override
-      public void configure(final InsightConfig config) {
-        config.setJiraConfig(new JiraConfig());
-      }
-    });
-
+    createJiraConfiguration();
     JiraIssueCreateMeta jiraIssueCreateMeta = new JiraIssueCreateMeta();
     JiraProject jiraProject = new JiraProject();
     jiraProject.setKey("key");
@@ -45,7 +36,7 @@ public class JiraResourceTest
     JiraIssueType issueType = new JiraIssueType();
     issueType.setId(1);
     issueType.setName("issueName");
-    issueType.setFields(new HashMap<String, JiraField>());
+    issueType.setFields(new HashMap<>());
     jiraProject.setIssueTypes(Collections.singletonList(issueType));
     jiraIssueCreateMeta.setProjects(Collections.singletonList(jiraProject));
 
@@ -53,7 +44,6 @@ public class JiraResourceTest
   }
 
   @Test
-  @ManualServerInit
   public void testGetProjectsWithAcceptableIssueTypes() throws Exception {
     HttpResponse response = restRequest().path(JiraResource.PROJECT_PATH).get();
     assertResponseStatus(200, response);

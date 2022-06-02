@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.JsonFactory.Feature;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -117,6 +118,16 @@ public final class JsonUtils
   public static <T> T parse(final InputStream stream, final Class<? extends T> type) throws IOException {
     try (final JsonParser parser = JSON.createParser(stream)) {
       return parser.readValueAs(type);
+    }
+  }
+
+  public static <T> T parse(final String json, final TypeReference<T> typeReference) throws IOException {
+    return parse(json.getBytes(StandardCharsets.UTF_8), typeReference);
+  }
+
+  public static <T> T parse(final byte[] bytes, final TypeReference<T> typeReference) throws IOException {
+    try (final JsonParser parser = JSON.createParser(bytes)) {
+      return parser.readValueAs(typeReference);
     }
   }
 

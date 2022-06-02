@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.organization.ContactDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertCounts;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,23 +31,19 @@ public class ADFBuilderTest
   private ADFBuilder adfBuilder;
 
   @Inject
-  private InsightConfig config;
-
-  @Inject
   private BaseUrl baseUrl;
 
   private Application app;
 
   private final Stage stage = new Stage(Stage.ID_BUILD, "Build");
 
-  private final PolicyAlertCounts counts = new PolicyAlertCounts(5,4,3,2,1);
+  private final PolicyAlertCounts counts = new PolicyAlertCounts(5, 4, 3, 2, 1);
 
   private final ContactDTO contactDTO = new ContactDTO();
 
   @Before
   public void before() {
     setBaseUrl("http://localhost");
-    config.setJiraConfig(new JiraConfig());
     app = tempEntity.newApplicationWithParent();
     adfBuilder = new ADFBuilder(baseUrl);
   }
@@ -56,7 +51,7 @@ public class ADFBuilderTest
   @Test
   public void testCreateDescription_ChicletsSection() {
     // when:
-    ADFNode node = adfBuilder.createDescription(app, contactDTO,"scanId", stage, counts, null);
+    ADFNode node = adfBuilder.createDescription(app, contactDTO, "scanId", stage, counts, null);
 
     // then:
     assertThat(node).isNotNull();

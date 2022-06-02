@@ -20,11 +20,11 @@ import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateRes
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
 import com.google.inject.Binder;
@@ -41,9 +41,6 @@ import static org.mockito.Mockito.when;
 public class JiraPolicyAlertNotifierAuditTest
     extends AbstractComponentAuditTest
 {
-  @Inject
-  private InsightConfig insightConfig;
-
   @Mock
   private JiraService mockJiraService;
 
@@ -70,10 +67,9 @@ public class JiraPolicyAlertNotifierAuditTest
   @Before
   public void before() {
     setBaseUrl("http://localhost");
-    insightConfig.setJiraConfig(new JiraConfig());
 
-    when(mockJiraService.isEnabled()).thenReturn(true);
-    when(mockJiraService.client()).thenReturn(mockJiraClient);
+    when(mockJiraService.getConfiguration()).thenReturn(new JiraConfiguration());
+    when(mockJiraService.client(any())).thenReturn(mockJiraClient);
 
     app = tempEntity.newApplicationWithParent();
   }

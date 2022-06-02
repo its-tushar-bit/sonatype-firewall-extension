@@ -7,7 +7,8 @@ package com.sonatype.insight.brain.jira;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.model.jira.JiraConfiguration;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.utils.AbstractHttpClientTest;
 
 public class JiraClientFactoryTest
@@ -17,15 +18,14 @@ public class JiraClientFactoryTest
   private JiraClientFactory jiraClientFactory;
 
   @Inject
-  private InsightConfig appConfig;
+  private PasswordHandler passwordHandler;
 
   @Override
   protected void pingUrl(String url) throws Exception {
-    JiraConfig jiraConfig = new JiraConfig();
-    jiraConfig.setUrl(url);
-    jiraConfig.setUsername("jira-user");
-    jiraConfig.setPassword("jira-pass");
-    appConfig.setJiraConfig(jiraConfig);
-    jiraClientFactory.create().getIssueCreateMeta();
+    JiraConfiguration jiraConfiguration = new JiraConfiguration();
+    jiraConfiguration.setUrl(url);
+    jiraConfiguration.setUsername("jira-user");
+    jiraConfiguration.setPassword(passwordHandler.encryptPassword("jira-pass".toCharArray()));
+    jiraClientFactory.create(jiraConfiguration).getIssueCreateMeta();
   }
 }

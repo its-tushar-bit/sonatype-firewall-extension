@@ -7,6 +7,7 @@
 import { NxToggle } from '@sonatype/react-shared-components';
 import React from 'react';
 import * as PropTypes from 'prop-types';
+import { startsWith } from 'ramda';
 
 function RoleEditorPermissionsList({ permissionsList, displayName: displayNameProp, toggleValue, readonly }) {
   function permissionMapper(category, { allowed, displayName, description, id }) {
@@ -18,11 +19,16 @@ function RoleEditorPermissionsList({ permissionsList, displayName: displayNamePr
         disabled={readonly}
         key={id}
       >
-        {displayName} {description.toLowerCase()}
+        {displayName} {capitalizeIQ(description)}
       </NxToggle>
     );
   }
 
+  const capitalizeIQ = (permissionDescription) => {
+    return startsWith('IQ', permissionDescription)
+      ? permissionDescription.slice(0, 2) + permissionDescription.slice(2).toLowerCase()
+      : permissionDescription.toLowerCase();
+  };
   const permissionsLength = permissionsList.length;
   const firstColumnSize = Math.ceil(permissionsLength / 2);
   const mappedPermissions = permissionsList.map((permission) => permissionMapper(displayNameProp, permission));

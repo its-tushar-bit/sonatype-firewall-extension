@@ -4,9 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import React from 'react';
 import { NxToggle } from '@sonatype/react-shared-components';
 import RoleEditorPermissionsList from '../../../../main/frontend/security/roleEditor/RoleEditorPermissionsList';
 import * as enzymeUtils from '../../enzymeUtils';
+import { render, screen } from 'TestRoot/SpecUtil';
 
 describe('RoleEditorPermissionsList', () => {
   let props, mockToggleValue, getShallowComponent;
@@ -73,6 +75,18 @@ describe('RoleEditorPermissionsList', () => {
       const secondColumnToggles = columns.at(1).find(NxToggle);
       expect(firstColumnToggles.length).toBe(3);
       expect(secondColumnToggles.length).toBe(2);
+    });
+  });
+
+  describe('description text', () => {
+    it('keeps IQ in capital letters', () => {
+      props.permissionsList = [
+        { allowed: true, id: 'PERMISSION_ID1', displayName: 'Change', description: 'IQ ELEMENTS' },
+        { allowed: true, id: 'PERMISSION_ID2', displayName: 'Edit', description: 'DESCRIPTION TEXT' },
+      ];
+      render(<RoleEditorPermissionsList {...props} />);
+      expect(screen.getByText('Change IQ elements')).toBeInTheDocument();
+      expect(screen.getByText('Edit description text')).toBeInTheDocument();
     });
   });
 });

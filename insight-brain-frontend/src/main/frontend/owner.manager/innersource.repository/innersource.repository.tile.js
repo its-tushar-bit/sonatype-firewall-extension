@@ -28,6 +28,7 @@ export default {
 
 function InnerSourceRepositoryTileController($scope, $ngRedux) {
   var vm = this;
+  vm.doLoad = doLoad;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadRepositoryConnections: innerSourceRepositoryBaseConfigurationsActions.load,
@@ -37,11 +38,13 @@ function InnerSourceRepositoryTileController($scope, $ngRedux) {
     vm.unsubscribe();
   });
 
-  $scope.$watch('vm.ownerId', function (newValue, oldValue) {
-    if (newValue && newValue !== oldValue) {
-      if (vm.isInnerSourceRepositorySupported) vm.loadRepositoryConnections({ ownerId: vm.ownerId, inherit: true });
+  vm.doLoad();
+
+  function doLoad() {
+    if (vm.isInnerSourceRepositorySupported) {
+      vm.loadRepositoryConnections({ ownerId: vm.ownerId, inherit: true });
     }
-  });
+  }
 }
 
 const mapStateToThis = (state) => ({

@@ -85,6 +85,7 @@ import appCategoryEditorTemplate from './category/application.category.editor.vi
 import SourceControlService from './source.control/source.control.service';
 import innerSourceRepositoryModule from './innersource.repository/module';
 import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/ComponentLabels/CreateComponentLabel';
+import OwnerSummaryTilesContainerController from './summary/owner.summary.tiles.container.controller';
 
 export default angular
   .module('owner.manager.module', [
@@ -144,6 +145,7 @@ export default angular
   .directive('ownerImage', OwnerImageDirective)
   .service('SelectApplicationContactService', SelectApplicationContactService)
   .controller('OwnerSummaryController', OwnerSummaryController)
+  .controller('OwnerSummaryTilesContainerController', OwnerSummaryTilesContainerController)
   .service('evaluate.application.modal.service', EvaluateApplicationModalService)
   .service('RevokeGrandfatheringModalService', RevokeGrandfatheringModalService)
   .service('GrandfatherModalService', GrandfatherModalService)

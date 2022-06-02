@@ -20,6 +20,8 @@ import {
 import { selectDeleteModal } from 'MainRoot/OrgsAndPolicies/ownerEditorSelectors';
 import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
+import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 
 export default function OwnerSummaryController(
   $state,
@@ -48,7 +50,6 @@ export default function OwnerSummaryController(
 ) {
   var vm = this;
 
-  vm.error = undefined;
   vm.isApp = CLMContextLocations.isApplication();
   vm.isOrg = CLMContextLocations.isOrganization();
   vm.isRootOrg = CLMContextLocations.isRootOrg();
@@ -74,7 +75,6 @@ export default function OwnerSummaryController(
   vm.getDisabledEvaluateTooltipMessage = getDisabledEvaluateTooltipMessage;
   vm.repositoryUrl = undefined;
   vm.scmProvider = undefined;
-  vm.loading = false;
 
   var siblings,
     stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
@@ -90,6 +90,8 @@ export default function OwnerSummaryController(
     loadOrganizations: organizationsActions.loadOrganizations,
     removeOwner: ownerEditorActions.removeOwner,
     resetDeleteModalState: ownerEditorActions.resetDeleteModalState,
+    setLoading: ownerSummaryActions.setLoading,
+    setLoadError: ownerSummaryActions.setLoadError,
   })(vm);
 
   vm.doLoad();
@@ -101,7 +103,7 @@ export default function OwnerSummaryController(
           vm.applicationSummary = result.data;
         },
         function (error) {
-          vm.error = error;
+          vm.setLoadError(error);
         }
       );
     });
@@ -115,7 +117,9 @@ export default function OwnerSummaryController(
   });
 
   function doLoad() {
-    vm.loading = true;
+    vm.setLoading(true);
+    vm.setLoadError(null);
+
     const promises = [vm.isApp ? vm.loadApplications(true) : vm.loadOrganizations(true), vm.loadProductFeatures()];
 
     if (vm.isApp) {
@@ -148,13 +152,11 @@ export default function OwnerSummaryController(
         }
       })
       .catch((error) => {
-        vm.error = error;
+        vm.setLoadError(error);
       })
       .finally(() => {
-        vm.loading = false;
+        vm.setLoading(false);
       });
-
-    delete vm.error;
   }
 
   function getSourceControl(ownerInternalId) {
@@ -300,6 +302,8 @@ const mapStateToThis = (state) => ({
   isEvaluateApplicationAvailable: selectIsEvaluateApplicationAvailable(state),
   isInnerSourceRepositorySupported: selectIsInnerSourceRepositorySupported(state),
   owner: selectSelectedOwner(state),
+  loading: selectLoading(state),
+  loadError: selectLoadError(state),
 });
 
 OwnerSummaryController.$inject = [

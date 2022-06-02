@@ -13,6 +13,7 @@ import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicat
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
+import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 
 describe('owner.summary.controller', function () {
   beforeEach(
@@ -47,6 +48,8 @@ describe('owner.summary.controller', function () {
       mockRevokeGrandfatheringModalService,
       loadOrganizationActionSpy,
       loadApplicationsActionSpy;
+    let setLoadingActionSpy;
+    let setLoadErrorActionSpy;
 
     const loadApplicationsActionResponse = {
       payload: [
@@ -119,6 +122,8 @@ describe('owner.summary.controller', function () {
       setSelectedOwnerSpy = spyOn(rootActions, 'setSelectedOwner');
       setSelectedOwnerContactSpy = spyOn(rootActions, 'setSelectedOwnerContact');
       spyOn(ownerEditorActions, 'resetDeleteModalState').and.callThrough();
+      setLoadingActionSpy = spyOn(ownerSummaryActions, 'setLoading');
+      setLoadErrorActionSpy = spyOn(ownerSummaryActions, 'setLoadError');
 
       mockState = {
         current: {
@@ -163,6 +168,7 @@ describe('owner.summary.controller', function () {
     it('Properly Loading Data', function () {
       vm = getVm();
 
+      expect(setLoadingActionSpy).toHaveBeenCalledOnceWith(true);
       resolveGetGrandfathering(true);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(mockApplicationSummary);
@@ -174,6 +180,7 @@ describe('owner.summary.controller', function () {
       resolveApplicationWritePermission(true);
       resolveApplicationEvaluatePermission(true);
       expect(setSelectedOwnerSpy).toHaveBeenCalledOnceWith(owner);
+      expect(setLoadingActionSpy.calls.argsFor(1)[0]).toBe(false);
 
       if (isApp) {
         $timeout.flush();
@@ -239,7 +246,7 @@ describe('owner.summary.controller', function () {
       }
     });
 
-    it('Properly Displaying Error', function () {
+    it('Dispatches action to set loadError', function () {
       if (isApp) {
         loadApplicationsActionSpy.and.returnValue({ error: 'Could not find an ' + type });
       } else {
@@ -258,7 +265,7 @@ describe('owner.summary.controller', function () {
         $timeout.flush();
       }
 
-      expect(vm.error).toContain('Could not find an ' + type);
+      expect(setLoadErrorActionSpy).toHaveBeenCalledWith('Could not find an ' + type);
     });
 
     it('Refreshing Owner After Error', function () {
@@ -281,7 +288,7 @@ describe('owner.summary.controller', function () {
 
       expect(setSelectedOwnerSpy).not.toHaveBeenCalled();
       expect(vm.owner).toBeUndefined();
-      expect(vm.error).toBeDefined();
+      expect(setLoadErrorActionSpy.calls.allArgs()).toEqual([[null], ['Could not find an ' + type]]);
 
       // reload successfully
       if (isApp) {
@@ -307,7 +314,6 @@ describe('owner.summary.controller', function () {
       }
 
       expect(setSelectedOwnerSpy).toHaveBeenCalledOnceWith(owner);
-      expect(vm.error).toBeUndefined();
     });
 
     it('ApplicationSummary Loading Error', function () {
@@ -321,9 +327,17 @@ describe('owner.summary.controller', function () {
       if (isApp) {
         $httpBackend.flush();
         $timeout.flush();
-        expect(vm.error).toBeDefined();
+        expect(setLoadErrorActionSpy.calls.allArgs()).toEqual([
+          [null],
+          [
+            jasmine.objectContaining({
+              status: 400,
+              data: 'Bad Request',
+            }),
+          ],
+        ]);
       } else {
-        expect(vm.error).toBeUndefined();
+        expect(setLoadErrorActionSpy).toHaveBeenCalledOnceWith(null);
       }
     });
 
@@ -338,9 +352,9 @@ describe('owner.summary.controller', function () {
       if (isApp) {
         $httpBackend.flush();
         $timeout.flush();
-        expect(vm.error).toBeDefined();
+        expect(setLoadErrorActionSpy.calls.allArgs()).toEqual([[null], ['Error']]);
       } else {
-        expect(vm.error).toBeUndefined();
+        expect(setLoadErrorActionSpy).toHaveBeenCalledOnceWith(null);
       }
     });
 

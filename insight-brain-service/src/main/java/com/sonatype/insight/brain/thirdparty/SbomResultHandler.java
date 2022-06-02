@@ -642,21 +642,26 @@ public class SbomResultHandler
       final List<ProjectScanItem> moduleDependencies,
       final ThirdPartyFile thirdPartyFile)
   {
-    if (CollectionUtils.isNotEmpty(targetBom.getComponents())) {
-      List<Dependency> dependencies = sourceBom.getDependencies();
-      if (CollectionUtils.isNotEmpty(dependencies)) {
-        Iterator<Dependency> dependencyItr = dependencies.iterator();
-        Dependency rootModule = dependencyItr.next();
-        String moduleRef = resolveModuleRef(rootModule, targetBom);
-        if (moduleRef != null) {
-          processValidDependencyGraph(moduleRef, thirdPartyFile, rootModule, targetBom, dependencyItr,
-              moduleDependencies, dependencies);
-        }
-        else {
-          log.debug(String.format("Unable to process dependency graph. " +
-              "The root component of the bom %s cannot be determined", thirdPartyFile.getFilename()));
+    try {
+      if (CollectionUtils.isNotEmpty(targetBom.getComponents())) {
+        List<Dependency> dependencies = sourceBom.getDependencies();
+        if (CollectionUtils.isNotEmpty(dependencies)) {
+          Iterator<Dependency> dependencyItr = dependencies.iterator();
+          Dependency rootModule = dependencyItr.next();
+          String moduleRef = resolveModuleRef(rootModule, targetBom);
+          if (moduleRef != null) {
+            processValidDependencyGraph(moduleRef, thirdPartyFile, rootModule, targetBom, dependencyItr,
+                moduleDependencies, dependencies);
+          }
+          else {
+            log.debug(String.format("Unable to process dependency graph. " +
+                "The root component of the bom %s cannot be determined", thirdPartyFile.getFilename()));
+          }
         }
       }
+    }
+    catch (Exception e) {
+      log.warn("There was an error processing dependency graph", e);
     }
   }
 
@@ -684,7 +689,7 @@ public class SbomResultHandler
         }
       }
       Map<String, Dependency> dependencyMap =
-          dependencies.stream().collect(Collectors.toMap(BomReference::getRef, dep -> dep));
+          dependencies.stream().collect(Collectors.toMap(BomReference::getRef, dep -> dep, (d1, d2) -> d1));
 
       resolveSbomDependenciesAndTypes(thirdPartyFile, dependencyItr, dependencyGraph, bomRefsToPurls, targetBom,
           dependencyMap);

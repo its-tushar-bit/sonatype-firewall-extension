@@ -762,6 +762,45 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testProcessDependencyGraph_WithDuplicatedDeps() {
+    Bom sourceBom = new Bom();
+    Bom targetBom = new Bom();
+    targetBom.addComponent(new Component());
+    Metadata metadata = new Metadata();
+    Component rootComponent = new Component();
+    rootComponent.setName("root");
+    rootComponent.setBomRef("root");
+    rootComponent.setVersion("1.0");
+    rootComponent.setPurl("pkg:npm/root@1.0");
+    metadata.setComponent(rootComponent);
+    targetBom.setMetadata(metadata);
+    Dependency root = createDependencyList("root", "pkg:npm/direct1@1.0", "pkg:npm/direct2@2.0");
+    Dependency d1 = createDependencyList("pkg:npm/direct1@1.0", "pkg:npm/d1t1@1.1");
+    Dependency d2 = createDependencyList("pkg:npm/direct2@2.0");
+    Dependency d1t1 = d1.getDependencies().get(0);
+    Dependency duplicatedDep = d1.getDependencies().get(0);
+    sourceBom.setDependencies(Arrays.asList(root, d1, d2, d1t1, duplicatedDep));
+
+    List<ProjectScanItem> result = new ArrayList<>();
+
+    sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
+        new ThirdPartyFile("test-bom.xml", new Date()));
+
+    assertThat(result).hasSize(1).allSatisfy(projectItem -> {
+      assertThat(projectItem.getKind()).isEqualTo("sbom");
+      assertThat(projectItem.getId()).isEqualTo("pkg:npm/root@1.0");
+      assertThat(projectItem.getPath()).isEqualTo("test-bom.xml");
+      List<com.sonatype.insight.scan.model.Dependency> rootDependencies = projectItem.getDependencies();
+      assertThat(rootDependencies).hasSize(3)
+          .extracting(com.sonatype.insight.scan.model.Dependency::getId)
+          .containsExactlyInAnyOrder("pkg:npm/direct1@1.0", "pkg:npm/direct2@2.0", "pkg:npm/d1t1@1.1");
+      assertParentAndChildDependency(rootDependencies, "pkg:npm/direct1@1.0", "pkg:npm/d1t1@1.1");
+      assertParentAndChildDependency(rootDependencies, "pkg:npm/direct2@2.0", null);
+    });
+    assertIdentityMetadata(targetBom, metadata);
+  }
+
+  @Test
   public void testProcessDependencyGraph_WithMessyDependencies() {
     Bom sourceBom = new Bom();
     Bom targetBom = new Bom();
@@ -939,7 +978,9 @@ public class SbomResultHandlerTest
   {
     com.sonatype.insight.scan.model.Dependency parent =
         rootDependencies.stream().filter(d -> d.getId().equals(parentPurl)).findFirst().get();
-    assertThat(parent.getDependencies().get(0).getId()).isEqualTo(childPurl);
+    if (childPurl != null) {
+      assertThat(parent.getDependencies().get(0).getId()).isEqualTo(childPurl);
+    }
   }
 
   @Test

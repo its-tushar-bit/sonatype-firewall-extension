@@ -700,6 +700,7 @@ INSERT INTO migration_tracker(migration_tracker_id) VALUES('proxy-server-configu
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('source-control-file-storage');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('reverse-proxy-authentication-config');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('base-url-config');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('jira-config');
 
 CREATE TABLE search_index_change (
   search_index_change_id varchar(50) NOT NULL,

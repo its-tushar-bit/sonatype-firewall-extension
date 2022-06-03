@@ -49,6 +49,8 @@ public class DataMigrator
   private final ReverseProxyAuthenticationConfigurationMigrator reverseProxyAuthenticationConfigurationMigrator;
 
   private final BaseUrlConfigurationMigrator baseUrlConfigurationMigrator;
+  
+  private final JiraConfigurationMigrator jiraConfigurationMigrator;
 
   @Inject
   public DataMigrator(
@@ -67,7 +69,8 @@ public class DataMigrator
       SourceControlFileStorageMigrator sourceControlFileStorageMigrator,
       AdminInitialPasswordMigrator adminInitialPasswordMigrator,
       ReverseProxyAuthenticationConfigurationMigrator reverseProxyAuthenticationConfigurationMigrator,
-      BaseUrlConfigurationMigrator baseUrlConfigurationMigrator)
+      BaseUrlConfigurationMigrator baseUrlConfigurationMigrator,
+      JiraConfigurationMigrator jiraConfigurationMigrator)
   {
     this.policyJsonMigrator = policyJsonMigrator;
     this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
@@ -85,6 +88,7 @@ public class DataMigrator
     this.adminInitialPasswordMigrator = adminInitialPasswordMigrator;
     this.reverseProxyAuthenticationConfigurationMigrator = reverseProxyAuthenticationConfigurationMigrator;
     this.baseUrlConfigurationMigrator = baseUrlConfigurationMigrator;
+    this.jiraConfigurationMigrator = jiraConfigurationMigrator;
   }
 
   /**
@@ -107,5 +111,6 @@ public class DataMigrator
     adminInitialPasswordMigrator.migrate();
     reverseProxyAuthenticationConfigurationMigrator.migrate();
     baseUrlConfigurationMigrator.migrate();
+    jiraConfigurationMigrator.migrate();
   }
 }

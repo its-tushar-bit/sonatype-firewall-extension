@@ -20,6 +20,8 @@ export const selectSelectedOwner = createSelector(selectRootSlice, prop('selecte
 export const selectSelectedOwnerName = createSelector(selectSelectedOwner, prop('name'));
 export const selectSelectedOwnerId = createSelector(selectSelectedOwner, prop('id'));
 
+export const selectPoliciesByOwner = createSelector(selectRootSlice, prop('policiesByOwner'));
+
 export const selectOwnerProperties = createSelector(
   selectRouterCurrentParams,
   ({ applicationPublicId, organizationId }) => ({

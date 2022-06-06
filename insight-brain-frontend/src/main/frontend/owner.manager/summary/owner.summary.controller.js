@@ -19,7 +19,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectDeleteModal } from 'MainRoot/OrgsAndPolicies/ownerEditorSelectors';
 import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
-import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectSelectedOwner, selectPoliciesByOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 
@@ -90,6 +90,7 @@ export default function OwnerSummaryController(
     loadOrganizations: organizationsActions.loadOrganizations,
     removeOwner: ownerEditorActions.removeOwner,
     resetDeleteModalState: ownerEditorActions.resetDeleteModalState,
+    loadApplicablePoliciesByOwner: rootActions.loadApplicablePoliciesByOwner,
     setLoading: ownerSummaryActions.setLoading,
     setLoadError: ownerSummaryActions.setLoadError,
   })(vm);
@@ -120,7 +121,11 @@ export default function OwnerSummaryController(
     vm.setLoading(true);
     vm.setLoadError(null);
 
-    const promises = [vm.isApp ? vm.loadApplications(true) : vm.loadOrganizations(true), vm.loadProductFeatures()];
+    const promises = [
+      vm.isApp ? vm.loadApplications(true) : vm.loadOrganizations(true),
+      vm.loadProductFeatures(),
+      vm.loadApplicablePoliciesByOwner(),
+    ];
 
     if (vm.isApp) {
       promises.push(vm.loadDashboardStageTypes());
@@ -140,16 +145,17 @@ export default function OwnerSummaryController(
         vm.setSelectedOwner(owner);
 
         if (vm.isApp) {
-          unwrapResult(results[2]);
-          vm.applicationSummary = results[3].data;
+          unwrapResult(results[3]);
+          vm.applicationSummary = results[4].data;
           vm.setSelectedOwnerContact(vm.applicationSummary.contact);
 
-          vm.isGrandfatheringEnabled = results[4].calculatedEnabled;
+          vm.isGrandfatheringEnabled = results[5].calculatedEnabled;
 
           getAppChangePermissions();
           getAppEvaluatePermissions();
           getSourceControl(owner.id);
         }
+        unwrapResult(results[2]);
       })
       .catch((error) => {
         vm.setLoadError(error);
@@ -302,6 +308,7 @@ const mapStateToThis = (state) => ({
   isEvaluateApplicationAvailable: selectIsEvaluateApplicationAvailable(state),
   isInnerSourceRepositorySupported: selectIsInnerSourceRepositorySupported(state),
   owner: selectSelectedOwner(state),
+  policiesByOwner: selectPoliciesByOwner(state),
   loading: selectLoading(state),
   loadError: selectLoadError(state),
 });

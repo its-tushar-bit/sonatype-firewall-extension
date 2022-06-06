@@ -15,7 +15,7 @@ import {
   selectRouterSlice,
   selectRouterCurrentParams,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { getApplicablePolicies, getPolicyCRUDUrl, getPolicyTagUrl, getPolicyUrl } from '../util/CLMLocation';
+import { getPolicyCRUDUrl, getPolicyTagUrl, getPolicyUrl } from '../util/CLMLocation';
 import {
   selectCategories,
   selectCurrentPolicy,
@@ -30,6 +30,7 @@ import { propSet, pathSet } from 'MainRoot/util/jsUtil';
 import { pathSetConst, propSet as reduxPropSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { actions as constraintActions } from 'MainRoot/OrgsAndPolicies/constraintSlice';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { stateReload } from '../reduxUiRouter/routerActions';
 
 const REDUCER_NAME = 'policy';
@@ -162,20 +163,12 @@ const loadCategoriesForPolicyFailed = (state, { payload }) => {
   state.currentPolicy = state.originalPolicy;
 };
 
-const loadApplicablePoliciesByOwner = createAsyncThunk(
-  `${REDUCER_NAME}/loadApplicablePoliciesByOwner`,
-  (_, { getState, rejectWithValue }) => {
-    const { ownerType, ownerId } = selectOwnerProperties(getState());
-    return axios.get(getApplicablePolicies(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
-  }
-);
-
 const loadPolicyEditor = createAsyncThunk(
   `${REDUCER_NAME}/loadPolicyEditor`,
   (_, { getState, rejectWithValue, dispatch }) => {
-    return dispatch(actions.loadApplicablePoliciesByOwner())
+    return dispatch(rootActions.loadApplicablePoliciesByOwner())
       .then((loadApplicablePoliciesByOwnerAction) => {
-        const { policiesByOwner } = unwrapResult(loadApplicablePoliciesByOwnerAction);
+        const policiesByOwner = unwrapResult(loadApplicablePoliciesByOwnerAction);
         const siblings = policiesByOwner.flatMap(prop('policies'));
 
         const { policyId } = selectRouterCurrentParams(getState());
@@ -485,7 +478,6 @@ const policySlice = createSlice({
 
 export const actions = {
   ...policySlice.actions,
-  loadApplicablePoliciesByOwner,
   loadCategoriesForPolicy,
   loadPolicyEditor,
   savePolicy,

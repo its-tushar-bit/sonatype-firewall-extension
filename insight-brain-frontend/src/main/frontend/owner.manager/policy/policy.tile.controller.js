@@ -7,7 +7,6 @@ import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
 import { actions as proprietaryConfigActions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
-import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import {
   selectIsMonitoringSupported,
   selectIsGrandfatheringSupported,
@@ -15,12 +14,17 @@ import {
   selectIsFirewallSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectMonitoredStageFromActionStages } from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
-import { selectOwnerProperties, selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import {
+  selectOwnerProperties,
+  selectPoliciesByOwner,
+  selectSelectedOwnerName,
+} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectIsLoading as selectProprietaryConfigIsLoading,
   selectProprietaryConfigInheritedMatchersCount,
   selectProprietaryConfigLocalMatchersCount,
 } from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
 export default function PolicyTileController(
   $scope,
@@ -33,7 +37,6 @@ export default function PolicyTileController(
 ) {
   var vm = this;
   vm.isAppOrOrg = CLMContextLocations.isApplication() || CLMContextLocations.isOrganization();
-  vm.policiesByOwner = undefined;
   vm.loadError = undefined;
   vm.actionStages = undefined;
   vm.monitoredStage = undefined;
@@ -49,7 +52,8 @@ export default function PolicyTileController(
     loadApplicablePolicyMonitoring: actions.loadApplicablePolicyMonitoring,
     loadProprietaryConfig: proprietaryConfigActions.loadProprietaryConfig,
     loadActionStageTypes: stagesActions.loadActionStages,
-    loadApplicablePoliciesByOwner: policyActions.loadApplicablePoliciesByOwner,
+    setPoliciesByOwner: rootActions.setPoliciesByOwner,
+    loadApplicablePoliciesByOwner: rootActions.loadApplicablePoliciesByOwner,
   })(vm);
 
   vm.doLoad();
@@ -58,16 +62,18 @@ export default function PolicyTileController(
     vm.unsubscribe();
   });
 
-  $scope.$on('policy.imported', doLoad);
+  $scope.$on(EventNameConstant.POLICY_IMPORTED, () => {
+    vm.loadApplicablePoliciesByOwner()
+      .then(unwrapResult)
+      .then(vm.doLoad)
+      .catch((error) => {
+        vm.loadError = error;
+      });
+  });
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
 
   function doLoad() {
-    const promises = [
-      vm.loadApplicablePoliciesByOwner(),
-      vm.loadActionStageTypes(),
-      vm.loadProprietaryConfig(),
-      vm.loadApplicablePolicyMonitoring(),
-    ];
+    const promises = [vm.loadActionStageTypes(), vm.loadProprietaryConfig(), vm.loadApplicablePolicyMonitoring()];
     if (vm.isAppOrOrg) {
       promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
     }
@@ -75,23 +81,33 @@ export default function PolicyTileController(
     $q.all(promises)
       .then(
         function (results) {
-          vm.policiesByOwner = unwrapResult(results[0]).policiesByOwner;
-          vm.actionStages = unwrapResult(results[1]).data;
+          vm.actionStages = unwrapResult(results[0]).data;
 
-          vm.policiesByOwner.forEach(function (policyOwner, index) {
-            policyOwner.inherited = index > 0;
-            policyOwner.policies.forEach(function (policy) {
-              policy.enforcementAction = {};
+          const updatedPoliciesByOwner = vm.policiesByOwner?.map(function (policyOwner, index) {
+            const policies = policyOwner.policies.map((policy) => {
+              const enforcementAction = {};
               vm.actionStages.forEach(function (actionStage) {
                 if (policy.actions[actionStage.stageTypeId]) {
-                  policy.enforcementAction[actionStage.stageTypeId] = policy.actions[actionStage.stageTypeId];
+                  enforcementAction[actionStage.stageTypeId] = policy.actions[actionStage.stageTypeId];
                 }
               });
+              return {
+                ...policy,
+                enforcementAction,
+              };
             });
+
+            return {
+              ...policyOwner,
+              inherited: index > 0,
+              policies,
+            };
           });
 
+          vm.setPoliciesByOwner(updatedPoliciesByOwner);
+
           if (vm.isAppOrOrg) {
-            vm.grandfatheringStatusMessage = PolicyViolationGrandfatheringService.getStatusMessage(results[4]);
+            vm.grandfatheringStatusMessage = PolicyViolationGrandfatheringService.getStatusMessage(results[3]);
           }
         },
         function (error) {
@@ -123,6 +139,7 @@ export const mapStateToThis = (state) => ({
   isFirewallSupported: selectIsFirewallSupported(state),
   isMonitoringSupported: selectIsMonitoringSupported(state),
   isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
+  policiesByOwner: selectPoliciesByOwner(state),
 });
 
 PolicyTileController.$inject = [

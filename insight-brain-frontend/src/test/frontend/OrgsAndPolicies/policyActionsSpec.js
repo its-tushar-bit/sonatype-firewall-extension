@@ -36,53 +36,6 @@ describe('policy actions', () => {
     });
   });
 
-  describe('loadApplicablePoliciesByOwner', () => {
-    it('loads policy tags successfully', (done) => {
-      mockAxiosCalls({
-        get: {
-          [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
-            data: 'content',
-          }),
-        },
-      });
-
-      store.dispatch(actions.loadApplicablePoliciesByOwner()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(1);
-
-        const actions = store.getActions();
-
-        expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder([
-          'policy/loadApplicablePoliciesByOwner/pending',
-          'policy/loadApplicablePoliciesByOwner/fulfilled',
-        ]);
-
-        done();
-      });
-    });
-
-    it('dispatches rejected action if loadApplicablePoliciesByOwner request fails', (done) => {
-      mockAxiosCalls({
-        get: {
-          [getApplicablePolicies(mockOwnerId)]: () => Promise.reject('something went wrong'),
-        },
-      });
-
-      store.dispatch(actions.loadApplicablePoliciesByOwner()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(1);
-
-        const actions = store.getActions();
-
-        expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder([
-          'policy/loadApplicablePoliciesByOwner/pending',
-          'policy/loadApplicablePoliciesByOwner/rejected',
-        ]);
-        done();
-      });
-    });
-  });
-
   describe('loadCategoriesForPolicy', () => {
     let selectRouterCurrentParamsSpy;
     const getApplicationCategoriesUrlResponse = TagResourceMockData.getApplicationCategoriesUrl(
@@ -276,8 +229,8 @@ describe('policy actions', () => {
         expect(actions.length).toBe(5);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadPolicyEditor/pending',
-          'policy/loadApplicablePoliciesByOwner/pending',
-          'policy/loadApplicablePoliciesByOwner/fulfilled',
+          'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',
+          'orgsAndPolicies/loadApplicablePoliciesByOwner/fulfilled',
           'constraint/loadConstraint/pending',
           'policy/loadPolicyEditor/fulfilled',
         ]);
@@ -365,8 +318,8 @@ describe('policy actions', () => {
         expect(actions.length).toBe(8);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadPolicyEditor/pending',
-          'policy/loadApplicablePoliciesByOwner/pending',
-          'policy/loadApplicablePoliciesByOwner/fulfilled',
+          'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',
+          'orgsAndPolicies/loadApplicablePoliciesByOwner/fulfilled',
           'constraint/loadConstraint/pending',
           'policy/loadCategoriesForPolicy/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
@@ -456,8 +409,8 @@ describe('policy actions', () => {
         expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadPolicyEditor/pending',
-          'policy/loadApplicablePoliciesByOwner/pending',
-          'policy/loadApplicablePoliciesByOwner/rejected',
+          'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',
+          'orgsAndPolicies/loadApplicablePoliciesByOwner/rejected',
           'policy/loadPolicyEditor/rejected',
         ]);
 

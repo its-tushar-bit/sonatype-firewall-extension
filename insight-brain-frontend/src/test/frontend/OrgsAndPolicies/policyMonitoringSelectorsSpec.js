@@ -12,8 +12,6 @@ import {
   selectIsGrandfatheringSupported,
   selectIsMonitoringSupported,
   selectPolicyMonitoringMonitoredStage,
-  selectPoliciesByOwner,
-  selectPoliciesByOwnerWithEnforcementActions,
 } from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
 
 describe('policyMonitoringSelectors', () => {
@@ -100,25 +98,6 @@ describe('policyMonitoringSelectors', () => {
     });
   });
 
-  describe('selectPoliciesByOwner', () => {
-    it('returns policiesByOwner array', () => {
-      const expected = [
-        {
-          ownerName: 'Root Organization 2',
-          policyMonitoring: [
-            {
-              id: '8c54015dddc5465dbfb973b9979081e7',
-              ownerId: 'ROOT_ORGANIZATION_ID',
-              stageTypeId: 'develop',
-            },
-          ],
-        },
-      ];
-
-      expect(selectPoliciesByOwner(mockState)).toEqual(expected);
-    });
-  });
-
   describe('selectIsMonitoringSupported', () => {
     it('returns isMonitoringSupported', () => {
       expect(selectIsMonitoringSupported(mockState)).toBe(false);
@@ -140,44 +119,6 @@ describe('policyMonitoringSelectors', () => {
   describe('selectGrandfatheringStatusMessage', () => {
     it('returns grandfatheringStatusMessage', () => {
       expect(selectGrandfatheringStatusMessage(mockState)).toBe('grandfathering status message');
-    });
-  });
-
-  describe('selectPoliciesByOwnerWithEnforcementActions', () => {
-    it('returns policies with enformacement actions', () => {
-      const policiesByOwner = StoreUtils().createMockHierarchyStoreData(
-        PolicyTileMockData.getApplicablePolicies(),
-        'policiesByOwner'
-      );
-      const state = Object.freeze({
-        orgsAndPolicies: {
-          stages: {
-            cli: { stageTypes: MockData.getStageData() },
-            action: { stageTypes: MockData.getStageData() },
-          },
-          policyMonitoring: {
-            policiesByOwner,
-            policyMonitoringByOwner: [{ policyMonitoring: { stageTypeId: 'develop', stageName: 'Develop' } }],
-          },
-        },
-      });
-
-      const policiesByOwnerWithEnforcementActions = selectPoliciesByOwnerWithEnforcementActions(state);
-
-      policiesByOwnerWithEnforcementActions.forEach(function (owner, ownerIndex) {
-        owner.policies.forEach(function (policy, policyIndex) {
-          expect(policy.name).toEqual(policiesByOwner[ownerIndex].policies[policyIndex].name);
-          expect(policy.threatLevel).toEqual(policiesByOwner[ownerIndex].policies[policyIndex].threatLevel);
-          expect(policy.actions).toEqual(policiesByOwner[ownerIndex].policies[policyIndex].actions);
-          expect(policy.enforcementAction).toBeDefined();
-          expect(policy.enforcementAction['build'][0].actionTypeId).toEqual(
-            policiesByOwner[ownerIndex].policies[policyIndex].actions['build'][0].actionTypeId
-          );
-          expect(policy.enforcementAction['stage-release'][0].actionTypeId).toEqual(
-            policiesByOwner[ownerIndex].policies[policyIndex].actions['stage-release'][0].actionTypeId
-          );
-        });
-      });
     });
   });
 });

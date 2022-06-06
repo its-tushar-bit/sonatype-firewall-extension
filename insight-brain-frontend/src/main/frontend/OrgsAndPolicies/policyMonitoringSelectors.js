@@ -16,7 +16,6 @@ export const selectPolicyMonitoringSlice = createSelector(selectOrgsAndPoliciesS
 export const selectPolicyMonitoringLoading = createSelector(selectPolicyMonitoringSlice, prop('loading'));
 export const selectPolicyMonitoringLoadError = createSelector(selectPolicyMonitoringSlice, prop('loadError'));
 export const selectPolicyMonitoringSubmitError = createSelector(selectPolicyMonitoringSlice, prop('submitError'));
-export const selectPoliciesByOwner = createSelector(selectPolicyMonitoringSlice, prop('policiesByOwner'));
 export const selectPolicyMonitoringByOwner = createSelector(
   selectPolicyMonitoringSlice,
   prop('policyMonitoringByOwner')
@@ -68,26 +67,5 @@ export const selectMonitoredStageFromActionStages = createSelector(
     const inheritOrNoMonitorOption = createInheritOrNoMonitorOption(policyMonitoringByOwner, actionStages);
 
     return monitoredStage || inheritOrNoMonitorOption;
-  }
-);
-
-export const selectPoliciesByOwnerWithEnforcementActions = createSelector(
-  selectActionStageTypes,
-  selectPoliciesByOwner,
-  (actionStages, policiesByOwner) => {
-    if (!actionStages || !policiesByOwner) return undefined;
-
-    return policiesByOwner.map((policyOwner, index) => {
-      const policies = policyOwner.policies.map(function (policy) {
-        const enforcementAction = {};
-        actionStages.forEach((actionStage) => {
-          if (policy.actions[actionStage.stageTypeId]) {
-            enforcementAction[actionStage.stageTypeId] = policy.actions[actionStage.stageTypeId];
-          }
-        });
-        return { ...policy, enforcementAction };
-      });
-      return { ...policyOwner, policies, inherited: index > 0 };
-    });
   }
 );

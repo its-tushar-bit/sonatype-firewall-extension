@@ -34,10 +34,10 @@ import { selectIsEditMode, selectCurrentCategory } from './createEditApplication
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { pathSet, propSet } from '../util/jsUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { actions as policyActions } from './policySlice';
 import { actions as applicationActions } from './applicationsSlice';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { deriveEditRoute } from './utility/util';
+import { actions as rootActions } from './rootSlice';
 
 const REDUCER_NAME = 'applicationCategories/createEdit';
 
@@ -215,7 +215,7 @@ const loadCategoryEditor = createAsyncThunk(
       ? [
           dispatch(loadOrganizationAppliedTag()),
           dispatch(applicationActions.loadApplications()),
-          dispatch(policyActions.loadApplicablePoliciesByOwner()),
+          dispatch(rootActions.loadApplicablePoliciesByOwner()),
           dispatch(loadOrganizationPolicyTags()),
         ]
       : [Promise.resolve({})];
@@ -249,7 +249,7 @@ const loadCategoryEditor = createAsyncThunk(
           allApplication,
           categoryId
         );
-        const { policiesByOwner } = unwrapResult(loadApplicablePoliciesByOwnerActionPayload);
+        const policiesByOwner = unwrapResult(loadApplicablePoliciesByOwnerActionPayload);
         const policyMap = getPolicyMap(policiesByOwner);
         const tagPolicyList = getTagPolicyList(policyTags, policyMap, categoryId);
 

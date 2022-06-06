@@ -19,7 +19,6 @@ export const initialState = {
   submitError: null,
   loading: false,
   policyMonitoringByOwner: undefined,
-  policiesByOwner: undefined,
   stages: undefined,
   actionStages: undefined,
   monitoredStage: undefined,

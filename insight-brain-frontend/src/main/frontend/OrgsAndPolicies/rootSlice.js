@@ -3,12 +3,19 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { path } from 'ramda';
+
+import { propSet } from 'MainRoot/util/reduxToolkitUtil';
+import { getApplicablePolicies } from '../util/CLMLocation';
+import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 
 const REDUCER_NAME = 'orgsAndPolicies';
 
 export const initialState = {
   selectedOwner: {},
+  policiesByOwner: null,
 };
 
 // TODO:
@@ -29,6 +36,17 @@ const selectedOwnerParentOrganizationUpdated = (state, { payload: { organization
   state.selectedOwner.organizationId = organizationId;
 };
 
+const loadApplicablePoliciesByOwner = createAsyncThunk(
+  `${REDUCER_NAME}/loadApplicablePoliciesByOwner`,
+  (_, { getState, rejectWithValue }) => {
+    const { ownerType, ownerId } = selectOwnerProperties(getState());
+    return axios
+      .get(getApplicablePolicies(ownerType, ownerId))
+      .then(path(['data', 'policiesByOwner']))
+      .catch(rejectWithValue);
+  }
+);
+
 const rootSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -36,11 +54,16 @@ const rootSlice = createSlice({
     setSelectedOwner,
     setSelectedOwnerContact,
     selectedOwnerParentOrganizationUpdated,
+    setPoliciesByOwner: propSet('policiesByOwner'),
+  },
+  extraReducers: {
+    [loadApplicablePoliciesByOwner.fulfilled]: propSet('policiesByOwner'),
   },
 });
 
 export const actions = {
   ...rootSlice.actions,
+  loadApplicablePoliciesByOwner,
 };
 
 export default rootSlice.reducer;

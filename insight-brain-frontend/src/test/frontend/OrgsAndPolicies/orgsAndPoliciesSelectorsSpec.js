@@ -9,6 +9,8 @@ import {
   selectSelectedOwner,
   selectSelectedOwnerName,
   selectSelectedOwnerId,
+  selectPoliciesByOwner,
+  selectRootSlice,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 describe('orgsAndPoliciesSelectors', () => {
@@ -77,6 +79,18 @@ describe('orgsAndPoliciesSelectors', () => {
     it('returns org id', () => {
       mockState.router.currentState.name = 'management.view.organization';
       expect(selectEntityId(mockState)).toBe('orgId');
+    });
+  });
+
+  describe('selectPoliciesByOwner', () => {
+    it('is composed from the following selector', () => {
+      expect(selectPoliciesByOwner.dependencies).toEqual([selectRootSlice]);
+    });
+
+    it('selects policiesByOwner', () => {
+      const actualSelection = selectPoliciesByOwner.resultFunc({ policiesByOwner: null });
+
+      expect(actualSelection).toBeNull();
     });
   });
 });

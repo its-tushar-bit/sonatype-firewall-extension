@@ -12,16 +12,16 @@ import * as selectors from 'MainRoot/OrgsAndPolicies/createEditApplicationCatego
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   getApplicableCategoriesUrl,
-  getApplicablePolicies,
   getCategoriesUrl,
   getDeleteCategoriesUrl,
   getOrganizationAppliedTagUrl,
   getOrganizationPolicyTagUrl,
   getApplicationsUrl,
+  getApplicablePolicies,
 } from 'MainRoot/util/CLMLocation';
 import TagResourceMockData from 'TestRoot/owner.manager/mock.data/tag.resource.mock.data';
 
-describe('orgsAndPoliciesApplicationCategoriesActions', () => {
+describe('createEditApplicationCategoriesSlice Actions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let store, mockOwnerId, mockOwnerType, mockOwnerName;
 
@@ -492,11 +492,11 @@ describe('orgsAndPoliciesApplicationCategoriesActions', () => {
           'applicationCategories/createEdit/loadCategoryEditor/pending',
           'applicationCategories/createEdit/loadOrganizationAppliedTag/pending',
           'applications/loadApplications/pending',
-          'policy/loadApplicablePoliciesByOwner/pending',
+          'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',
           'applicationCategories/createEdit/loadOrganizationPolicyTags/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
           'applicationCategories/createEdit/loadOrganizationAppliedTag/fulfilled',
-          'policy/loadApplicablePoliciesByOwner/fulfilled',
+          'orgsAndPolicies/loadApplicablePoliciesByOwner/fulfilled',
           'applicationCategories/createEdit/loadOrganizationPolicyTags/fulfilled',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/fulfilled',
           'applications/loadApplications/fulfilled',

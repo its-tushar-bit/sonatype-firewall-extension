@@ -72,6 +72,7 @@ describe('owner.summary.controller', function () {
     let setSelectedOwnerSpy;
     let setSelectedOwnerContactSpy;
     let mockApplicationSummary;
+    let loadApplicablePoliciesByOwnerSpy;
 
     beforeEach(inject(function (
       $rootScope,
@@ -120,6 +121,9 @@ describe('owner.summary.controller', function () {
         loadOrganizationsActionResponse
       );
       setSelectedOwnerSpy = spyOn(rootActions, 'setSelectedOwner');
+      loadApplicablePoliciesByOwnerSpy = spyOn(rootActions, 'loadApplicablePoliciesByOwner').and.returnValue({
+        payload: {},
+      });
       setSelectedOwnerContactSpy = spyOn(rootActions, 'setSelectedOwnerContact');
       spyOn(ownerEditorActions, 'resetDeleteModalState').and.callThrough();
       setLoadingActionSpy = spyOn(ownerSummaryActions, 'setLoading');
@@ -314,6 +318,8 @@ describe('owner.summary.controller', function () {
       }
 
       expect(setSelectedOwnerSpy).toHaveBeenCalledOnceWith(owner);
+      expect(loadApplicablePoliciesByOwnerSpy).toHaveBeenCalledTimes(2);
+      expect(vm.error).toBeUndefined();
     });
 
     it('ApplicationSummary Loading Error', function () {

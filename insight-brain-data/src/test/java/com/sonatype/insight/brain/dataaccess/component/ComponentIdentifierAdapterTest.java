@@ -12,9 +12,11 @@ import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
@@ -172,6 +174,17 @@ public class ComponentIdentifierAdapterTest
     assertThat(identifier.getCoordinates()).hasSize(5).containsExactlyInAnyOrderEntriesOf(ImmutableMap
         .of(MAVEN_GROUP_ID, "group", MAVEN_ARTIFACT_ID, "artifact", VERSION, "1.0", MAVEN_CLASSIFIER, "c1",
             MAVEN_EXTENSION, "jar"));
+  }
+
+  @Test
+  public void testGetPackageUrlIdentifier_InvalidPath() {
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode node = mapper.createObjectNode();
+    ArrayNode list = node.putArray("pathnames");
+    list.add("dependency:/bom.xml/pkg:nuget\\name@4.0.0");
+    PackageUrlIdentifier purl = ComponentIdentifierAdapter.getPackageUrlIdentifier(node);
+
+    assertThat(purl.getPackageUrl()).isEqualTo("pkg:nuget/name@4.0.0");
   }
 
   @Test

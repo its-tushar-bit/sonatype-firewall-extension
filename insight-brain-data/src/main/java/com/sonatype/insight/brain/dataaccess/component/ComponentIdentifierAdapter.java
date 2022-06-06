@@ -76,7 +76,10 @@ public class ComponentIdentifierAdapter
 
     JsonNode pathnames = objectNode.withArray("pathnames");
     if (pathnames != null && !pathnames.isEmpty()) {
-      return parsePathToId(pathnames.get(0).asText());
+      //From CLM-19649, in case the CI in the bom.json does not have a purl/CI we use the pathname,
+      //Pathname with purl usually have the form dependency:/path/pkg:type\name@version
+      //We need to replace \ by / so it can be parsed correctly
+      return parsePathToId(pathnames.get(0).asText().replace("\\", "/"));
     }
     return null;
   }

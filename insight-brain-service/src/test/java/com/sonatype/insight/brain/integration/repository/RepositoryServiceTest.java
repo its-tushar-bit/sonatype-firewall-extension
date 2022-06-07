@@ -456,8 +456,7 @@ public class RepositoryServiceTest
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);;
+          componentEvaluationDataRequestList, null);
     }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
-
   }
 }

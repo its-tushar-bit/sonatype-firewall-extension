@@ -12,6 +12,7 @@ import {
   selectIsWebhooksSupported,
   selectIsSourceControlSupported,
   selectIsInnerSourceRepositorySupported,
+  selectIsArtifactoryRepositorySupported,
   selectIsEvaluateApplicationAvailable,
   selectIsSourceControlForSourceTileSupported,
   selectIsAdvancedLegalPackSupported,
@@ -47,6 +48,7 @@ describe('productFeaturesSelectors', () => {
           'webhooks-for-repositories': true,
           automation: true,
           'inner-source-repository-integration': true,
+          'built-from-source': true,
           'cli-integration': true,
           'reports-list': true,
           dashboard: true,
@@ -130,6 +132,12 @@ describe('productFeaturesSelectors', () => {
   describe('selectIsInnerSourceRepositorySupported', () => {
     it('returns true if inner-source-repository-integration enabled', () => {
       expect(selectIsInnerSourceRepositorySupported(mockState)).toBeTrue();
+    });
+  });
+
+  describe('selectIsArtifactoryRepositorySupported', () => {
+    it('returns true if built-from-source is enabled', () => {
+      expect(selectIsArtifactoryRepositorySupported(mockState)).toBeTrue();
     });
   });
 

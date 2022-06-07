@@ -158,6 +158,7 @@ describe('owner.summary.controller', function () {
         localVm.isGrandfatheringSupported = true;
         localVm.isEvaluateApplicationAvailable = true;
         localVm.isInnerSourceRepositorySupported = true;
+        localVm.isArtifactoryRepositorySupported = true;
         localVm.owner = owner;
 
         return localVm;
@@ -196,11 +197,13 @@ describe('owner.summary.controller', function () {
       }
 
       expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
+      expect(vm.isArtifactoryRepositorySupported).toBeTruthy();
     });
 
     it('Properly loads permissions when unauthorized', function () {
       vm = getVm();
       vm.isInnerSourceRepositorySupported = false;
+      vm.isArtifactoryRepositorySupported = false;
 
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
@@ -220,6 +223,7 @@ describe('owner.summary.controller', function () {
       }
 
       expect(vm.isInnerSourceRepositorySupported).toBeFalsy();
+      expect(vm.isArtifactoryRepositorySupported).toBeFalsy();
     });
 
     it('Properly routing to Build Report', function () {

@@ -24,6 +24,7 @@ export const selectIsInnerSourceRepositorySupported = createSelector(
   selectProductFeatures,
   prop('inner-source-repository-integration')
 );
+export const selectIsArtifactoryRepositorySupported = createSelector(selectProductFeatures, prop('built-from-source'));
 export const selectIsEvaluateApplicationAvailable = createSelector(selectProductFeatures, prop('cli-integration'));
 export const selectIsSourceControlForSourceTileSupported = createSelector(
   selectIsNotificationsSupported,

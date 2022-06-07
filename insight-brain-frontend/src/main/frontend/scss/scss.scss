@@ -115,6 +115,9 @@
 @use '../owner.manager/innersource.repository/innersourceRepositoryTile';
 @use '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModal';
 @use '../innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurations';
+@use '../owner.manager/artifactory.repository/artifactoryRepositoryTile';
+@use '../artifactoryRepositoryConfiguration/artifactoryRepositoryConfigurationModal';
+@use '../artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurations';
 @use '../configuration/administrators/administrators';
 @use '../OrgsAndPolicies/ComponentLabels/createComponentLabel';
 @use '../firewall/firewallComponentDetailsPage/firewallComponentDetailsPage';

@@ -707,6 +707,43 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getTestArtifactoryConnectionUrl', function () {
+    it('should return a URL without an artifactoryConnectionId if it is not provided', function () {
+      const expectedUrl = '/api/v2/config/artifactoryConnection/some%3AOwnerType/some%3AOwnerId/test';
+      expect(clmLocation.getTestArtifactoryConnectionUrl('some:OwnerType', 'some:OwnerId')).toEqual(expectedUrl);
+    });
+
+    it('should return a URL with an artifactoryConnectionId if it is provided', function () {
+      const expectedUrl =
+        '/api/v2/config/artifactoryConnection/some%3AOwnerType/some%3AOwnerId/some%3AArtifactoryConnectionId/test';
+      expect(
+        clmLocation.getTestArtifactoryConnectionUrl('some:OwnerType', 'some:OwnerId', 'some:ArtifactoryConnectionId')
+      ).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getArtifactoryConnectionUrl', function () {
+    it('should return a URL without an artifactoryConnectionId if it is not provided', function () {
+      const expectedUrl = '/api/v2/config/artifactoryConnection/some%3AOwnerType/some%3AOwnerId';
+      expect(clmLocation.getArtifactoryConnectionUrl('some:OwnerType', 'some:OwnerId')).toEqual(expectedUrl);
+    });
+
+    it('should return a URL with an artifactoryConnectionId if it is provided', function () {
+      const expectedUrl =
+        '/api/v2/config/artifactoryConnection/some%3AOwnerType/some%3AOwnerId/some%3AArtifactoryConnectionId';
+      expect(
+        clmLocation.getArtifactoryConnectionUrl('some:OwnerType', 'some:OwnerId', 'some:ArtifactoryConnectionId')
+      ).toEqual(expectedUrl);
+    });
+
+    it('should return a URL with inherit query param if it is provided', function () {
+      const expectedUrl = '/api/v2/config/artifactoryConnection/some%3AOwnerType/some%3AOwnerId?inherit=true';
+      expect(clmLocation.getArtifactoryConnectionUrl('some:OwnerType', 'some:OwnerId', null, true)).toEqual(
+        expectedUrl
+      );
+    });
+  });
+
   describe('getPolicyMonitoringUrl', () => {
     it('should return a URL with proper ownerType and ownerId', () => {
       expect(CLMLocation.getPolicyMonitoringUrl('application', 'application')).toBe(

@@ -70,6 +70,10 @@ public class OwnerSummaryTile
     return new PillButton(scrollContainer(), "#owner-innersource-repository-button");
   }
 
+  public PillButton artifactoryRepositoryButton() {
+    return new PillButton(scrollContainer(), "#owner-artifactory-repository-button");
+  }
+
   public PillButton accessButton() {
     return new PillButton(scrollContainer(), "#owner-access-button");
   }

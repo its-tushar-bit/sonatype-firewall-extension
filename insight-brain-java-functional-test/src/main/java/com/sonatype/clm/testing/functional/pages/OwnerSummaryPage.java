@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.AccessTile;
+import com.sonatype.clm.testing.functional.elements.ArtifactoryRepositoryTile;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.DataRetentionTile;
 import com.sonatype.clm.testing.functional.elements.InnerSourceRepositoryTile;
@@ -86,6 +87,10 @@ public class OwnerSummaryPage
 
   public static InnerSourceRepositoryTile innerSourceRepositoryTile() {
     return new InnerSourceRepositoryTile();
+  }
+
+  public static ArtifactoryRepositoryTile artifactoryRepositoryTile() {
+    return new ArtifactoryRepositoryTile();
   }
 
   public static AccessTile accessTile() {

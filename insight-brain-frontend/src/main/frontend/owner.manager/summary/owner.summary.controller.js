@@ -15,6 +15,7 @@ import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import {
   selectIsGrandfatheringSupported,
   selectIsInnerSourceRepositorySupported,
+  selectIsArtifactoryRepositorySupported,
   selectIsEvaluateApplicationAvailable,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectDeleteModal } from 'MainRoot/OrgsAndPolicies/ownerEditorSelectors';
@@ -307,6 +308,7 @@ const mapStateToThis = (state) => ({
   isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
   isEvaluateApplicationAvailable: selectIsEvaluateApplicationAvailable(state),
   isInnerSourceRepositorySupported: selectIsInnerSourceRepositorySupported(state),
+  isArtifactoryRepositorySupported: selectIsArtifactoryRepositorySupported(state),
   owner: selectSelectedOwner(state),
   policiesByOwner: selectPoliciesByOwner(state),
   loading: selectLoading(state),

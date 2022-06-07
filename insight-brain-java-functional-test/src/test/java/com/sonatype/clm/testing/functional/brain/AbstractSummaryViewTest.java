@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.ArtifactoryRepositoryTile;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
@@ -34,6 +35,7 @@ import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -44,6 +46,7 @@ import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -265,6 +268,118 @@ public abstract class AbstractSummaryViewTest
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldNot(exist);
     OwnerSummaryPage.innerSourceRepositoryTile().shouldNot(exist);
+  }
+
+  @Test
+  public void testArtifactoryRepositoryTile_NotConfigured() {
+    SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
+    setCurrentOwnerArtifactoryConnectionStatus(currentOwner, true);
+    refresh();
+    SidebarNavigation.closeNavigationSidebar();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
+    ArtifactoryRepositoryTile artifactoryRepositoryTile = OwnerSummaryPage.artifactoryRepositoryTile();
+    artifactoryRepositoryTile.should(exist);
+    artifactoryRepositoryTile.listTitle().should(exist);
+    ElementsCollection rows = artifactoryRepositoryTile.rows();
+    rows.shouldHaveSize(1);
+    rows.get(0).shouldBe(text("No Artifactory repository connection is configured"));
+    artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
+  }
+
+  @Test
+  public void testArtifactoryRepositoryTile_Disabled() {
+    SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
+    refresh();
+    SidebarNavigation.closeNavigationSidebar();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
+    ArtifactoryRepositoryTile artifactoryRepositoryTile = OwnerSummaryPage.artifactoryRepositoryTile();
+    artifactoryRepositoryTile.should(exist);
+    artifactoryRepositoryTile.listTitle().should(exist);
+    ElementsCollection rows = artifactoryRepositoryTile.rows();
+    rows.shouldHaveSize(1);
+    rows.get(0).shouldBe(text("Artifactory repository connection is disabled"));
+    artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
+  }
+
+  @Test
+  public void testArtifactoryRepositoryTile_Configured() {
+    SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
+    try {
+      setCurrentOwnerArtifactoryConnectionStatus(currentOwner, true);
+      ArtifactoryConnection artifactoryConnection = tempEntity.newArtifactoryConnection(currentOwner.getId(),
+          "http://some.base.url", null, null);
+
+      refresh();
+      SidebarNavigation.closeNavigationSidebar();
+      OwnerSummaryPage.summaryTile().dropdownButton().click();
+      OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
+      ArtifactoryRepositoryTile artifactoryRepositoryTile = OwnerSummaryPage.artifactoryRepositoryTile();
+      artifactoryRepositoryTile.should(exist);
+      artifactoryRepositoryTile.listTitle().shouldHave(text("Local"));
+      ElementsCollection rows = artifactoryRepositoryTile.rows();
+      rows.shouldHaveSize(1);
+      rows.get(0).shouldBe(text(artifactoryConnection.getBaseUrl()));
+      artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
+    }
+    finally {
+      setCurrentOwnerArtifactoryConnectionStatus(currentOwner, null);
+    }
+  }
+
+  private void setCurrentOwnerArtifactoryConnectionStatus(Owner currentOwner, Boolean artifactoryConnectionEnabled) {
+    if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
+      Application app = (Application) currentOwner;
+      app.setArtifactoryConnectionEnabled(artifactoryConnectionEnabled);
+      new ApplicationDAO().update(app);
+    }
+    else if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
+      Organization org = (Organization) currentOwner;
+      org.setArtifactoryConnectionEnabled(artifactoryConnectionEnabled);
+      new OrganizationDAO().update(org);
+    }
+  }
+
+  @Test
+  public void testArtifactoryRepositoryTile_Configured_Inherited() {
+    SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
+    OrganizationDAO organizationDAO = new OrganizationDAO();
+    Organization parentOwner = organizationDAO.getById(currentOwner.getParentOwnerId());
+    try {
+      ArtifactoryConnection artifactoryConnection = tempEntity.newArtifactoryConnection(currentOwner.getParentOwnerId(),
+          "http://some.base.url", null, null);
+      parentOwner.setAllowArtifactoryConnectionOverride(false);
+      parentOwner.setArtifactoryConnectionEnabled(true);
+      organizationDAO.update(parentOwner);
+
+      refresh();
+      SidebarNavigation.closeNavigationSidebar();
+      OwnerSummaryPage.summaryTile().dropdownButton().click();
+      OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
+      ArtifactoryRepositoryTile artifactoryRepositoryTile = OwnerSummaryPage.artifactoryRepositoryTile();
+      artifactoryRepositoryTile.should(exist);
+      artifactoryRepositoryTile.listTitle().shouldHave(text("Inherited from " + parentOwner.getName()));
+      ElementsCollection rows = artifactoryRepositoryTile.rows();
+      rows.shouldHaveSize(1);
+      rows.get(0).shouldBe(text(artifactoryConnection.getBaseUrl()));
+      artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
+    }
+    finally {
+      parentOwner.setAllowRepositoryConnectionOverride(true);
+      parentOwner.setRepositoryConnectionEnabled(null);
+      organizationDAO.update(parentOwner);
+    }
+  }
+
+  @Test
+  public void testArtifactoryRepositoryTile_FeatureDisabled() {
+    SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(false);
+    refresh();
+    SidebarNavigation.closeNavigationSidebar();
+    OwnerSummaryPage.summaryTile().dropdownButton().click();
+    OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldNot(exist);
+    OwnerSummaryPage.artifactoryRepositoryTile().shouldNot(exist);
   }
 
   public void testLabelTile_no_labels() {

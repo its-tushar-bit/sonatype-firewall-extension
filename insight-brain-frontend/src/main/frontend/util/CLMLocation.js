@@ -857,6 +857,20 @@ export const getTestRepositoryConnectionUrl = (ownerType, ownerId, repositoryCon
   return getRepositoryConnectionUrl(ownerType, ownerId, repositoryConnectionId) + '/test';
 };
 
+export const getArtifactoryConnectionUrl = (ownerType, ownerId, artifactoryConnectionId, inherit) => {
+  if (artifactoryConnectionId) {
+    return uriTemplate`/api/v2/config/artifactoryConnection/${ownerType}/${ownerId}/${artifactoryConnectionId}`;
+  }
+  if (compose(not, isNil)(inherit)) {
+    return uriTemplate`/api/v2/config/artifactoryConnection/${ownerType}/${ownerId}?inherit=${inherit}`;
+  }
+  return uriTemplate`/api/v2/config/artifactoryConnection/${ownerType}/${ownerId}`;
+};
+
+export const getTestArtifactoryConnectionUrl = (ownerType, ownerId, artifactoryConnectionId) => {
+  return getArtifactoryConnectionUrl(ownerType, ownerId, artifactoryConnectionId) + '/test';
+};
+
 export const getSamlConfigurationUrl = () => {
   return uriTemplate`/api/v2/config/saml`;
 };

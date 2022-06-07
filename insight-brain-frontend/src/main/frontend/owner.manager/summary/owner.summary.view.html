@@ -179,6 +179,14 @@
               InnerSource repository
             </a>
           </li>
+          <li ng-if="vm.isArtifactoryRepositorySupported && (vm.isOrg || vm.isApp)" class="iq-nav-pills__pill">
+            <a data-toggle="pill"
+               id="owner-artifactory-repository-button"
+               data-target="#owner-pill-artifactory-repository"
+               ng-href="">
+              Artifactory repository
+            </a>
+          </li>
           <li class="iq-nav-pills__pill">
             <a data-toggle="pill" id="owner-access-button" data-target="#owner-pill-access" ng-href="">
               Access
@@ -189,7 +197,7 @@
     </div>
   </div>
 </div>
-<div 
+<div
 class="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
      scrollspy="#owner-summary">
   <div ng-controller="OwnerSummaryTilesContainerController as vm">
@@ -486,6 +494,7 @@ class="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-
       <retention-tile></retention-tile>
       <source-control-tile></source-control-tile>
       <inner-source-repository-tile></inner-source-repository-tile>
+      <artifactory-repository-tile></artifactory-repository-tile>
       <access-tile id="owner-pill-access" pad-to-top></access-tile>
     </div>
   </div>

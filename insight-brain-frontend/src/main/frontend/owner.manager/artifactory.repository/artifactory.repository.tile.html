@@ -1,0 +1,48 @@
+<div id="owner-pill-artifactory-repository"
+     class="iq-tile"
+     load-wrapper="vm.error || vm.loadError"
+     loading="vm.loading || vm.loadingFeatures"
+     reload="vm.load()"
+     ng-if="vm.isArtifactoryRepositorySupported && (vm.isOrg || vm.isApp)">
+  <div class="iq-tile__actions">
+    <button id="artifactory-repositories-edit" class="iq-btn iq-btn--tertiary" ui-sref="{{vm.editLink}}">
+      <span><i class="fa fa-edit"></i> Edit</span>
+    </button>
+  </div>
+  <div class="iq-tile-header">
+    <div class="iq-tile-header__title">
+      <h2>Artifactory Repository</h2>
+    </div>
+    <div class="iq-tile-header__subtitle">
+      <span>Configure an Artifactory repository to identify components.</span>
+    </div>
+  </div>
+  <div class="iq-tile-content">
+      <h4 class="iq-list__title">
+        {{vm.artifactoryRepositoriesInheritedFrom ?
+              "Inherited from " + vm.artifactoryRepositoriesInheritedFrom : "Local"}}
+      </h4>
+      <div class="iq-list">
+        <ul>
+          <li class="iq-list__item" ng-if="vm.artifactoryRepositoriesEnabled && vm.artifactoryRepositories">
+              <span class="test-list-item-title">
+                <span class="artifactory-repository">
+                  {{vm.artifactoryRepositories.baseUrl}}
+                </span>
+              </span>
+          </li>
+          <li class="iq-list__item iq-list__item--empty"
+              ng-if="vm.artifactoryRepositoriesEnabled && !vm.artifactoryRepositories">
+            <span class="test-list-item-title">
+              No Artifactory repository connection is configured
+            </span>
+          </li>
+          <li class="iq-list__item iq-list__item--empty" ng-if="!vm.artifactoryRepositoriesEnabled">
+            <span class="test-list-item-title">
+              Artifactory repository connection is disabled
+            </span>
+          </li>
+        </ul>
+      </div>
+  </div>
+</div>

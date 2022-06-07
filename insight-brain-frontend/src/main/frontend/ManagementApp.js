@@ -30,6 +30,7 @@ import firewallModule from './firewall/module';
 import quarantinedComponentReportModule from './quarantinedComponentReport/module';
 import SystemNoticeContainer from './systemNotice/SystemNoticeContainer';
 import innerSourceRepositoryConfigurationModule from './innerSourceRepositoryConfiguration/module';
+import artifactoryRepositoryConfigurationModule from './artifactoryRepositoryConfiguration/module';
 
 export default angular
   .module('managementApp', [
@@ -55,6 +56,7 @@ export default angular
     dependencyTreeModule.name,
     quarantinedComponentReportModule.name,
     innerSourceRepositoryConfigurationModule.name,
+    artifactoryRepositoryConfigurationModule.name,
     atlassianCrowdConfigurationModule.name,
   ])
   .component('advancedSearch', react2angular(withStoreProvider(AdvancedSearchContainer), [], ['$ngRedux', '$state']))

@@ -99,8 +99,9 @@ public class TransitiveViolationsTest
     organization = tempEntity.newOrganization("Test Org 0af5aa00a2424db19b115f70b6f873d9");
     application = tempEntity.newApplication("Test App 56770d0ec3da47b0aa8eab53d874efdb",
         "56770d0ec3da47b0aa8eab53d874efdb", organization.getId());
-    policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId",
-        new Date(1623424315000L));
+    //Setting the evaluation date to 10 months ago, so the value displayed in the UI does not change
+    Date date = Date.from(LocalDateTime.now().minusMonths(10).atZone(ZoneId.systemDefault()).toInstant());
+    policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId", date);
     PolicyViolation aPolicyViolation = tempEntity
         .newPolicyViolation(policyEvaluation, tempEntity.newPolicy(application.getId(), "aPolicyX"), 10,
             PolicyThreatCategory.SECURITY,

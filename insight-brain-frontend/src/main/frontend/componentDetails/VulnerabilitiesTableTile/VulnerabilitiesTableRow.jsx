@@ -11,7 +11,7 @@ import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 const VulnerabilitiesTableRow = ({ vulnerability, toggleVulnerabilityPopoverWithEffects }) => {
   return (
     <NxTableRow
-      className="iq-policy-violation-row"
+      className="iq-vulnerabilities-row"
       isClickable
       onClick={() => toggleVulnerabilityPopoverWithEffects(vulnerability.refId)}
     >

@@ -24,8 +24,8 @@ public class CspHeaderFilterChainTest
     assertHeaders(restRequest().path("/assets/version-graph/ide/eclipse/viewdetails.html").get());
     assertHeaders(restRequest().path("/assets/version-graph/ide/idea/index.html").get());
     assertHeaders(restRequest().path("/assets/version-graph/ide/idea/viewdetails.html").get());
-    assertHeaders(restRequest().path("/assets/version-graph/ide/visualstudio/index.html").get());
-    assertHeaders(restRequest().path("/assets/version-graph/ide/visualstudio/viewdetails.html").get());
+    assertHeaders(restRequest().path("/assets/version-graph/ide/visual-studio/index.html").get());
+    assertHeaders(restRequest().path("/assets/version-graph/ide/visual-studio/viewdetails.html").get());
     assertHeaders(restRequest().path("/assets/version-graph/rm/nexus/index.html").get());
     assertHeaders(restRequest().path("/assets/version-graph/rm/nexus/viewdetails.html").get());
 

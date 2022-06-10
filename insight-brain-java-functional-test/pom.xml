@@ -68,6 +68,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.codeborne</groupId>
       <artifactId>selenide</artifactId>
     </dependency>

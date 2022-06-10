@@ -31,10 +31,10 @@ import com.sonatype.insight.brain.model.component.DependencyType;
 
 import com.codahale.metrics.annotation.Timed;
 
-@Path(CIComponentInfoResource.RESOURCE_PATH)
+@Path(ComponentInfoResource.RESOURCE_PATH)
 @Named
 @Timed
-public class CIComponentInfoResource
+public class ComponentInfoResource
 {
   public static final String RESOURCE_PATH = "rest/ci/componentDetails";
 
@@ -52,7 +52,7 @@ public class CIComponentInfoResource
   private HttpServletRequest httpRequest;
 
   @Inject
-  public CIComponentInfoResource(ComponentInfoService componentInfoService) {
+  public ComponentInfoResource(ComponentInfoService componentInfoService) {
     this.componentInfoService = componentInfoService;
     componentInfoService.setToolName("ci");
   }

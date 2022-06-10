@@ -14,7 +14,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CIComponentInfoResourceRepositoryTest
+public class ComponentInfoResourceRepositoryTest
     extends AbstractComponentInfoResourceTest
 {
   private Repository repository;
@@ -27,7 +27,7 @@ public class CIComponentInfoResourceRepositoryTest
 
   @Override
   protected String getResourcePath() {
-    return CIComponentInfoResource.RESOURCE_PATH;
+    return ComponentInfoResource.RESOURCE_PATH;
   }
 
   @Override

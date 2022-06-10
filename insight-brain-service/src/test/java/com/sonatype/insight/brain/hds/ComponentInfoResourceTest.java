@@ -55,7 +55,7 @@ import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-public class CIComponentInfoResourceTest
+public class ComponentInfoResourceTest
     extends AbstractComponentInfoResourceTest
 {
   @Rule
@@ -70,7 +70,7 @@ public class CIComponentInfoResourceTest
                                                final String identificationSource,
                                                final String scanId)
   {
-    return restRequest().path(CIComponentInfoResource.VULNERABILITIES_PATH).parameter(ownerType, ownerId)
+    return restRequest().path(ComponentInfoResource.VULNERABILITIES_PATH).parameter(ownerType, ownerId)
         .query("hash", hash).query("componentIdentifier", componentIdentifier)
         .query("identificationSource", identificationSource).query("scanId", scanId);
   }
@@ -88,7 +88,7 @@ public class CIComponentInfoResourceTest
       String identificationSource,
       String scanId)
   {
-    return restRequest().path(CIComponentInfoResource.LICENSES_PATH).parameter(getOwner().getType(), getOwnerId())
+    return restRequest().path(ComponentInfoResource.LICENSES_PATH).parameter(getOwner().getType(), getOwnerId())
         .query("componentIdentifier", componentIdentifier).query("identificationSource", identificationSource)
         .query("scanId", scanId);
   }
@@ -98,7 +98,7 @@ public class CIComponentInfoResourceTest
       String identificationSource,
       String scanId)
   {
-    return restRequest().path(CIComponentInfoResource.MULTI_LICENSES_PATH).parameter(getOwner().getType(), getOwnerId())
+    return restRequest().path(ComponentInfoResource.MULTI_LICENSES_PATH).parameter(getOwner().getType(), getOwnerId())
         .query("componentIdentifier", componentIdentifier).query("identificationSource", identificationSource)
         .query("scanId", scanId);
   }
@@ -118,7 +118,7 @@ public class CIComponentInfoResourceTest
 
   @Override
   protected String getResourcePath() {
-    return CIComponentInfoResource.RESOURCE_PATH;
+    return ComponentInfoResource.RESOURCE_PATH;
   }
 
   @Test

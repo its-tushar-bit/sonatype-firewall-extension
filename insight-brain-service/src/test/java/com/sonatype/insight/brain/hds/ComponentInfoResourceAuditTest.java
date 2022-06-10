@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import org.junit.Before;
 import org.junit.Test;
 
-public class CIComponentInfoResourceAuditTest
+public class ComponentInfoResourceAuditTest
     extends AbstractComponentInfoResourceAuditTest
 {
   private static final String LICENSES_SUBPATH = "/licenses";
@@ -215,7 +215,7 @@ public class CIComponentInfoResourceAuditTest
   }
 
   private HttpRequest detailsRequest(Owner owner, ComponentIdentifier componentIdentifier, String hash) {
-    return restRequest().path(CIComponentInfoResource.RESOURCE_PATH, CIComponentInfoResource.COMPONENT_DETAILS_PATH)
+    return restRequest().path(ComponentInfoResource.RESOURCE_PATH, ComponentInfoResource.COMPONENT_DETAILS_PATH)
         .parameter(owner.getType(), owner.getType().equals(OwnerType.APPLICATION) ? owner.getPublicId() : owner.getId())
         .query("componentIdentifier", componentIdentifier).query("hash", hash);
   }

@@ -14,14 +14,16 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -42,6 +44,8 @@ public class RepositoryResource
   static final String UNQUARANTINE_PATH = REPOSITORY_PATH + "/unquarantine/{pathname: .+}";
 
   static final String EVALUATE_COMPONENT_PATH = EVALUATE_PATH + "/{hash}";
+
+  static final String POLICY_EVALUATION_TIMESTAMPS_PATH = REPOSITORY_PATH + "/policyEvaluationTimestamps";
 
   private RepositoryService repositoryService;
 
@@ -104,5 +108,21 @@ public class RepositoryResource
                                   @Context final HttpServletRequest request)
   {
     repositoryService.reevaluateComponent(repositoryId, componentHash, DefaultHdsClient.getClientUserAgent(request));
+  }
+
+  /**
+   * Used by the web UI to display various timestamps related to policy evaluations.
+   * The UI calls this method for component versions for which it only has a component identifier (no hash or pathname).
+   * 
+   * @since 1.139
+   */
+  @GET
+  @Path(POLICY_EVALUATION_TIMESTAMPS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public PolicyEvaluationTimestampsDTO getPolicyEvaluationTimestamps(
+      @PathParam("repositoryId") String repositoryId,
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
+  {
+    return repositoryService.getPolicyEvaluationTimestamps(repositoryId, componentIdentifier);
   }
 }

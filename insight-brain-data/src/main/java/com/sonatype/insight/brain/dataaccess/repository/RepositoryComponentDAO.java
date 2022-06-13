@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -339,5 +341,16 @@ public class RepositoryComponentDAO
         " OR (component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NOT NULL))";
 
     return getList(sQuery, repositoryId, pathnamePrefix + "%", pathname);
+  }
+
+  public RepositoryComponent getByRepositoryIdAndComponentIdentifier(
+      String repositoryId,
+      ComponentIdentifier componentIdentifier)
+  {
+    String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
+        " WHERE entity.repositoryId=?1" + //
+        " AND entity.componentIdFormat=?2 AND entity.componentIdCoordinatesJson=?3";
+    return get(sQuery, repositoryId, componentIdentifier.getFormat(),
+        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
   }
 }

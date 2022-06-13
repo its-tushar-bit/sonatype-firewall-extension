@@ -9,6 +9,7 @@ import java.util.Date;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -268,5 +269,29 @@ public class RepositoryServiceAuthzTest
 
     login();
     repositoryService.reevaluateComponent(repo.getId(), "some-hash", null);
+  }
+
+  @Test
+  public void testGetPolicyEvaluationTimestamps_Authorized() {
+    Repository repo = createRepository();
+
+    grantReadPermission(repo.getId());
+    repositoryService.getPolicyEvaluationTimestamps(repo.getId(),
+        ComponentIdentifier.createNpmCoordinates("packageId", "version"));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetPolicyEvaluationTimestamps_Unauthenticated() {
+    repositoryService.getPolicyEvaluationTimestamps("repository-id",
+        ComponentIdentifier.createNpmCoordinates("packageId", "version"));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetPolicyEvaluationTimestamps_Unauthorized() {
+    Repository repo = createRepository();
+
+    login();
+    repositoryService.getPolicyEvaluationTimestamps(repo.getId(),
+        ComponentIdentifier.createNpmCoordinates("packageId", "version"));
   }
 }

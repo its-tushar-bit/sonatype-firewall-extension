@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
@@ -398,5 +399,34 @@ public class RepositoryService
     }
 
     repositoryPolicyEvaluator.evaluate(repository, request, false /* withQuarantine */, clientUserAgent);
+  }
+
+  /**
+   * Used by the web UI to display various timestamps related to policy evaluations.
+   * The UI calls this method for component versions for which it only has a component identifier (no hash or pathname).
+   * 
+   * @since 1.139
+   */
+  @Authorize(permission = Permission.READ)
+  PolicyEvaluationTimestampsDTO getPolicyEvaluationTimestamps(
+      @AuthzContext(Key.REPOSITORY_ID) String repositoryId,
+      ComponentIdentifier componentIdentifier)
+  {
+    PolicyEvaluationTimestampsDTO policyEvaluationTimestampsDTO = new PolicyEvaluationTimestampsDTO();
+
+    RepositoryComponent repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndComponentIdentifier(repositoryId, componentIdentifier);
+
+    if (repositoryComponent == null) {
+      return policyEvaluationTimestampsDTO;
+    }
+
+    policyEvaluationTimestampsDTO.firstPolicyEvaluationTime = repositoryComponent.getTime();
+    policyEvaluationTimestampsDTO.latestPolicyEvaluationTime = repositoryComponent.getLastEvaluationTime();
+    policyEvaluationTimestampsDTO.quarantineTime = repositoryComponent.getQuarantineTime();
+    policyEvaluationTimestampsDTO.unquarantineTime = repositoryComponent.getUnquarantineTime();
+    policyEvaluationTimestampsDTO.autoUnquarantined = repositoryComponent.getAutoUnquarantined();
+    
+    return policyEvaluationTimestampsDTO;
   }
 }

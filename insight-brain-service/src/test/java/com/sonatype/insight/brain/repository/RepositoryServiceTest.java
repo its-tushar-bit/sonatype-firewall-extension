@@ -639,4 +639,43 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
     PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(policyViolationLoggerOutput, 0);
   }
+
+  @Test
+  public void testGetPolicyEvaluationTimestamps() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("testPackageId", "testVersion");
+    Date firstPolicyEvaluationTime = new Date();
+    Date lastEvaluationTime = new Date(System.currentTimeMillis() + 1000);
+    Date quarantineTime = firstPolicyEvaluationTime;
+    Date unquarantineTime = new Date(System.currentTimeMillis() + 2000);
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "testPathname", "testHash", componentIdentifier, firstPolicyEvaluationTime, quarantineTime, unquarantineTime);
+    repositoryComponent.setLastEvaluationTime(lastEvaluationTime);
+    repositoryComponent.setUnquarantineTimeForMonitoring(unquarantineTime);
+    repositoryComponentDAO.update(repositoryComponent);
+
+    PolicyEvaluationTimestampsDTO policyEvaluationTimestampsDTO =
+        repositoryService.getPolicyEvaluationTimestamps(repository.getId(), componentIdentifier);
+
+    assertThat(policyEvaluationTimestampsDTO.firstPolicyEvaluationTime).isEqualTo(firstPolicyEvaluationTime);
+    assertThat(policyEvaluationTimestampsDTO.latestPolicyEvaluationTime).isEqualTo(lastEvaluationTime);
+    assertThat(policyEvaluationTimestampsDTO.quarantineTime).isEqualTo(quarantineTime);
+    assertThat(policyEvaluationTimestampsDTO.unquarantineTime).isEqualTo(unquarantineTime);
+    assertThat(policyEvaluationTimestampsDTO.autoUnquarantined).isTrue();
+  }
+
+  @Test
+  public void testGetPolicyEvaluationTimestamps_ComponentDoesNotExist() {
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("testPackageId", "testVersion");
+
+    PolicyEvaluationTimestampsDTO policyEvaluationTimestampsDTO =
+        repositoryService.getPolicyEvaluationTimestamps(repository.getId(), componentIdentifier);
+
+    assertThat(policyEvaluationTimestampsDTO.firstPolicyEvaluationTime).isNull();
+    assertThat(policyEvaluationTimestampsDTO.latestPolicyEvaluationTime).isNull();
+    assertThat(policyEvaluationTimestampsDTO.quarantineTime).isNull();
+    assertThat(policyEvaluationTimestampsDTO.unquarantineTime).isNull();
+    assertThat(policyEvaluationTimestampsDTO.autoUnquarantined).isNull();
+  }
 }

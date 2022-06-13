@@ -6,10 +6,12 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -107,5 +109,27 @@ public class RepositoryResourceTest
         .path(RepositoryResource.RESOURCE_PATH, RepositoryResource.EVALUATE_COMPONENT_PATH)
         .parameter(repo.getId(), component.getHash()).post();
     assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testGetPolicyEvaluationTimestamps() throws Exception {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("testPackageId", "testVersion");
+    Date firstPolicyEvaluationTime = new Date();
+    Date quarantineTime = new Date();
+    Date unquarantineTime = new Date();
+    tempEntity.newRepositoryComponent(repo.getId(), MatchState.EXACT, "testPathname", "testHash", componentIdentifier,
+        firstPolicyEvaluationTime, quarantineTime, unquarantineTime);
+    
+    HttpResponse response =
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_EVALUATION_TIMESTAMPS_PATH)
+            .parameter(repo.getId()).query("componentIdentifier", componentIdentifier).get();
+    assertResponseStatus(200, response);
+    PolicyEvaluationTimestampsDTO policyEvaluationTimestampsDTO = response.getBody(PolicyEvaluationTimestampsDTO.class);
+
+    assertThat(policyEvaluationTimestampsDTO.firstPolicyEvaluationTime).isEqualTo(firstPolicyEvaluationTime);
+    assertThat(policyEvaluationTimestampsDTO.latestPolicyEvaluationTime).isEqualTo(firstPolicyEvaluationTime);
+    assertThat(policyEvaluationTimestampsDTO.quarantineTime).isEqualTo(quarantineTime);
+    assertThat(policyEvaluationTimestampsDTO.unquarantineTime).isEqualTo(unquarantineTime);
+    assertThat(policyEvaluationTimestampsDTO.autoUnquarantined).isFalse();
   }
 }

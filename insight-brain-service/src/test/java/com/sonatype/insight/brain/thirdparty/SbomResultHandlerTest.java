@@ -452,6 +452,33 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_withVulnerabilitiesRatings_json_14() throws Exception {
+    String sbomContent = getSbomJsonFile("sbom-vulnerabilities-ratings-v1-4.json");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-vulnerabilities-ratings-v1-4.json", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
+
+    List<Component> components = filteredSbom.getComponents();
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+
+    try (TransactionContext tx = thirdPartyCoordinateSecurityDAO.createTransactionContext()) {
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
+      assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
+      List<ThirdPartyCoordinateSecurity> coordinatesSecurity =
+          thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
+      assertThat(coordinatesSecurity).hasSize(1);
+      assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
+          true, false);
+    }
+  }
+
+  @Test
   public void testHandleAndFilterContents_withVulnerabilities_json_14() throws Exception {
     String sbomContent = getSbomJsonFile("sbom-vulnerabilities-v1-4.json");
     ThirdPartyScanContent content =
@@ -1409,13 +1436,13 @@ public class SbomResultHandlerTest
 
     assertThat(coordinateSecurity.getRefId()).isEqualTo(vulnerability.getId());
 
-    Vulnerability.Rating rating = vulnerability.getRatings().get(0);
+    Vulnerability.Rating rating = sbomResultHandler.getValidRating(vulnerability.getRatings());
     Float severityExpected = new Float(rating.getScore());
     assertThat(coordinateSecurity.getSeverity()).isEqualTo(severityExpected);
 
     if (optionalValuesPresent) {
       assertThat(coordinateSecurity.getSeverityDescription()).isEqualTo(rating.getSeverity().getSeverityName());
-      assertThat(coordinateSecurity.getRatingMethod()).isEqualTo(rating.getMethod().getMethodName());
+      assertThat(Method.fromString(coordinateSecurity.getRatingMethod())).isIn(Method.CVSSV31, Method.CVSSV3);
       assertThat(coordinateSecurity.getAttackVector()).isEqualTo(rating.getVector());
 
       Vulnerability.Source source = vulnerability.getSource();

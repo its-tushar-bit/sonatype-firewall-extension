@@ -171,7 +171,8 @@ public class ContainerResultHandler
 
   @Override
   ThirdPartyCoordinateSecurity parseVulnerability(
-      final org.cyclonedx.model.vulnerability.Vulnerability vulnerability, final String fileCoordinateId)
+      final org.cyclonedx.model.vulnerability.Vulnerability vulnerability,
+      final String fileCoordinateId)
   {
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
         super.parseVulnerability(vulnerability, fileCoordinateId);

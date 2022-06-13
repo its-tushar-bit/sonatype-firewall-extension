@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -65,6 +66,7 @@ import org.cyclonedx.model.Property;
 import org.cyclonedx.model.vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
+import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
 import org.cyclonedx.model.vulnerability.Vulnerability10;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Advisory;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Recommendation;
@@ -185,6 +187,10 @@ public class SbomResultHandler
               String fileCoordinateId = componentRefs.get(affect.getRef());
               saveVulnerability(vulnerability, fileCoordinateId, tx);
             }
+            else {
+              log.debug("Vulnerability with ID {} does not have a " + (StringUtils.isBlank(affect.getRef()) ? "ref" :
+                      "matching component") + " so it can't be parsed", vulnerability.getId());
+            }
           }
         }
         catch (Exception e) {
@@ -194,7 +200,11 @@ public class SbomResultHandler
     }
   }
 
-  private void saveVulnerability(Vulnerability vulnerability, String fileCoordinateId, TransactionContext tx) {
+  private void saveVulnerability(
+      final Vulnerability vulnerability,
+      final String fileCoordinateId,
+      final TransactionContext tx)
+  {
     ThirdPartyCoordinateSecurity coordinateSecurity = parseVulnerability(vulnerability, fileCoordinateId);
     if (coordinateSecurity != null) {
       thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
@@ -521,7 +531,11 @@ public class SbomResultHandler
     List<Vulnerability.Rating> ratingsElements = vulnerability.getRatings();
     if (CollectionUtils.isNotEmpty(ratingsElements)) {
       ThirdPartyCoordinateSecurity coordinateSecurity = new ThirdPartyCoordinateSecurity();
-      Vulnerability.Rating rating = ratingsElements.get(0);
+
+      Vulnerability.Rating rating = getValidRating(ratingsElements);
+      if (rating == null) {
+        rating = ratingsElements.get(0);
+      }
 
       if (rating != null) {
         Double baseScore = rating.getScore();
@@ -565,7 +579,27 @@ public class SbomResultHandler
         }
       }
     }
+    else {
+      log.debug("Vulnerability with ID {} does not have a valid rating, it can't be parsed", vulnerability.getId());
+    }
     return null;
+  }
+
+  Vulnerability.Rating getValidRating(List<Vulnerability.Rating> ratings) {
+    Vulnerability.Rating validRating = null;
+    for (Vulnerability.Rating rating : ratings) {
+      if (rating.getScore() != null) {
+        Vulnerability.Source source = rating.getSource();
+        if (source != null && StringUtils.isNotBlank(source.getName())) {
+          validRating = rating;
+          if (source.getName().toLowerCase(Locale.ROOT).equals("nvd") &&
+              (rating.getMethod() == Method.CVSSV31 || rating.getMethod() == Method.CVSSV3)) {
+            break;
+          }
+        }
+      }
+    }
+    return validRating;
   }
 
   private Double getBaseScore(final Rating rating) {

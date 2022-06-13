@@ -5,6 +5,12 @@
  */
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 
+properties([
+    parameters([
+      string(name: 'releaseVersion', defaultValue: '',description: 'The version number for the product, like "1.118.0-01"'),
+    ])
+])
+
 pipeline {
   agent { label InsightConstants.AGENT_LABEL }
   options {
@@ -16,6 +22,19 @@ pipeline {
         createIntegrationTicketsAfterIQRelease()
       }
     }
+
+    stage('Publish Helm Chart') {
+      steps {
+        build(
+          job: 'integrations/cloud/Helm3 Charts/Main Release Build',
+          parameters: [
+            string(name: 'chart', value: 'nexus-iq-server'),
+            string(name: 'appVersion', value: params.releaseVersion.replaceAll(/-.*/, '')),
+          ]
+        )
+      }
+    }
+
     stage('Update Test Instance') {
       steps {
         build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging',
@@ -82,19 +101,6 @@ Bump insight version number and follow instructions to release:
 https://docs.sonatype.com/display/INT/Nexus+IQ+Maven+Plugin+Release+Process''',
         labels: ['iq-release-trigger', 'maintenance'],
         components: [[name: 'Maven Plugin']],
-        issuetype: [name: 'Task'],
-        customfield_10132: 0.5
-    ],
-    // Helm Charts
-    [
-        project: [key: 'INT'],
-        summary: 'Release Helm Chart for latest IQ release',
-        description: '''Update Helm Chart and release it in response to a new IQ Server (insight-brain) release.  
-
-Follow instructions to update and release the Helm Chart: 
-https://docs.sonatype.com/display/INT/Helm+Charts''',
-        labels: ['maintenance'],
-        components: [[name: 'Helm']],
         issuetype: [name: 'Task'],
         customfield_10132: 0.5
     ],

@@ -132,7 +132,8 @@ pipeline {
     }
     stage('Post Release Tasks') {
       steps {
-        build(job: 'insight/insight-brain/post-release', propagate: false)
+        build(job: 'insight/insight-brain/post-release', propagate: false,
+              parameters: [string(name: 'releaseVersion', value: params.releaseVersion)])
       }
     }
   }

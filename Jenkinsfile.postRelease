@@ -124,7 +124,6 @@ Follow instructions with the extension: https://github.com/sonatype/iq-azure-dev
 
 Bump version of insight dependencies in pom and ensure build passes using instructions on https://docs.sonatype.com/pages/viewpage.action?pageId=135857472''',
         labels: ['maintenance'],
-        components: [[name: 'FWFA']],
         issuetype: [name: 'Task']
     ],
     // GitLab Docker Image

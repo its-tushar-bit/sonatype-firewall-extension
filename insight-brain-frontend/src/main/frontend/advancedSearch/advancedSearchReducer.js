@@ -32,6 +32,7 @@ const initialState = {
   formState: {
     currentQuery: '',
     searchedQuery: '',
+    searchIncludedAllComponents: false,
     searchResult: {
       page: 0,
       groupingByDTOS: [],
@@ -140,6 +141,7 @@ function queryFulfilled(payload, state) {
       searchResult: payload,
       queryError: null,
       searchedQuery: state.formState.currentQuery,
+      searchIncludedAllComponents: state.formState.isShowingAllComponentResults,
     },
     viewState: {
       ...state.viewState,

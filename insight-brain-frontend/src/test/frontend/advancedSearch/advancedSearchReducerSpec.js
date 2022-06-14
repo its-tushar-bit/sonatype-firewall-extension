@@ -5,8 +5,10 @@
  */
 
 import reducer from 'MainRoot/advancedSearch/advancedSearchReducer';
-
-const ADVANCED_SEARCH_SET_CURRENT_QUERY = 'ADVANCED_SEARCH_SET_CURRENT_QUERY';
+import {
+  ADVANCED_SEARCH_QUERY_FULFILLED,
+  ADVANCED_SEARCH_SET_CURRENT_QUERY,
+} from 'MainRoot/advancedSearch/advancedSearchActions';
 
 describe('advancedSearchReducer', () => {
   let mockState;
@@ -15,6 +17,8 @@ describe('advancedSearchReducer', () => {
     mockState = {
       formState: {
         currentQuery: '',
+        searchedQuery: '',
+        searchIncludedAllComponents: false,
         isToggleComponentResultsEnabled: false,
       },
     };
@@ -36,7 +40,7 @@ describe('advancedSearchReducer', () => {
         payload: 'componentName',
       });
 
-      expect(newState.formState.isToggleComponentResultsEnabled).toEqual(true);
+      expect(newState.formState.isToggleComponentResultsEnabled).toBeTrue();
 
       // Expect it to reset to original state if component-related term is removed from the query
       let nextState = reducer(mockState, {
@@ -44,7 +48,32 @@ describe('advancedSearchReducer', () => {
         payload: 'componentLabelId', // label-related terms not included in criteria to show radio buttons
       });
 
-      expect(nextState.formState.isToggleComponentResultsEnabled).toEqual(false);
+      expect(nextState.formState.isToggleComponentResultsEnabled).toBeFalse();
+    });
+  });
+
+  describe('ADVANCED_SEARCH_QUERY_FULFILLED', () => {
+    it('sets the payload as the new search result and modifies the appropriate flags and searched values', () => {
+      const previousState = {
+        formState: {
+          ...mockState.formState,
+          currentQuery: 'besto component',
+          isShowingAllComponentResults: true,
+        },
+        viewState: {
+          waitingSearchResponse: true,
+        },
+      };
+
+      const newState = reducer(previousState, {
+        type: ADVANCED_SEARCH_QUERY_FULFILLED,
+        payload: { data: ['result1', 'result2'] },
+      });
+
+      expect(newState.formState.searchResult).toEqual({ data: ['result1', 'result2'] });
+      expect(newState.formState.searchedQuery).toBe('besto component');
+      expect(newState.formState.searchIncludedAllComponents).toBeTrue();
+      expect(newState.viewState.waitingSearchResponse).toBeFalse();
     });
   });
 });

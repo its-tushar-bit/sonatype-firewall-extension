@@ -204,3 +204,12 @@
 .nx-transfer-list__select {
   margin: 0;
 }
+
+// Links styled as buttons should not retain link text styles
+a.nx-btn {
+  text-decoration: none;
+
+  &:not(.disabled) {
+    color: inherit;
+  }
+}

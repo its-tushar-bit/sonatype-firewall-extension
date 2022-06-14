@@ -7,8 +7,11 @@
 import React, { useEffect } from 'react';
 import LoadWrapper from '../react/LoadWrapper';
 import * as PropTypes from 'prop-types';
+import { NxButtonBar } from '@sonatype/react-shared-components';
+
 import AdvancedSearchForm from './AdvancedSearchForm';
 import AdvancedSearchResultCard from './AdvancedSearchResultCard';
+import AdvancedSearchExportButton from 'MainRoot/advancedSearch/AdvancedSearchExportButton';
 
 export default function AdvancedSearch(props) {
   // Actions
@@ -19,12 +22,22 @@ export default function AdvancedSearch(props) {
 
   // formState
   const {
-    searchResult: { groupingByDTOS },
+    searchResult: { groupingByDTOS, totalNumberOfHits },
+    searchedQuery,
+    searchIncludedAllComponents,
     queryError,
   } = props;
 
   // configurationState
   const { isEnabled } = props;
+
+  const exportButtonProps = {
+    loading,
+    waitingSearchResponse,
+    totalNumberOfHits,
+    searchedQuery,
+    searchIncludedAllComponents,
+  };
 
   const { $state } = props;
 
@@ -39,6 +52,9 @@ export default function AdvancedSearch(props) {
           <h1 className="nx-h1" id="advanced-search-page-title">
             Advanced Search
           </h1>
+          <NxButtonBar>
+            <AdvancedSearchExportButton {...exportButtonProps} />
+          </NxButtonBar>
         </div>
         <AdvancedSearchForm {...props} />
         <LoadWrapper loading={waitingSearchResponse} error={queryError} retryHandler={() => searchFormSubmit()}>

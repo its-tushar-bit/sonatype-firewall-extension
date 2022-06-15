@@ -85,7 +85,9 @@ public class RepositoryConfigurationCollector
         userAgent != null ? userAgent.environment : null,
         userAgent != null ? userAgent.environmentVersion : null,
         userAgent != null ? userAgent.os : null,
-        userAgent != null ? userAgent.osVersion : null
+        userAgent != null ? userAgent.osVersion : null,
+        userAgent != null ? userAgent.hostProductName : null,
+        userAgent != null ? userAgent.hostProductVersion : null
     );
   }
 
@@ -120,6 +122,10 @@ public class RepositoryConfigurationCollector
 
     private final String osVersion;
 
+    private final String pluginName;
+
+    private final String pluginVersion;
+
     public RepositoryTelemetry(
         final String repositoryManagerId,
         final String repositoryId,
@@ -132,7 +138,9 @@ public class RepositoryConfigurationCollector
         final String environment,
         final String environmentVersion,
         final String os,
-        final String osVersion
+        final String osVersion,
+        final String pluginName,
+        final String pluginVersion
     )
     {
       this.repositoryManagerId = repositoryManagerId;
@@ -147,6 +155,8 @@ public class RepositoryConfigurationCollector
       this.environmentVersion = environmentVersion;
       this.os = os;
       this.osVersion = osVersion;
+      this.pluginName = pluginName;
+      this.pluginVersion = pluginVersion;
     }
 
     public String getRepositoryManagerId() {
@@ -195,6 +205,14 @@ public class RepositoryConfigurationCollector
 
     public String getOsVersion() {
       return osVersion;
+    }
+
+    public String getPluginName() {
+      return pluginName;
+    }
+
+    public String getPluginVersion() {
+      return pluginVersion;
     }
   }
 }

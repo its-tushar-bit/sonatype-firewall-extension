@@ -7,10 +7,10 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Comparator;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.RepositoryConfigurationCollector.RepositoryTelemetry;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.SonatypeUserAgentUtil;
+import com.sonatype.insight.telemetry.SonatypeUserAgentUtil.UserAgent;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -66,7 +67,9 @@ public class RepositoryConfigurationCollectorTest
         userAgent.environment,
         userAgent.environmentVersion,
         userAgent.os,
-        userAgent.osVersion
+        userAgent.osVersion,
+        userAgent.hostProductName,
+        userAgent.hostProductVersion
     );
 
     TelemetryData telemetryData = telemetryCollector.collectData();
@@ -89,7 +92,72 @@ public class RepositoryConfigurationCollectorTest
             .thenComparing(RepositoryTelemetry::getEnvironment)
             .thenComparing(RepositoryTelemetry::getEnvironmentVersion)
             .thenComparing(RepositoryTelemetry::getOs)
-            .thenComparing(RepositoryTelemetry::getOsVersion);
+            .thenComparing(RepositoryTelemetry::getOsVersion)
+            .thenComparing(RepositoryTelemetry::getPluginName)
+            .thenComparing(RepositoryTelemetry::getPluginVersion);
+
+    assertThat(repositoryTelemetry).usingComparator(telemetryComparator).isEqualTo(repositoryTelemetries.get(0));
+  }
+
+  @Test
+  public void testCollectAllDataFWFA() {
+    String userAgentFirewall = "Firewall_For_Jfrog_Artifactory/2.3-SNAPSHOT (; Linux; 5.10.109-104.500.amzn2.x86_64; " +
+        "amd64; 11.0.13; Jfrog Artifactory 7.37.15)";
+
+    repositoryManager.setUserAgent(userAgentFirewall);
+    new RepositoryManagerDAO().update(repositoryManager);
+
+    SonatypeUserAgentUtil.UserAgent userAgent = new UserAgent();
+    userAgent.product = "Firewall_For_Jfrog_Artifactory";
+    userAgent.version = "2.3-SNAPSHOT";
+    userAgent.productEdition = "";
+    userAgent.environment = "Java";
+    userAgent.environmentVersion = "11.0.13";
+    userAgent.os = "Linux";
+    userAgent.osVersion = "5.10.109-104.500.amzn2.x86_64; amd64";
+    userAgent.hostProductName = "Jfrog Artifactory";
+    userAgent.hostProductVersion = "7.37.15";
+
+    RepositoryTelemetry repositoryTelemetry = new RepositoryTelemetry(
+        repositoryManager.getId(),
+        repository.getId(),
+        repository.getFormat(),
+        repository.isEnabled(),
+        repository.isQuarantineEnabled(),
+        userAgent.product,
+        userAgent.productEdition,
+        userAgent.version,
+        userAgent.environment,
+        userAgent.environmentVersion,
+        userAgent.os,
+        userAgent.osVersion,
+        userAgent.hostProductName,
+        userAgent.hostProductVersion
+    );
+
+    TelemetryData telemetryData = telemetryCollector.collectData();
+
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_CONFIGURATION);
+    assertThat(telemetryData.getAttributes()).containsOnlyKeys(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY,
+        RepositoryConfigurationCollector.IS_QUARANTINE_ENABLED);
+
+    List<RepositoryTelemetry> repositoryTelemetries = (List<RepositoryTelemetry>) telemetryData.getAttributes()
+        .get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY);
+
+    Comparator<RepositoryTelemetry> telemetryComparator =
+        Comparator.comparing(RepositoryTelemetry::getRepositoryManagerId)
+            .thenComparing(RepositoryTelemetry::getRepositoryId)
+            .thenComparing(RepositoryTelemetry::getRepositoryFormat)
+            .thenComparing(RepositoryTelemetry::isEnabled)
+            .thenComparing(RepositoryTelemetry::getRepositoryManagerName)
+            .thenComparing(RepositoryTelemetry::getRepositoryManagerEdition)
+            .thenComparing(RepositoryTelemetry::getRepositoryManagerVersion)
+            .thenComparing(RepositoryTelemetry::getEnvironment)
+            .thenComparing(RepositoryTelemetry::getEnvironmentVersion)
+            .thenComparing(RepositoryTelemetry::getOs)
+            .thenComparing(RepositoryTelemetry::getOsVersion)
+            .thenComparing(RepositoryTelemetry::getPluginName)
+            .thenComparing(RepositoryTelemetry::getPluginVersion);
 
     assertThat(repositoryTelemetry).usingComparator(telemetryComparator).isEqualTo(repositoryTelemetries.get(0));
   }

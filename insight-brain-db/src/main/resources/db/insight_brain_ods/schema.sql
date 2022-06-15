@@ -1151,7 +1151,7 @@ CREATE TABLE saml_user (
   first_name varchar(100) NULL,
   last_name varchar(100) NULL,
   email varchar(255) NULL,
-  groups varchar(8192) NULL,
+  groups text NULL,
   CONSTRAINT saml_user_pk PRIMARY KEY (saml_user_id),
   CONSTRAINT saml_user_username_uk UNIQUE (username)
 );

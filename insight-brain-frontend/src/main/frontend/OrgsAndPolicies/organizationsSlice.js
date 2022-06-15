@@ -9,15 +9,29 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { getOrganizationsUrl } from '../util/CLMLocation';
 import { selectOrganizations } from './organizationsSelectors';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 const REDUCER_NAME = 'organizations';
 
 export const initialState = {
   organizations: [],
+  loading: false,
+  loadError: null,
+};
+
+const loadOrganizationsRequested = (state) => {
+  state.loading = true;
+  state.loadError = null;
 };
 
 const loadOrganizationsFulfilled = (state, { payload }) => {
+  state.loading = false;
   state.organizations = payload;
+};
+
+const loadOrganizationsRejected = (state, { payload }) => {
+  state.loading = false;
+  state.loadError = Messages.getHttpErrorMessage(payload);
 };
 
 const updateOrganization = (state, { payload }) => {
@@ -57,7 +71,9 @@ const organizationsSlice = createSlice({
     updateOrganization,
   },
   extraReducers: {
+    [loadOrganizations.pending]: loadOrganizationsRequested,
     [loadOrganizations.fulfilled]: loadOrganizationsFulfilled,
+    [loadOrganizations.rejected]: loadOrganizationsRejected,
   },
 });
 

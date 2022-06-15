@@ -8,8 +8,8 @@ import { prop } from 'ramda';
 
 export const selectProductFeaturesSlice = prop('productFeatures');
 export const selectProductFeatures = createSelector(selectProductFeaturesSlice, prop('productFeatures'));
-export const selectLoadingFeaturesSlice = createSelector(selectProductFeaturesSlice, prop('loading'));
-export const selectLoadErrorFeaturesSlice = createSelector(selectProductFeaturesSlice, prop('loadError'));
+export const selectLoadingFeatures = createSelector(selectProductFeaturesSlice, prop('loading'));
+export const selectLoadErrorFeatures = createSelector(selectProductFeaturesSlice, prop('loadError'));
 export const selectIsEnforcementSupported = createSelector(selectProductFeatures, prop('enforcement'));
 export const selectIsFirewallSupported = createSelector(selectProductFeatures, prop('firewall'));
 export const selectIsMonitoringSupported = createSelector(selectProductFeatures, prop('policy-monitoring'));

@@ -42,7 +42,6 @@ describe('application.category.tile.controller.app.spec.js', function () {
           expect(scope.unsubscribe).toBeDefined();
         });
         it('calls loadApplicablePolicyMonitoring', () => {
-          expect(scope.loadApplications).toHaveBeenCalledTimes(1);
           expect(scope.loadApplicableCategories).toHaveBeenCalledTimes(1);
           expect(scope.loadAppliedCategories).toHaveBeenCalledTimes(1);
         });
@@ -51,7 +50,6 @@ describe('application.category.tile.controller.app.spec.js', function () {
           controller('application.category.editor.controller', {
             $scope: scope,
           });
-          expect(scope.loadApplications).not.toHaveBeenCalled();
           expect(scope.loadApplicableCategories).not.toHaveBeenCalled();
           expect(scope.loadAppliedCategories).not.toHaveBeenCalled();
         });
@@ -106,25 +104,21 @@ describe('application.category.tile.controller.app.spec.js', function () {
       });
 
       it('Reloads on broadcasted owner summary reload event', function () {
-        expect(scope.loadApplications).toHaveBeenCalledTimes(1);
         expect(scope.loadApplicableCategories).toHaveBeenCalledTimes(1);
         expect(scope.loadAppliedCategories).toHaveBeenCalledTimes(1);
 
         $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
-        expect(scope.loadApplications).toHaveBeenCalledTimes(2);
         expect(scope.loadApplicableCategories).toHaveBeenCalledTimes(2);
         expect(scope.loadAppliedCategories).toHaveBeenCalledTimes(2);
       });
 
       it('Reloads on policy.imported event', function () {
-        expect(scope.loadApplications).toHaveBeenCalledTimes(1);
         expect(scope.loadApplicableCategories).toHaveBeenCalledTimes(1);
         expect(scope.loadAppliedCategories).toHaveBeenCalledTimes(1);
 
         $rootScope.$broadcast('policy.imported');
 
-        expect(scope.loadApplications).toHaveBeenCalledTimes(2);
         expect(scope.loadApplicableCategories).toHaveBeenCalledTimes(2);
         expect(scope.loadAppliedCategories).toHaveBeenCalledTimes(2);
       });

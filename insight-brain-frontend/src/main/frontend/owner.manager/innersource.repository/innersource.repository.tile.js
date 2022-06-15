@@ -4,11 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { actions as innerSourceRepositoryBaseConfigurationsActions } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSlice';
-import {
-  selectIsInnerSourceRepositorySupported,
-  selectLoadErrorFeaturesSlice,
-  selectLoadingFeaturesSlice,
-} from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsInnerSourceRepositorySupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import template from './innersource.repository.tile.html';
 import { selectIsApplication, selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
@@ -52,8 +48,6 @@ const mapStateToThis = (state) => ({
   isOrg: selectIsOrganization(state),
   isApp: selectIsApplication(state),
   ownerId: selectSelectedOwnerId(state),
-  loadingFeatures: selectLoadingFeaturesSlice(state),
-  loadError: selectLoadErrorFeaturesSlice(state),
   editLink: selectEditLink(state),
   loading: selectLoading(state),
   error: selectLoadError(state),

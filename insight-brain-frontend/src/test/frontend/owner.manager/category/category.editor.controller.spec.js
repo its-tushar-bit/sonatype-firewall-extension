@@ -84,7 +84,7 @@ describe('category.editor.controller', function () {
 
   describe('save category changes', () => {
     beforeEach(() => {
-      vm.saveApplicationCategory = jasmine.createSpy('vm.saveApplicationCategory');
+      vm.saveApplicationCategory = jasmine.createSpy('vm.saveApplicationCategory').and.returnValue(Promise.resolve({}));
       vm.categoryEditorMask = {
         wrap: jasmine.createSpy('wrap'),
       };
@@ -166,6 +166,20 @@ describe('category.editor.controller', function () {
       vm.onColorChange();
 
       expect(vm.setCategoryColor).toHaveBeenCalledOnceWith('red');
+    });
+  });
+
+  describe('removeCategory', () => {
+    it('calls removeApplicationCategory', () => {
+      vm.removeApplicationCategory = jasmine
+        .createSpy('vm.removeApplicationCategory')
+        .and.returnValue(Promise.resolve({}));
+
+      expect(vm.removeApplicationCategory).not.toHaveBeenCalled();
+
+      vm.removeCategory();
+
+      expect(vm.removeApplicationCategory).toHaveBeenCalledTimes(1);
     });
   });
 });

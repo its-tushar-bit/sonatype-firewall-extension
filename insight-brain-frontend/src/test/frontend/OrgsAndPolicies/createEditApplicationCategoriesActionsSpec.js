@@ -562,7 +562,6 @@ describe('createEditApplicationCategoriesSlice Actions', () => {
     });
 
     it('updates category successfully', (done) => {
-      const resetCategoryEditorSpy = jasmine.createSpy();
       const currentCategoryData = { color: 'red', description: 'red is blue', name: 'old' };
       const savedCategory = {
         ownerId: mockOwnerId,
@@ -577,69 +576,54 @@ describe('createEditApplicationCategoriesSlice Actions', () => {
         },
       });
 
-      store
-        .dispatch(
-          actions.saveApplicationCategory({
-            resetCategoryEditor: resetCategoryEditorSpy,
-          })
-        )
-        .then(() => {
-          expect(resetCategoryEditorSpy).toHaveBeenCalledTimes(1);
-          expect(axios.put).toHaveBeenCalledTimes(1);
-          expect(axios.put).toHaveBeenCalledWith(
-            `/api/v2/applicationCategories/${mockOwnerType}/${mockOwnerId}`,
-            currentCategoryData
-          );
+      store.dispatch(actions.saveApplicationCategory()).then(() => {
+        expect(axios.put).toHaveBeenCalledTimes(1);
+        expect(axios.put).toHaveBeenCalledWith(
+          `/api/v2/applicationCategories/${mockOwnerType}/${mockOwnerId}`,
+          currentCategoryData
+        );
 
-          const actions = store.getActions();
+        const actions = store.getActions();
 
-          expect(actions.length).toBe(2);
-          expect(actions).toHaveActionTypesInOrder([
-            'applicationCategories/createEdit/saveApplicationCategory/pending',
-            'applicationCategories/createEdit/saveApplicationCategory/fulfilled',
-          ]);
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'applicationCategories/createEdit/saveApplicationCategory/pending',
+          'applicationCategories/createEdit/saveApplicationCategory/fulfilled',
+        ]);
 
-          expect(actions[1].payload).toEqual({
-            savedCategory: savedCategory,
-            isEditMode: true,
-          });
-
-          done();
+        expect(actions[1].payload).toEqual({
+          savedCategory: savedCategory,
+          isEditMode: true,
         });
+
+        done();
+      });
     });
 
     it('dispatches reject action if save request fails', (done) => {
-      const resetCategoryEditorSpy = jasmine.createSpy();
       mockAxiosCalls({
         put: {
           [getCategoriesUrl(mockOwnerType, mockOwnerId)]: Promise.reject('could not save category'),
         },
       });
 
-      store
-        .dispatch(
-          actions.saveApplicationCategory({
-            resetCategoryEditor: resetCategoryEditorSpy,
-          })
-        )
-        .then(() => {
-          expect(resetCategoryEditorSpy).toHaveBeenCalledTimes(1);
-          expect(axios.put).toHaveBeenCalledTimes(1);
-          expect(axios.put).toHaveBeenCalledWith(
-            `/api/v2/applicationCategories/${mockOwnerType}/${mockOwnerId}`,
-            currentCategoryData
-          );
+      store.dispatch(actions.saveApplicationCategory()).then(() => {
+        expect(axios.put).toHaveBeenCalledTimes(1);
+        expect(axios.put).toHaveBeenCalledWith(
+          `/api/v2/applicationCategories/${mockOwnerType}/${mockOwnerId}`,
+          currentCategoryData
+        );
 
-          const actions = store.getActions();
+        const actions = store.getActions();
 
-          expect(actions.length).toBe(2);
-          expect(actions).toHaveActionTypesInOrder([
-            'applicationCategories/createEdit/saveApplicationCategory/pending',
-            'applicationCategories/createEdit/saveApplicationCategory/rejected',
-          ]);
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'applicationCategories/createEdit/saveApplicationCategory/pending',
+          'applicationCategories/createEdit/saveApplicationCategory/rejected',
+        ]);
 
-          done();
-        });
+        done();
+      });
     });
   });
 
@@ -682,6 +666,8 @@ describe('createEditApplicationCategoriesSlice Actions', () => {
     });
 
     it('dispatches rejected action if remove category request failed', (done) => {
+      const removeCategorySpy = jasmine.createSpy();
+
       mockAxiosCalls({
         del: {
           [getDeleteCategoriesUrl(mockOwnerType, mockOwnerId, currentCategoryData.id)]: Promise.reject(
@@ -695,6 +681,7 @@ describe('createEditApplicationCategoriesSlice Actions', () => {
         expect(axios.delete).toHaveBeenCalledWith(
           `/api/v2/applicationCategories/${mockOwnerType}/${mockOwnerId}/${currentCategoryData.id}`
         );
+        expect(removeCategorySpy).not.toHaveBeenCalled();
 
         const actions = store.getActions();
 

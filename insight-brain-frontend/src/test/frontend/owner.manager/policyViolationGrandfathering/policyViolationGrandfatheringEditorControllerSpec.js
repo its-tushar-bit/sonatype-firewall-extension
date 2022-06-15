@@ -4,8 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import policyViolationGrandfatheringModule from 'MainRoot/owner.manager/policyViolationGrandfathering/module';
-import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+
 import { mapStateToThis } from 'MainRoot/owner.manager/policyViolationGrandfathering/policyViolationGrandfatheringEditor';
+import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import * as policyViolationGrandfatheringSelectors from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 
 describe('PolicyViolationGrandfatheringEditorController', function () {
   beforeEach(
@@ -14,23 +17,24 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
     })
   );
 
-  var $scope,
-    $timeout,
-    getGrandfatheringDeferred,
-    setGrandfatheringDeferred,
-    mockPolicyViolationGrandfatheringService,
-    vm;
+  var $scope, $timeout, setGrandfatheringDeferred, mockPolicyViolationGrandfatheringService, vm;
 
   beforeEach(inject(function (_$rootScope_, $q, _$timeout_, $componentController) {
     $scope = _$rootScope_.$new();
     $timeout = _$timeout_;
-    getGrandfatheringDeferred = $q.defer();
     setGrandfatheringDeferred = $q.defer();
     mockPolicyViolationGrandfatheringService = {
-      getGrandfathering: jasmine.createSpy().and.returnValue(getGrandfatheringDeferred.promise),
       setGrandfathering: jasmine.createSpy().and.returnValue(setGrandfatheringDeferred.promise),
-      getStatusMessage: JSON.stringify,
     };
+    spyOn(orgsAndPoliciesSelectors, 'selectOwnerProperties').and.returnValue({
+      ownerType: 'ownerType',
+      ownerId: 'ownerId',
+    });
+    spyOn(policyViolationGrandfatheringSelectors, 'selectGrandfatheringStatusMessage').and.returnValue('Message');
+    spyOn(policyViolationGrandfatheringSelectors, 'selectPolicyViolationGrandfatheringConfig').and.returnValue({});
+    spyOn(routerSelectors, 'selectIsApplication').and.returnValue(true);
+    spyOn(routerSelectors, 'selectIsRootOrganization').and.returnValue(false);
+
     vm = $componentController('policyViolationGrandfatheringEditor', {
       $scope: $scope,
       policyViolationGrandfatheringService: mockPolicyViolationGrandfatheringService,
@@ -70,39 +74,6 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
     });
   });
 
-  describe('loading violation grandfathering configuration', function () {
-    it('loads configuration on success', function () {
-      const config = {
-        enabled: true,
-        calculatedEnabled: true,
-        inheritedFromOrganizationName: null,
-        allowChange: true,
-        allowOverride: true,
-      };
-      spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue([]);
-      getGrandfatheringDeferred.resolve(config);
-      $scope.$digest();
-
-      expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
-      expect(vm.currentConfiguration).toEqual(config);
-      expect(vm.originalConfiguration).toEqual(config);
-      expect(vm.statusMessage).toEqual(JSON.stringify(config));
-      expect(vm.loadError).toEqual(undefined);
-    });
-
-    it('sets the error message on failure', inject(function () {
-      getGrandfatheringDeferred.reject({ status: 404, data: 'not found' });
-
-      $timeout.flush();
-
-      expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
-      expect(vm.currentConfiguration).toEqual(undefined);
-      expect(vm.originalConfiguration).toEqual(undefined);
-      expect(vm.statusMessage).toEqual(undefined);
-      expect(vm.loadError).toEqual('not found');
-    }));
-  });
-
   describe('saving configuration', function () {
     it('saves configuration and reloads on success', function () {
       const oldConfig = {
@@ -119,14 +90,11 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
       vm.save();
 
       setGrandfatheringDeferred.resolve({});
-      getGrandfatheringDeferred.resolve(newConfig);
 
       $scope.$digest();
 
       expect(mockPolicyViolationGrandfatheringService.setGrandfathering).toHaveBeenCalledWith(newConfig);
-      expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
-      expect(vm.currentConfiguration).toEqual(newConfig);
-      expect(vm.originalConfiguration).toEqual(newConfig);
+      expect(vm.getGrandfathering).toHaveBeenCalled();
     });
 
     it('sets the error message on failure', function () {
@@ -147,9 +115,6 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
 
       $timeout.flush();
       expect(mockPolicyViolationGrandfatheringService.setGrandfathering).toHaveBeenCalledWith(newConfig);
-      expect(vm.currentConfiguration).toEqual(newConfig);
-      expect(vm.originalConfiguration).toEqual(oldConfig);
-      expect(vm.submitError).toEqual('not found');
     });
   });
 

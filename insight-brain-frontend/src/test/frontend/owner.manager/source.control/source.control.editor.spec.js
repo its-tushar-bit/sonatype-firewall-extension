@@ -8,7 +8,6 @@ import utilityModule from 'MainRoot/utility/utility.module';
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
-import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 
 describe('source.control.editor', function () {
   const ROOT_ORG_ID = 'rootOrganizationId';
@@ -27,7 +26,6 @@ describe('source.control.editor', function () {
     $q,
     $componentController,
     mockCLMContextLocations,
-    getByIdDeferred,
     vm,
     mockSourceControlService,
     getSourceControlDeferred,
@@ -48,20 +46,10 @@ describe('source.control.editor', function () {
     },
     mockSameOwnerStateNavigationService = {
       goEdit: jasmine.createSpy(),
-    },
-    $timeout;
+    };
   let loadApplicationsSpy;
 
   let setExpectations = function (sourceControlName, sourceControlId, sourceControlResult) {
-    getByIdDeferred.resolve({
-      payload: [
-        {
-          name: sourceControlName,
-          id: sourceControlId,
-        },
-      ],
-    });
-
     if (sourceControlResult) {
       if (sourceControlResult.reject) {
         getSourceControlDeferred.reject(sourceControlResult.reject);
@@ -117,13 +105,12 @@ describe('source.control.editor', function () {
 
   beforeEach(angular.mock.module(sourceControlModule.name, utilityModule.name));
 
-  beforeEach(inject(function (_$rootScope_, $injector, _$componentController_, _$q_, _$timeout_) {
+  beforeEach(inject(function (_$rootScope_, $injector, _$componentController_, _$q_) {
     $rootScope = _$rootScope_;
     $scope = $rootScope.$new();
 
     mockCLMContextLocations = jasmine.createSpyObj('CLMContextLocations', [
       'isOrganization',
-      'getEntityId',
       'isApplication',
       'isRootOrg',
     ]);
@@ -138,15 +125,12 @@ describe('source.control.editor', function () {
     ]);
     $componentController = _$componentController_;
     $q = _$q_;
-    getByIdDeferred = $q.defer();
     getSourceControlDeferred = $q.defer();
     deleteServiceResourceDefer = $q.defer();
     updateUrlDefer = $q.defer();
     saveResourceDefer = $q.defer();
-    $timeout = _$timeout_;
 
     spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
-    spyOn(organizationsActions, 'loadOrganizations').and.returnValue(getByIdDeferred.promise);
     loadApplicationsSpy = spyOn(applicationActions, 'loadApplications').and.returnValue({
       payload: [
         {
@@ -261,7 +245,6 @@ describe('source.control.editor', function () {
       mockCLMContextLocations.isOrganization.and.returnValue(true);
       mockCLMContextLocations.isRootOrg.and.returnValue(true);
       mockCLMContextLocations.isApplication.and.returnValue(false);
-      mockCLMContextLocations.getEntityId.and.returnValue(ROOT_ORG_ID);
       mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
@@ -313,29 +296,8 @@ describe('source.control.editor', function () {
         expect(vm.isOrg).toBe(false);
       });
 
-      it('loads the root org owner name and reports on success', function () {
-        digest(ROOT_ORG_NAME, ROOT_ORG_ID);
-
-        expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-        expect(vm.loadOrganizations).toHaveBeenCalled();
-        expect(vm.ownerName).toBe(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
-      });
-
-      it('sets the error message on failure for root organization owner id', function () {
-        vm.ownerName = undefined;
-        vm.ownerId = undefined;
-
-        mockCLMContextLocations.getEntityId.and.returnValue(SUB_ORG_ID);
-        getByIdDeferred.resolve({ payload: [{ name: ROOT_ORG_NAME, id: ROOT_ORG_ID }] });
-
-        $scope.$digest();
-
-        expect(vm.ownerName).toBeUndefined();
-        expect(vm.loadError).toEqual(`Could not find an organization with ID ${SUB_ORG_ID}.`);
-      });
-
       it('sets the error message on failure for the root organization source control', function () {
+        vm.doLoad();
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, { reject: { status: 400, data: 'bad request' } });
         expect(vm.loadError).toEqual('bad request');
       });
@@ -344,7 +306,7 @@ describe('source.control.editor', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
@@ -358,7 +320,7 @@ describe('source.control.editor', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControlCopy);
 
         expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
         expect(vm.dirtySourceControl.baseBranch).toEqual('master');
@@ -370,7 +332,7 @@ describe('source.control.editor', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -383,7 +345,7 @@ describe('source.control.editor', function () {
 
         // then
         expect(mockSameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('edit-source-control');
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
       });
     });
 
@@ -401,13 +363,12 @@ describe('source.control.editor', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
         vm.dirtySourceControl = angular.copy(sourceControlModel);
         vm.dirtySourceControl.id = null;
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
 
@@ -420,7 +381,7 @@ describe('source.control.editor', function () {
           ROOT_ORG_ID,
           expectedSourceControlForSave
         );
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
@@ -439,7 +400,7 @@ describe('source.control.editor', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -454,7 +415,6 @@ describe('source.control.editor', function () {
           parentName: null,
         };
 
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
 
@@ -467,7 +427,7 @@ describe('source.control.editor', function () {
           ROOT_ORG_ID,
           expectedSourceControlForSave
         );
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.ownerType).toEqual('organization');
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
@@ -487,14 +447,13 @@ describe('source.control.editor', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         vm.dirtySourceControl = sourceControlModelCopy;
         vm.dirtySourceControl.provider = 'gitlab';
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.reject({ status: '400', data: 'bad request' });
 
@@ -509,7 +468,7 @@ describe('source.control.editor', function () {
           expectedSourceControlForSave
         );
         expect(vm.submitError).toEqual('bad request');
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
@@ -520,7 +479,7 @@ describe('source.control.editor', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -533,7 +492,7 @@ describe('source.control.editor', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -546,7 +505,7 @@ describe('source.control.editor', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -559,7 +518,7 @@ describe('source.control.editor', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -573,12 +532,11 @@ describe('source.control.editor', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
         vm.dirtySourceControl.provider = 'gitlab';
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
 
@@ -593,11 +551,9 @@ describe('source.control.editor', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
-
-        $timeout.flush();
 
         // when
         vm.deleteSourceControl();
@@ -609,7 +565,7 @@ describe('source.control.editor', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(ROOT_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -735,36 +691,27 @@ describe('source.control.editor', function () {
         expect(vm.loading).toBeFalsy();
       });
 
-      it('is set to false when owner identifier cannot be retrieved', function () {
-        getByIdDeferred.reject({ status: 404, data: 'not found' });
-
-        $scope.$digest();
-        expect(vm.loadError).toEqual('not found');
-        expect(vm.loading).toBeFalsy();
-      });
-
       it('is set to false when composite source control cannot be retrieved', function () {
+        vm.doLoad();
         digest(ROOT_ORG_NAME, ROOT_ORG_ID, { reject: { status: 404, data: 'not found' } });
         expect(vm.loadError).toEqual('not found');
-        expect(vm.loading).toBeFalsy();
       });
 
       it('is set to true while waiting for owner identifier', function () {
         $scope.$digest();
-        expect(vm.loadError).toEqual(undefined);
+        expect(vm.loadError).toBeNull();
         expect(vm.loading).toBeTruthy();
       });
 
       it('is set to true while waiting for product features', function () {
-        getByIdDeferred.resolve({ payload: [{ name: ROOT_ORG_NAME, id: ROOT_ORG_ID }] });
         $scope.$digest();
-        expect(vm.loadError).toEqual(undefined);
+        expect(vm.loadError).toBeNull();
         expect(vm.loading).toBeTruthy();
       });
 
       it('is set to true while waiting for composite source control', function () {
         digest(ROOT_ORG_NAME, ROOT_ORG_ID);
-        expect(vm.loadError).toEqual(undefined);
+        expect(vm.loadError).toBeNull();
         expect(vm.loading).toBeTruthy();
       });
     });
@@ -863,7 +810,6 @@ describe('source.control.editor', function () {
       mockCLMContextLocations.isOrganization.and.returnValue(true);
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(false);
-      mockCLMContextLocations.getEntityId.and.returnValue(SUB_ORG_ID);
       mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
 
@@ -914,34 +860,16 @@ describe('source.control.editor', function () {
         expect(vm.isOrg).toBe(false);
       });
 
-      it('loads the owner name of the sub organization and reports on success', function () {
-        digest(SUB_ORG_NAME, SUB_ORG_ID);
-        expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-        expect(vm.loadOrganizations).toHaveBeenCalled();
-        expect(vm.ownerName).toBe(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
-      });
-
-      it('sets the error message on failure for the sub organization owner id', function () {
-        vm.ownerName = undefined;
-        getByIdDeferred.reject({ status: 404, data: 'not found' });
-
-        $scope.$digest();
-
-        expect(vm.ownerName).toBeUndefined();
-        expect(vm.loadError).toEqual('not found');
-      });
-
       it('sets the error message on failure for the sub organization source control', function () {
+        vm.doLoad();
         digest(SUB_ORG_NAME, SUB_ORG_ID, { reject: { status: 400, data: 'bad request' } });
-        expect(vm.ownerName).toEqual(SUB_ORG_NAME);
         expect(vm.loadError).toEqual('bad request');
       });
 
       it('sets the source control and does not report an error for the sub organization', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
@@ -956,7 +884,7 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
 
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
         expect(vm.dirtySourceControl.baseBranch).toBeNull();
@@ -987,7 +915,7 @@ describe('source.control.editor', function () {
 
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
 
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
@@ -1091,13 +1019,12 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, retrievedCompositeSourceControl);
 
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(retrievedSourceControlModel);
         expect(vm.originalSourceControl).toEqual(retrievedSourceControlModel);
 
         vm.dirtySourceControl = angular.copy(retrievedSourceControlModel);
         vm.dirtySourceControl.remediationPullRequestsEnabled = true;
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
 
@@ -1110,7 +1037,7 @@ describe('source.control.editor', function () {
           SUB_ORG_ID,
           savedSourceControl
         );
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
@@ -1124,7 +1051,7 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual('subOrganizationName');
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -1132,7 +1059,6 @@ describe('source.control.editor', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         vm.dirtySourceControl = sourceControlModelCopy;
         vm.dirtySourceControl.remediationPullRequestsEnabled = true;
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
 
@@ -1147,7 +1073,7 @@ describe('source.control.editor', function () {
           SUB_ORG_ID,
           savedSourceControl
         );
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
@@ -1161,14 +1087,13 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual('subOrganizationName');
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         vm.dirtySourceControl = sourceControlModelCopy;
         vm.dirtySourceControl.remediationPullRequestsEnabled = true;
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.reject({ status: '400', data: 'bad request' });
 
@@ -1183,7 +1108,7 @@ describe('source.control.editor', function () {
           savedSourceControl
         );
         expect(vm.submitError).toEqual('bad request');
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
@@ -1194,7 +1119,7 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -1208,7 +1133,7 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -1222,7 +1147,7 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -1247,7 +1172,7 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
 
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
 
@@ -1267,7 +1192,7 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -1282,7 +1207,7 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControlCopy);
 
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
 
         vm.dirtySourceControl.baseBranch = 'new_branch';
         expect(vm.isDirty()).toBeFalsy();
@@ -1292,7 +1217,7 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -1305,7 +1230,7 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -1318,12 +1243,11 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
         vm.dirtySourceControl.provider = 'github';
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
 
@@ -1338,11 +1262,9 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
-
-        $timeout.flush();
 
         // when
         vm.deleteSourceControl();
@@ -1354,7 +1276,7 @@ describe('source.control.editor', function () {
         digest(SUB_ORG_NAME, SUB_ORG_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(SUB_ORG_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -1527,7 +1449,6 @@ describe('source.control.editor', function () {
       mockCLMContextLocations.isOrganization.and.returnValue(false);
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(true);
-      mockCLMContextLocations.getEntityId.and.returnValue(UNKNOWN_APP_ID);
 
       loadApplicationsSpy.and.returnValue({
         error: `Could not find an application with ID ${UNKNOWN_APP_ID}.`,
@@ -1541,11 +1462,6 @@ describe('source.control.editor', function () {
         UpdateSourceControlModalService: mockUpdateUrlService,
       });
       $scope.$digest();
-    });
-
-    it('sets the error message on failure for the application owner id', function () {
-      expect(vm.ownerName).toBeUndefined();
-      expect(vm.loadError).toEqual(`Could not find an application with ID ${UNKNOWN_APP_ID}.`);
     });
   });
 
@@ -1644,7 +1560,6 @@ describe('source.control.editor', function () {
       mockCLMContextLocations.isOrganization.and.returnValue(false);
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(true);
-      mockCLMContextLocations.getEntityId.and.returnValue(APPLICATION_ID);
       mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
@@ -1698,12 +1613,12 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID);
 
         expect(vm.ownerName).toBe(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
       });
 
       it('sets the error message on failure for the application source control', function () {
+        vm.doLoad();
         digest(APPLICATION_NAME, APPLICATION_ID, { reject: { status: 400, data: 'bad request' } });
-        expect(vm.ownerName).toEqual(APPLICATION_NAME);
         expect(vm.loadError).toEqual('bad request');
       });
 
@@ -1711,7 +1626,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
@@ -1726,7 +1641,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
         expect(vm.dirtySourceControl.baseBranch).toBeNull();
@@ -1756,7 +1671,7 @@ describe('source.control.editor', function () {
 
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
 
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
@@ -1860,14 +1775,13 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, retrievedCompositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(retrievedSourceControlModel);
         expect(vm.originalSourceControl).toEqual(retrievedSourceControlModel);
 
         vm.dirtySourceControl = angular.copy(retrievedSourceControlModel);
         vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
 
@@ -1880,7 +1794,7 @@ describe('source.control.editor', function () {
           APPLICATION_ID,
           savedSourceControl
         );
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
@@ -1894,7 +1808,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -1903,7 +1817,6 @@ describe('source.control.editor', function () {
         vm.dirtySourceControl = sourceControlModelCopy;
         vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
 
@@ -1919,7 +1832,7 @@ describe('source.control.editor', function () {
           APPLICATION_ID,
           savedSourceControl
         );
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
@@ -1933,7 +1846,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -1942,7 +1855,6 @@ describe('source.control.editor', function () {
         vm.dirtySourceControl = sourceControlModelCopy;
         vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         vm.dirtySourceControl.repositoryUrl = SSH_REPOSITORY_URL;
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
 
@@ -1958,7 +1870,7 @@ describe('source.control.editor', function () {
           APPLICATION_ID,
           saveSourceControl
         );
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
@@ -1972,7 +1884,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -1980,7 +1892,6 @@ describe('source.control.editor', function () {
         vm.dirtySourceControl = sourceControlModelCopy;
         vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         updateUrlDefer.reject({ status: '400', data: 'bad request' });
         // when
@@ -1994,7 +1905,7 @@ describe('source.control.editor', function () {
           savedSourceControl
         );
         expect(vm.submitError).toEqual('bad request');
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
@@ -2024,7 +1935,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -2033,7 +1944,6 @@ describe('source.control.editor', function () {
         vm.dirtySourceControl = sourceControlModelCopy;
         vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
 
@@ -2049,7 +1959,7 @@ describe('source.control.editor', function () {
           APPLICATION_ID,
           savedSourceControl
         );
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
@@ -2063,7 +1973,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -2073,7 +1983,6 @@ describe('source.control.editor', function () {
         vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
         vm.originalSourceControl.repositoryUrl = REPOSITORY_URL;
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
 
@@ -2089,7 +1998,7 @@ describe('source.control.editor', function () {
           APPLICATION_ID,
           savedSourceControl
         );
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
@@ -2110,7 +2019,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
 
@@ -2133,7 +2042,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
 
@@ -2157,7 +2066,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
 
@@ -2200,7 +2109,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
 
@@ -2220,7 +2129,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -2235,7 +2144,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControlCopy);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
 
         vm.dirtySourceControl.baseBranch = 'new_branch';
         expect(vm.isDirty()).toBeFalsy();
@@ -2245,7 +2154,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -2258,7 +2167,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -2271,7 +2180,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
@@ -2284,12 +2193,11 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
         vm.dirtySourceControl.provider = 'github';
-        getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
 
@@ -2304,11 +2212,9 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
-
-        $timeout.flush();
 
         // when
         vm.deleteSourceControl();
@@ -2320,7 +2226,7 @@ describe('source.control.editor', function () {
         digest(APPLICATION_NAME, APPLICATION_ID, compositeSourceControl);
 
         expect(vm.ownerName).toEqual(APPLICATION_NAME);
-        expect(vm.loadError).toBeUndefined();
+        expect(vm.loadError).toBeNull();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 

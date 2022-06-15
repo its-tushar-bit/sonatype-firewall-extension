@@ -68,13 +68,20 @@ export default function PolicyEditorController($scope, DeleteModalService, $root
   function deletePolicy() {
     const message = `You are about to permanently remove ${vm.dirtyPolicy.name}. This action cannot be undone.`;
 
-    DeleteModalService.deleteRedux('Delete Policy', message, 'Deleting', vm.removePolicy, selectDeleteModal);
+    DeleteModalService.deleteRedux('Delete Policy', message, 'Deleting', removePolicy, selectDeleteModal);
+  }
+
+  function removePolicy() {
+    vm.removePolicy().then(() => {
+      $rootScope.$broadcast('resource.data.modified');
+    });
   }
 
   function save() {
     vm.policyEditorMask.wrap(
       vm.savePolicy({
         onSaveExistingPolicy: () => {
+          $rootScope.$broadcast('resource.data.modified');
           $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY, {
             resetScroll: true,
           });

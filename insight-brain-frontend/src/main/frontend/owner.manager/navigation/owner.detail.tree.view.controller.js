@@ -64,7 +64,7 @@ export default function OwnerDetailTreeViewController(
   });
 
   function doLoad() {
-    var promises = [$http.get(CLMContextLocations.getOwnerDetailsUrl()), vm.loadProductFeatures()];
+    var promises = [$http.get(CLMContextLocations.getOwnerDetailsUrl())];
 
     if (vm.isApp) {
       promises.push(vm.loadApplications());
@@ -76,14 +76,13 @@ export default function OwnerDetailTreeViewController(
     $q.all(promises)
       .then(function (results) {
         vm.details = results[0].data;
-        unwrapResult(results[1]);
 
         var allMembersByRoles = vm.details.roles.membersByRole;
         vm.details.roles = LocalRoleService.getRolesWithLocalMembers(allMembersByRoles);
         vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(allMembersByRoles).length > 0;
 
         if (!vm.isRepositories) {
-          const siblings = unwrapResult(results[2]);
+          const siblings = unwrapResult(results[1]);
           const entityId = CLMContextLocations.getEntityId();
           const owner = find(propEq(vm.isApp ? 'publicId' : 'id', entityId))(siblings);
 
@@ -94,7 +93,7 @@ export default function OwnerDetailTreeViewController(
           vm.setSelectedOwner(owner);
 
           if (vm.isApp) {
-            const applicableCategories = unwrapResult(results[3]);
+            const applicableCategories = unwrapResult(results[2]);
             vm.areAnyCategoriesDefined = !isEmpty(applicableCategories);
           }
         } else {
@@ -111,16 +110,6 @@ export default function OwnerDetailTreeViewController(
   $scope.$on('resource.data.modified', vm.doLoad);
   $scope.$watch('vm.labels', (labels) => {
     if (labels) {
-      vm.doLoad();
-    }
-  });
-  $scope.$watch('vm.categories', (categories) => {
-    if (categories) {
-      vm.doLoad();
-    }
-  });
-  $scope.$watch('vm.policies', (policies) => {
-    if (policies) {
       vm.doLoad();
     }
   });

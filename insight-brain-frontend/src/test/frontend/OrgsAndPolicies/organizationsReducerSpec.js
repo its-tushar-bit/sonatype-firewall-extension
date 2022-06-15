@@ -15,6 +15,7 @@ describe('organizations reducer', () => {
       const state = Object.freeze({
         otherState,
         organizations: [],
+        loading: true,
       });
       const expected = [
         {
@@ -23,12 +24,48 @@ describe('organizations reducer', () => {
         },
       ];
 
-      const { organizations } = reducer(state, {
+      const { organizations, loading } = reducer(state, {
         type: 'organizations/loadOrganizations/fulfilled',
         payload: expected,
       });
 
+      expect(loading).toBeFalse();
       expect(organizations).toEqual(expected);
+    });
+  });
+
+  describe('organizations/loadOrganizations/pending', () => {
+    it('resets organizations', () => {
+      const state = Object.freeze({
+        otherState,
+        loadError: 'some error',
+        loading: false,
+      });
+
+      const { loadError, loading } = reducer(state, {
+        type: 'organizations/loadOrganizations/pending',
+      });
+
+      expect(loading).toBeTrue();
+      expect(loadError).toBeNull();
+    });
+  });
+
+  describe('organizations/loadOrganizations/rejected', () => {
+    it('resets organizations', () => {
+      const state = Object.freeze({
+        otherState,
+        loadError: null,
+        loading: true,
+      });
+
+      const { loadError, loading } = reducer(state, {
+        type: 'organizations/loadOrganizations/rejected',
+        payload: 'some error',
+      });
+
+      expect(loading).toBeFalse();
+      expect(loadError).toBe('some error');
     });
   });
 

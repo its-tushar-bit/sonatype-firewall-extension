@@ -42,8 +42,6 @@ describe('owner.summary.controller', function () {
       isContextAuthorizedDefer,
       mockPermissionService,
       mockChangeApplicationIdService,
-      getGrandfatheringDefer,
-      mockPolicyViolationGrandfatheringService,
       mockGrandfatherModalService,
       mockRevokeGrandfatheringModalService,
       loadOrganizationActionSpy,
@@ -91,7 +89,6 @@ describe('owner.summary.controller', function () {
       stageTypeStoreDefer = $q.defer();
       deleteOwnerDefer = $q.defer();
       isContextAuthorizedDefer = $q.defer();
-      getGrandfatheringDefer = $q.defer();
       mockDeleteService = {
         deleteRedux: function () {
           return deleteOwnerDefer.promise;
@@ -104,9 +101,6 @@ describe('owner.summary.controller', function () {
         isContextAuthorized: jasmine.createSpy().and.returnValue(isContextAuthorizedDefer.promise),
       };
       mockChangeApplicationIdService = jasmine.createSpyObj('mockChangeApplicationIdService', ['open']);
-      mockPolicyViolationGrandfatheringService = {
-        getGrandfathering: jasmine.createSpy().and.returnValue(getGrandfatheringDefer.promise),
-      };
       mockApplicationSummary = applicationResourceMockData.getApplicationSummaryUrl();
 
       spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
@@ -150,7 +144,6 @@ describe('owner.summary.controller', function () {
           DeleteModalService: mockDeleteService,
           PermissionService: mockPermissionService,
           'change.application.id.service': mockChangeApplicationIdService,
-          policyViolationGrandfatheringService: mockPolicyViolationGrandfatheringService,
           RevokeGrandfatheringModalService: mockRevokeGrandfatheringModalService,
           GrandfatherModalService: mockGrandfatherModalService,
           'evaluate.application.modal.service': mockEvaluateAppModalService,
@@ -609,9 +602,8 @@ describe('owner.summary.controller', function () {
           resolveStageTypeStore(MockData.getDashboardStageData());
           resolveApplicationSummary(mockApplicationSummary);
           if (isApp) {
-            $httpBackend
-              .expectGET(CLMLocations.getCompositeSourceControlUrl('application', '0000abcd'))
-              .respond({ provider: { value: scmProvider }, token: { value: 'TOKEN' }, repositoryUrl: repoUrl });
+            vm.repositoryUrl = repoUrl;
+            vm.scmProviderIcon = (scmProvider === 'azure' ? 'git' : scmProvider) || undefined;
             $httpBackend.flush();
           }
           resolveApplicationWritePermission(true);
@@ -631,9 +623,8 @@ describe('owner.summary.controller', function () {
 
     function resolveCompositeSourceControl() {
       if (isApp) {
-        $httpBackend
-          .expectGET(CLMLocations.getCompositeSourceControlUrl('application', '0000abcd'))
-          .respond({ provider: { value: 'github' }, token: { value: 'TOKEN' } });
+        vm.repositoryUrl = undefined;
+        vm.scmProviderIcon = 'github';
       }
     }
 
@@ -670,10 +661,7 @@ describe('owner.summary.controller', function () {
 
     function resolveGetGrandfathering(calculatedEnabled) {
       if (isApp) {
-        expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
-        getGrandfatheringDefer.resolve({
-          calculatedEnabled,
-        });
+        vm.isGrandfatheringEnabled = calculatedEnabled;
       }
     }
 

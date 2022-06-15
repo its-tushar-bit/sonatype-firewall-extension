@@ -6,8 +6,8 @@
 import { actions as artifactoryRepositoryBaseConfigurationsActions } from 'MainRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurationsSlice';
 import {
   selectIsArtifactoryRepositorySupported,
-  selectLoadErrorFeaturesSlice,
-  selectLoadingFeaturesSlice,
+  selectLoadErrorFeatures,
+  selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import template from './artifactory.repository.tile.html';
 import { selectIsApplication, selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -52,8 +52,8 @@ const mapStateToThis = (state) => ({
   isOrg: selectIsOrganization(state),
   isApp: selectIsApplication(state),
   ownerId: selectSelectedOwnerId(state),
-  loadingFeatures: selectLoadingFeaturesSlice(state),
-  loadError: selectLoadErrorFeaturesSlice(state),
+  loadingFeatures: selectLoadingFeatures(state),
+  loadError: selectLoadErrorFeatures(state),
   editLink: selectEditLink(state),
   loading: selectLoading(state),
   error: selectLoadError(state),

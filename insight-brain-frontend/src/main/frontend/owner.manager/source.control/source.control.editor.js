@@ -3,17 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { propEq, find } from 'ramda';
-import { unwrapResult } from '@reduxjs/toolkit';
-import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import {
   selectIsSourceControlForSourceTileSupported,
   selectIsSourceControlSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import template from './source.control.editor.view.html';
-import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
-import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
-import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectSelectedOwnerId, selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default {
   template: template,
@@ -38,16 +33,12 @@ function SourceControlEditorController(
 ) {
   var vm = this;
 
-  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-    loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
-    loadApplications: applicationActions.loadApplications,
-    loadOrganizations: organizationsActions.loadOrganizations,
-  })(vm);
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
 
-  vm.ownerType = undefined;
   vm.isApp = CLMContextLocations.isApplication();
   vm.isOrg = CLMContextLocations.isOrganization();
   vm.isRootOrg = CLMContextLocations.isRootOrg();
+  vm.ownerType = vm.isApp ? 'application' : 'organization';
 
   // source control
   vm.originalSourceControl = {};
@@ -65,7 +56,6 @@ function SourceControlEditorController(
   vm.providerTypes = SourceControlService.getProviderTypes();
   vm.providerTypesMap = SourceControlService.getProviderTypesMap();
   vm.providerInheritText = undefined;
-  vm.effectiveProvider = effectiveProvider;
 
   // user
   vm.isUsernameRequiredOnNode = isUsernameRequiredOnNode;
@@ -78,7 +68,6 @@ function SourceControlEditorController(
   // token
   vm.isAccessTokenRequiredOnNode = isAccessTokenRequiredOnNode;
   vm.shouldShowAccessTokenWarning = undefined;
-  vm.effectiveTokenInheritFrom = effectiveTokenInheritFrom;
 
   // url
   vm.isSshUrl = isSshUrl;
@@ -126,6 +115,7 @@ function SourceControlEditorController(
   vm.effectiveTokenInheritFrom = effectiveTokenInheritFrom;
   vm.providerNeedsUsername = providerNeedsUsername;
   vm.sshEnabled = sshEnabled;
+  vm.doLoad = doLoad;
 
   /**
    * Matches any absolute HTTP(S) as per RFC 3986
@@ -135,8 +125,6 @@ function SourceControlEditorController(
   vm.isDirty = isDirty;
   vm.save = save;
   vm.deleteSourceControl = deleteSourceControl;
-  vm.doLoad = doLoad;
-  vm.doLoad();
 
   $scope.$on('pageChangeStarted', function (event) {
     if (vm.isDirty()) {
@@ -148,105 +136,80 @@ function SourceControlEditorController(
     vm.unsubscribe();
   });
 
+  $scope.$watchGroup(['vm.isSourceControlSupported', 'vm.ownerId'], function () {
+    vm.doLoad();
+  });
+
   function doLoad() {
-    vm.loadError = undefined;
+    if (!vm.isSourceControlSupported || !vm.ownerId) return;
+
     vm.loading = true;
+    vm.loadError = null;
 
-    let ownerPromise;
-    if (vm.isApp) {
-      ownerPromise = vm.loadApplications();
-      vm.ownerType = 'application';
-    } else if (vm.isOrg) {
-      ownerPromise = vm.loadOrganizations();
-      vm.ownerType = 'organization';
-    }
-
-    if (ownerPromise !== undefined) {
-      const promises = [ownerPromise, vm.loadProductFeatures()];
-
-      $q.all(promises)
-        .then(function (results) {
-          unwrapResult(results[1]);
-          const siblings = unwrapResult(results[0]);
-          const entityId = CLMContextLocations.getEntityId();
-          const owner = find(propEq(vm.isApp ? 'publicId' : 'id', entityId))(siblings);
-
-          if (!owner) {
-            throw `Could not find an ${vm.ownerType} with ID ${entityId}.`;
-          }
-
-          vm.ownerId = owner.id;
-
-          if (vm.isSourceControlSupported) {
-            return getSourceControl();
-          }
-        })
-        .catch(function (e) {
-          vm.loadError = Messages.getHttpErrorMessage(e);
-        })
-        .finally(function () {
-          vm.loading = false;
-        });
-    }
-  }
-
-  function getSourceControl() {
     var promises = [
       SourceControlService.getCompositeSourceControlRecord(vm.ownerType, vm.ownerId),
       SourceControlService.getSourceControlMetrics(vm.ownerType, vm.ownerId),
     ];
-    return $q.all(promises).then(function (result) {
-      let compositeSourceControl = typeof result[0] !== 'undefined' && result[0] !== null ? result[0] : {};
-      vm.dirtySourceControl = compositeSourceControlToModel(compositeSourceControl);
-      // set this value so that it can be used for intermediate calculations
-      vm.originalSourceControl = angular.copy(vm.dirtySourceControl);
-      vm.dirtySourceControl.usernameInherit =
-        vm.dirtySourceControl.usernameInherit && !isUsernameRequiredOnNode() && providerNeedsUsername();
-      vm.dirtySourceControl.credentialsInherit = vm.dirtySourceControl.usernameInherit && !isUsernameRequiredOnNode();
-      vm.usernameInheritText = getInheritText(
-        vm.dirtySourceControl.usernameInheritFrom,
-        vm.dirtySourceControl.usernameInheritedValue
-      );
+    return $q
+      .all(promises)
+      .then(function (result) {
+        let compositeSourceControl = typeof result[0] !== 'undefined' && result[0] !== null ? result[0] : {};
+        vm.dirtySourceControl = compositeSourceControlToModel(compositeSourceControl);
+        // set this value so that it can be used for intermediate calculations
+        vm.originalSourceControl = angular.copy(vm.dirtySourceControl);
+        vm.dirtySourceControl.usernameInherit =
+          vm.dirtySourceControl.usernameInherit && !isUsernameRequiredOnNode() && providerNeedsUsername();
+        vm.dirtySourceControl.credentialsInherit = vm.dirtySourceControl.usernameInherit && !isUsernameRequiredOnNode();
+        vm.usernameInheritText = getInheritText(
+          vm.dirtySourceControl.usernameInheritFrom,
+          vm.dirtySourceControl.usernameInheritedValue
+        );
 
-      // force the xxxInherit properties to be 'false' if these values are missing in the hierarchy
-      // but are required at this level
-      vm.dirtySourceControl.tokenInherit = vm.dirtySourceControl.tokenInherit && !isAccessTokenRequiredOnNode();
-      vm.dirtySourceControl.providerInherit = vm.dirtySourceControl.providerInherit && !isProviderRequiredOnNode();
+        // force the xxxInherit properties to be 'false' if these values are missing in the hierarchy
+        // but are required at this level
+        vm.dirtySourceControl.tokenInherit = vm.dirtySourceControl.tokenInherit && !isAccessTokenRequiredOnNode();
+        vm.dirtySourceControl.providerInherit = vm.dirtySourceControl.providerInherit && !isProviderRequiredOnNode();
 
-      vm.originalSourceControl = angular.copy(vm.dirtySourceControl);
-      vm.shouldShowAccessTokenWarning = isAccessTokenRequiredOnNode() && vm.dirtySourceControl.token === null;
-      vm.showAdvanced = !vm.isApp || !canCollapseAdvanced();
-      vm.providerInheritText = getInheritText(
-        vm.dirtySourceControl.providerInheritFrom,
-        vm.providerTypesMap[vm.dirtySourceControl.providerInheritValue]
-      );
-      vm.pullRequestCommentingEnabledInheritText = getEnabledDisabledInheritText(
-        vm.dirtySourceControl.pullRequestCommentingEnabledInheritFrom,
-        vm.dirtySourceControl.pullRequestCommentingEnabledInheritedValue
-      );
-      vm.statusChecksInheritText = getEnabledDisabledInheritText(
-        vm.dirtySourceControl.statusChecksEnabledInheritFrom,
-        vm.dirtySourceControl.statusChecksEnabledInheritedValue
-      );
-      vm.remediationPullRequestsEnabledInheritText = getEnabledDisabledInheritText(
-        vm.dirtySourceControl.remediationPullRequestsEnabledInheritFrom,
-        vm.dirtySourceControl.remediationPullRequestsEnabledInheritedValue
-      );
-      vm.sourceControlEvaluationsEnabledInheritText = getEnabledDisabledInheritText(
-        vm.dirtySourceControl.sourceControlEvaluationsEnabledInheritFrom,
-        vm.dirtySourceControl.sourceControlEvaluationsEnabledInheritedValue
-      );
-      vm.baseBranchInheritText = getInheritText(
-        vm.dirtySourceControl.baseBranchInheritFrom,
-        vm.dirtySourceControl.baseBranchInheritedValue
-      );
-      vm.sshEnabledInheritText = getEnabledDisabledInheritText(
-        vm.dirtySourceControl.sshEnabledInheritFrom,
-        vm.dirtySourceControl.sshEnabledInheritedValue
-      );
+        vm.originalSourceControl = angular.copy(vm.dirtySourceControl);
+        vm.shouldShowAccessTokenWarning = isAccessTokenRequiredOnNode() && vm.dirtySourceControl.token === null;
+        vm.showAdvanced = !vm.isApp || !canCollapseAdvanced();
+        vm.providerInheritText = getInheritText(
+          vm.dirtySourceControl.providerInheritFrom,
+          vm.providerTypesMap[vm.dirtySourceControl.providerInheritValue]
+        );
+        vm.pullRequestCommentingEnabledInheritText = getEnabledDisabledInheritText(
+          vm.dirtySourceControl.pullRequestCommentingEnabledInheritFrom,
+          vm.dirtySourceControl.pullRequestCommentingEnabledInheritedValue
+        );
+        vm.statusChecksInheritText = getEnabledDisabledInheritText(
+          vm.dirtySourceControl.statusChecksEnabledInheritFrom,
+          vm.dirtySourceControl.statusChecksEnabledInheritedValue
+        );
+        vm.remediationPullRequestsEnabledInheritText = getEnabledDisabledInheritText(
+          vm.dirtySourceControl.remediationPullRequestsEnabledInheritFrom,
+          vm.dirtySourceControl.remediationPullRequestsEnabledInheritedValue
+        );
+        vm.sourceControlEvaluationsEnabledInheritText = getEnabledDisabledInheritText(
+          vm.dirtySourceControl.sourceControlEvaluationsEnabledInheritFrom,
+          vm.dirtySourceControl.sourceControlEvaluationsEnabledInheritedValue
+        );
+        vm.baseBranchInheritText = getInheritText(
+          vm.dirtySourceControl.baseBranchInheritFrom,
+          vm.dirtySourceControl.baseBranchInheritedValue
+        );
+        vm.sshEnabledInheritText = getEnabledDisabledInheritText(
+          vm.dirtySourceControl.sshEnabledInheritFrom,
+          vm.dirtySourceControl.sshEnabledInheritedValue
+        );
 
-      vm.sourceControlMetrics = result[1];
-    });
+        vm.sourceControlMetrics = result[1];
+      })
+      .catch(function (e) {
+        vm.loadError = Messages.getHttpErrorMessage(e);
+      })
+      .finally(function () {
+        vm.loading = false;
+      });
   }
 
   /**
@@ -281,7 +244,7 @@ function SourceControlEditorController(
       vm.originalSourceControl = {};
       vm.sourceControlEditor.$setPristine();
       SameOwnerStateNavigationService.goEdit('edit-source-control');
-      doLoad();
+      vm.doLoad();
     });
   }
 
@@ -300,7 +263,7 @@ function SourceControlEditorController(
         return SourceControlService.updateSourceControlRecord(vm.ownerType, vm.ownerId, sourceControl);
       })
         .then(function () {
-          doLoad();
+          vm.doLoad();
         })
         .catch(function (e) {
           vm.submitError = Messages.getHttpErrorMessage(e);
@@ -314,7 +277,7 @@ function SourceControlEditorController(
       vm.sourceControlEditorMask
         .wrap(savePromise)
         .then(function () {
-          doLoad();
+          vm.doLoad();
         })
         .catch(function (e) {
           vm.submitError = Messages.getHttpErrorMessage(e);
@@ -415,7 +378,7 @@ function SourceControlEditorController(
 
   function modelToSourceControl(model) {
     let sourceControl = {};
-
+    if (!model) return sourceControl;
     sourceControl.ownerId = model.ownerId;
     sourceControl.id = model.id;
     sourceControl.pullRequestCommentingEnabled = getPullRequestCommentingEnabledFlagFromModel(model);
@@ -462,12 +425,14 @@ function SourceControlEditorController(
   }
 
   function effectiveProvider() {
+    if (!vm.dirtySourceControl) return;
     return vm.dirtySourceControl.providerInherit
       ? vm.originalSourceControl.providerInheritValue
       : vm.dirtySourceControl.provider;
   }
 
   function effectiveTokenInheritFrom() {
+    if (!vm.dirtySourceControl) return;
     return vm.dirtySourceControl.providerInherit ? vm.originalSourceControl.tokenInheritFrom : null;
   }
 
@@ -503,6 +468,7 @@ function SourceControlEditorController(
   }
 
   function canCollapseAdvanced() {
+    if (!vm.dirtySourceControl) return;
     const hasToken = vm.dirtySourceControl.tokenInherit || vm.dirtySourceControl.token;
     const hasUserName =
       vm.dirtySourceControl.usernameInherit || vm.dirtySourceControl.username || !providerNeedsUsername();
@@ -622,6 +588,7 @@ const mapStateToThis = (state) => ({
   isAutomationSupported: selectIsSourceControlSupported(state),
   isSourceControlSupported: selectIsSourceControlForSourceTileSupported(state),
   ownerName: selectSelectedOwnerName(state),
+  ownerId: selectSelectedOwnerId(state),
 });
 
 SourceControlEditorController.$inject = [

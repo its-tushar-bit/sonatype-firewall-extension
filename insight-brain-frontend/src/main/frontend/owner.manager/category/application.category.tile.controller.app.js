@@ -12,14 +12,12 @@ import {
   selectLoadingApplicableCategories,
   selectLoadingAppliedCategories,
 } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
-import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as assignApplicationCategoriesSlice } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function ApplicationCategoryTileControllerApp($scope, EventNameConstant, $ngRedux) {
   $scope.unsubscribe = $ngRedux.connect(mapStateToThis, {
-    loadApplications: applicationActions.loadApplications,
     loadApplicableCategories: assignApplicationCategoriesSlice.loadApplicableCategories,
     loadAppliedCategories: assignApplicationCategoriesSlice.loadAppliedCategories,
     goToEditCategories: assignApplicationCategoriesSlice.goToEditCategories,
@@ -31,7 +29,6 @@ export default function ApplicationCategoryTileControllerApp($scope, EventNameCo
 
   $scope.doLoad = () => {
     if ($scope.isApp) {
-      $scope.loadApplications(true);
       $scope.loadApplicableCategories();
       $scope.loadAppliedCategories();
     }

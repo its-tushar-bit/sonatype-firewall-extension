@@ -355,7 +355,6 @@ const removePolicy = createAsyncThunk(`${REDUCER_NAME}/removePolicy`, (_, { getS
       dispatch(actions.resetIsDirty());
       dispatch(actions.resetDeleteModalState());
       dispatch(goToCreatePolicy());
-
       return policyToRemove.id;
     })
     .catch(rejectWithValue);

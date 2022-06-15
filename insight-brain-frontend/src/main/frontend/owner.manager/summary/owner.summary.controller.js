@@ -6,23 +6,30 @@
 import { propEq, find } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 
-import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
+import { actions as sourceControlActions } from 'MainRoot/OrgsAndPolicies/sourceControlSlice';
+import { actions as policyViolationGrandfatheringActions } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
 import {
   selectIsGrandfatheringSupported,
   selectIsInnerSourceRepositorySupported,
   selectIsArtifactoryRepositorySupported,
   selectIsEvaluateApplicationAvailable,
+  selectIsSourceControlForSourceTileSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectDeleteModal } from 'MainRoot/OrgsAndPolicies/ownerEditorSelectors';
 import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
+import { selectRepositoryUrl, selectScmProviderIcon } from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
 import { selectSelectedOwner, selectPoliciesByOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
+import {
+  selectCalculatedEnabled,
+  selectGrandfatheringStatusMessage,
+} from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 
 export default function OwnerSummaryController(
   $state,
@@ -45,8 +52,6 @@ export default function OwnerSummaryController(
   PermissionService,
   RevokeGrandfatheringModalService,
   GrandfatherModalService,
-  PolicyViolationGrandfatheringService,
-  SourceControlService,
   $ngRedux
 ) {
   var vm = this;
@@ -71,11 +76,8 @@ export default function OwnerSummaryController(
   vm.changeApplicationId = changeApplicationId;
   vm.hasPermissionToChangeAppId = undefined;
   vm.hasPermissionToEvaluateApp = undefined;
-  vm.isGrandfatheringEnabled = undefined;
   vm.getDisabledGrandfatherTooltipMessage = getDisabledGrandfatherTooltipMessage;
   vm.getDisabledEvaluateTooltipMessage = getDisabledEvaluateTooltipMessage;
-  vm.repositoryUrl = undefined;
-  vm.scmProvider = undefined;
 
   var siblings,
     stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
@@ -83,7 +85,6 @@ export default function OwnerSummaryController(
     id = $state.params[stateIdField];
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-    loadProductFeatures: actions.fetchProductFeaturesIfNeeded,
     loadDashboardStageTypes: stagesActions.loadDashboardStages,
     setSelectedOwner: rootActions.setSelectedOwner,
     setSelectedOwnerContact: rootActions.setSelectedOwnerContact,
@@ -91,9 +92,11 @@ export default function OwnerSummaryController(
     loadOrganizations: organizationsActions.loadOrganizations,
     removeOwner: ownerEditorActions.removeOwner,
     resetDeleteModalState: ownerEditorActions.resetDeleteModalState,
+    getSourceControl: sourceControlActions.loadSourceControl,
     loadApplicablePoliciesByOwner: rootActions.loadApplicablePoliciesByOwner,
     setLoading: ownerSummaryActions.setLoading,
     setLoadError: ownerSummaryActions.setLoadError,
+    getGrandfathering: policyViolationGrandfatheringActions.loadPolicyViolationGrandfathering,
   })(vm);
 
   vm.doLoad();
@@ -124,14 +127,13 @@ export default function OwnerSummaryController(
 
     const promises = [
       vm.isApp ? vm.loadApplications(true) : vm.loadOrganizations(true),
-      vm.loadProductFeatures(),
       vm.loadApplicablePoliciesByOwner(),
+      vm.getGrandfathering(),
     ];
 
     if (vm.isApp) {
       promises.push(vm.loadDashboardStageTypes());
       promises.push($http.get(CLMLocations.getApplicationSummaryUrl(id)));
-      promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
     }
 
     $q.all(promises)
@@ -146,17 +148,13 @@ export default function OwnerSummaryController(
         vm.setSelectedOwner(owner);
 
         if (vm.isApp) {
-          unwrapResult(results[3]);
           vm.applicationSummary = results[4].data;
           vm.setSelectedOwnerContact(vm.applicationSummary.contact);
 
-          vm.isGrandfatheringEnabled = results[5].calculatedEnabled;
-
           getAppChangePermissions();
           getAppEvaluatePermissions();
-          getSourceControl(owner.id);
         }
-        unwrapResult(results[2]);
+        if (vm.isSourceControlSupported) vm.getSourceControl();
       })
       .catch((error) => {
         vm.setLoadError(error);
@@ -164,20 +162,6 @@ export default function OwnerSummaryController(
       .finally(() => {
         vm.setLoading(false);
       });
-  }
-
-  function getSourceControl(ownerInternalId) {
-    return SourceControlService.getCompositeSourceControlRecord('application', ownerInternalId).then(function (result) {
-      if (result && result.provider) {
-        vm.repositoryUrl = result.repositoryUrl;
-        vm.scmProviderIcon = result.provider.value ? result.provider.value : result.provider.parentValue;
-        if (vm.scmProviderIcon === 'azure') {
-          // no Font Awesome icon for Azure, use Microsoft instead once FA v5 is available (eg: React migration)
-          // see: https://github.com/FortAwesome/Font-Awesome/issues/14058
-          vm.scmProviderIcon = 'git';
-        }
-      }
-    });
   }
 
   function getAppChangePermissions() {
@@ -310,9 +294,14 @@ const mapStateToThis = (state) => ({
   isInnerSourceRepositorySupported: selectIsInnerSourceRepositorySupported(state),
   isArtifactoryRepositorySupported: selectIsArtifactoryRepositorySupported(state),
   owner: selectSelectedOwner(state),
+  repositoryUrl: selectRepositoryUrl(state),
+  scmProviderIcon: selectScmProviderIcon(state),
   policiesByOwner: selectPoliciesByOwner(state),
   loading: selectLoading(state),
   loadError: selectLoadError(state),
+  isGrandfatheringEnabled: selectCalculatedEnabled(state),
+  grandfatheringStatusMessage: selectGrandfatheringStatusMessage(state),
+  isSourceControlSupported: selectIsSourceControlForSourceTileSupported(state),
 });
 
 OwnerSummaryController.$inject = [
@@ -336,7 +325,5 @@ OwnerSummaryController.$inject = [
   'PermissionService',
   'RevokeGrandfatheringModalService',
   'GrandfatherModalService',
-  'policyViolationGrandfatheringService',
-  'SourceControlService',
   '$ngRedux',
 ];

@@ -5,6 +5,15 @@
  */
 import template from './policyViolationGrandfatheringEditor.html';
 import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { actions as policyViolationGrandfatheringActions } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
+import {
+  selectGrandfatheringStatusMessage,
+  selectLoading,
+  selectLoadError,
+} from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
+
+import { selectIsApplication, selectIsRootOrganization } from '../../reduxUiRouter/routerSelectors';
+import { selectPolicyViolationGrandfatheringConfig } from '../../OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 
 export default {
   template,
@@ -15,40 +24,20 @@ export default {
 function PolicyViolationGrandfatheringEditorController(
   $scope,
   Messages,
-  CLMContextLocations,
   PolicyViolationGrandfatheringService,
   $ngRedux
 ) {
   const vm = this;
-  vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+    getGrandfathering: policyViolationGrandfatheringActions.loadPolicyViolationGrandfathering,
+  })(vm);
 
   Object.assign(vm, {
-    loadError: undefined,
-    loading: false,
     submitError: undefined,
-    originalConfiguration: undefined,
-    currentConfiguration: undefined,
-    statusMessage: undefined,
     violationGrandfatheringEditorMask: undefined,
 
-    isApp: CLMContextLocations.isApplication(),
-    isRootOrg: CLMContextLocations.isRootOrg(),
-
     doLoad() {
-      delete vm.loadError;
-      vm.loading = true;
-      PolicyViolationGrandfatheringService.getGrandfathering().then(
-        function (result) {
-          vm.loading = false;
-          vm.originalConfiguration = result;
-          vm.currentConfiguration = angular.copy(result);
-          vm.statusMessage = PolicyViolationGrandfatheringService.getStatusMessage(vm.originalConfiguration);
-        },
-        function (error) {
-          vm.loading = false;
-          vm.loadError = Messages.getHttpErrorMessage(error);
-        }
-      );
+      vm.getGrandfathering();
     },
 
     save() {
@@ -82,12 +71,18 @@ function PolicyViolationGrandfatheringEditorController(
 
 export const mapStateToThis = (state) => ({
   isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
+  loading: selectLoading(state),
+  loadError: selectLoadError(state),
+  originalConfiguration: selectPolicyViolationGrandfatheringConfig(state),
+  currentConfiguration: angular.copy(selectPolicyViolationGrandfatheringConfig(state)),
+  statusMessage: selectGrandfatheringStatusMessage(state),
+  isApp: selectIsApplication(state),
+  isRootOrg: selectIsRootOrganization(state),
 });
 
 PolicyViolationGrandfatheringEditorController.$inject = [
   '$scope',
   'Messages',
-  'CLMContextLocations',
   'policyViolationGrandfatheringService',
   '$ngRedux',
 ];

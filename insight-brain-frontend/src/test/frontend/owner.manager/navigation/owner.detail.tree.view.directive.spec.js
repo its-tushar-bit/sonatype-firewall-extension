@@ -191,48 +191,6 @@ describe('owner.detail.tree.view.directive', function () {
       expect(vm.error).toBeUndefined();
     });
 
-    it('watches vm.categories and calls vm.doLoad on change', inject(function () {
-      resolveGet([400, 'Bad Request']);
-
-      expect(vm.details).toBeUndefined();
-      expect(vm.error).toBeDefined();
-      expect(vm.error.data).toEqual('Bad Request');
-
-      $httpBackend
-        .expectGET(CLMContextLocations.getOwnerDetailsUrl())
-        .respond(SidebarResourceMockData.getOwnerDetailsUrl());
-
-      vm.categories = 'test';
-      $scope.$digest();
-
-      $httpBackend.flush();
-      $timeout.flush();
-
-      expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
-      expect(vm.error).toBeUndefined();
-    }));
-
-    it('watches vm.policies and calls vm.doLoad on change', inject(function () {
-      resolveGet([400, 'Bad Request']);
-
-      expect(vm.details).toBeUndefined();
-      expect(vm.error).toBeDefined();
-      expect(vm.error.data).toEqual('Bad Request');
-
-      $httpBackend
-        .expectGET(CLMContextLocations.getOwnerDetailsUrl())
-        .respond(SidebarResourceMockData.getOwnerDetailsUrl());
-
-      vm.policies = 'test';
-      $scope.$digest();
-
-      $httpBackend.flush();
-      $timeout.flush();
-
-      expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
-      expect(vm.error).toBeUndefined();
-    }));
-
     function resolveGet(detailsDataArray) {
       $httpBackend.expectGET(CLMContextLocations.getOwnerDetailsUrl()).respond.apply(this, detailsDataArray);
 

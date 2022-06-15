@@ -947,6 +947,9 @@ export const getCrowdConfigurationTestUrl = () => {
 export const getMoveApplicationUrl = (applicationId, organizationId) =>
   uriTemplate`/api/v2/applications/${applicationId}/move/organization/${organizationId}`;
 
+export const getGrandfatheringUrl = (ownerType, ownerId) =>
+  uriTemplate`/rest/policyViolationGrandfathering/${ownerType}/${ownerId}`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

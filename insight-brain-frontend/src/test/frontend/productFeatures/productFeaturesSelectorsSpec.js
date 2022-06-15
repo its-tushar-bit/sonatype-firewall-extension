@@ -24,8 +24,8 @@ import {
   selectIsDataInsightsSupported,
   selectIsInnerSourceTransitiveWaiverSupported,
   selectIsAllowExternalHyperlinksSupported,
-  selectLoadErrorFeaturesSlice,
-  selectLoadingFeaturesSlice,
+  selectLoadErrorFeatures,
+  selectLoadingFeatures,
   selectProductFeaturesSlice,
   selectProductFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
@@ -75,15 +75,15 @@ describe('productFeaturesSelectors', () => {
     });
   });
 
-  describe('selectLoadingFeaturesSlice', () => {
+  describe('selectLoadingFeatures', () => {
     it('returns loading', () => {
-      expect(selectLoadingFeaturesSlice(mockState)).toBeFalse();
+      expect(selectLoadingFeatures(mockState)).toBeFalse();
     });
   });
 
-  describe('selectLoadErrorFeaturesSlice', () => {
+  describe('selectLoadErrorFeatures', () => {
     it('returns loadError', () => {
-      expect(selectLoadErrorFeaturesSlice(mockState)).toBe('error');
+      expect(selectLoadErrorFeatures(mockState)).toBe('error');
     });
   });
 

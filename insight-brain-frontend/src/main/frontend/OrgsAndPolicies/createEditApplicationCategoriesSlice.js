@@ -281,13 +281,11 @@ const setTextInput = curryN(3, function setTextInput(fieldName, state, { payload
 
 const saveApplicationCategory = createAsyncThunk(
   `${REDUCER_NAME}/saveApplicationCategory`,
-  ({ resetCategoryEditor }, { getState, rejectWithValue }) => {
+  (_, { getState, rejectWithValue }) => {
     const state = getState();
     const isEditMode = selectIsEditMode(state);
     const { ownerType, ownerId } = selectOwnerProperties(state);
     const categoryToSave = selectCurrentCategory(state);
-
-    resetCategoryEditor();
 
     return axios[isEditMode ? 'put' : 'post'](getCategoriesUrl(ownerType, ownerId), categoryToSave)
       .then(({ data: savedCategory }) => {
@@ -351,7 +349,6 @@ const removeApplicationCategory = createAsyncThunk(
       .then(() => {
         dispatch(actions.resetIsDirty());
         dispatch(actions.goToCreateCategory());
-
         return categoryToRemove.id;
       })
       .catch(rejectWithValue);

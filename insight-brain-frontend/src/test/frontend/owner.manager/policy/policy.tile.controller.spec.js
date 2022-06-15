@@ -50,9 +50,7 @@ describe('policy.tile.controller', function () {
           regexes: ['.*/foo\\.zip'],
         },
       },
-    ],
-    getGrandfatheringDefer,
-    mockPolicyViolationGrandfatheringService;
+    ];
 
   beforeEach(inject(function (
     _$rootScope_,
@@ -69,11 +67,6 @@ describe('policy.tile.controller', function () {
     CLMContextLocations = _CLMContextLocations_;
     EventNameConstant = $injector.get('event.name.constant');
     stageTypeStoreDefer = $q.defer();
-    getGrandfatheringDefer = $q.defer();
-    mockPolicyViolationGrandfatheringService = {
-      getGrandfathering: jasmine.createSpy().and.returnValue(getGrandfatheringDefer.promise),
-      getStatusMessage: JSON.stringify,
-    };
     spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
 
     mockAxiosCalls({
@@ -202,7 +195,6 @@ describe('policy.tile.controller', function () {
     createController();
 
     expect(vm.loadApplicablePolicyMonitoring).toHaveBeenCalled();
-    expect(mockPolicyViolationGrandfatheringService.getGrandfathering).not.toHaveBeenCalled();
   });
 
   it('loads and displays the grandfathering configuration for applications', function () {
@@ -212,7 +204,6 @@ describe('policy.tile.controller', function () {
     createController();
 
     expect(vm.loadApplicablePolicyMonitoring).toHaveBeenCalled();
-    expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
   });
 
   it('loads and displays the grandfathering configuration for organizations', function () {
@@ -222,13 +213,11 @@ describe('policy.tile.controller', function () {
     createController();
 
     expect(vm.loadApplicablePolicyMonitoring).toHaveBeenCalled();
-    expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
   });
 
   function createController() {
     vm = $controller('policy.tile.controller', {
       $scope: scope,
-      policyViolationGrandfatheringService: mockPolicyViolationGrandfatheringService,
     });
     scope.vm = vm;
     vm.ownerProperties = {

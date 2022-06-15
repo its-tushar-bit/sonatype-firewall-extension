@@ -16,7 +16,9 @@ import organizationsSlice from './organizationsSlice';
 import stagesSlice from './stagesSlice';
 import policySlice from './policySlice';
 import ownerEditorSlice from './ownerEditorSlice';
+import sourceControlSlice from './sourceControlSlice';
 import ownerSummarySlice from './ownerSummarySlice';
+import policyViolationGrandfatheringSlice from './policyViolationGrandfatheringSlice';
 
 export default combineReducers({
   root: rootSlice,
@@ -33,5 +35,7 @@ export default combineReducers({
   stages: stagesSlice,
   policy: policySlice,
   ownerEditor: ownerEditorSlice,
+  sourceControl: sourceControlSlice,
   ownerSummary: ownerSummarySlice,
+  policyViolationGrandfathering: policyViolationGrandfatheringSlice,
 });

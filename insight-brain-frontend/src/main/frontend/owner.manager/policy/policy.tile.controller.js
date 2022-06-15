@@ -14,6 +14,7 @@ import {
   selectIsFirewallSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectMonitoredStageFromActionStages } from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
+import { selectGrandfatheringStatusMessage } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 import {
   selectOwnerProperties,
   selectPoliciesByOwner,
@@ -32,7 +33,6 @@ export default function PolicyTileController(
   SameOwnerStateNavigationService,
   EventNameConstant,
   CLMContextLocations,
-  PolicyViolationGrandfatheringService,
   $ngRedux
 ) {
   var vm = this;
@@ -42,7 +42,6 @@ export default function PolicyTileController(
   vm.monitoredStage = undefined;
   vm.localProprietaryCount = 0;
   vm.inheritedProprietaryCount = 0;
-  vm.grandfatheringStatusMessage = undefined;
   vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.isEnforcementSupportedForStage = isEnforcementSupportedForStage;
   vm.editPolicy = editPolicy;
@@ -73,47 +72,40 @@ export default function PolicyTileController(
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
 
   function doLoad() {
-    const promises = [vm.loadActionStageTypes(), vm.loadProprietaryConfig(), vm.loadApplicablePolicyMonitoring()];
-    if (vm.isAppOrOrg) {
-      promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
-    }
+    const promises = [
+      vm.loadApplicablePoliciesByOwner(),
+      vm.loadActionStageTypes(),
+      vm.loadProprietaryConfig(),
+      vm.loadApplicablePolicyMonitoring(),
+    ];
 
     $q.all(promises)
-      .then(
-        function (results) {
-          vm.actionStages = unwrapResult(results[0]).data;
+      .then((results) => {
+        vm.actionStages = unwrapResult(results[1]).data;
 
-          const updatedPoliciesByOwner = vm.policiesByOwner?.map(function (policyOwner, index) {
-            const policies = policyOwner.policies.map((policy) => {
-              const enforcementAction = {};
-              vm.actionStages.forEach(function (actionStage) {
-                if (policy.actions[actionStage.stageTypeId]) {
-                  enforcementAction[actionStage.stageTypeId] = policy.actions[actionStage.stageTypeId];
-                }
-              });
-              return {
-                ...policy,
-                enforcementAction,
-              };
+        const updatedPoliciesByOwner = vm.policiesByOwner?.map(function (policyOwner, index) {
+          const policies = policyOwner.policies.map((policy) => {
+            const enforcementAction = {};
+            vm.actionStages?.forEach(function (actionStage) {
+              if (policy.actions[actionStage.stageTypeId]) {
+                enforcementAction[actionStage.stageTypeId] = policy.actions[actionStage.stageTypeId];
+              }
             });
-
             return {
-              ...policyOwner,
-              inherited: index > 0,
-              policies,
+              ...policy,
+              enforcementAction,
             };
           });
 
-          vm.setPoliciesByOwner(updatedPoliciesByOwner);
+          return {
+            ...policyOwner,
+            inherited: index > 0,
+            policies,
+          };
+        });
 
-          if (vm.isAppOrOrg) {
-            vm.grandfatheringStatusMessage = PolicyViolationGrandfatheringService.getStatusMessage(results[3]);
-          }
-        },
-        function (error) {
-          vm.loadError = error;
-        }
-      )
+        vm.setPoliciesByOwner(updatedPoliciesByOwner);
+      })
       .catch((error) => {
         vm.loadError = error;
       });
@@ -139,6 +131,7 @@ export const mapStateToThis = (state) => ({
   isFirewallSupported: selectIsFirewallSupported(state),
   isMonitoringSupported: selectIsMonitoringSupported(state),
   isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
+  grandfatheringStatusMessage: selectGrandfatheringStatusMessage(state),
   policiesByOwner: selectPoliciesByOwner(state),
 });
 
@@ -148,6 +141,5 @@ PolicyTileController.$inject = [
   'SameOwnerStateNavigationService',
   'event.name.constant',
   'CLMContextLocations',
-  'policyViolationGrandfatheringService',
   '$ngRedux',
 ];

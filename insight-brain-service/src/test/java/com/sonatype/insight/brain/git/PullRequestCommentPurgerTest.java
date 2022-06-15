@@ -11,17 +11,17 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.SourceControlConfig;
 
 import org.junit.Test;
 
@@ -38,6 +38,9 @@ public class PullRequestCommentPurgerTest
 
   @Inject
   private SourceControlEventDAO sourceControlEventDAO;
+
+  @Inject
+  private SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
   @Test
   public void testPurgeObsoleteRecords_purgePullRequestComments() {
@@ -165,14 +168,11 @@ public class PullRequestCommentPurgerTest
       final Integer purgeWindowInDays,
       final Integer shortPurgeWindowInDays)
   {
-    InsightConfig insightConfig = new InsightConfig();
-    if (purgeWindowInDays != null || shortPurgeWindowInDays != null) {
-      SourceControlConfig sourceControlConfig = new SourceControlConfig();
-      sourceControlConfig.setPrCommentPurgeWindow(purgeWindowInDays);
-      sourceControlConfig.setPrEventPurgeWindow(shortPurgeWindowInDays);
-      insightConfig.setSourceControl(sourceControlConfig);
-    }
+    SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
+    sourceControlConfiguration.setPrCommentPurgeWindow(purgeWindowInDays);
+    sourceControlConfiguration.setPrEventPurgeWindow(shortPurgeWindowInDays);
+    sourceControlConfigurationDAO.set(sourceControlConfiguration);
     return new PullRequestCommentPurger(sourceControlPullRequestCommentDAO, sourceControlDefaultBranchCommitHistoryDAO,
-        sourceControlEventDAO, insightConfig);
+        sourceControlEventDAO, sourceControlConfigurationDAO);
   }
 }

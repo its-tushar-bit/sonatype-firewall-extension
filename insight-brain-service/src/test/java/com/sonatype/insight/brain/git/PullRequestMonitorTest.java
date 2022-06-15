@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -13,11 +14,14 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -39,14 +43,7 @@ import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class PullRequestMonitorTest
     extends AbstractComponentTest
@@ -73,6 +70,9 @@ public class PullRequestMonitorTest
 
   @Mock
   private SourceControlUtils mockSourceControlUtils;
+
+  @Inject
+  private SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
   @Override
   public void configure(Binder binder) {
@@ -332,6 +332,43 @@ public class PullRequestMonitorTest
   @Test
   public void testUpdatePullRequestDetails_DoesNotSendEventIfEventIsAlreadyInProgress() throws Exception {
     testUpdatePullRequestDetails_DoesNotSendEventIfEventExists(SourceControlEvent.EVENT_STATUS_IN_PROGRESS);
+  }
+
+  @Test
+  public void testSourceControlConfigurationChanged_NullConfiguration() {
+    pullRequestMonitor.sourceControlConfigurationChanged();
+
+    verify(taskSchedulerMock).unscheduleTask(PullRequestMonitor.TASK_NAME);
+    verify(taskSchedulerMock).schedulePeriodicTask(PullRequestMonitor.class, PullRequestMonitor.TASK_NAME,
+        Duration.ofSeconds(new SourceControlConfiguration().getPullRequestMonitoringIntervalSeconds()));
+  }
+
+  @Test
+  public void testSourceControlConfigurationChanged_UpdatedPullRequestMonitoringIntervalSeconds() {
+    pullRequestMonitor.sourceControlConfigurationChanged();
+    reset(taskSchedulerMock);
+    SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
+    sourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(30);
+    sourceControlConfigurationDAO.set(sourceControlConfiguration);
+
+    pullRequestMonitor.sourceControlConfigurationChanged();
+
+    verify(taskSchedulerMock).unscheduleTask(PullRequestMonitor.TASK_NAME);
+    verify(taskSchedulerMock).schedulePeriodicTask(PullRequestMonitor.class, PullRequestMonitor.TASK_NAME,
+        Duration.ofSeconds(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()));
+  }
+
+  @Test
+  public void testSourceControlConfigurationChanged_NoRelevantUpdate() {
+    pullRequestMonitor.sourceControlConfigurationChanged();
+    reset(taskSchedulerMock);
+    SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
+    sourceControlConfiguration.setGitImplementation(GitImplementation.JAVA);
+    sourceControlConfigurationDAO.set(sourceControlConfiguration);
+
+    pullRequestMonitor.sourceControlConfigurationChanged();
+
+    verifyNoInteractions(taskSchedulerMock);
   }
 
   private void testUpdatePullRequestDetails_DoesNotSendEventIfEventExists(String eventStatus) throws Exception {

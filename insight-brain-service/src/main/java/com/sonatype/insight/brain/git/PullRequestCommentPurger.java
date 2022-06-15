@@ -19,11 +19,12 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.security.SystemRunnable;
-import com.sonatype.insight.brain.service.InsightConfig;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -54,7 +55,7 @@ public class PullRequestCommentPurger
 
   private final SourceControlEventDAO sourceControlEventDAO;
 
-  private final InsightConfig insightConfig;
+  private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
   private ScheduledExecutorService executor;
 
@@ -63,12 +64,12 @@ public class PullRequestCommentPurger
       final SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO,
       final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO,
       final SourceControlEventDAO sourceControlEventDAO,
-      final InsightConfig insightConfig)
+      final SourceControlConfigurationDAO sourceControlConfigurationDAO)
   {
     this.sourceControlPullRequestCommentDAO = sourceControlPullRequestCommentDAO;
     this.sourceControlDefaultBranchCommitHistoryDAO = sourceControlDefaultBranchCommitHistoryDAO;
     this.sourceControlEventDAO = sourceControlEventDAO;
-    this.insightConfig = insightConfig;
+    this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
   }
 
   private ScheduledExecutorService newExecutor() {
@@ -110,19 +111,22 @@ public class PullRequestCommentPurger
   @VisibleForTesting
   void purgeObsoleteRecords() {
     int commentPurgeWindowInDays = DEFAULT_COMMENT_PURGE_WINDOW_IN_DAYS;
-    if (insightConfig.getSourceControl() != null &&
-        insightConfig.getSourceControl().getPrCommentPurgeWindow() != null) {
-      commentPurgeWindowInDays = insightConfig.getSourceControl().getPrCommentPurgeWindow();
+    int eventPurgeWindowInDays = DEFAULT_EVENT_PURGE_WINDOW_IN_DAYS;
+
+    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
+    if (sourceControlConfiguration != null) {
+      if (sourceControlConfiguration.getPrCommentPurgeWindow() != null) {
+        commentPurgeWindowInDays = sourceControlConfiguration.getPrCommentPurgeWindow();
+      }
+      if (sourceControlConfiguration.getPrEventPurgeWindow() != null) {
+        eventPurgeWindowInDays = sourceControlConfiguration.getPrEventPurgeWindow();
+      }
     }
+
     Date commentCutoffDate = Date.from(ZonedDateTime.now().minusDays(commentPurgeWindowInDays).toInstant());
     purgePullRequestComments(commentCutoffDate);
     purgeDefaultBranchCommitHistory(commentCutoffDate);
 
-    int eventPurgeWindowInDays = DEFAULT_EVENT_PURGE_WINDOW_IN_DAYS;
-    if (insightConfig.getSourceControl() != null &&
-        insightConfig.getSourceControl().getPrCommentPurgeWindow() != null) {
-      eventPurgeWindowInDays = insightConfig.getSourceControl().getPrCommentPurgeWindow();
-    }
     Date eventCutoffDate = Date.from(ZonedDateTime.now().minusDays(eventPurgeWindowInDays).toInstant());
     purgeSourceControlEvents(eventCutoffDate);
   }

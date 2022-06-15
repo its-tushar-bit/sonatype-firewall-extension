@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.service.SourceControlConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -113,8 +112,6 @@ public class SourceControlScanServiceTest
   @Mock
   private AuditRecorder mockAuditRecorder;
 
-  private SourceControlConfig sourceControlConfig;
-
   private Application application;
 
   private SourceControlEvent sourceControlEvent;
@@ -150,9 +147,6 @@ public class SourceControlScanServiceTest
     catch (final IOException ioEx) {
       throw new RuntimeException("failed creating temp source control dir", ioEx);
     }
-
-    sourceControlConfig = new SourceControlConfig();
-    sourceControlConfig.setCloneDirectory(sourceControlDir.getAbsolutePath());
 
     application = new Application();
     application.setId(APP_ID);

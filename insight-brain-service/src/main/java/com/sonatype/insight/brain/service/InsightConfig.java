@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.migration.JiraConfigurationMigrator;
 import com.sonatype.insight.brain.migration.MailConfigurationMigrator;
 import com.sonatype.insight.brain.migration.ProxyServerConfigurationMigrator;
 import com.sonatype.insight.brain.migration.ReverseProxyAuthenticationConfigurationMigrator.ReverseProxyAuthenticationConfig;
+import com.sonatype.insight.brain.migration.SourceControlConfigurationMigrator;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -251,7 +252,7 @@ public class InsightConfig
    * @since 1.73
    */
   @JsonProperty
-  private SourceControlConfig sourceControl = new SourceControlConfig();
+  private SourceControlConfigurationMigrator.SourceControlConfig sourceControl;
 
   /**
    * This section will be used for features that are enabled by default. If nothing is specified, or the feature flag is
@@ -337,7 +338,7 @@ public class InsightConfig
    * @since 1.117
    */
   @JsonProperty
-  private DefaultBranchMonitoringConfig defaultBranchMonitoring;
+  private SourceControlConfigurationMigrator.DefaultBranchMonitoringConfig defaultBranchMonitoring;
 
   /**
    * This configuration limits the number of applications that can be queried by the dashboard services
@@ -819,9 +820,7 @@ public class InsightConfig
    * @since 1.114
    */
   @JsonProperty
-  @NotNull
-  @Min(0)
-  private int pullRequestMonitoringIntervalInSeconds = 60;
+  private Integer pullRequestMonitoringIntervalInSeconds;
 
   public int getConnectTimeoutInSeconds() {
     return connectTimeoutInSeconds;
@@ -839,20 +838,12 @@ public class InsightConfig
     this.socketTimeoutInSeconds = socketTimeoutInSeconds;
   }
 
-  public SourceControlConfig getSourceControl() {
-    // Ensure the sonatypeWorkDir is set
-    sourceControl.setSonatypeWorkDir(getSonatypeWork());
-
+  public SourceControlConfigurationMigrator.SourceControlConfig getSourceControl() {
     return sourceControl;
   }
 
-  public void setSourceControl(final SourceControlConfig sourceControl) {
-    if (sourceControl == null) {
-      this.sourceControl = new SourceControlConfig();
-    }
-    else {
-      this.sourceControl = sourceControl;
-    }
+  public void setSourceControl(SourceControlConfigurationMigrator.SourceControlConfig sourceControl) {
+    this.sourceControl = sourceControl;
   }
 
   /**
@@ -956,11 +947,13 @@ public class InsightConfig
     this.licenseLegalHdsRequestLimit = licenseLegalHdsRequestLimit;
   }
 
-  public DefaultBranchMonitoringConfig getDefaultBranchMonitoring() {
-    return (defaultBranchMonitoring == null) ? new DefaultBranchMonitoringConfig() : defaultBranchMonitoring;
+  public SourceControlConfigurationMigrator.DefaultBranchMonitoringConfig getDefaultBranchMonitoring() {
+    return defaultBranchMonitoring;
   }
 
-  public void setDefaultBranchMonitoring(final DefaultBranchMonitoringConfig defaultBranchMonitoring) {
+  public void setDefaultBranchMonitoring(
+      SourceControlConfigurationMigrator.DefaultBranchMonitoringConfig defaultBranchMonitoring)
+  {
     this.defaultBranchMonitoring = defaultBranchMonitoring;
   }
 
@@ -1045,11 +1038,11 @@ public class InsightConfig
     }
   }
 
-  public int getPullRequestMonitoringIntervalInSeconds() {
+  public Integer getPullRequestMonitoringIntervalInSeconds() {
     return pullRequestMonitoringIntervalInSeconds;
   }
 
-  public void setPullRequestMonitoringIntervalInSeconds(int pullRequestMonitoringIntervalInSeconds) {
+  public void setPullRequestMonitoringIntervalInSeconds(Integer pullRequestMonitoringIntervalInSeconds) {
     this.pullRequestMonitoringIntervalInSeconds = pullRequestMonitoringIntervalInSeconds;
   }
 

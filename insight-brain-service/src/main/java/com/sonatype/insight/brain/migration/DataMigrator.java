@@ -42,15 +42,17 @@ public class DataMigrator
 
   private final InternalSourceControlPolicyEvaluationsConfigMigrator internalSourceControlEvaluationsConfigMigrator;
 
-  private final SourceControlFileStorageMigrator sourceControlFileStorageMigrator;
-
   private final AdminInitialPasswordMigrator adminInitialPasswordMigrator;
 
   private final ReverseProxyAuthenticationConfigurationMigrator reverseProxyAuthenticationConfigurationMigrator;
 
   private final BaseUrlConfigurationMigrator baseUrlConfigurationMigrator;
-  
+
   private final JiraConfigurationMigrator jiraConfigurationMigrator;
+
+  private final SourceControlConfigurationMigrator sourceControlConfigurationMigrator;
+
+  private final SourceControlFileStorageMigrator sourceControlFileStorageMigrator;
 
   @Inject
   public DataMigrator(
@@ -66,11 +68,12 @@ public class DataMigrator
       ProductLicenseMigrator productLicenseMigrator,
       PullRequestCommentingConfigMigrator pullRequestCommentingConfigMigrator,
       InternalSourceControlPolicyEvaluationsConfigMigrator internalSourceControlEvaluationsConfigMigrator,
-      SourceControlFileStorageMigrator sourceControlFileStorageMigrator,
       AdminInitialPasswordMigrator adminInitialPasswordMigrator,
       ReverseProxyAuthenticationConfigurationMigrator reverseProxyAuthenticationConfigurationMigrator,
       BaseUrlConfigurationMigrator baseUrlConfigurationMigrator,
-      JiraConfigurationMigrator jiraConfigurationMigrator)
+      JiraConfigurationMigrator jiraConfigurationMigrator,
+      SourceControlConfigurationMigrator sourceControlConfigurationMigrator,
+      SourceControlFileStorageMigrator sourceControlFileStorageMigrator)
   {
     this.policyJsonMigrator = policyJsonMigrator;
     this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
@@ -84,11 +87,12 @@ public class DataMigrator
     this.productLicenseMigrator = productLicenseMigrator;
     this.pullRequestCommentingConfigMigrator = pullRequestCommentingConfigMigrator;
     this.internalSourceControlEvaluationsConfigMigrator = internalSourceControlEvaluationsConfigMigrator;
-    this.sourceControlFileStorageMigrator = sourceControlFileStorageMigrator;
     this.adminInitialPasswordMigrator = adminInitialPasswordMigrator;
     this.reverseProxyAuthenticationConfigurationMigrator = reverseProxyAuthenticationConfigurationMigrator;
     this.baseUrlConfigurationMigrator = baseUrlConfigurationMigrator;
     this.jiraConfigurationMigrator = jiraConfigurationMigrator;
+    this.sourceControlConfigurationMigrator = sourceControlConfigurationMigrator;
+    this.sourceControlFileStorageMigrator = sourceControlFileStorageMigrator;
   }
 
   /**
@@ -107,10 +111,11 @@ public class DataMigrator
     productLicenseMigrator.migrate();
     pullRequestCommentingConfigMigrator.migrate();
     internalSourceControlEvaluationsConfigMigrator.migrate();
-    sourceControlFileStorageMigrator.migrate();
     adminInitialPasswordMigrator.migrate();
     reverseProxyAuthenticationConfigurationMigrator.migrate();
     baseUrlConfigurationMigrator.migrate();
     jiraConfigurationMigrator.migrate();
+    sourceControlConfigurationMigrator.migrate();
+    sourceControlFileStorageMigrator.migrate();
   }
 }

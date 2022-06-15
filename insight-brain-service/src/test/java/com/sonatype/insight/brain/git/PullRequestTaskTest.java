@@ -7,15 +7,20 @@ package com.sonatype.insight.brain.git;
 
 import java.io.File;
 
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.SourceControlConfig;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
@@ -29,31 +34,33 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.model.PullRequestResponse;
 
+import com.google.inject.Binder;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.git.PullRequestTask.DEFAULT_COMMITTER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class PullRequestTaskTest
+    extends AbstractComponentTest
 {
   private static final ComponentIdentifier MAVEN_COORDINATES =
       ComponentIdentifier.createMavenCoordinates("foo", "bar", "1.0.0", "", "jar");
+
+  public static final GitRepositoryInfo INFO = new GitRepositoryInfo("localhost", null, null, "token",
+      SourceControlProvider.GITHUB, "master", true, true, true, true, false, null);
 
   private static final String BRANCH = "testBranch";
 
@@ -64,139 +71,163 @@ public class PullRequestTaskTest
   private static final String APP_INTERNAL_ID = "8f9a4a2973804402ab5c6bd0ee453ed9";
 
   @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-  @Rule
   public LogOutput logOutput = new LogOutput(PullRequestTask.class);
 
   @Mock
-  private GitClientFactory gitClientFactory;
+  private GitClientFactory mockGitClientFactory;
 
   @Mock
-  private GitApiFactory gitApiFactory;
+  private GitApiFactory mockGitApiFactory;
+
+  @Inject
+  private SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
   @Mock
-  private InsightConfig insightConfig;
+  private FileCleaner mockFileCleaner;
 
   @Mock
-  private FileCleaner fileCleaner;
+  private Application mockApplication;
 
   @Mock
-  private Application app;
+  private GitApi mockGitApi;
 
   @Mock
-  private GitApi gitApi;
+  private PullRequestRemediationDetails mockPullRequestRemediationDetails;
 
   @Mock
-  private PullRequestRemediationDetails pullRequestRemediationDetails;
+  private GitApiClient mockGitClient;
 
   @Mock
-  private GitApiClient gitClient;
+  private PullRequestResponse mockPullRequestResponse;
 
   @Mock
-  private PullRequestResponse pullRequestResponse;
+  private SourceControlPullRequestMetrics mockSourceControlPullRequestMetrics;
 
   @Mock
-  private SourceControlPullRequestMetrics metrics;
+  private AuditRecorder mockAuditRecorder;
 
   @Mock
-  private AuditRecorder auditRecorder;
+  private SourceControlUtils mockSourceControlUtils;
 
   @Mock
-  private SourceControlUtils sourceControlUtils;
-
-  @Mock
-  private PullRequestExecutor pullRequestExecutor;
-
-  private SourceControlConfig sourceControlConfig;
+  private PullRequestExecutor mockPullRequestExecutor;
 
   //Subject
+  @Inject
   private PullRequestTask pullRequestTask;
 
-  public static final GitRepositoryInfo INFO = new GitRepositoryInfo("localhost", null, null, "token",
-      SourceControlProvider.GITHUB, "master", true, true, true, true, false, null);
+  @Inject
+  private InsightConfig insightConfig;
+
+  @Inject
+  private InsightWork insightWork;
 
   private GitRepositoryInfo gitRepositoryInfo;
 
+  @Override
+  public void configure(Binder binder) {
+    lenient().when(mockPullRequestRemediationDetails.getApp()).thenReturn(mockApplication);
+    binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
+    binder.bind(SourceControlPullRequestMetrics.class).toInstance(mockSourceControlPullRequestMetrics);
+    binder.bind(GitApiFactory.class).toInstance(mockGitApiFactory);
+    binder.bind(AuditRecorder.class).toInstance(mockAuditRecorder);
+    binder.bind(SourceControlUtils.class).toInstance(mockSourceControlUtils);
+
+    binder.bind(FileCleaner.class).toInstance(mockFileCleaner);
+    super.configure(binder);
+  }
+
   @Before
-  public void setup() {
-    sourceControlConfig = new SourceControlConfig();
+  public void before() {
     gitRepositoryInfo = new GitRepositoryInfo("http://localhost", null, null, "token", SourceControlProvider.GITHUB,
         "master", true, true, true, true, false, null);
-    when(insightConfig.getSourceControl()).thenReturn(sourceControlConfig);
-    pullRequestTask = new PullRequestTask(gitClientFactory, metrics, gitApiFactory, auditRecorder, sourceControlUtils,
-        insightConfig);
+  }
+
+  @Test
+  public void testPullRequestTask_HasDefaultSourceControlConfiguration() {
+    assertThat(pullRequestTask.sourceControlConfigurationAtomicReference.get()).usingRecursiveComparison().isEqualTo(
+        new SourceControlConfiguration());
   }
 
   @Test
   public void testRun_notInited() {
     pullRequestTask.run(null, null);
     assertThat(logOutput).atErrorLevel().contains("Missing required PullRequestRemediationDetails");
-    verifyNoInteractions(sourceControlUtils, gitClientFactory, fileCleaner,
-        app, metrics, auditRecorder, pullRequestRemediationDetails);
+    verifyNoInteractions(mockSourceControlUtils, mockGitClientFactory, mockFileCleaner, mockApplication,
+        mockSourceControlPullRequestMetrics, mockAuditRecorder, mockPullRequestRemediationDetails);
 
-    pullRequestTask.run(pullRequestRemediationDetails, null);
+    pullRequestTask.run(mockPullRequestRemediationDetails, null);
     assertThat(logOutput).atErrorLevel().contains("Missing required PullRequestRemediationDetails");
-    verifyNoInteractions(sourceControlUtils, gitClientFactory, fileCleaner,
-        app, metrics, auditRecorder, pullRequestRemediationDetails);
+    verifyNoInteractions(mockSourceControlUtils, mockGitClientFactory, mockFileCleaner, mockApplication,
+        mockSourceControlPullRequestMetrics, mockAuditRecorder, mockPullRequestRemediationDetails);
   }
 
   @Test
   public void testRun_nothing_remediated() throws Exception {
-    File sonatypeWorkDir = temporaryFolder.newFolder();
-    sourceControlConfig.setSonatypeWorkDir(sonatypeWorkDir);
-    File targetDirectory = new File(sourceControlConfig.getCloneDirectory(), APP_INTERNAL_ID);
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
+    tempEntity.newSourceControlConfiguration();
+    insightWork.sourceControlConfigurationChanged();
+    pullRequestTask.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
     configureExpectations();
-    when(sourceControlUtils.getCheckoutDirectory(app)).thenReturn(targetDirectory);
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
 
-    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
+    pullRequestTask.run(mockPullRequestRemediationDetails, new PullRequestExecutor());
 
-    verify(gitApi).cloneOrPullRepository(targetDirectory, gitRepositoryInfo.baseBranch);
-    verify(gitApi).branch(targetDirectory, BRANCH);
-    verifyNoMoreInteractions(gitApi);
-    verify(metrics).addResult(anyString(), any(EnhancedPullRequestResult.class));
-    verifyNoInteractions(fileCleaner, gitClient);
+    verify(mockGitApi).cloneOrPullRepository(targetDirectory, gitRepositoryInfo.baseBranch);
+    verify(mockGitApi).branch(targetDirectory, BRANCH);
+    verifyNoMoreInteractions(mockGitApi);
+    verify(mockSourceControlPullRequestMetrics).addResult(anyString(), any(EnhancedPullRequestResult.class));
+    verifyNoInteractions(mockFileCleaner, mockGitClient);
   }
 
   @Test
   public void testRun_nothing_remediated_custom_directory() throws Exception {
-    File sonatypeWorkDir = temporaryFolder.newFolder();
-    sourceControlConfig.setSonatypeWorkDir(sonatypeWorkDir);
-    sourceControlConfig.setCloneDirectory(APP_INTERNAL_ID);
-    File targetDirectory = new File(sourceControlConfig.getCloneDirectory(), APP_INTERNAL_ID);
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
+    SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
+    sourceControlConfiguration.setCloneDirectory(APP_INTERNAL_ID);
+    sourceControlConfigurationDAO.set(sourceControlConfiguration);
+    insightWork.sourceControlConfigurationChanged();
+    pullRequestTask.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
     configureExpectations();
-    when(sourceControlUtils.getCheckoutDirectory(app)).thenReturn(targetDirectory);
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
 
-    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
+    pullRequestTask.run(mockPullRequestRemediationDetails, new PullRequestExecutor());
 
-    verify(gitApi).cloneOrPullRepository(targetDirectory, gitRepositoryInfo.baseBranch);
-    verify(metrics).addResult(anyString(), any(EnhancedPullRequestResult.class));
-    verifyNoInteractions(fileCleaner, gitClient);
+    verify(mockGitApi).cloneOrPullRepository(targetDirectory, gitRepositoryInfo.baseBranch);
+    verify(mockSourceControlPullRequestMetrics).addResult(anyString(), any(EnhancedPullRequestResult.class));
+    verifyNoInteractions(mockFileCleaner, mockGitClient);
   }
 
   @Test
   public void testRun_existing_content() throws Exception {
-    File sonatypeWorkDir = temporaryFolder.newFolder();
-    sourceControlConfig.setSonatypeWorkDir(sonatypeWorkDir);
-    File targetDirectory = new File(sourceControlConfig.getCloneDirectory(), APP_INTERNAL_ID);
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
+    tempEntity.newSourceControlConfiguration();
+    insightWork.sourceControlConfigurationChanged();
+    pullRequestTask.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
     targetDirectory.mkdirs();
     File pomFile = new File(targetDirectory, "pom.xml");
     FileUtils.copyURLToFile(getClass().getResource("/PullRequestTaskTest/test-pom.xml"), pomFile);
 
     configureExpectations();
-    when(sourceControlUtils.getCheckoutDirectory(app)).thenReturn(targetDirectory);
-    when(gitClient.createPullRequest(BRANCH, gitRepositoryInfo.baseBranch, TITLE, CONTENT))
-        .thenReturn(pullRequestResponse);
-    when(pullRequestResponse.getUrl()).thenReturn(gitRepositoryInfo.repositoryUrl);
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
+    when(mockGitClient.createPullRequest(BRANCH, gitRepositoryInfo.baseBranch, TITLE, CONTENT))
+        .thenReturn(mockPullRequestResponse);
+    when(mockPullRequestResponse.getUrl()).thenReturn(gitRepositoryInfo.repositoryUrl);
 
-    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
+    pullRequestTask.run(mockPullRequestRemediationDetails, new PullRequestExecutor());
 
-    verify(gitApi).cloneOrPullRepository(targetDirectory, gitRepositoryInfo.baseBranch);
-    verify(gitApi).branch(targetDirectory, BRANCH);
-    verify(gitApi).commit(targetDirectory, DEFAULT_COMMITTER, GitApi.DEFAULT_COMMITTER_EMAIL, TITLE);
-    verify(gitApi).push(targetDirectory);
-    verify(auditRecorder).recordSystemEvent(eq(AuditEvent.CREATE_PULL_REQUEST));
-    verify(metrics).addResult(anyString(), any(EnhancedPullRequestResult.class));
+    verify(mockGitApi).cloneOrPullRepository(targetDirectory, gitRepositoryInfo.baseBranch);
+    verify(mockGitApi).branch(targetDirectory, BRANCH);
+    verify(mockGitApi).commit(targetDirectory, DEFAULT_COMMITTER, GitApi.DEFAULT_COMMITTER_EMAIL, TITLE);
+    verify(mockGitApi).push(targetDirectory);
+    verify(mockAuditRecorder).recordSystemEvent(eq(AuditEvent.CREATE_PULL_REQUEST));
+    verify(mockSourceControlPullRequestMetrics).addResult(anyString(), any(EnhancedPullRequestResult.class));
 
     assertThat(logOutput).atInfoLevel().contains("Pull request task initiated for application");
     assertThat(logOutput).atInfoLevel().contains("Pull request task completed for application");
@@ -205,38 +236,42 @@ public class PullRequestTaskTest
 
   @Test
   public void testRun_failure() throws Exception {
-    File sonatypeWorkDir = temporaryFolder.newFolder();
-    sourceControlConfig.setSonatypeWorkDir(sonatypeWorkDir);
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
 
-    File targetDirectory = new File(sourceControlConfig.getCloneDirectory(), APP_INTERNAL_ID);
+    tempEntity.newSourceControlConfiguration();
+    insightWork.sourceControlConfigurationChanged();
+    pullRequestTask.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
     configureExpectations();
-    when(sourceControlUtils.getCheckoutDirectory(app)).thenReturn(targetDirectory);
-    when(gitApi.cloneOrPullRepository(targetDirectory, gitRepositoryInfo.baseBranch))
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
+    when(mockGitApi.cloneOrPullRepository(targetDirectory, gitRepositoryInfo.baseBranch))
         .thenThrow(new GitException("Something bad happened"));
 
-    pullRequestTask.run(pullRequestRemediationDetails, new PullRequestExecutor());
+    pullRequestTask.run(mockPullRequestRemediationDetails, new PullRequestExecutor());
 
-    verify(sourceControlUtils).deleteCheckoutDirectory(app);
+    verify(mockSourceControlUtils).deleteCheckoutDirectory(mockApplication);
     assertThat(logOutput).atErrorLevel().contains("Failed to execute pull request, cleaning pull request directory");
   }
 
   @Test
   public void testRun_default_committer() throws Exception {
-    sourceControlConfig.setCommitUsername(null); // same as default, none defined
-    sourceControlConfig.setCommitEmail(null); // same as default, none defined
+    tempEntity.newSourceControlConfiguration();
 
-    File sonatypeWorkDir = temporaryFolder.newFolder();
-    sourceControlConfig.setSonatypeWorkDir(sonatypeWorkDir);
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
 
-    File targetDirectory = new File(sourceControlConfig.getCloneDirectory(), APP_INTERNAL_ID);
+    pullRequestTask.sourceControlConfigurationChanged();
+    insightWork.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
     configureExpectations();
-    when(sourceControlUtils.getCheckoutDirectory(app)).thenReturn(targetDirectory);
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
 
-    when(pullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(createPullRequestResult(true));
-    pullRequestTask.run(pullRequestRemediationDetails, pullRequestExecutor);
+    when(mockPullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(createPullRequestResult(true));
+    pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor);
 
     ArgumentCaptor<PullRequestCommand> prCommandCaptor = ArgumentCaptor.forClass(PullRequestCommand.class);
-    verify(pullRequestExecutor).execute(prCommandCaptor.capture());
+    verify(mockPullRequestExecutor).execute(prCommandCaptor.capture());
     PullRequestCommand pullRequestCommand = prCommandCaptor.getValue();
     assertThat(pullRequestCommand.getCommitter()).isEqualTo(DEFAULT_COMMITTER);
     assertThat(pullRequestCommand.getCommitterEmail()).isEqualTo(GitApi.DEFAULT_COMMITTER_EMAIL);
@@ -245,21 +280,25 @@ public class PullRequestTaskTest
 
   @Test
   public void testRun_custom_committer() throws Exception {
-    sourceControlConfig.setCommitUsername("bar");
-    sourceControlConfig.setCommitEmail("foo@bar.com");
+    SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
+    sourceControlConfiguration.setCommitUsername("bar");
+    sourceControlConfiguration.setCommitEmail("foo@bar.com");
+    sourceControlConfigurationDAO.set(sourceControlConfiguration);
+    insightWork.sourceControlConfigurationChanged();
+    pullRequestTask.sourceControlConfigurationChanged();
 
-    File sonatypeWorkDir = temporaryFolder.newFolder();
-    sourceControlConfig.setSonatypeWorkDir(sonatypeWorkDir);
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
 
-    File targetDirectory = new File(sourceControlConfig.getCloneDirectory(), APP_INTERNAL_ID);
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
     configureExpectations();
-    when(sourceControlUtils.getCheckoutDirectory(app)).thenReturn(targetDirectory);
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
 
-    when(pullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(createPullRequestResult(true));
-    pullRequestTask.run(pullRequestRemediationDetails, pullRequestExecutor);
+    when(mockPullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(createPullRequestResult(true));
+    pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor);
 
     ArgumentCaptor<PullRequestCommand> prCommandCaptor = ArgumentCaptor.forClass(PullRequestCommand.class);
-    verify(pullRequestExecutor).execute(prCommandCaptor.capture());
+    verify(mockPullRequestExecutor).execute(prCommandCaptor.capture());
     PullRequestCommand pullRequestCommand = prCommandCaptor.getValue();
     assertThat(pullRequestCommand.getCommitter()).isEqualTo("bar");
     assertThat(pullRequestCommand.getCommitterEmail()).isEqualTo("foo@bar.com");
@@ -269,17 +308,21 @@ public class PullRequestTaskTest
   public void testRun_use_username_in_repo_url() throws Exception {
     gitRepositoryInfo.provider = SourceControlProvider.BITBUCKET;
     gitRepositoryInfo.username = "foo";
-    sourceControlConfig.setUseUsernameInRepositoryCloneUrl(true);
+    SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
+    sourceControlConfiguration.setUseUsernameInRepositoryCloneUrl(true);
+    sourceControlConfigurationDAO.set(sourceControlConfiguration);
+    insightWork.sourceControlConfigurationChanged();
+    pullRequestTask.sourceControlConfigurationChanged();
 
-    File sonatypeWorkDir = temporaryFolder.newFolder();
-    sourceControlConfig.setSonatypeWorkDir(sonatypeWorkDir);
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
 
-    File targetDirectory = new File(sourceControlConfig.getCloneDirectory(), APP_INTERNAL_ID);
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
     configureExpectations();
-    when(sourceControlUtils.getCheckoutDirectory(app)).thenReturn(targetDirectory);
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
 
-    when(pullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(createPullRequestResult(true));
-    pullRequestTask.run(pullRequestRemediationDetails, pullRequestExecutor);
+    when(mockPullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(createPullRequestResult(true));
+    pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor);
 
     assertThat(gitRepositoryInfo.getRepositoryUrl()).isEqualTo("http://foo@localhost");
   }
@@ -289,18 +332,18 @@ public class PullRequestTaskTest
   }
 
   private void configureExpectations(final GitRepositoryInfo info) {
-    when(pullRequestRemediationDetails.getApp()).thenReturn(app);
-    when(pullRequestRemediationDetails.getPullRequestBranchName()).thenReturn(BRANCH);
-    when(pullRequestRemediationDetails.getContents()).thenReturn(CONTENT);
-    when(pullRequestRemediationDetails.getRemediatedVersion()).thenReturn("1.0.1");
-    when(pullRequestRemediationDetails.getToBeRemediated()).thenReturn(MAVEN_COORDINATES);
-    when(pullRequestRemediationDetails.getTitle()).thenReturn(TITLE);
-    when(pullRequestRemediationDetails.getStage()).thenReturn(Stage.ID_BUILD);
-    when(pullRequestRemediationDetails.getScanId()).thenReturn("scan-id");
-    when(sourceControlUtils.getGitRepositoryInfoForApplication(APP_INTERNAL_ID)).thenReturn(info);
-    when(gitApiFactory.createGitApi(info)).thenReturn(gitApi);
-    when(gitClientFactory.createApiClient(info)).thenReturn(gitClient);
-    when(app.getId()).thenReturn(APP_INTERNAL_ID);
+    lenient().when(mockPullRequestRemediationDetails.getApp()).thenReturn(mockApplication);
+    lenient().when(mockPullRequestRemediationDetails.getPullRequestBranchName()).thenReturn(BRANCH);
+    lenient().when(mockPullRequestRemediationDetails.getContents()).thenReturn(CONTENT);
+    lenient().when(mockPullRequestRemediationDetails.getRemediatedVersion()).thenReturn("1.0.1");
+    lenient().when(mockPullRequestRemediationDetails.getToBeRemediated()).thenReturn(MAVEN_COORDINATES);
+    lenient().when(mockPullRequestRemediationDetails.getTitle()).thenReturn(TITLE);
+    lenient().when(mockPullRequestRemediationDetails.getStage()).thenReturn(Stage.ID_BUILD);
+    lenient().when(mockPullRequestRemediationDetails.getScanId()).thenReturn("scan-id");
+    lenient().when(mockSourceControlUtils.getGitRepositoryInfoForApplication(APP_INTERNAL_ID)).thenReturn(info);
+    lenient().when(mockGitApiFactory.createGitApi(info)).thenReturn(mockGitApi);
+    lenient().when(mockGitClientFactory.createApiClient(info)).thenReturn(mockGitClient);
+    lenient().when(mockApplication.getId()).thenReturn(APP_INTERNAL_ID);
   }
 
   private PullRequestResult createPullRequestResult(final boolean success) {

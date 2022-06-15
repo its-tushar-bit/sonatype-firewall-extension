@@ -14,7 +14,6 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.junit.Before;
@@ -27,9 +26,6 @@ public class SourceControlFileStorageMigratorTest
 {
   @Inject
   private MigrationTrackerDAO migrationTrackerDAO;
-
-  @Inject
-  private InsightConfig insightConfig;
 
   @Inject
   private InsightWork insightWork;
@@ -45,7 +41,6 @@ public class SourceControlFileStorageMigratorTest
   @Test
   public void testMigrate_mustNotRunIfRunPreviously() throws Exception {
     migrationTrackerDAO.insert(new MigrationTracker(SourceControlFileStorageMigrator.MIGRATION_ID));
-
     File sourceControlCloneDir = insightWork.getSourceControlDir("testappid");
     Files.createDirectories(sourceControlCloneDir.toPath());
     assertThat(sourceControlCloneDir).isDirectory();
@@ -57,7 +52,7 @@ public class SourceControlFileStorageMigratorTest
 
   @Test
   public void testMigrate_sourceControlDirDoesNotExist() {
-    assertThat(insightConfig.getSourceControl().getCloneDirectory()).doesNotExist();
+    assertThat(insightWork.getResolvedCloneDirectory()).doesNotExist();
 
     sourceControlFileStorageMigrator.migrate();
 
@@ -67,14 +62,13 @@ public class SourceControlFileStorageMigratorTest
   @Test
   public void testMigrate() throws IOException {
     assertThat(migrationTrackerDAO.getById(SourceControlFileStorageMigrator.MIGRATION_ID)).isNull();
-
     createSourceControlCloneDir("testappid1");
     createSourceControlCloneDir("testappid2");
-    assertThat(insightConfig.getSourceControl().getCloneDirectory().list()).hasSize(2);
+    assertThat(insightWork.getResolvedCloneDirectory().list()).hasSize(2);
 
     sourceControlFileStorageMigrator.migrate();
 
-    assertThat(insightConfig.getSourceControl().getCloneDirectory().list()).isEmpty();
+    assertThat(insightWork.getResolvedCloneDirectory().list()).isEmpty();
     assertThat(migrationTrackerDAO.getById(SourceControlFileStorageMigrator.MIGRATION_ID)).isNotNull();
   }
 

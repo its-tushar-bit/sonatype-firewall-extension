@@ -11,18 +11,23 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.service.SourceControlConfigurationListener;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
@@ -51,7 +56,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class DefaultBranchMonitor
-    implements Managed, Job
+    implements Managed, Job, SourceControlConfigurationListener
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultBranchMonitor.class);
 
@@ -63,6 +68,8 @@ public class DefaultBranchMonitor
 
   private final SourceControlEventPublisher sourceControlEventPublisher;
 
+  private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
+
   private final SourceControlDAO sourceControlDAO;
 
   private final IqForScmLicenseChecker licenseChecker;
@@ -73,17 +80,22 @@ public class DefaultBranchMonitor
 
   private final int randomizedStartOffsetInMinutes = new Random().nextInt(10);
 
+  private final AtomicReference<SourceControlConfiguration> sourceControlConfigurationAtomicReference =
+      new AtomicReference<>();
+
   @Inject
   public DefaultBranchMonitor(
       InsightConfig insightConfig,
       TaskScheduler taskScheduler,
       SourceControlEventPublisher sourceControlEventPublisher,
+      SourceControlConfigurationDAO sourceControlConfigurationDAO,
       SourceControlDAO sourceControlDAO,
       IqForScmLicenseChecker licenseChecker)
   {
     this.insightConfig = insightConfig;
     this.taskScheduler = taskScheduler;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
+    this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
     this.sourceControlDAO = sourceControlDAO;
     this.licenseChecker = licenseChecker;
   }
@@ -99,19 +111,25 @@ public class DefaultBranchMonitor
       return;
     }
 
+    sourceControlConfigurationChanged();
+  }
+
+  private void scheduleDefaultBranchMonitoring() {
     // If we schedule the task every intervalInHours (as configured),
     // then apps that have policy evals after now - intervalInHours are not included in the next default branch
     // monitoring execution,
     // which means they will be included only in the subsequent execution,
     // resulting in a policy eval triggered by monitoring every 2 * intervalInHours.
     // That's why we use half intervalInHours below.
-    intervalInMinutes = insightConfig.getDefaultBranchMonitoring().getIntervalInHours() * 60 / 2;
+    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationAtomicReference.get();
+    intervalInMinutes = sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours() * 60 / 2;
 
+    Date defaultBranchMonitorStartTime = getDefaultBranchMonitorStartTime(sourceControlConfiguration);
     taskScheduler.schedulePeriodicTask(DefaultBranchMonitor.class, TASK_NAME, Duration.ofMinutes(intervalInMinutes),
-        getDefaultBranchMonitorStartTime());
+        defaultBranchMonitorStartTime);
 
-    log.debug("DefaultBranchMonitor scheduled to start at {} and repeat every {} hours.",
-        getDefaultBranchMonitorStartTime(), (double) intervalInMinutes / 60);
+    log.debug("DefaultBranchMonitor scheduled to start at {} and repeat every {} hours.", defaultBranchMonitorStartTime,
+        (double) intervalInMinutes / 60);
   }
 
   @Override
@@ -183,12 +201,14 @@ public class DefaultBranchMonitor
    * repeatedly bump the time forward one interval until we find the first series datetime that is in the future.
    */
   @VisibleForTesting
-  Date getDefaultBranchMonitorStartTime() {
-    LocalTime intervalStartTime =
-        DateUtils.getLocalTimeForHoursAndMinutes(insightConfig.getDefaultBranchMonitoring().getStartTime());
+  Date getDefaultBranchMonitorStartTime(SourceControlConfiguration sourceControlConfiguration) {
+    LocalTime intervalStartTime = sourceControlConfiguration.getDefaultBranchMonitoringStartTime();
 
-    // randomize minute to avoid coordinated load spike for HDS scan processing
-    intervalStartTime = intervalStartTime.plusMinutes(randomizedStartOffsetInMinutes);
+    if (intervalStartTime == null) {
+      // randomize minute to avoid coordinated load spike for HDS scan processing
+      intervalStartTime = LocalTime.parse(SourceControlConfiguration.DEFAULT_BRANCH_MONITORING_START_TIME,
+          SourceControlConfiguration.DATE_TIME_FORMATTER).plusMinutes(getRandomizedStartOffsetInMinutes());
+    }
 
     LocalDateTime now = LocalDateTime.now();
 
@@ -200,13 +220,36 @@ public class DefaultBranchMonitor
         .withNano(0);
 
     LocalDateTime effectiveStartDate = DateUtils.getClosestFutureDateTime(now, intervalStartDateTime,
-            insightConfig.getDefaultBranchMonitoring().getIntervalInHours());
+        sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours());
 
     return Date.from(effectiveStartDate.atZone(ZoneId.systemDefault()).toInstant());
+  }
+  
+  // Visible for testing
+  int getRandomizedStartOffsetInMinutes() {
+    return randomizedStartOffsetInMinutes;
   }
 
   @VisibleForTesting
   int getIntervalInMinutes() {
     return intervalInMinutes;
+  }
+
+  @Override
+  public void sourceControlConfigurationChanged() {
+    SourceControlConfiguration currentSourceControlConfiguration = sourceControlConfigurationAtomicReference.get();
+    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
+    if (sourceControlConfiguration == null) {
+      sourceControlConfiguration = new SourceControlConfiguration();
+    }
+    sourceControlConfigurationAtomicReference.set(sourceControlConfiguration);
+    if (currentSourceControlConfiguration == null ||
+        !Objects.equals(currentSourceControlConfiguration.getDefaultBranchMonitoringStartTime(),
+            sourceControlConfiguration.getDefaultBranchMonitoringStartTime()) ||
+        currentSourceControlConfiguration.getDefaultBranchMonitoringIntervalHours() !=
+            sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours()) {
+      taskScheduler.unscheduleTask(TASK_NAME);
+      scheduleDefaultBranchMonitoring();
+    }
   }
 }

@@ -14,7 +14,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Deletes all the git repositories cloned locally. The system will clone repositories again in the new location when
  * needed.
- * 
+ *
  * @since 1.104
  */
 @Named
@@ -34,18 +34,18 @@ public class SourceControlFileStorageMigrator
 
   private final MigrationTrackerDAO migrationTrackerDAO;
 
-  private final InsightConfig insightConfig;
+  private final InsightWork insightWork;
 
-  private FileCleaner fileCleaner;
+  private final FileCleaner fileCleaner;
 
   @Inject
   public SourceControlFileStorageMigrator(
       MigrationTrackerDAO migrationTrackerDAO,
-      InsightConfig insightConfig,
+      InsightWork insightWork,
       FileCleaner fileCleaner)
   {
     this.migrationTrackerDAO = migrationTrackerDAO;
-    this.insightConfig = insightConfig;
+    this.insightWork = insightWork;
     this.fileCleaner = fileCleaner;
   }
 
@@ -58,7 +58,7 @@ public class SourceControlFileStorageMigrator
     long start = System.currentTimeMillis();
     log.debug("Deleting source control file storage...");
 
-    File cloneDirectory = insightConfig.getSourceControl().getCloneDirectory();
+    File cloneDirectory = insightWork.getResolvedCloneDirectory();
     List<File> appCloneDirs = getAppCloneDirs(cloneDirectory);
     for (File appCloneDir : appCloneDirs) {
       log.debug("Deleting source control file storage directory: '{}'.", appCloneDir.getAbsolutePath());

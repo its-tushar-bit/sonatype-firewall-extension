@@ -9,6 +9,7 @@ import java.io.File;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
@@ -195,5 +196,11 @@ public class InsightWorkTest
   public void testGetTemporaryDirectory() {
     File file = work.getTemporaryDirectory();
     assertThat(file).isNotNull();
+  }
+
+  @Test
+  public void testInsightWork_HasDefaultSourceControlConfiguration() {
+    assertThat(work.sourceControlConfigurationAtomicReference.get()).usingRecursiveComparison().isEqualTo(
+        new SourceControlConfiguration());
   }
 }

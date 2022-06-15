@@ -8,15 +8,17 @@ package com.sonatype.insight.brain.git;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicReference;
 
+import com.sonatype.insight.brain.api.v2.service.SourceControlConfigurationListener;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.SourceControlConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
@@ -32,10 +34,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Execute the end-to-end process to clone a repository, attempt to apply remediation changes to the file tree,
- * followed by pushing the changes to a newly created PullRequest.
+ * Execute the end-to-end process to clone a repository, attempt to apply remediation changes to the file tree, followed
+ * by pushing the changes to a newly created PullRequest.
  */
 public class PullRequestTask
+    implements SourceControlConfigurationListener
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestTask.class);
 
@@ -51,7 +54,10 @@ public class PullRequestTask
 
   private final SourceControlUtils sourceControlUtils;
 
-  private final SourceControlConfig sourceControlConfig;
+  private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
+
+  // Visible for testing
+  final AtomicReference<SourceControlConfiguration> sourceControlConfigurationAtomicReference = new AtomicReference<>();
 
   @Inject
   public PullRequestTask(
@@ -60,14 +66,15 @@ public class PullRequestTask
       final GitApiFactory gitApiFactory,
       final AuditRecorder auditRecorder,
       final SourceControlUtils sourceControlUtils,
-      final InsightConfig insightConfig)
+      final SourceControlConfigurationDAO sourceControlConfigurationDAO)
   {
     this.gitClientFactory = gitClientFactory;
     this.metrics = metrics;
     this.gitApiFactory = gitApiFactory;
     this.auditRecorder = auditRecorder;
     this.sourceControlUtils = sourceControlUtils;
-    this.sourceControlConfig = insightConfig.getSourceControl();
+    this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
+    sourceControlConfigurationChanged();
   }
 
   public void run(
@@ -84,7 +91,8 @@ public class PullRequestTask
     }
     String applicationId = pullRequestRemediationDetails.getApp().getId();
     GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
-    maybeUpdateRepoUrlWithUsername(gitRepositoryInfo);
+    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationAtomicReference.get();
+    maybeUpdateRepoUrlWithUsername(sourceControlConfiguration, gitRepositoryInfo);
 
     File checkoutDir = null;
     Date start = new Date();
@@ -99,8 +107,8 @@ public class PullRequestTask
           .withBaseBranch(gitRepositoryInfo.baseBranch)
           .withPullRequestBranchName(pullRequestRemediationDetails.getPullRequestBranchName())
           .withCommitMessage(pullRequestRemediationDetails.getTitle())
-          .withCommitter(getCommitterUsername())
-          .withCommitterEmail(getCommitterEmail())
+          .withCommitter(getCommitterUsername(sourceControlConfiguration))
+          .withCommitterEmail(getCommitterEmail(sourceControlConfiguration))
           .withPullRequestContent(pullRequestRemediationDetails.getContents())
           .withPullRequestTitle(pullRequestRemediationDetails.getTitle())
           .withRemediationTarget(pullRequestRemediationDetails.getToBeRemediated())
@@ -140,11 +148,14 @@ public class PullRequestTask
     }
   }
 
-  private void maybeUpdateRepoUrlWithUsername(final GitRepositoryInfo gitRepositoryInfo) {
+  private void maybeUpdateRepoUrlWithUsername(
+      final SourceControlConfiguration sourceControlConfiguration,
+      final GitRepositoryInfo gitRepositoryInfo)
+  {
     // This is designed for the Bitbucket Server 'Verified Committer' feature but is ultimately an agnostic way to add
     // the username to the repo URL. Only will work on SCMs that require username.
     if (gitRepositoryInfo.getProvider().requiresUsername() &&
-        sourceControlConfig.getUseUsernameInRepositoryCloneUrl()) {
+        sourceControlConfiguration.isUseUsernameInRepositoryCloneUrl()) {
       try {
         gitRepositoryInfo.repositoryUrl = setUserInfoToUrl(gitRepositoryInfo.repositoryUrl, gitRepositoryInfo.username);
         gitRepositoryInfo.normalizedRepositoryUrl =
@@ -161,16 +172,24 @@ public class PullRequestTask
     return builder.build().toString();
   }
 
-  private String getCommitterUsername() {
-    return sourceControlConfig.getCommitUsername() != null
-        ? sourceControlConfig.getCommitUsername()
+  private String getCommitterUsername(SourceControlConfiguration sourceControlConfiguration) {
+    return sourceControlConfiguration.getCommitUsername() != null
+        ? sourceControlConfiguration.getCommitUsername()
         : DEFAULT_COMMITTER;
   }
 
-  private String getCommitterEmail() {
-    return sourceControlConfig.getCommitEmail() != null
-        ? sourceControlConfig.getCommitEmail()
+  private String getCommitterEmail(SourceControlConfiguration sourceControlConfiguration) {
+    return sourceControlConfiguration.getCommitEmail() != null
+        ? sourceControlConfiguration.getCommitEmail()
         : GitApi.DEFAULT_COMMITTER_EMAIL;
   }
-}
 
+  @Override
+  public void sourceControlConfigurationChanged() {
+    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
+    if (sourceControlConfiguration == null) {
+      sourceControlConfiguration = new SourceControlConfiguration();
+    }
+    sourceControlConfigurationAtomicReference.set(sourceControlConfiguration);
+  }
+}

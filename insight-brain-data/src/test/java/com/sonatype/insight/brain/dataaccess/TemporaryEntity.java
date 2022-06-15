@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -100,6 +101,7 @@ import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
@@ -205,7 +207,9 @@ import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserToken;
+import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
@@ -433,9 +437,9 @@ public class TemporaryEntity
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = new QuarantinedComponentAccessDAO();
 
   private final RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
-  
+
   private final ComponentSourceLinkDAO componentSourceLinkDAO = new ComponentSourceLinkDAO();
-  
+
   private final SourceLinkOverrideDAO sourceLinkOverrideDAO = new SourceLinkOverrideDAO();
 
   private final CrowdConfigurationDAO crowdConfigurationDAO = new CrowdConfigurationDAO();
@@ -452,6 +456,8 @@ public class TemporaryEntity
       new ReverseProxyAuthenticationConfigurationDAO();
 
   private final JiraConfigurationDAO jiraConfigurationDAO = new JiraConfigurationDAO();
+
+  private final SourceControlConfigurationDAO sourceControlConfigurationDAO = new SourceControlConfigurationDAO();
 
   private MailConfiguration savedMailConfiguration;
 
@@ -707,6 +713,7 @@ public class TemporaryEntity
     repositoryClientConfigurationDAO.delete();
     reverseProxyAuthenticationConfigurationDAO.delete();
     jiraConfigurationDAO.delete();
+    sourceControlConfigurationDAO.delete();
   }
 
   private <E> void detachEntity(E entity) {
@@ -2682,42 +2689,45 @@ public class TemporaryEntity
     return newSourceControl(ownerId, repositoryUrl, token, provider, null, null, "master");
   }
 
-  public SourceControl newSourceControl(String applicationId,
-                                        String repositoryUrl,
-                                        String token,
-                                        SourceControlProvider provider,
-                                        Boolean remediationPullRequestsEnabled,
-                                        Boolean statusChecksEnabled,
-                                        String baseBranch)
+  public SourceControl newSourceControl(
+      String applicationId,
+      String repositoryUrl,
+      String token,
+      SourceControlProvider provider,
+      Boolean remediationPullRequestsEnabled,
+      Boolean statusChecksEnabled,
+      String baseBranch)
   {
     return newSourceControl(applicationId, repositoryUrl, null, token, provider, remediationPullRequestsEnabled,
         statusChecksEnabled, baseBranch, null, null, null,
         null);
   }
 
-  public SourceControl newSourceControl(String applicationId,
-                                        SourceControlProvider provider,
-                                        String token,
-                                        String repositoryUrl,
-                                        String baseBranch,
-                                        Boolean pullRequestCommentingEnabled,
-                                        Boolean remediationPullRequestsEnabled,
-                                        Boolean sourceControlEvaluationsEnabled,
-                                        Boolean statusChecksEnabled)
+  public SourceControl newSourceControl(
+      String applicationId,
+      SourceControlProvider provider,
+      String token,
+      String repositoryUrl,
+      String baseBranch,
+      Boolean pullRequestCommentingEnabled,
+      Boolean remediationPullRequestsEnabled,
+      Boolean sourceControlEvaluationsEnabled,
+      Boolean statusChecksEnabled)
   {
     return newSourceControl(applicationId, repositoryUrl, null, token, provider, remediationPullRequestsEnabled,
         statusChecksEnabled, baseBranch, null, pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, null);
   }
 
-  public SourceControl newSourceControl(String applicationId,
-                                        String repositoryUrl,
-                                        String username,
-                                        String token,
-                                        SourceControlProvider provider,
-                                        Boolean remediationPullRequestsEnabled,
-                                        Boolean statusChecksEnabled,
-                                        String baseBranch,
-                                        Date pullRequestPollTime
+  public SourceControl newSourceControl(
+      String applicationId,
+      String repositoryUrl,
+      String username,
+      String token,
+      SourceControlProvider provider,
+      Boolean remediationPullRequestsEnabled,
+      Boolean statusChecksEnabled,
+      String baseBranch,
+      Date pullRequestPollTime
   )
   {
     return newSourceControl(applicationId, repositoryUrl, username, token, provider, remediationPullRequestsEnabled,
@@ -2725,39 +2735,41 @@ public class TemporaryEntity
         null);
   }
 
-  public SourceControl newSourceControl(String applicationId,
-                                        String repositoryUrl,
-                                        String username,
-                                        String token,
-                                        SourceControlProvider provider,
-                                        Boolean remediationPullRequestsEnabled,
-                                        Boolean statusChecksEnabled,
-                                        String baseBranch,
-                                        Date pullRequestPollTime,
-                                        Boolean pullRequestCommentingEnabled,
-                                        Boolean sourceControlEvaluationsEnabled,
-                                        String sourceControlScanTarget
-                                        )
+  public SourceControl newSourceControl(
+      String applicationId,
+      String repositoryUrl,
+      String username,
+      String token,
+      SourceControlProvider provider,
+      Boolean remediationPullRequestsEnabled,
+      Boolean statusChecksEnabled,
+      String baseBranch,
+      Date pullRequestPollTime,
+      Boolean pullRequestCommentingEnabled,
+      Boolean sourceControlEvaluationsEnabled,
+      String sourceControlScanTarget
+  )
   {
     return newSourceControl(applicationId, repositoryUrl, null, username, token, provider,
         remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestPollTime,
         pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, sourceControlScanTarget, null);
   }
 
-  public SourceControl newSourceControl(String applicationId,
-                                        String repositoryUrl,
-                                        String repositorySshUrl,
-                                        String username,
-                                        String token,
-                                        SourceControlProvider provider,
-                                        Boolean remediationPullRequestsEnabled,
-                                        Boolean statusChecksEnabled,
-                                        String baseBranch,
-                                        Date pullRequestPollTime,
-                                        Boolean pullRequestCommentingEnabled,
-                                        Boolean sourceControlEvaluationsEnabled,
-                                        String sourceControlScanTarget,
-                                        Boolean sshEnabled
+  public SourceControl newSourceControl(
+      String applicationId,
+      String repositoryUrl,
+      String repositorySshUrl,
+      String username,
+      String token,
+      SourceControlProvider provider,
+      Boolean remediationPullRequestsEnabled,
+      Boolean statusChecksEnabled,
+      String baseBranch,
+      Date pullRequestPollTime,
+      Boolean pullRequestCommentingEnabled,
+      Boolean sourceControlEvaluationsEnabled,
+      String sourceControlScanTarget,
+      Boolean sshEnabled
   )
   {
     SourceControl sourceControl =
@@ -3281,7 +3293,7 @@ public class TemporaryEntity
 
   public AttributionReportTemplate createNewAttributionReportTemplate(String templateName, String docTitle) {
     AttributionReportTemplate template =
-        new AttributionReportTemplate(templateName, docTitle, null, null,true, true, true, false,
+        new AttributionReportTemplate(templateName, docTitle, null, null, true, true, true, false,
             false);
     template.setId(uuid());
     attributionReportTemplateDAO.insert(template);
@@ -3364,7 +3376,7 @@ public class TemporaryEntity
     repositoryConnections.add(connection);
     return connection;
   }
-  
+
   public ComponentSourceLink newComponentSourceLink(
       ComponentIdentifier componentIdentifier,
       String ownerId)
@@ -3487,6 +3499,54 @@ public class TemporaryEntity
   {
     JiraConfiguration config = new JiraConfiguration(url, username, password, customFields);
     jiraConfigurationDAO.insert(config);
+    return config;
+  }
+
+  public SourceControlConfiguration newSourceControlConfiguration() {
+    SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
+    return newSourceControlConfiguration(
+        sourceControlConfiguration.getCloneDirectory(),
+        sourceControlConfiguration.getGitImplementation(),
+        sourceControlConfiguration.getPrCommentPurgeWindow(),
+        sourceControlConfiguration.getPrEventPurgeWindow(),
+        sourceControlConfiguration.getGitExecutable(),
+        sourceControlConfiguration.getGitTimeoutSeconds(),
+        sourceControlConfiguration.getCommitUsername(),
+        sourceControlConfiguration.getCommitEmail(),
+        sourceControlConfiguration.isUseUsernameInRepositoryCloneUrl(),
+        sourceControlConfiguration.getDefaultBranchMonitoringStartTime(),
+        sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours(),
+        sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds());
+  }
+
+  public SourceControlConfiguration newSourceControlConfiguration(
+      String cloneDirectory,
+      GitImplementation gitImplementation,
+      Integer prCommentPurgeWindow,
+      Integer prEventPurgeWindow,
+      String gitExecutable,
+      int gitTimeoutSeconds,
+      String commitUsername,
+      String commitEmail,
+      boolean useUsernameInRepositoryCloneUrl,
+      LocalTime defaultBranchMonitoringStartTime,
+      int defaultBranchMonitoringIntervalHours,
+      int pullRequestMonitoringIntervalSeconds)
+  {
+    SourceControlConfiguration config = new SourceControlConfiguration();
+    config.setCloneDirectory(cloneDirectory);
+    config.setGitImplementation(gitImplementation);
+    config.setPrCommentPurgeWindow(prCommentPurgeWindow);
+    config.setPrEventPurgeWindow(prEventPurgeWindow);
+    config.setGitExecutable(gitExecutable);
+    config.setGitTimeoutSeconds(gitTimeoutSeconds);
+    config.setCommitUsername(commitUsername);
+    config.setCommitEmail(commitEmail);
+    config.setUseUsernameInRepositoryCloneUrl(useUsernameInRepositoryCloneUrl);
+    config.setDefaultBranchMonitoringStartTime(defaultBranchMonitoringStartTime);
+    config.setDefaultBranchMonitoringIntervalHours(defaultBranchMonitoringIntervalHours);
+    config.setPullRequestMonitoringIntervalSeconds(pullRequestMonitoringIntervalSeconds);
+    sourceControlConfigurationDAO.insert(config);
     return config;
   }
 }

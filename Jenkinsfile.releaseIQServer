@@ -34,13 +34,9 @@ pipeline {
     }
     stage('Stage Release Binaries') {
       steps {
-        triggerBuildAndVerifySafeToContinuePipeline(
-          'insight/insight-brain/release',
-          [
-              booleanParam(name: 'hotfix', value: params.hotfix),
-              string(name: 'version', value: params.releaseVersion)
-          ]
-        )
+        build(job: 'insight/insight-brain/release',
+            parameters: [ booleanParam(name: 'hotfix', value: params.hotfix),
+                          string(name: 'version', value: params.releaseVersion)])
       }
     }
     stage('Release Jira Version - IQ') {
@@ -118,9 +114,9 @@ pipeline {
     }
     stage('Publish Docker Image') {
       steps {
-        triggerBuildAndVerifySafeToContinuePipeline(
-            'insight/insight-brain/docker/docker-nexus-iq-server',
-            [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")]
+        build(
+            job: 'insight/insight-brain/docker/docker-nexus-iq-server',
+            parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")]
         )
       }
     }
@@ -135,24 +131,6 @@ pipeline {
         build(job: 'insight/insight-brain/post-release', propagate: false,
               parameters: [string(name: 'releaseVersion', value: params.releaseVersion)])
       }
-    }
-  }
-}
-
-def triggerBuildAndVerifySafeToContinuePipeline(String buildName, List<?> params) {
-  def job = build(job: buildName, parameters: params, propagate: false)
-
-  def result = job.getCurrentResult()
-  if (result == 'ABORTED' || result == 'FAILURE') {
-    error("Stopping IQ Release Pipeline")
-  }
-
-  // build can be unstable due to policy violation or test failure.
-  // we want to stop pipeline if unstable due to test failures
-  if (result == 'UNSTABLE') {
-    def failCount = getTestResults(job).failCount
-    if (failCount > 0) {
-      error("Stopping IQ Release Pipeline due to failing tests on ${buildName}")
     }
   }
 }

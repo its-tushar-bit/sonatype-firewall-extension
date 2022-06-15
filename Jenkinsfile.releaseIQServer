@@ -26,7 +26,7 @@ pipeline {
     buildDiscarder(logRotator(numToKeepStr: '10'))
   }
   stages {
-    stage('Announce Release is Starting') {
+    stage('Send Release Starting Notification') {
       steps {
         build(job: 'insight/insight-brain/Release Starting',
           parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
@@ -51,7 +51,7 @@ pipeline {
           parameters: [string(name: 'prefix', value: 'brain'), string(name: 'version', value: env.minorVersion)])
       }
     }
-    stage('Deploy to staging') {
+    stage('Deploy Binaries to Staging') {
       steps {
         build(
           job: 'insight/insight-brain/deploy',
@@ -62,7 +62,7 @@ pipeline {
         )
       }
     }
-    stage('Deploy to Production') {
+    stage('Deploy Binaries to Production') {
       steps {
         build(
           job: 'insight/insight-brain/deploy',
@@ -84,13 +84,13 @@ pipeline {
           parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
-    stage('Deploy Product Notification - Staging') {
+    stage('Deploy Product Notification to Staging') {
       steps {
         build(job: 'insight/hosted-data-services/Sync Product Notifications',
           parameters: [string(name: 'ENVIRONMENT', value: 'staging')])
       }
     }
-    stage('Deploy Product Notification - Production') {
+    stage('Deploy Product Notification to Production') {
       steps {
         build(job: 'insight/hosted-data-services/Sync Product Notifications',
           parameters: [string(name: 'ENVIRONMENT', value: 'production')])
@@ -100,6 +100,14 @@ pipeline {
       steps {
         build(job: 'insight/insight-brain/Send Policy Results',
           parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+      }
+    }
+    stage('Publish Docker Image') {
+      steps {
+        build(
+            job: 'insight/insight-brain/docker/docker-nexus-iq-server',
+            parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")]
+        )
       }
     }
     stage('Publish CloudFormation Templates') {
@@ -112,21 +120,13 @@ pipeline {
         )
       }
     }
-    stage('Publish Docker Image') {
-      steps {
-        build(
-            job: 'insight/insight-brain/docker/docker-nexus-iq-server',
-            parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")]
-        )
-      }
-    }
-    stage('Send Release Notifications') {
+    stage('Send Release Complete Notifications') {
       steps {
         build(job: 'insight/insight-brain/Release Notification',
           parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
-    stage('Post Release Tasks') {
+    stage('Trigger Post-Release Build') {
       steps {
         build(job: 'insight/insight-brain/post-release', propagate: false,
               parameters: [string(name: 'releaseVersion', value: params.releaseVersion)])

@@ -17,13 +17,23 @@ pipeline {
     buildDiscarder(logRotator(numToKeepStr: '10'))
   }
   stages {
-    stage('Create Integration Jira Tickets') {
+    stage('Update IQ Server Test Instance') {
       steps {
-        createIntegrationTicketsAfterIQRelease()
+        build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging',
+            parameters: [string(name: 'IQ_VERSION', value: 'latest')])
+
+        build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging')
       }
     }
+    stage('Update IQ Server Production Instance') {
+      steps {
+        build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/production',
+            parameters: [string(name: 'IQ_VERSION', value: 'latest')])
 
-    stage('Publish Helm Chart') {
+        build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/production')
+      }
+    }
+    stage('Publish IQ Server Helm Chart') {
       steps {
         build(
           job: 'integrations/cloud/Helm3 Charts/Main Release Build',
@@ -34,21 +44,9 @@ pipeline {
         )
       }
     }
-
-    stage('Update Test Instance') {
+    stage('Create Post IQ Release Integrations Team Jira Tickets') {
       steps {
-        build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging',
-            parameters: [string(name: 'IQ_VERSION', value: 'latest')])
-
-        build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging')
-      }
-    }
-    stage('Update Production Instance') {
-      steps {
-        build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/production',
-            parameters: [string(name: 'IQ_VERSION', value: 'latest')])
-
-        build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/production')
+        createIntegrationTicketsAfterIQRelease()
       }
     }
   }

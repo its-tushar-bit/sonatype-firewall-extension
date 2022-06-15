@@ -16,6 +16,7 @@ import LicenseObligationsTileContainer from 'MainRoot/legal/obligation/LicenseOb
 import NoticeTextsTile from 'MainRoot/legal/files/notices/NoticeTextsTile';
 import LicenseFilesTile from 'MainRoot/legal/files/licenses/LicenseFilesTile';
 import OriginalSourcesTile from 'MainRoot/legal/originalSources/OriginalSourcesTile';
+import { SUPPORTED_COMPONENTS_ECOSYSTEM } from 'MainRoot/legal/advancedLegalConstants';
 
 describe('ComponentLegalOverviewPage', function () {
   let minimalProps,
@@ -297,7 +298,10 @@ describe('ComponentLegalOverviewPage', function () {
   });
 
   it('does not render a warning alert when the packages ecosystem is supported', function () {
-    const wrapper = getShallowComponent();
-    expect(wrapper.find(NxWarningAlert)).not.toExist();
+    SUPPORTED_COMPONENTS_ECOSYSTEM.map((ecosystem) => {
+      const customMinimalProps = { ...minimalProps, ecosystem };
+      const component = enzymeUtils.getShallowComponent(ComponentLegalOverviewPage, customMinimalProps)();
+      expect(component.find(NxWarningAlert)).not.toExist();
+    });
   });
 });

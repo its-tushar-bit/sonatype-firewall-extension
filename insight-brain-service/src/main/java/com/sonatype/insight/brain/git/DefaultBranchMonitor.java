@@ -106,8 +106,9 @@ public class DefaultBranchMonitor
       return;
     }
 
+    taskScheduler.unscheduleTask(TASK_NAME);
+
     if (!insightConfig.isFeatureEnabled(Feature.DEFAULT_BRANCH_MONITORING)) {
-      taskScheduler.unscheduleTask(TASK_NAME);
       return;
     }
 
@@ -243,12 +244,17 @@ public class DefaultBranchMonitor
       sourceControlConfiguration = new SourceControlConfiguration();
     }
     sourceControlConfigurationAtomicReference.set(sourceControlConfiguration);
-    if (currentSourceControlConfiguration == null ||
+
+    if (!taskScheduler.isSchedulerInitialized()) {
+      return;
+    }
+
+    if (!taskScheduler.isTaskScheduled(TASK_NAME) ||
+        currentSourceControlConfiguration == null ||
         !Objects.equals(currentSourceControlConfiguration.getDefaultBranchMonitoringStartTime(),
             sourceControlConfiguration.getDefaultBranchMonitoringStartTime()) ||
         currentSourceControlConfiguration.getDefaultBranchMonitoringIntervalHours() !=
             sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours()) {
-      taskScheduler.unscheduleTask(TASK_NAME);
       scheduleDefaultBranchMonitoring();
     }
   }

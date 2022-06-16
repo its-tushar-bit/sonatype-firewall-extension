@@ -144,14 +144,14 @@ public class PullRequestMonitor
     if (disableForTesting) {
       return;
     }
+    taskScheduler.unscheduleTask(TASK_NAME);
     sourceControlConfigurationChanged();
   }
 
   private void schedulePullRequestMonitor() {
     SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationAtomicReference.get();
     int intervalInSeconds = sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds();
-    taskScheduler.schedulePeriodicTask(PullRequestMonitor.class, TASK_NAME,
-        Duration.ofSeconds(intervalInSeconds));
+    taskScheduler.schedulePeriodicTask(PullRequestMonitor.class, TASK_NAME, Duration.ofSeconds(intervalInSeconds));
     log.debug("Scheduled PullRequestMonitor, interval={} seconds.", intervalInSeconds);
   }
 
@@ -214,11 +214,14 @@ public class PullRequestMonitor
     if (sourceControlConfiguration == null) {
       sourceControlConfiguration = new SourceControlConfiguration();
     }
+    if (!taskScheduler.isSchedulerInitialized()) {
+      return;
+    }
     sourceControlConfigurationAtomicReference.set(sourceControlConfiguration);
-    if (currentSourceControlConfiguration == null ||
+    if (!taskScheduler.isTaskScheduled(TASK_NAME) ||
+        currentSourceControlConfiguration == null ||
         currentSourceControlConfiguration.getPullRequestMonitoringIntervalSeconds() !=
             sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()) {
-      taskScheduler.unscheduleTask(TASK_NAME);
       schedulePullRequestMonitor();
     }
   }

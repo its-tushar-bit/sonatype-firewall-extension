@@ -81,6 +81,7 @@ public class SourceControlConfigurationMigrator
         try {
           ObjectNode objectNode = new ObjectMapper().createObjectNode();
           if (sourceControlConfig != null) {
+            sourceControlConfig.setSonatypeWorkDir(insightConfig.getSonatypeWork());
             objectNode.setAll((ObjectNode) JsonUtils.asTree(sourceControlConfig));
           }
           if (defaultBranchMonitoring != null) {

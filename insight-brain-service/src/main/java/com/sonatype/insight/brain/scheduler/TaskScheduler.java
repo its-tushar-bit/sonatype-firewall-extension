@@ -307,7 +307,6 @@ public class TaskScheduler
     }
   }
 
-  // Visible for testing
   public Scheduler getScheduler() {
     try {
       return DirectSchedulerFactory.getInstance().getScheduler(schedulerName);
@@ -330,6 +329,23 @@ public class TaskScheduler
     Scheduler scheduler = getScheduler();
     if (scheduler != null) {
       scheduler.standby();
+    }
+  }
+
+  public boolean isSchedulerInitialized() {
+    return getScheduler() != null;
+  }
+
+  public boolean isTaskScheduled(String name) {
+    return isTaskScheduled(JobKey.jobKey(name));
+  }
+
+  private boolean isTaskScheduled(JobKey jobKey) {
+    try {
+      return getScheduler().checkExists(jobKey);
+    }
+    catch (SchedulerException e) {
+      throw new RuntimeException(e);
     }
   }
 }

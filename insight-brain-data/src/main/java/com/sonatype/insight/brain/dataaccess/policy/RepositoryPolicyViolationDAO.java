@@ -5,13 +5,31 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField.SortableField;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.17
@@ -187,5 +205,161 @@ public class RepositoryPolicyViolationDAO
         " AND entity.isWaived=false" + //
         " AND entity.active=true";
     return getSingle(Number.class, sQuery, repositoryId, pathname).intValue();
+  }
+
+  /**
+   * @since 1.140.0
+   */
+  public List<RepositoryResultsDetails> getRepositoryResultsDetails(
+      String repositoryId, RepositoryResultsDetailsFilter detailsFilter)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      String baseQuery = "SELECT violation.threat_level, violation.policy_name, component.component_id_format," + //
+          " component.pathname, component.component_id_coordinates_json," + //
+          " CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL) THEN" + //
+          " component.quarantine_time END AS quarantine_time, violation.waived" + //
+          " FROM insight_brain_ods.repository_component component" + //
+          ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") + //
+          " insight_brain_ods.repository_policy_violation violation" + //
+          " ON component.repository_id = violation.repository_id AND component.pathname = violation.pathname" + //
+          " WHERE component.repository_id = ?1";
+
+      StringBuilder sQuery = new StringBuilder(baseQuery);
+
+      sQuery.append(addViolationStateFilters(detailsFilter.violationStateFilters));
+
+      sQuery.append(addSearchFilters(detailsFilter.searchFilters));
+
+      if (!detailsFilter.matchStateFilter.isEmpty()) {
+        sQuery.append(" AND component.match_state_id = ?4");
+      }
+
+      sQuery.append(validateAndAddSortFields(detailsFilter.sortFields));
+
+      int offset = (detailsFilter.page - 1) * detailsFilter.pageSize;
+
+      javax.persistence.Query query = tx.createNativeQuery(sQuery.toString());
+      query.setParameter(1, repositoryId);
+      query.setParameter(2, '%' + detailsFilter.searchFilters.get("POLICY_NAME") + '%');
+      query.setParameter(3, '%' + detailsFilter.searchFilters.get("COMPONENT_COORDINATES") + '%');
+      query.setParameter(4, detailsFilter.matchStateFilter);
+      query.setFirstResult(offset).setMaxResults(detailsFilter.pageSize +
+          1); // Incremented page size to help UI determine whether to enable / disable NextPage button
+
+      List<RepositoryResultsDetails> results = ((Stream<Object[]>) query.getResultStream())
+          .map(array -> new RepositoryResultsDetails(getInteger(array[0]), (String) array[1],
+              (String) array[2], (String) array[3], (String) array[4],
+              array[5] == null ? null : new Date(((Timestamp) array[5]).getTime()), (Boolean) array[6]))
+          .collect(Collectors.toList());
+
+      return results;
+    }
+  }
+
+  private boolean hasNonViolatingFilter(final Set<String> violationStateFilters) {
+    return violationStateFilters.stream()
+        .anyMatch(filter -> filter.equals("VIOLATION_STATE_ALL") || filter.equals("VIOLATION_STATE_NOT_VIOLATING"));
+  }
+
+  private static String addViolationStateFilters(Set<String> filters) {
+    StringBuilder query = new StringBuilder();
+    int filterCount = 0;
+    if (!CollectionUtils.isEmpty(filters)) {
+      for (String filter : filters) {
+        filterCount++;
+        switch (filter) {
+          case "VIOLATION_STATE_ALL":
+            return "";
+          case "VIOLATION_STATE_NOT_VIOLATING":
+            query.append(filterCount > 1 ? " OR" : " AND (");
+            query.append(" violation.policy_name IS NULL");
+            break;
+          case "VIOLATION_STATE_OPEN":
+            query.append(filterCount > 1 ? " OR" : " AND (");
+            query.append(" violation.waived = false");
+            break;
+          case "VIOLATION_STATE_QUARANTINED":
+            query.append(filterCount > 1 ? " OR" : " AND (");
+            query.append(
+                " (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL" + //
+                    " AND violation.action_type_id = 'fail')");
+            break;
+          case "VIOLATION_STATE_WAIVED":
+            query.append(filterCount > 1 ? " OR" : " AND (");
+            query.append(" violation.waived = true");
+            break;
+          default:
+        }
+      }
+      query.append(" )");
+    }
+
+    return query.toString();
+  }
+
+  private static String addSearchFilters(Map<String, String> filters) {
+    StringBuilder query = new StringBuilder();
+    if (!MapUtils.isEmpty(filters)) {
+      for (Entry<String, String> filter : filters.entrySet()) {
+        if (filter.getKey().equals("POLICY_NAME")) {
+          query.append(" AND LOWER(violation.policy_name) LIKE ?2");
+        }
+        if (filter.getKey().equals("COMPONENT_COORDINATES")) {
+          query.append(" AND LOWER(component.component_id_coordinates_json) LIKE ?3");
+        }
+      }
+    }
+
+    return query.toString();
+  }
+
+  private String validateAndAddSortFields(final List<SortField> sortFields) {
+    StringBuilder query = new StringBuilder();
+    List<String> result = new ArrayList<>();
+    if (!CollectionUtils.isEmpty(sortFields)) {
+      sortFields.sort(Comparator.comparing(field -> field.sortPriority));
+      Set<Integer> sortPriorities = new HashSet<>();
+      for (SortField sortField : sortFields) {
+        if (sortPriorities.contains(sortField.sortPriority)) {
+          throw new BadRequestException("sort priority cannot be same for different fields");
+        }
+        if (sortField.asc) {
+          result.add(getSortField(sortField.sortableField) + " NULLS LAST");
+        }
+        else {
+          result.add(getSortField(sortField.sortableField) + " DESC NULLS LAST");
+        }
+        sortPriorities.add(sortField.sortPriority);
+      }
+      query.append(" ORDER BY ").append(StringUtils.join(result, ", "));
+    }
+
+    return query.toString();
+  }
+
+  private String getSortField(SortableField field) {
+    switch (field) {
+      case POLICY_THREAT_LEVEL:
+        return "threat_level";
+      case POLICY_NAME:
+        return "policy_name";
+      case COMPONENT_COORDINATES:
+        return "component_id_coordinates_json";
+      case QUARANTINE_TIME:
+        return "quarantine_time";
+      default:
+        return "";
+    }
+  }
+
+  private static <T> Integer getInteger(T value) {
+    if (value instanceof Short) {
+      return Integer.valueOf((Short) value);
+    }
+    if (value instanceof Integer) {
+      return (Integer) value;
+    }
+
+    return null;
   }
 }

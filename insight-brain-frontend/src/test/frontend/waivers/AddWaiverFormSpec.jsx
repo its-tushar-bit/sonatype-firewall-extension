@@ -75,6 +75,12 @@ describe('AddWaiverForm', function () {
           label: 'Organization',
           type: 'organization',
         },
+        {
+          id: 'ROOT_ORGANIZATION_ID',
+          name: 'target3',
+          label: 'Organization',
+          type: 'organization',
+        },
       ],
       selectedWaiverScope: {
         id: 'id1',
@@ -195,16 +201,24 @@ describe('AddWaiverForm', function () {
     expect(waiverTargetsSection.find(NxFieldset)).toExist();
     expect(waiverTargetsSection).toHaveProp('label', 'Scope');
 
-    expect(targetRadios.length).toBe(2);
+    expect(targetRadios.length).toBe(3);
+    expect(targetRadios.at(0)).toHaveProp('id', 'application-scope');
     expect(targetRadios.at(0)).toHaveProp('name', 'add-waiver-target');
     expect(targetRadios.at(0)).toHaveProp('value', 'id1');
     expect(targetRadios.at(0)).toHaveProp('isChecked', true);
     expect(targetRadios.at(0)).toHaveText('Application - target1');
 
+    expect(targetRadios.at(1)).toHaveProp('id', 'organization-scope');
     expect(targetRadios.at(1)).toHaveProp('name', 'add-waiver-target');
     expect(targetRadios.at(1)).toHaveProp('value', 'id2');
     expect(targetRadios.at(1)).toHaveProp('isChecked', false);
     expect(targetRadios.at(1)).toHaveText('Organization - target2');
+
+    expect(targetRadios.at(2)).toHaveProp('id', 'root-scope');
+    expect(targetRadios.at(2)).toHaveProp('name', 'add-waiver-target');
+    expect(targetRadios.at(2)).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
+    expect(targetRadios.at(2)).toHaveProp('isChecked', false);
+    expect(targetRadios.at(2)).toHaveText('Organization - target3');
   });
 
   it('calls `setWaiverScope` when the waiver target is changed', function () {

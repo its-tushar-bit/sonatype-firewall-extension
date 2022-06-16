@@ -22,6 +22,7 @@ import ArtifactNameDisplay from '../react/ArtifactNameDisplay';
 import VulnerabilityDetailsModalContainer from '../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
 import LoadError from '../react/LoadError';
 import { waiverExpirations } from '../util/waiverUtils';
+import ownerConstant from 'MainRoot/utility/services/owner.constant';
 
 const ALL_COMPONENTS = 'ALL_COMPONENTS';
 
@@ -115,6 +116,16 @@ export default function AddWaiverForm(props) {
     setExpiryTime(value);
   };
 
+  const getAvailableScopeId = (id, type) => {
+    if (id === ownerConstant.ROOT_ORGANIZATION_ID) {
+      return 'root-scope';
+    } else if (type === ownerConstant.ORGANIZATION_TYPE) {
+      return 'organization-scope';
+    } else {
+      return 'application-scope';
+    }
+  };
+
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
 
   const daysDiff = () => {
@@ -183,8 +194,9 @@ export default function AddWaiverForm(props) {
         {/* Scope */}
         <NxFieldset className="iq-add-waiver-form__scope" label="Scope" isRequired>
           {availableWaiverScopes &&
-            availableWaiverScopes.map(({ id, name, label }) => (
+            availableWaiverScopes.map(({ id, name, label, type }) => (
               <NxRadio
+                id={getAvailableScopeId(id, type)}
                 name="add-waiver-target"
                 value={id}
                 isChecked={selectedWaiverScope.id === id}

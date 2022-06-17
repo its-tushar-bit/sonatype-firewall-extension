@@ -47,6 +47,7 @@ describe('firewall', function () {
     it('updates the OwnerContext when modal is shown and selected component changes', function () {
       spyOn(OwnerContext, 'setOwnerId');
       spyOn(OwnerContext, 'setOwnerType');
+      spyOn(Modal, 'open');
       expect(OwnerContext.setOwnerId).not.toHaveBeenCalled();
       expect(OwnerContext.setOwnerType).not.toHaveBeenCalled();
       vm.selectedComponent = { repositoryId: 'id' };

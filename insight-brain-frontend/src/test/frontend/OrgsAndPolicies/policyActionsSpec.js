@@ -14,6 +14,7 @@ import TagResourceMockData from 'TestRoot/owner.manager/mock.data/tag.resource.m
 import {
   getApplicableCategoriesUrl,
   getApplicablePolicies,
+  getPolicyActionsOverridesUrl,
   getPolicyCRUDUrl,
   getPolicyTagUrl,
   getPolicyUrl,
@@ -21,7 +22,7 @@ import {
 import { omit, prop } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-describe('policy actions', () => {
+describe('policySlice actions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let store, mockOwnerId, mockOwnerType, mockOwnerName;
 
@@ -236,7 +237,7 @@ describe('policy actions', () => {
         ]);
 
         expect(actions[4].payload).toEqual({
-          readOnly: undefined,
+          isInherited: undefined,
           originalProxyStageAction: undefined,
           siblings: [
             {
@@ -265,6 +266,7 @@ describe('policy actions', () => {
               monitorNotifyActions: null,
             },
           ],
+          overrideActionsFlag: false,
           currentPolicy: initialState.currentPolicy,
           currentPolicyOwner: {
             id: 'f3cea033acf84984ae08d9250db4aa7b',
@@ -272,6 +274,7 @@ describe('policy actions', () => {
           },
           isOrgOwner: false,
           isRootOrg: false,
+          policiesByOwner: getApplicablePoliciesResponse.policiesByOwner,
         });
 
         done();
@@ -355,6 +358,7 @@ describe('policy actions', () => {
               monitorNotifyActions: null,
             },
           ],
+          overrideActionsFlag: false,
           currentPolicy: {
             id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
             name: 'Org Policy 3',
@@ -384,10 +388,11 @@ describe('policy actions', () => {
             id: 'f3cea033acf84984ae08d9250db4aa7b',
             name: 'Org1 Heh',
           },
-          readOnly: false,
+          isInherited: false,
           isOrgOwner: true,
           isRootOrg: false,
           originalProxyStageAction: [{ actionTypeId: 'warn', target: null }],
+          policiesByOwner: getApplicablePoliciesResponse.policiesByOwner,
         });
 
         done();
@@ -630,6 +635,58 @@ describe('policy actions', () => {
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder(['policy/removePolicy/pending', 'policy/removePolicy/rejected']);
 
+        done();
+      });
+    });
+  });
+
+  describe('saveActionsOverride', () => {
+    it('calls crud endpoint with proper parameters and returns updated policy', (done) => {
+      const currentPolicy = {
+        id: 'policyID',
+        policyActionsOverrides: {
+          currentOwnerId: { build: 'warn' },
+        },
+      };
+
+      const url = getPolicyActionsOverridesUrl(mockOwnerType, mockOwnerId, 'policyID');
+      spyOn(selectors, 'selectCurrentPolicy').and.returnValue(currentPolicy);
+      spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwnerId').and.returnValue('currentOwnerId');
+
+      mockAxiosCalls({
+        put: {
+          [url]: Promise.resolve({ data: 'updated policy placeholder' }),
+        },
+      });
+
+      store.dispatch(actions.saveActionsOverride()).then(() => {
+        expect(axios.put).toHaveBeenCalledTimes(1);
+        expect(axios.put.calls.argsFor(0)).toEqual([url, { build: 'warn' }]);
+        expect(store.getActions()[1].payload).toEqual('updated policy placeholder');
+        done();
+      });
+    });
+  });
+
+  describe('removeActionsOverride', () => {
+    it('calls remove override endpoint with proper parameters', (done) => {
+      const currentPolicy = {
+        id: 'policyID',
+      };
+
+      const url = getPolicyActionsOverridesUrl(mockOwnerType, mockOwnerId, 'policyID');
+      spyOn(selectors, 'selectCurrentPolicy').and.returnValue(currentPolicy);
+
+      mockAxiosCalls({
+        del: {
+          [url]: Promise.resolve({ data: 'removed policy actions overrides placeholder' }),
+        },
+      });
+
+      store.dispatch(actions.removeActionsOverride()).then(() => {
+        expect(axios.delete).toHaveBeenCalledTimes(1);
+        expect(axios.delete.calls.argsFor(0)).toEqual([url]);
+        expect(store.getActions()[1].payload).toEqual('removed policy actions overrides placeholder');
         done();
       });
     });

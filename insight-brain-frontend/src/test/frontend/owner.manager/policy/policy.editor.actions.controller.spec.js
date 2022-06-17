@@ -32,6 +32,9 @@ describe('policy.editor.actions.controller', function () {
   describe('mapStateToThis', () => {
     it('sets shouldShowQuarantineWarning, actionStages and loadError to component', () => {
       spyOn(policySelectors, 'selectShouldShowQuarantineWarning').and.returnValue(true);
+      spyOn(policySelectors, 'selectIsInherited').and.returnValue(true);
+      spyOn(policySelectors, 'selectOverrideActionsFlag').and.returnValue(false);
+
       spyOn(productFeaturesSelectors, 'selectIsFirewallSupported').and.returnValue(true);
       spyOn(productFeaturesSelectors, 'selectIsEnforcementSupported').and.returnValue(true);
       spyOn(stagesSelectors, 'selectActionStageTypes').and.returnValue([]);
@@ -43,6 +46,8 @@ describe('policy.editor.actions.controller', function () {
         isFirewallSupported,
         actionStages,
         loadError,
+        isInherited,
+        overrideParentActions,
       } = mapStateToThis({});
 
       expect(shouldShowQuarantineWarning).toBeTrue();
@@ -50,6 +55,8 @@ describe('policy.editor.actions.controller', function () {
       expect(isFirewallSupported).toBeTrue();
       expect(actionStages).toEqual([]);
       expect(loadError).toEqual('error');
+      expect(isInherited).toBeTrue();
+      expect(overrideParentActions).toBeFalse();
     });
   });
 
@@ -68,6 +75,63 @@ describe('policy.editor.actions.controller', function () {
       expect(vm.unsubscribe).not.toHaveBeenCalled();
       $scope.$destroy();
       expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('onPolicyActionsOverride', () => {
+    it('calls setOverrideParentActions if selected option is override', () => {
+      vm.onPolicyActionsOverride(true);
+      expect(vm.setOverrideParentActions).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls unSetOverrideParentActions if selected option is inherit', () => {
+      vm.onPolicyActionsOverride(false);
+      expect(vm.unSetOverrideParentActions).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('onActionChange', () => {
+    beforeEach(() => {
+      vm.ownerInternalId = 'testOwnerId';
+      vm.actions = { build: 'fail', release: 'fail' };
+    });
+
+    describe('when isActionOverrideEnabled is false', () => {
+      beforeEach(() => {
+        vm.isActionOverrideEnabled = false;
+      });
+
+      it('calls setActions with updated actions', () => {
+        vm.onActionChange('build', 'warn');
+        expect(vm.setActions).toHaveBeenCalledWith({ build: 'warn', release: 'fail' });
+      });
+
+      it('removes the stage from payload if the action value is undefined', () => {
+        vm.onActionChange('build');
+        expect(vm.setActions).toHaveBeenCalledWith({ release: 'fail' });
+      });
+    });
+
+    describe('when isActionOverrideEnabled is true', () => {
+      beforeEach(() => {
+        vm.isActionOverrideEnabled = true;
+      });
+
+      it('calls setActionsOverride with updated actions', () => {
+        vm.onActionChange('build', 'warn');
+        expect(vm.setActionsOverride).toHaveBeenCalledWith({
+          ownerId: 'testOwnerId',
+          actionsOverride: { build: 'warn', release: 'fail' },
+        });
+      });
+
+      it('removes the stage from payload if the action value is undefined', () => {
+        vm.onActionChange('build');
+        expect(vm.setActionsOverride).toHaveBeenCalledWith({
+          ownerId: 'testOwnerId',
+          actionsOverride: { release: 'fail' },
+        });
+      });
     });
   });
 });

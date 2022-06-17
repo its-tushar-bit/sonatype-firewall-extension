@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.policy.PolicyService;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
@@ -79,6 +80,8 @@ public class ApplicationService
 
   private final SourceControlEventFinder sourceControlEventFinder;
 
+  private final PolicyService policyService;
+
   @Inject
   public ApplicationService(
       ApplicationDAO applicationDAO,
@@ -90,7 +93,8 @@ public class ApplicationService
       ScanPolicyEvaluator scanPolicyEvaluator,
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
       final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-      final SourceControlEventFinder sourceControlEventFinder)
+      final SourceControlEventFinder sourceControlEventFinder,
+      final PolicyService policyService)
   {
     this.applicationDAO = applicationDAO;
     this.userDirectory = userDirectory;
@@ -102,6 +106,7 @@ public class ApplicationService
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.sourceControlEventFinder = sourceControlEventFinder;
+    this.policyService = policyService;
   }
 
   public String validateApplicationPublicId(final String applicationPublicId) {
@@ -245,6 +250,7 @@ public class ApplicationService
       AuditData.get()
           .setApplicationWithDetails(application)
           .setParentOrganization(organizationDAO.getByIdNotNull(application.getParentOwnerId()));
+      policyService.removeOverrides(application.getId(), tx);
       applicationCleaner.delete(tx, application);
       tx.commit();
 

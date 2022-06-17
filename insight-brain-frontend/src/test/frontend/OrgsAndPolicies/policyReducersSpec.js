@@ -119,6 +119,48 @@ describe('policySlice reducers', () => {
     });
   });
 
+  describe('policy/policyActionsOverrideAllowed', () => {
+    it('toggles policyActionsOverrideAllowed for a category from false to true', () => {
+      const state = Object.freeze({
+        isDirty: false,
+        currentPolicy: { policyActionsOverrideAllowed: false },
+      });
+
+      const { currentPolicy, isDirty } = reducer(state, {
+        type: 'policy/togglePolicyActionsOverrideAllowed',
+      });
+
+      expect(currentPolicy.policyActionsOverrideAllowed).toBeTrue();
+      expect(isDirty).toBeTrue();
+    });
+
+    it('toggles policyActionsOverrideAllowed for a category from true to false', () => {
+      const state = Object.freeze({
+        isDirty: false,
+        currentPolicy: {
+          policyActionsOverrideAllowed: true,
+          policyActionsOverrides: {
+            df9ad82193e44f4f9385e0c9e8835409: {
+              source: 'warn',
+              build: 'warn',
+              'stage-release': 'fail',
+              release: 'warn',
+              operate: 'fail',
+            },
+          },
+        },
+      });
+
+      const { currentPolicy, isDirty } = reducer(state, {
+        type: 'policy/togglePolicyActionsOverrideAllowed',
+      });
+
+      expect(currentPolicy.policyActionsOverrideAllowed).toBeFalse();
+      expect(currentPolicy.policyActionsOverrides).toBeNull();
+      expect(isDirty).toBeTrue();
+    });
+  });
+
   describe('policy/addConstraint', () => {
     it('sets currentPolicy constraints and compute isDirty', () => {
       const state = Object.freeze({
@@ -657,6 +699,30 @@ describe('policySlice reducers', () => {
     });
   });
 
+  describe('policy/checkEditIqPermission/fulfilled', () => {
+    it('sets hasEditIqPermission', () => {
+      const state = Object.freeze({ hasEditIqPermission: null });
+
+      const { hasEditIqPermission } = reducer(state, {
+        type: 'policy/checkEditIqPermission/fulfilled',
+      });
+
+      expect(hasEditIqPermission).toBeTrue();
+    });
+  });
+
+  describe('policy/checkEditIqPermission/rejected', () => {
+    it('clears hasEditIqPermission', () => {
+      const state = Object.freeze({ hasEditIqPermission: null });
+
+      const { hasEditIqPermission } = reducer(state, {
+        type: 'policy/checkEditIqPermission/rejected',
+      });
+
+      expect(hasEditIqPermission).toBeFalse();
+    });
+  });
+
   describe('policy/loadPolicyEditor/pending', () => {
     it('sets loadError and loading', () => {
       const state = Object.freeze({ loadError: 'error', loading: false });
@@ -685,7 +751,7 @@ describe('policySlice reducers', () => {
         currentPolicyOwner: null,
         originalPolicy: null,
         siblings: [],
-        readOnly: false,
+        isInherited: false,
         isOrgOwner: false,
         isRootOrg: false,
         originalProxyStageAction: null,
@@ -695,7 +761,7 @@ describe('policySlice reducers', () => {
         currentPolicy: { id: 'someId' },
         currentPolicyOwner: { id: 'ownerId', name: 'ownerName' },
         siblings: [{ id: 'anotherPolicyId' }],
-        readOnly: true,
+        isInherited: true,
         isOrgOwner: true,
         isRootOrg: true,
         originalProxyStageAction: 'warn',
@@ -710,7 +776,7 @@ describe('policySlice reducers', () => {
         currentPolicyOwner,
         originalPolicy,
         siblings,
-        readOnly,
+        isInherited,
         isOrgOwner,
         isRootOrg,
         originalProxyStageAction,
@@ -731,7 +797,7 @@ describe('policySlice reducers', () => {
       expect(currentPolicyOwner).toEqual(fulfilledPayload.currentPolicyOwner);
       expect(originalPolicy).toEqual(fulfilledPayload.currentPolicy);
       expect(siblings).toEqual(fulfilledPayload.siblings);
-      expect(readOnly).toBe(fulfilledPayload.readOnly);
+      expect(isInherited).toBe(fulfilledPayload.isInherited);
       expect(isOrgOwner).toBe(fulfilledPayload.isOrgOwner);
       expect(isRootOrg).toBe(fulfilledPayload.isRootOrg);
       expect(originalProxyStageAction).toBe(fulfilledPayload.originalProxyStageAction);
@@ -897,6 +963,258 @@ describe('policySlice reducers', () => {
 
       expect(deleteModal.deleting).toBeFalse();
       expect(deleteModal.errorState).toBe('error');
+    });
+  });
+
+  describe('policy/setActionsOverride', () => {
+    it('adds provided actions override for provided owner and sets isDirty to true if override has changed', () => {
+      const state = Object.freeze({
+        isDirty: true,
+        isInherited: true,
+        overrideActionsFlag: true,
+        originalOverrideActionsFlag: false,
+        currentPolicy: {
+          policyActionsOverrides: {
+            someOwnerId: { build: 'warn' },
+          },
+        },
+        originalPolicy: {
+          policyActionsOverrides: {
+            someOwnerId: { build: 'warn' },
+          },
+        },
+      });
+
+      const action = {
+        type: 'policy/setActionsOverride',
+        payload: {
+          ownerId: 'currentOwnerId',
+          actionsOverride: { build: 'fail', release: 'fail' },
+        },
+      };
+
+      const { currentPolicy, isDirty } = reducer(state, action);
+
+      expect(currentPolicy.policyActionsOverrides.someOwnerId).toEqual({ build: 'warn' });
+      expect(currentPolicy.policyActionsOverrides.currentOwnerId).toEqual({ build: 'fail', release: 'fail' });
+      expect(isDirty).toBe(true);
+    });
+
+    it('adds actions override and sets isDirty to false if override has not changed', () => {
+      const state = Object.freeze({
+        isDirty: true,
+        isInherited: true,
+        overrideActionsFlag: false,
+        originalOverrideActionsFlag: false,
+        currentPolicy: {
+          policyActionsOverrides: {
+            someOwnerId: { build: 'warn' },
+          },
+        },
+        originalPolicy: {
+          policyActionsOverrides: {
+            someOwnerId: { build: 'warn' },
+            currentOwnerId: { build: 'fail', release: 'fail' },
+          },
+        },
+      });
+
+      const action = {
+        type: 'policy/setActionsOverride',
+        payload: {
+          ownerId: 'currentOwnerId',
+          actionsOverride: { build: 'fail', release: 'fail' },
+        },
+      };
+
+      const { currentPolicy, isDirty } = reducer(state, action);
+
+      expect(currentPolicy.policyActionsOverrides).toEqual(state.originalPolicy.policyActionsOverrides);
+      expect(isDirty).toBe(false);
+    });
+  });
+
+  describe('policy/saveActionsOverride/fulfilled', () => {
+    it('resets loading flags, resets isDirty and resets the policy from payload', () => {
+      const state = Object.freeze({
+        loading: true,
+        loadError: 'some error',
+        isDirty: true,
+        currentPolicy: 'current policy',
+        originalPolicy: 'original policy',
+        overrideActionsFlag: false,
+        originalOverrideActionsFlag: false,
+      });
+
+      const action = {
+        type: 'policy/saveActionsOverride/fulfilled',
+        payload: 'updated policy',
+      };
+
+      const {
+        loading,
+        loadError,
+        isDirty,
+        currentPolicy,
+        originalPolicy,
+        overrideActionsFlag,
+        originalOverrideActionsFlag,
+      } = reducer(state, action);
+
+      expect(loading).toBe(false);
+      expect(loadError).toBe(null);
+      expect(isDirty).toBe(false);
+      expect(currentPolicy).toBe('updated policy');
+      expect(originalPolicy).toBe('updated policy');
+      expect(overrideActionsFlag).toBeTrue();
+      expect(originalOverrideActionsFlag).toBeTrue();
+    });
+  });
+
+  describe('policy/saveActionsOverride/pending', () => {
+    it('resets loadError and sets loading to true', () => {
+      const state = Object.freeze({ loadError: 'error', loading: false });
+
+      const { loadError, loading } = reducer(state, {
+        type: 'policy/saveActionsOverride/pending',
+      });
+
+      expect(loadError).toBeNull();
+      expect(loading).toBeTrue();
+    });
+  });
+
+  describe('policy/saveActionsOverride/failed', () => {
+    it('resets loading and sets loadError', () => {
+      const state = Object.freeze({ loadError: null, loading: true });
+
+      const { loadError, loading } = reducer(state, {
+        type: 'policy/saveActionsOverride/rejected',
+        payload: 'error',
+      });
+
+      expect(loadError).toBe('error');
+      expect(loading).toBeFalse();
+    });
+  });
+
+  describe('policy/removeActionsOverride/fulfilled', () => {
+    it('resets loading flags, resets isDirty and resets the policy from payload', () => {
+      const state = Object.freeze({
+        loading: true,
+        loadError: 'some error',
+        isDirty: true,
+        currentPolicy: 'current policy',
+        originalPolicy: 'original policy',
+        overrideActionsFlag: true,
+        originalOverrideActionsFlag: true,
+      });
+
+      const action = {
+        type: 'policy/removeActionsOverride/fulfilled',
+        payload: 'removed overrides for policy',
+      };
+
+      const {
+        loading,
+        loadError,
+        isDirty,
+        currentPolicy,
+        originalPolicy,
+        overrideActionsFlag,
+        originalOverrideActionsFlag,
+      } = reducer(state, action);
+
+      expect(loading).toBe(false);
+      expect(loadError).toBe(null);
+      expect(isDirty).toBe(false);
+      expect(currentPolicy).toBe('removed overrides for policy');
+      expect(originalPolicy).toBe('removed overrides for policy');
+      expect(overrideActionsFlag).toBeFalse();
+      expect(originalOverrideActionsFlag).toBeFalse();
+    });
+  });
+
+  describe('policy/removeActionsOverride/pending', () => {
+    it('resets loadError and sets loading to true', () => {
+      const state = Object.freeze({ loadError: 'error', loading: false });
+
+      const { loadError, loading } = reducer(state, {
+        type: 'policy/removeActionsOverride/pending',
+      });
+
+      expect(loadError).toBeNull();
+      expect(loading).toBeTrue();
+    });
+  });
+
+  describe('policy/removeActionsOverride/failed', () => {
+    it('resets loading and sets loadError', () => {
+      const state = Object.freeze({ loadError: null, loading: true });
+
+      const { loadError, loading } = reducer(state, {
+        type: 'policy/removeActionsOverride/rejected',
+        payload: 'error',
+      });
+
+      expect(loadError).toBe('error');
+      expect(loading).toBeFalse();
+    });
+  });
+
+  describe('policy/setOverrideParentActions', () => {
+    it('sets overrideActionsFlag and isDirty', () => {
+      const state = Object.freeze({
+        overrideActionsFlag: false,
+        originalOverrideActionsFlag: false,
+        isDirty: false,
+        isInherited: true,
+        currentPolicy: {},
+        originalPolicy: {
+          policyActionsOverrides: {
+            someOwnerId: { build: 'warn' },
+            currentOwnerId: { build: 'fail', release: 'fail' },
+          },
+        },
+      });
+
+      const { isDirty, overrideActionsFlag } = reducer(state, {
+        type: 'policy/setOverrideParentActions',
+        payload: true,
+      });
+
+      expect(overrideActionsFlag).toBeTrue();
+      expect(isDirty).toBeTrue();
+    });
+  });
+
+  describe('policy/unSetOverrideParentActions', () => {
+    it('removes override from current policy, sets overrideActionsFlag and isDirty', () => {
+      const state = Object.freeze({
+        overrideActionsFlag: true,
+        originalOverrideActionsFlag: true,
+        isDirty: false,
+        isInherited: true,
+        currentPolicy: {
+          policyActionsOverrides: {
+            id201: {
+              proxy: 'fail',
+            },
+          },
+        },
+        originalPolicy: {
+          policyActionsOverrides: null,
+        },
+      });
+
+      const { isDirty, overrideActionsFlag, currentPolicy } = reducer(state, {
+        type: 'policy/unSetOverrideParentActions',
+        payload: 'id201',
+      });
+
+      expect(overrideActionsFlag).toBeFalse();
+      expect(isDirty).toBeTrue();
+      expect(currentPolicy.policyActionsOverrides).toEqual({});
     });
   });
 });

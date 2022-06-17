@@ -59,6 +59,7 @@ public abstract class AbstractPolicyImportAuditTest
     Policy policy = new Policy();
     policy.setId(tempEntity.uuid());
     policy.setName(tempEntity.uuid());
+    policy.setPolicyActionsOverrideAllowed(true);
     Constraint constraint = new Constraint();
     constraint.setName("constraintName");
     Condition condition = new Condition(ConditionTypes.MatchStateConditionType.getId(), "is", "exact");
@@ -141,9 +142,30 @@ public abstract class AbstractPolicyImportAuditTest
     assertCustomData(auditDTO, "policyThreatLevel", policy.getThreatLevel());
     assertCustomData(auditDTO, "policyGrandfatheringMode",
         policy.isPolicyViolationGrandfatheringAllowed() ? "allow" : "disallow");
+    assertCustomData(auditDTO, "policyActionsOverrideMode",
+        policy.isPolicyActionsOverrideAllowed() ? "allow" : "disallow");
     assertCustomObject(auditDTO, "policyConstraints", constraints);
     assertCustomObject(auditDTO, "actions", ActionDTO.transcribe(policy.getActions()));
     assertCustomObject(auditDTO, "notifications", NotificationDTO.transcribe(policy.getNotifications()));
+  }
+
+  protected void assertPolicyActionOverrideData(final AuditDTO auditDTO,
+                                                final Policy policy,
+                                                final String overridingOwnerId,
+                                                boolean actionsOverrideDeleted)
+  {
+    String auditedPolicyId = (String) auditDTO.data.get("policyId");
+    String auditedOverridingOwnerId = (String) auditDTO.data.get("overridingOwnerId");
+
+    assertThat(auditedPolicyId).isNotNull();
+    assertThat(auditedOverridingOwnerId).isNotNull().isEqualTo(overridingOwnerId);
+    if (!actionsOverrideDeleted) {
+      assertThat(new PolicyDAO().getById(auditedPolicyId)).isNotNull();
+      assertThat(auditDTO.data.get("actionsOverride")).isNotNull();
+    }
+    else {
+      assertThat(auditedPolicyId).isEqualTo(policy.getId());
+    }
   }
 
   protected void assertImportedPolicies(final List<Policy> policies,

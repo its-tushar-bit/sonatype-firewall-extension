@@ -42,6 +42,8 @@ import NotificationWebhookService from './policy/notification.webhook.service';
 import PolicyEditorActionsController from './policy/policy.editor.actions.controller';
 import PolicyEditorConstraintsController from './policy/policy.editor.constraints.controller';
 import PolicyEditorController from './policy/policy.editor.controller';
+import PolicyEditorSummaryController from './policy/policy.editor.summary.controller';
+import PolicyEditorFormContainerController from './policy/policy.editor.form.container.controller';
 import PolicyTileController from './policy/policy.tile.controller';
 import PolicyEditorActionsDirective from './policy/policy.editor.actions.directive';
 import PolicyEditorNotificationsDirective from './policy/policy.editor.notifications.directive';
@@ -131,7 +133,9 @@ export default angular
   .controller('monitored.stage.editor.controller', MonitoredStageEditorController)
   .controller('policy.editor.actions.controller', PolicyEditorActionsController)
   .controller('policy.editor.constraints.controller', PolicyEditorConstraintsController)
-  .controller('policy.editor.controller', PolicyEditorController)
+  .controller('PolicyEditorController', PolicyEditorController)
+  .controller('PolicyEditorSummaryController', PolicyEditorSummaryController)
+  .controller('PolicyEditorFormContainerController', PolicyEditorFormContainerController)
   .controller('policy.tile.controller', PolicyTileController)
   .directive('policyEditorActions', PolicyEditorActionsDirective)
   .directive('policyEditorNotifications', PolicyEditorNotificationsDirective)
@@ -301,8 +305,6 @@ export default angular
             },
             views: {
               '@management': {
-                controller: 'policy.editor.controller',
-                controllerAs: 'vm',
                 template: policyEditorTemplate,
               },
             },
@@ -315,8 +317,6 @@ export default angular
             },
             views: {
               '@management': {
-                controller: 'policy.editor.controller',
-                controllerAs: 'vm',
                 template: policyEditorTemplate,
               },
             },

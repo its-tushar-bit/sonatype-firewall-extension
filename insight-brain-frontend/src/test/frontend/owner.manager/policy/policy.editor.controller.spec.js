@@ -7,6 +7,7 @@ import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import { mapStateToThis } from 'MainRoot/owner.manager/policy/policy.editor.controller';
 import * as policySelectors from 'MainRoot/OrgsAndPolicies/policySelectors';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
+import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 describe('policy.editor.controller', function () {
   beforeEach(
@@ -22,12 +23,12 @@ describe('policy.editor.controller', function () {
     modalSpy = jasmine.createSpyObj('Modal', ['open']);
     deleteModalServiceSpy = jasmine.createSpyObj('DeleteModalService', ['deleteRedux']);
 
-    vm = $controller('policy.editor.controller', {
+    vm = $controller('PolicyEditorController', {
       $scope: scope,
       Modal: modalSpy,
       DeleteModalService: deleteModalServiceSpy,
     });
-
+    vm.dirtyPolicy = {};
     scope.vm = vm;
   }));
 
@@ -38,7 +39,9 @@ describe('policy.editor.controller', function () {
       spyOn(policySelectors, 'selectIsOrgOwner').and.returnValue(true);
       spyOn(policySelectors, 'selectIsRootOrg').and.returnValue(true);
       spyOn(policySelectors, 'selectHasPolicyCategories').and.returnValue(true);
-      spyOn(policySelectors, 'selectReadOnly').and.returnValue(true);
+      spyOn(policySelectors, 'selectIsInherited').and.returnValue(true);
+      spyOn(policySelectors, 'selectOverrideNeedsToBeRemoved').and.returnValue(false);
+
       spyOn(productFeaturesSelectors, 'selectIsGrandfatheringSupported').and.returnValue(true);
 
       spyOn(policySelectors, 'selectCurrentPolicy').and.returnValue(null);
@@ -48,6 +51,7 @@ describe('policy.editor.controller', function () {
       spyOn(policySelectors, 'selectSiblings').and.returnValue(null);
       spyOn(policySelectors, 'selectOriginalProxyStageAction').and.returnValue(null);
       spyOn(policySelectors, 'selectCurrentPolicyOwnerName').and.returnValue(null);
+      spyOn(orgsAndPoliciesSelectors, 'selectPoliciesByOwner').and.returnValue(null);
 
       const output = mapStateToThis({});
 
@@ -66,6 +70,8 @@ describe('policy.editor.controller', function () {
       expect(output.siblings).toBeNull();
       expect(output.originalProxyStageAction).toBeNull();
       expect(output.ownerName).toBeNull();
+      expect(output.overrideNeedsToBeRemoved).toBeFalse();
+      expect(output.policiesByOwner).toBeNull();
     });
   });
 
@@ -94,9 +100,7 @@ describe('policy.editor.controller', function () {
   describe('$destroy()', () => {
     it('unsubscribes from the redux store', () => {
       expect(vm.unsubscribe).not.toHaveBeenCalled();
-
       scope.$destroy();
-
       expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
     });
   });
@@ -122,10 +126,25 @@ describe('policy.editor.controller', function () {
       };
     });
 
-    it('calls savePolicy', () => {
+    it('calls savePolicy if isActionOverrideEnabled is falsy', () => {
       vm.save();
 
       expect(vm.savePolicy).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls saveActionsOverride if isActionOverrideEnabled is true', () => {
+      vm.isActionOverrideEnabled = true;
+      vm.save();
+
+      expect(vm.saveActionsOverride).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls removeActionsOverride if isActionOverrideEnabled is true and override needs to be removed', () => {
+      vm.isActionOverrideEnabled = true;
+      vm.overrideNeedsToBeRemoved = true;
+      vm.save();
+
+      expect(vm.removeActionsOverride).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -183,6 +202,37 @@ describe('policy.editor.controller', function () {
       vm.onHasPolicyCategoriesChange(hasPolicyCategories);
 
       expect(vm.setHasPolicyCategories).toHaveBeenCalledOnceWith(hasPolicyCategories);
+    });
+  });
+
+  describe('getActions', () => {
+    beforeEach(() => {
+      vm.policiesByOwner = [
+        {
+          ownerId: 'testAppId',
+        },
+        {
+          ownerId: 'testOrgId',
+        },
+        {
+          ownerId: 'testRootOrgId',
+        },
+      ];
+      vm.dirtyPolicy = {
+        policyActionsOverrideAllowed: true,
+        actions: 'policy actions',
+      };
+    });
+
+    it('returns vm.dirtyPolicy.actions if no action overrides found', () => {
+      expect(vm.getActions()).toBe('policy actions');
+    });
+
+    it('returns actionsOverride if an override found', () => {
+      vm.dirtyPolicy.policyActionsOverrides = {
+        testOrgId: 'actions override',
+      };
+      expect(vm.getActions()).toBe('actions override');
     });
   });
 });

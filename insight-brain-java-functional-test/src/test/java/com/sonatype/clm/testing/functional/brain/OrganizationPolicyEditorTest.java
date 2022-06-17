@@ -51,6 +51,7 @@ public class OrganizationPolicyEditorTest
     inheritance.specifiedChildrenInheritRadio().shouldBe(visible, enabled).shouldNotBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldHave(specifiedRadioText(organization.getName()));
     inheritance.associationEditor().shouldBe(hidden);
+    inheritance.policyActionsOverrideCheckbox().shouldBe(visible).shouldNotBe(selected);
   }
 
   @Override
@@ -62,6 +63,7 @@ public class OrganizationPolicyEditorTest
     inheritance.specifiedChildrenInheritRadio().shouldNotBe(selected).click();
     inheritance.associationEditor().shouldBe(visible);
     inheritance.associationEditor().item(0).checkBox().click();
+    inheritance.policyActionsOverrideCheckbox().shouldBe(visible).shouldNotBe(selected);
   }
 
   @Override
@@ -74,21 +76,20 @@ public class OrganizationPolicyEditorTest
     inheritance.allChildrenInheritRadio().shouldBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldNotBe(selected).click();
     inheritance.associationEditor().shouldBe(visible);
+    inheritance.associationEditor().item(1).checkBox().click();
+    inheritance.policyActionsOverrideCheckbox().shouldBe(visible).shouldNotBe(selected);
     PolicyEditorPage.savePolicy();
 
     inheritance.allChildrenInheritRadio().shouldNotBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldBe(selected);
     inheritance.associationEditor().shouldBe(visible);
-    inheritance.associationEditor().item(1).checkBox().click();
-    PolicyEditorPage.savePolicy();
-
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     refresh();
 
     inheritance.allChildrenInheritRadio().shouldNotBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldBe(selected);
-    inheritance.associationEditor().item(0).checkBox().shouldBe(selected);
+    inheritance.associationEditor().item(0).checkBox().shouldNotBe(selected);
     inheritance.associationEditor().item(1).checkBox().shouldBe(selected);
   }
 
@@ -106,6 +107,7 @@ public class OrganizationPolicyEditorTest
 
     inheritance.associationEditor().rows().shouldHaveSize(2);
     inheritance.associationEditor().shouldNotBe(MULTI_COLUMN);
+    inheritance.policyActionsOverrideCheckbox().shouldBe(visible).shouldNotBe(selected);
     AssociationEditorElement category1Item = inheritance.associationEditor().item(0);
     category1Item.checkBox().shouldBe(visible, selected, isReadOnly ? disabled : enabled);
     category1Item.description().shouldBe(visible).shouldHave(text(category1.getName()));

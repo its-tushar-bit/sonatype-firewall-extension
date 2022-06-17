@@ -17,12 +17,16 @@ public class SummarySection
   public SummarySection() {
     super(ROOT);
   }
+  
+  public SelenideElement title() {
+    return child("h2");
+  }
 
   public SelenideElement policyName() {
     return child("#editor-policy-name");
   }
 
   public IqCheckbox policyViolationGrandfatheringCheckbox() {
-    return new IqCheckbox(child("iq-checkbox"));
+    return new IqCheckbox(child("#editor-policy-violation-grandfathering"));
   }
 }

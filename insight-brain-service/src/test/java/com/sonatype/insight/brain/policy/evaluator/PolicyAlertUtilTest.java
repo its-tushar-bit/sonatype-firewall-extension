@@ -42,7 +42,7 @@ public class PolicyAlertUtilTest
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policyDoesNotExist);
     new PolicyDAO().delete(policyDoesNotExist);
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
-        policyEval.getStageTypeId(), policyEval.isForMonitoring(), true);
+        policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
     assertThat(alerts).hasSize(1);
     PolicyAlert alert = alerts.get(0);
     assertThat(alert.getTrigger().getPolicyId()).isEqualTo(policyDoesNotExist.getId());
@@ -68,7 +68,7 @@ public class PolicyAlertUtilTest
     policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
 
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
-        policyEval.getStageTypeId(), policyEval.isForMonitoring(), true);
+        policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
 
     assertThat(alerts).hasSize(1);
 
@@ -104,7 +104,7 @@ public class PolicyAlertUtilTest
         reason2);
 
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation1, policyViolation2),
-        policyEval.getStageTypeId(), policyEval.isForMonitoring(), true);
+        policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
 
     assertThat(alerts).hasSize(2);
 
@@ -141,7 +141,7 @@ public class PolicyAlertUtilTest
     policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
 
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
-        policyEval.getStageTypeId(), policyEval.isForMonitoring(), true);
+        policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
 
     assertThat(alerts).hasSize(1);
     PolicyAlert alert = alerts.get(0);
@@ -165,7 +165,7 @@ public class PolicyAlertUtilTest
     policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
 
     List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
-        policyEval.getStageTypeId(), policyEval.isForMonitoring(), false);
+        policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), false);
 
     assertThat(alerts).hasSize(1);
     PolicyAlert alert = alerts.get(0);

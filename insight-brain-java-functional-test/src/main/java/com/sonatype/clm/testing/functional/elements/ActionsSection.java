@@ -16,34 +16,44 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class ActionsSection
 {
-  public static final String ROOT_SELECTOR = "#edit-policy-actions-table";
+  public static final String ROOT_SELECTOR = "#policy-edit-actions";
+
+  public static final String ACTIONS_TABLE_ROOT_SELECTOR = "#edit-policy-actions-table";
+
+  public SelenideElement title() {
+    return $(createSelector(ROOT_SELECTOR, "h2"));
+  }
+
+  public SelenideElement paragraph() {
+    return $(createSelector(ROOT_SELECTOR, "p"));
+  }
 
   public Stage proxy() {
-    return new Stage(ROOT_SELECTOR, "proxy");
+    return new Stage(ACTIONS_TABLE_ROOT_SELECTOR, "proxy");
   }
 
   public Stage develop() {
-    return new Stage(ROOT_SELECTOR, "develop");
+    return new Stage(ACTIONS_TABLE_ROOT_SELECTOR, "develop");
   }
 
   public Stage source() {
-    return new Stage(ROOT_SELECTOR, "source");
+    return new Stage(ACTIONS_TABLE_ROOT_SELECTOR, "source");
   }
 
   public Stage build() {
-    return new Stage(ROOT_SELECTOR, "build");
+    return new Stage(ACTIONS_TABLE_ROOT_SELECTOR, "build");
   }
 
   public Stage stageRelease() {
-    return new Stage(ROOT_SELECTOR, "stage");
+    return new Stage(ACTIONS_TABLE_ROOT_SELECTOR, "stage");
   }
 
   public Stage release() {
-    return new Stage(ROOT_SELECTOR, "release");
+    return new Stage(ACTIONS_TABLE_ROOT_SELECTOR, "release");
   }
 
   public Stage operate() {
-    return new Stage(ROOT_SELECTOR, "operate");
+    return new Stage(ACTIONS_TABLE_ROOT_SELECTOR, "operate");
   }
 
   public static Condition warnClass() {
@@ -55,11 +65,23 @@ public class ActionsSection
   }
 
   public ElementsCollection headers() {
-    return $$(createSelector(ROOT_SELECTOR, "th:nth-child(n+2):nth-child(-n+8)"));
+    return $$(createSelector(ACTIONS_TABLE_ROOT_SELECTOR, "th:nth-child(n+2):nth-child(-n+8)"));
   }
 
   public SelenideElement quarantineWarningMessage() {
     return $("#quarantine-warning-message");
+  }
+
+  public IqRadio inheritParentActions() {
+    return new IqRadio($("#edit-policy-actions-override-inherit"));
+  }
+
+  public IqRadio overrideParentActions() {
+    return new IqRadio($("#edit-policy-actions-override-override"));
+  }
+
+  public SelenideElement actionsOverrideSection() {
+    return $(createSelector("#edit-policy-actions-override"));
   }
 
   public static class Stage
@@ -86,7 +108,7 @@ public class ActionsSection
     }
 
     public SelenideElement header() {
-      return $(createSelector(ROOT_SELECTOR, "th.", stageName));
+      return $(createSelector(ACTIONS_TABLE_ROOT_SELECTOR, "th.", stageName));
     }
 
     public ElementsCollection cells() {

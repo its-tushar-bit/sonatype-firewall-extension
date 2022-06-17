@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { getGlobalPermissionTestUrl } from '../utilAngular/CLMContextLocation';
+import { getPermissionsTestUrl } from './CLMLocation';
 
 export const authErrorMessage = `It appears you do not have permission to access this page.
   If you believe this to be incorrect please contact your administrator.`;
@@ -24,8 +24,8 @@ export const authErrorMessage = `It appears you do not have permission to access
  * @param permissions - list of permissions to check
  * @returns {Promise}
  */
-export function checkPermissions(permissions) {
-  return getPermissions(permissions).then((data) => {
+export function checkPermissions(permissions, ownerType = 'global', ownerId = 'global') {
+  return getPermissions(permissions, ownerType, ownerId).then((data) => {
     if (data.length !== permissions.length) {
       throw authErrorMessage;
     }
@@ -46,8 +46,8 @@ export function checkPermissions(permissions) {
  * @param permissions - list of permissions to verify
  * @returns {Promise}
  */
-export function getPermissions(permissions) {
-  return axios.put(getGlobalPermissionTestUrl(), permissions).then(({ data }) => {
+export function getPermissions(permissions, ownerType = 'global', ownerId = 'global') {
+  return axios.put(getPermissionsTestUrl(ownerType, ownerId), permissions).then(({ data }) => {
     return data;
   });
 }

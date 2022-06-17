@@ -25,8 +25,10 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.ConditionType;
@@ -56,6 +58,8 @@ import org.slf4j.LoggerFactory;
 public class ComponentPolicyEvaluator
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentPolicyEvaluator.class);
+
+  private static final OwnerDAO ownerDAO = new OwnerDAO();
 
   static final Comparator<PolicyFact> POLICY_FACT_COMPARATOR = new Comparator<PolicyFact>()
   {
@@ -127,6 +131,8 @@ public class ComponentPolicyEvaluator
 
     PolicyResults policyResults = new PolicyResults();
 
+    Owner owner = ownerDAO.getById(ownerId);
+    List<String> ownerIds = ownerDAO.getOwnerIds(owner);
     Map<String, Policy> policiesById = policies.stream().collect(Collectors.toMap(Policy::getId, Function.identity()));
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveApplicableByOwnerId(ownerId);
     for (PolicyFact policyFact : policyFacts) {
@@ -134,7 +140,7 @@ public class ComponentPolicyEvaluator
 
       Notifications notifications = policy.getNotifications().getApplicable(stage.getStageTypeId(), forMonitoring);
       PolicyNotification policyNotification = new PolicyNotification(policyFact, notifications);
-      List<Action> actions = policy.toActions(stage.getStageTypeId(), forMonitoring);
+      List<Action> actions = policy.toActions(stage.getStageTypeId(), forMonitoring, ownerIds);
       PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
 
       PolicyWaiver policyWaiver = getApplicablePolicyWaiver(policyWaivers, policyFact);

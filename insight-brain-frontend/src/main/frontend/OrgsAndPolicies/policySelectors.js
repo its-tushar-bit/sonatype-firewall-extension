@@ -14,9 +14,11 @@ export const selectPolicySlice = createSelector(selectOrgsAndPoliciesSlice, prop
 
 export const selectIsEditMode = createSelector(selectRouterCurrentParams, ({ policyId }) => !isNil(policyId));
 
+export const selectHasEditIqPermission = createSelector(selectPolicySlice, prop('hasEditIqPermission'));
+
 export const selectIsOrgOwner = createSelector(selectPolicySlice, prop('isOrgOwner'));
 
-export const selectReadOnly = createSelector(selectPolicySlice, prop('readOnly'));
+export const selectIsInherited = createSelector(selectPolicySlice, prop('isInherited'));
 
 export const selectSiblings = createSelector(selectPolicySlice, prop('siblings'));
 
@@ -46,6 +48,12 @@ export const selectLoading = createSelector(selectPolicySlice, prop('loading'));
 export const selectDeleteModal = createSelector(selectPolicySlice, prop('deleteModal'));
 
 export const selectCurrentPolicy = createSelector(selectPolicySlice, prop('currentPolicy'));
+
+export const selectIsActionOverrideEnabled = createSelector(
+  selectIsInherited,
+  selectCurrentPolicy,
+  (isInherited, currentPolicy) => isInherited && currentPolicy.policyActionsOverrideAllowed
+);
 
 export const selectIsDirty = createSelector(selectPolicySlice, prop('isDirty'));
 
@@ -87,3 +95,13 @@ export const selectIsCurrentPolicyDirty = createSelector(
 
 export const selectCurrentPolicyOwner = createSelector(selectPolicySlice, prop('currentPolicyOwner'));
 export const selectCurrentPolicyOwnerName = createSelector(selectCurrentPolicyOwner, prop('name'));
+export const selectOriginalPolicy = createSelector(selectPolicySlice, prop('originalPolicy'));
+
+export const selectOverrideActionsFlag = createSelector(selectPolicySlice, prop('overrideActionsFlag'));
+export const selectOriginalOverrideActionsFlag = createSelector(selectPolicySlice, prop('originalOverrideActionsFlag'));
+
+export const selectOverrideNeedsToBeRemoved = createSelector(
+  selectOriginalOverrideActionsFlag,
+  selectOverrideActionsFlag,
+  (originalOverrideFlag, overrideFlag) => originalOverrideFlag && !overrideFlag
+);

@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import java.util.LinkedHashMap;
+
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -83,6 +86,40 @@ public class PolicyResourceAuthzTest
   @Test
   public void testDeletePolicy() throws Exception {
     HttpRequest request = restRequest().path("{policyId}");
+
+    grantWritePermission(app.getId());
+
+    Policy policy = tempEntity.newPolicy(app);
+    testAuthzDelete(request.parameter(OwnerType.APPLICATION, app.getPublicId(), policy.getId()));
+
+    grantWritePermission(org.getId());
+
+    policy = tempEntity.newPolicy(org);
+    testAuthzDelete(request.parameter(OwnerType.ORGANIZATION, org.getId(), policy.getId()));
+  }
+
+  @Test
+  public void testAddActionsOverride() throws Exception {
+    HttpRequest request = restRequest().path("{policyId}/actionsOverrides").body(new LinkedHashMap<>());
+
+    grantWritePermission(app.getId());
+
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setPolicyActionsOverrideAllowed(true);
+    new PolicyDAO().update(policy);
+    testAuthzPut(request.parameter(OwnerType.APPLICATION, app.getPublicId(), policy.getId()));
+
+    grantWritePermission(org.getId());
+
+    policy = tempEntity.newPolicy(org);
+    policy.setPolicyActionsOverrideAllowed(true);
+    new PolicyDAO().update(policy);
+    testAuthzPut(request.parameter(OwnerType.ORGANIZATION, org.getId(), policy.getId()));
+  }
+
+  @Test
+  public void testDeleteActionsOverride() throws Exception {
+    HttpRequest request = restRequest().path("{policyId}/actionsOverrides");
 
     grantWritePermission(app.getId());
 

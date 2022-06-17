@@ -822,6 +822,16 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getPolicyActionsOverridesUrl', () => {
+    it('returns policy actions overrides url ', () => {
+      const expectedUrl = '/rest/policy/organization/someOrganization/somePolicyId/actionsOverrides';
+
+      expect(clmLocation.getPolicyActionsOverridesUrl('organization', 'someOrganization', 'somePolicyId')).toBe(
+        expectedUrl
+      );
+    });
+  });
+
   describe('getApplicablePolicies', () => {
     it('returns applicable policies url', () => {
       const expectedUrl = '/rest/policy/organization/someOrganization/applicable';
@@ -864,6 +874,14 @@ describe('CLMLocation.js', function () {
       const expectedUrl = '/api/v2/config/crowd/test';
 
       expect(clmLocation.getCrowdConfigurationTestUrl()).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getPermissionsTestUrl', () => {
+    it('returns url for checking user permissions', () => {
+      const expectedUrl = '/rest/user/permissions/ownerType/ownerId';
+
+      expect(clmLocation.getPermissionsTestUrl('ownerType', 'ownerId')).toEqual(expectedUrl);
     });
   });
 });

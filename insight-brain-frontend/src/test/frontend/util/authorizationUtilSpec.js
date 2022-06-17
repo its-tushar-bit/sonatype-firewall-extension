@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
+import { getPermissionsTestUrl } from 'MainRoot/util/CLMLocation';
 
 import { getPermissions, checkPermissions, authErrorMessage } from '../../../main/frontend/util/authorizationUtil';
-import { getGlobalPermissionTestUrl } from '../../../main/frontend/utilAngular/CLMContextLocation';
 
 const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
@@ -14,14 +14,14 @@ describe('authorizationUtil', () => {
   beforeEach(() => {
     mockAxiosCalls({
       put: {
-        [getGlobalPermissionTestUrl()]: Promise.resolve({ data: ['permission1', 'permission2'] }),
+        [getPermissionsTestUrl('ownerType', 'ownerId')]: Promise.resolve({ data: ['permission1', 'permission2'] }),
       },
     });
   });
 
   describe('checkPermissions', () => {
     it('returns resolved empty promise if authorized for all permissions', (done) => {
-      checkPermissions(['permission1', 'permission2'])
+      checkPermissions(['permission1', 'permission2'], 'ownerType', 'ownerId')
         .then((result) => {
           expect(result).toBeUndefined();
           done();
@@ -32,7 +32,7 @@ describe('authorizationUtil', () => {
     });
 
     it('returns rejected promise if not authorized for at least one permission', (done) => {
-      checkPermissions(['permission2'])
+      checkPermissions(['permission2'], 'ownerType', 'ownerId')
         .then(() => {
           done.fail('Promise should have been rejected');
         })
@@ -45,7 +45,7 @@ describe('authorizationUtil', () => {
 
   describe('getPermissions', () => {
     it('returns resolved array of authorized permissions', (done) => {
-      getPermissions(['permission1', 'permission2', 'permission3'])
+      getPermissions(['permission1', 'permission2', 'permission3'], 'ownerType', 'ownerId')
         .then((result) => {
           expect(result).toEqual(['permission1', 'permission2']);
           done();

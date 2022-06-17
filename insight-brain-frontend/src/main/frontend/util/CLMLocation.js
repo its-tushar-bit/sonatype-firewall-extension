@@ -928,6 +928,10 @@ export const getPolicyCRUDUrl = (ownerType, ownerId, policyId) => {
   return getPolicyUrl(ownerType, ownerId) + `/${policyId}`;
 };
 
+export const getPolicyActionsOverridesUrl = (ownerType, ownerId, policyId) => {
+  return getPolicyCRUDUrl(ownerType, ownerId, policyId) + '/actionsOverrides';
+};
+
 export const getApplicablePolicies = (ownerType, ownerId) => {
   return getPolicyUrl(ownerType, ownerId) + '/applicable';
 };
@@ -946,6 +950,10 @@ export const getCrowdConfigurationTestUrl = () => {
 
 export const getMoveApplicationUrl = (applicationId, organizationId) =>
   uriTemplate`/api/v2/applications/${applicationId}/move/organization/${organizationId}`;
+
+export function getPermissionsTestUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/user/permissions/${ownerType}/${ownerId}`;
+}
 
 export const getGrandfatheringUrl = (ownerType, ownerId) =>
   uriTemplate`/rest/policyViolationGrandfathering/${ownerType}/${ownerId}`;

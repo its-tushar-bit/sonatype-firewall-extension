@@ -3,13 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectPolicySlice,
   selectIsEditMode,
   selectIsOrgOwner,
-  selectReadOnly,
+  selectIsInherited,
   selectSiblings,
   selectSubmitError,
   selectIsRootOrg,
@@ -29,6 +28,12 @@ import {
   selectIsCurrentPolicyDirty,
   selectCategoriesForPolicyLoadError,
   selectPolicyLoadError,
+  selectIsActionOverrideEnabled,
+  selectHasEditIqPermission,
+  selectOriginalPolicy,
+  selectOverrideNeedsToBeRemoved,
+  selectOverrideActionsFlag,
+  selectOriginalOverrideActionsFlag,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
@@ -87,17 +92,33 @@ describe('policySelectors', () => {
     });
   });
 
-  describe('selectReadOnly', () => {
+  describe('selectHasEditIqPermission', () => {
     it('is composed from the following selector', () => {
-      expect(selectReadOnly.dependencies).toEqual([selectPolicySlice]);
+      expect(selectHasEditIqPermission.dependencies).toEqual([selectPolicySlice]);
     });
 
-    it('selects readOnly', () => {
+    it('selects hasEditIqPermission', () => {
       const policySlice = {
-        readOnly: true,
+        hasEditIqPermission: true,
       };
 
-      const selected = selectReadOnly.resultFunc(policySlice);
+      const selected = selectHasEditIqPermission.resultFunc(policySlice);
+
+      expect(selected).toBeTrue();
+    });
+  });
+
+  describe('selectIsInherited', () => {
+    it('is composed from the following selector', () => {
+      expect(selectIsInherited.dependencies).toEqual([selectPolicySlice]);
+    });
+
+    it('selects isInherited', () => {
+      const policySlice = {
+        isInherited: true,
+      };
+
+      const selected = selectIsInherited.resultFunc(policySlice);
 
       expect(selected).toBeTrue();
     });
@@ -181,6 +202,83 @@ describe('policySelectors', () => {
       const selected = selectPolicyLoadError.resultFunc(policySlice);
 
       expect(selected).toBe('someError');
+    });
+  });
+
+  describe('selectOriginalPolicy', () => {
+    it('is composed from the following selector', () => {
+      expect(selectOriginalPolicy.dependencies).toEqual([selectPolicySlice]);
+    });
+
+    it('selects originalPolicy', () => {
+      const policySlice = {
+        originalPolicy: {
+          ownerId: 'id',
+        },
+      };
+
+      const selected = selectOriginalPolicy.resultFunc(policySlice);
+
+      expect(selected).toEqual(policySlice.originalPolicy);
+    });
+  });
+
+  describe('selectOverrideActionsFlag', () => {
+    it('is composed from the following selector', () => {
+      expect(selectOverrideActionsFlag.dependencies).toEqual([selectPolicySlice]);
+    });
+
+    it('selects overrideActionsFlag property', () => {
+      const policySlice = {
+        overrideActionsFlag: false,
+      };
+
+      const selected = selectOverrideActionsFlag.resultFunc(policySlice);
+
+      expect(selected).toBeFalse();
+    });
+  });
+
+  describe('selectOriginalOverrideActionsFlag', () => {
+    it('is composed from the following selector', () => {
+      expect(selectOriginalOverrideActionsFlag.dependencies).toEqual([selectPolicySlice]);
+    });
+
+    it('selects originalOverrideActionsFlag property', () => {
+      const policySlice = {
+        originalOverrideActionsFlag: false,
+      };
+
+      const selected = selectOriginalOverrideActionsFlag.resultFunc(policySlice);
+
+      expect(selected).toBeFalse();
+    });
+  });
+
+  describe('selectOverrideNeedsToBeRemoved', () => {
+    it('is composed from the following selector', () => {
+      expect(selectOverrideNeedsToBeRemoved.dependencies).toEqual([
+        selectOriginalOverrideActionsFlag,
+        selectOverrideActionsFlag,
+      ]);
+    });
+
+    it('selects whether actions override should not be removed', () => {
+      const overrideActionsFlag = true;
+      const originalOverrideActionsFlag = true;
+
+      const selected = selectOverrideNeedsToBeRemoved.resultFunc(originalOverrideActionsFlag, overrideActionsFlag);
+
+      expect(selected).toBeFalse();
+    });
+
+    it('selects whether actions override should be removed', () => {
+      const overrideActionsFlag = false;
+      const originalOverrideActionsFlag = true;
+
+      const selected = selectOverrideNeedsToBeRemoved.resultFunc(originalOverrideActionsFlag, overrideActionsFlag);
+
+      expect(selected).toBeTrue();
     });
   });
 
@@ -526,6 +624,33 @@ describe('policySelectors', () => {
 
         expect(selected).toBe(result);
       });
+    });
+  });
+
+  describe('selectIsActionOverrideEnabled', () => {
+    let currentPolicy;
+
+    beforeEach(() => {
+      currentPolicy = {
+        policyActionsOverrideAllowed: true,
+      };
+    });
+
+    it('is composed from the following selectors', () => {
+      expect(selectIsActionOverrideEnabled.dependencies).toEqual([selectIsInherited, selectCurrentPolicy]);
+    });
+
+    it('returns false if policy is not inherited', () => {
+      expect(selectIsActionOverrideEnabled.resultFunc(false, currentPolicy)).toBe(false);
+    });
+
+    it('returns false if policy is inherited but policyActionsOverrideAllowed is false', () => {
+      currentPolicy.policyActionsOverrideAllowed = false;
+      expect(selectIsActionOverrideEnabled.resultFunc(true, currentPolicy)).toBe(false);
+    });
+
+    it('returns true if policy is inherited and policyActionsOverrideAllowed is true', () => {
+      expect(selectIsActionOverrideEnabled.resultFunc(true, currentPolicy)).toBe(true);
     });
   });
 });

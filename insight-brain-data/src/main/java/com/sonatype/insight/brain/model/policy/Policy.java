@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.model.policy;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,10 @@ public class Policy
   private Notifications notifications = new Notifications();
 
   private String droolsCode;
+
+  private boolean policyActionsOverrideAllowed;
+
+  private Map<String, Map<String, String>> policyActionsOverrides;
 
   public Policy() {
   }
@@ -130,16 +136,53 @@ public class Policy
     this.notifications = notifications != null ? notifications : new Notifications();
   }
 
-  public List<Action> toActions(String stageId, boolean continuousMonitoring) {
+  /**
+   *
+   * @param stageId the id of the stage to retrieve actions for
+   * @param continuousMonitoring is this for continuous monitoring
+   * @param ownerIds optional, sorted list of ids of all the owners up in the hierarchy starting from the application
+   *                 and ending with root org. This is used for actions overrides.
+   * @return list of Action objects
+   */
+  public List<Action> toActions(String stageId, boolean continuousMonitoring, List<String> ownerIds) {
     List<Action> result = new ArrayList<>();
+
     if (!continuousMonitoring) {
-      String actionId = actions.get(stageId);
+      Map<String, String> actionOverrides = null;
+      if (isOverrideApplicable(ownerIds)) {
+        // walk the hierarchy of owners to retrieve actionOverrides for the nearest parent
+        actionOverrides = getActionOverrides(ownerIds, actionOverrides);
+      }
+
+      Map<String, String> effectiveActions =
+          actionOverrides != null && !actionOverrides.isEmpty() ? actionOverrides : actions;
+      String actionId = effectiveActions.get(stageId);
       if (actionId != null) {
         result.add(new Action(actionId));
       }
     }
     result.addAll(notifications.getApplicable(stageId, continuousMonitoring).toActions());
     return result;
+  }
+
+  private Map<String, String> getActionOverrides(final List<String> ownerIds, Map<String, String> actionOverrides) {
+    if (policyActionsOverrides != null && !policyActionsOverrides.isEmpty()) {
+      for (int i = 0; i < ownerIds.size() - 1; i++) {
+        actionOverrides = policyActionsOverrides.get(ownerIds.get(i));
+        // walk through the hierarchy stops in front of the policy owner
+        if (actionOverrides != null || ownerIds.get(i + 1).equals(this.getOwnerId())) {
+          break;
+        }
+      }
+      return actionOverrides;
+    }
+    else {
+      return Collections.emptyMap();
+    }
+  }
+
+  private boolean isOverrideApplicable(final List<String> ownerIds) {
+    return policyActionsOverrideAllowed && ownerIds != null;
   }
 
   public ValidationResult validate(TransactionContext tx, String ownerId) {
@@ -256,5 +299,33 @@ public class Policy
 
   public void setDroolsCode(String droolsCode) {
     this.droolsCode = droolsCode;
+  }
+
+  public boolean isPolicyActionsOverrideAllowed() {
+    return policyActionsOverrideAllowed;
+  }
+
+  public void setPolicyActionsOverrideAllowed(final boolean policyActionsOverrideAllowed) {
+    this.policyActionsOverrideAllowed = policyActionsOverrideAllowed;
+  }
+
+  public Map<String, Map<String, String>> getPolicyActionsOverrides() {
+    return policyActionsOverrides;
+  }
+
+  public void setPolicyActionsOverrides(final Map<String, Map<String, String>> policyActionsOverrides) {
+    this.policyActionsOverrides = policyActionsOverrides;
+  }
+
+  /**
+   * Add action override to this policy
+   * @param ownerId  the id of the org or app to which the override should be applied to
+   * @param policyActionsOverride actions mapped to stage
+   */
+  public void addPolicyActionsOverride(final String ownerId, final Map<String, String> policyActionsOverride) {
+    if (policyActionsOverrides == null) {
+      policyActionsOverrides = new LinkedHashMap<>();
+    }
+    policyActionsOverrides.put(ownerId, policyActionsOverride);
   }
 }

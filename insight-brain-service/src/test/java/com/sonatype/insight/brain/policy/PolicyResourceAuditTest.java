@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.policy;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -388,6 +390,85 @@ public class PolicyResourceAuditTest
     policyResourceRequest(organization).path(policyId).with(unauthorizedUser()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_POLICY, "unauthorized");
+    assertOrganizationData(auditDTO, organization);
+  }
+
+  @Test
+  public void testAddActionsOverride_Application() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy();
+    policy.setPolicyActionsOverrideAllowed(true);
+    new PolicyDAO().update(policy);
+
+    Map<String, String> actionsOverride = new LinkedHashMap<String, String>();
+    actionsOverride.put("stage-release", "fail");
+    actionsOverride.put("release", "fail");
+    actionsOverride.put("build", "warn");
+    policyResourceRequest(app).path(policy.getId(), "actionsOverrides").body(actionsOverride).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.ADD_ACTIONS_OVERRIDE, null);
+    assertApplicationData(auditDTO, app);
+    assertPolicyActionOverrideData(auditDTO, policy, app.getPublicId(), false);
+  }
+
+  @Test
+  public void testAddActionsOverride_Organization() throws Exception {
+    //Root Organization is the owner
+    Policy policy = tempEntity.newPolicy();
+    policy.setPolicyActionsOverrideAllowed(true);
+    new PolicyDAO().update(policy);
+
+    policyResourceRequest(organization).path(policy.getId(), "actionsOverrides").body(new LinkedHashMap<>()).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.ADD_ACTIONS_OVERRIDE, null);
+    assertOrganizationData(auditDTO, organization);
+    assertPolicyActionOverrideData(auditDTO, policy, organization.getId(), true);
+  }
+
+  @Test
+  public void testAddActionsOverride_Unauthorized() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+
+    policyResourceRequest(organization)
+            .path(policy.getId(), "actionsOverrides")
+            .body(new LinkedHashMap<>())
+            .with(unauthorizedUser())
+            .put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.ADD_ACTIONS_OVERRIDE, "unauthorized");
+    assertOrganizationData(auditDTO, organization);
+  }
+
+  @Test
+  public void testDeleteActionsOverride_Application() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy();
+
+    policyResourceRequest(app).path(policy.getId(), "actionsOverrides").delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_ACTIONS_OVERRIDE, null);
+    assertApplicationData(auditDTO, app);
+    assertPolicyActionOverrideData(auditDTO, policy, app.getPublicId(), true);
+  }
+
+  @Test
+  public void testDeleteActionsOverride_Organization() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+
+    policyResourceRequest(organization).path(policy.getId(), "actionsOverrides").delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_ACTIONS_OVERRIDE, null);
+    assertOrganizationData(auditDTO, organization);
+    assertPolicyActionOverrideData(auditDTO, policy, organization.getId(), true);
+  }
+
+  @Test
+  public void testDeleteActionsOverride_Unauthorized() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+
+    policyResourceRequest(organization).path(policy.getId(), "actionsOverrides").with(unauthorizedUser()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_ACTIONS_OVERRIDE, "unauthorized");
     assertOrganizationData(auditDTO, organization);
   }
 

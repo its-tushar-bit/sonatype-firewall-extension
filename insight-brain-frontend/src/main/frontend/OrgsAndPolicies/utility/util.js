@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { compose, includes, propEq, propOr, find, invertObj } from 'ramda';
+import { compose, includes, propEq, propOr, find, findIndex, equals, invertObj } from 'ramda';
 
 export function deriveEditRoute(routerState, to, params = {}) {
   return deriveRouteFromStateParams('edit', routerState, to, params);
@@ -32,6 +32,33 @@ function deriveRouteFromStateParams(ownerState, routerState, to, params = {}) {
 }
 //Returns a function that receives a list of applications or orgs and returns the owner's name that matches the ownerId
 export const getOwnerName = (ownerId) => compose(propOr('', 'name'), find(propEq('publicId', ownerId)));
+
+/**
+ * @param ownerHierarchyIds - the ids in the owner hierarchy starting with current owner and ending with root org.
+ * @param policy - the policy to get actions override for.
+ * @returns {actionsOverride, isCurrentOwnerOverride} object or null if there is no override.
+ */
+export const getActionsOverride = (ownerHierarchyIds, policy) => {
+  if (!policy.policyActionsOverrideAllowed || !policy.policyActionsOverrides) {
+    return null;
+  }
+
+  const { ownerId, policyActionsOverrides } = policy;
+  const policyOwnerIndex = findIndex(equals(ownerId), ownerHierarchyIds);
+  const ownerIdsUptoPolicyOwnerId = ownerHierarchyIds.slice(0, policyOwnerIndex);
+
+  let actionsOverride, isCurrentOwnerOverride;
+
+  ownerIdsUptoPolicyOwnerId.some((id, index) => {
+    if (policyActionsOverrides[id]) {
+      actionsOverride = policyActionsOverrides[id];
+      isCurrentOwnerOverride = index === 0;
+      return true;
+    }
+  });
+
+  return actionsOverride ? { actionsOverride, isCurrentOwnerOverride } : null;
+};
 
 export const rscToAngularColorMap = {
   purple: 'light-purple',

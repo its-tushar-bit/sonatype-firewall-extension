@@ -81,14 +81,18 @@ public class PolicyResource
 
   private final ManagementEventService managementEventService;
 
+  private final PolicyService policyService;
+
   @Inject
   public PolicyResource(PolicyImportExport policyImportExport,
                         NgUploadResponseGenerator ngUploadResponseGenerator,
-                        final ManagementEventService managementEventService)
+                        final ManagementEventService managementEventService,
+                        final PolicyService policyService)
   {
     this.policyImportExport = policyImportExport;
     this.ngUploadResponseGenerator = ngUploadResponseGenerator;
     this.managementEventService = managementEventService;
+    this.policyService = policyService;
   }
 
   @GET
@@ -193,6 +197,58 @@ public class PolicyResource
     policyDAO.update(policy);
     AuditData.get().setPolicyWithDetails(policy);
 
+    managementEventService.postEvent(UPDATED, policy);
+
+    return policy;
+  }
+
+  @PUT
+  @Path("{policyId}/actionsOverrides")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.WRITE)
+  @Audited(AuditEvent.ADD_ACTIONS_OVERRIDE)
+  public Policy addActionsOverride(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
+      @PathParam("policyId") final String policyId,
+      final Map<String, String> actionsOverride)
+  {
+    log.debug("Received request to addActionsOverride for ownerId {}, policyId {}", ownerId, policyId);
+
+    PolicyDAO policyDAO = new PolicyDAO();
+    Policy policy = policyDAO.getByIdNotNull(policyId);
+    if (!policy.isPolicyActionsOverrideAllowed()) {
+      throw new BadRequestException("Actions override is not allowed for policy with id " + policy.getId());
+    }
+
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    policy.addPolicyActionsOverride(internalOwnerId, actionsOverride);
+    policyDAO.update(policy);
+    AuditData.get().setPolicy(policy).setData("overridingOwnerId", ownerId)
+      .setData("actionsOverride", actionsOverride);
+
+    managementEventService.postEvent(UPDATED, policy);
+
+    return policy;
+  }
+
+  @DELETE
+  @Path("{policyId}/actionsOverrides")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.WRITE)
+  @Audited(AuditEvent.REMOVE_ACTIONS_OVERRIDE)
+  public Policy deleteActionsOverride(
+      @AuthzContext(AuthzContext.Key.TYPE) @PathParam("ownerType") final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) @PathParam("ownerId") final String ownerId,
+      @PathParam("policyId") final String policyId)
+  {
+    log.debug("Received request to delete {} policy's actions overrides for ownerId {}, policyId {}", ownerType,
+        ownerId, policyId);
+
+    String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
+    Policy policy = policyService.removeOverride(internalOwnerId, policyId);
+    AuditData.get().setPolicy(policy).setData("overridingOwnerId", ownerId);
     managementEventService.postEvent(UPDATED, policy);
 
     return policy;

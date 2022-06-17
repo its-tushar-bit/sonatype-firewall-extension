@@ -59,6 +59,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.policy.PolicyService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -140,6 +141,8 @@ public class ApplicationMoveService
 
   private final CurrentUser currentUser;
 
+  private final PolicyService policyService;
+
   @Inject
   public ApplicationMoveService(ApplicationDAO applicationDAO,
                                 OrganizationDAO organizationDAO,
@@ -155,8 +158,9 @@ public class ApplicationMoveService
                                 ComponentLabelDAO componentLabelDAO,
                                 LicenseThreatGroupDAO ltgDAO,
                                 LicenseOverrideDAO licenseOverrideDAO,
-      MembershipMappingDAO membershipMappingDAO,
-      CurrentUser currentUser)
+                                MembershipMappingDAO membershipMappingDAO,
+                                CurrentUser currentUser,
+                                PolicyService policyService)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
@@ -174,6 +178,7 @@ public class ApplicationMoveService
     this.licenseOverrideDAO = licenseOverrideDAO;
     this.membershipMappingDAO = membershipMappingDAO;
     this.currentUser = currentUser;
+    this.policyService = policyService;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -287,6 +292,15 @@ public class ApplicationMoveService
         for (Owner owner : ownerDAO.walkHierarchy(tx, newParentId)) {
           newAncestorIds.add(owner.getId());
         }
+
+        Owner newParent = ownerDAO.getById(newParentId);
+        for (Owner owner : ownerDAO.walkHierarchy(tx, application.getOrganizationId())) {
+          if (owner.getId().equals(newParent.getParentOwnerId()) || owner.getId().equals(newParent.getId())) {
+            break;
+          }
+          policyService.removeOverrides(tx, owner.getId(), application.getId());
+        }
+
         loadOldPolicyConfiguration();
         mapTags();
         mapPolicies();

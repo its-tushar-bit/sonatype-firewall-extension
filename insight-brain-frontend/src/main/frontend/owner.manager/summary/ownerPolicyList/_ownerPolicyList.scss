@@ -14,6 +14,12 @@ owner-policy-list {
 }
 
 .iq-table--policy-list {
+  // overrides styles set directly on the tooltip.
+  .iq-tooltip {
+    left: 0 !important;
+    margin-left: 16px;
+  }
+
   table-layout: fixed;
 
   .iq-cell--chevron {

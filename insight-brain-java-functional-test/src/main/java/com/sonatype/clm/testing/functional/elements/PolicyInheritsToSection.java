@@ -45,4 +45,8 @@ public class PolicyInheritsToSection
   public AssociationEditor associationEditor() {
     return new AssociationEditor(ROOT);
   }
+
+  public IqCheckbox policyActionsOverrideCheckbox() {
+    return new IqCheckbox(child("#editor-policy-actions-override"));
+  }
 }

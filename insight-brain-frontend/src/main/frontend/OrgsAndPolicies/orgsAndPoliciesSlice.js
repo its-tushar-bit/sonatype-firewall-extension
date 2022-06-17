@@ -18,6 +18,7 @@ import policySlice from './policySlice';
 import ownerEditorSlice from './ownerEditorSlice';
 import sourceControlSlice from './sourceControlSlice';
 import ownerSummarySlice from './ownerSummarySlice';
+import ownerDetailTreeSlice from './ownerDetailTreeSlice';
 import policyViolationGrandfatheringSlice from './policyViolationGrandfatheringSlice';
 
 export default combineReducers({
@@ -37,5 +38,6 @@ export default combineReducers({
   ownerEditor: ownerEditorSlice,
   sourceControl: sourceControlSlice,
   ownerSummary: ownerSummarySlice,
+  ownerDetailTree: ownerDetailTreeSlice,
   policyViolationGrandfathering: policyViolationGrandfatheringSlice,
 });

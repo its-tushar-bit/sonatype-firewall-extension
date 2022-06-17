@@ -8,6 +8,7 @@ import { unwrapResult } from '@reduxjs/toolkit';
 import { selectSiblings as selectPolicySiblings } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
+import { actions as ownerDetailTreeActions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
 import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
 import { selectLabelsSiblings } from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import {
@@ -17,6 +18,7 @@ import {
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
+import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function OwnerDetailTreeViewController(
@@ -55,6 +57,8 @@ export default function OwnerDetailTreeViewController(
     loadOrganizations: organizationsActions.loadOrganizations,
     loadApplicableCategories: applicationCategoriesActions.loadApplicableCategories,
     setSelectedOwner: rootActions.setSelectedOwner,
+    setLoading: ownerDetailTreeActions.setLoading,
+    setLoadError: ownerDetailTreeActions.setLoadError,
   })(vm);
 
   vm.doLoad();
@@ -64,6 +68,8 @@ export default function OwnerDetailTreeViewController(
   });
 
   function doLoad() {
+    vm.setLoading(true);
+    vm.setLoadError(null);
     var promises = [$http.get(CLMContextLocations.getOwnerDetailsUrl())];
 
     if (vm.isApp) {
@@ -101,10 +107,11 @@ export default function OwnerDetailTreeViewController(
         }
       })
       .catch((error) => {
-        vm.error = error;
+        vm.setLoadError(error);
+      })
+      .finally(() => {
+        vm.setLoading(false);
       });
-
-    delete vm.error;
   }
 
   $scope.$on('resource.data.modified', vm.doLoad);
@@ -122,6 +129,8 @@ export const mapStateToThis = (state) => ({
   isMonitoringSupported: selectIsMonitoringSupported(state),
   isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
   ownerName: selectSelectedOwnerName(state),
+  loading: selectLoading(state),
+  loadError: selectLoadError(state),
 });
 
 OwnerDetailTreeViewController.$inject = [

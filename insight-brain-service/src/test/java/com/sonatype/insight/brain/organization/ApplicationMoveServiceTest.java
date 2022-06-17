@@ -7,6 +7,9 @@ package com.sonatype.insight.brain.organization;
 
 import javax.inject.Inject;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiMoveApplicationResponseDTOV2;
@@ -24,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -46,6 +50,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Before;
@@ -158,6 +163,20 @@ public class ApplicationMoveServiceTest
     policy.setOwnerId(owner.getId());
     policy.addConstraint(constraint);
     return tempEntity.newPolicy(policy);
+  }
+
+  private Policy createPolicyWithActionsOverrides(String name, String ownerId, String overridingOwnerId) {
+    Policy policy = tempEntity.newPolicy(ownerId, name);
+    policy.setPolicyActionsOverrideAllowed(true);
+    Map<String, String> actionsOverrides = new LinkedHashMap<>();
+    actionsOverrides.put("stage-release", "fail");
+    actionsOverrides.put("release", "fail");
+    actionsOverrides.put("build", "warn");
+
+    String internalOwnerId = IdUtils.getInternalOwnerId(OwnerType.APPLICATION, overridingOwnerId);
+    policy.addPolicyActionsOverride(internalOwnerId, actionsOverrides);
+    policyDAO.update(policy);
+    return policy;
   }
 
   @Test
@@ -594,5 +613,24 @@ public class ApplicationMoveServiceTest
         .containsExactlyInAnyOrder(String.format(ApplicationMoveService.LICENSE_OVERRIDES_LOST_MSG, 3));
     assertThat(applicationDAO.getById(app.getId()).getOrganizationId()).isEqualTo(newOrg.getId());
     assertThat(licenseOverrideDAO.getByOwnerId(app.getId())).isEmpty();
+  }
+
+  @Test
+  public void testMoveApplication_OldPolicyActionsOverridesAreRemoved() {
+    Application app = tempEntity.newApplication(oldOrg.getId());
+    Policy oldOrgPolicy = createPolicyWithActionsOverrides(
+            "Policy with actions overrides", oldOrg.getId(), app.getId()
+    );
+    Policy rootOrgPolicy = createPolicyWithActionsOverrides(
+            "Policy with actions overrides 2", Organization.ROOT_ORGANIZATION_ID, app.getId()
+    );
+    createPolicyWithActionsOverrides("Policy with actions overrides", newOrg.getId(), app.getId());
+    applicationMoveService.moveApplication(app.getId(), newOrg.getId());
+
+    oldOrgPolicy = policyDAO.getById(oldOrgPolicy.getId());
+    rootOrgPolicy = policyDAO.getById(rootOrgPolicy.getId());
+
+    assertThat(oldOrgPolicy.getPolicyActionsOverrides().get(app.getId())).isNull();
+    assertThat(rootOrgPolicy.getPolicyActionsOverrides().get(app.getId())).hasSize(3);
   }
 }

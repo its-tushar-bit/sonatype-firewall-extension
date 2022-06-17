@@ -1,4 +1,37 @@
 <div load-wrapper="vm.loadError" loading="!vm.actionStages" reload="vm.doLoad()">
+  <div id="edit-policy-actions-override" class="iq-form-group" ng-if="vm.isInherited">
+    <p ng-if="vm.isActionOverrideEnabled" class="edit-policy-actions-override-title">
+      Action overrides have been enabled for this policy. Modifying actions will only affect this level.
+    </p>
+    <p ng-if="!vm.isActionOverrideEnabled" class="edit-policy-actions-override-title">
+      Action overrides have been disabled for this policy.
+    </p>
+    <div class="iq-form-group">
+      <label class="iq-label" ng-class="{disabled: !vm.isActionOverrideEnabled}">
+        Override Status
+      </label>
+      <div class="iq-form-group">
+        <iq-radio
+          id="edit-policy-actions-override-inherit"
+          model="vm.overrideParentActions"
+          value="false"
+          on-click="vm.onPolicyActionsOverride(false)"
+          is-disabled="!vm.isActionOverrideEnabled"
+        >
+          <span>Inherit parent actions</span>
+        </iq-radio>
+        <iq-radio
+          id="edit-policy-actions-override-override"
+          model="vm.overrideParentActions"
+          value="true"
+          on-click="vm.onPolicyActionsOverride(true)"
+          is-disabled="!vm.isActionOverrideEnabled"
+        >
+          <span>Override parent actions</span>
+        </iq-radio>
+      </div>
+    </div>
+  </div>
   <div
     id="actions-disabled-message"
     ng-if="!vm.isEnforcementSupported"
@@ -35,7 +68,7 @@
           <iq-radio
             model="vm.actions[actionStage.stageTypeId]"
             on-click="vm.onActionChange(actionStage.stageTypeId, value)"
-            is-disabled="vm.disabled || !vm.isEnforcementSupportedForStage(actionStage.stageTypeId)"
+            is-disabled="vm.isActionsGridDisabled(actionStage.stageTypeId)"
             tooltip="{{ !vm.isEnforcementSupportedForStage(actionStage.stageTypeId) ? 'Actions are not supported by your license' : '' }}"
           >
           </iq-radio>
@@ -56,7 +89,7 @@
           <iq-radio
             model="vm.actions[actionStage.stageTypeId]"
             on-click="vm.onActionChange(actionStage.stageTypeId, value)"
-            is-disabled="vm.disabled || !vm.isEnforcementSupportedForStage(actionStage.stageTypeId)"
+            is-disabled="vm.isActionsGridDisabled(actionStage.stageTypeId)"
             tooltip="{{ !vm.isEnforcementSupportedForStage(actionStage.stageTypeId) ? 'Actions are not supported by your license' : '' }}"
             value="'warn'"
             ><!--
@@ -79,7 +112,7 @@
           <iq-radio
             model="vm.actions[actionStage.stageTypeId]"
             on-click="vm.onActionChange(actionStage.stageTypeId, value)"
-            is-disabled="vm.disabled || !vm.isEnforcementSupportedForStage(actionStage.stageTypeId)"
+            is-disabled="vm.isActionsGridDisabled(actionStage.stageTypeId)"
             tooltip="{{ !vm.isEnforcementSupportedForStage(actionStage.stageTypeId) ? 'Actions are not supported by your license' : '' }}"
             value="'fail'"
             ><!--

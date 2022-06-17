@@ -15,7 +15,9 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -26,11 +28,16 @@ import static java.util.stream.Collectors.toSet;
 
 public class PolicyAlertUtil
 {
+  private static final OwnerDAO ownerDAO = new OwnerDAO();
+
   public static List<PolicyAlert> createPolicyAlerts(List<PolicyViolation> policyViolations,
                                                      String stageTypeId,
+                                                     String applicationId,
                                                      boolean forMonitoring,
                                                      boolean enableActions)
   {
+    Owner owner = ownerDAO.getById(applicationId);
+    List<String> ownerIds = ownerDAO.getOwnerIds(owner);
     Map<String, Policy> policiesById =
         new PolicyDAO().getByIds(policyViolations.stream().map(PolicyViolation::getPolicyId).collect(toSet())).stream()
             .collect(toMap(Policy::getId, Function.identity()));
@@ -45,7 +52,7 @@ public class PolicyAlertUtil
         actions = Collections.emptyList();
       }
       else {
-        actions = policy.toActions(stageTypeId, forMonitoring);
+        actions = policy.toActions(stageTypeId, forMonitoring, ownerIds);
       }
       PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
       result.add(policyAlert);

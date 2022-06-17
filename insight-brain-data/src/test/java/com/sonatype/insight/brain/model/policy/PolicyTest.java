@@ -5,8 +5,14 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
 import com.sonatype.insight.brain.model.ValidationResult;
@@ -17,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
+import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
@@ -27,13 +34,16 @@ import com.sonatype.insight.json.store.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
+import static com.sonatype.clm.dto.model.policy.Action.ID_FAIL;
+import static com.sonatype.clm.dto.model.policy.Action.ID_NOTIFY;
+import static com.sonatype.clm.dto.model.policy.Action.ID_WARN;
 import static com.sonatype.insight.brain.model.policy.ValidationAssert.assertValidationResultHasErrors;
 import static com.sonatype.insight.brain.model.policy.ValidationAssert.assertValidationResultHasNoErrors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyTest
 {
-  private String applicationId = "PolicyTest_AppId";
+  private final String applicationId = "PolicyTest_AppId";
 
   @Test
   public void testGetThreatCategory_Security() {
@@ -386,5 +396,205 @@ public class PolicyTest
     policy.setDroolsCode("unwanted");
     policy = JsonUtils.parse(JsonUtils.format(policy), Policy.class);
     assertThat(policy.getDroolsCode()).isNull();
+  }
+
+  @Test
+  public void testToActions() {
+    Policy policy = new Policy("PolicyId", "PolicyName");
+    policy.setPolicyActionsOverrideAllowed(true);
+    policy.setAction("Deploy", ID_NOTIFY);
+    List<String> ownerIds = new ArrayList<>();
+    ownerIds.add("OwnerId");
+    ownerIds.add("Root");
+
+    Map<String, Map<String, String>> policyActionsOverrides = new HashMap<>();
+    Map<String, String> values = new HashMap<>();
+    values.put("Deploy", ID_WARN);
+    policyActionsOverrides.put("OwnerId", values);
+    policy.setPolicyActionsOverrides(policyActionsOverrides);
+
+    List<Action> deploy = policy.toActions("Deploy", false, ownerIds);
+
+    assertThat(deploy.size()).isOne();
+    assertThat(deploy.get(0).getActionTypeId()).isEqualTo(ID_WARN);
+  }
+
+  @Test
+  public void testToActions_WithSeveralOwners() {
+    Policy policy = new Policy("PolicyId", "PolicyName");
+    policy.setPolicyActionsOverrideAllowed(true);
+    policy.setAction("Deploy", ID_NOTIFY);
+    List<String> ownerIds = new ArrayList<>();
+    ownerIds.add("AppOwner");
+    ownerIds.add("OrganizationOwner");
+
+    Map<String, Map<String, String>> policyActionsOverrides = new HashMap<>();
+    Map<String, String> organizationValues = new HashMap<>();
+    organizationValues.put("Deploy", ID_WARN);
+    Map<String, String> appValues = new HashMap<>();
+    appValues.put("Deploy", ID_FAIL);
+    policyActionsOverrides.put("OrganizationOwner", organizationValues);
+    policyActionsOverrides.put("AppOwner", appValues);
+    policy.setPolicyActionsOverrides(policyActionsOverrides);
+
+    List<Action> deploy = policy.toActions("Deploy", false, ownerIds);
+
+    assertThat(deploy.size()).isOne();
+    assertThat(deploy.get(0).getActionTypeId()).isEqualTo(ID_FAIL);
+  }
+
+  @Test
+  public void testToActions_OverrideFirstParentValue() {
+    Policy policy = new Policy("PolicyId", "PolicyName");
+    policy.setPolicyActionsOverrideAllowed(true);
+    policy.setAction("Deploy", ID_NOTIFY);
+    List<String> ownerIds = new ArrayList<>();
+    ownerIds.add("AppOwner");
+    ownerIds.add("OrganizationOwner");
+    ownerIds.add("Parent");
+    ownerIds.add("Root");
+
+    Map<String, Map<String, String>> policyActionsOverrides = new HashMap<>();
+    Map<String, String> orgValues = new HashMap<>();
+    orgValues.put("Deploy", ID_FAIL);
+    Map<String, String> values = new HashMap<>();
+    values.put("Deploy", ID_WARN);
+    policyActionsOverrides.put("OrganizationOwner", orgValues);
+    policyActionsOverrides.put("Parent", values);
+    policy.setPolicyActionsOverrides(policyActionsOverrides);
+
+    List<Action> deploy = policy.toActions("Deploy", false, ownerIds);
+
+    assertThat(deploy.size()).isOne();
+    assertThat(deploy.get(0).getActionTypeId()).isEqualTo(ID_FAIL);
+  }
+
+  @Test
+  public void testToActions_OverrideNotAllowed() {
+    Policy policy = new Policy("PolicyId", "PolicyName");
+    policy.setPolicyActionsOverrideAllowed(false);
+    policy.setAction("Deploy", ID_NOTIFY);
+    List<String> ownerIds = new ArrayList<>();
+    ownerIds.add("OwnerId");
+    ownerIds.add("Root");
+
+    Map<String, Map<String, String>> policyActionsOverrides = new HashMap<>();
+    Map<String, String> values = new HashMap<>();
+    values.put("Deploy", ID_WARN);
+    policyActionsOverrides.put("OwnerId", values);
+    policy.setPolicyActionsOverrides(policyActionsOverrides);
+
+    List<Action> deploy = policy.toActions("Deploy", false, ownerIds);
+
+    assertThat(deploy.size()).isOne();
+    assertThat(deploy.get(0).getActionTypeId()).isEqualTo(ID_NOTIFY);
+  }
+
+  @Test
+  public void testToActions_HasWrongStageId() {
+    Policy policy = new Policy("PolicyId", "PolicyName");
+    policy.setPolicyActionsOverrideAllowed(true);
+    List<String> ownerIds = new ArrayList<>();
+    ownerIds.add("OwnerId");
+
+    Map<String, Map<String, String>> policyActionsOverrides = new HashMap<>();
+    Map<String, String> values = new HashMap<>();
+    values.put("WrongStage", "warn");
+    policyActionsOverrides.put("OwnerId", values);
+    policy.setPolicyActionsOverrides(policyActionsOverrides);
+
+    List<Action> deploy = policy.toActions("Deploy", false, ownerIds);
+
+    assertThat(deploy).isEmpty();
+  }
+
+  @Test
+  public void testToActions_ContinuesMonitoringIsTrue() {
+    Policy policy = new Policy("PolicyId", "PolicyName");
+    List<String> ownerIds = new ArrayList<>();
+    ownerIds.add("OwnerId");
+
+    List<UserNotification> notifications = new ArrayList<>();
+    UserNotification userNotification = new UserNotification();
+    Notifications notification = new Notifications();
+    Set<String> set = new HashSet<>();
+    set.add("continuous-monitoring");
+    userNotification.setStageIds(set);
+    notifications.add(userNotification);
+    notification.setUserNotifications(notifications);
+    policy.setNotifications(notification);
+
+    List<Action> deploy = policy.toActions("Deploy", true, ownerIds);
+
+    assertThat(deploy.size()).isOne();
+    assertThat(deploy.get(0).getActionTypeId()).isEqualTo("notify");
+  }
+
+  @Test
+  public void testToActions_OwnerIdIsNull() {
+    Policy policy = new Policy("PolicyId", "PolicyName");
+    policy.setAction("Deploy", ID_NOTIFY);
+    policy.setPolicyActionsOverrideAllowed(true);
+    List<Action> deploy = policy.toActions("Deploy", false, null);
+
+    assertThat(deploy.size()).isOne();
+    assertThat(deploy.get(0).getActionTypeId()).isEqualTo(ID_NOTIFY);
+  }
+
+  @Test
+  public void testToActions_ActionOverridesIsEmpty() {
+    Policy policy = new Policy("PolicyId", "PolicyName");
+    policy.setPolicyActionsOverrideAllowed(true);
+    policy.setAction("Deploy", ID_NOTIFY);
+    List<String> ownerIds = new ArrayList<>();
+    ownerIds.add("OwnerId");
+
+    Map<String, Map<String, String>> policyActionsOverrides = new HashMap<>();
+    policy.setPolicyActionsOverrides(policyActionsOverrides);
+
+    List<Action> deploy = policy.toActions("Deploy", false, ownerIds);
+
+    assertThat(deploy.size()).isOne();
+    assertThat(deploy.get(0).getActionTypeId()).isEqualTo(ID_NOTIFY);
+  }
+
+  @Test
+  public void testToActions_ActionOverridesIsNull() {
+    Policy policy = new Policy("PolicyId", "PolicyName");
+    policy.setPolicyActionsOverrideAllowed(true);
+    policy.setAction("Deploy", ID_NOTIFY);
+    List<String> ownerIds = new ArrayList<>();
+    ownerIds.add("OwnerId");
+
+    policy.setPolicyActionsOverrides(null);
+
+    List<Action> deploy = policy.toActions("Deploy", false, ownerIds);
+
+    assertThat(deploy.size()).isOne();
+    assertThat(deploy.get(0).getActionTypeId()).isEqualTo(ID_NOTIFY);
+  }
+
+  @Test
+  public void testToActions_OverrideForPolicyOwnerIsIgnored() {
+    Policy policy = new Policy("PolicyId", "PolicyName");
+    policy.setOwnerId("ParentOrg");
+    policy.setPolicyActionsOverrideAllowed(true);
+    policy.setAction("Deploy", ID_NOTIFY);
+    List<String> ownerIds = new ArrayList<>();
+    ownerIds.add("AppOwner");
+    ownerIds.add("ParentOrg");
+    ownerIds.add("OrganizationOwner");
+    ownerIds.add("Root");
+    Map<String, Map<String, String>> policyActionsOverrides = new HashMap<>();
+    Map<String, String> values = new HashMap<>();
+    values.put("Deploy", ID_FAIL);
+    policyActionsOverrides.put("OrganizationOwner", values);
+    policyActionsOverrides.put("ParentOrg", values);
+    policy.setPolicyActionsOverrides(policyActionsOverrides);
+
+    List<Action> deploy = policy.toActions("Deploy", false, ownerIds);
+
+    assertThat(deploy.size()).isOne();
+    assertThat(deploy.get(0).getActionTypeId()).isEqualTo(ID_NOTIFY);
   }
 }

@@ -39,6 +39,7 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.utils.ConditionUtils;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -274,7 +275,7 @@ public abstract class AbstractPolicyEditorTest
     String ownerId = currentOwner.getId();
     Tag[] categories = createCategories(
         OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? ownerId : currentOwner.getParentOwnerId());
-    Policy policy = createPolicy(ownerId, categories);
+    Policy policy = createPolicy(ownerId, categories, false);
 
     refresh();
 
@@ -300,7 +301,7 @@ public abstract class AbstractPolicyEditorTest
     if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
       tempEntity.newTag(currentOwner.getId());
     }
-    Policy policy = createPolicy(inheritedOwnerId, categories);
+    Policy policy = createPolicy(inheritedOwnerId, categories, false);
 
     refresh();
 
@@ -322,7 +323,7 @@ public abstract class AbstractPolicyEditorTest
     String ownerId = currentOwner.getId();
     Tag[] categories = createCategories(
         OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? ownerId : currentOwner.getParentOwnerId());
-    Policy policy = createPolicy(ownerId, categories);
+    Policy policy = createPolicy(ownerId, categories, false);
 
     refresh();
 
@@ -337,7 +338,7 @@ public abstract class AbstractPolicyEditorTest
     String ownerId = currentOwner.getId();
     Tag[] categories = createCategories(
         OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? ownerId : currentOwner.getParentOwnerId());
-    Policy policy = createPolicy(ownerId, categories);
+    Policy policy = createPolicy(ownerId, categories, false);
 
     refresh();
 
@@ -477,7 +478,7 @@ public abstract class AbstractPolicyEditorTest
     return new Tag[]{category1, category2};
   }
 
-  private Policy createPolicy(String ownerId, Tag[] categories) {
+  private Policy createPolicy(String ownerId, Tag[] categories, boolean policyActionsOverrideAllowed) {
     Policy policy = tempEntity.newPolicy(ownerId, "original name", 1);
     Constraint constraint1 = new Constraint(policy.getId() + "1", "First Constraint with One Condition", null);
     constraint1.addCondition(new Condition(AgeInDaysConditionType.ID, "older than", "730"));
@@ -493,6 +494,8 @@ public abstract class AbstractPolicyEditorTest
     constraint3.addCondition(new Condition(CoordinatesConditionType.ID, "do not match", "maven:blah:blah:blah"));
 
     policy.setConstraints(Arrays.asList(constraint1, constraint2, constraint3));
+
+    policy.setPolicyActionsOverrideAllowed(policyActionsOverrideAllowed);
 
     if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
       tempEntity.newPolicyTag(policy.getId(), categories[0].getId());
@@ -615,6 +618,7 @@ public abstract class AbstractPolicyEditorTest
     policy = policyDAO.getById(policy.getId());
     assertThat(policy.getConstraints().get(0).getName()).isEqualTo("New Constraint Name");
 
+    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
     constraintEdit.conditions().shouldHaveSize(1);
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.ageCondition(0).deleteConditionButton().shouldBe(visible, disabled);
@@ -632,6 +636,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(updatedAgeCondition.getOperator()).isEqualTo("younger than");
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
+    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
     constraintEdit.addConditionButton().shouldBe(visible, enabled).click();
     constraintEdit.conditions().shouldHaveSize(2);
     constraintEdit.condition(1).type().chooseOption(conditionTypesOptionMap.get(LicenseThreatGroupConditionType.class));
@@ -652,6 +657,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(ltgCondition.getOperator()).isEqualTo("is not");
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
+    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
     constraintEdit.addConditionButton().shouldBe(visible, enabled).click();
     constraintEdit.conditions().shouldHaveSize(3);
     constraintEdit.condition(2).type().selectedItem().shouldHave(text("Age"));
@@ -674,6 +680,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(coordinatesCondition.getOperator()).isEqualTo("do not match");
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
+    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
     constraintEdit.condition(2).type()
         .chooseOption(conditionTypesOptionMap.get(SecurityVulnerabilitySeverityConditionType.class));
     constraintEdit.condition(2).operator().selectedItem().shouldHave(text("=")).click();
@@ -697,9 +704,12 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.conditionUnsupportedMessages().shouldHaveSize(0);
 
     // Check that severity can be set to 0 as well
+    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
     constraintEdit.inputCondition(2).value().val("0");
     PolicyEditorPage.savePolicy();
     PolicyEditorPage.constraintsPill().click();
+
+    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
 
     constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, enabled);
     constraintEdit.condition(1).deleteConditionButton().shouldBe(visible, enabled);
@@ -713,6 +723,7 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, disabled);
     PolicyEditorPage.savePolicy();
     PolicyEditorPage.constraintsPill().click();
+    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
     assertThat(constraints.get(0).getConditions()).hasSize(1);
@@ -1426,6 +1437,7 @@ public abstract class AbstractPolicyEditorTest
   private void testCreatePolicy_actionsSection() {
     // header names
     ActionsSection actionsTable = PolicyEditorPage.actionsSection();
+    ScrollUtil.scrollIntoView(actionsTable.headers().first());
     actionsTable.headers().shouldHave(texts("PROXY", "DEVELOP", "SOURCE", "BUILD", "STAGE", "RELEASE", "OPERATE"));
 
     // column hover

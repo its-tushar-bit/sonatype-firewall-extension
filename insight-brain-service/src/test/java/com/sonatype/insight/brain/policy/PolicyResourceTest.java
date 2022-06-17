@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.policy;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -171,6 +173,146 @@ public class PolicyResourceTest
   public void testUpdatePolicy_InvalidPolicy_OrgLevel() throws Exception {
     String orgId = tempEntity.newOrganization("test").getId();
     testUpdatePolicy_InvalidPolicy(OwnerType.ORGANIZATION, orgId, orgId);
+  }
+
+  @Test
+  public void testAddActionsOverride() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+    policy.setPolicyActionsOverrideAllowed(true);
+    policyDAO.update(policy);
+
+    String applicationPublicId = "PolicyResourceTest_testAddActionOverride";
+    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Map<String, String> actionsOverride = new LinkedHashMap<>();
+    actionsOverride.put("stage-release", "fail");
+    actionsOverride.put("release", "fail");
+    actionsOverride.put("build", "warn");
+
+    HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId)
+        .path(policy.getId(), "actionsOverrides")
+        .body(actionsOverride)
+        .put();
+
+    assertResponseStatus(200, response);
+    final Policy updatedPolicy = response.getBody(Policy.class);
+    Map<String, String> savedActionsOverride = updatedPolicy.getPolicyActionsOverrides().get(app.getId());
+    assertThat(savedActionsOverride).isNotNull();
+    assertThat(savedActionsOverride.size()).isEqualTo(3);
+    assertThat(savedActionsOverride.get("stage-release")).isEqualTo("fail");
+    assertThat(savedActionsOverride.get("release")).isEqualTo("fail");
+    assertThat(savedActionsOverride.get("build")).isEqualTo("warn");
+  }
+
+  @Test
+  public void testAddActionsOverride_policyOverrideIsNotEnabled() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+
+    String applicationPublicId = "PolicyResourceTest_testAddActionOverride";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Map<String, String> actionsOverride = new LinkedHashMap<>();
+    actionsOverride.put("stage-release", "fail");
+    actionsOverride.put("release", "fail");
+    actionsOverride.put("build", "warn");
+
+    HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId)
+        .path(policy.getId(), "actionsOverrides")
+        .body(actionsOverride)
+        .put();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("Actions override is not allowed for policy with id " + policy.getId());
+  }
+
+  @Test
+  public void testAddActionsOverride_invalidPolicyId() throws Exception {
+    String applicationPublicId = "PolicyResourceTest_testAddActionOverride";
+    tempEntity.newApplicationWithParent(applicationPublicId);
+
+    Map<String, String> actionsOverride = new LinkedHashMap<>();
+    actionsOverride.put("stage-release", "fail");
+    actionsOverride.put("release", "fail");
+    actionsOverride.put("build", "warn");
+
+    HttpResponse response = restRequest(OwnerType.APPLICATION, applicationPublicId)
+        .path("123", "actionsOverrides")
+        .body(actionsOverride)
+        .put();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).isEqualTo("Cannot find a policy with ID 123.");
+  }
+
+  @Test
+  public void testDeleteActionsOverrides() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+    String applicationPublicId = "PolicyResourceTest_testDeleteActionsOverrides";
+    Organization testOrg = tempEntity.newOrganization("TestOrganization");
+    Application testApp = tempEntity.newApplication(applicationPublicId,testOrg.getId());
+
+    Map<String, String> applicationActionsOverrides = new LinkedHashMap<>();
+    applicationActionsOverrides.put("stage-release", "fail");
+    applicationActionsOverrides.put("release", "fail");
+    applicationActionsOverrides.put("build", "warn");
+
+    Map<String, String> organizationActionsOverrides = new LinkedHashMap<>();
+    organizationActionsOverrides.put("stage-release", "warn");
+    organizationActionsOverrides.put("release", "warn");
+
+    policy.addPolicyActionsOverride(testApp.getId(), applicationActionsOverrides);
+    policy.addPolicyActionsOverride(testOrg.getId(), organizationActionsOverrides);
+    policyDAO.update(policy);
+
+    HttpResponse response =
+        restRequest(OwnerType.APPLICATION, applicationPublicId).path(policy.getId(), "actionsOverrides")
+            .delete();
+
+    assertResponseStatus(200, response);
+    final Policy updatedPolicy = response.getBody(Policy.class);
+    assertThat(updatedPolicy.getPolicyActionsOverrides())
+        .isNotNull()
+        .hasSize(1)
+        .containsEntry(testOrg.getId(), organizationActionsOverrides);
+
+    Policy policyOnDB = new PolicyDAO().getById(policy.getId());
+    assertThat(policyOnDB.getPolicyActionsOverrides())
+        .isNotNull()
+        .hasSize(1)
+        .containsEntry(testOrg.getId(), organizationActionsOverrides);
+  }
+
+  @Test
+  public void testDeleteActionsOverrides_OverrideDoesNotExist() throws Exception {
+    Policy policy = tempEntity.newPolicy();
+    String applicationPublicId = "PolicyResourceTest_testDeleteActionsOverrides";
+    Organization testOrg = tempEntity.newOrganization("TestOrganization");
+    tempEntity.newApplication(applicationPublicId,testOrg.getId());
+
+    Map<String, String> organizationActionsOverrides = new LinkedHashMap<>();
+    organizationActionsOverrides.put("stage-release", "warn");
+    organizationActionsOverrides.put("release", "warn");
+
+    policy.addPolicyActionsOverride(testOrg.getId(), organizationActionsOverrides);
+    policyDAO.update(policy);
+
+    HttpResponse response =
+        restRequest(OwnerType.APPLICATION, applicationPublicId).path(policy.getId(), "actionsOverrides")
+            .delete();
+
+    assertResponseStatus(200, response);
+    final Policy updatedPolicy = response.getBody(Policy.class);
+    assertThat(updatedPolicy.getPolicyActionsOverrides())
+        .isNotNull()
+        .hasSize(1)
+        .containsEntry(testOrg.getId(), organizationActionsOverrides);
+
+    Policy policyOnDB = new PolicyDAO().getById(policy.getId());
+    assertThat(policyOnDB.getPolicyActionsOverrides())
+        .isNotNull()
+        .hasSize(1)
+        .containsEntry(testOrg.getId(), organizationActionsOverrides);
   }
 
   private void testUpdatePolicy_InvalidPolicy(OwnerType ownerType, String ownerId, String publicOwnerid)

@@ -15,7 +15,7 @@ import {
   selectRouterSlice,
   selectRouterCurrentParams,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { getPolicyCRUDUrl, getPolicyTagUrl, getPolicyUrl } from '../util/CLMLocation';
+import { getPolicyActionsOverridesUrl, getPolicyCRUDUrl, getPolicyTagUrl, getPolicyUrl } from '../util/CLMLocation';
 import {
   selectCategories,
   selectCurrentPolicy,
@@ -24,14 +24,15 @@ import {
   selectIsOrgOwner,
 } from './policySelectors';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
-import { deriveEditRoute } from './utility/util';
+import { deriveEditRoute, getActionsOverride } from './utility/util';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet, pathSet } from 'MainRoot/util/jsUtil';
 import { pathSetConst, propSet as reduxPropSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
+import { selectOwnerProperties, selectSelectedOwnerId } from './orgsAndPoliciesSelectors';
 import { actions as constraintActions } from 'MainRoot/OrgsAndPolicies/constraintSlice';
-import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { stateReload } from '../reduxUiRouter/routerActions';
+import { checkPermissions } from '../util/authorizationUtil';
 
 const REDUCER_NAME = 'policy';
 
@@ -40,12 +41,16 @@ export const initialState = {
   loadError: null,
   categoriesForPolicyLoadError: null,
   submitError: null,
+  overrideActionsFlag: null,
+  originalOverrideActionsFlag: null,
   currentPolicy: {
     id: undefined,
     name: undefined,
     threatLevel: 5,
     policyViolationGrandfatheringAllowed: null,
+    policyActionsOverrideAllowed: null,
     actions: {},
+    policyActionsOverrides: null,
     notifications: {
       userNotifications: [],
       roleNotifications: [],
@@ -75,7 +80,7 @@ export const initialState = {
   hasPolicyCategories: false,
   originalHasPolicyCategories: false,
   siblings: [],
-  readOnly: undefined,
+  isInherited: undefined,
   isOrgOwner: false,
   isRootOrg: false,
   originalProxyStageAction: null,
@@ -85,6 +90,7 @@ export const initialState = {
     success: null,
     errorState: null,
   },
+  hasEditIqPermission: false,
 };
 
 const getCategoriesForCurrentPolicy = (categoriesByOwner, currentPolicy) => {
@@ -173,7 +179,7 @@ const loadPolicyEditor = createAsyncThunk(
 
         const { policyId } = selectRouterCurrentParams(getState());
         let currentPolicy = initialState.currentPolicy,
-          readOnly,
+          isInherited,
           isOrgOwner,
           originalProxyStageAction,
           isRootOrg = selectIsRootOrganization(getState());
@@ -185,7 +191,7 @@ const loadPolicyEditor = createAsyncThunk(
           originalProxyStageAction = currentPolicy.actions['proxy'];
           policiesByOwner.some(({ policies, ownerId, ownerName, ownerType }, index) => {
             if (policies.some(matchesPolicyId)) {
-              readOnly = index !== 0;
+              isInherited = index !== 0;
 
               currentPolicyOwner.id = ownerId;
               currentPolicyOwner.name = ownerName;
@@ -212,19 +218,43 @@ const loadPolicyEditor = createAsyncThunk(
           dispatch(loadCategoriesForPolicy(currentPolicy));
         }
 
+        const ownerIds = policiesByOwner.map(prop('ownerId'));
+        const actionsOverrideInfo = getActionsOverride(ownerIds, currentPolicy);
+        const overrideActionsFlag = actionsOverrideInfo?.isCurrentOwnerOverride || false;
+
         return {
           siblings,
           currentPolicy,
           currentPolicyOwner,
-          readOnly,
+          isInherited,
           isOrgOwner,
           isRootOrg,
           originalProxyStageAction,
+          policiesByOwner,
+          overrideActionsFlag,
         };
       })
       .catch(rejectWithValue);
   }
 );
+
+const checkEditIqPermission = createAsyncThunk(
+  `${REDUCER_NAME}/checkEditIqPermission`,
+  (_, { rejectWithValue, getState }) => {
+    const state = getState();
+    const ownerType = selectIsOrganization(state) ? 'organization' : 'application';
+    const ownerId = selectSelectedOwnerId(state);
+    return checkPermissions(['WRITE'], ownerType, ownerId).catch(rejectWithValue);
+  }
+);
+
+const checkEditIqPermissionFulfilled = (state) => {
+  state.hasEditIqPermission = true;
+};
+
+const checkEditIqPermissionFailed = (state) => {
+  state.hasEditIqPermission = false;
+};
 
 const loadPolicyEditorRequested = (state) => {
   state.loading = true;
@@ -242,20 +272,23 @@ const loadPolicyEditorFulfilled = (state, { payload }) => {
     siblings,
     currentPolicy,
     currentPolicyOwner,
-    readOnly,
+    isInherited,
     isOrgOwner,
     isRootOrg,
     originalProxyStageAction,
+    overrideActionsFlag,
   } = payload;
 
   state.siblings = siblings;
   state.currentPolicy = currentPolicy;
   state.originalPolicy = currentPolicy;
   state.currentPolicyOwner = currentPolicyOwner;
-  state.readOnly = readOnly;
+  state.isInherited = isInherited;
   state.isOrgOwner = isOrgOwner;
   state.isRootOrg = isRootOrg;
   state.originalProxyStageAction = originalProxyStageAction;
+  state.overrideActionsFlag = overrideActionsFlag;
+  state.originalOverrideActionsFlag = overrideActionsFlag;
 };
 
 const loadPolicyEditorFailed = (state, { payload }) => {
@@ -309,6 +342,33 @@ const savePolicy = createAsyncThunk(
   }
 );
 
+const saveActionsOverride = createAsyncThunk(
+  `${REDUCER_NAME}/saveActionsOverride`,
+  (_, { getState, rejectWithValue }) => {
+    const state = getState();
+    const { id, policyActionsOverrides } = selectCurrentPolicy(state);
+    const { ownerType, ownerId } = selectOwnerProperties(state);
+    const ownerInternalId = selectSelectedOwnerId(state);
+    return axios
+      .put(getPolicyActionsOverridesUrl(ownerType, ownerId, id), policyActionsOverrides[ownerInternalId])
+      .then(({ data: updatedPolicy }) => {
+        return updatedPolicy;
+      })
+      .catch(rejectWithValue);
+  }
+);
+
+const removeActionsOverride = createAsyncThunk(
+  `${REDUCER_NAME}/removeActionsOverride`,
+  (_, { getState, rejectWithValue }) => {
+    const state = getState();
+    const { id } = selectCurrentPolicy(state);
+    const { ownerType, ownerId } = selectOwnerProperties(state);
+
+    return axios.delete(getPolicyActionsOverridesUrl(ownerType, ownerId, id)).then(prop('data')).catch(rejectWithValue);
+  }
+);
+
 const savePolicyRequested = (state) => {
   state.loading = true;
   state.loadError = null;
@@ -330,6 +390,26 @@ const savePolicyFulfilled = (state, { payload }) => {
   } else {
     state.currentPolicy = initialState.currentPolicy;
   }
+};
+
+const saveActionsOverrideFulfilled = (state, { payload }) => {
+  state.loading = false;
+  state.loadError = null;
+  state.isDirty = false;
+  state.currentPolicy = payload;
+  state.originalPolicy = payload;
+  state.overrideActionsFlag = true;
+  state.originalOverrideActionsFlag = true;
+};
+
+const removeActionsOverrideFulfilled = (state, { payload }) => {
+  state.loading = false;
+  state.loadError = null;
+  state.isDirty = false;
+  state.currentPolicy = payload;
+  state.originalPolicy = payload;
+  state.overrideActionsFlag = false;
+  state.originalOverrideActionsFlag = false;
 };
 
 const savePolicyFailed = (state, { payload }) => {
@@ -371,27 +451,53 @@ const removePolicyFailed = (state, { payload }) => {
   state.deleteModal.errorState = Messages.getHttpErrorMessage(payload);
 };
 
-const computeIsDirty = (state) => {
-  const { currentPolicy, originalPolicy } = state;
+const hasDirtyProps = (originalPolicy, currentPolicy, observedProps) => {
+  return isNil(originalPolicy)
+    ? any((prop) => !isEmpty(currentPolicy[prop]), observedProps)
+    : any((prop) => !equals(currentPolicy[prop], originalPolicy[prop]), observedProps);
+};
 
+const computeIsDirty = (state) => {
+  const { currentPolicy, originalPolicy, isInherited, overrideActionsFlag, originalOverrideActionsFlag } = state;
   const isDirtyObservedProps = [
     'name',
     'threatLevel',
     'policyViolationGrandfatheringAllowed',
+    'policyActionsOverrideAllowed',
     'constraints',
     'notifications',
-    'actions',
   ];
-  const isDirty = isNil(originalPolicy)
-    ? any((prop) => !isEmpty(currentPolicy[prop]), isDirtyObservedProps)
-    : any((prop) => !equals(currentPolicy[prop], originalPolicy[prop]), isDirtyObservedProps);
+  const isDirtyActionsProps = ['actions', 'policyActionsOverrides'];
 
-  return propSet('isDirty', isDirty, state);
+  const isDirty = hasDirtyProps(originalPolicy, currentPolicy, isDirtyObservedProps);
+  const isDirtyActions = hasDirtyProps(originalPolicy, currentPolicy, isDirtyActionsProps);
+
+  const policyActionOverrideIsDirty = overrideActionsFlag !== originalOverrideActionsFlag;
+
+  if (overrideActionsFlag && isDirtyActions) {
+    return propSet('isDirty', isDirtyActions, state);
+  }
+
+  if (!policyActionOverrideIsDirty && isInherited) {
+    return propSet('isDirty', isDirty, state);
+  }
+
+  return propSet('isDirty', isDirty || (policyActionOverrideIsDirty && isInherited) || isDirtyActions, state);
 };
 
 const setPolicyField = curryN(3, function setPolicyField(fieldName, state, { payload }) {
   return computeIsDirty(pathSet(['currentPolicy', fieldName], payload, state));
 });
+
+const setOverrideParentActions = (state) => computeIsDirty({ ...state, overrideActionsFlag: true });
+
+const unSetOverrideParentActions = (state, { payload }) => {
+  const ownerId = payload;
+  const currentActionsOverrides = state.currentPolicy.policyActionsOverrides || {};
+  const updatedActionsOverrides = omit([ownerId], currentActionsOverrides);
+  const newState = { ...state, overrideActionsFlag: false };
+  return computeIsDirty(pathSet(['currentPolicy', 'policyActionsOverrides'], updatedActionsOverrides, newState));
+};
 
 const toggleField = curryN(2, function toggleField(fieldName, state) {
   return computeIsDirty(pathSet(['currentPolicy', fieldName], !state.currentPolicy[fieldName], state));
@@ -429,6 +535,23 @@ const toggleCategoryIsApplied = (state, { payload: index }) => {
   state.categories[index].isApplied = !state.categories[index].isApplied;
 };
 
+const togglePolicyActionsOverrideAllowed = (state) => {
+  const currentPolicyActionsOverrideAllowed = state.currentPolicy.policyActionsOverrideAllowed;
+  if (currentPolicyActionsOverrideAllowed) {
+    const newState = {
+      ...state,
+      currentPolicy: {
+        ...state.currentPolicy,
+        policyActionsOverrideAllowed: !currentPolicyActionsOverrideAllowed,
+        policyActionsOverrides: null,
+      },
+    };
+    return computeIsDirty(newState);
+  } else {
+    return toggleField('policyActionsOverrideAllowed')(state);
+  }
+};
+
 const policySlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -438,9 +561,16 @@ const policySlice = createSlice({
     setHasPolicyCategories: reduxPropSet('hasPolicyCategories'),
     toggleCategoryIsApplied,
     togglePolicyViolationGrandfatheringAllowed: toggleField('policyViolationGrandfatheringAllowed'),
+    togglePolicyActionsOverrideAllowed,
     setPolicyName: setPolicyField('name'),
     setThreatLevel: setPolicyField('threatLevel'),
     setActions: setPolicyField('actions'),
+    setActionsOverride(state, { payload }) {
+      const { ownerId, actionsOverride } = payload;
+      const currentActionsOverrides = state.currentPolicy.policyActionsOverrides || {};
+      const updatedActionsOverrides = { ...currentActionsOverrides, [ownerId]: actionsOverride };
+      return computeIsDirty(pathSet(['currentPolicy', 'policyActionsOverrides'], updatedActionsOverrides, state));
+    },
     addConstraint: setPolicyField('constraints'),
     deleteConstraint: setPolicyField('constraints'),
     setUserNotifications: setNotifications('userNotifications'),
@@ -458,6 +588,8 @@ const policySlice = createSlice({
     setConstraintOperator: setConstraintField('operator'),
     setConditionOperator: setConstraintConditionField('operator'),
     setConditionValue: setConstraintConditionField('value'),
+    setOverrideParentActions,
+    unSetOverrideParentActions,
   },
   extraReducers: {
     [loadCategoriesForPolicy.pending]: loadCategoriesForPolicyRequested,
@@ -469,9 +601,20 @@ const policySlice = createSlice({
     [savePolicy.pending]: savePolicyRequested,
     [savePolicy.fulfilled]: savePolicyFulfilled,
     [savePolicy.rejected]: savePolicyFailed,
+
     [removePolicy.pending]: pathSetConst(['deleteModal', 'deleting'], true),
     [removePolicy.fulfilled]: removePolicyFulfilled,
     [removePolicy.rejected]: removePolicyFailed,
+    [saveActionsOverride.pending]: savePolicyRequested,
+    [saveActionsOverride.fulfilled]: saveActionsOverrideFulfilled,
+    [saveActionsOverride.rejected]: savePolicyFailed,
+
+    [removeActionsOverride.pending]: savePolicyRequested,
+    [removeActionsOverride.fulfilled]: removeActionsOverrideFulfilled,
+    [removeActionsOverride.rejected]: savePolicyFailed,
+
+    [checkEditIqPermission.fulfilled]: checkEditIqPermissionFulfilled,
+    [checkEditIqPermission.rejected]: checkEditIqPermissionFailed,
   },
 });
 
@@ -481,6 +624,9 @@ export const actions = {
   loadPolicyEditor,
   savePolicy,
   removePolicy,
+  saveActionsOverride,
+  removeActionsOverride,
+  checkEditIqPermission,
 };
 
 export default policySlice.reducer;

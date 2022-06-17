@@ -143,6 +143,7 @@ public class ApplicationPolicyEditorTest
       inheritance.specifiedChildrenInheritRadio().shouldBe(visible).shouldNotBe(selected);
       inheritance.specifiedChildrenInheritRadio().shouldHave(specifiedRadioText(YE_OLE_ORGANIZATION));
       inheritance.associationEditor().shouldBe(hidden);
+      inheritance.policyActionsOverrideCheckbox().shouldBe(visible).shouldNotBe(selected);
     }
     else {
       assertInheritanceSectionDoesNotExist();

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { prop } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
 import { actions as proprietaryConfigActions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
@@ -16,7 +17,7 @@ import {
 import { selectMonitoredStageFromActionStages } from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
 import { selectGrandfatheringStatusMessage } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 import {
-  selectOwnerProperties,
+  selectSelectedOwner,
   selectPoliciesByOwner,
   selectSelectedOwnerName,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
@@ -26,6 +27,7 @@ import {
   selectProprietaryConfigLocalMatchersCount,
 } from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
+import { getActionsOverride } from 'MainRoot/OrgsAndPolicies/utility/util';
 
 export default function PolicyTileController(
   $scope,
@@ -72,6 +74,7 @@ export default function PolicyTileController(
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
 
   function doLoad() {
+    vm.loading = true;
     const promises = [
       vm.loadApplicablePoliciesByOwner(),
       vm.loadActionStageTypes(),
@@ -80,19 +83,25 @@ export default function PolicyTileController(
     ];
 
     $q.all(promises)
-      .then((results) => {
+      .then(function (results) {
         vm.actionStages = unwrapResult(results[1]).data;
+        const ownerIds = vm.policiesByOwner?.map(prop('ownerId'));
 
         const updatedPoliciesByOwner = vm.policiesByOwner?.map(function (policyOwner, index) {
           const policies = policyOwner.policies.map((policy) => {
+            const actionsOverrideInfo = getActionsOverride(ownerIds, policy);
+            const actions = actionsOverrideInfo?.actionsOverride || policy.actions;
+
             const enforcementAction = {};
             vm.actionStages?.forEach(function (actionStage) {
-              if (policy.actions[actionStage.stageTypeId]) {
-                enforcementAction[actionStage.stageTypeId] = policy.actions[actionStage.stageTypeId];
+              if (actions[actionStage.stageTypeId]) {
+                enforcementAction[actionStage.stageTypeId] = actions[actionStage.stageTypeId];
               }
             });
+
             return {
               ...policy,
+              hasLocalActionsOverrides: actionsOverrideInfo?.isCurrentOwnerOverride,
               enforcementAction,
             };
           });
@@ -108,6 +117,9 @@ export default function PolicyTileController(
       })
       .catch((error) => {
         vm.loadError = error;
+      })
+      .finally(() => {
+        vm.loading = false;
       });
   }
 
@@ -121,7 +133,7 @@ export default function PolicyTileController(
 }
 
 export const mapStateToThis = (state) => ({
-  ownerProperties: selectOwnerProperties(state),
+  owner: selectSelectedOwner(state),
   ownerName: selectSelectedOwnerName(state),
   localProprietaryCount: selectProprietaryConfigLocalMatchersCount(state),
   inheritedProprietaryCount: selectProprietaryConfigInheritedMatchersCount(state),

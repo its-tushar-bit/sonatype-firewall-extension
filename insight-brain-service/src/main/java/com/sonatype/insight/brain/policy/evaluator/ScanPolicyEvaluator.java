@@ -283,7 +283,7 @@ public class ScanPolicyEvaluator
       log.debug("Ignoring actions in policy alerts for application {} and scan {} in stage {}, "
           + "license does not support enforcement.", applicationId, scanId, stageTypeId);
     }
-    return PolicyAlertUtil.createPolicyAlerts(violations, stageTypeId, forMonitoring, enableActions);
+    return PolicyAlertUtil.createPolicyAlerts(violations, stageTypeId, applicationId, forMonitoring, enableActions);
   }
 
   private void updateReportFiles(

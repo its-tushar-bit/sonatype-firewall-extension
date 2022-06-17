@@ -14,21 +14,27 @@ import {
   selectIsRootOrg,
   selectLoadError,
   selectOriginalProxyStageAction,
-  selectReadOnly,
+  selectIsInherited,
   selectSiblings,
   selectSubmitError,
   selectIsEditMode,
   selectCurrentPolicyOwnerName,
   selectLoading,
+  selectIsActionOverrideEnabled,
+  selectHasEditIqPermission,
+  selectOverrideNeedsToBeRemoved,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { selectIsGrandfatheringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { propEq } from 'ramda';
+import { prop, propEq } from 'ramda';
+import { selectPoliciesByOwner, selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { getActionsOverride } from 'MainRoot/OrgsAndPolicies/utility/util';
 
 export default function PolicyEditorController($scope, DeleteModalService, $rootScope, EventNameConstant, $ngRedux) {
   var vm = this;
 
   vm.policyEditor = undefined;
   vm.policyEditorMask = undefined;
+  vm.getActions = getActions;
   vm.doLoad = doLoad;
   vm.deletePolicy = deletePolicy;
   vm.save = save;
@@ -36,17 +42,22 @@ export default function PolicyEditorController($scope, DeleteModalService, $root
   vm.onThreatLevelChange = onThreatLevelChange;
   vm.onCategoriesChanged = onCategoriesChanged;
   vm.onPolicyViolationGrandfatheringAllowedChange = onPolicyViolationGrandfatheringAllowedChange;
+  vm.onPolicyActionsOverrideAllowedChange = onPolicyActionsOverrideAllowedChange;
   vm.onHasPolicyCategoriesChange = onHasPolicyCategoriesChange;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadPolicyEditor: actions.loadPolicyEditor,
     savePolicy: actions.savePolicy,
+    saveActionsOverride: actions.saveActionsOverride,
+    removeActionsOverride: actions.removeActionsOverride,
     removePolicy: actions.removePolicy,
     setPolicyName: actions.setPolicyName,
     setThreatLevel: actions.setThreatLevel,
     togglePolicyViolationGrandfatheringAllowed: actions.togglePolicyViolationGrandfatheringAllowed,
+    togglePolicyActionsOverrideAllowed: actions.togglePolicyActionsOverrideAllowed,
     setHasPolicyCategories: actions.setHasPolicyCategories,
     toggleCategoryIsApplied: actions.toggleCategoryIsApplied,
+    checkEditIqPermission: actions.checkEditIqPermission,
   })(vm);
 
   vm.doLoad();
@@ -62,6 +73,7 @@ export default function PolicyEditorController($scope, DeleteModalService, $root
   });
 
   function doLoad() {
+    vm.checkEditIqPermission();
     vm.loadPolicyEditor();
   }
 
@@ -78,6 +90,11 @@ export default function PolicyEditorController($scope, DeleteModalService, $root
   }
 
   function save() {
+    if (vm.isActionOverrideEnabled) {
+      vm.policyEditorMask.wrap(vm.overrideNeedsToBeRemoved ? vm.removeActionsOverride() : vm.saveActionsOverride());
+      return;
+    }
+
     vm.policyEditorMask.wrap(
       vm.savePolicy({
         onSaveExistingPolicy: () => {
@@ -85,6 +102,7 @@ export default function PolicyEditorController($scope, DeleteModalService, $root
           $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY, {
             resetScroll: true,
           });
+          $rootScope.$broadcast('resource.data.modified');
         },
       })
     );
@@ -103,12 +121,23 @@ export default function PolicyEditorController($scope, DeleteModalService, $root
     vm.toggleCategoryIsApplied(categoryIndexForToggle);
   }
 
+  function onPolicyActionsOverrideAllowedChange() {
+    vm.togglePolicyActionsOverrideAllowed();
+  }
+
   function onPolicyViolationGrandfatheringAllowedChange() {
     vm.togglePolicyViolationGrandfatheringAllowed();
   }
 
   function onHasPolicyCategoriesChange(hasPolicyCategories) {
     vm.setHasPolicyCategories(hasPolicyCategories);
+  }
+
+  function getActions() {
+    const ownerIds = vm.policiesByOwner.map(prop('ownerId'));
+    const actionsOverrideInfo = getActionsOverride(ownerIds, vm.dirtyPolicy);
+
+    return actionsOverrideInfo?.actionsOverride || vm.dirtyPolicy.actions;
   }
 }
 
@@ -124,10 +153,16 @@ export const mapStateToThis = (state) => ({
   isOrgOwner: selectIsOrgOwner(state),
   isRootOrg: selectIsRootOrg(state),
   hasPolicyCategories: selectHasPolicyCategories(state),
-  readOnly: selectReadOnly(state),
+  readOnly: selectIsInherited(state),
   isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
   originalProxyStageAction: selectOriginalProxyStageAction(state),
   ownerName: selectCurrentPolicyOwnerName(state),
+  isActionOverrideEnabled: selectIsActionOverrideEnabled(state),
+  currentOwnerId: selectSelectedOwnerId(state),
+  hasEditIqPermission: selectHasEditIqPermission(state),
+  overrideNeedsToBeRemoved: selectOverrideNeedsToBeRemoved(state),
+  selectedOwnerId: selectSelectedOwnerId(state),
+  policiesByOwner: selectPoliciesByOwner(state),
 });
 
 PolicyEditorController.$inject = ['$scope', 'DeleteModalService', '$rootScope', 'event.name.constant', '$ngRedux'];

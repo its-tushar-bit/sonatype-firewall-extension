@@ -9,7 +9,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -17,19 +16,11 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.component.IntegrityRating;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
-import com.sonatype.insight.brain.model.policy.Condition;
-import com.sonatype.insight.brain.model.policy.Constraint;
-import com.sonatype.insight.brain.model.policy.LogicalOperator;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
-import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -48,8 +39,6 @@ public class FirewallReleaseIntegrityLicenseListener
     implements ProductLicenseListener
 {
   private static final Logger log = LoggerFactory.getLogger(FirewallReleaseIntegrityLicenseListener.class);
-
-  public static final String POLICY_NAME = "Integrity-Rating";
 
   private final ProductLicense productLicense;
 
@@ -84,7 +73,6 @@ public class FirewallReleaseIntegrityLicenseListener
       SystemConfigurationProperty existingLicenseProperty = systemConfigurationPropertyDAO
           .getByName(tx, SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED);
       if (existingLicenseProperty == null || !Boolean.parseBoolean(existingLicenseProperty.getValue())) {
-        installIntegrityRatingPolicy(tx);
         enablePolicyMonitoringForAllRepositories(tx);
         addIntegrityRatingConditionTypeForMonitoring(tx);
 
@@ -111,41 +99,6 @@ public class FirewallReleaseIntegrityLicenseListener
     else {
       systemConfigurationPropertyDAO.insert(tx, property);
     }
-  }
-
-  private void installIntegrityRatingPolicy(TransactionContext tx) {
-    String policyName = findFirstUnusedPolicyName(POLICY_NAME);
-
-    log.info("Installing '{}' policy for Firewall + ADP license", policyName);
-    Constraint pendingConstraint = new Constraint(null, "Pending integrity rating", LogicalOperator.OR);
-    pendingConstraint.addCondition(new Condition(IntegrityRatingConditionType.ID, "is", IntegrityRating.PENDING
-        .getId()));
-    Constraint suspiciousConstraint = new Constraint(null, "Suspicious integrity rating", LogicalOperator.OR);
-    suspiciousConstraint.addCondition(new Condition(IntegrityRatingConditionType.ID, "is", IntegrityRating.SUSPICIOUS
-        .getId()));
-    Policy policy = new Policy();
-    policy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    policy.setName(policyName);
-    policy.setAction(ProxyStageType.ID, Action.ID_FAIL);
-    policy.addConstraint(pendingConstraint);
-    policy.addConstraint(suspiciousConstraint);
-    policy.setThreatLevel(9);
-
-    try (AuditSession auditSession = auditRecorder.recordSystemEvent(AuditEvent.CREATE_POLICY)) {
-      new PolicyDAO().insert(tx, policy);
-      AuditData.get().setOwner(new OwnerDAO().getById(Organization.ROOT_ORGANIZATION_ID)).setPolicyWithDetails(policy);
-    }
-  }
-
-  private String findFirstUnusedPolicyName(String basePolicyName) {
-    PolicyDAO policyDAO = new PolicyDAO();
-    int i = 0;
-    String policyName = basePolicyName;
-    while (!policyDAO.getByName(policyName).isEmpty()) {
-      policyName = basePolicyName + "-" + ++i;
-    }
-
-    return policyName;
   }
 
   private void enablePolicyMonitoringForAllRepositories(TransactionContext tx) {

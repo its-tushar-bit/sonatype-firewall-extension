@@ -30,13 +30,11 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
-import com.sonatype.insight.brain.product.license.FirewallReleaseIntegrityLicenseListener;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.After;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class NewInstancePopulatorTest
@@ -119,7 +117,7 @@ public class NewInstancePopulatorTest
   public void testPopulateIfNewInstance_RIPolicyAutoCreated_SampleDataEnabled_CreatesSampleData()
       throws Exception
   {
-    createReleaseIntegrityPolicyAndSetConfigFlag();
+    enableIntegrityRatingLicenseConfigFlag();
     initServer(true, false);
     assertSampleDataCreated(true);
   }
@@ -129,7 +127,7 @@ public class NewInstancePopulatorTest
   public void testPopulateIfNewInstance_RIPolicyAutoCreated_SampleDataDisabled_SampleDataNotCreated()
       throws Exception
   {
-    createReleaseIntegrityPolicyAndSetConfigFlag();
+    enableIntegrityRatingLicenseConfigFlag();
     initServer(false, false);
     assertSampleDataCreated(false);
   }
@@ -175,7 +173,7 @@ public class NewInstancePopulatorTest
   public void testPopulateIfNewInstance_RIPolicyAutoCreated_PolicyImportEnabled_ImportsReferencePolicies()
       throws Exception
   {
-    createReleaseIntegrityPolicyAndSetConfigFlag();
+    enableIntegrityRatingLicenseConfigFlag();
     initServer(false, true);
     assertReferencePoliciesImported(true);
   }
@@ -185,7 +183,7 @@ public class NewInstancePopulatorTest
   public void testPopulateIfNewInstance_RIPolicyAutoCreated_PolicyImportDisabled_ReferencePoliciesNotImported()
       throws Exception
   {
-    createReleaseIntegrityPolicyAndSetConfigFlag();
+    enableIntegrityRatingLicenseConfigFlag();
     initServer(false, false);
     assertReferencePoliciesImported(false);
   }
@@ -326,8 +324,7 @@ public class NewInstancePopulatorTest
     return items.stream().map(mapper).collect(Collectors.toSet());
   }
 
-  private void createReleaseIntegrityPolicyAndSetConfigFlag() {
-    tempEntity.newPolicy(ROOT_ORGANIZATION_ID, FirewallReleaseIntegrityLicenseListener.POLICY_NAME, 9);
+  private void enableIntegrityRatingLicenseConfigFlag() {
     tempEntity
         .newSystemConfigurationProperty(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED, "true");
   }

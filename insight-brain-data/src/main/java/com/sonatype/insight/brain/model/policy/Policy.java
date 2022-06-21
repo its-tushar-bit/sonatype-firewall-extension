@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.model.policy;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -148,14 +147,10 @@ public class Policy
     List<Action> result = new ArrayList<>();
 
     if (!continuousMonitoring) {
-      Map<String, String> actionOverrides = null;
-      if (isOverrideApplicable(ownerIds)) {
-        // walk the hierarchy of owners to retrieve actionOverrides for the nearest parent
-        actionOverrides = getActionOverrides(ownerIds, actionOverrides);
-      }
+      // walk the hierarchy of owners to retrieve actionOverrides for the nearest parent
+      Map<String, String> actionOverrides = getActionOverrides(ownerIds);;
 
-      Map<String, String> effectiveActions =
-          actionOverrides != null && !actionOverrides.isEmpty() ? actionOverrides : actions;
+      Map<String, String> effectiveActions = actionOverrides != null ? actionOverrides : actions;
       String actionId = effectiveActions.get(stageId);
       if (actionId != null) {
         result.add(new Action(actionId));
@@ -165,20 +160,20 @@ public class Policy
     return result;
   }
 
-  private Map<String, String> getActionOverrides(final List<String> ownerIds, Map<String, String> actionOverrides) {
-    if (policyActionsOverrides != null && !policyActionsOverrides.isEmpty()) {
-      for (int i = 0; i < ownerIds.size() - 1; i++) {
-        actionOverrides = policyActionsOverrides.get(ownerIds.get(i));
-        // walk through the hierarchy stops in front of the policy owner
-        if (actionOverrides != null || ownerIds.get(i + 1).equals(this.getOwnerId())) {
-          break;
-        }
+  private Map<String, String> getActionOverrides(final List<String> ownerIds) {
+    if (!isOverrideApplicable(ownerIds) || policyActionsOverrides == null || policyActionsOverrides.isEmpty()) {
+      return null;
+    }
+
+    for (int i = 0; i < ownerIds.size() - 1; i++) {
+      Map<String, String> actionOverrides = policyActionsOverrides.get(ownerIds.get(i));
+      // walk through the hierarchy stops in front of the policy owner
+      if (actionOverrides != null || ownerIds.get(i + 1).equals(this.getOwnerId())) {
+        return actionOverrides;
       }
-      return actionOverrides;
     }
-    else {
-      return Collections.emptyMap();
-    }
+
+    return null;
   }
 
   private boolean isOverrideApplicable(final List<String> ownerIds) {

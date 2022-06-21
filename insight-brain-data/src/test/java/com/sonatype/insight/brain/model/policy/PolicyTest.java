@@ -597,4 +597,24 @@ public class PolicyTest
     assertThat(deploy.size()).isOne();
     assertThat(deploy.get(0).getActionTypeId()).isEqualTo(ID_NOTIFY);
   }
+
+  @Test
+  public void testToActions_OverrideWithNoAction() {
+    Policy policy = new Policy();
+    policy.setOwnerId("ParentOrg");
+    policy.setPolicyActionsOverrideAllowed(true);
+    policy.setAction("Deploy", ID_FAIL);
+
+    List<String> ownerIds = new ArrayList<>();
+    ownerIds.add("App");
+    ownerIds.add("ParentOrg");
+
+    Map<String, Map<String, String>> policyActionsOverrides = new HashMap<>();
+    policyActionsOverrides.put("App", new HashMap<>());
+    policy.setPolicyActionsOverrides(policyActionsOverrides);
+
+    List<Action> effectiveActions = policy.toActions("Deploy", false, ownerIds);
+
+    assertThat(effectiveActions).isEmpty();
+  }
 }

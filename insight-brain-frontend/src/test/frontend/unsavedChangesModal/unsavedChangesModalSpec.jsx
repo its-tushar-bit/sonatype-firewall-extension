@@ -5,6 +5,7 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 import UnsavedChangesModal from '../../../main/frontend/unsavedChangesModal/UnsavedChangesModal';
+import { NxModal } from '@sonatype/react-shared-components';
 
 describe('UnsavedChangesModal', function () {
   let getShallowComponent,
@@ -22,7 +23,7 @@ describe('UnsavedChangesModal', function () {
 
   it('renders an NxModal component with unsaved-modal id', function () {
     const shallowComponent = getShallowComponent();
-    expect(shallowComponent).toMatchSelector('NxModal#unsaved-modal');
+    expect(shallowComponent.find(NxModal)).toMatchSelector('#unsaved-modal');
   });
 
   it('calls onContinue when continue button is clicked', function () {

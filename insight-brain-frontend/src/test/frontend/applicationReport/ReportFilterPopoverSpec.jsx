@@ -56,227 +56,224 @@ describe('ReportFilterPopover', () => {
     ).toBeInTheDocument();
   });
 
-  describe('handles clicks on teh checkboxes', () => {
-    const checkedClass = 'nx-collapsible-items__child tm-checked';
-    const uncheckedClass = 'nx-collapsible-items__child tm-unchecked';
-
+  describe('handles clicks on the checkboxes', () => {
     it('Handles the click in the proprietary items', () => {
       renderComponent();
-      const proprietaryList = screen.getAllByRole('list')[0];
-      const proprietaryOptions = getAllByRole(proprietaryList, 'listitem');
+      const proprietaryList = screen.getAllByRole('menu')[0];
+      const proprietaryOptions = getAllByRole(proprietaryList, 'menuitemcheckbox');
 
-      expect(proprietaryOptions[0]).toHaveClassName(uncheckedClass);
-      expect(proprietaryOptions[1]).toHaveClassName(uncheckedClass);
-      expect(proprietaryOptions[2]).toHaveClassName(uncheckedClass);
+      expect(proprietaryOptions[0]).not.toBeChecked();
+      expect(proprietaryOptions[1]).not.toBeChecked();
+      expect(proprietaryOptions[2]).not.toBeChecked();
 
       fireEvent.click(proprietaryOptions[1]);
-      expect(proprietaryOptions[0]).toHaveClassName(uncheckedClass);
-      expect(proprietaryOptions[1]).toHaveClassName(checkedClass);
-      expect(proprietaryOptions[2]).toHaveClassName(uncheckedClass);
+      expect(proprietaryOptions[0]).not.toBeChecked();
+      expect(proprietaryOptions[1]).toBeChecked();
+      expect(proprietaryOptions[2]).not.toBeChecked();
 
       fireEvent.click(proprietaryOptions[2]);
-      expect(proprietaryOptions[0]).toHaveClassName(checkedClass);
-      expect(proprietaryOptions[1]).toHaveClassName(checkedClass);
-      expect(proprietaryOptions[2]).toHaveClassName(checkedClass);
+      expect(proprietaryOptions[0]).toBeChecked();
+      expect(proprietaryOptions[1]).toBeChecked();
+      expect(proprietaryOptions[2]).toBeChecked();
 
       fireEvent.click(proprietaryOptions[0]);
-      expect(proprietaryOptions[0]).toHaveClassName(uncheckedClass);
-      expect(proprietaryOptions[1]).toHaveClassName(uncheckedClass);
-      expect(proprietaryOptions[2]).toHaveClassName(uncheckedClass);
+      expect(proprietaryOptions[0]).not.toBeChecked();
+      expect(proprietaryOptions[1]).not.toBeChecked();
+      expect(proprietaryOptions[2]).not.toBeChecked();
     });
 
     it('Handles the click in the InnerSource items', () => {
       renderComponent();
-      const innerSourceList = screen.getAllByRole('list')[1];
-      const innerSourceOptions = getAllByRole(innerSourceList, 'listitem');
+      const innerSourceList = screen.getAllByRole('menu')[1];
+      const innerSourceOptions = getAllByRole(innerSourceList, 'menuitemcheckbox');
 
-      expect(innerSourceOptions[0]).toHaveClassName(uncheckedClass);
-      expect(innerSourceOptions[1]).toHaveClassName(uncheckedClass);
-      expect(innerSourceOptions[2]).toHaveClassName(uncheckedClass);
+      expect(innerSourceOptions[0]).not.toBeChecked();
+      expect(innerSourceOptions[1]).not.toBeChecked();
+      expect(innerSourceOptions[2]).not.toBeChecked();
 
       fireEvent.click(innerSourceOptions[1]);
-      expect(innerSourceOptions[0]).toHaveClassName(uncheckedClass);
-      expect(innerSourceOptions[1]).toHaveClassName(checkedClass);
-      expect(innerSourceOptions[2]).toHaveClassName(uncheckedClass);
+      expect(innerSourceOptions[0]).not.toBeChecked();
+      expect(innerSourceOptions[1]).toBeChecked();
+      expect(innerSourceOptions[2]).not.toBeChecked();
 
       fireEvent.click(innerSourceOptions[2]);
-      expect(innerSourceOptions[0]).toHaveClassName(checkedClass);
-      expect(innerSourceOptions[1]).toHaveClassName(checkedClass);
-      expect(innerSourceOptions[2]).toHaveClassName(checkedClass);
+      expect(innerSourceOptions[0]).toBeChecked();
+      expect(innerSourceOptions[1]).toBeChecked();
+      expect(innerSourceOptions[2]).toBeChecked();
 
       fireEvent.click(innerSourceOptions[0]);
-      expect(innerSourceOptions[0]).toHaveClassName(uncheckedClass);
-      expect(innerSourceOptions[1]).toHaveClassName(uncheckedClass);
-      expect(innerSourceOptions[2]).toHaveClassName(uncheckedClass);
+      expect(innerSourceOptions[0]).not.toBeChecked();
+      expect(innerSourceOptions[1]).not.toBeChecked();
+      expect(innerSourceOptions[2]).not.toBeChecked();
     });
 
     it('Handles the click in the component match state items', () => {
       renderComponent();
-      const matchStateList = screen.getAllByRole('list')[2];
-      const matchStateOptions = getAllByRole(matchStateList, 'listitem');
+      const matchStateList = screen.getAllByRole('menu')[2];
+      const matchStateOptions = getAllByRole(matchStateList, 'menuitemcheckbox');
 
-      expect(matchStateOptions[0]).toHaveClassName(uncheckedClass);
-      expect(matchStateOptions[1]).toHaveClassName(uncheckedClass);
-      expect(matchStateOptions[2]).toHaveClassName(uncheckedClass);
-      expect(matchStateOptions[3]).toHaveClassName(uncheckedClass);
+      expect(matchStateOptions[0]).not.toBeChecked();
+      expect(matchStateOptions[1]).not.toBeChecked();
+      expect(matchStateOptions[2]).not.toBeChecked();
+      expect(matchStateOptions[3]).not.toBeChecked();
 
       fireEvent.click(matchStateOptions[1]);
-      expect(matchStateOptions[0]).toHaveClassName(uncheckedClass);
-      expect(matchStateOptions[1]).toHaveClassName(checkedClass);
-      expect(matchStateOptions[2]).toHaveClassName(uncheckedClass);
-      expect(matchStateOptions[3]).toHaveClassName(uncheckedClass);
+      expect(matchStateOptions[0]).not.toBeChecked();
+      expect(matchStateOptions[1]).toBeChecked();
+      expect(matchStateOptions[2]).not.toBeChecked();
+      expect(matchStateOptions[3]).not.toBeChecked();
 
       fireEvent.click(matchStateOptions[2]);
-      expect(matchStateOptions[0]).toHaveClassName(uncheckedClass);
-      expect(matchStateOptions[1]).toHaveClassName(checkedClass);
-      expect(matchStateOptions[2]).toHaveClassName(checkedClass);
-      expect(matchStateOptions[3]).toHaveClassName(uncheckedClass);
+      expect(matchStateOptions[0]).not.toBeChecked();
+      expect(matchStateOptions[1]).toBeChecked();
+      expect(matchStateOptions[2]).toBeChecked();
+      expect(matchStateOptions[3]).not.toBeChecked();
 
       fireEvent.click(matchStateOptions[3]);
-      expect(matchStateOptions[0]).toHaveClassName(checkedClass);
-      expect(matchStateOptions[1]).toHaveClassName(checkedClass);
-      expect(matchStateOptions[2]).toHaveClassName(checkedClass);
-      expect(matchStateOptions[3]).toHaveClassName(checkedClass);
+      expect(matchStateOptions[0]).toBeChecked();
+      expect(matchStateOptions[1]).toBeChecked();
+      expect(matchStateOptions[2]).toBeChecked();
+      expect(matchStateOptions[3]).toBeChecked();
 
       fireEvent.click(matchStateOptions[0]);
-      expect(matchStateOptions[0]).toHaveClassName(uncheckedClass);
-      expect(matchStateOptions[1]).toHaveClassName(uncheckedClass);
-      expect(matchStateOptions[2]).toHaveClassName(uncheckedClass);
-      expect(matchStateOptions[3]).toHaveClassName(uncheckedClass);
+      expect(matchStateOptions[0]).not.toBeChecked();
+      expect(matchStateOptions[1]).not.toBeChecked();
+      expect(matchStateOptions[2]).not.toBeChecked();
+      expect(matchStateOptions[3]).not.toBeChecked();
     });
 
     it('Handles the click in the violation state items', () => {
       renderComponent();
-      const violationList = screen.getAllByRole('list')[3];
-      const violationOptions = getAllByRole(violationList, 'listitem');
+      const violationList = screen.getAllByRole('menu')[3];
+      const violationOptions = getAllByRole(violationList, 'menuitemcheckbox');
 
-      expect(violationOptions[0]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[1]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[2]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[3]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[4]).toHaveClassName(uncheckedClass);
+      expect(violationOptions[0]).not.toBeChecked();
+      expect(violationOptions[1]).not.toBeChecked();
+      expect(violationOptions[2]).not.toBeChecked();
+      expect(violationOptions[3]).not.toBeChecked();
+      expect(violationOptions[4]).not.toBeChecked();
 
       fireEvent.click(violationOptions[1]);
-      expect(violationOptions[0]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[1]).toHaveClassName(checkedClass);
-      expect(violationOptions[2]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[3]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[4]).toHaveClassName(uncheckedClass);
+      expect(violationOptions[0]).not.toBeChecked();
+      expect(violationOptions[1]).toBeChecked();
+      expect(violationOptions[2]).not.toBeChecked();
+      expect(violationOptions[3]).not.toBeChecked();
+      expect(violationOptions[4]).not.toBeChecked();
 
       fireEvent.click(violationOptions[2]);
-      expect(violationOptions[0]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[1]).toHaveClassName(checkedClass);
-      expect(violationOptions[2]).toHaveClassName(checkedClass);
-      expect(violationOptions[3]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[4]).toHaveClassName(uncheckedClass);
+      expect(violationOptions[0]).not.toBeChecked();
+      expect(violationOptions[1]).toBeChecked();
+      expect(violationOptions[2]).toBeChecked();
+      expect(violationOptions[3]).not.toBeChecked();
+      expect(violationOptions[4]).not.toBeChecked();
 
       fireEvent.click(violationOptions[3]);
-      expect(violationOptions[0]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[1]).toHaveClassName(checkedClass);
-      expect(violationOptions[2]).toHaveClassName(checkedClass);
-      expect(violationOptions[3]).toHaveClassName(checkedClass);
-      expect(violationOptions[4]).toHaveClassName(uncheckedClass);
+      expect(violationOptions[0]).not.toBeChecked();
+      expect(violationOptions[1]).toBeChecked();
+      expect(violationOptions[2]).toBeChecked();
+      expect(violationOptions[3]).toBeChecked();
+      expect(violationOptions[4]).not.toBeChecked();
 
       fireEvent.click(violationOptions[4]);
-      expect(violationOptions[0]).toHaveClassName(checkedClass);
-      expect(violationOptions[1]).toHaveClassName(checkedClass);
-      expect(violationOptions[2]).toHaveClassName(checkedClass);
-      expect(violationOptions[3]).toHaveClassName(checkedClass);
-      expect(violationOptions[4]).toHaveClassName(checkedClass);
+      expect(violationOptions[0]).toBeChecked();
+      expect(violationOptions[1]).toBeChecked();
+      expect(violationOptions[2]).toBeChecked();
+      expect(violationOptions[3]).toBeChecked();
+      expect(violationOptions[4]).toBeChecked();
 
       fireEvent.click(violationOptions[0]);
-      expect(violationOptions[0]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[1]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[2]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[3]).toHaveClassName(uncheckedClass);
-      expect(violationOptions[4]).toHaveClassName(uncheckedClass);
+      expect(violationOptions[0]).not.toBeChecked();
+      expect(violationOptions[1]).not.toBeChecked();
+      expect(violationOptions[2]).not.toBeChecked();
+      expect(violationOptions[3]).not.toBeChecked();
+      expect(violationOptions[4]).not.toBeChecked();
     });
 
     it('Handles the click in the dependency type items', () => {
       renderComponent();
-      const dependencyTypeList = screen.getAllByRole('list')[4];
-      const dependencyTypeOptions = getAllByRole(dependencyTypeList, 'listitem');
+      const dependencyTypeList = screen.getAllByRole('menu')[4];
+      const dependencyTypeOptions = getAllByRole(dependencyTypeList, 'menuitemcheckbox');
 
-      expect(dependencyTypeOptions[0]).toHaveClassName(uncheckedClass);
-      expect(dependencyTypeOptions[1]).toHaveClassName(uncheckedClass);
-      expect(dependencyTypeOptions[2]).toHaveClassName(uncheckedClass);
-      expect(dependencyTypeOptions[3]).toHaveClassName(uncheckedClass);
+      expect(dependencyTypeOptions[0]).not.toBeChecked();
+      expect(dependencyTypeOptions[1]).not.toBeChecked();
+      expect(dependencyTypeOptions[2]).not.toBeChecked();
+      expect(dependencyTypeOptions[3]).not.toBeChecked();
 
       fireEvent.click(dependencyTypeOptions[1]);
-      expect(dependencyTypeOptions[0]).toHaveClassName(uncheckedClass);
-      expect(dependencyTypeOptions[1]).toHaveClassName(checkedClass);
-      expect(dependencyTypeOptions[2]).toHaveClassName(uncheckedClass);
-      expect(dependencyTypeOptions[3]).toHaveClassName(uncheckedClass);
+      expect(dependencyTypeOptions[0]).not.toBeChecked();
+      expect(dependencyTypeOptions[1]).toBeChecked();
+      expect(dependencyTypeOptions[2]).not.toBeChecked();
+      expect(dependencyTypeOptions[3]).not.toBeChecked();
 
       fireEvent.click(dependencyTypeOptions[2]);
-      expect(dependencyTypeOptions[0]).toHaveClassName(uncheckedClass);
-      expect(dependencyTypeOptions[1]).toHaveClassName(checkedClass);
-      expect(dependencyTypeOptions[2]).toHaveClassName(checkedClass);
-      expect(dependencyTypeOptions[3]).toHaveClassName(uncheckedClass);
+      expect(dependencyTypeOptions[0]).not.toBeChecked();
+      expect(dependencyTypeOptions[1]).toBeChecked();
+      expect(dependencyTypeOptions[2]).toBeChecked();
+      expect(dependencyTypeOptions[3]).not.toBeChecked();
 
       fireEvent.click(dependencyTypeOptions[3]);
-      expect(dependencyTypeOptions[0]).toHaveClassName(checkedClass);
-      expect(dependencyTypeOptions[1]).toHaveClassName(checkedClass);
-      expect(dependencyTypeOptions[2]).toHaveClassName(checkedClass);
-      expect(dependencyTypeOptions[3]).toHaveClassName(checkedClass);
+      expect(dependencyTypeOptions[0]).toBeChecked();
+      expect(dependencyTypeOptions[1]).toBeChecked();
+      expect(dependencyTypeOptions[2]).toBeChecked();
+      expect(dependencyTypeOptions[3]).toBeChecked();
 
       fireEvent.click(dependencyTypeOptions[0]);
-      expect(dependencyTypeOptions[0]).toHaveClassName(uncheckedClass);
-      expect(dependencyTypeOptions[1]).toHaveClassName(uncheckedClass);
-      expect(dependencyTypeOptions[2]).toHaveClassName(uncheckedClass);
-      expect(dependencyTypeOptions[3]).toHaveClassName(uncheckedClass);
+      expect(dependencyTypeOptions[0]).not.toBeChecked();
+      expect(dependencyTypeOptions[1]).not.toBeChecked();
+      expect(dependencyTypeOptions[2]).not.toBeChecked();
+      expect(dependencyTypeOptions[3]).not.toBeChecked();
     });
 
     it('Handles the click in the policy types items', () => {
       renderComponent();
-      const policyList = screen.getAllByRole('list')[5];
-      const policyOptions = getAllByRole(policyList, 'listitem');
+      const policyList = screen.getAllByRole('menu')[5];
+      const policyOptions = getAllByRole(policyList, 'menuitemcheckbox');
 
-      expect(policyOptions[0]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[1]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[2]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[3]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[4]).toHaveClassName(uncheckedClass);
+      expect(policyOptions[0]).not.toBeChecked();
+      expect(policyOptions[1]).not.toBeChecked();
+      expect(policyOptions[2]).not.toBeChecked();
+      expect(policyOptions[3]).not.toBeChecked();
+      expect(policyOptions[4]).not.toBeChecked();
 
       fireEvent.click(policyOptions[1]);
-      expect(policyOptions[0]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[1]).toHaveClassName(checkedClass);
-      expect(policyOptions[2]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[3]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[4]).toHaveClassName(uncheckedClass);
+      expect(policyOptions[0]).not.toBeChecked();
+      expect(policyOptions[1]).toBeChecked();
+      expect(policyOptions[2]).not.toBeChecked();
+      expect(policyOptions[3]).not.toBeChecked();
+      expect(policyOptions[4]).not.toBeChecked();
 
       fireEvent.click(policyOptions[2]);
-      expect(policyOptions[0]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[1]).toHaveClassName(checkedClass);
-      expect(policyOptions[2]).toHaveClassName(checkedClass);
-      expect(policyOptions[3]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[4]).toHaveClassName(uncheckedClass);
+      expect(policyOptions[0]).not.toBeChecked();
+      expect(policyOptions[1]).toBeChecked();
+      expect(policyOptions[2]).toBeChecked();
+      expect(policyOptions[3]).not.toBeChecked();
+      expect(policyOptions[4]).not.toBeChecked();
 
       fireEvent.click(policyOptions[3]);
-      expect(policyOptions[0]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[1]).toHaveClassName(checkedClass);
-      expect(policyOptions[2]).toHaveClassName(checkedClass);
-      expect(policyOptions[3]).toHaveClassName(checkedClass);
-      expect(policyOptions[4]).toHaveClassName(uncheckedClass);
+      expect(policyOptions[0]).not.toBeChecked();
+      expect(policyOptions[1]).toBeChecked();
+      expect(policyOptions[2]).toBeChecked();
+      expect(policyOptions[3]).toBeChecked();
+      expect(policyOptions[4]).not.toBeChecked();
 
       fireEvent.click(policyOptions[4]);
-      expect(policyOptions[0]).toHaveClassName(checkedClass);
-      expect(policyOptions[1]).toHaveClassName(checkedClass);
-      expect(policyOptions[2]).toHaveClassName(checkedClass);
-      expect(policyOptions[3]).toHaveClassName(checkedClass);
-      expect(policyOptions[4]).toHaveClassName(checkedClass);
+      expect(policyOptions[0]).toBeChecked();
+      expect(policyOptions[1]).toBeChecked();
+      expect(policyOptions[2]).toBeChecked();
+      expect(policyOptions[3]).toBeChecked();
+      expect(policyOptions[4]).toBeChecked();
 
       fireEvent.click(policyOptions[0]);
-      expect(policyOptions[0]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[1]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[2]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[3]).toHaveClassName(uncheckedClass);
-      expect(policyOptions[4]).toHaveClassName(uncheckedClass);
+      expect(policyOptions[0]).not.toBeChecked();
+      expect(policyOptions[1]).not.toBeChecked();
+      expect(policyOptions[2]).not.toBeChecked();
+      expect(policyOptions[3]).not.toBeChecked();
+      expect(policyOptions[4]).not.toBeChecked();
     });
 
     it('Handles the click in the policy threat level', () => {
       renderComponent();
-      const policyThreat = screen.getAllByRole('list')[6];
+      const policyThreat = screen.getAllByRole('list')[0];
       const policyThreatSliders = getAllByRole(policyThreat, 'slider');
       expect(policyThreatSliders[0]).toHaveTextContent('0');
       expect(policyThreatSliders[1]).toHaveTextContent('10');

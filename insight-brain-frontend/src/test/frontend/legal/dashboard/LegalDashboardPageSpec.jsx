@@ -9,6 +9,7 @@ import LegalDashboardApplicationsTab from '../../../../main/frontend/legal/dashb
 import LegalDashboardComponentsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardComponentsTab';
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 import { pathSet } from 'MainRoot/util/jsUtil';
+import { NxModal } from '@sonatype/react-shared-components';
 
 describe('LegalDashboardPage', function () {
   let minimalProps,
@@ -137,7 +138,7 @@ describe('LegalDashboardPage', function () {
     expect(createAttribReportButton).toHaveClassName('disabled');
 
     createAttribReportButton.simulate('click');
-    expect(wrapper.find('NxModal')).not.toExist();
+    expect(wrapper.find(NxModal)).not.toExist();
     expect(stateGoSpy).not.toHaveBeenCalled();
   });
 
@@ -149,7 +150,7 @@ describe('LegalDashboardPage', function () {
     expect(createAttribReportButton).toHaveClassName('disabled');
 
     createAttribReportButton.simulate('click');
-    expect(wrapper.find('NxModal')).not.toExist();
+    expect(wrapper.find(NxModal)).not.toExist();
     expect(stateGoSpy).not.toHaveBeenCalled();
   });
 
@@ -161,7 +162,7 @@ describe('LegalDashboardPage', function () {
     expect(createAttribReportButton).not.toHaveClassName('disabled');
 
     createAttribReportButton.simulate('click');
-    expect(wrapper.find('NxModal')).not.toExist();
+    expect(wrapper.find(NxModal)).not.toExist();
     expect(stateGoSpy).toHaveBeenCalledWith('legal.attributionReportMultiApp');
   });
 
@@ -208,7 +209,7 @@ describe('LegalDashboardPage', function () {
     expect(createAttribReportButton).toExist();
     expect(createAttribReportButton).not.toHaveClassName('disabled');
     createAttribReportButton.simulate('click');
-    expect(wrapper.find('NxModal')).toExist();
+    expect(wrapper.find(NxModal)).toExist();
 
     const generateAttribReportButton = wrapper.find('#create-report-generate-report-button');
     expect(generateAttribReportButton).toExist();
@@ -219,6 +220,6 @@ describe('LegalDashboardPage', function () {
     expect(cancelAttribReportButton).toExist();
     cancelAttribReportButton.simulate('click');
 
-    expect(wrapper.find('NxModal')).not.toExist();
+    expect(wrapper.find(NxModal)).not.toExist();
   });
 });

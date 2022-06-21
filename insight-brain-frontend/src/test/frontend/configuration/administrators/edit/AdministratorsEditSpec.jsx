@@ -145,7 +145,7 @@ describe('AdministratorsEdit', () => {
     ]);
     renderComponent();
 
-    const searchInput = screen.getAllByRole('textbox')[0];
+    const searchInput = screen.getByRole('searchbox');
     const searchComponent = searchInput.closest('.nx-search-dropdown');
     expect(searchInput).toBeVisible();
     expect(searchInput).toHaveAttribute('placeholder', 'Search');
@@ -153,7 +153,7 @@ describe('AdministratorsEdit', () => {
     fireEvent.focus(searchInput);
     fireEvent.change(searchInput, { target: { value: 'term' } });
 
-    const results = within(searchComponent).getAllByRole('button');
+    const results = within(searchComponent).getAllByRole('menuitem');
     expect(results.length).toBe(2);
     expect(results[0]).toHaveTextContent('Adminasdf BuiltIn2');
     expect(results[1]).toHaveTextContent('Group User2 (Group)');
@@ -227,7 +227,7 @@ describe('AdministratorsEdit', () => {
     jasmine.clock().mockDate();
     renderComponent();
 
-    const searchInput = screen.getAllByRole('textbox')[0];
+    const searchInput = screen.getByRole('searchbox');
     expect(searchInput).toBeVisible();
     expect(searchInput).toHaveAttribute('placeholder', 'Search');
     fireEvent.focus(searchInput);

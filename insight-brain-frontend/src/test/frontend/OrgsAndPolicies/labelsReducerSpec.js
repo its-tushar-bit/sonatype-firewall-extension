@@ -88,6 +88,7 @@ describe('labels reducer', () => {
         },
         serverCurrentLabel: null,
         isDirty: false,
+        siblings: [],
       });
 
       const { isDirty, currentLabel } = reducer(state, {

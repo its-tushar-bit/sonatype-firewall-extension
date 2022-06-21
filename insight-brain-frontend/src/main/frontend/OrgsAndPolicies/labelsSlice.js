@@ -41,7 +41,7 @@ export const initialState = {
     label: rscInitialState('', validateNonEmpty),
   },
   serverCurrentLabel: null,
-  siblings: null,
+  siblings: [],
   submitMaskState: null,
   deleteMaskState: null,
   isDirty: false,
@@ -74,6 +74,8 @@ const loadLabelsEditorRequested = (state) => {
 const loadLabelsEditorFulfilled = (state, { payload }) => {
   state.loading = false;
   state.loadError = null;
+  state.submitError = null;
+  state.deleteError = null;
   const label = {
     ...payload.currentLabel,
     description: rscInitialState(payload?.currentLabel?.description ?? ''),
@@ -238,7 +240,7 @@ const loadLabelsEditor = createAsyncThunk(
             siblings = siblings.concat(owner.labels);
           });
         } else {
-          siblings = null;
+          siblings = [];
         }
 
         const { labelId } = selectRouterCurrentParams(getState());
@@ -312,11 +314,33 @@ const computeIsDirty = (state) => {
   return propSet('isDirty', isDirty, state);
 };
 
-const labelNameValidator = (val) =>
-  combineValidationErrors(validateNameCharacters(val), validateNonEmpty(val), validateMaxLength(50, val));
+const duplicationValidator = (state, value) => {
+  const exists = any(
+    (item) => item.label?.toLowerCase() === value.toLowerCase() && item.id !== state.currentLabel?.id,
+    state.siblings
+  );
 
-const setTextInput = curryN(3, function setTextInput(fieldName, func, state, { payload }) {
-  return computeIsDirty(pathSet(['currentLabel', fieldName], userInput(func, payload), state));
+  return exists ? 'Name is already in use' : null;
+};
+
+const labelNameValidator = (state, val) =>
+  combineValidationErrors(
+    validateNameCharacters(val),
+    validateNonEmpty(val),
+    validateMaxLength(50, val),
+    duplicationValidator(state, val)
+  );
+
+const setTextInput = curryN(3, function setTextInput(fieldName, validationFunc, state, { payload }) {
+  return computeIsDirty(
+    pathSet(
+      ['currentLabel', fieldName],
+      fieldName === 'label'
+        ? userInput(() => validationFunc(state, payload), payload)
+        : userInput(validationFunc, payload),
+      state
+    )
+  );
 });
 
 const setColorInput = curryN(2, function setTextInput(state, { payload }) {

@@ -499,7 +499,7 @@ describe('labelsActions', () => {
         ]);
 
         expect(actions[6].payload).toEqual({
-          siblings: null,
+          siblings: [],
           currentLabel: {
             color: 'light-red',
             description: null,
@@ -693,7 +693,7 @@ describe('labelsActions', () => {
           'labels/loadLabelsEditor/fulfilled',
         ]);
         expect(actions[4].payload).toEqual({
-          siblings: null,
+          siblings: [],
           currentLabel: { color: 'light-purple', description: '', label: '' },
         });
 

@@ -24,3 +24,8 @@ sidebar-view {
     margin-top: var(--nx-spacing-2x);
   }
 }
+
+.nx-page .nx-page-sidebar {
+  padding-right: 0;
+  width: calc((1 - var(--nx-width-content-proportion)) * 100vw - var(--nx-spacing-6x));
+}

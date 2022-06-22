@@ -43,6 +43,8 @@ describe('policyMonitoring reducer', () => {
         loading: true,
         loadError: 'error',
         policyMonitoringByOwner: undefined,
+        monitoredStage: 'monitoredStage',
+        originalStage: 'originalStage',
       });
 
       const newState = reducer(state, {
@@ -52,6 +54,8 @@ describe('policyMonitoring reducer', () => {
 
       expect(newState.loading).toBeFalse();
       expect(newState.loadError).toBeNull();
+      expect(newState.monitoredStage).toBeNull();
+      expect(newState.originalStage).toBeNull();
       expect(newState.policyMonitoringByOwner).toEqual([
         {
           ownerName: 'Root Organization',

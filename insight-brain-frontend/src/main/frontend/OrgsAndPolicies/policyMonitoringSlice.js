@@ -18,12 +18,12 @@ export const initialState = {
   loadError: null,
   submitError: null,
   loading: false,
-  policyMonitoringByOwner: undefined,
-  stages: undefined,
-  actionStages: undefined,
-  monitoredStage: undefined,
-  originalStage: undefined,
-  grandfatheringStatusMessage: undefined,
+  policyMonitoringByOwner: null,
+  stages: null,
+  actionStages: null,
+  monitoredStage: null,
+  originalStage: null,
+  grandfatheringStatusMessage: null,
 };
 
 const loadApplicablePolicyMonitoring = createAsyncThunk(
@@ -69,6 +69,8 @@ const loadApplicablePolicyMonitoringFulfilled = (state, { payload }) => {
   state.loading = false;
   state.loadError = null;
   state.policyMonitoringByOwner = policyMonitoringByOwner;
+  state.monitoredStage = null;
+  state.originalStage = null;
 };
 
 const loadApplicablePolicyMonitoringFailed = (state, { payload }) => {

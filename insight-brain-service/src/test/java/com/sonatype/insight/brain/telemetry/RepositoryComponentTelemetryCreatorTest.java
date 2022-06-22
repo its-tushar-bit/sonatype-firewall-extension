@@ -19,6 +19,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
@@ -191,6 +192,8 @@ public class RepositoryComponentTelemetryCreatorTest
     final RepositoryComponentTelemetry repositoryComponentTelemetry =
         new RepositoryComponentTelemetry(repositoryManagerId, repositoryComponent,
             repositoryComponentTelemetryEventType, null, Collections.emptyList());
+    assertThat(repositoryComponentTelemetry.getComponentHash()).isEqualTo(
+        HdsClientAnalytics.obfuscate(repositoryComponent.getHash()));
     assertTelemetry(policyViolationTelemetries, repositoryComponentTelemetry);
   }
 
@@ -206,6 +209,8 @@ public class RepositoryComponentTelemetryCreatorTest
     final RepositoryComponentTelemetry repositoryComponentTelemetry =
         new RepositoryComponentTelemetry(repositoryManagerId, repositoryComponent,
             repositoryComponentTelemetryEventType, null, policyNotifications);
+    assertThat(repositoryComponentTelemetry.getComponentHash()).isEqualTo(
+        HdsClientAnalytics.obfuscate(repositoryComponent.getHash()));
     assertTelemetry(policyViolationTelemetries, repositoryComponentTelemetry);
   }
 
@@ -221,6 +226,8 @@ public class RepositoryComponentTelemetryCreatorTest
     final RepositoryComponentTelemetry repositoryComponentTelemetry =
         new RepositoryComponentTelemetry(repositoryManagerId, repositoryComponent,
             repositoryComponentTelemetryEventType, releaseQuarantineType, Collections.emptyList());
+    assertThat(repositoryComponentTelemetry.getComponentHash()).isEqualTo(
+        HdsClientAnalytics.obfuscate(repositoryComponent.getHash()));
     assertTelemetry(policyViolationTelemetries, repositoryComponentTelemetry);
   }
 

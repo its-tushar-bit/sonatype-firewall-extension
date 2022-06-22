@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 
@@ -52,7 +53,7 @@ public class RepositoryComponentTelemetry
     this.componentFormat =
         repositoryComponent.getComponentIdentifier() == null ? null : repositoryComponent.getComponentIdentifier()
             .getFormat();
-    this.componentHash = repositoryComponent.getHash();
+    this.componentHash = HdsClientAnalytics.obfuscate(repositoryComponent.getHash());
     this.eventType = eventType.getDescription();
     this.quarantineTime =
         repositoryComponent.getQuarantineTime() == null ? null : repositoryComponent.getQuarantineTime().toInstant()

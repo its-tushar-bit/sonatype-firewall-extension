@@ -148,7 +148,7 @@ public class Policy
 
     if (!continuousMonitoring) {
       // walk the hierarchy of owners to retrieve actionOverrides for the nearest parent
-      Map<String, String> actionOverrides = getActionOverrides(ownerIds);;
+      Map<String, String> actionOverrides = getActionOverrides(ownerIds);
 
       Map<String, String> effectiveActions = actionOverrides != null ? actionOverrides : actions;
       String actionId = effectiveActions.get(stageId);

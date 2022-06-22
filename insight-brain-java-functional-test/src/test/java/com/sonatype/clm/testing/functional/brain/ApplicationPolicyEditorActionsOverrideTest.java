@@ -40,10 +40,10 @@ import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.RoleNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 
+import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
@@ -86,7 +86,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
   @Test
   public void testActionsOverrideEnabled() {
     String inheritedOwnerId = currentOwner.getParentOwnerId();
-    Map<String, String> mockActions = new HashMap<String, String>();
+    Map<String, String> mockActions = new HashMap<>();
     mockActions.put(Stage.ID_DEVELOP, Action.ID_WARN);
     mockActions.put(Stage.ID_BUILD, Action.ID_WARN);
     assertThat(inheritedOwnerId).isEqualTo(organization.getId());
@@ -178,7 +178,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
   @Test
   public void testActionsOverrideDisabled() {
     String inheritedOwnerId = currentOwner.getParentOwnerId();
-    Map<String, String> actions = new HashMap<String, String>();
+    Map<String, String> actions = new HashMap<>();
     actions.put(Stage.ID_DEVELOP, Action.ID_WARN);
     actions.put(Stage.ID_BUILD, Action.ID_FAIL);
     assertThat(inheritedOwnerId).isEqualTo(organization.getId());
@@ -214,17 +214,17 @@ public class ApplicationPolicyEditorActionsOverrideTest
   @Test
   public void testActionsOverridesAreRemoved() {
     String inheritedOwnerId = currentOwner.getParentOwnerId();
-    Map<String, String> actions = new HashMap<String, String>();
+    Map<String, String> actions = new HashMap<>();
     actions.put(Stage.ID_DEVELOP, Action.ID_WARN);
     actions.put(Stage.ID_BUILD, Action.ID_WARN);
 
-    Map<String, String> overrides = new HashMap<String, String>();
+    Map<String, String> overrides = new HashMap<>();
     overrides.put(Stage.ID_DEVELOP, Action.ID_NOTIFY);
     overrides.put(Stage.ID_BUILD, Action.ID_NOTIFY);
     overrides.put(Stage.ID_RELEASE, Action.ID_FAIL);
     overrides.put(Stage.ID_OPERATE, Action.ID_FAIL);
 
-    Map<String, Map<String, String>> overrideByOwner = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> overrideByOwner = new HashMap<>();
     overrideByOwner.put(currentOwner.getId(), overrides);
     overrideByOwner.put(inheritedOwnerId, overrides);
     assertThat(inheritedOwnerId).isEqualTo(organization.getId());
@@ -256,17 +256,17 @@ public class ApplicationPolicyEditorActionsOverrideTest
   @Test
   public void testActionsOverrideIsVisibleOnSummaryPage() {
     String inheritedOwnerId = currentOwner.getParentOwnerId();
-    Map<String, String> actions = new HashMap<String, String>();
+    Map<String, String> actions = new HashMap<>();
     actions.put(Stage.ID_DEVELOP, Action.ID_WARN);
     actions.put(Stage.ID_BUILD, Action.ID_WARN);
 
-    Map<String, String> overrides = new HashMap<String, String>();
+    Map<String, String> overrides = new HashMap<>();
     overrides.put(Stage.ID_DEVELOP, Action.ID_NOTIFY);
     overrides.put(Stage.ID_BUILD, Action.ID_NOTIFY);
     overrides.put(Stage.ID_RELEASE, Action.ID_FAIL);
     overrides.put(Stage.ID_OPERATE, Action.ID_FAIL);
 
-    Map<String, Map<String, String>> overrideByOwner = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> overrideByOwner = new HashMap<>();
     overrideByOwner.put(currentOwner.getId(), overrides);
     assertThat(inheritedOwnerId).isEqualTo(organization.getId());
     assertThat(currentOwner.getId()).isEqualTo(application.getId());
@@ -285,17 +285,17 @@ public class ApplicationPolicyEditorActionsOverrideTest
   @Test
   public void testActionsOverrideIsLoadedForApplicationPolicy() {
     String inheritedOwnerId = currentOwner.getParentOwnerId();
-    Map<String, String> actions = new HashMap<String, String>();
+    Map<String, String> actions = new HashMap<>();
     actions.put(Stage.ID_DEVELOP, Action.ID_WARN);
     actions.put(Stage.ID_BUILD, Action.ID_WARN);
 
-    Map<String, String> overrides = new HashMap<String, String>();
+    Map<String, String> overrides = new HashMap<>();
     overrides.put(Stage.ID_DEVELOP, Action.ID_NOTIFY);
     overrides.put(Stage.ID_BUILD, Action.ID_NOTIFY);
     overrides.put(Stage.ID_RELEASE, Action.ID_FAIL);
     overrides.put(Stage.ID_OPERATE, Action.ID_FAIL);
 
-    Map<String, Map<String, String>> overrideByOwner = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> overrideByOwner = new HashMap<>();
     overrideByOwner.put(currentOwner.getId(), overrides);
     assertThat(inheritedOwnerId).isEqualTo(organization.getId());
     assertThat(currentOwner.getId()).isEqualTo(application.getId());

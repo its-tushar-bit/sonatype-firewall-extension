@@ -8,11 +8,20 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.test.LogOutput;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.dropwizard.Configuration;
 import io.dropwizard.jersey.validation.Validators;
 import io.dropwizard.util.Duration;
 import io.dropwizard.validation.ConstraintViolations;
@@ -214,5 +223,112 @@ public class InsightConfigTest
     assertThat(config.getWebConfiguration().getHstsHeaderFactory().isEnabled()).isTrue();
     assertThat(config.getWebConfiguration().getHstsHeaderFactory().getMaxAge()).isEqualTo(Duration.days(365));
     assertThat(config.getWebConfiguration().getHstsHeaderFactory().isIncludeSubDomains()).isTrue();
+  }
+
+  @Test
+  public void testInsightConfigIsFrozen() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
+    objectMapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+    InsightConfig insightConfig = new InsightConfig();
+    JsonNode allJsonNode = objectMapper.valueToTree(insightConfig);
+    Set<String> allFieldNames = new TreeSet<>();
+    getAllFieldNames("", allJsonNode, allFieldNames);
+    Set<String> inheritedFieldNames = new TreeSet<>();
+    Configuration configuration = new Configuration();
+    JsonNode inheritedJsonNode = objectMapper.valueToTree(configuration);
+    getAllFieldNames("", inheritedJsonNode, inheritedFieldNames);
+    Set<String> insightFieldNames = new TreeSet<>(allFieldNames);
+    insightFieldNames.removeAll(inheritedFieldNames);
+
+    assertThat(insightFieldNames)
+        .withFailMessage(
+            "InsightConfig should not be changed except for migrating values from config.yml to the database." +
+                " Any new configuration should be added to the database," +
+                " see https://github.com/sonatype/insight-brain#adding-configuration for more information.")
+        .containsExactly(
+            "additionalDBParams",
+            "advancedSearchCSVExportDelimiter",
+            "baseUrl",
+            "blockBackslashInPath",
+            "blockNonAsciiInPath",
+            "blockSemicolonInPath",
+            "cdnUrl",
+            "clusterDirectory",
+            "connectTimeoutInSeconds",
+            "consentToUpgradeToVersion_1_45",
+            "createSampleData",
+            "cspEnabled",
+            "csrfProtection",
+            "database",
+            "dbBackupDir",
+            "dbCacheSizePercent",
+            "defaultBranchMonitoring",
+            "enableDefaultPasswordWarning",
+            "eventBus",
+            "eventBus.maxPoolSize",
+            "exitOnFatalError",
+            "experimentalFeatures",
+            "externalHyperlinksAllowed",
+            "features",
+            "forceBaseUrl",
+            "hdsUrl",
+            "importReferencePoliciesFromHDS",
+            "initialAdminPassword",
+            "jira",
+            "licenseFile",
+            "licenseLegalHdsRequestLimit",
+            "mail",
+            "matcherConfiguration",
+            "maxAdvancedSearchClauseCount",
+            "maxApplicationsToQueryOnDashboard",
+            "needsAcknowledgementOfInitialDashboardFilter",
+            "policyMonitoringHour",
+            "proxy",
+            "pullRequestMonitoringIntervalInSeconds",
+            "releaseGraphCacheSize",
+            "reportTimeoutInSeconds",
+            "reverseProxyAuthentication",
+            "socketTimeoutInSeconds",
+            "sonatypeWork",
+            "sourceControl",
+            "support",
+            "support.readLimitBytes",
+            "userAgentSuffix",
+            "web",
+            "web.content-type-options",
+            "web.content-type-options.enabled",
+            "web.cors",
+            "web.csp",
+            "web.frame-options",
+            "web.frame-options.enabled",
+            "web.frame-options.option",
+            "web.frame-options.origin",
+            "web.headers",
+            "web.hsts",
+            "web.hsts.enabled",
+            "web.hsts.includeSubDomains",
+            "web.hsts.maxAge",
+            "web.hsts.preload",
+            "web.uriPath",
+            "web.xss-protection",
+            "web.xss-protection.block",
+            "web.xss-protection.enabled",
+            "web.xss-protection.on",
+            "webhookSecretPassphrase");
+  }
+
+  private void getAllFieldNames(String name, JsonNode jsonNode, Set<String> fieldNames) {
+    if (jsonNode.isObject()) {
+      Iterator<Entry<String, JsonNode>> fields = jsonNode.fields();
+      fields.forEachRemaining(field -> {
+        String childName = name + field.getKey();
+        fieldNames.add(childName);
+        getAllFieldNames(childName + ".", field.getValue(), fieldNames);
+      });
+    }
+    else if (jsonNode.isArray()) {
+      jsonNode.forEach(node -> getAllFieldNames(name, node, fieldNames));
+    }
   }
 }

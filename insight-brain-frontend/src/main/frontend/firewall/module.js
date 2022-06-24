@@ -3,9 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
-import withStoreProvider from '../reactAdapter/StoreProvider';
-import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import FirewallPageContainer from './FirewallPageContainer';
 import FirewallAutoUnqaurantinePageContainer from './autounquarantine/FirewallAutoUnquarantinePageContainer';
 import firewallCipModalModule from './firewallCipModal/module';
@@ -15,25 +13,14 @@ import FirewallComponentDetailsPageContainer from './firewallComponentDetailsPag
 export default angular
   .module('firewallModule', [firewallCipModalModule.name, 'ngRedux'])
   .component('firewall', firewall)
-  .component(
-    'firewallPage',
-    react2angular(withStoreProvider(withRouterStateProvider(FirewallPageContainer)), [], ['$ngRedux', '$state'])
-  )
+  .component('firewallPage', iqReact2Angular(FirewallPageContainer, [], ['$ngRedux', '$state']))
   .component(
     'firewallAutoUnquarantinePage',
-    react2angular(
-      withStoreProvider(withRouterStateProvider(FirewallAutoUnqaurantinePageContainer)),
-      [],
-      ['$ngRedux', '$state']
-    )
+    iqReact2Angular(FirewallAutoUnqaurantinePageContainer, [], ['$ngRedux', '$state'])
   )
   .component(
     'firewallComponentDetailsPage',
-    react2angular(
-      withStoreProvider(withRouterStateProvider(FirewallComponentDetailsPageContainer)),
-      [],
-      ['$ngRedux', '$state']
-    )
+    iqReact2Angular(FirewallComponentDetailsPageContainer, [], ['$ngRedux', '$state'])
   )
   .config(routes);
 

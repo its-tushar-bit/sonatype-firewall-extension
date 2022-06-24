@@ -3,27 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
-import withStoreProvider from '../../reactAdapter/StoreProvider';
-import withRouterStateProvider from '../../reactAdapter/RouterStateProvider';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import UserAddContainer from './userConfiguration/UserAddContainer';
 import UserEditContainer from './userConfiguration/UserEditContainer';
 import UserListContainer from './userList/UserListContainer';
 
 export const UserModule = angular
   .module('UserModule', [])
-  .component(
-    'users',
-    react2angular(withStoreProvider(withRouterStateProvider(UserListContainer)), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'createUser',
-    react2angular(withStoreProvider(withRouterStateProvider(UserAddContainer)), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'editUser',
-    react2angular(withStoreProvider(withRouterStateProvider(UserEditContainer)), [], ['$ngRedux', '$state'])
-  )
+  .component('users', iqReact2Angular(UserListContainer, [], ['$ngRedux', '$state']))
+  .component('createUser', iqReact2Angular(UserAddContainer, [], ['$ngRedux', '$state']))
+  .component('editUser', iqReact2Angular(UserEditContainer, [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {

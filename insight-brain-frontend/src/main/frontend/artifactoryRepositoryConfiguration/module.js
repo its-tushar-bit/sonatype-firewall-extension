@@ -4,15 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { react2angular } from 'react2angular';
-import withStoreProvider from 'MainRoot/reactAdapter/StoreProvider';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import ArtifactoryRepositoryBaseConfigurations from 'MainRoot/artifactoryRepositoryConfiguration/ArtifactoryRepositoryBaseConfigurations';
 
 export default angular
   .module('artifactoryRepositoryConfigurationModule', [])
   .component(
     'artifactoryRepositoryBaseConfigurations',
-    react2angular(withStoreProvider(ArtifactoryRepositoryBaseConfigurations), [], ['$ngRedux'])
+    iqReact2Angular(ArtifactoryRepositoryBaseConfigurations, [], ['$ngRedux'])
   )
   .config(routes);
 

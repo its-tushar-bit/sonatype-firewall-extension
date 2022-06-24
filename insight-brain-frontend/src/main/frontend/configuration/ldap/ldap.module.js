@@ -3,9 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
-import withStoreProvider from '../../reactAdapter/StoreProvider';
-import withRouterStateProvider from '../../reactAdapter/RouterStateProvider';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
 import resourceModule from '../../Resource';
 import commonServicesModule from '../../utilAngular/CommonServices';
@@ -32,22 +30,10 @@ export default angular
     ],
     ldapModuleConfiguration
   )
-  .component(
-    'ldapList',
-    react2angular(withStoreProvider(withRouterStateProvider(LdapListContainer)), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'createLdap',
-    react2angular(withStoreProvider(withRouterStateProvider(CreateLdapContainer)), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'editLdapConnection',
-    react2angular(withStoreProvider(withRouterStateProvider(EditLdapConnectionContainer)), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'editLdapUserMapping',
-    react2angular(withStoreProvider(withRouterStateProvider(EditLdapUsermappingContainer)), [], ['$ngRedux', '$state'])
-  );
+  .component('ldapList', iqReact2Angular(LdapListContainer, [], ['$ngRedux', '$state']))
+  .component('createLdap', iqReact2Angular(CreateLdapContainer, [], ['$ngRedux', '$state']))
+  .component('editLdapConnection', iqReact2Angular(EditLdapConnectionContainer, [], ['$ngRedux', '$state']))
+  .component('editLdapUserMapping', iqReact2Angular(EditLdapUsermappingContainer, [], ['$ngRedux', '$state']));
 
 function ldapModuleConfiguration($stateProvider) {
   $stateProvider

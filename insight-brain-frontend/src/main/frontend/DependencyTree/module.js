@@ -3,17 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
-import withStoreProvider from '../reactAdapter/StoreProvider';
-import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 import DependencyTreePage from './DependencyTreePage';
 
 const dependencyTreeModule = angular
   .module('dependencyTree', ['ui.router'])
-  .component(
-    'dependencyTree',
-    react2angular(withStoreProvider(withRouterStateProvider(DependencyTreePage)), [], ['$ngRedux', '$state'])
-  );
+  .component('dependencyTree', iqReact2Angular(DependencyTreePage, [], ['$ngRedux', '$state']));
 
 export default dependencyTreeModule;

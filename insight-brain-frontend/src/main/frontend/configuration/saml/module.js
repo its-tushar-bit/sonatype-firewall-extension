@@ -6,16 +6,11 @@
 import clmContextLocationModule from '../../utilAngular/CLMContextLocation';
 import utilityModule from '../../utility/utility.module';
 import SAMLConfigurationPage from './SAMLConfigurationPage';
-import { react2angular } from 'react2angular';
-import withStoreProvider from '../../reactAdapter/StoreProvider';
-import withRouterStateProvider from '../../reactAdapter/RouterStateProvider';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
 export default angular
   .module('samlModule', [clmContextLocationModule.name, utilityModule.name])
-  .component(
-    'samlConfigurationPage',
-    react2angular(withStoreProvider(withRouterStateProvider(SAMLConfigurationPage)), [], ['$ngRedux', '$state'])
-  )
+  .component('samlConfigurationPage', iqReact2Angular(SAMLConfigurationPage, [], ['$ngRedux', '$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

@@ -4,15 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { react2angular } from 'react2angular';
-import withStoreProvider from 'MainRoot/reactAdapter/StoreProvider';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import InnerSourceRepositoryBaseConfigurations from 'MainRoot/innerSourceRepositoryConfiguration/InnerSourceRepositoryBaseConfigurations';
 
 export default angular
   .module('innerSourceRepositoryConfigurationModule', [])
   .component(
     'innerSourceRepositoryBaseConfigurations',
-    react2angular(withStoreProvider(InnerSourceRepositoryBaseConfigurations), [], ['$ngRedux'])
+    iqReact2Angular(InnerSourceRepositoryBaseConfigurations, [], ['$ngRedux'])
   )
   .config(routes);
 

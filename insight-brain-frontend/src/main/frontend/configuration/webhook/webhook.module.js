@@ -3,23 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
 import EditWebhookContainer from './editWebhook/EditWebhookContainer';
 import ListWebhooksContainer from './listWebhooks/ListWebhooksContainer';
-import withStoreProvider from '../../reactAdapter/StoreProvider';
-import withRouterStateProvider from '../../reactAdapter/RouterStateProvider';
 
 export default angular
   .module('webhook.module', [], webhookModuleConfiguration)
-  .component(
-    'editWebhook',
-    react2angular(withStoreProvider(withRouterStateProvider(EditWebhookContainer)), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'listWebhooks',
-    react2angular(withStoreProvider(withRouterStateProvider(ListWebhooksContainer)), [], ['$ngRedux', '$state'])
-  );
+  .component('editWebhook', iqReact2Angular(EditWebhookContainer, [], ['$ngRedux', '$state']))
+  .component('listWebhooks', iqReact2Angular(ListWebhooksContainer, [], ['$ngRedux', '$state']));
 
 function webhookModuleConfiguration($stateProvider) {
   $stateProvider

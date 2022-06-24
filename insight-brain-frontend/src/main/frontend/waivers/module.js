@@ -3,27 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import AddWaiverPageContainer from './AddWaiverPageContainer';
 import RequestWaiverPageContainer from './RequestWaiverPageContainer';
 import ListWaiversPageContainer from './ListWaiversPageContainer';
-import withStoreProvider from '../reactAdapter/StoreProvider';
-import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 
 export default angular
   .module('waivers', [])
-  .component(
-    'addWaiverPage',
-    react2angular(withRouterStateProvider(withStoreProvider(AddWaiverPageContainer)), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'requestWaiverPage',
-    react2angular(withRouterStateProvider(withStoreProvider(RequestWaiverPageContainer)), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'listWaiversPage',
-    react2angular(withRouterStateProvider(withStoreProvider(ListWaiversPageContainer)), [], ['$ngRedux', '$state'])
-  )
+  .component('addWaiverPage', iqReact2Angular(AddWaiverPageContainer, [], ['$ngRedux', '$state']))
+  .component('requestWaiverPage', iqReact2Angular(RequestWaiverPageContainer, [], ['$ngRedux', '$state']))
+  .component('listWaiversPage', iqReact2Angular(ListWaiversPageContainer, [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {

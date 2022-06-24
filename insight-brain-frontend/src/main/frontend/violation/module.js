@@ -3,29 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import ViolationPageContainer from './ViolationPageContainer';
 import sidebarView from '../sidebarNav/sidebarView';
 import SidebarNavListContainer from '../sidebarNav/SidebarNavListContainer';
-import withStoreProvider from '../reactAdapter/StoreProvider';
 import TransitiveViolationsPageContainer from './TransitiveViolationsPageContainer';
-import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 
 export default angular
   .module('violationPage', [])
   .component('sidebarView', sidebarView)
-  .component(
-    'sidebarNavList',
-    react2angular(withStoreProvider(withRouterStateProvider(SidebarNavListContainer)), [], ['$ngRedux', '$state'])
-  )
-  .component('violationPage', react2angular(withStoreProvider(ViolationPageContainer), [], ['$ngRedux', '$state']))
+  .component('sidebarNavList', iqReact2Angular(SidebarNavListContainer, [], ['$ngRedux', '$state']))
+  .component('violationPage', iqReact2Angular(ViolationPageContainer, [], ['$ngRedux', '$state']))
   .component(
     'transitiveViolationsPageContainer',
-    react2angular(
-      withStoreProvider(withRouterStateProvider(TransitiveViolationsPageContainer)),
-      [],
-      ['$ngRedux', '$state']
-    )
+    iqReact2Angular(TransitiveViolationsPageContainer, [], ['$ngRedux', '$state'])
   )
   .config(routes);
 

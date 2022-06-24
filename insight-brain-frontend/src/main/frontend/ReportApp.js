@@ -3,17 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
-import withStoreProvider from './reactAdapter/StoreProvider';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import ReportsPage from './report/react/ReportsPage';
-import withRouterStateProvider from 'MainRoot/reactAdapter/RouterStateProvider';
 
 export default angular
   .module('ReportModule', ['ui.router'])
-  .component(
-    'reportsPage',
-    react2angular(withStoreProvider(withRouterStateProvider(ReportsPage)), [], ['$ngRedux', '$state'])
-  )
+  .component('reportsPage', iqReact2Angular(ReportsPage, [], ['$ngRedux', '$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

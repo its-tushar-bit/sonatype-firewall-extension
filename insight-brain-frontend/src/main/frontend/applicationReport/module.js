@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
 import cipModalModule from './results/cipModal/module';
 import CLMLocationsModule from '../util/CLMLocation';
@@ -11,8 +11,6 @@ import utilityModule from '../utility/utility.module';
 import utilityDirectivesModule from '../utility/directives/utility.directives.module';
 import ComponentDisplayModule from '../ComponentDisplay/module';
 import selectedComponentServiceModule from '../services/selectedComponentService';
-import withStoreProvider from '../reactAdapter/StoreProvider';
-import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 import waiversModule from '../waivers/module';
 
 import ReportPage from './ReportPage';
@@ -32,26 +30,12 @@ export default angular
     waiversModule.name,
     'ngRedux',
   ])
-  .component(
-    'applicationReport',
-    react2angular(withStoreProvider(withRouterStateProvider(ReportPage)), [], ['$ngRedux', '$state'])
-  )
+  .component('applicationReport', iqReact2Angular(ReportPage, [], ['$ngRedux', '$state']))
   .component('applicationReportRoot', applicationReportRoot)
-  .component(
-    'applicationReportRawData',
-    react2angular(
-      withStoreProvider(withRouterStateProvider(ApplicationReportRawDataContainer)),
-      [],
-      ['$ngRedux', '$state']
-    )
-  )
+  .component('applicationReportRawData', iqReact2Angular(ApplicationReportRawDataContainer, [], ['$ngRedux', '$state']))
   .component(
     'applicationReportVulnerabilities',
-    react2angular(
-      withStoreProvider(withRouterStateProvider(applicationReportVulnerabilities)),
-      [],
-      ['$ngRedux', '$state']
-    )
+    iqReact2Angular(applicationReportVulnerabilities, [], ['$ngRedux', '$state'])
   )
   .factory('applicationReportActions', applicationReportActions)
   .config(routes);

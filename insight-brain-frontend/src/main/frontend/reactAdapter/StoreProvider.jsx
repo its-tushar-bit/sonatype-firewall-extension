@@ -11,7 +11,10 @@ export default function withStoreProvider(WrappedComponent) {
   function StoreProvider({ $ngRedux, ...props }) {
     return (
       <Provider store={$ngRedux}>
-        <WrappedComponent {...props} />
+        {/*
+         * $ngRedux prop provided explicitly for old components that receive it as a prop rather than through context
+         */}
+        <WrappedComponent $ngRedux={$ngRedux} {...props} />
       </Provider>
     );
   }

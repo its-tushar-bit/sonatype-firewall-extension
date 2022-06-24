@@ -3,18 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
-import withStoreProvider from '../../reactAdapter/StoreProvider';
-import withRouterStateProvider from '../../reactAdapter/RouterStateProvider';
 import AtlassianCrowdConfiguration from './AtlassianCrowdConfiguration';
 
 const atlassianCrowdConfigurationModule = angular
   .module('atlassianCrowdConfiguration', ['ui.router'])
-  .component(
-    'atlassianCrowdConfiguration',
-    react2angular(withStoreProvider(withRouterStateProvider(AtlassianCrowdConfiguration)), [], ['$ngRedux', '$state'])
-  )
+  .component('atlassianCrowdConfiguration', iqReact2Angular(AtlassianCrowdConfiguration, [], ['$ngRedux', '$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

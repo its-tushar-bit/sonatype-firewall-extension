@@ -3,9 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
-import withStoreProvider from '../reactAdapter/StoreProvider';
-import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
 import angularCommonModule from '../utilAngular/AngularCommon';
 import storesModule from '../utilAngular/Stores';
@@ -31,20 +29,10 @@ var dashboardModule = angular
     dashboardResultsActionsModule.name,
   ])
   .component('dashboardResultsContainer', dashboardResultsContainer)
-  .component(
-    'dashboardHeader',
-    react2angular(withStoreProvider(withRouterStateProvider(DashboardHeaderContainer)), [], ['$ngRedux', '$state'])
-  )
-  .component('violations', react2angular(withStoreProvider(DashboardViolationsContainer), [], ['$ngRedux']))
-  .component('components', react2angular(withStoreProvider(DashboardComponentsContainer), [], ['$ngRedux']))
-  .component(
-    'applications',
-    react2angular(
-      withStoreProvider(withRouterStateProvider(DashboardApplicationsContainer)),
-      [],
-      ['$ngRedux', '$state']
-    )
-  );
+  .component('dashboardHeader', iqReact2Angular(DashboardHeaderContainer, [], ['$ngRedux', '$state']))
+  .component('violations', iqReact2Angular(DashboardViolationsContainer, [], ['$ngRedux']))
+  .component('components', iqReact2Angular(DashboardComponentsContainer, [], ['$ngRedux']))
+  .component('applications', iqReact2Angular(DashboardApplicationsContainer, [], ['$ngRedux', '$state']));
 
 export default dashboardModule;
 

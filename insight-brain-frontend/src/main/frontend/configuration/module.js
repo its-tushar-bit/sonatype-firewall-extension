@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import ldapModule from './ldap/ldap.module';
 import samlModule from './saml/module';
 import webhookModule from './webhook/webhook.module';
@@ -14,8 +14,6 @@ import ProxyConfigContainer from './proxy/ProxyConfigContainer';
 import ScmOnboardingContainer from './scmOnboarding/ScmOnboardingContainer';
 import LabsDataInsightsContainer from './labsDataInsights/LabsDataInsightsContainer';
 import scmOnboardingActions from './scmOnboarding/scmOnboardingActions';
-import withStoreProvider from '../reactAdapter/StoreProvider';
-import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 import AdvancedSearchConfigContainer from './advancedSearch/AdvancedSearchConfigContainer';
 import SuccessMetricsConfigurationContainer from './successMetricsConfiguration/SuccessMetricsConfigurationContainer';
 import SystemNoticeConfigurationContainer from './systemNoticeConfiguration/SystemNoticeConfigurationContainer';
@@ -37,43 +35,22 @@ export default angular
   ])
   .component(
     'automaticApplicationsConfiguration',
-    react2angular(withStoreProvider(AutomaticApplicationsConfiguration), [], ['$ngRedux', '$state'])
+    iqReact2Angular(AutomaticApplicationsConfiguration, [], ['$ngRedux', '$state'])
   )
   .component(
     'automaticSourceControlConfiguration',
-    react2angular(withStoreProvider(AutomaticSourceControlConfigurationContainer), [], ['$ngRedux', '$state'])
+    iqReact2Angular(AutomaticSourceControlConfigurationContainer, [], ['$ngRedux', '$state'])
   )
-  .component('mailConfig', react2angular(withStoreProvider(MailConfigContainer), ['isAuthorized'], ['$ngRedux']))
-  .component(
-    'proxyConfig',
-    react2angular(withStoreProvider(withRouterStateProvider(ProxyConfigContainer)), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'advancedSearchConfig',
-    react2angular(withStoreProvider(AdvancedSearchConfigContainer), ['isAuthorized'], ['$ngRedux'])
-  )
-  .component('gettingStarted', react2angular(withStoreProvider(GettingStartedContainer), [], ['$ngRedux']))
-  .component(
-    'scmOnboarding',
-    react2angular(withStoreProvider(ScmOnboardingContainer), ['isAuthorized'], ['$ngRedux', '$state'])
-  )
-  .component(
-    'labsDataInsights',
-    react2angular(withStoreProvider(LabsDataInsightsContainer), ['isAuthorized'], ['$ngRedux'])
-  )
-  .component(
-    'successMetricsConfiguration',
-    react2angular(withStoreProvider(SuccessMetricsConfigurationContainer), [], ['$ngRedux'])
-  )
-  .component(
-    'systemNoticeConfiguration',
-    react2angular(withStoreProvider(SystemNoticeConfigurationContainer), [], ['$ngRedux'])
-  )
-  .component('administratorsConfig', react2angular(withStoreProvider(AdministratorsConfig), [], ['$ngRedux']))
-  .component(
-    'administratorsEdit',
-    react2angular(withStoreProvider(withRouterStateProvider(AdministratorsEdit)), [], ['$ngRedux', '$state'])
-  )
+  .component('mailConfig', iqReact2Angular(MailConfigContainer, ['isAuthorized'], ['$ngRedux']))
+  .component('proxyConfig', iqReact2Angular(ProxyConfigContainer, [], ['$ngRedux', '$state']))
+  .component('advancedSearchConfig', iqReact2Angular(AdvancedSearchConfigContainer, ['isAuthorized'], ['$ngRedux']))
+  .component('gettingStarted', iqReact2Angular(GettingStartedContainer, [], ['$ngRedux']))
+  .component('scmOnboarding', iqReact2Angular(ScmOnboardingContainer, ['isAuthorized'], ['$ngRedux', '$state']))
+  .component('labsDataInsights', iqReact2Angular(LabsDataInsightsContainer, ['isAuthorized'], ['$ngRedux']))
+  .component('successMetricsConfiguration', iqReact2Angular(SuccessMetricsConfigurationContainer, [], ['$ngRedux']))
+  .component('systemNoticeConfiguration', iqReact2Angular(SystemNoticeConfigurationContainer, [], ['$ngRedux']))
+  .component('administratorsConfig', iqReact2Angular(AdministratorsConfig, [], ['$ngRedux']))
+  .component('administratorsEdit', iqReact2Angular(AdministratorsEdit, [], ['$ngRedux', '$state']))
   .factory('scmOnboardingActions', scmOnboardingActions)
   .value('routerListener', routerListener) // add to angular so we can test it
   .config(routes)

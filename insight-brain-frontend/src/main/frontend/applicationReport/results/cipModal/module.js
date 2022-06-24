@@ -3,8 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
-import withStoreProvider from '../../../reactAdapter/StoreProvider';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import './cipGlobals';
 import '../../../version-graph/appcheck';
 import pv from '../../../lib/protovis/protovis.min';
@@ -68,11 +67,11 @@ export default angular
   .component('rootAncestors', rootAncestors)
   .component(
     'innerSourceProducerReportModal',
-    react2angular(withStoreProvider(innerSourceProducerReportModalContainer), ['reportUrl'], ['$ngRedux'])
+    iqReact2Angular(innerSourceProducerReportModalContainer, ['reportUrl'], ['$ngRedux'])
   )
   .component(
     'innerSourceProducerPermissionsModal',
-    react2angular(withStoreProvider(innerSourceProducerPermissionsModalContainer), ['applicationName'], ['$ngRedux'])
+    iqReact2Angular(innerSourceProducerPermissionsModalContainer, ['applicationName'], ['$ngRedux'])
   )
   .service('OwnerContext', OwnerContext);
 

@@ -3,21 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 import IqOrgAppPicker from '../components/iqOrgAppPicker/IqOrgAppPicker';
-import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 import IqSidebarNav from './iqSidebarNav/IqSidebarNav';
 import IqToggle from './IqToggle';
 
 export default angular
   .module('reactComponents', ['ui.router'])
-  .component('iqOrgAppPicker', react2angular(IqOrgAppPicker))
-  .component('iqToggle', react2angular(IqToggle))
+  .component('iqOrgAppPicker', iqReact2Angular(IqOrgAppPicker))
+  .component('iqToggle', iqReact2Angular(IqToggle))
   .component(
     'nxFontAwesomeIcon',
-    react2angular(NxFontAwesomeIcon, [
+    iqReact2Angular(NxFontAwesomeIcon, [
       'icon',
       'mask',
       'className',
@@ -41,8 +40,8 @@ export default angular
   )
   .component(
     'iqSidebarNav',
-    react2angular(
-      withRouterStateProvider(IqSidebarNav),
+    iqReact2Angular(
+      IqSidebarNav,
       [
         'currentState',
         'productEdition',

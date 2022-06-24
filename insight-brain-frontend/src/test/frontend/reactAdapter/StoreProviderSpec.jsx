@@ -44,13 +44,6 @@ describe('StoreProvider (higher-order component)', function () {
     expect(wrapper.find(TestComponent)).toHaveProp('testProp', 'test-prop');
   });
 
-  it('does not pass down store to the wrapped component', function () {
-    const StoreProviderHOC = withStoreProvider(TestComponent);
-    const wrapper = shallow(<StoreProviderHOC $ngRedux={mockNgRedux} />);
-    expect(wrapper.find(TestComponent)).not.toHaveProp('store');
-    expect(wrapper.find(TestComponent)).not.toHaveProp('$ngRedux');
-  });
-
   it('includes the display name of the wrapped component in its displayName', function () {
     const storeProviderHOC = withStoreProvider(TestComponent);
     expect(storeProviderHOC.displayName).toBe('withStoreProvider(TestComponent)');

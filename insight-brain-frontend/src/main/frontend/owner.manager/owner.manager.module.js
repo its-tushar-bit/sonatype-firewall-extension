@@ -3,8 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
-import withStoreProvider from '../reactAdapter/StoreProvider';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
 import moveApplicationModule from './move.application/module';
 import formsModule from '../FormsModule';
@@ -166,7 +165,7 @@ export default angular
   .directive('numberInputWithStringValue', NumberInputWithStringValue)
   .directive('sameOwnerEditSref', SameOwnerEditSref)
   .directive('sameOwnerViewSref', SameOwnerViewSref)
-  .component('createComponentLabel', react2angular(withStoreProvider(CreateComponentLabel), [], ['$ngRedux', '$state']))
+  .component('createComponentLabel', iqReact2Angular(CreateComponentLabel, [], ['$ngRedux', '$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

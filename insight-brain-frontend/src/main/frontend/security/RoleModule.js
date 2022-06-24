@@ -3,23 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
-import withStoreProvider from '../reactAdapter/StoreProvider';
-import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
 import RoleListContainer from './roleList/RoleListContainer';
 import RoleEditorContainer from './roleEditor/RoleEditorContainer';
 
 const module = angular
   .module('RoleModule', ['ui.router', 'ui.router.state'])
-  .component(
-    'roles',
-    react2angular(withStoreProvider(withRouterStateProvider(RoleListContainer)), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'roleEditor',
-    react2angular(withStoreProvider(withRouterStateProvider(RoleEditorContainer)), [], ['$ngRedux', '$state'])
-  )
+  .component('roles', iqReact2Angular(RoleListContainer, [], ['$ngRedux', '$state']))
+  .component('roleEditor', iqReact2Angular(RoleEditorContainer, [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {

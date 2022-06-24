@@ -3,12 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import ComponentLegalOverviewContainer from './ComponentLegalOverviewContainer';
 import LegalApplicationDetailsContainer from './application/LegalApplicationDetailsContainer';
 import AttributionReportForm from './application/AttributionReportFormContainer';
 import AttributionReportTemplateForm from './application/AttributionReportTemplateFormContainer';
-import withStoreProvider from '../reactAdapter/StoreProvider';
 import componentCopyrightDetails from './copyright/componentCopyrightDetails';
 import CopyrightDetailsHeaderContainer from './copyright/CopyrightDetailsHeaderContainer';
 import CopyrightListContainer from './copyright/CopyrightListContainer';
@@ -23,73 +22,35 @@ import componentLicenseFilesDetails from './files/licenses/componentLicenseFiles
 import LicenseFilesDetailsHeaderContainer from './files/licenses/LicenseFilesDetailsHeaderContainer';
 import LicenseFilesDetailsListContainer from './files/licenses/LicenseFilesDetailsListContainer';
 import LicenseFilesDetailsContentsContainer from './files/licenses/LicenseFilesDetailsContentsContainer';
-import withRouterStateProvider from 'MainRoot/reactAdapter/RouterStateProvider';
 
 export default angular
   .module('legalModule', [])
-  .component(
-    'legalDashboard',
-    react2angular(
-      withStoreProvider(withRouterStateProvider(LegalDashboardContainer)),
-      ['isAuthorized'],
-      ['$ngRedux', '$state']
-    )
-  )
-  .component(
-    'componentLegalOverview',
-    react2angular(withStoreProvider(ComponentLegalOverviewContainer), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'legalApplicationDetails',
-    react2angular(withStoreProvider(LegalApplicationDetailsContainer), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'attributionReportForm',
-    react2angular(withStoreProvider(withRouterStateProvider(AttributionReportForm)), [], ['$ngRedux', '$state'])
-  )
+  .component('legalDashboard', iqReact2Angular(LegalDashboardContainer, ['isAuthorized'], ['$ngRedux', '$state']))
+  .component('componentLegalOverview', iqReact2Angular(ComponentLegalOverviewContainer, [], ['$ngRedux', '$state']))
+  .component('legalApplicationDetails', iqReact2Angular(LegalApplicationDetailsContainer, [], ['$ngRedux', '$state']))
+  .component('attributionReportForm', iqReact2Angular(AttributionReportForm, [], ['$ngRedux', '$state']))
   .component(
     'attributionReportTemplateForm',
-    react2angular(withStoreProvider(AttributionReportTemplateForm), [], ['$ngRedux', '$state'])
+    iqReact2Angular(AttributionReportTemplateForm, [], ['$ngRedux', '$state'])
   )
   .component('componentCopyrightDetails', componentCopyrightDetails)
-  .component(
-    'copyrightDetailsHeader',
-    react2angular(withStoreProvider(CopyrightDetailsHeaderContainer), [], ['$ngRedux', '$state'])
-  )
-  .component('copyrightList', react2angular(withStoreProvider(CopyrightListContainer), [], ['$ngRedux', '$state']))
-  .component(
-    'copyrightDetailsContents',
-    react2angular(withStoreProvider(CopyrightDetailsContentsContainer), [], ['$ngRedux', '$state'])
-  )
+  .component('copyrightDetailsHeader', iqReact2Angular(CopyrightDetailsHeaderContainer, [], ['$ngRedux', '$state']))
+  .component('copyrightList', iqReact2Angular(CopyrightListContainer, [], ['$ngRedux', '$state']))
+  .component('copyrightDetailsContents', iqReact2Angular(CopyrightDetailsContentsContainer, [], ['$ngRedux', '$state']))
   .component('componentNoticeDetails', componentNoticeDetails)
-  .component(
-    'noticeDetailsHeader',
-    react2angular(withStoreProvider(NoticeDetailsHeaderContainer), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'noticeDetailsList',
-    react2angular(withStoreProvider(NoticeDetailsListContainer), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'noticeDetailsContents',
-    react2angular(withStoreProvider(NoticeDetailsContentsContainer), [], ['$ngRedux', '$state'])
-  )
-  .component(
-    'componentLicenseDetails',
-    react2angular(withStoreProvider(ComponentLicenseDetailsContainer), [], ['$ngRedux', '$state'])
-  )
+  .component('noticeDetailsHeader', iqReact2Angular(NoticeDetailsHeaderContainer, [], ['$ngRedux', '$state']))
+  .component('noticeDetailsList', iqReact2Angular(NoticeDetailsListContainer, [], ['$ngRedux', '$state']))
+  .component('noticeDetailsContents', iqReact2Angular(NoticeDetailsContentsContainer, [], ['$ngRedux', '$state']))
+  .component('componentLicenseDetails', iqReact2Angular(ComponentLicenseDetailsContainer, [], ['$ngRedux', '$state']))
   .component('componentLicenseFilesDetails', componentLicenseFilesDetails)
   .component(
     'licenseFilesDetailsHeader',
-    react2angular(withStoreProvider(LicenseFilesDetailsHeaderContainer), [], ['$ngRedux', '$state'])
+    iqReact2Angular(LicenseFilesDetailsHeaderContainer, [], ['$ngRedux', '$state'])
   )
-  .component(
-    'licenseFilesDetailsList',
-    react2angular(withStoreProvider(LicenseFilesDetailsListContainer), [], ['$ngRedux', '$state'])
-  )
+  .component('licenseFilesDetailsList', iqReact2Angular(LicenseFilesDetailsListContainer, [], ['$ngRedux', '$state']))
   .component(
     'licenseFilesDetailsContents',
-    react2angular(withStoreProvider(LicenseFilesDetailsContentsContainer), [], ['$ngRedux', '$state'])
+    iqReact2Angular(LicenseFilesDetailsContentsContainer, [], ['$ngRedux', '$state'])
   )
   .config(routes);
 

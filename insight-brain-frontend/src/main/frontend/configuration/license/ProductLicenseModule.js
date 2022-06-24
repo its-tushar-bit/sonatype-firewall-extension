@@ -3,19 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { react2angular } from 'react2angular';
-import withRouterStateProvider from '../../reactAdapter/RouterStateProvider';
-import withStoreProvider from '../../reactAdapter/StoreProvider';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import angularCommonModule from '../../utilAngular/AngularCommon';
 import CLMLocationModule from '../../util/CLMLocation';
 import ProductLicenseContainer from './ProductLicenseContainer';
 
 export default angular
   .module('ProductLicense', ['ui.router', angularCommonModule.name, CLMLocationModule.name])
-  .component(
-    'productLicenseDetail',
-    react2angular(withStoreProvider(withRouterStateProvider(ProductLicenseContainer)), [], ['$ngRedux'])
-  )
+  .component('productLicenseDetail', iqReact2Angular(ProductLicenseContainer, [], ['$ngRedux']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

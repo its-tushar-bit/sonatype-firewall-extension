@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 
@@ -30,14 +31,19 @@ public class FirewallCDPPage
     super(ROOT);
   }
 
-  public static String url(RepositoryComponent component) throws UnsupportedEncodingException {
+  public static String url(RepositoryComponent component) {
     ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
-    String componentIdentifierJSONString =
-        URLEncoder.encode(toJson(componentIdentifier), String.valueOf(StandardCharsets.UTF_8));
-    String url = "/firewall/repository/" + component.getRepositoryId() + "/component/" +
-        componentIdentifierJSONString + "/" + component.getHash() + "/" +
-        component.getMatchStateId() + "?proprietary=false";
-    return BaseUrl.resolvePageUrl(url);
+    try {
+      String componentIdentifierJSONString =
+          URLEncoder.encode(toJson(componentIdentifier), String.valueOf(StandardCharsets.UTF_8));
+      String url =
+          "/firewall/repository/" + component.getRepositoryId() + "/component/" + componentIdentifierJSONString + "/" +
+              component.getHash() + "/" + component.getMatchStateId() + "?proprietary=false";
+      return BaseUrl.resolvePageUrl(url);
+    }
+    catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public SelenideElement title() {
@@ -54,5 +60,33 @@ public class FirewallCDPPage
 
   public ElementsCollection getAllLoadingSpinners() {
     return children(".nx-loading-spinner");
+  }
+
+  public RiskRemediationTile getRiskRemediationTile() {
+    return RiskRemediationTile.getOverviewTileForParent(ROOT);
+  }
+
+  public SelenideElement getComponentOverviewTile() {
+    return child(".iq-component-information-tile");
+  }
+
+  public SelenideElement getComponentOverviewTileReadOnlyItemData(int index) {
+    return children(".nx-read-only__item .nx-read-only__data").get(index);
+  }
+
+  public SelenideElement getViewCoordinatesButton() {
+    return child(".component-coordinates-button");
+  }
+
+  public SelenideElement getComponentCoordinatesPopOver() {
+    return child("#iq-component-coordinates-popover");
+  }
+
+  public SelenideElement getComponentCoordinatesPopOverData(int index) {
+    return children(".nx-read-only__data").get(index);
+  }
+
+  public SelenideElement getComponentCoordinatesPopOverCloseBtn() {
+    return child("#iq-component-coordinates-popover-close-btn");
   }
 }

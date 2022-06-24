@@ -22,3 +22,7 @@ export const selectFirewallCDPRouteParams = createSelector(
     'tabId',
   ])
 );
+export const currentFirewallCDPComponentVersion = createSelector(
+  selectFirewallCDP,
+  (cdp) => cdp.componentDetails.componentIdentifier.coordinates.version
+);

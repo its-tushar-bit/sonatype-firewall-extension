@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import * as enzymeUtils from '../enzymeUtils';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import { NxLoadError, NxLoadWrapper } from '@sonatype/react-shared-components';
 
 import ComponentDetailsTabs from 'MainRoot/componentDetails/ComponentDetailsTabs';
@@ -168,19 +168,12 @@ describe('FirewallComponentDetailsPage', function () {
     });
   });
 
-  describe('when there page is loading ', () => {
+  describe('when the page is loading ', () => {
     it('renders a NxLoadWrapper component', () => {
       const el = getShallowComponent(
         setCustomCDPResponseStateParamsOnMinimalProps('isLoadingComponentDetails', true)
       ).find(NxLoadWrapper);
       expect(el).toExist();
-    });
-
-    it('renders the tabs', () => {
-      const el = getShallowComponent(
-        setCustomCDPResponseStateParamsOnMinimalProps('componentDetailsError', 'Mock message')
-      );
-      assertTabs(el, minimalProps.routeParams.tabId);
     });
   });
 });

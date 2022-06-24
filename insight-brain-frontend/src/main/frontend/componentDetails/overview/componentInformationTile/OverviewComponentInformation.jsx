@@ -37,7 +37,7 @@ export default function OverviewComponentInformation({
   } = componentInformation;
 
   useEffect(() => {
-    loadInnerSourceProducerData();
+    if (loadInnerSourceProducerData) loadInnerSourceProducerData();
   }, []);
 
   const repositorySourceMessage = path(['sourceResponse', 'sourceMessage'], versionExplorerData);
@@ -156,10 +156,10 @@ export default function OverviewComponentInformation({
 }
 
 OverviewComponentInformation.propTypes = {
-  loadInnerSourceProducerData: PropTypes.func.isRequired,
+  loadInnerSourceProducerData: PropTypes.func,
   componentInformation: componentInformationPropType,
-  toggleShowOccurrencesPopover: PropTypes.func.isRequired,
+  toggleShowOccurrencesPopover: PropTypes.func,
   toggleShowComponentCoordinatesPopover: PropTypes.func.isRequired,
-  toggleShowSimilarMatches: PropTypes.func.isRequired,
+  toggleShowSimilarMatches: PropTypes.func,
   similarMatches: PropTypes.array,
 };

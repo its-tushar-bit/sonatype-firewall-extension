@@ -15,9 +15,10 @@ import {
 } from '../../componentDetails/ComponentDetailsHeader';
 import { NxLoadWrapper } from '@sonatype/react-shared-components';
 import { createTabConfiguration } from '../../componentDetails/componentDetailsUtils';
+import FirewallOverview from './overview/FirewallOverview';
 
 export const tabsConfiguration = [
-  createTabConfiguration('overview', 'Overview'),
+  createTabConfiguration('overview', 'Overview', <FirewallOverview />),
   createTabConfiguration('violations', 'Policy Violations'),
   createTabConfiguration('security', 'Security'),
   createTabConfiguration('legal', 'Legal'),
@@ -43,27 +44,34 @@ export default function FirewallComponentDetailPage(props) {
   };
 
   return (
-    <main id="firewall-component-details-page" className="nx-page-main">
-      <NxLoadWrapper
-        loading={isLoadingComponentDetails}
-        error={componentDetailsError}
-        retryHandler={() => loadComponentDetails(routeParams)}
-      >
-        {() => (
-          <ComponentDetailsHeader>
-            <Title id="component-details-title">{componentCoordinates}</Title>
-            <ComponentDetailsReportInfo {...componentDetails?.metadata} />
-            <ComponentDetailsTags
-              format={componentDetails?.componentIdentifier?.format}
-              dependencyType={componentDetails?.dependencyType}
-              isInnerSource={componentDetails?.isInnerSource}
-              labels={componentDetails?.labels}
-            />
-          </ComponentDetailsHeader>
+    <main id="firewall-component-details-page" className="nx-viewport-sized nx-page-main">
+      <div className="nx-viewport-sized__scrollable nx-scrollable firewall-component-details-page__container">
+        <NxLoadWrapper
+          loading={isLoadingComponentDetails}
+          error={componentDetailsError}
+          retryHandler={() => loadComponentDetails(routeParams)}
+        >
+          {() => (
+            <ComponentDetailsHeader>
+              <Title id="component-details-title">{componentCoordinates}</Title>
+              <ComponentDetailsReportInfo {...componentDetails?.metadata} />
+              <ComponentDetailsTags
+                format={componentDetails?.componentIdentifier?.format}
+                dependencyType={componentDetails?.dependencyType}
+                isInnerSource={componentDetails?.isInnerSource}
+                labels={componentDetails?.labels}
+              />
+            </ComponentDetailsHeader>
+          )}
+        </NxLoadWrapper>
+        {componentDetails && (
+          <ComponentDetailsTabs
+            tabsConfiguration={tabsConfiguration}
+            onTabChange={handleTabChange}
+            activeTabId={tabId}
+          />
         )}
-      </NxLoadWrapper>
-
-      <ComponentDetailsTabs tabsConfiguration={tabsConfiguration} onTabChange={handleTabChange} activeTabId={tabId} />
+      </div>
     </main>
   );
 }

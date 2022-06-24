@@ -15,6 +15,7 @@ import {
   getFirewallReleaseQuarantineSummaryUrl,
   getPoliciesUrl,
   getComponentDetailsUrl,
+  getVersionGraphUrl,
 } from '../util/CLMLocation';
 import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
@@ -113,6 +114,16 @@ export const FIREWALL_COMPONENT_DETAILS_FAILED = 'FIREWALL_COMPONENT_DETAILS_FAI
 export const loadComponentDetailsRequested = noPayloadActionCreator(FIREWALL_COMPONENT_DETAILS_REQUESTED);
 export const loadComponentDetailsFulfilled = payloadParamActionCreator(FIREWALL_COMPONENT_DETAILS_FULFILLED);
 export const loadComponentDetailsFailed = payloadParamActionCreator(FIREWALL_COMPONENT_DETAILS_FAILED);
+
+export const FIREWALL_LOAD_VERSION_EXPLORER_DATA_REQUESTED = 'FIREWALL_LOAD_VERSION_EXPLORER_DATA_REQUESTED';
+export const FIREWALL_LOAD_VERSION_EXPLORER_DATA_FULFILLED = 'FIREWALL_LOAD_VERSION_EXPLORER_DATA_FULFILLED';
+export const FIREWALL_LOAD_VERSION_EXPLORER_DATA_FAILED = 'FIREWALL_LOAD_VERSION_EXPLORER_DATA_FAILED';
+
+export const loadVersionExplorerDataRequested = noPayloadActionCreator(FIREWALL_LOAD_VERSION_EXPLORER_DATA_REQUESTED);
+export const loadVersionExplorerDataFulfilled = payloadParamActionCreator(
+  FIREWALL_LOAD_VERSION_EXPLORER_DATA_FULFILLED
+);
+export const loadVersionExplorerDataFailed = payloadParamActionCreator(FIREWALL_LOAD_VERSION_EXPLORER_DATA_FAILED);
 
 export function loadFirewallData() {
   return (dispatch) => {
@@ -311,6 +322,42 @@ export function loadComponentDetails(componentDetailsParams) {
       })
       .catch((error) => {
         dispatch(loadComponentDetailsFailed(Messages.getHttpErrorMessage(error)));
+      });
+  };
+}
+
+export function loadVersionExplorerData(componentDetailsParams) {
+  return function (dispatch) {
+    dispatch(loadVersionExplorerDataRequested());
+    const {
+      repositoryId,
+      componentIdentifier,
+      componentHash,
+      matchState,
+      proprietary,
+      identificationSource,
+      scanId,
+    } = componentDetailsParams;
+
+    const requestParams = {
+      clientType: 'ci',
+      ownerType: 'repository',
+      ownerId: repositoryId,
+      componentIdentifier,
+      hash: componentHash,
+      matchState,
+      proprietary,
+      identificationSource,
+      scanId,
+    };
+
+    return axios
+      .get(getVersionGraphUrl(requestParams))
+      .then(({ data }) => {
+        dispatch(loadVersionExplorerDataFulfilled(data));
+      })
+      .catch((error) => {
+        dispatch(loadVersionExplorerDataFailed(Messages.getHttpErrorMessage(error)));
       });
   };
 }

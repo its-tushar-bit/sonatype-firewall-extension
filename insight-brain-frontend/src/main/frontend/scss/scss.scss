@@ -121,6 +121,7 @@
 @use '../configuration/administrators/administrators';
 @use '../OrgsAndPolicies/ComponentLabels/createComponentLabel';
 @use '../firewall/firewallComponentDetailsPage/firewallComponentDetailsPage';
+@use '../firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';
 
 // CIP
 @use '../version-graph/icons' as version-graph-icons;

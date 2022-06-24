@@ -99,7 +99,7 @@ export const selectLatestInnerSourceComponentVersion = createSelector(
 export const selectCurrentVersionDetails = createSelector(selectVersionExplorerData, prop('currentVersionDetails'));
 export const selectCurrentVersion = createSelector(
   selectCurrentVersionDetails,
-  (details) => details.componentIdentifier?.coordinates?.version || details.version
+  (details) => details?.componentIdentifier?.coordinates?.version || details?.version
 );
 
 export const selectSelectedVersionDetails = createSelector(selectSelectedVersionData, prop('selectedVersionDetails'));

@@ -30,9 +30,15 @@ import { togglePath } from '../../util/jsUtil';
 import { toggleBooleanProp } from '../../util/reduxUtil';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
-const HTTP_CLIENT_CLOSED_REQUEST = 499;
+import {
+  selectVersionExplorerRequestData as firewallSelectVersionExplorerRequestData,
+  selectComponentDetailsRequestData as firewallSelectComponentDetailsRequestData,
+  selectComponentDetailsSelectedRequestData as firewallSelectComponentDetailsSelectedRequestData,
+} from 'MainRoot/firewall/firewallComponentDetailsPage/overview/firewallOverviewSelectors';
 
-const REDUCER_NAME = 'componentDetailsOverview';
+export const HTTP_CLIENT_CLOSED_REQUEST = 499;
+
+export const REDUCER_NAME = 'componentDetailsOverview';
 
 const initialState = {
   versionExplorerData: {
@@ -126,7 +132,7 @@ const loadInnerSourceProducerDataFailed = (state, { payload }) => {
   state.innerSourceProducerData.loadError = Messages.getHttpErrorMessage(payload);
 };
 
-const loadRequested = (state) => {
+export const loadRequested = (state) => {
   return {
     ...state,
     versionExplorerData: {
@@ -138,19 +144,21 @@ const loadRequested = (state) => {
   };
 };
 
-const loadFulfilled = (state, { payload }) => ({
-  ...state,
-  versionExplorerData: {
-    loading: false,
-    loadError: null,
-    versions: payload.componentVersionsData.allVersions,
-    remediation: payload.componentVersionsData.remediation,
-    currentVersionDetails: payload.currentVersionDetails,
-    sourceResponse: payload.componentVersionsData.sourceResponse,
-  },
-});
+export const loadFulfilled = (state, { payload }) => {
+  return {
+    ...state,
+    versionExplorerData: {
+      loading: false,
+      loadError: null,
+      versions: payload.componentVersionsData.allVersions,
+      remediation: payload.componentVersionsData.remediation,
+      currentVersionDetails: payload.currentVersionDetails,
+      sourceResponse: payload.componentVersionsData.sourceResponse,
+    },
+  };
+};
 
-function loadFailed(state, { payload }) {
+export function loadFailed(state, { payload }) {
   if (payload.message === HTTP_CLIENT_CLOSED_REQUEST) {
     state.versionExplorerData.versions = null;
     state.versionExplorerData.remediation = null;
@@ -162,19 +170,18 @@ function loadFailed(state, { payload }) {
   }
 }
 
-function loadComponentDetailsByVerionsNumberRequested(state) {
+export function loadComponentDetailsByVerionsNumberRequested(state) {
   state.selectedVersionData.loading = true;
   state.selectedVersionData.loadError = null;
   state.selectedVersionData.selectedVersionDetails = null;
 }
-
-function loadComponentDetailsByVerionsNumberFulfilled(state, { payload }) {
+export function loadComponentDetailsByVerionsNumberFulfilled(state, { payload }) {
   state.selectedVersionData.loading = false;
   state.selectedVersionData.loadError = null;
   state.selectedVersionData.selectedVersionDetails = payload;
 }
 
-function loadComponentDetailsByVerionsNumberFailed(state, { payload }) {
+export function loadComponentDetailsByVerionsNumberFailed(state, { payload }) {
   if (payload.message === HTTP_CLIENT_CLOSED_REQUEST) {
     state.selectedVersionData.selectedVersionDetails = null;
   } else {
@@ -184,7 +191,7 @@ function loadComponentDetailsByVerionsNumberFailed(state, { payload }) {
   }
 }
 
-function resetSelectedVersionData(state) {
+export function resetSelectedVersionData(state) {
   state.selectedVersionData = {
     loading: false,
     loadError: null,
@@ -217,13 +224,7 @@ const loadVersionExplorerDataWithCancelToken = createAsyncThunk(
       axios.get(getComponentDetailsUrl(selectComponentDetailsRequestData(getState())), { cancelToken }),
     ];
 
-    return Promise.all(promises)
-      .then((results) => {
-        const componentVersionsData = results[0].data;
-        const currentVersionDetails = results[1].data;
-        return { componentVersionsData, currentVersionDetails };
-      })
-      .catch(rejectWithValue);
+    return Promise.all(promises).then(versionExplorerDataAllPromisesHandler).catch(rejectWithValue);
   }
 );
 
@@ -287,6 +288,89 @@ const openInnerSourceProducerReport = () => {
   };
 };
 
+const versionExplorerDataAllPromisesHandler = (results) => {
+  const componentVersionsData = results[0].data;
+  const currentVersionDetails = results[1].data;
+  return { componentVersionsData, currentVersionDetails };
+};
+
+/*
+Firewall Overview slices are almost the same as overview slices, the same structure on the store (componentDetailsOverview)
+and in some cases the same selectors and actions, the main difference between them is the absence of application report for 
+firewall/repository components, and in order to not repeat the same data structure in another store/state object (for the 
+case of componentDetailsOverview) this two group of actions, selectors and reducers for firewall overview and application 
+report overview will be shared.
+
+If the firewall overview slices are separated in different file, that would colide with the idea of having a single 
+REDUCER_NAME per file, and changing the REDUCER_NAME would leads to repetition on selectors, actions, reducer code and 
+a repeated componentDetailsOverview store/state structure.
+
+For further context please look for the conversation and refered comments on the pull request: 
+https://github.com/sonatype/insight-brain/pull/8077#discussion_r903057471
+*/
+
+let firewallLoadVersionExplorerDataCancelToken = null;
+const firewallLoadVersionExplorerData = createAsyncThunk(
+  `${REDUCER_NAME}/firewallLoadVersionExplorerData`,
+  (_, { getState, dispatch }) => {
+    dispatch(actions.resetSelectedVersionData());
+    const { currentParams, prevParams } = getState().router;
+
+    if (prevParams.hash && prevParams.hash !== currentParams.hash) {
+      firewallLoadVersionExplorerDataCancelToken?.cancel(HTTP_CLIENT_CLOSED_REQUEST);
+    }
+
+    firewallLoadVersionExplorerDataCancelToken = axios.CancelToken.source();
+    dispatch(firewallLoadVersionExplorerDataWithCancelToken(firewallLoadVersionExplorerDataCancelToken.token));
+  }
+);
+
+const firewallLoadVersionExplorerDataWithCancelToken = createAsyncThunk(
+  `${REDUCER_NAME}/firewallLoadVersionExplorerDataWithCancelToken`,
+  (cancelToken, { getState, rejectWithValue }) => {
+    const promises = [
+      axios.get(getVersionGraphUrl(firewallSelectVersionExplorerRequestData(getState())), { cancelToken }),
+      axios.get(getComponentDetailsUrl(firewallSelectComponentDetailsRequestData(getState())), { cancelToken }),
+    ];
+
+    return Promise.all(promises).then(versionExplorerDataAllPromisesHandler).catch(rejectWithValue);
+  }
+);
+
+let firewallLoadSelectedVersionCancelToken = null;
+const firewallLoadSelectedVersionData = createAsyncThunk(
+  `${REDUCER_NAME}/firewallLoadSelectedVersionData`,
+  (version, { getState, dispatch }) => {
+    const prevSelectedVersion = selectSelectedVersion(getState());
+    const currentVersion = selectCurrentVersion(getState());
+
+    if (prevSelectedVersion === version) {
+      return;
+    }
+
+    firewallLoadSelectedVersionCancelToken?.cancel(HTTP_CLIENT_CLOSED_REQUEST);
+
+    if (currentVersion === version) {
+      return dispatch(actions.resetSelectedVersionData());
+    }
+
+    firewallLoadSelectedVersionCancelToken = axios.CancelToken.source();
+
+    dispatch(actions.setSelectedVersion(version));
+    dispatch(firewallLoadComponentDetailsByVerionsNumber(firewallLoadSelectedVersionCancelToken.token));
+  }
+);
+
+const firewallLoadComponentDetailsByVerionsNumber = createAsyncThunk(
+  `${REDUCER_NAME}/firewallLoadComponentDetailsByVerionsNumber`,
+  (cancelToken, { getState, rejectWithValue }) => {
+    return axios
+      .get(getComponentDetailsUrl(firewallSelectComponentDetailsSelectedRequestData(getState())), { cancelToken })
+      .then(({ data }) => data)
+      .catch(rejectWithValue);
+  }
+);
+
 const componentDetailsOverviewSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -312,6 +396,12 @@ const componentDetailsOverviewSlice = createSlice({
     [loadInnerSourceProducerData.pending]: loadInnerSourceProducerDataRequested,
     [loadInnerSourceProducerData.fulfilled]: loadInnerSourceProducerDataFulfilled,
     [loadInnerSourceProducerData.rejected]: loadInnerSourceProducerDataFailed,
+    [firewallLoadVersionExplorerDataWithCancelToken.pending]: loadRequested,
+    [firewallLoadVersionExplorerDataWithCancelToken.fulfilled]: loadFulfilled,
+    [firewallLoadVersionExplorerDataWithCancelToken.rejected]: loadFailed,
+    [firewallLoadComponentDetailsByVerionsNumber.pending]: loadComponentDetailsByVerionsNumberRequested,
+    [firewallLoadComponentDetailsByVerionsNumber.fulfilled]: loadComponentDetailsByVerionsNumberFulfilled,
+    [firewallLoadComponentDetailsByVerionsNumber.rejected]: loadComponentDetailsByVerionsNumberFailed,
     [SELECT_COMPONENT]: always(initialState),
   },
 });
@@ -325,4 +415,8 @@ export const actions = {
   loadInnerSourceProducerData,
   openInnerSourceProducerReport,
   loadComponentDetailsByVerionsNumber,
+  firewallLoadVersionExplorerData,
+  firewallLoadVersionExplorerDataWithCancelToken,
+  firewallLoadSelectedVersionData,
+  firewallLoadComponentDetailsByVerionsNumber,
 };

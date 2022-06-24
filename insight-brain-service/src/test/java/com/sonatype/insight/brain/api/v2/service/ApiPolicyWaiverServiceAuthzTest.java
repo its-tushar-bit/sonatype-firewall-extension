@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.DEFAULT;
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 
 public class ApiPolicyWaiverServiceAuthzTest
@@ -478,7 +479,7 @@ public class ApiPolicyWaiverServiceAuthzTest
         ownerId,
         violationId,
         null,
-        false,
+        DEFAULT,
         null
     );
   }

@@ -49,6 +49,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverDTOTestUtils.assertApiPolicyWaiverDTO;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -193,7 +196,14 @@ public class ApiPolicyViolationResourceV2Test
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(newApp.getId(), BuildStageType.ID, "scanId");
     Policy policy = tempEntity.newPolicy(newOrg);
     Policy policy2 = tempEntity.newPolicy(newApp);
-    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("group", "artifact", "id");
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.0", "c1", "jar");
+    ComponentIdentifier identifierAllVersions =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "*", "c1", "jar");
+    ComponentIdentifier identifierAllVersions2 =
+        ComponentIdentifier.createMavenCoordinates("group", "otherArtifact", "*", "c1", "jar");
+    String packageUrlAllVersions = PackageUrlIdentifier.toPackageUrl(identifierAllVersions);
+    String packageUrlAllVersions2 = PackageUrlIdentifier.toPackageUrl(identifierAllVersions2);
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, policy, identifier, "hash");
     violation.setConstraintFacts(constraintFacts);
     new PolicyViolationDAO().update(violation);
@@ -207,15 +217,19 @@ public class ApiPolicyViolationResourceV2Test
     Date expiredExpiryTime = now.minusMillis(1).toDate();
     Date expiringInFutureExpiryTime = now.plusMinutes(1).toDate();
 
-    tempEntity.newWaiver("hash", policyId, orgId, constraintFacts, "", now.minusDays(10).toDate());
-    tempEntity.newWaiver(null, policyId, orgId, constraintFacts, "", now.minusDays(9).toDate(), null);
-    tempEntity.newWaiver("hash", policyId, appId, constraintFacts, "", now.minusDays(8).toDate(),
+    tempEntity.newWaiver("hashX", policyId, orgId, constraintFacts, packageUrlAllVersions, ALL_VERSIONS, "",
+        now.minusDays(10).toDate());
+    tempEntity.newWaiver(null, policyId, orgId, constraintFacts, ALL_COMPONENTS, "", now.minusDays(9).toDate(), null);
+    tempEntity.newWaiver("hash", policyId, appId, constraintFacts, EXACT_COMPONENT, "", now.minusDays(8).toDate(),
         expiredExpiryTime); // expired
-    tempEntity.newWaiver(null, policyId, appId, constraintFacts, "A comment", now.minusDays(7).toDate(),
+    tempEntity.newWaiver(null, policyId, appId, constraintFacts, ALL_COMPONENTS, "A comment", now.minusDays(7).toDate(),
         expiringInFutureExpiryTime); // expiring in the future
-    tempEntity.newWaiver("hash2", policy2Id, appId, null, "", now.minusDays(2).toDate(), null);
-    tempEntity.newWaiver(null, policy2Id, appId, null, "", now.minusDays(1).toDate(), now.plusMinutes(1).toDate());
-    tempEntity.newWaiver("hash", policy2Id, appId, constraintFacts, "", now.toDate(), now.minusMillis(1).toDate());
+    tempEntity.newWaiver("hash2", policy2Id, appId, null, packageUrlAllVersions2, ALL_VERSIONS, "",
+        now.minusDays(2).toDate());
+    tempEntity.newWaiver(null, policy2Id, appId, null, ALL_COMPONENTS, "", now.minusDays(1).toDate(),
+        now.plusMinutes(1).toDate());
+    tempEntity.newWaiver("hash", policy2Id, appId, constraintFacts, EXACT_COMPONENT, "", now.toDate(),
+        now.minusMillis(1).toDate());
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2)
@@ -233,12 +247,12 @@ public class ApiPolicyViolationResourceV2Test
         .collect(Collectors.toList());
 
     assertThat(activeApplicableWaivers.size()).isEqualTo(3);
-    assertApiPolicyWaiverDTO("hash", policyId, orgId, "NewOrg", "", violationId, null,
-        "testuser", "Test User", activeApplicableWaivers.get(0));
+    assertApiPolicyWaiverDTO("hashX", policyId, orgId, "NewOrg", "", violationId, null,
+        "testuser", "Test User", ALL_VERSIONS, activeApplicableWaivers.get(0));
     assertApiPolicyWaiverDTO(null, policyId, orgId, "NewOrg", "", violationId, null,
-        "testuser", "Test User", activeApplicableWaivers.get(1));
+        "testuser", "Test User", ALL_COMPONENTS, activeApplicableWaivers.get(1));
     assertApiPolicyWaiverDTO(null, policyId, appId, "NewApp", "A comment", violationId, expiringInFutureExpiryTime,
-        "testuser", "Test User", activeApplicableWaivers.get(2));
+        "testuser", "Test User", ALL_COMPONENTS, activeApplicableWaivers.get(2));
 
     List<ApiPolicyWaiverDTO> expiredApplicableWaivers = apiPolicyWaivers.expiredWaivers.stream()
         .sorted(Comparator.comparing(apiPolicyWaiverDTO -> apiPolicyWaiverDTO.createTime))
@@ -246,7 +260,7 @@ public class ApiPolicyViolationResourceV2Test
 
     assertThat(expiredApplicableWaivers.size()).isEqualTo(1);
     assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", violationId, expiredExpiryTime,
-        "testuser", "Test User", expiredApplicableWaivers.get(0));
+        "testuser", "Test User", EXACT_COMPONENT, expiredApplicableWaivers.get(0));
   }
 
   @Test
@@ -288,7 +302,7 @@ public class ApiPolicyViolationResourceV2Test
         ApiStagePolicyViolationComponentDTO
             .fromPolicyViolationAndComponent(Pair.of(policyViolation, expectedComponent)));
   }
-  
+
   @Test
   public void testGetTransitivePolicyViolationsByAppScanComponent() throws Exception {
     Application application = tempEntity.newApplicationWithParent();

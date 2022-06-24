@@ -15,7 +15,7 @@ describe('AddWaiverPageContainer', function () {
     loadAddWaiverDataMock,
     setWaiverCommentMock,
     setWaiverScopeMock,
-    setApplyToAllComponentsMock,
+    setComponentMatcherStrategyMock,
     setExpiryTimeMock,
     openVulnerabilityDetailsModalMock,
     cancelActionMock,
@@ -36,8 +36,8 @@ describe('AddWaiverPageContainer', function () {
     setWaiverScopeMock = jasmine.createSpy('setWaiverScope').and.returnValue({
       type: 'SET_WAIVER_SCOPE',
     });
-    setApplyToAllComponentsMock = jasmine.createSpy('setApplyToAllComponents').and.returnValue({
-      type: 'SET_APPLY_TO_ALL_COMPONENTS',
+    setComponentMatcherStrategyMock = jasmine.createSpy('setComponentMatcherStrategy').and.returnValue({
+      type: 'SET_COMPONENT_MATCHER_STRATEGY',
     });
     openVulnerabilityDetailsModalMock = jasmine.createSpy('openVulnerabilityDetailsModal').and.returnValue({
       type: 'OPEN_VULNERABILITY_DETAILS_MODAL',
@@ -56,7 +56,7 @@ describe('AddWaiverPageContainer', function () {
         setWaiverComment: setWaiverCommentMock,
         setWaiverScope: setWaiverScopeMock,
         setExpiryTime: setExpiryTimeMock,
-        setApplyToAllComponents: setApplyToAllComponentsMock,
+        setComponentMatcherStrategy: setComponentMatcherStrategyMock,
         returnToAddWaiverOriginPage: cancelActionMock,
       },
       '../vulnerabilityDetails/vulnerabilityDetailsModalActions': {
@@ -141,7 +141,7 @@ describe('AddWaiverPageContainer', function () {
     const wrapper = shallow(vdom).dive(),
       loadAddWaiverDataActionCreator = wrapper.prop('loadAddWaiverData'),
       saveWaiverActionCreator = wrapper.prop('saveWaiver'),
-      setApplyToAllComponentsActionCreator = wrapper.prop('setApplyToAllComponents'),
+      setComponentMatcherStrategyCreator = wrapper.prop('setComponentMatcherStrategy'),
       setWaiverScopeActionCreator = wrapper.prop('setWaiverScope'),
       setWaiverCommentActionCreator = wrapper.prop('setWaiverComment'),
       openVulnerabilityDetailsModalActionCreator = wrapper.prop('openVulnerabilityDetailsModal'),
@@ -150,7 +150,7 @@ describe('AddWaiverPageContainer', function () {
 
     expect(loadAddWaiverDataActionCreator).toEqual(jasmine.any(Function));
     expect(saveWaiverActionCreator).toEqual(jasmine.any(Function));
-    expect(setApplyToAllComponentsActionCreator).toEqual(jasmine.any(Function));
+    expect(setComponentMatcherStrategyCreator).toEqual(jasmine.any(Function));
     expect(setWaiverScopeActionCreator).toEqual(jasmine.any(Function));
     expect(setWaiverCommentActionCreator).toEqual(jasmine.any(Function));
     expect(openVulnerabilityDetailsModalActionCreator).toEqual(jasmine.any(Function));
@@ -165,18 +165,18 @@ describe('AddWaiverPageContainer', function () {
     saveWaiverActionCreator();
     expect(store.getActions()).toEqual([{ type: 'LOAD_ADD_WAIVER_DATA' }, { type: 'SAVE_WAIVER' }]);
 
-    setApplyToAllComponentsActionCreator();
+    setComponentMatcherStrategyCreator();
     expect(store.getActions()).toEqual([
       { type: 'LOAD_ADD_WAIVER_DATA' },
       { type: 'SAVE_WAIVER' },
-      { type: 'SET_APPLY_TO_ALL_COMPONENTS' },
+      { type: 'SET_COMPONENT_MATCHER_STRATEGY' },
     ]);
 
     setWaiverScopeActionCreator();
     expect(store.getActions()).toEqual([
       { type: 'LOAD_ADD_WAIVER_DATA' },
       { type: 'SAVE_WAIVER' },
-      { type: 'SET_APPLY_TO_ALL_COMPONENTS' },
+      { type: 'SET_COMPONENT_MATCHER_STRATEGY' },
       { type: 'SET_WAIVER_SCOPE' },
     ]);
 
@@ -184,7 +184,7 @@ describe('AddWaiverPageContainer', function () {
     expect(store.getActions()).toEqual([
       { type: 'LOAD_ADD_WAIVER_DATA' },
       { type: 'SAVE_WAIVER' },
-      { type: 'SET_APPLY_TO_ALL_COMPONENTS' },
+      { type: 'SET_COMPONENT_MATCHER_STRATEGY' },
       { type: 'SET_WAIVER_SCOPE' },
       { type: 'SET_WAIVER_COMMENT' },
     ]);
@@ -193,7 +193,7 @@ describe('AddWaiverPageContainer', function () {
     expect(store.getActions()).toEqual([
       { type: 'LOAD_ADD_WAIVER_DATA' },
       { type: 'SAVE_WAIVER' },
-      { type: 'SET_APPLY_TO_ALL_COMPONENTS' },
+      { type: 'SET_COMPONENT_MATCHER_STRATEGY' },
       { type: 'SET_WAIVER_SCOPE' },
       { type: 'SET_WAIVER_COMMENT' },
       { type: 'OPEN_VULNERABILITY_DETAILS_MODAL' },
@@ -203,7 +203,7 @@ describe('AddWaiverPageContainer', function () {
     expect(store.getActions()).toEqual([
       { type: 'LOAD_ADD_WAIVER_DATA' },
       { type: 'SAVE_WAIVER' },
-      { type: 'SET_APPLY_TO_ALL_COMPONENTS' },
+      { type: 'SET_COMPONENT_MATCHER_STRATEGY' },
       { type: 'SET_WAIVER_SCOPE' },
       { type: 'SET_WAIVER_COMMENT' },
       { type: 'OPEN_VULNERABILITY_DETAILS_MODAL' },
@@ -214,7 +214,7 @@ describe('AddWaiverPageContainer', function () {
     expect(store.getActions()).toEqual([
       { type: 'LOAD_ADD_WAIVER_DATA' },
       { type: 'SAVE_WAIVER' },
-      { type: 'SET_APPLY_TO_ALL_COMPONENTS' },
+      { type: 'SET_COMPONENT_MATCHER_STRATEGY' },
       { type: 'SET_WAIVER_SCOPE' },
       { type: 'SET_WAIVER_COMMENT' },
       { type: 'OPEN_VULNERABILITY_DETAILS_MODAL' },

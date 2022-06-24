@@ -39,6 +39,7 @@ describe('violationDetailsUtil', function () {
         componentIdentifier: { format: 'maven', coordinates: null },
         artifactName: 'artifactName',
         componentName: 'componentName',
+        allVersionsComponentName: 'componentName',
         constraintName: 'constraintName',
         policyName: 'policyName',
         policyViolationId: 'policyViolationId',

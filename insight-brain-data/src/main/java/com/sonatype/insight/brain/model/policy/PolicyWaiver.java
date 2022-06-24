@@ -16,8 +16,12 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import javax.persistence.Enumerated;
+import javax.persistence.EnumType;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
@@ -69,6 +73,25 @@ public class PolicyWaiver
   @Transient
   private List<ConstraintFact> constraintFacts;
 
+  /**
+   * @since 1.140
+   */
+  @Column(name = "associated_package_url")
+  private String associatedPackageUrl;
+
+  /**
+   * @since 1.140
+   */
+  @Column(name = "component_match_strategy")
+  @Enumerated(EnumType.STRING)
+  private ComponentMatcherStrategyForWaiver componentMatchStrategy;
+
+  /**
+   * @since 1.140
+   */
+  @Transient
+  private ComponentIdentifier componentIdentifier;
+
   public PolicyWaiver() {
   }
 
@@ -92,6 +115,29 @@ public class PolicyWaiver
     this(policyId, ownerId, comment);
     setHash(hash);
     setConstraintFacts(constraintFacts);
+  }
+
+  public PolicyWaiver(String hash,
+                      String policyId,
+                      String ownerId,
+                      List<ConstraintFact> constraintFacts,
+                      String associatedPackageUrl,
+                      ComponentMatcherStrategyForWaiver componentMatchStrategy,
+                      String comment)
+  {
+    this(hash, policyId, ownerId, constraintFacts, comment);
+    setAssociatedPackageUrl(associatedPackageUrl);
+    setComponentMatchStrategy(componentMatchStrategy);
+  }
+
+  public PolicyWaiver(String hash,
+                      String policyId,
+                      String ownerId,
+                      String associatedPackageUrl,
+                      ComponentMatcherStrategyForWaiver componentMatchStrategy,
+                      String comment)
+  {
+    this(hash, policyId, ownerId, null, associatedPackageUrl, componentMatchStrategy, comment);
   }
 
   @Override
@@ -201,5 +247,45 @@ public class PolicyWaiver
 
   public void setCreatorName(String creatorName) {
     this.creatorName = creatorName;
+  }
+
+  public String getAssociatedPackageUrl() {
+    return associatedPackageUrl;
+  }
+
+  public void setAssociatedPackageUrl(String associatedPackageUrl) {
+    this.associatedPackageUrl = associatedPackageUrl;
+  }
+
+  public ComponentMatcherStrategyForWaiver getComponentMatchStrategy() {
+    return componentMatchStrategy;
+  }
+
+  public void setComponentMatchStrategy(ComponentMatcherStrategyForWaiver componentMatchStrategy) {
+    this.componentMatchStrategy = componentMatchStrategy;
+  }
+
+  public ComponentIdentifier getComponentIdentifier() {
+    if (componentIdentifier == null) {
+      if (associatedPackageUrl == null) {
+        return null;
+      }
+      componentIdentifier = ComponentIdentifierAdapter.toComponentIdentifier(associatedPackageUrl);
+      componentIdentifier.ensureComplete();
+    }
+    return componentIdentifier;
+  }
+
+  public enum ComponentMatcherStrategyForWaiver
+  {
+    DEFAULT,
+    EXACT_COMPONENT,
+    ALL_COMPONENTS,
+    ALL_VERSIONS;
+
+    @Override
+    public String toString() {
+      return values()[this.ordinal()].name();
+    }
   }
 }

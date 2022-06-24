@@ -9,16 +9,22 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 
 public class PolicyWaiverDAO
     extends AbstractOperationalSqlDAO<PolicyWaiver>
@@ -66,8 +72,29 @@ public class PolicyWaiverDAO
   public List<PolicyWaiver> getApplicableToComponent(String ownerId, String hash) {
     try (TransactionContext tx = createTransactionContext()) {
       List<PolicyWaiver> waivers = new ArrayList<>();
-      waivers.addAll(getActiveByOwnerIdAndHash(tx, ownerId, hash));
-      waivers.addAll(getActiveByOwnerIdAndHash(tx, ownerId, null));
+      waivers.addAll(getActiveByOwnerIdAndHash(tx, ownerId, hash, EXACT_COMPONENT));
+      waivers.addAll(getActiveByOwnerIdAndHash(tx, ownerId, null, ALL_COMPONENTS));
+      return waivers;
+    }
+  }
+
+  /**
+   * Gets all Active (non expired) policy waivers that target the specified component hash in the context of the given
+   * app/org and a packageURL. Note that a component can be subject to a waiver that refers to its specific hash
+   * or to a waiver that applies to the entire app/org.
+   */
+  public List<PolicyWaiver> getApplicableToComponentIncludingAllVersions(
+      String ownerId,
+      String hash,
+      String purl)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      List<PolicyWaiver> waivers = new ArrayList<>();
+      waivers.addAll(getActiveByOwnerIdAndHash(tx, ownerId, hash, EXACT_COMPONENT));
+      waivers.addAll(getActiveByOwnerIdAndHash(tx, ownerId, null, ALL_COMPONENTS));
+      if (purl != null) {
+        waivers.addAll(getActiveByOwnerIdAndHash(tx, ownerId, null, ALL_VERSIONS, purl));
+      }
       return waivers;
     }
   }
@@ -108,11 +135,31 @@ public class PolicyWaiverDAO
     policyWaivers.addAll(getActiveByOwnerId(ownerId));
   }
 
-  public List<PolicyWaiver> getActiveByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
+  public List<PolicyWaiver> getActiveByOwnerIdAndHash(
+      TransactionContext tx,
+      String ownerId,
+      String hash,
+      ComponentMatcherStrategyForWaiver matcherStrategy)
+  {
     String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
         " WHERE entity.ownerId=?1 AND entity.hash=?2" + //
-        " AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)";
-    return getList(tx, sQuery, ownerId, hash);
+        " AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)" + //
+        " AND entity.componentMatchStrategy=?3";
+    return getList(tx, sQuery, ownerId, hash, matcherStrategy);
+  }
+
+  public List<PolicyWaiver> getActiveByOwnerIdAndHash(
+      TransactionContext tx,
+      String ownerId,
+      String hash,
+      ComponentMatcherStrategyForWaiver matcherStrategy,
+      String purl)
+  {
+    String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
+        " WHERE entity.ownerId=?1 AND entity.hash=?2" + //
+        " AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)" + //
+        " AND entity.componentMatchStrategy=?3 AND entity.associatedPackageUrl=?4";
+    return getList(tx, sQuery, ownerId, hash, matcherStrategy, purl);
   }
 
   public List<PolicyWaiver> getByOwnerIdAndHash(TransactionContext tx, String ownerId, String hash) {
@@ -151,21 +198,54 @@ public class PolicyWaiverDAO
     return getList(tx, sQuery, policyId, ownerIds);
   }
 
-  PolicyWaiver getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(TransactionContext tx,
-                                                                      String hash,
-                                                                      String policyId,
-                                                                      String ownerId,
-                                                                      List<ConstraintFact> constraintFacts)
+  PolicyWaiver getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(
+      TransactionContext tx,
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts)
+  {
+    return getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId, constraintFacts, null,
+        null);
+  }
+
+  PolicyWaiver getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(
+      TransactionContext tx,
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String associatedPackageUrl,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy)
   {
     String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
         " WHERE entity.hash=?1 AND entity.policyId=?2 AND entity.ownerId=?3" + //
         " AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)";
+    Function<String, PolicyWaiver> getFunction;
+    Function<String, List<PolicyWaiver>> getListFunction;
+    if (associatedPackageUrl != null && componentMatchStrategy != null) {
+      sQuery += " AND entity.associatedPackageUrl=?4 AND entity.componentMatchStrategy=?5";
+      getFunction =
+          (String query) -> get(tx, query, hash, policyId, ownerId, associatedPackageUrl, componentMatchStrategy);
+      getListFunction =
+          (String query) -> getList(tx, query, hash, policyId, ownerId, associatedPackageUrl, componentMatchStrategy);
+    }
+    else if (componentMatchStrategy != null) {
+      sQuery += " AND entity.associatedPackageUrl IS NULL AND entity.componentMatchStrategy=?4";
+      getFunction = (String query) -> get(tx, query, hash, policyId, ownerId, componentMatchStrategy);
+      getListFunction = (String query) -> getList(tx, query, hash, policyId, ownerId, componentMatchStrategy);
+    }
+    else {
+      sQuery += " AND entity.associatedPackageUrl IS NULL AND entity.componentMatchStrategy IS NULL";
+      getFunction = (String query) -> get(tx, query, hash, policyId, ownerId);
+      getListFunction = (String query) -> getList(tx, query, hash, policyId, ownerId);
+    }
     if (constraintFacts == null) {
       sQuery += " AND entity.constraintFactsJson IS NULL";
-      return get(tx, sQuery, hash, policyId, ownerId);
+      return getFunction.apply(sQuery);
     }
 
-    List<PolicyWaiver> policyWaivers = getList(tx, sQuery, hash, policyId, ownerId);
+    List<PolicyWaiver> policyWaivers = getListFunction.apply(sQuery);
     for (PolicyWaiver policyWaiver : policyWaivers) {
       if (policyWaiver.getConstraintFacts() != null && //
           ConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(constraintFacts,
@@ -188,7 +268,8 @@ public class PolicyWaiverDAO
   @Override
   public void insert(TransactionContext tx, PolicyWaiver entity) {
     PolicyWaiver other = getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(),
-        entity.getPolicyId(), entity.getOwnerId(), entity.getConstraintFacts());
+        entity.getPolicyId(), entity.getOwnerId(), entity.getConstraintFacts(),
+        entity.getAssociatedPackageUrl(), entity.getComponentMatchStrategy());
     if (other != null) {
       throw new BadRequestException("This policy waiver already exists.");
     }
@@ -206,7 +287,8 @@ public class PolicyWaiverDAO
   @Override
   public void update(TransactionContext tx, PolicyWaiver entity) {
     PolicyWaiver other = getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(),
-        entity.getPolicyId(), entity.getOwnerId(), entity.getConstraintFacts());
+        entity.getPolicyId(), entity.getOwnerId(), entity.getConstraintFacts(),
+        entity.getAssociatedPackageUrl(), entity.getComponentMatchStrategy());
     if (other != null && !other.getId().equals(entity.getId())) {
       throw new BadRequestException("A policy waiver for the same policy violation already exists.");
     }

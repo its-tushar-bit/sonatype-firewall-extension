@@ -12,6 +12,7 @@ import {
   NxTextInput,
   nxDateInputStateHelpers,
   NxFormSelect,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../enzymeUtils';
@@ -28,7 +29,7 @@ describe('AddWaiverForm', function () {
     saveWaiverSpy,
     setWaiverCommentSpy,
     setWaiverScopeSpy,
-    setApplyToAllComponentsSpy,
+    setComponentMatcherStrategySpy,
     setExpiryTimeSpy,
     setCustomExpiryTimeSpy,
     openVulnerabilityDetailsModalSpy,
@@ -39,7 +40,7 @@ describe('AddWaiverForm', function () {
     saveWaiverSpy = jasmine.createSpy('saveWaiver');
     setWaiverCommentSpy = jasmine.createSpy('setWaiverComment');
     setWaiverScopeSpy = jasmine.createSpy('setWaiverScope');
-    setApplyToAllComponentsSpy = jasmine.createSpy('setApplyToAllComponents');
+    setComponentMatcherStrategySpy = jasmine.createSpy('setComponentMatcherStrategy');
     openVulnerabilityDetailsModalSpy = jasmine.createSpy('openVulnerabilityDetailsModal');
     closeVulnerabilityDetailsModalSpy = jasmine.createSpy('closeVulnerabilityDetailsModal');
     cancelActionSpy = jasmine.createSpy('cancelAction');
@@ -48,9 +49,10 @@ describe('AddWaiverForm', function () {
 
     minimalProps = {
       componentIdentifier: { format: 'maven', coordinates: 'test' },
-      applyToAllComponents: false,
+      componentMatcherStrategy: 'EXACT_COMPONENT',
       artifactName: 'artifact name',
       componentName: 'component name',
+      allVersionsComponentName: 'component name',
       constraintName: 'constraint name',
       policyName: 'policy name',
       policyViolationId: 'violationId',
@@ -89,7 +91,7 @@ describe('AddWaiverForm', function () {
         type: 'application',
       },
       setWaiverScope: setWaiverScopeSpy,
-      setApplyToAllComponents: setApplyToAllComponentsSpy,
+      setComponentMatcherStrategy: setComponentMatcherStrategySpy,
       setWaiverComment: setWaiverCommentSpy,
       setExpiryTime: setExpiryTimeSpy,
       setCustomExpiryTime: setCustomExpiryTimeSpy,
@@ -248,34 +250,56 @@ describe('AddWaiverForm', function () {
     expect(componentsSection.find(NxFieldset)).toExist();
     expect(componentsSection).toHaveProp('label', 'Components');
 
-    expect(componentRadios.length).toBe(2);
+    expect(componentRadios.length).toBe(3);
 
     expect(componentRadios.at(0)).toHaveProp('name', 'add-waiver-components');
-    expect(componentRadios.at(0)).toHaveProp('value', 'component name');
+    expect(componentRadios.at(0)).toHaveProp('value', 'EXACT_COMPONENT');
     expect(componentRadios.at(0)).toHaveProp('isChecked', true);
     expect(componentRadios.at(0)).toHaveText('component name');
 
     expect(componentRadios.at(1)).toHaveProp('name', 'add-waiver-components');
-    expect(componentRadios.at(1)).toHaveProp('value', 'ALL_COMPONENTS');
+    expect(componentRadios.at(1)).toHaveProp('value', 'ALL_VERSIONS');
     expect(componentRadios.at(1)).toHaveProp('isChecked', false);
-    expect(componentRadios.at(1)).toHaveText('All Components');
+    expect(componentRadios.at(1)).toHaveText('component name (all versions)');
+
+    expect(componentRadios.at(2)).toHaveProp('name', 'add-waiver-components');
+    expect(componentRadios.at(2)).toHaveProp('value', 'ALL_COMPONENTS');
+    expect(componentRadios.at(2)).toHaveProp('isChecked', false);
+    expect(componentRadios.at(2)).toHaveText('All Components');
   });
 
-  it('calls `setApplyToAllComponents` when the waiver components are changed', function () {
+  it('renders a disabled "all versions" radio button with tooltip when component identifier is null', function () {
+    const component = getShallowComponent({ componentIdentifier: null }),
+      componentsSection = component.find('.iq-add-waiver-form__components'),
+      componentTooltip = componentsSection.find(NxTooltip),
+      componentRadios = componentsSection.find(NxRadio);
+
+    expect(componentRadios.length).toBe(3);
+
+    expect(componentRadios.at(1)).toHaveProp('disabled', true);
+    expect(componentTooltip).toHaveProp('title', 'Claim this component to apply all versions waiver');
+  });
+
+  it('calls `setComponentMatcherStrategy` when the waiver components are changed', function () {
     const component = getShallowComponent(),
       componentsSection = component.find('.iq-add-waiver-form__components'),
       componentRadios = componentsSection.find(NxRadio),
       component1 = componentRadios.at(0),
-      component2 = componentRadios.at(1);
+      component2 = componentRadios.at(1),
+      component3 = componentRadios.at(2);
 
     expect(component1).toHaveProp('isChecked', true);
     expect(component2).toHaveProp('isChecked', false);
+    expect(component3).toHaveProp('isChecked', false);
 
     component2.simulate('change', 'ALL_COMPONENTS');
-    expect(setApplyToAllComponentsSpy).toHaveBeenCalledWith(true);
+    expect(setComponentMatcherStrategySpy).toHaveBeenCalledWith('ALL_COMPONENTS');
 
-    component2.simulate('change', 'component name');
-    expect(setApplyToAllComponentsSpy).toHaveBeenCalledWith(false);
+    component2.simulate('change', 'EXACT_COMPONENT');
+    expect(setComponentMatcherStrategySpy).toHaveBeenCalledWith('EXACT_COMPONENT');
+
+    component2.simulate('change', 'ALL_VERSIONS');
+    expect(setComponentMatcherStrategySpy).toHaveBeenCalledWith('ALL_VERSIONS');
   });
 
   it('renders a fieldset with NxFormSelect for the expiry times', function () {
@@ -370,7 +394,7 @@ describe('AddWaiverForm', function () {
       'application',
       'id1',
       'waiver comments',
-      false,
+      'EXACT_COMPONENT',
       dayAfterToday
     );
   });
@@ -384,7 +408,9 @@ describe('AddWaiverForm', function () {
     const customExpiryTimeSection = component.find('.iq-add-waiver-form__date-input');
     const form = component.find('.nx-form');
     expect(customExpiryTimeSection).toExist();
-    form.simulate('submit', { preventDefault: () => {} });
+    form.simulate('submit', {
+      preventDefault: () => {},
+    });
     expect(saveWaiverSpy).not.toHaveBeenCalled();
   });
 
@@ -443,7 +469,14 @@ describe('AddWaiverForm', function () {
         form = component.find('.nx-form');
 
       form.simulate('submit', { preventDefault: preventDefaultSpy });
-      expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'application', 'id1', 'waiver comments', false, null);
+      expect(saveWaiverSpy).toHaveBeenCalledWith(
+        'violationId',
+        'application',
+        'id1',
+        'waiver comments',
+        'EXACT_COMPONENT',
+        null
+      );
     });
 
     it('passes the number of days chosen for the expiry time', function () {
@@ -451,7 +484,14 @@ describe('AddWaiverForm', function () {
         form = component.find('.nx-form');
 
       form.simulate('submit', { preventDefault: preventDefaultSpy });
-      expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'application', 'id1', 'waiver comments', false, 7);
+      expect(saveWaiverSpy).toHaveBeenCalledWith(
+        'violationId',
+        'application',
+        'id1',
+        'waiver comments',
+        'EXACT_COMPONENT',
+        7
+      );
 
       component = getShallowComponent({
         selectedWaiverScope: {
@@ -464,7 +504,14 @@ describe('AddWaiverForm', function () {
       });
       form = component.find('.nx-form');
       form.simulate('submit', { preventDefault: preventDefaultSpy });
-      expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'organization', 'idOrg', 'waiver comments', false, 30);
+      expect(saveWaiverSpy).toHaveBeenCalledWith(
+        'violationId',
+        'organization',
+        'idOrg',
+        'waiver comments',
+        'EXACT_COMPONENT',
+        30
+      );
     });
   });
 

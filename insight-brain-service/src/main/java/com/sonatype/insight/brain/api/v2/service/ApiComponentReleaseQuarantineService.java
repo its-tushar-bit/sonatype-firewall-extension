@@ -57,6 +57,8 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+
 /**
  * @since 1.78
  */
@@ -182,7 +184,7 @@ public class ApiComponentReleaseQuarantineService
   {
     PolicyWaiver policyWaiver =
         new PolicyWaiver(repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getPolicyId(),
-            repositoryPolicyViolation.getRepositoryId(), comment);
+            repositoryPolicyViolation.getRepositoryId(), null, EXACT_COMPONENT, comment);
     policyWaiver.setCreateTime(now);
     policyWaiver.setConstraintFactsJson(repositoryPolicyViolation.getConstraintFactsJson());
 

@@ -22,6 +22,7 @@ import { actions as componentDetailsActions } from '../componentDetailsSlice';
 import { setWaiverToDelete } from '../../waivers/waiverActions';
 import { stateGo } from '../../reduxUiRouter/routerActions';
 import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { getComponentNameWithoutVersion } from 'MainRoot/util/componentNameUtils';
 
 function mapStateToProps(state) {
   const {
@@ -40,6 +41,7 @@ function mapStateToProps(state) {
     component.componentIdentifier &&
     component.innerSource
   );
+  const componentNameWithoutVersion = component && getComponentNameWithoutVersion(component);
 
   return {
     isLoadingComponentDetails,
@@ -47,6 +49,7 @@ function mapStateToProps(state) {
     violations: selectComponentViolations(state),
     waivers: selectComponentWaivers(state),
     componentName: selectComponentName(state),
+    componentNameWithoutVersion,
     loading,
     error: loadError,
     ...pick(['waiverToDelete'], state.deleteWaiver),

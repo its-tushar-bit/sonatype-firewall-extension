@@ -19,6 +19,7 @@ import {
 import moment from 'moment';
 import ComponentDisplay from '../../../main/frontend/ComponentDisplay/ReactComponentDisplay';
 import NxExternalLink from '../../../main/frontend/react/NxExternalLink';
+import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
 
 describe('ListWaiversTable', function () {
   let minimalProps, ListWaiversTable, violationDetailsMock, getShallowComponent, setWaiverToDeleteSpy;
@@ -168,6 +169,7 @@ describe('ListWaiversTable', function () {
         scopeOwnerType: 'root_organization',
         scopeOwnerName: 'Root Organization',
         creatorName: 'User 1',
+        matcherStrategy: waiverMatcherStrategy.ALL_COMPONENTS,
       },
       {
         policyWaiverId: '2',
@@ -176,6 +178,7 @@ describe('ListWaiversTable', function () {
         hash: '1e48256a2341047e7d72',
         scopeOwnerType: 'application',
         scopeOwnerName: 'test',
+        matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
       },
     ];
     const expiredWaivers = [
@@ -188,6 +191,7 @@ describe('ListWaiversTable', function () {
         scopeOwnerType: 'root_organization',
         scopeOwnerName: 'Root Organization',
         creatorName: 'User 1',
+        matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
       },
       {
         comment: 'comment4',
@@ -198,6 +202,7 @@ describe('ListWaiversTable', function () {
         scopeOwnerType: 'organization',
         scopeOwnerName: 'suborg',
         creatorName: 'User 2',
+        matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
       },
     ];
     const props = {

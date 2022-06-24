@@ -6,6 +6,12 @@
 import { getFutureDate } from './jsUtil';
 import * as PropTypes from 'prop-types';
 
+export const waiverMatcherStrategy = {
+  ALL_COMPONENTS: 'ALL_COMPONENTS',
+  ALL_VERSIONS: 'ALL_VERSIONS',
+  EXACT_COMPONENT: 'EXACT_COMPONENT',
+};
+
 export const waiverExpirations = [
   { name: 'Never', value: 'never' }, // <select> doesn't handle null values, so use string instead
   { name: '7 Days', value: '7' },
@@ -39,6 +45,15 @@ export const displayWaiverScope = (waiver) => {
   return null;
 };
 
+export const isWaiverAllVersions = (waiver) =>
+  [waiver?.componentMatchStrategy, waiver?.matcherStrategy].some(
+    (field) => field === waiverMatcherStrategy.ALL_VERSIONS
+  );
+export const isWaiverAllVersionsOrExact = (waiver) =>
+  [waiver?.componentMatchStrategy, waiver?.matcherStrategy].some(
+    (field) => field === waiverMatcherStrategy.ALL_VERSIONS || field === waiverMatcherStrategy.EXACT_COMPONENT
+  );
+
 export const waiverType = {
   policyId: PropTypes.string,
   policyName: PropTypes.string,
@@ -46,6 +61,7 @@ export const waiverType = {
   scopeOwnerId: PropTypes.string,
   scopeOwnerName: PropTypes.string,
   scopeOwnerType: PropTypes.string,
+  matcherStrategy: PropTypes.string,
   hash: PropTypes.string,
   createTime: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   creatorName: PropTypes.string,

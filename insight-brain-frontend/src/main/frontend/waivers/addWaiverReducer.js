@@ -10,6 +10,7 @@ import { always, equals } from 'ramda';
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
 import { createReducerFromActionMap, propSetConst } from '../util/reduxUtil';
+import { waiverMatcherStrategy } from '../util/waiverUtils';
 import {
   WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED,
   WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED,
@@ -20,7 +21,7 @@ import {
   WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
   WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT,
   WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE,
-  WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS,
+  WAIVERS_ADD_WAIVER_SET_COMPONENT_MATCHER_STRATEGY,
   WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME,
   WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME,
   WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL,
@@ -40,7 +41,7 @@ const initState = Object.freeze({
   waiverComments: Object.freeze(initialState('')),
   availableWaiverScopes: null,
   selectedWaiverScope: null,
-  applyToAllComponents: false,
+  componentMatcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
   expiryTime: null,
   customExpiryTime: nxDateInputStateHelpers.initialState(''),
   fieldsPristineState: null,
@@ -51,11 +52,11 @@ const initState = Object.freeze({
  * @param {State} state the state to check if it's dirty
  */
 const isFormDirty = (state) => {
-  const { selectedWaiverScope, applyToAllComponents, expiryTime, waiverComments, fieldsPristineState } = state;
+  const { selectedWaiverScope, componentMatcherStrategy, expiryTime, waiverComments, fieldsPristineState } = state;
 
   const currentFields = {
     selectedWaiverScope,
-    applyToAllComponents,
+    componentMatcherStrategy,
     expiryTime,
     waiverComments: waiverComments.value,
   };
@@ -87,7 +88,7 @@ const setLoadedData = (payload, state) => ({
   fieldsPristineState: {
     // save a snapshot of what pristine fields are like
     selectedWaiverScope: payload[0],
-    applyToAllComponents: false,
+    componentMatcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
     expiryTime: null,
     waiverComments: '',
   },
@@ -117,10 +118,10 @@ const setSelectedWaiverScope = (payload, state) =>
     selectedWaiverScope: payload,
   });
 
-const setApplyToAllComponents = (payload, state) =>
+const setComponentMatcherStrategy = (payload, state) =>
   setIsDirtyFlag({
     ...state,
-    applyToAllComponents: payload,
+    componentMatcherStrategy: payload,
   });
 
 const setExpiryTime = (payload, state) =>
@@ -159,7 +160,7 @@ const reducerActionMap = {
   [WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
   [WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT]: setWaiverComment,
   [WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE]: setSelectedWaiverScope,
-  [WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS]: setApplyToAllComponents,
+  [WAIVERS_ADD_WAIVER_SET_COMPONENT_MATCHER_STRATEGY]: setComponentMatcherStrategy,
   [WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME]: setExpiryTime,
   [WAIVERS_ADD_WAIVER_SET_CUSTOM_EXPIRY_TIME]: setCustomExpiryTime,
   [WAIVERS_ADD_WAIVER_SET_SHOW_UNSAVED_CHANGES_MODAL]: setShowUnsavedChangesModal,

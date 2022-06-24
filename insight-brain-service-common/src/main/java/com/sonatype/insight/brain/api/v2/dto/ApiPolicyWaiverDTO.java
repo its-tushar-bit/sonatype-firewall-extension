@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
 import com.sonatype.insight.json.store.ApiDateFormat;
 
@@ -21,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 
 /**
  * @since 1.76
@@ -114,6 +116,16 @@ public class ApiPolicyWaiverDTO
    */
   public String creatorName;
 
+  /**
+   * @since 1.140
+   */
+  public ComponentMatcherStrategyForWaiver matcherStrategy;
+
+  /**
+   * @since 1.140
+   */
+  public String associatedPackageUrl;
+
   public static ApiPolicyWaiverDTO toDto(PolicyWaiver policyWaiver, Owner owner) {
     ApiPolicyWaiverDTO dto = new ApiPolicyWaiverDTO();
 
@@ -125,11 +137,18 @@ public class ApiPolicyWaiverDTO
     dto.policyId = policyWaiver.getPolicyId();
     dto.creatorId = policyWaiver.getCreatorId();
     dto.creatorName = policyWaiver.getCreatorName();
-    
+
     if (owner != null) {
       dto.scopeOwnerId = owner.getId();
       dto.scopeOwnerType = ScopeOwnerUtils.getScopeOwnerType(owner.getType(), owner.getId());
       dto.scopeOwnerName = owner.getName();
+    }
+
+    if (policyWaiver.getComponentMatchStrategy() != null) {
+      dto.matcherStrategy = policyWaiver.getComponentMatchStrategy();
+      if (policyWaiver.getComponentMatchStrategy() == ALL_VERSIONS) {
+        dto.associatedPackageUrl = policyWaiver.getAssociatedPackageUrl();
+      }
     }
 
     if (policyWaiver.getConstraintFacts() != null) {

@@ -25,7 +25,7 @@ import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
 import NxExternalLink from '../react/NxExternalLink';
 import { Messages } from '../utilAngular/CommonServices';
-import { waiverType, displayWaiverScope } from '../util/waiverUtils';
+import { waiverType, displayWaiverScope, isWaiverAllVersionsOrExact } from '../util/waiverUtils';
 
 export default function ListWaiversTable(props) {
   const {
@@ -48,7 +48,11 @@ export default function ListWaiversTable(props) {
         <NxTableCell className="visual-testing-ignore">{moment(waiver.createTime).format('MM/DD/YYYY')}</NxTableCell>
         <NxTableCell className="iq-waivers-table--scope">{displayWaiverScope(waiver)}</NxTableCell>
         <NxTableCell className="iq-waivers-table--component-name">
-          {waiver.hash ? <ComponentDisplay component={violationDetails} truncate={true} /> : 'All'}
+          {isWaiverAllVersionsOrExact(waiver) ? (
+            <ComponentDisplay component={violationDetails} truncate={true} matcherStrategy={waiver.matcherStrategy} />
+          ) : (
+            'All'
+          )}
         </NxTableCell>
         <NxTableCell>{waiver.expiryTime ? moment(waiver.expiryTime).fromNow() : 'Does not expire'}</NxTableCell>
         <NxTableCell className="iq-waivers-table--creator">{waiver?.creatorName || '- -'}</NxTableCell>

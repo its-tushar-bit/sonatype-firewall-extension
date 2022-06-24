@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.Date;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -29,8 +28,12 @@ import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 
 import com.codahale.metrics.annotation.Timed;
+
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 
 /**
  * @since 1.90
@@ -38,9 +41,10 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(PublicApiPaths.POLICY_WAIVER_PATH)
-public class DefaultApiPolicyWaiverResource implements ApiPolicyWaiverResource
+public class DefaultApiPolicyWaiverResource
+    implements ApiPolicyWaiverResource
 {
-  private ApiPolicyWaiverService apiPolicyWaiverService;
+  private final ApiPolicyWaiverService apiPolicyWaiverService;
 
   static final String OWNERS_PATH = "{ownerType: application|organization|repository|repository_container}/{ownerId}";
 
@@ -69,8 +73,21 @@ public class DefaultApiPolicyWaiverResource implements ApiPolicyWaiverResource
       @PathParam("policyViolationId") String policyViolationId,
       ApiWaiverOptionsDTO waiverOptionsDTO)
   {
+    ComponentMatcherStrategyForWaiver matcherStrategy;
+
+    if ( waiverOptionsDTO != null) {
+      if (waiverOptionsDTO.matcherStrategy != null) {
+        matcherStrategy = waiverOptionsDTO.matcherStrategy;
+      }
+      else {
+        matcherStrategy = waiverOptionsDTO.applyToAllComponents ? ALL_COMPONENTS : EXACT_COMPONENT;
+      }
+    }
+    else {
+      matcherStrategy = EXACT_COMPONENT;
+    }
+
     String comment = waiverOptionsDTO == null ? null : waiverOptionsDTO.comment;
-    boolean applyToAllComponents = waiverOptionsDTO != null && waiverOptionsDTO.applyToAllComponents;
     Date expiryTime = waiverOptionsDTO == null ? null : waiverOptionsDTO.expiryTime;
 
     apiPolicyWaiverService
@@ -79,7 +96,7 @@ public class DefaultApiPolicyWaiverResource implements ApiPolicyWaiverResource
             ownerId,
             policyViolationId,
             comment,
-            applyToAllComponents,
+            matcherStrategy,
             expiryTime);
   }
 
@@ -124,7 +141,7 @@ public class DefaultApiPolicyWaiverResource implements ApiPolicyWaiverResource
     apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(ownerType, ownerId, scanId,
         componentIdentifier, packageUrl, hash, apiWaiverOptionsDTO);
   }
-  
+
   @Override
   @POST
   @Path(TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH)

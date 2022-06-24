@@ -228,11 +228,13 @@ public class PolicyCentricReportWaiverTest
     addWaiverPage.scope(1).shouldHave(text("Organization - Waiver Test Org"));
     addWaiverPage.scope(1).click();
 
-    addWaiverPage.availableComponents().shouldHaveSize(2);
+    addWaiverPage.availableComponents().shouldHaveSize(3);
     addWaiverPage.component(0).label().shouldHave(text("ch.qos.logback : logback-access : 0.6"));
     addWaiverPage.component(0).shouldBe(selected);
-    addWaiverPage.component(1).label().shouldHave(text("All Components"));
+    addWaiverPage.component(1).label().shouldHave(text("ch.qos.logback : logback-access (all versions)"));
     addWaiverPage.component(1).shouldNotBe(selected);
+    addWaiverPage.component(2).label().shouldHave(text("All Components"));
+    addWaiverPage.component(2).shouldNotBe(selected);
 
     addWaiverPage.saveButton().shouldBe(visible, enabled).click();
     NxSubmitMask.seeAndWaitForDismissal();
@@ -255,9 +257,9 @@ public class PolicyCentricReportWaiverTest
     waiveComponent();
     AddWaiverPage addWaiverPage = new AddWaiverPage();
     addWaiverPage.scope(0).click();
-    addWaiverPage.availableComponents().shouldHaveSize(2);
-    addWaiverPage.component(1).label().shouldHave(text("All Components"));
-    addWaiverPage.component(1).shouldNotBe(selected).click();
+    addWaiverPage.availableComponents().shouldHaveSize(3);
+    addWaiverPage.component(2).label().shouldHave(text("All Components"));
+    addWaiverPage.component(2).shouldNotBe(selected).click();
 
     addWaiverPage.saveButton().shouldBe(visible, enabled).click();
     NxSubmitMask.seeAndWaitForDismissal();

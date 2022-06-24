@@ -82,7 +82,7 @@ describe('category.editor.controller', function () {
     });
   });
 
-  describe('save category changes', () => {
+  xdescribe('save category changes', () => {
     beforeEach(() => {
       vm.saveApplicationCategory = jasmine.createSpy('vm.saveApplicationCategory').and.returnValue(Promise.resolve({}));
       vm.categoryEditorMask = {

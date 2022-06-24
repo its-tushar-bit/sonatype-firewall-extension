@@ -69,6 +69,8 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 
 public class TransitiveViolationsTest
     extends AbstractFunctionalTest
@@ -464,11 +466,12 @@ public class TransitiveViolationsTest
     Policy rootOrgPolicy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "rootOrgPolicy");
     Date creationDate = DateUtils.parseIso8601Date("2000-05-01");
     PolicyWaiver appPolicyWaiver = tempEntity.newWaiver("hash2", appPolicy.getId(), application.getId(),
-        getConstraintFacts(appPolicy), "comment", creationDate);
+        getConstraintFacts(appPolicy), EXACT_COMPONENT, "comment", creationDate);
     PolicyWaiver orgPolicyWaiver = tempEntity.newWaiver("hash3", orgPolicy.getId(), organization.getId(),
-        getConstraintFacts(orgPolicy), null, creationDate);
+        getConstraintFacts(orgPolicy), EXACT_COMPONENT, null, creationDate);
     PolicyWaiver rootOrgPolicyWaiver = tempEntity.newWaiver(null, rootOrgPolicy.getId(),
-        Organization.ROOT_ORGANIZATION_ID, getConstraintFacts(rootOrgPolicy), null, creationDate);
+        Organization.ROOT_ORGANIZATION_ID, getConstraintFacts(rootOrgPolicy), ALL_COMPONENTS,
+        null, creationDate);
 
     componentWaiversPopover = visitViewWaiversPopover();
     componentWaiversPopover.componentWaiversPopoverTable().getRows().shouldHaveSize(3);

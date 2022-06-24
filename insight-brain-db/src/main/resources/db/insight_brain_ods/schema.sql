@@ -116,6 +116,8 @@ CREATE TABLE policy_waiver (
   -- record of the policy constraints/conditions that were violated
   -- it is nullable because legacy policy waivers (before Insight Brain 1.53) do not store this data.
   constraint_facts_json text NULL,
+  associated_package_url varchar(1000) NULL,
+  component_match_strategy varchar(30) NULL,
   comment varchar(1000) NULL,
   create_time timestamp NOT NULL,
   expiry_time timestamp default NULL,

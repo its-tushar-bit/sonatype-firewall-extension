@@ -186,6 +186,7 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
@@ -1260,6 +1261,91 @@ public class TemporaryEntity
     return waiver;
   }
 
+  public PolicyWaiver newWaiver(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      String comment)
+  {
+    return newWaiver(hash, policyId, ownerId, constraintFacts, null, componentMatchStrategy, comment, null, null);
+  }
+
+  public PolicyWaiver newWaiver(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String associatedPackageUrl,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      String comment,
+      Date createTime)
+  {
+    return newWaiver(hash, policyId, ownerId, constraintFacts, associatedPackageUrl, componentMatchStrategy, comment,
+        createTime, null);
+  }
+
+  public PolicyWaiver newWaiver(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      String comment,
+      Date createTime)
+  {
+    return newWaiver(hash, policyId, ownerId, constraintFacts, null, componentMatchStrategy, comment, createTime, null);
+  }
+
+  public PolicyWaiver newWaiver(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      String comment,
+      Date createTime,
+      Date expiryTime)
+  {
+    return newWaiver(hash, policyId, ownerId, constraintFacts, null, componentMatchStrategy, comment,
+        createTime, expiryTime);
+  }
+
+  public PolicyWaiver newWaiver(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String associatedPackageUrl,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      String comment)
+  {
+    return newWaiver(hash, policyId, ownerId, constraintFacts, associatedPackageUrl, componentMatchStrategy, comment,
+        null, null);
+  }
+
+  public PolicyWaiver newWaiver(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String associatedPackageUrl,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      String comment,
+      Date createTime,
+      Date expiryTime)
+  {
+    PolicyWaiver waiver =
+        new PolicyWaiver(hash, policyId, ownerId, constraintFacts, associatedPackageUrl, componentMatchStrategy,
+            comment);
+    waiver.setCreateTime(createTime);
+    waiver.setExpiryTime(expiryTime);
+    addCreatorDataToWaiver(waiver);
+    waiverDAO.insert(waiver);
+    return waiver;
+  }
+
   public PolicyWaiver newWaiver(String hash, String policyId, String ownerId, List<ConstraintFact> constraintFacts) {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, null /* comment */);
     waiver.setConstraintFacts(constraintFacts);
@@ -1711,14 +1797,29 @@ public class TemporaryEntity
       String groupId,
       String artifactId,
       String version,
+      String classifier,
+      String extension,
       String hash,
       String reason)
   {
     ComponentIdentifier componentIdentifier = null;
     if (groupId != null) {
-      componentIdentifier = ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version);
+      componentIdentifier =
+          ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version, classifier, extension);
     }
     return newPolicyViolation(evaluation, policy, componentIdentifier, hash, reason);
+  }
+
+  public PolicyViolation newPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      String groupId,
+      String artifactId,
+      String version,
+      String hash,
+      String reason)
+  {
+    return this.newPolicyViolation(evaluation, policy, groupId, artifactId, version, null, null, hash, reason);
   }
 
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation, Policy policy) {

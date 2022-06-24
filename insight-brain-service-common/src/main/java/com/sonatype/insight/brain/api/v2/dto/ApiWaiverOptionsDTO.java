@@ -7,13 +7,25 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.Date;
 
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.json.store.ApiDateFormat;
 
 public class ApiWaiverOptionsDTO
 {
   public String comment;
 
+  /**
+   * This field is being deprecated in favor of "matcherStrategy"
+   *
+   * @deprecated use {@link #matcherStrategy}
+   */
+  @Deprecated
   public boolean applyToAllComponents;
+
+  /**
+   * @since 1.140
+   */
+  public ComponentMatcherStrategyForWaiver matcherStrategy;
 
   @ApiDateFormat
   public Date expiryTime;

@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
+import org.apache.tools.ant.util.DateUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -43,6 +44,8 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 
 public class ListWaiversTest
     extends AbstractFunctionalTest
@@ -146,22 +149,23 @@ public class ListWaiversTest
   }
 
   @Test
-  public void testWaiverListTable() {
+  public void testWaiverListTable() throws Exception {
     Instant now = Instant.now();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy").withZone(ZoneId.systemDefault());
     String nowStr = formatter.format(now);
     Instant fiveDaysAgo = now.minus(5, ChronoUnit.DAYS);
 
     tempEntity.newWaiver(null, securityPolicy1.getId(), organization.getId(),
-        policyViolation.getConstraintFacts(), null,
-        Date.from(LocalDate.parse("2020-05-05").atStartOfDay(ZoneId.of("America/New_York")).toInstant()));
+        policyViolation.getConstraintFacts(), ALL_COMPONENTS, null,
+        DateUtils.parseIso8601Date("2020-05-05"));
     String longUnbrokenComment = "Loremipsumdolorsitametconsecteturadipiscingelitseddoeiusmodtempor" +
         "incididuntutlaboreetdoloremagnaaliquaUtenimadminimveniamquisnostrudexercitationullamco" +
         "laborisnisiutaliquipexeacommodoconsequatDuisauteiruredolorinreprehenderitinvoluptate " +
         "velitessecillumdoloreeufugiatnullapariaturExcepteursintoccaecatcupidatatnonproident" +
         "suntinculpaquiofficiadeseruntmollitanimidestlaborum";
     tempEntity.newWaiver("hash1", securityPolicy1.getId(), application.getId(),
-        policyViolation.getConstraintFacts(), longUnbrokenComment, Date.from(now), Date.from(fiveDaysAgo));
+        policyViolation.getConstraintFacts(), EXACT_COMPONENT, longUnbrokenComment,
+        Date.from(now), Date.from(fiveDaysAgo));
     refreshOrOpen(ListWaiversPage.url(policyViolation.getId()));
 
     ListWaiversPage listWaiversPage = new ListWaiversPage();
@@ -224,11 +228,12 @@ public class ListWaiversTest
         "Group1", "Artifact1", "Version1", "hash1", "sonatype-2017-0507");
 
     tempEntity.newWaiver(null, securityPolicyTemp.getId(), tempOrg.getId(),
-        policyViolationTemp.getConstraintFacts(), null,
+        policyViolationTemp.getConstraintFacts(), ALL_COMPONENTS, null,
         Date.from(LocalDate.parse("2020-05-05").atStartOfDay(ZoneId.of("America/New_York")).toInstant()));
 
     tempEntity.newWaiver("hash1", securityPolicyTemp.getId(), tempApp.getId(),
-        policyViolationTemp.getConstraintFacts(), "Comment 1", Date.from(now), Date.from(fiveDaysAgo));
+        policyViolationTemp.getConstraintFacts(), EXACT_COMPONENT, "Comment 1", Date.from(now),
+        Date.from(fiveDaysAgo));
     refreshOrOpen(ListWaiversPage.url(policyViolationTemp.getId()));
 
     ListWaiversPage listWaiversPage = new ListWaiversPage();

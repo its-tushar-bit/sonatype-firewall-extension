@@ -34,6 +34,7 @@ export default function PolicyViolationsTable({
   showViolationsDetailPopover,
   showComponentWaiversPopover,
   componentName,
+  componentNameWithoutVersion,
   waivers,
   toggleComponentWaiversPopover,
   waiverToDelete,
@@ -87,6 +88,7 @@ export default function PolicyViolationsTable({
           {showComponentWaiversPopover && (
             <ComponentWaiversPopover
               componentName={componentName}
+              componentNameWithoutVersion={componentNameWithoutVersion}
               toggleComponentWaiversPopover={toggleComponentWaiversPopover}
               waivers={waivers}
               setWaiverToDelete={setWaiverToDelete}
@@ -102,6 +104,7 @@ export default function PolicyViolationsTable({
 PolicyViolationsTable.propTypes = {
   waivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   componentName: PropTypes.string,
+  componentNameWithoutVersion: PropTypes.string,
   showViolationsDetailPopover: PropTypes.bool.isRequired,
   toggleShowViolationsDetailPopover: PropTypes.func.isRequired,
   loadPolicyViolationsInformation: PropTypes.func.isRequired,

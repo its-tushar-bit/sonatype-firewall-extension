@@ -93,9 +93,10 @@ public class AddWaiverTest
     addWaiverPage.scope(0).label().shouldHave(text("Application - App 1"));
     addWaiverPage.scope(1).label().shouldHave(text("Organization - Org 1"));
     addWaiverPage.scope(2).label().shouldHave(text("Organization - Root Organization"));
-    addWaiverPage.availableComponents().shouldHaveSize(2);
+    addWaiverPage.availableComponents().shouldHaveSize(3);
     addWaiverPage.component(0).label().shouldHave(text("Group1 : Artifact1 : Version1"));
-    addWaiverPage.component(1).label().shouldHave(text("All Components"));
+    addWaiverPage.component(1).label().shouldHave(text("Group1 : Artifact1 (all versions)"));
+    addWaiverPage.component(2).label().shouldHave(text("All Components"));
     addWaiverPage.comments().shouldHave(text(""));
     addWaiverPage.expiryTimesOptions().shouldHaveSize(8);
     addWaiverPage.expiryTimesOptions().get(0).shouldHave(text("Never"));
@@ -150,7 +151,7 @@ public class AddWaiverTest
       NxRadio chosenScope = addWaiverPage.scope(0);
       chosenScope.label().shouldHave(text("Application - App 1"));
       chosenScope.click();
-      addWaiverPage.availableComponents().shouldHaveSize(2);
+      addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(0);
       chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
       chosenComponent.click();
@@ -180,8 +181,8 @@ public class AddWaiverTest
       NxRadio chosenScope = addWaiverPage.scope(0);
       chosenScope.label().shouldHave(text("Application - App 1"));
       chosenScope.click();
-      addWaiverPage.availableComponents().shouldHaveSize(2);
-      NxRadio chosenComponent = addWaiverPage.component(1);
+      addWaiverPage.availableComponents().shouldHaveSize(3);
+      NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
       chosenComponent.click();
       addWaiverPage.comments().setValue("Some comments");
@@ -211,8 +212,8 @@ public class AddWaiverTest
       NxRadio chosenScope = addWaiverPage.scope(0);
       chosenScope.label().shouldHave(text("Application - App 1"));
       chosenScope.click();
-      addWaiverPage.availableComponents().shouldHaveSize(2);
-      NxRadio chosenComponent = addWaiverPage.component(1);
+      addWaiverPage.availableComponents().shouldHaveSize(3);
+      NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
       chosenComponent.click();
       addWaiverPage.expiryTimesSelect().selectOptionContainingText("7 Days");
@@ -243,8 +244,8 @@ public class AddWaiverTest
       NxRadio chosenScope = addWaiverPage.scope(0);
       chosenScope.label().shouldHave(text("Application - App 1"));
       chosenScope.click();
-      addWaiverPage.availableComponents().shouldHaveSize(2);
-      NxRadio chosenComponent = addWaiverPage.component(1);
+      addWaiverPage.availableComponents().shouldHaveSize(3);
+      NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
       chosenComponent.click();
       addWaiverPage.expiryTimesSelect().selectOptionContainingText("Custom");
@@ -285,7 +286,7 @@ public class AddWaiverTest
       NxRadio chosenScope = addWaiverPage.scope(1);
       chosenScope.label().shouldHave(text("Organization - Org 1"));
       chosenScope.click();
-      addWaiverPage.availableComponents().shouldHaveSize(2);
+      addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(0);
       chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
       chosenComponent.click();
@@ -315,8 +316,8 @@ public class AddWaiverTest
       NxRadio chosenScope = addWaiverPage.scope(1);
       chosenScope.label().shouldHave(text("Organization - Org 1"));
       chosenScope.click();
-      addWaiverPage.availableComponents().shouldHaveSize(2);
-      NxRadio chosenComponent = addWaiverPage.component(1);
+      addWaiverPage.availableComponents().shouldHaveSize(3);
+      NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
       chosenComponent.click();
       addWaiverPage.comments().setValue("Some comments");
@@ -346,7 +347,7 @@ public class AddWaiverTest
       NxRadio chosenScope = addWaiverPage.scope(1);
       chosenScope.label().shouldHave(text("Organization - Org 1"));
       chosenScope.click();
-      addWaiverPage.availableComponents().shouldHaveSize(2);
+      addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(0);
       chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
       chosenComponent.click();
@@ -379,7 +380,7 @@ public class AddWaiverTest
       NxRadio chosenScope = addWaiverPage.scope(1);
       chosenScope.label().shouldHave(text("Organization - Org 1"));
       chosenScope.click();
-      addWaiverPage.availableComponents().shouldHaveSize(2);
+      addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(0);
       chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
       chosenComponent.click();
@@ -416,7 +417,7 @@ public class AddWaiverTest
       NxRadio chosenScope = addWaiverPage.scope(2);
       chosenScope.label().shouldHave(text("Organization - Root Organization"));
       chosenScope.click();
-      addWaiverPage.availableComponents().shouldHaveSize(2);
+      addWaiverPage.availableComponents().shouldHaveSize(3);
       NxRadio chosenComponent = addWaiverPage.component(0);
       chosenComponent.label().shouldHave(text("Group1 : Artifact1 : Version1"));
       chosenComponent.click();
@@ -446,8 +447,8 @@ public class AddWaiverTest
       NxRadio chosenScope = addWaiverPage.scope(2);
       chosenScope.label().shouldHave(text("Organization - Root Organization"));
       chosenScope.click();
-      addWaiverPage.availableComponents().shouldHaveSize(2);
-      NxRadio chosenComponent = addWaiverPage.component(1);
+      addWaiverPage.availableComponents().shouldHaveSize(3);
+      NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
       chosenComponent.click();
       addWaiverPage.comments().setValue("Some comments");
@@ -649,8 +650,8 @@ public class AddWaiverTest
       NxRadio chosenScope = addWaiverPage.scope(0);
       chosenScope.label().shouldHave(text("Application - App 1"));
       chosenScope.click();
-      addWaiverPage.availableComponents().shouldHaveSize(2);
-      NxRadio chosenComponent = addWaiverPage.component(1);
+      addWaiverPage.availableComponents().shouldHaveSize(3);
+      NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
       chosenComponent.click();
       addWaiverPage.comments().setValue("Some comments");
@@ -732,8 +733,8 @@ public class AddWaiverTest
       NxRadio chosenScope = addWaiverPage.scope(0);
       chosenScope.label().shouldHave(text("Application - App 1"));
       chosenScope.click();
-      addWaiverPage.availableComponents().shouldHaveSize(2);
-      NxRadio chosenComponent = addWaiverPage.component(1);
+      addWaiverPage.availableComponents().shouldHaveSize(3);
+      NxRadio chosenComponent = addWaiverPage.component(2);
       chosenComponent.label().shouldHave(text("All Components"));
       chosenComponent.click();
       addWaiverPage.comments().setValue("Some comments");

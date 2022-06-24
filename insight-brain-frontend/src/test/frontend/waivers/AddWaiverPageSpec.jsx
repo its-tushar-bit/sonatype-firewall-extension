@@ -109,6 +109,16 @@ describe('AddWaiverPage', function () {
       loading: false,
       violationDetails: {
         filename: 'filename',
+        displayName: {
+          name: 'display name',
+          parts: [
+            { field: 'Group', value: 'Foo' },
+            { value: ' : ' },
+            { field: 'Artifact', value: 'Bar' },
+            { value: ' : ' },
+            { field: 'Version', value: '1.0' },
+          ],
+        },
         constraintViolations: [
           {
             constraintName: 'constraint name',
@@ -127,7 +137,7 @@ describe('AddWaiverPage', function () {
         threatLevel: 5,
       },
       openVulnerabilityDetailsModal: openVulnerabilityDetailsModalMock,
-      applyToAllComponents: true,
+      componentMatcherStrategy: 'EXACT_COMPONENT',
       expiryTime: '7',
       availableWaiverScopes: [{ id: 'id', name: 'name', label: 'Application', type: 'application' }],
       selectedWaiverScope: {
@@ -141,9 +151,10 @@ describe('AddWaiverPage', function () {
       loadWrapperChildren = enzymeUtils.getLoadWrapperChildren(component),
       addWaiverForm = loadWrapperChildren.find(AddWaiverForm);
 
-    expect(addWaiverForm).toHaveProp('applyToAllComponents', true);
-    expect(addWaiverForm).toHaveProp('artifactName', 'filename');
-    expect(addWaiverForm).toHaveProp('componentName', 'filename');
+    expect(addWaiverForm).toHaveProp('componentMatcherStrategy', 'EXACT_COMPONENT');
+    expect(addWaiverForm).toHaveProp('artifactName', 'display name');
+    expect(addWaiverForm).toHaveProp('componentName', 'Foo : Bar : 1.0');
+    expect(addWaiverForm).toHaveProp('allVersionsComponentName', 'Foo : Bar');
     expect(addWaiverForm).toHaveProp('policyName', 'policyName');
     expect(addWaiverForm).toHaveProp('policyViolationId', 'policyViolationId');
     expect(addWaiverForm).toHaveProp('reasons', ['reason']);
@@ -153,7 +164,7 @@ describe('AddWaiverPage', function () {
     expect(addWaiverForm).toHaveProp('selectedWaiverScope', fullProps.selectedWaiverScope);
     expect(addWaiverForm).toHaveProp('setWaiverScope', minimalProps.setWaiverScope);
     expect(addWaiverForm).toHaveProp('setWaiverComment', minimalProps.setWaiverComment);
-    expect(addWaiverForm).toHaveProp('setApplyToAllComponents', minimalProps.setApplyToAllComponents);
+    expect(addWaiverForm).toHaveProp('setComponentMatcherStrategy', minimalProps.setComponentMatcherStrategy);
     expect(addWaiverForm).toHaveProp('saveWaiver', minimalProps.saveWaiver);
     expect(addWaiverForm).toHaveProp('openVulnerabilityDetailsModal', openVulnerabilityDetailsModalMock);
     expect(addWaiverForm).toHaveProp('vulnerabilityId', 'CVE-67890');

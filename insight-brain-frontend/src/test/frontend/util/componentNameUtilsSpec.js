@@ -3,7 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { getComponentName, getArtifactName } from '../../../main/frontend/util/componentNameUtils';
+import {
+  getComponentName,
+  getArtifactName,
+  getComponentNameWithoutVersion,
+} from '../../../main/frontend/util/componentNameUtils';
 
 describe('componentNameUtils', function () {
   describe('getComponentName', function () {
@@ -84,6 +88,53 @@ describe('componentNameUtils', function () {
       const component = {};
       const componentName = getComponentName(component);
       expect(componentName).toEqual('Unknown');
+    });
+  });
+
+  describe('getComponentNameWithoutVersion', function () {
+    it('removes the "Version" value and trailing colon from display name parts', function () {
+      const component = {
+        displayName: {
+          parts: [
+            { field: 'Group', value: 'Foo' },
+            { value: ' : ' },
+            { field: 'Artifact', value: 'Bar' },
+            { value: ' : ' },
+            { field: 'Version', value: '1.0' },
+          ],
+        },
+        filename: 'foo.js',
+        filenames: ['foo.jar', 'bar.jar'],
+      };
+
+      const allVersionsComponentName = getComponentNameWithoutVersion(component);
+      expect(allVersionsComponentName).toEqual('Foo : Bar');
+    });
+
+    it('sets up a component name from filename', function () {
+      const component = {
+        displayName: null,
+        filename: 'foo.js',
+        filenames: ['bar.jar', 'baz.jar'],
+      };
+      const allVersionsComponentName = getComponentNameWithoutVersion(component);
+      expect(allVersionsComponentName).toEqual('foo.js');
+    });
+
+    it('sets up a component name from filenames', function () {
+      const component = {
+        displayName: null,
+        filename: null,
+        filenames: ['foo.jar', 'bar.jar'],
+      };
+      const allVersionsComponentName = getComponentNameWithoutVersion(component);
+      expect(allVersionsComponentName).toEqual('foo.jar, bar.jar');
+    });
+
+    it('assigns unknown to components without any identification', function () {
+      const component = {};
+      const allVersionsComponentName = getComponentNameWithoutVersion(component);
+      expect(allVersionsComponentName).toEqual('Unknown');
     });
   });
 });

@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.model.policy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.UUID;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.HashHelper;
@@ -19,9 +21,15 @@ import com.sonatype.insight.json.store.JsonUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.DEFAULT;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 
 public class PolicyWaiverTest
 {
+  private final String associatedPackagedUrl = "pkg:maven/group/artifact@1.0?classifier=c1&type=jar";
+
   @Test
   public void testLongHashTruncatedWhenObjectCreated() {
     String longHash = "123456789012345678901";
@@ -132,6 +140,116 @@ public class PolicyWaiverTest
 
     assertThat(policyWaiver.getConstraintFactsJson()).isNull();
     assertThat(policyWaiver.getConstraintFacts()).isNull();
+  }
+
+  @Test
+  public void testSetComponentMatchStrategy_DEFAULT() throws Exception {
+    PolicyWaiver policyWaiver = new PolicyWaiver();
+
+    policyWaiver.setComponentMatchStrategy(DEFAULT);
+    assertThat(policyWaiver.getComponentMatchStrategy().toString()).isEqualTo("DEFAULT");
+  }
+
+  @Test
+  public void testSetComponentMatchStrategy_EXACT_COMPONENT() throws Exception {
+    PolicyWaiver policyWaiver = new PolicyWaiver();
+
+    policyWaiver.setComponentMatchStrategy(EXACT_COMPONENT);
+    assertThat(policyWaiver.getComponentMatchStrategy().toString()).isEqualTo("EXACT_COMPONENT");
+  }
+
+  @Test
+  public void testSetComponentMatchStrategy_ALL_COMPONENTS() throws Exception {
+    PolicyWaiver policyWaiver = new PolicyWaiver();
+
+    policyWaiver.setComponentMatchStrategy(ALL_COMPONENTS);
+    assertThat(policyWaiver.getComponentMatchStrategy().toString()).isEqualTo("ALL_COMPONENTS");
+  }
+
+  @Test
+  public void testSetComponentMatchStrategy_ALL_VERSIONS() throws Exception {
+    PolicyWaiver policyWaiver = new PolicyWaiver();
+
+    policyWaiver.setComponentMatchStrategy(ALL_VERSIONS);
+    assertThat(policyWaiver.getComponentMatchStrategy().toString()).isEqualTo("ALL_VERSIONS");
+  }
+
+  @Test
+  public void testSetComponentMatchStrategy_Null() throws Exception {
+    PolicyWaiver policyWaiver = new PolicyWaiver();
+
+    policyWaiver.setComponentMatchStrategy(null);
+    assertThat(policyWaiver.getComponentMatchStrategy()).isNull();
+  }
+
+  @Test
+  public void testConstructorComponentMatchStrategy_DEFAULT() throws Exception {
+    PolicyWaiver policyWaiver =
+        new PolicyWaiver("hash", "policyId", "ownerId", null, associatedPackagedUrl, DEFAULT, "comment");
+
+    assertThat(policyWaiver.getComponentMatchStrategy().toString()).isEqualTo("DEFAULT");
+
+    policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", associatedPackagedUrl, DEFAULT, "comment");
+
+    assertThat(policyWaiver.getComponentMatchStrategy().toString()).isEqualTo("DEFAULT");
+  }
+
+  @Test
+  public void testSetAssociatedPackagedUrl() throws Exception {
+    PolicyWaiver policyWaiver = new PolicyWaiver();
+
+    policyWaiver.setAssociatedPackageUrl(associatedPackagedUrl);
+    assertThat(policyWaiver.getAssociatedPackageUrl()).isEqualTo(associatedPackagedUrl);
+  }
+
+  @Test
+  public void testSetAssociatedPackagedUrl_Null() throws Exception {
+    PolicyWaiver policyWaiver = new PolicyWaiver();
+
+    policyWaiver.setAssociatedPackageUrl(null);
+    assertThat(policyWaiver.getAssociatedPackageUrl()).isNull();
+  }
+
+  @Test
+  public void testSetAssociatedPackagedUrl_Empty() throws Exception {
+    PolicyWaiver policyWaiver = new PolicyWaiver();
+
+    policyWaiver.setAssociatedPackageUrl("");
+    assertThat(policyWaiver.getAssociatedPackageUrl()).isEmpty();
+  }
+
+  @Test
+  public void testConstructorAssociatedPackagedUrl() throws Exception {
+    PolicyWaiver policyWaiver =
+        new PolicyWaiver("hash", "policyId", "ownerId", null, associatedPackagedUrl, DEFAULT, "comment");
+
+    assertThat(policyWaiver.getAssociatedPackageUrl()).isEqualTo(associatedPackagedUrl);
+
+    policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", associatedPackagedUrl, DEFAULT, "comment");
+
+    assertThat(policyWaiver.getAssociatedPackageUrl()).isEqualTo(associatedPackagedUrl);
+  }
+
+  @Test
+  public void testGetComponentIdentifier() throws Exception {
+    PolicyWaiver policyWaiver =
+        new PolicyWaiver("hash", "policyId", "ownerId", null, associatedPackagedUrl, DEFAULT, "comment");
+
+    ComponentIdentifier componentIdentifier = policyWaiver.getComponentIdentifier();
+
+    assertThat(componentIdentifier).isInstanceOf(ComponentIdentifier.class);
+    assertThat(componentIdentifier.getFormat()).isEqualTo("maven");
+    assertThat(componentIdentifier.getCoordinates()).hasSize(5).isEqualTo(new TreeMap<String, String>() {{
+        this.put("artifactId", "artifact");
+        this.put("classifier", "c1");
+        this.put("extension", "jar");
+        this.put("groupId", "group");
+        this.put("version", "1.0");
+      }});
+
+    policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", null, DEFAULT, "comment");
+
+    assertThat(policyWaiver.getComponentIdentifier()).isNull();
   }
 
   private List<ConstraintFact> createConstraintFacts(int count) {

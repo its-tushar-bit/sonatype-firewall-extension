@@ -5,12 +5,14 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 
-import ComponentDisplay from '../../../main/frontend/ComponentDisplay/ReactComponentDisplay';
+import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
+import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
 import { NxOverflowTooltip } from '@sonatype/react-shared-components';
 
 describe('ComponentDisplay (React)', function () {
   const minimalProps = {
     component: {},
+    matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
   };
 
   const getShallowComponent = enzymeUtils.getShallowComponent(ComponentDisplay, minimalProps);
@@ -19,7 +21,7 @@ describe('ComponentDisplay (React)', function () {
     expect(getShallowComponent()).toMatchSelector(NxOverflowTooltip);
   });
 
-  it('adds the truncate-ellipsis class to the div iff the truncate prop is set', function () {
+  it('adds the truncate-ellipsis class to the div if the truncate prop is set', function () {
     expect(getShallowComponent().find('div')).not.toHaveClassName('truncate-ellipsis');
     expect(getShallowComponent({ truncate: false }).find('div')).not.toHaveClassName('truncate-ellipsis');
     expect(getShallowComponent({ truncate: true }).find('div')).toHaveClassName('truncate-ellipsis');
@@ -113,5 +115,26 @@ describe('ComponentDisplay (React)', function () {
       expect(getShallowComponent({ component }).find('span')).toHaveText('org.slf4j : slf4j-log4j12 ~ 1');
       expect(getShallowComponent({ component }).find('em')).not.toExist();
     });
+  });
+
+  it('renders a display name with "all versions" if matcher strategy is ALL_VERSIONS', function () {
+    const componentWithDisplayName = {
+      displayName: {
+        parts: [
+          { field: 'GroupId', value: 'org.slf4j' },
+          { value: ' : ' },
+          { field: 'ArtifactId', value: 'slf4j-log4j12' },
+          { value: ' ~ ' }, // not realistic syntax, but just to check that it is in fact concatenating these values
+          { field: 'Version', value: '1' },
+        ],
+      },
+    };
+
+    expect(
+      getShallowComponent({
+        component: componentWithDisplayName,
+        matcherStrategy: waiverMatcherStrategy.ALL_VERSIONS,
+      }).find('span')
+    ).toHaveText('org.slf4j : slf4j-log4j12 (all versions)');
   });
 });

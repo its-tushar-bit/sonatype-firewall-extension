@@ -33,7 +33,7 @@ describe('addWaiverReducer', function () {
       expect(newState.submitError).toBeNull();
       expect(newState.availableWaiverScopes).toBeNull();
       expect(newState.selectedWaiverScope).toBeNull();
-      expect(newState.applyToAllComponents).toBe(false);
+      expect(newState.componentMatcherStrategy).toBe('EXACT_COMPONENT');
       expect(newState.expiryTime).toBeNull();
       expect(newState.fieldsPristineState).toBeNull();
     });
@@ -84,7 +84,7 @@ describe('addWaiverReducer', function () {
         waiverComments: {},
         availableWaiverScopes: null,
         selectedWaiverScope: null,
-        applyToAllComponents: false,
+        componentMatcherStrategy: 'EXACT_COMPONENT',
         violationDetails: null,
         otherProp: { prop: 'foo' },
       };
@@ -107,7 +107,7 @@ describe('addWaiverReducer', function () {
       waiverComments: {},
       availableWaiverScopes: null,
       selectedWaiverScope: null,
-      applyToAllComponents: false,
+      componentMatcherStrategy: 'EXACT_COMPONENT',
       violationDetails: null,
       otherProp: { prop: 'foo' },
     };
@@ -134,7 +134,7 @@ describe('addWaiverReducer', function () {
       const newState = reducer(initialState, action);
       expect(newState.fieldsPristineState).toEqual({
         selectedWaiverScope: 'target1',
-        applyToAllComponents: false,
+        componentMatcherStrategy: 'EXACT_COMPONENT',
         expiryTime: null,
         waiverComments: '',
       });
@@ -151,7 +151,7 @@ describe('addWaiverReducer', function () {
         waiverComments: {},
         availableWaiverScopes: null,
         selectedWaiverScope: null,
-        applyToAllComponents: false,
+        componentMatcherStrategy: 'EXACT_COMPONENT',
         violationDetails: null,
         otherProp: { prop: 'foo' },
       };
@@ -177,7 +177,7 @@ describe('addWaiverReducer', function () {
         waiverComments: {},
         availableWaiverScopes: null,
         selectedWaiverScope: null,
-        applyToAllComponents: false,
+        componentMatcherStrategy: 'EXACT_COMPONENT',
         violationDetails: null,
         otherProp: { prop: 'foo' },
       };
@@ -203,7 +203,7 @@ describe('addWaiverReducer', function () {
         waiverComments: {},
         availableWaiverScopes: null,
         selectedWaiverScope: null,
-        applyToAllComponents: false,
+        componentMatcherStrategy: 'EXACT_COMPONENT',
         violationDetails: null,
         otherProp: { prop: 'foo' },
       };
@@ -227,7 +227,7 @@ describe('addWaiverReducer', function () {
         waiverComments: {},
         availableWaiverScopes: null,
         selectedWaiverScope: null,
-        applyToAllComponents: false,
+        componentMatcherStrategy: 'EXACT_COMPONENT',
         violationDetails: null,
         otherProp: { prop: 'foo' },
       };
@@ -253,7 +253,7 @@ describe('addWaiverReducer', function () {
         waiverComments: {},
         availableWaiverScopes: null,
         selectedWaiverScope: null,
-        applyToAllComponents: false,
+        componentMatcherStrategy: 'EXACT_COMPONENT',
         violationDetails: null,
         otherProp: { prop: 'foo' },
       };
@@ -297,12 +297,12 @@ describe('addWaiverReducer', function () {
         waiverComments: {},
         availableWaiverScopes: null,
         selectedWaiverScope: null,
-        applyToAllComponents: false,
+        componentMatcherStrategy: 'EXACT_COMPONENT',
         violationDetails: null,
         otherProp: { prop: 'foo' },
         fieldsPristineState: {
           selectedWaiverScope: null,
-          applyToAllComponents: false,
+          componentMatcherStrategy: 'EXACT_COMPONENT',
           expiryTime: null,
           waiverComments: '',
         },
@@ -331,12 +331,12 @@ describe('addWaiverReducer', function () {
         waiverComments: {},
         availableWaiverScopes: null,
         selectedWaiverScope: null,
-        applyToAllComponents: false,
+        componentMatcherStrategy: 'EXACT_COMPONENT',
         violationDetails: null,
         otherProp: { prop: 'foo' },
         fieldsPristineState: {
           selectedWaiverScope: null,
-          applyToAllComponents: false,
+          componentMatcherStrategy: 'EXACT_COMPONENT',
           expiryTime: null,
           waiverComments: '',
         },
@@ -353,8 +353,8 @@ describe('addWaiverReducer', function () {
     });
   });
 
-  describe('WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS action', function () {
-    it('sets applyToAllComponents and isDirty props', function () {
+  describe('WAIVERS_ADD_WAIVER_SET_COMPONENT_MATCHER_STRATEGY action', function () {
+    it('sets componentMatcherStrategy and isDirty props', function () {
       const initialState = {
         loading: false,
         loadError: null,
@@ -363,32 +363,41 @@ describe('addWaiverReducer', function () {
         waiverComments: {},
         availableWaiverScopes: null,
         selectedWaiverScope: null,
-        applyToAllComponents: null,
+        componentMatcherStrategy: 'EXACT_COMPONENT',
         violationDetails: null,
         otherProp: { prop: 'foo' },
         fieldsPristineState: {
           selectedWaiverScope: null,
-          applyToAllComponents: false,
+          componentMatcherStrategy: 'EXACT_COMPONENT',
           expiryTime: null,
           waiverComments: '',
         },
       };
 
       let newState = reducer(initialState, {
-        type: 'WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS',
-        payload: true,
+        type: 'WAIVERS_ADD_WAIVER_SET_COMPONENT_MATCHER_STRATEGY',
+        payload: 'ALL_COMPONENTS',
       });
 
-      expect(newState.applyToAllComponents).toBe(true);
+      expect(newState.componentMatcherStrategy).toBe('ALL_COMPONENTS');
       expect(newState.otherProp).toBe(initialState.otherProp);
       expect(newState.isDirty).toBe(true);
 
       newState = reducer(initialState, {
-        type: 'WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS',
-        payload: false,
+        type: 'WAIVERS_ADD_WAIVER_SET_COMPONENT_MATCHER_STRATEGY',
+        payload: 'ALL_VERSIONS',
       });
 
-      expect(newState.applyToAllComponents).toBe(false);
+      expect(newState.componentMatcherStrategy).toBe('ALL_VERSIONS');
+      expect(newState.otherProp).toBe(initialState.otherProp);
+      expect(newState.isDirty).toBe(true);
+
+      newState = reducer(initialState, {
+        type: 'WAIVERS_ADD_WAIVER_SET_COMPONENT_MATCHER_STRATEGY',
+        payload: 'EXACT_COMPONENT',
+      });
+
+      expect(newState.componentMatcherStrategy).toBe('EXACT_COMPONENT');
       expect(newState.otherProp).toBe(initialState.otherProp);
       expect(newState.isDirty).toBe(true);
     });
@@ -405,14 +414,14 @@ describe('addWaiverReducer', function () {
         waiverComments: {},
         availableWaiverScopes: null,
         selectedWaiverScope: null,
-        applyToAllComponents: null,
+        componentMatcherStrategy: 'EXACT_COMPONENT',
         violationDetails: null,
         expiryTime: null,
         customExpiryTime: nxDateInputStateHelpers.initialState(''),
         otherProp: { prop: 'foo' },
         fieldsPristineState: {
           selectedWaiverScope: null,
-          applyToAllComponents: false,
+          componentMatcherStrategy: 'EXACT_COMPONENT',
           expiryTime: null,
           waiverComments: '',
         },
@@ -565,7 +574,7 @@ describe('addWaiverReducer', function () {
         waiverComments: initState('A comment'),
         availableWaiverScopes: 'abc',
         selectedWaiverScope: 'pqr',
-        applyToAllComponents: true,
+        componentMatcherStrategy: 'ALL_COMPONENTS',
         violationDetails: 'xyz',
         otherProp: { prop: 'foo' },
       };
@@ -580,7 +589,7 @@ describe('addWaiverReducer', function () {
       expect(newState.submitError).toBeNull();
       expect(newState.availableWaiverScopes).toBeNull();
       expect(newState.selectedWaiverScope).toBeNull();
-      expect(newState.applyToAllComponents).toBe(false);
+      expect(newState.componentMatcherStrategy).toBe('EXACT_COMPONENT');
       expect(newState.waiverComments).toEqual(initState(''));
       expect(newState.otherProp).toBeUndefined();
     });

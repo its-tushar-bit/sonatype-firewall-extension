@@ -6,7 +6,7 @@
 import * as PropTypes from 'prop-types';
 import { map, path, prop } from 'ramda';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
-import { getArtifactName, getComponentName } from './componentNameUtils';
+import { getArtifactName, getComponentName, getComponentNameWithoutVersion } from './componentNameUtils';
 
 export const extractViolationDetails = (violationDetails) => {
   if (!violationDetails) {
@@ -27,12 +27,14 @@ export const extractViolationDetails = (violationDetails) => {
     vulnerabilityId = violationVulnerabilityId || path([0, 'reference', 'value'], reasons),
     threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
     componentName = derivedComponentName || getComponentName(violationDetails),
+    allVersionsComponentName = getComponentNameWithoutVersion(violationDetails),
     artifactName = getArtifactName(violationDetails);
 
   return {
     componentIdentifier,
     artifactName,
     componentName,
+    allVersionsComponentName,
     constraintName,
     policyName,
     policyViolationId,

@@ -48,6 +48,7 @@ import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.O
 import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH;
 import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH;
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -83,7 +84,7 @@ public class ApiPolicyWaiverResourceTest
     ConditionFact conditionFact = new ConditionFact("condition type id", 0, "summary", "reason", triggerReference);
     ConstraintFact constraintFact = new ConstraintFact("constraint id", "constraint name", "operator", conditionFact);
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), application.getId(),
-        singletonList(constraintFact), "a comment", today, aWeekFromNow);
+        singletonList(constraintFact), EXACT_COMPONENT, "a comment", today, aWeekFromNow);
 
     HttpResponse response = restRequest().path(OWNERS_PATH).parameter(OwnerType.APPLICATION, application.getId()).get();
 
@@ -118,7 +119,7 @@ public class ApiPolicyWaiverResourceTest
     Organization organization = tempEntity.newOrganization();
     Policy policy = tempEntity.newPolicy(organization);
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), organization.getId(),
-        null, "a comment in org waiver", today, aWeekFromNow);
+        null, EXACT_COMPONENT, "a comment in org waiver", today, aWeekFromNow);
 
     HttpResponse response =
         restRequest().path(OWNERS_PATH).parameter(OwnerType.ORGANIZATION, organization.getId()).get();
@@ -149,7 +150,7 @@ public class ApiPolicyWaiverResourceTest
     Repository repository = tempEntity.newRepository();
     Policy policy = tempEntity.newPolicy();
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), repository.getId(),
-        null, "comment", today, aWeekFromNow);
+        null, EXACT_COMPONENT, "comment", today, aWeekFromNow);
 
     HttpResponse response = restRequest().path(OWNERS_PATH).parameter(OwnerType.REPOSITORY, repository.getId()).get();
 
@@ -178,7 +179,7 @@ public class ApiPolicyWaiverResourceTest
 
     Policy policy = tempEntity.newPolicy();
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), REPOSITORY_CONTAINER_ID,
-        null, "comment", today, aWeekFromNow);
+        null, EXACT_COMPONENT, "comment", today, aWeekFromNow);
 
     HttpResponse response =
         restRequest().path(OWNERS_PATH).parameter(OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID).get();
@@ -483,7 +484,8 @@ public class ApiPolicyWaiverResourceTest
         zipReportDir("/ApiPolicyWaiverResourceTest/report", tempDir),
         getCLMServer().getInstance(InsightWork.class));
     Policy policy = tempEntity.newPolicy();
-    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash2", policy.getId(), app.getId());
+    PolicyWaiver policyWaiver =
+        tempEntity.newWaiver("hash2", policy.getId(), app.getId(), null, EXACT_COMPONENT, null);
 
     HttpRequest request = restRequest()
         .path(TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH)

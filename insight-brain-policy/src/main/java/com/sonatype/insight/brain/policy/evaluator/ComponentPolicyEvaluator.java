@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -94,19 +93,21 @@ public class ComponentPolicyEvaluator
   }
 
   // Package visibility for tests only
-  PolicyResults evaluate(final String applicationId,
-                         final Stage stage,
-                         final List<Policy> policies,
-                         final List<Component> components)
+  PolicyResults evaluate(
+      final String applicationId,
+      final Stage stage,
+      final List<Policy> policies,
+      final List<Component> components)
   {
     return evaluate(applicationId, stage, policies, components, false /* forMonitoring */);
   }
 
-  public PolicyResults evaluate(final String ownerId,
-                                final Stage stage,
-                                final List<Policy> policies,
-                                final List<Component> components,
-                                boolean forMonitoring)
+  public PolicyResults evaluate(
+      final String ownerId,
+      final Stage stage,
+      final List<Policy> policies,
+      final List<Component> components,
+      boolean forMonitoring)
   {
     final long start = System.currentTimeMillis();
 
@@ -120,11 +121,12 @@ public class ComponentPolicyEvaluator
     return policyResults;
   }
 
-  static PolicyResults toPolicyResults(String ownerId,
-                                       final List<Policy> policies,
-                                       final List<PolicyFact> policyFacts,
-                                       final Stage stage,
-                                       boolean forMonitoring)
+  static PolicyResults toPolicyResults(
+      String ownerId,
+      final List<Policy> policies,
+      final List<PolicyFact> policyFacts,
+      final Stage stage,
+      boolean forMonitoring)
   {
     // Ordering of policyFacts should result in consistent alerts.
     policyFacts.sort(POLICY_FACT_COMPARATOR);
@@ -161,26 +163,23 @@ public class ComponentPolicyEvaluator
     PolicyWaiver legacyWaiver = null;
 
     for (PolicyWaiver policyWaiver : policyWaivers) {
-      if (policyWaiver.getPolicyId().equals(policyFact.getPolicyId())) {
-        if (policyWaiver.getHash() == null
-            || policyWaiver.getHash().equals(policyFact.getComponentFacts().get(0).getHash())) {
-          if (policyWaiver.getConstraintFacts() == null) {
+      PolicyWaiverMatcherWrapper policyWaiverMatcher = new PolicyWaiverMatcherWrapper(policyWaiver);
+      if (policyWaiverMatcher.matchesPolicyId(policyFact.getPolicyId())) {
+        ComponentFact mainComponentFact = policyFact.getComponentFacts().get(0);
+        if (policyWaiverMatcher.matchesComponent(mainComponentFact)) {
+          if (policyWaiverMatcher.isLegacyWaiver()) {
             // This is a legacy waiver (before Brain 1.53). It matches the policy fact, but there may be a more specific
-            // waiver. Continue looking...
+            // waiver.
             legacyWaiver = policyWaiver;
           }
-          else if (ConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(
-              policyWaiver.getConstraintFacts(), policyFact.getComponentFacts().get(0).getConstraintFacts()) == 0) {
+          else if (policyWaiverMatcher.matchesConstraintFacts(mainComponentFact.getConstraintFacts())) {
             return policyWaiver;
           }
         }
       }
     }
 
-    if (legacyWaiver != null) {
-      return legacyWaiver;
-    }
-    return null;
+    return legacyWaiver;
   }
 
   // Visible for tests

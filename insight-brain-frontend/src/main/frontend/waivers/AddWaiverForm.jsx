@@ -15,16 +15,15 @@ import {
   NxRadio,
   NxDateInput,
   NxFormSelect,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 
 import ViolationExclamation from '../react/ViolationExclamation';
 import ArtifactNameDisplay from '../react/ArtifactNameDisplay';
 import VulnerabilityDetailsModalContainer from '../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
 import LoadError from '../react/LoadError';
-import { waiverExpirations } from '../util/waiverUtils';
+import { waiverExpirations, waiverMatcherStrategy } from '../util/waiverUtils';
 import ownerConstant from 'MainRoot/utility/services/owner.constant';
-
-const ALL_COMPONENTS = 'ALL_COMPONENTS';
 
 export const isCustomExpiryTimeValid = (value) => {
   if (!value) {
@@ -36,9 +35,10 @@ export const isCustomExpiryTimeValid = (value) => {
 export default function AddWaiverForm(props) {
   const {
     componentIdentifier,
-    applyToAllComponents,
+    componentMatcherStrategy,
     artifactName,
     componentName,
+    allVersionsComponentName,
     constraintName,
     policyName,
     policyViolationId,
@@ -54,7 +54,7 @@ export default function AddWaiverForm(props) {
     closeVulnerabilityDetailsModal,
     setWaiverScope,
     setWaiverComment,
-    setApplyToAllComponents,
+    setComponentMatcherStrategy,
     setExpiryTime,
     setCustomExpiryTime,
     saveWaiver,
@@ -92,7 +92,7 @@ export default function AddWaiverForm(props) {
     const { value } = waiverComments;
     const expiration = getExpiration();
 
-    saveWaiver(policyViolationId, type, id, value, applyToAllComponents, expiration);
+    saveWaiver(policyViolationId, type, id, value, componentMatcherStrategy, expiration);
   };
 
   const onVulnerabilityDetailsClick = () => {
@@ -103,7 +103,7 @@ export default function AddWaiverForm(props) {
   };
 
   const handleComponentsChange = (value) => {
-    setApplyToAllComponents(value === ALL_COMPONENTS);
+    setComponentMatcherStrategy(value);
   };
 
   const handleScopeChange = (selectedId) => {
@@ -127,6 +127,37 @@ export default function AddWaiverForm(props) {
   };
 
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
+
+  const getAllVersionsRadioButton = () => {
+    if (componentIdentifier === null) {
+      return (
+        <NxTooltip title="Claim this component to apply all versions waiver">
+          <NxRadio
+            id="all-versions"
+            name="add-waiver-components"
+            value={waiverMatcherStrategy.ALL_VERSIONS}
+            isChecked={false}
+            onChange={() => {}}
+            disabled={true}
+          >
+            {allVersionsComponentName} (all versions)
+          </NxRadio>
+        </NxTooltip>
+      );
+    } else {
+      return (
+        <NxRadio
+          id="all-versions"
+          name="add-waiver-components"
+          value={waiverMatcherStrategy.ALL_VERSIONS}
+          isChecked={componentMatcherStrategy === waiverMatcherStrategy.ALL_VERSIONS}
+          onChange={handleComponentsChange}
+        >
+          {allVersionsComponentName} (all versions)
+        </NxRadio>
+      );
+    }
+  };
 
   const daysDiff = () => {
     if (isCustomExpiryTimeSelected && isCustomExpiryTimeValid(customExpiryTime.value)) {
@@ -211,17 +242,20 @@ export default function AddWaiverForm(props) {
         {/* Components */}
         <NxFieldset className="iq-add-waiver-form__components" label="Components" isRequired>
           <NxRadio
+            id="current-component"
             name="add-waiver-components"
-            value={componentName}
-            isChecked={!applyToAllComponents}
+            value={waiverMatcherStrategy.EXACT_COMPONENT}
+            isChecked={componentMatcherStrategy === waiverMatcherStrategy.EXACT_COMPONENT}
             onChange={handleComponentsChange}
           >
             {componentName}
           </NxRadio>
+          {getAllVersionsRadioButton()}
           <NxRadio
+            id="all-components"
             name="add-waiver-components"
-            value={ALL_COMPONENTS}
-            isChecked={!!applyToAllComponents}
+            value={waiverMatcherStrategy.ALL_COMPONENTS}
+            isChecked={componentMatcherStrategy === waiverMatcherStrategy.ALL_COMPONENTS}
             onChange={handleComponentsChange}
           >
             All Components
@@ -294,7 +328,8 @@ export const waiverScopePropTypes = {
 };
 
 AddWaiverForm.propTypes = {
-  applyToAllComponents: PropTypes.bool.isRequired,
+  componentMatcherStrategy: PropTypes.string.isRequired,
+  allVersionsComponentName: PropTypes.string,
   artifactName: PropTypes.string.isRequired,
   componentName: PropTypes.string.isRequired,
   constraintName: PropTypes.string.isRequired,
@@ -315,7 +350,7 @@ AddWaiverForm.propTypes = {
   }).isRequired,
   submitError: PropTypes.instanceOf(Error),
   setWaiverScope: PropTypes.func.isRequired,
-  setApplyToAllComponents: PropTypes.func.isRequired,
+  setComponentMatcherStrategy: PropTypes.func.isRequired,
   setExpiryTime: PropTypes.func.isRequired,
   setCustomExpiryTime: PropTypes.func.isRequired,
   setWaiverComment: PropTypes.func.isRequired,

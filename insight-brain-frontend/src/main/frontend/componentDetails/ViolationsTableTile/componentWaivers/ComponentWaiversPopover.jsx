@@ -12,7 +12,15 @@ import ComponentWaiversPopoverTable from './ComponentWaiversPopoverTable';
 import { waiverType } from '../../../util/waiverUtils';
 
 export default function ComponentWaiversPopover(props) {
-  const { title, componentName, toggleComponentWaiversPopover, waivers, setWaiverToDelete, waiverToDelete } = props;
+  const {
+    title,
+    componentName,
+    componentNameWithoutVersion,
+    toggleComponentWaiversPopover,
+    waivers,
+    setWaiverToDelete,
+    waiverToDelete,
+  } = props;
 
   return (
     <IqPopover id="component-waivers-container" size="extra-large" onClose={toggleComponentWaiversPopover}>
@@ -25,7 +33,7 @@ export default function ComponentWaiversPopover(props) {
         headerTitle={title || 'Component Waivers'}
       />
       <div className="component-waivers">
-        <ComponentWaiversPopoverTable {...{ waivers, setWaiverToDelete, componentName }} />
+        <ComponentWaiversPopoverTable {...{ waivers, setWaiverToDelete, componentName, componentNameWithoutVersion }} />
       </div>
     </IqPopover>
   );
@@ -34,6 +42,7 @@ export default function ComponentWaiversPopover(props) {
 ComponentWaiversPopover.propTypes = {
   title: PropTypes.string,
   componentName: PropTypes.string,
+  componentNameWithoutVersion: PropTypes.string,
   toggleComponentWaiversPopover: PropTypes.func.isRequired,
   waivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   waiverToDelete: PropTypes.shape(waiverType),

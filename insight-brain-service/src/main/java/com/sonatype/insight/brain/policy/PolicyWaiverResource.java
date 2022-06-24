@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -22,13 +23,17 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dto.ApplicableContext;
+import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -41,8 +46,12 @@ import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codahale.metrics.annotation.Timed;
+
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 
 /**
  * @since 1.6
@@ -58,6 +67,10 @@ public class PolicyWaiverResource
       + "{ownerType: application|organization|repository|repository_container}/{ownerId}";
 
   private final OwnerDAO ownerDAO = new OwnerDAO();
+
+  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+
+  private final ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
 
   private final PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
 
@@ -92,10 +105,20 @@ public class PolicyWaiverResource
     policyWaiver.setOwnerId(internalOwnerId);
     policyWaiver.setCreatorId(currentUser.getUserPrincipal().getUsername());
     policyWaiver.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
+    policyWaiver.setComponentMatchStrategy(policyWaiver.getHash() == null ? ALL_COMPONENTS : EXACT_COMPONENT);
     new PolicyWaiverDAO().insert(policyWaiver);
     auditPolicyWaiver(policyWaiver);
     policyWaiverTelemetryCreator.sendWaiverTelemetryWithoutViolationInformation(policyWaiver, ownerType);
     return policyWaiver;
+  }
+
+  private <T extends HasComponentId> ComponentIdentifier getComponentIdentifierFromOwnerIdAndHash(
+      String ownerId,
+      String hash,
+      BiFunction<String, String, List<T>> daoMethod)
+  {
+    T repositoryComponent = daoMethod.apply(ownerId, hash).stream().findFirst().orElse(null);
+    return repositoryComponent != null ? repositoryComponent.getComponentIdentifier() : null;
   }
 
   /**
@@ -121,8 +144,21 @@ public class PolicyWaiverResource
         policyId -> policyNamesById.computeIfAbsent(policyId, id -> policyDAO.getById(id).getName());
 
     AppliedWaivers result = new AppliedWaivers();
+    ComponentIdentifier componentIdentifier = null;
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
-      result.add(owner, getApplicableWaivers(owner.getId(), hash, policyNameLoader));
+      if (componentIdentifier == null) {
+        if (owner.getType().equals(OwnerType.REPOSITORY)) {
+          componentIdentifier =
+              getComponentIdentifierFromOwnerIdAndHash(owner.getId(), hash,
+                  repositoryComponentDAO::getByRepositoryIdAndHash);
+        }
+        else if (owner.getType().equals(OwnerType.APPLICATION)) {
+          componentIdentifier =
+              getComponentIdentifierFromOwnerIdAndHash(owner.getId(), hash,
+                  applicationComponentDAO::getByApplicationIdAndHash);
+        }
+      }
+      result.add(owner, getApplicableWaivers(owner.getId(), hash, policyNameLoader, componentIdentifier));
     }
 
     return result;
@@ -131,9 +167,21 @@ public class PolicyWaiverResource
   private List<PolicyWaiverDTO> getApplicableWaivers(
       String ownerId,
       String hash,
-      Function<String, String> policyNameLoader)
+      Function<String, String> policyNameLoader,
+      ComponentIdentifier componentIdentifier)
   {
-    List<PolicyWaiver> waivers = new PolicyWaiverDAO().getApplicableToComponent(ownerId, hash);
+    String purl;
+    if (componentIdentifier != null) {
+      purl = PackageUrlIdentifier
+          .fromComponentIdentifier(componentIdentifier.createAlternativeVersion("*"))
+          .getPackageUrl();
+    }
+    else {
+      purl = null;
+    }
+
+    List<PolicyWaiver> waivers =
+        new PolicyWaiverDAO().getApplicableToComponentIncludingAllVersions(ownerId, hash, purl);
     List<PolicyWaiverDTO> dtos = new ArrayList<>(waivers.size());
     for (PolicyWaiver waiver : waivers) {
       PolicyWaiverDTO dto = new PolicyWaiverDTO();
@@ -148,6 +196,8 @@ public class PolicyWaiverResource
       dto.setConstraintFacts(waiver.getConstraintFacts());
       dto.setCreatorId(waiver.getCreatorId());
       dto.setCreatorName(waiver.getCreatorName());
+      dto.setAssociatedPackageUrl(waiver.getAssociatedPackageUrl());
+      dto.setComponentMatchStrategy(waiver.getComponentMatchStrategy());
       dtos.add(dto);
     }
     return dtos;

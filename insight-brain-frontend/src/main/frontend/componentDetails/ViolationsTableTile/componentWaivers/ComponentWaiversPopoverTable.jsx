@@ -17,8 +17,13 @@ import {
 } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 
-import { formatDate, STANDARD_DATE_FORMAT } from '../../../util/dateUtils';
-import { waiverType, displayWaiverScope } from '../../../util/waiverUtils';
+import { formatDate, STANDARD_DATE_FORMAT } from 'MainRoot/util/dateUtils';
+import {
+  waiverType,
+  displayWaiverScope,
+  isWaiverAllVersions,
+  isWaiverAllVersionsOrExact,
+} from 'MainRoot/util/waiverUtils';
 
 export const ComponentWaiversTableRow = ({ waiver, setWaiverToDelete, componentName }) => {
   return (
@@ -34,7 +39,8 @@ export const ComponentWaiversTableRow = ({ waiver, setWaiverToDelete, componentN
       </NxTableCell>
       <NxTableCell className="iq-component-violations-waivers-table__scope">{displayWaiverScope(waiver)}</NxTableCell>
       <NxTableCell className="iq-component-violations-waivers-table__component-name">
-        {waiver.hash ? componentName : 'All'}
+        {isWaiverAllVersionsOrExact(waiver) ? componentName : 'All'}
+        {isWaiverAllVersions(waiver) ? ' (all versions)' : ''}
       </NxTableCell>
       <NxTableCell className="iq-component-violations-waivers-table__creator-name">
         {waiver.creatorName || '- -'}
@@ -62,7 +68,12 @@ ComponentWaiversTableRow.propTypes = {
   setWaiverToDelete: PropTypes.func.isRequired,
 };
 
-export default function ComponentWaiversPopoverTable({ componentName, waivers = [], setWaiverToDelete }) {
+export default function ComponentWaiversPopoverTable({
+  componentName,
+  componentNameWithoutVersion,
+  waivers = [],
+  setWaiverToDelete,
+}) {
   return (
     <NxTable className="iq-policy-violations-table">
       <NxTableHead>
@@ -83,7 +94,11 @@ export default function ComponentWaiversPopoverTable({ componentName, waivers = 
             {...{
               waiver,
               setWaiverToDelete,
-              componentName: waiver.componentName ? waiver.componentName : componentName,
+              componentName: isWaiverAllVersions(waiver)
+                ? componentNameWithoutVersion
+                : waiver.componentName
+                ? waiver.componentName
+                : componentName,
             }}
           />
         ))}
@@ -94,6 +109,7 @@ export default function ComponentWaiversPopoverTable({ componentName, waivers = 
 
 ComponentWaiversPopoverTable.propTypes = {
   componentName: PropTypes.string,
+  componentNameWithoutVersion: PropTypes.string,
   waivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   setWaiverToDelete: PropTypes.func.isRequired,
 };

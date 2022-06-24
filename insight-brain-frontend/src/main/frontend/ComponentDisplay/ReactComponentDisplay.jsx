@@ -9,17 +9,22 @@ import * as PropTypes from 'prop-types';
 import { NxOverflowTooltip } from '@sonatype/react-shared-components';
 
 import isFilenameOrUnknown from './isFilenameOrUnknown';
-import { getComponentName } from '../util/componentNameUtils';
+import { waiverMatcherStrategy } from '../util/waiverUtils';
+import { getComponentName, getComponentNameWithoutVersion } from '../util/componentNameUtils';
 
 /**
  * The React implementation of the component-display angular component
  */
-export default function ComponentDisplay({ component, truncate }) {
+export default function ComponentDisplay({ component, truncate, matcherStrategy }) {
   const textTag = isFilenameOrUnknown(component) ? 'em' : 'span',
     divClass = classnames('iq-component-display', {
       'truncate-ellipsis': truncate,
-    }),
-    componentName = getComponentName(component);
+    });
+
+  const componentName =
+    matcherStrategy === waiverMatcherStrategy.ALL_VERSIONS
+      ? `${getComponentNameWithoutVersion(component)} (all versions)`
+      : getComponentName(component);
 
   return (
     <NxOverflowTooltip>

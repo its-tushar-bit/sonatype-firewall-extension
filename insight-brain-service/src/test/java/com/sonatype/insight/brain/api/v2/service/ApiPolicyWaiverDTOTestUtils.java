@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.Date;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,6 +24,7 @@ public class ApiPolicyWaiverDTOTestUtils
       final Date expiryTime,
       String creatorId,
       String creatorName,
+      ComponentMatcherStrategyForWaiver matcherStrategy,
       ApiPolicyWaiverDTO actual)
   {
     assertThat(actual.hash).isEqualTo(hash);
@@ -34,6 +36,7 @@ public class ApiPolicyWaiverDTOTestUtils
     assertThat(actual.policyViolationId).isEqualTo(policyViolationId);
     assertThat(actual.creatorId).isNotNull();
     assertThat(actual.creatorId).isEqualTo(creatorId);
+    assertThat(actual.matcherStrategy).isEqualTo(matcherStrategy);
     assertThat(actual.creatorName).isEqualTo(creatorName);
   }
 }

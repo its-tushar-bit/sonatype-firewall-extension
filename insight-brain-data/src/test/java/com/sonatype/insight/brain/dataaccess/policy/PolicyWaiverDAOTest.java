@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -22,21 +23,28 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 
 public class PolicyWaiverDAOTest
     extends AbstractDbDAOTest
 {
+  private final String associatedPackagedUrl = "pkg:maven/group/artifact@*?classifier=c1&type=jar";
+
   @Test
   public void testGetByIdNotNull() {
     assertThatThrownBy(() -> {
@@ -55,9 +63,12 @@ public class PolicyWaiverDAOTest
     String policyId = policy.getId();
     String ownerId = organization.getId();
     String comment = "My comment";
+    String associatedPackagedUrl = "pkg:maven/group/artifact@1.0?classifier=c1&type=jar";
+    ComponentMatcherStrategyForWaiver componentMatcherStrategy = ComponentMatcherStrategyForWaiver.DEFAULT;
 
     // Create
-    PolicyWaiver policyWaiver = new PolicyWaiver(hash, policyId, ownerId, comment);
+    PolicyWaiver policyWaiver =
+        new PolicyWaiver(hash, policyId, ownerId, associatedPackagedUrl, componentMatcherStrategy, comment);
     policyWaiver.setConstraintFacts(createRandomConstraintFacts());
     Date expiryTime = DateTime.now().plusWeeks(1).toDate();
     policyWaiver.setExpiryTime(expiryTime);
@@ -73,7 +84,17 @@ public class PolicyWaiverDAOTest
     // Read
     policyWaiver = dao.getById(policyWaiver.getId());
     assertThat(policyWaiver).isNotNull();
-    assertPolicyWaiver(truncatedHash, policyId, ownerId, comment, createTime, expiryTime, policyWaiver);
+    assertPolicyWaiver(
+        truncatedHash,
+        policyId,
+        ownerId,
+        associatedPackagedUrl,
+        componentMatcherStrategy,
+        comment,
+        createTime,
+        expiryTime,
+        policyWaiver
+    );
 
     // Update
     String updateComment = "Updated comment";
@@ -83,7 +104,17 @@ public class PolicyWaiverDAOTest
     // Read
     policyWaiver = dao.getById(policyWaiver.getId());
     assertThat(policyWaiver).isNotNull();
-    assertPolicyWaiver(truncatedHash, policyId, ownerId, updateComment, createTime, expiryTime, policyWaiver);
+    assertPolicyWaiver(
+        truncatedHash,
+        policyId,
+        ownerId,
+        associatedPackagedUrl,
+        componentMatcherStrategy,
+        updateComment,
+        createTime,
+        expiryTime,
+        policyWaiver
+    );
 
     // Delete
     dao.delete(policyWaiver);
@@ -92,17 +123,22 @@ public class PolicyWaiverDAOTest
     assertThat(policyWaiver).isNull();
   }
 
-  private void assertPolicyWaiver(String hash,
-                                  String policyId,
-                                  String ownerId,
-                                  String comment,
-                                  Date createTime,
-                                  Date expiryTime,
-                                  PolicyWaiver actual)
+  private void assertPolicyWaiver(
+      String hash,
+      String policyId,
+      String ownerId,
+      String associatedPackagedUrl,
+      ComponentMatcherStrategyForWaiver componentMatcherStrategy,
+      String comment,
+      Date createTime,
+      Date expiryTime,
+      PolicyWaiver actual)
   {
     assertThat(actual.getHash()).isEqualTo(hash);
     assertThat(actual.getPolicyId()).isEqualTo(policyId);
     assertThat(actual.getOwnerId()).isEqualTo(ownerId);
+    assertThat(actual.getAssociatedPackageUrl()).isEqualTo(associatedPackagedUrl);
+    assertThat(actual.getComponentMatchStrategy()).isEqualTo(componentMatcherStrategy);
     assertThat(actual.getComment()).isEqualTo(comment);
     assertThat(actual.getCreateTime()).isEqualTo(createTime);
     assertThat(actual.getExpiryTime()).isEqualTo(expiryTime);
@@ -317,7 +353,7 @@ public class PolicyWaiverDAOTest
         now.toDate(), null);
     PolicyWaiver expiringWaiver = tempEntity.newWaiver("expiring", policyId, ownerId, null, comment,
         now.toDate(), now.plusHours(1).toDate());
-    PolicyWaiver expiredWaiver =  tempEntity.newWaiver("expired", policyId, ownerId, null, comment,
+    PolicyWaiver expiredWaiver = tempEntity.newWaiver("expired", policyId, ownerId, null, comment,
         now.toDate(), now.minusMillis(1).toDate());
 
     assertThat(dao.getApplicableAndExpiredByOwnerId(ownerId)).extracting(PolicyWaiver::getId)
@@ -358,7 +394,7 @@ public class PolicyWaiverDAOTest
       tx.commit();
 
       assertThat(waivers).extracting(PolicyWaiver::getId)
-        .containsExactly(noExpiryWaiver.getId(), expiringWaiver.getId(), expiredWaiver.getId());
+          .containsExactly(noExpiryWaiver.getId(), expiringWaiver.getId(), expiredWaiver.getId());
     }
   }
 
@@ -375,26 +411,27 @@ public class PolicyWaiverDAOTest
     String ownerId = organization.getId();
     String comment = "Just testing";
 
-    PolicyWaiver noExpiryWaiver = tempEntity.newWaiver(hash, policy1.getId(), ownerId, null, comment,
-        now.toDate(), null);
-    PolicyWaiver expiringWaiver = tempEntity.newWaiver(hash, policy2.getId(), ownerId, null, comment,
+    PolicyWaiver noExpiryWaiver = tempEntity.newWaiver(hash, policy1.getId(), ownerId, null,
+        EXACT_COMPONENT, comment, now.toDate(), null);
+    PolicyWaiver expiringWaiver = tempEntity.newWaiver(hash, policy2.getId(), ownerId, null,
+        EXACT_COMPONENT, comment,
         now.toDate(), now.plusHours(1).toDate());
 
     // Expired waiver
-    tempEntity.newWaiver(hash, policy3.getId(), ownerId, null, comment,
+    tempEntity.newWaiver(hash, policy3.getId(), ownerId, null, EXACT_COMPONENT, comment,
         now.toDate(), now.toDate());
 
     // not expiring waiver for all components
-    tempEntity.newWaiver(null, policy4.getId(), ownerId, null, comment,
+    tempEntity.newWaiver(null, policy4.getId(), ownerId, null, ALL_COMPONENTS, comment,
         now.toDate(), null);
 
     // not expiring waiver for Root Org
-    tempEntity.newWaiver(hash, policy4.getId(), Organization.ROOT_ORGANIZATION_ID, null, comment,
-        now.toDate(), null);
+    tempEntity.newWaiver(hash, policy4.getId(), Organization.ROOT_ORGANIZATION_ID, null, EXACT_COMPONENT,
+        comment, now.toDate(), null);
 
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
-      List<PolicyWaiver> waivers = dao.getActiveByOwnerIdAndHash(tx, ownerId, hash);
+      List<PolicyWaiver> waivers = dao.getActiveByOwnerIdAndHash(tx, ownerId, hash, EXACT_COMPONENT);
       tx.commit();
 
       assertThat(waivers).extracting(PolicyWaiver::getId)
@@ -412,8 +449,10 @@ public class PolicyWaiverDAOTest
     String ownerId = organization.getId();
     String comment = "Just testing";
     PolicyWaiver policyWaiver1 = new PolicyWaiver(hash, policyId, ownerId, comment);
+    policyWaiver1.setComponentMatchStrategy(EXACT_COMPONENT);
     dao.insert(policyWaiver1);
     PolicyWaiver policyWaiver2 = new PolicyWaiver(policyId, ownerId, comment);
+    policyWaiver2.setComponentMatchStrategy(ALL_COMPONENTS);
     dao.insert(policyWaiver2);
 
     List<PolicyWaiver> waivers = dao.getApplicableToComponent(ownerId, hash);
@@ -438,10 +477,12 @@ public class PolicyWaiverDAOTest
     String comment = "Just testing";
 
     PolicyWaiver expiringWaiver = new PolicyWaiver(hash, policyId, ownerId, comment);
+    expiringWaiver.setComponentMatchStrategy(EXACT_COMPONENT);
     expiringWaiver.setExpiryTime(aWeekFromNow);
     dao.insert(expiringWaiver);
 
     PolicyWaiver expiredWaiver = new PolicyWaiver(policyId, ownerId, comment);
+    expiringWaiver.setComponentMatchStrategy(ALL_COMPONENTS);
     expiredWaiver.setExpiryTime(yesterday);
     dao.insert(expiredWaiver);
 
@@ -454,12 +495,46 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
+  public void testGetApplicableToComponentIncludingAllVersions() throws Exception {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    String hash = "12345678901234567890";
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    String comment = "Just testing";
+    PolicyWaiver policyWaiver1 = new PolicyWaiver(hash, policyId, ownerId, comment);
+    policyWaiver1.setComponentMatchStrategy(EXACT_COMPONENT);
+    dao.insert(policyWaiver1);
+
+    PolicyWaiver policyWaiver2 = new PolicyWaiver(policyId, ownerId, comment);
+    policyWaiver2.setComponentMatchStrategy(ALL_COMPONENTS);
+    dao.insert(policyWaiver2);
+
+    PolicyWaiver policyWaiver3 = new PolicyWaiver(policyId, ownerId, comment);
+    String purl = PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier
+        .createMavenCoordinates("g1", "a1", "v1", "c1", "jar"))
+        .getPackageUrl();
+    policyWaiver3.setComponentMatchStrategy(ALL_VERSIONS);
+    policyWaiver3.setAssociatedPackageUrl(purl);
+    dao.insert(policyWaiver3);
+
+    List<PolicyWaiver> waivers = dao.getApplicableToComponentIncludingAllVersions(ownerId, hash, purl);
+    dao.delete(policyWaiver1);
+    dao.delete(policyWaiver2);
+    dao.delete(policyWaiver3);
+
+    assertThat(waivers).extracting(PolicyWaiver::getId)
+        .containsExactly(policyWaiver1.getId(), policyWaiver2.getId(), policyWaiver3.getId());
+  }
+
+  @Test
   public void testDeleteDoesNotCascadeToWaivedPolicyViolation() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver policyWaiver = tempEntity.newWaiver("ababababab", policy.getId(), application.getId());
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID,
-        "PolicyWaiverDAOTest");
+            "PolicyWaiverDAOTest");
     PolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, policyWaiver);
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
     assertThat(policyViolationDAO.getById(waivedPolicyViolation.getId())).isNotNull();
@@ -575,6 +650,78 @@ public class PolicyWaiverDAOTest
       // Get using not null constraint facts
       foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId,
           createRandomConstraintFacts());
+      assertThat(foundPolicyWaiver).isNull();
+    }
+  }
+
+  @Test
+  public void testGetActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts_PURL() {
+    String hash = "hash";
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
+
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Get using not null match strategy
+      PolicyWaiver foundPolicyWaiver =
+          dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId, constraintFacts,
+              associatedPackagedUrl, ComponentMatcherStrategyForWaiver.DEFAULT);
+      assertThat(foundPolicyWaiver).isNull();
+    }
+  }
+
+  @Test
+  public void testGetActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts_MatchStrategy() {
+    String hash = "hash";
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    String comment = "My comment";
+    ComponentMatcherStrategyForWaiver componentMatchStrategy = ComponentMatcherStrategyForWaiver.DEFAULT;
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
+    PolicyWaiver policyWaiver1 =
+        tempEntity.newWaiver(hash, policyId, ownerId, constraintFacts, componentMatchStrategy, comment);
+
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      // Get using null associated packaged url
+      PolicyWaiver foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId,
+          ownerId, constraintFacts, null /* associatedPackagedUrl */, componentMatchStrategy);
+      assertThat(foundPolicyWaiver.getId()).isEqualTo(policyWaiver1.getId());
+
+      // Get using not null associated packaged url
+      foundPolicyWaiver =
+          dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId, constraintFacts,
+              associatedPackagedUrl, componentMatchStrategy);
+      assertThat(foundPolicyWaiver).isNull();
+    }
+  }
+
+  @Test
+  public void testGetActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts_PURL_MatchStrategy() {
+    String hash = "hash";
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    String comment = "My comment";
+    ComponentMatcherStrategyForWaiver componentMatchStrategy = ComponentMatcherStrategyForWaiver.DEFAULT;
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
+    PolicyWaiver policyWaiver1 =
+        tempEntity.newWaiver(hash, policyId, ownerId, constraintFacts, associatedPackagedUrl, componentMatchStrategy,
+            comment);
+
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      PolicyWaiver foundPolicyWaiver = dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId,
+          ownerId, constraintFacts, associatedPackagedUrl, componentMatchStrategy);
+      assertThat(foundPolicyWaiver.getId()).isEqualTo(policyWaiver1.getId());
+
+      // Get using null associated packaged url and match strategy
+      foundPolicyWaiver =
+          dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId, constraintFacts,
+              null /* associatedPackagedUrl */, null /* componentMatchStrategy */);
       assertThat(foundPolicyWaiver).isNull();
     }
   }

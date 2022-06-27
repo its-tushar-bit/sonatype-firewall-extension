@@ -177,9 +177,10 @@ public class QuarantinedComponentService
         repositoryComponent.getIdentificationSourceId(), null, null);
   }
 
-  public NamedComponentDetails getComponentVersionDetails(final String token, final HttpServletRequest httpRequest,
-                                                          final String version)
-      throws IOException
+  NamedComponentDetails getComponentVersionDetails(
+      final String token,
+      final HttpServletRequest httpRequest,
+      final String version) throws IOException
   {
     final String repositoryComponentId =
         quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getRepositoryComponentId();
@@ -190,13 +191,17 @@ public class QuarantinedComponentService
     final Owner owner = IdUtils.getOwnerNotNull(OwnerType.REPOSITORY, repositoryComponent.getRepositoryId());
 
     ComponentIdentifier componentIdentifier = repositoryComponent.getComponentIdentifier();
+    String hash = repositoryComponent.getHash();
 
-    if (version != null && !version.isEmpty()) {
+    if (!StringUtils.isBlank(version)
+        && !version.equals(repositoryComponent.getComponentIdentifier().get(ComponentIdentifier.VERSION))) {
+      // The request is for a different version than the quarantined component's version
       componentIdentifier = repositoryComponent.getComponentIdentifier().createAlternativeVersion(version);
+      hash = null;
     }
 
-    return componentInfoService.getComponentDetails(owner, componentIdentifier, MatchState.EXACT.getId(),
-        repositoryComponent.getHash(), false, httpRequest);
+    return componentInfoService.getComponentDetails(owner, componentIdentifier, MatchState.EXACT.getId(), hash,
+        false /* proprietary */, httpRequest);
   }
 
   public ApiPageResult<String> getQuarantinedComponentOtherVersions(

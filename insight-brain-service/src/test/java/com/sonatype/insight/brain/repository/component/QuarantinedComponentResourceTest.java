@@ -661,20 +661,19 @@ public class QuarantinedComponentResourceTest
   }
 
   @Test
-  public void testGetComponentVersionDetails() throws Exception {
+  public void testGetQuarantinedComponentVersionDetails() throws Exception {
     // setup
     final Repository repository = tempEntity.newRepository("repo");
-    final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    final RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "testPathname", "testHash",
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar"), true /* quarantined */);
     final QuarantinedComponentAccess quarantinedComponentAccess =
         tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
-    ComponentIdentifier componentIdentifier =
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
-
     NamedComponentDetails namedComponentDetails = new NamedComponentDetails();
-    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    namedComponentDetails.setComponentIdentifier(repositoryComponent.getComponentIdentifier());
 
     hdsRespondWith(namedComponentDetails).atUri("/rest/ci/componentDetails");
 
@@ -684,49 +683,72 @@ public class QuarantinedComponentResourceTest
             QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_DETAILS_PATH).parameter(encodedToken).get();
 
     // then
+    assertResponseStatus(200, response);
     // Have to configure an object mapper this way because of how NamedComponentDetails works.
     ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     NamedComponentDetails namedComponentDetailsResponse =
         objectMapper.readValue(response.getBodyStream(), NamedComponentDetails.class);
 
-    assertResponseStatus(200, response);
-    assertThat(namedComponentDetailsResponse).isNotNull();
+    assertThat(namedComponentDetailsResponse.getHash()).isEqualTo(repositoryComponent.getHash());
+    assertThat(namedComponentDetailsResponse.getComponentIdentifier())
+        .isEqualTo(repositoryComponent.getComponentIdentifier());
   }
 
   @Test
   public void testGetQuarantinedComponentVersionDetails_AnonymousEnabled() throws Exception {
     // setup
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "testPathname", "testHash",
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar"), true /* quarantined */);
     QuarantinedComponentAccess quarantinedComponentAccess =
         tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
     String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
+    NamedComponentDetails namedComponentDetails = new NamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(repositoryComponent.getComponentIdentifier());
+
+    hdsRespondWith(namedComponentDetails).atUri("/rest/ci/componentDetails");
+
     // when anonymous request
     HttpResponse response = restRequest()
         .path(QuarantinedComponentResource.RESOURCE_PATH,
             QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_DETAILS_PATH)
-        .parameter(encodedToken).query("version", "1.2").anon().get();
+        .parameter(encodedToken).query("version", "v").anon().get();
 
     // then
     assertResponseStatus(200, response);
+    // Have to configure an object mapper this way because of how NamedComponentDetails works.
+    ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    NamedComponentDetails namedComponentDetailsResponse =
+        objectMapper.readValue(response.getBodyStream(), NamedComponentDetails.class);
+    assertThat(namedComponentDetailsResponse.getHash()).isEqualTo(repositoryComponent.getHash());
+    assertThat(namedComponentDetailsResponse.getComponentIdentifier())
+        .isEqualTo(repositoryComponent.getComponentIdentifier());
   }
 
   @Test
   public void testGetQuarantinedComponentVersionDetails_AnonymousDisabled() throws Exception {
     // setup
     disableAnonymousAccess();
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "testPathname", "testHash",
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar"), true /* quarantined */);
     QuarantinedComponentAccess quarantinedComponentAccess =
         tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
     String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
+    NamedComponentDetails namedComponentDetails = new NamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(repositoryComponent.getComponentIdentifier());
+
+    hdsRespondWith(namedComponentDetails).atUri("/rest/ci/componentDetails");
+
     // when anonymous request
     HttpResponse response = restRequest()
         .path(QuarantinedComponentResource.RESOURCE_PATH,
             QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_DETAILS_PATH)
-        .parameter(encodedToken).query("version", "1.2").anon().get();
+        .parameter(encodedToken).query("version", "v").anon().get();
 
     // then 401 is returned
     assertThat(response.getStatusCode()).isEqualTo(401);
@@ -735,10 +757,54 @@ public class QuarantinedComponentResourceTest
     response = restRequest()
         .path(QuarantinedComponentResource.RESOURCE_PATH,
             QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_DETAILS_PATH)
-        .parameter(encodedToken).query("version", "1.2").get();
+        .parameter(encodedToken).query("version", "v").get();
 
     // then success
     assertResponseStatus(200, response);
+    // Have to configure an object mapper this way because of how NamedComponentDetails works.
+    ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    NamedComponentDetails namedComponentDetailsResponse =
+        objectMapper.readValue(response.getBodyStream(), NamedComponentDetails.class);
+    assertThat(namedComponentDetailsResponse.getHash()).isEqualTo(repositoryComponent.getHash());
+    assertThat(namedComponentDetailsResponse.getComponentIdentifier())
+        .isEqualTo(repositoryComponent.getComponentIdentifier());
+  }
+
+  @Test
+  public void testGetQuarantinedComponentVersionDetails_DifferentVersion() throws Exception {
+    // setup
+    Repository repository = tempEntity.newRepository("repo");
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "testPathname", "testHash",
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar"), true /* quarantined */);
+    QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
+    String encodedToken = Base64.getUrlEncoder().withoutPadding()
+        .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
+    String otherVersion = "otherVersion";
+    ComponentIdentifier otherVersionComponentIdentifier =
+        repositoryComponent.getComponentIdentifier().createAlternativeVersion(otherVersion);
+    NamedComponentDetails namedComponentDetails = new NamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(otherVersionComponentIdentifier);
+
+    hdsRespondWith(namedComponentDetails).atUri("/rest/ci/componentDetails");
+
+    // when
+    HttpResponse response = restRequest()
+        .path(QuarantinedComponentResource.RESOURCE_PATH,
+            QuarantinedComponentResource.QUARANTINED_COMPONENT_VERSION_DETAILS_PATH)
+        .parameter(encodedToken).query("version", otherVersion).get();
+
+    // then
+    assertResponseStatus(200, response);
+    // Have to configure an object mapper this way because of how NamedComponentDetails works.
+    ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    NamedComponentDetails namedComponentDetailsResponse =
+        objectMapper.readValue(response.getBodyStream(), NamedComponentDetails.class);
+
+    assertThat(namedComponentDetailsResponse.getHash()).isNull();
+    assertThat(namedComponentDetailsResponse.getComponentIdentifier())
+        .isEqualTo(otherVersionComponentIdentifier);
   }
 
   private <T> T getBodyByTypeReference(byte[] bodyBytes, final TypeReference<T> typeRef) {

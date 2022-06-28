@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
-import io.dropwizard.util.Sets;
+import com.google.common.collect.ImmutableSet;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -118,7 +118,7 @@ public class DefaultBaseUrl
     if (propertyNames.contains(SystemConfigurationProperty.BASE_URL) ||
         propertyNames.contains(SystemConfigurationProperty.FORCE_BASE_URL)) {
       baseUrlConfigurationAtomicReference.set(configurationService.getConfigurationNoAuthz(
-          Sets.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL)));
+          ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL)));
     }
   }
 }

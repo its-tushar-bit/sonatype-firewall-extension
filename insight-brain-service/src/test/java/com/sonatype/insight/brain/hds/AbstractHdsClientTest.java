@@ -22,9 +22,9 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.InjectedTest;
 
+import com.google.common.collect.ImmutableSet;
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.server.DefaultServerFactory;
-import io.dropwizard.util.Sets;
 import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -107,7 +107,7 @@ public abstract class AbstractHdsClientTest
   public void resetBaseUrl() {
     ApiConfigurationService service = lookup(ApiConfigurationService.class);
     Set<String> propertyNames =
-        Sets.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
+        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
     service.deleteConfigurationNoAuthz(propertyNames);
     service.applyConfigurationToClients(propertyNames);
   }

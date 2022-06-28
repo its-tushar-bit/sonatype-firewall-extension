@@ -16,7 +16,7 @@ import java.util.TreeMap;
 
 import javax.inject.Inject;
 
-import io.dropwizard.util.Maps;
+import com.google.common.collect.ImmutableMap;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Test;
 
@@ -60,9 +60,9 @@ public class JmxInfoTest
     runtime.put("InputArguments",
         Arrays.asList("-Ddw.some.passWord=pass1", "-Ddw.some.passPhrase=pass2", "-Ddw.some.other=other"));
     runtime.put("SystemProperties", new HashSet<>(Arrays.asList(
-        Maps.of("key", "dw.some.passWord", "value", "pass1"),
-        Maps.of("key", "dw.some.passPhrase", "value", "pass2"),
-        Maps.of("key", "dw.some.other", "value", "other")
+        new HashMap<>(ImmutableMap.of("key", "dw.some.passWord", "value", "pass1")),
+        new HashMap<>(ImmutableMap.of("key", "dw.some.passPhrase", "value", "pass2")),
+        new HashMap<>(ImmutableMap.of("key", "dw.some.other", "value", "other"))
     )));
     Map<String, SortedMap<String, Object>> entries = new HashMap<>();
     entries.put("java.lang:type=Runtime", runtime);

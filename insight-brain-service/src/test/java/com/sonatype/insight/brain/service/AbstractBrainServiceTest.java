@@ -83,9 +83,9 @@ import org.sonatype.licensing.product.util.LicenseFingerprinter;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
-import io.dropwizard.util.Sets;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -538,7 +538,7 @@ public abstract class AbstractBrainServiceTest
     ApiConfigurationService service = getCLMServer().getInstance(ApiConfigurationService.class);
     if (service != null) {
       Set<String> propertyNames =
-          Sets.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
+          ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
       service.deleteConfigurationNoAuthz(propertyNames);
       service.applyConfigurationToClients(propertyNames);
     }

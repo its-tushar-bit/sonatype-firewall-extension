@@ -41,6 +41,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.AbstractMatcher;
@@ -48,7 +49,6 @@ import com.google.inject.spi.InjectionListener;
 import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
 import io.dropwizard.lifecycle.Managed;
-import io.dropwizard.util.Sets;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
@@ -140,7 +140,7 @@ public class AbstractComponentTest
   public void resetBaseUrl() {
     ApiConfigurationService service = lookup(ApiConfigurationService.class);
     Set<String> propertyNames =
-        Sets.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
+        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
     service.deleteConfigurationNoAuthz(propertyNames);
     service.applyConfigurationToClients(propertyNames);
   }

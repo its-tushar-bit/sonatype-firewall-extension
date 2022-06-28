@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
-import io.dropwizard.util.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -76,7 +76,7 @@ public class ApiConfigurationServiceTest
   @Test
   public void testGetConfiguration_InvalidPropertyName() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.getConfiguration(Sets.of("invalidPropertyName"))).withMessageContaining(
+        () -> service.getConfiguration(ImmutableSet.of("invalidPropertyName"))).withMessageContaining(
         String.format(ApiConfigurationService.INVALID_PROPERTY_NAME_ERROR_MSG, "invalidPropertyName"));
   }
 
@@ -86,7 +86,7 @@ public class ApiConfigurationServiceTest
     dao.set(SystemConfigurationProperty.FORCE_BASE_URL, String.valueOf(Boolean.TRUE));
 
     Map<String, Object> configuration = service.getConfiguration(
-        Sets.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
+        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
 
     assertThat(configuration).hasSize(2).containsEntry(SystemConfigurationProperty.BASE_URL, "http://baseUrl/")
         .containsEntry(SystemConfigurationProperty.FORCE_BASE_URL, true);
@@ -177,14 +177,14 @@ public class ApiConfigurationServiceTest
   @Test
   public void testDeleteConfiguration_InvalidPropertyName() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.deleteConfiguration(Sets.of("invalidPropertyName"))).withMessageContaining(
+        () -> service.deleteConfiguration(ImmutableSet.of("invalidPropertyName"))).withMessageContaining(
         String.format(ApiConfigurationService.INVALID_PROPERTY_NAME_ERROR_MSG, "invalidPropertyName"));
   }
 
   @Test
   public void testDeleteConfiguration_NullValues() {
     service.deleteConfiguration(
-        Sets.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
+        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
 
     assertThat(dao.getByName(SystemConfigurationProperty.BASE_URL)).isNull();
     assertThat(dao.getByName(SystemConfigurationProperty.FORCE_BASE_URL)).isNull();
@@ -196,7 +196,7 @@ public class ApiConfigurationServiceTest
     dao.set(SystemConfigurationProperty.FORCE_BASE_URL, String.valueOf(Boolean.TRUE));
 
     service.deleteConfiguration(
-        Sets.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
+        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
 
     assertThat(dao.getByName(SystemConfigurationProperty.BASE_URL)).isNull();
     assertThat(dao.getByName(SystemConfigurationProperty.FORCE_BASE_URL)).isNull();
@@ -206,7 +206,7 @@ public class ApiConfigurationServiceTest
   public void testUpdateAllClusterNodesFromConfiguration() {
     ApiConfigurationService spy = spy(service);
     Set<String> propertyNames =
-        Sets.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
+        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
 
     spy.updateAllClusterNodesFromConfiguration(propertyNames);
 
@@ -221,7 +221,7 @@ public class ApiConfigurationServiceTest
   @Test
   public void testApplyConfigurationToClients() {
     Set<String> propertyNames =
-        Sets.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
+        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
 
     service.applyConfigurationToClients(propertyNames);
 
@@ -231,7 +231,7 @@ public class ApiConfigurationServiceTest
   @Test
   public void testExecute() throws Exception {
     Set<String> propertyNames =
-        Sets.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
+        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
     Map<String, String> parameters = new HashMap<>();
     parameters.put(ApiConfigurationService.TASK_PARAM_PROPERTIES,
         StringUtils.join(propertyNames, ApiConfigurationService.TASK_PARAM_PROPERTIES_DELIMITER));

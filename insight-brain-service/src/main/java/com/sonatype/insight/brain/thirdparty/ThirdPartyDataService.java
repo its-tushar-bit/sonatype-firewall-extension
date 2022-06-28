@@ -19,13 +19,9 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.hds.HdsClientAnalytics;
-import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
-import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -34,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
@@ -42,14 +39,17 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.InvalidPackageURLException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.dropwizard.util.Sets;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -318,8 +318,8 @@ public class ThirdPartyDataService
       final Map<String, Integer> providerCount,
       final ThirdPartyReportComponentDTO iacComponent)
   {
-    final Set<String> knownInputTypes = Sets.of("tf", "tf_plan", "cfn", "k8s", "arm");
-    final Set<String> knownProviders = Sets.of("aws", "kubernetes", "azureerm");
+    final Set<String> knownInputTypes = ImmutableSet.of("tf", "tf_plan", "cfn", "k8s", "arm");
+    final Set<String> knownProviders = ImmutableSet.of("aws", "kubernetes", "azureerm");
 
     if (iacComponent.securityRows == null || iacComponent.securityRows.isEmpty()) {
       return;

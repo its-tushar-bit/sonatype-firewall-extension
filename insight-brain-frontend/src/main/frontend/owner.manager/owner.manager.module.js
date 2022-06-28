@@ -36,7 +36,6 @@ import OwnerDetailTreeViewController from './navigation/owner.detail.tree.view.c
 import OwnerDetailTreeViewDirective from './navigation/owner.detail.tree.view.directive';
 import ownerTreeView from './navigation/owner.tree.view.directive';
 import CoordinatesInput from './policy/coordinates.input.directive';
-import MonitoredStageEditorController from './policy/monitored.stage.editor.controller';
 import NotificationWebhookService from './policy/notification.webhook.service';
 import PolicyEditorActionsController from './policy/policy.editor.actions.controller';
 import PolicyEditorConstraintsController from './policy/policy.editor.constraints.controller';
@@ -78,13 +77,13 @@ import repoSummaryTemplate from './repositories/repositories.summary.view.html';
 import accessEditorTemplate from './access/access.editor.view.html';
 import summaryViewTemplate from './summary/owner.summary.view.html';
 import policyEditorTemplate from './policy/policy.editor.view.html';
-import continuousMonitoringEditorTemplate from './policy/monitored.stage.editor.view.html';
 import proprietaryEditorTemplate from './policy/proprietary.config.editor.view.html';
 import ltgEditorTemplate from './license.threat.group/license.threat.group.editor.view.html';
 import categoryEditorTemplate from './category/category.editor.view.html';
 import appCategoryEditorTemplate from './category/application.category.editor.view.html';
 import SourceControlService from './source.control/source.control.service';
 import innerSourceRepositoryModule from './innersource.repository/module';
+import ContinuousMonitoring from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/ContinuousMonitoring';
 import artifactoryRepositoryModule from './artifactory.repository/module';
 import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/ComponentLabels/CreateComponentLabel';
 import OwnerSummaryTilesContainerController from './summary/owner.summary.tiles.container.controller';
@@ -129,7 +128,6 @@ export default angular
   .service('SameOwnerStateNavigationService', SameOwnerStateNavigationService)
   .service('role.mapping.service', RoleMappingService)
   .directive('coordinatesInput', CoordinatesInput)
-  .controller('monitored.stage.editor.controller', MonitoredStageEditorController)
   .controller('policy.editor.actions.controller', PolicyEditorActionsController)
   .controller('policy.editor.constraints.controller', PolicyEditorConstraintsController)
   .controller('PolicyEditorController', PolicyEditorController)
@@ -165,6 +163,7 @@ export default angular
   .directive('numberInputWithStringValue', NumberInputWithStringValue)
   .directive('sameOwnerEditSref', SameOwnerEditSref)
   .directive('sameOwnerViewSref', SameOwnerViewSref)
+  .component('continuousMonitoring', iqReact2Angular(ContinuousMonitoring, [], ['$ngRedux']))
   .component('createComponentLabel', iqReact2Angular(CreateComponentLabel, [], ['$ngRedux', '$state']))
   .config([
     '$stateProvider',
@@ -361,12 +360,11 @@ export default angular
             url: '/monitoring',
             data: {
               title: ownerType.name + ' Continuous Monitoring',
+              isDirty: ['orgsAndPolicies', 'policyMonitoring', 'isDirty'],
             },
             views: {
               '@management.edit': {
-                controller: 'monitored.stage.editor.controller',
-                controllerAs: 'vm',
-                template: continuousMonitoringEditorTemplate,
+                component: 'continuousMonitoring',
               },
             },
           })

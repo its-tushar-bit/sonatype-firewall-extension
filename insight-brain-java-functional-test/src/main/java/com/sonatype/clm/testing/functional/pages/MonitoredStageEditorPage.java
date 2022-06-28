@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import com.sonatype.clm.testing.functional.elements.IqRadio;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -36,26 +35,26 @@ public class MonitoredStageEditorPage
   }
 
   public static Condition unsupportedLicenseText() {
-    return text("Policy monitoring is not supported by your license");
+    return text("Continuous monitoring is not supported by your license.");
   }
 
   public static SelenideElement title() {
-    return $(ROOT + " h2");
+    return $("h1");
   }
 
-  public static IqRadio selectedStage() {
-    return new IqRadio($(ROOT + " iq-radio input:checked").parent().parent());
+  public static SelenideElement selectedStage() {
+    return $(".nx-radio input:checked").parent();
   }
 
-  public static IqRadio getStageByName(final String stageName) {
-    return new IqRadio($$(ROOT + " iq-radio").findBy(text(stageName)));
+  public static SelenideElement getStageByName(final String stageName) {
+    return $$( ".nx-radio__content").findBy(text(stageName)).parent();
   }
 
   public static SelenideElement updateButton() {
-    return $(ROOT + " button[type^=submit]");
+    return $(".nx-form__submit-btn");
   }
 
   public static SelenideElement unsupportedLicenseWarning() {
-    return $(ROOT + " .iq-alert");
+    return $(".nx-alert.nx-alert--error");
   }
 }

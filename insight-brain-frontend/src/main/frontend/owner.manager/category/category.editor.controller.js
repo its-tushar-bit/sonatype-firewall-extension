@@ -83,7 +83,9 @@ export default function CategoryEditorController($scope, $rootScope, Modal, Dele
       vm.categoryEditorMask.wrap(
         vm.saveApplicationCategory().then(() => {
           $rootScope.$broadcast('resource.data.modified');
-          vm.categoryEditor.$setPristine();
+          if (vm.categoryEditor) {
+            vm.categoryEditor.$setPristine();
+          }
         })
       );
     },

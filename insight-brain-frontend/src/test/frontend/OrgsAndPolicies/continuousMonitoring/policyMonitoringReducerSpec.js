@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
+import reducer from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSlice';
 
 const applicablePolicyMonitoring = {
   policyMonitoringByOwner: [
@@ -89,102 +89,128 @@ describe('policyMonitoring reducer', () => {
   });
 
   describe('policyMonitoring/savePolicyMonitoring/pending', () => {
-    it('resets loading, submitError properties', () => {
+    it('resets submitMaskState, submitError properties', () => {
       const state = Object.freeze({
-        loading: false,
+        submitMaskState: null,
         submitError: 'error',
       });
 
-      const { loading, submitError } = reducer(state, {
+      const { submitMaskState, submitError } = reducer(state, {
         type: 'policyMonitoring/savePolicyMonitoring/pending',
       });
 
-      expect(loading).toBeTrue();
+      expect(submitMaskState).toBeFalse();
       expect(submitError).toBeNull();
     });
   });
 
   describe('policyMonitoring/savePolicyMonitoring/fulfilled', () => {
-    it('resets loading, submitError properties', () => {
+    it('resets submitMaskState, submitError properties', () => {
       const state = Object.freeze({
-        loading: false,
+        submitMaskState: null,
         submitError: 'error',
       });
 
-      const { loading, submitError, originalStage } = reducer(state, {
+      const { submitMaskState, submitError, originalStage } = reducer(state, {
         type: 'policyMonitoring/savePolicyMonitoring/fulfilled',
         payload: { policyMonitoring: 'policy monitoring' },
       });
 
-      expect(loading).toBeFalse();
+      expect(submitMaskState).toBeTrue();
       expect(submitError).toBeNull();
       expect(originalStage).toEqual({ policyMonitoring: 'policy monitoring' });
     });
   });
 
   describe('policyMonitoring/savePolicyMonitoring/rejected', () => {
-    it('sets loading, submitError properties', () => {
+    it('sets submitMaskState, submitError properties', () => {
       const state = Object.freeze({
-        loading: true,
+        submitMaskState: null,
         submitError: null,
       });
 
-      const { loading, submitError } = reducer(state, {
+      const { submitMaskState, submitError } = reducer(state, {
         type: 'policyMonitoring/savePolicyMonitoring/rejected',
         payload: 'error',
       });
 
-      expect(loading).toBeFalse();
+      expect(submitMaskState).toBeNull();
       expect(submitError).toBe('error');
     });
   });
 
   describe('policyMonitoring/removePolicyMonitoring/pending', () => {
-    it('resets loading, submitError properties', () => {
+    it('resets submitMaskState, submitError properties', () => {
       const state = Object.freeze({
-        loading: false,
+        submitMaskState: null,
         submitError: 'error',
       });
 
-      const { loading, submitError } = reducer(state, {
+      const { submitMaskState, submitError } = reducer(state, {
         type: 'policyMonitoring/removePolicyMonitoring/pending',
       });
 
-      expect(loading).toBeTrue();
+      expect(submitMaskState).toBeFalse();
       expect(submitError).toBeNull();
     });
   });
 
   describe('policyMonitoring/removePolicyMonitoring/fulfilled', () => {
-    it('resets loading, submitError properties', () => {
+    it('resets submitMaskState, submitError properties', () => {
       const state = Object.freeze({
-        loading: false,
+        submitMaskState: null,
         submitError: 'error',
       });
 
-      const { loading, submitError } = reducer(state, {
+      const { submitMaskState, submitError } = reducer(state, {
         type: 'policyMonitoring/removePolicyMonitoring/fulfilled',
       });
 
-      expect(loading).toBeFalse();
+      expect(submitMaskState).toBeTrue();
       expect(submitError).toBeNull();
     });
   });
 
   describe('policyMonitoring/removePolicyMonitoring/rejected', () => {
-    it('sets loading, submitError properties', () => {
+    it('sets submitMaskState, submitError properties', () => {
       const state = Object.freeze({
-        loading: true,
+        submitMaskState: null,
         submitError: null,
       });
 
-      const { loading, submitError } = reducer(state, {
+      const { submitMaskState, submitError } = reducer(state, {
         type: 'policyMonitoring/removePolicyMonitoring/rejected',
         payload: 'error',
       });
 
-      expect(loading).toBeFalse();
+      expect(submitMaskState).toBeNull();
       expect(submitError).toBe('error');
+    });
+  });
+
+  describe('policyMonitoring/setMonitoredStage', () => {
+    it('sets monitored stage and isDirty property', () => {
+      const state = Object.freeze({
+        monitoredStage: undefined,
+        originalStage: {
+          stageName: 'Release',
+          stageTypeId: 'release',
+        },
+        isDirty: false,
+      });
+      const { isDirty, monitoredStage } = reducer(state, {
+        type: 'policyMonitoring/setMonitoredStage',
+        payload: {
+          stageName: 'Stage Release',
+          stageTypeId: 'stage-release',
+        },
+      });
+
+      expect(isDirty).toBeTrue();
+      expect(monitoredStage).toEqual({
+        stageName: 'Stage Release',
+        stageTypeId: 'stage-release',
+      });
     });
   });
 });

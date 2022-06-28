@@ -89,10 +89,12 @@ public abstract class AbstractPolicyMonitoringEditorTest
   
   public void assertNotLicensed(boolean notificationsReadOnly) {
     refresh();
+    Condition notLicensedTextOwnerSummary = text("Policy monitoring is not supported by your license");
     Condition notLicensedText = MonitoredStageEditorPage.unsupportedLicenseText();
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     policyTile.shouldBe(visible);
-    OwnerSummaryPage.monitoredStage().shouldBe(visible).shouldHave(notLicensedText).shouldNotHave(CLICKABLE);
+    OwnerSummaryPage.monitoredStage()
+            .shouldBe(visible).shouldHave(notLicensedTextOwnerSummary).shouldNotHave(CLICKABLE);
 
     // if the user gets there manually, show a warning
     refreshOrOpen(MonitoredStageEditorPage.url(currentOwner));

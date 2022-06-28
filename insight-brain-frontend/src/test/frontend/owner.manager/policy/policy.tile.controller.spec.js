@@ -10,7 +10,8 @@ import { getProprietaryConfigUrl } from 'MainRoot/util/CLMLocation';
 import { mapStateToThis } from 'MainRoot/owner.manager/policy/policy.tile.controller';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { actions as proprietaryConfigActions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
-import { actions as policyMonitoringActions } from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
+import { actions as policyMonitoringActions } from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSlice';
+
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
 describe('policy.tile.controller', function () {

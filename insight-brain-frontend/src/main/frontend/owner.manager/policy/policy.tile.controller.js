@@ -5,7 +5,7 @@
  */
 import { prop } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
-import { actions } from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSlice';
 import { actions as proprietaryConfigActions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import {
@@ -14,7 +14,7 @@ import {
   selectIsEnforcementSupported,
   selectIsFirewallSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectMonitoredStageFromActionStages } from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
+import { selectMonitoredStageFromActionStages } from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSelectors';
 import { selectGrandfatheringStatusMessage } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 import {
   selectSelectedOwner,

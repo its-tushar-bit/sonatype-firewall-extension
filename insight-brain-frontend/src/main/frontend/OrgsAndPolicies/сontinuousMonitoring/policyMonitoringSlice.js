@@ -5,12 +5,16 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { pick, prop } from 'ramda';
+import { curryN, isNil, pick, prop } from 'ramda';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getPolicyMonitoringUrl, getApplicablePolicyMonitoringUrl } from 'MainRoot/util/CLMLocation';
-import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
+import { selectOwnerProperties } from '../orgsAndPoliciesSelectors';
 import { selectPolicyMonitoringMonitoredStage } from './policyMonitoringSelectors';
+
+import { propSet } from 'MainRoot/util/jsUtil';
+import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 
 const REDUCER_NAME = 'policyMonitoring';
 
@@ -24,39 +28,52 @@ export const initialState = {
   monitoredStage: null,
   originalStage: null,
   grandfatheringStatusMessage: null,
+  isDirty: false,
+  submitMaskState: null,
 };
 
 const loadApplicablePolicyMonitoring = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicablePolicyMonitoring`,
-  (_, { getState, rejectWithValue }) => {
+  (_, { getState, rejectWithValue, dispatch }) => {
     const { ownerType, ownerId } = selectOwnerProperties(getState());
+    dispatch(stagesActions.loadCliStages());
     return axios.get(getApplicablePolicyMonitoringUrl(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
   }
 );
 
 const savePolicyMonitoring = createAsyncThunk(
   `${REDUCER_NAME}/savePolicyMonitoring`,
-  (_, { getState, rejectWithValue }) => {
+  (_, { getState, rejectWithValue, dispatch }) => {
     const monitoredStage = selectPolicyMonitoringMonitoredStage(getState());
     const { ownerType, ownerId } = selectOwnerProperties(getState());
     return axios
       .put(getPolicyMonitoringUrl(ownerType, ownerId), pick(['stageTypeId'], monitoredStage))
-      .then(() => monitoredStage)
+      .then(() => {
+        dispatch(loadApplicablePolicyMonitoring());
+        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone);
+        return monitoredStage;
+      })
       .catch(rejectWithValue);
   }
 );
 
 const removePolicyMonitoring = createAsyncThunk(
   `${REDUCER_NAME}/removePolicyMonitoring`,
-  (_, { getState, rejectWithValue }) => {
+  (_, { getState, rejectWithValue, dispatch }) => {
     const { ownerType, ownerId } = selectOwnerProperties(getState());
-    return axios.delete(getPolicyMonitoringUrl(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
+    return axios
+      .delete(getPolicyMonitoringUrl(ownerType, ownerId))
+      .then(() => {
+        dispatch(loadApplicablePolicyMonitoring());
+        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone);
+      })
+      .catch(rejectWithValue);
   }
 );
 
-const setMonitoredStage = (state, { payload }) => {
-  state.monitoredStage = payload;
-};
+const setMonitoredStage = curryN(2, function setMonitoredStage(state, { payload }) {
+  return computeIsDirty(propSet('monitoredStage', payload, state));
+});
 
 const loadApplicablePolicyMonitoringRequested = (state) => {
   state.loading = true;
@@ -65,10 +82,14 @@ const loadApplicablePolicyMonitoringRequested = (state) => {
 
 const loadApplicablePolicyMonitoringFulfilled = (state, { payload }) => {
   const { policyMonitoringByOwner } = payload;
+  const { isDirty } = state;
 
   state.loading = false;
   state.loadError = null;
   state.policyMonitoringByOwner = policyMonitoringByOwner;
+  if (isDirty) {
+    state.isDirty = !isDirty;
+  }
   state.monitoredStage = null;
   state.originalStage = null;
 };
@@ -79,43 +100,52 @@ const loadApplicablePolicyMonitoringFailed = (state, { payload }) => {
 };
 
 const savePolicyMonitoringRequested = (state) => {
-  state.loading = true;
   state.submitError = null;
+  state.submitMaskState = false;
 };
 
 const savePolicyMonitoringFulfilled = (state, { payload }) => {
-  state.loading = false;
   state.submitError = null;
   state.originalStage = payload;
+  state.isDirty = false;
+  state.submitMaskState = true;
+  state.loading = false;
 };
 
 const savePolicyMonitoringFailed = (state, { payload }) => {
-  state.loading = false;
   state.submitError = Messages.getHttpErrorMessage(payload);
+  state.submitMaskState = null;
 };
 
 const removePolicyMonitoringRequested = (state) => {
-  state.loading = true;
   state.submitError = null;
+  state.submitMaskState = false;
 };
 
 const removePolicyMonitoringFulfilled = (state) => {
   const { actionStages = [] } = state;
-
-  state.loading = false;
   state.submitError = null;
-  state.originalStage = actionStages.find((stage) => !stage.stageTypeId);
+  state.monitoredStage = { stageName: 'Do not monitor' };
+  if (actionStages) {
+    state.originalStage = actionStages.find((stage) => !stage.stageTypeId);
+  }
+  state.isDirty = false;
+  state.submitMaskState = true;
+  state.loading = false;
 };
 
 const removePolicyMonitoringFailed = (state, { payload }) => {
-  state.loading = false;
   state.submitError = Messages.getHttpErrorMessage(payload);
+  state.submitMaskState = null;
 };
 
 const policyMonitoringSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
-  reducers: { setMonitoredStage },
+  reducers: {
+    setMonitoredStage,
+    saveMaskTimerDone: propSet('submitMaskState', null),
+  },
   extraReducers: {
     [loadApplicablePolicyMonitoring.pending]: loadApplicablePolicyMonitoringRequested,
     [loadApplicablePolicyMonitoring.fulfilled]: loadApplicablePolicyMonitoringFulfilled,
@@ -130,6 +160,13 @@ const policyMonitoringSlice = createSlice({
     [removePolicyMonitoring.rejected]: removePolicyMonitoringFailed,
   },
 });
+
+const computeIsDirty = (state) => {
+  const { monitoredStage, originalStage, policyMonitoringByOwner } = state;
+  const serverStageTypeId = originalStage?.stageTypeId || policyMonitoringByOwner[0].policyMonitoring?.stageTypeId;
+  const isDirty = isNil(monitoredStage) ? true : monitoredStage?.stageTypeId !== serverStageTypeId;
+  return propSet('isDirty', isDirty, state);
+};
 
 export default policyMonitoringSlice.reducer;
 export const actions = {

@@ -110,13 +110,13 @@ public class RepositoryConfigurationCollectorTest
     SonatypeUserAgentUtil.UserAgent userAgent = new UserAgent();
     userAgent.product = "Firewall_For_Jfrog_Artifactory";
     userAgent.version = "2.3-SNAPSHOT";
+    userAgent.hostProductName = "Jfrog Artifactory";
+    userAgent.hostProductVersion = "7.37.15";
     userAgent.productEdition = "";
     userAgent.environment = "Java";
     userAgent.environmentVersion = "11.0.13";
     userAgent.os = "Linux";
     userAgent.osVersion = "5.10.109-104.500.amzn2.x86_64; amd64";
-    userAgent.hostProductName = "Jfrog Artifactory";
-    userAgent.hostProductVersion = "7.37.15";
 
     RepositoryTelemetry repositoryTelemetry = new RepositoryTelemetry(
         repositoryManager.getId(),
@@ -124,15 +124,15 @@ public class RepositoryConfigurationCollectorTest
         repository.getFormat(),
         repository.isEnabled(),
         repository.isQuarantineEnabled(),
-        userAgent.product,
+        userAgent.hostProductName,
         userAgent.productEdition,
-        userAgent.version,
+        userAgent.hostProductVersion,
         userAgent.environment,
         userAgent.environmentVersion,
         userAgent.os,
         userAgent.osVersion,
-        userAgent.hostProductName,
-        userAgent.hostProductVersion
+        userAgent.product,
+        userAgent.version
     );
 
     TelemetryData telemetryData = telemetryCollector.collectData();

@@ -79,15 +79,15 @@ public class RepositoryConfigurationCollector
         repository.getFormat(),
         repository.isEnabled(),
         repository.isQuarantineEnabled(),
-        userAgent != null ? userAgent.product : null,
+        userAgent != null ? userAgent.hostProductName : null,
         userAgent != null ? userAgent.productEdition : null,
-        userAgent != null ? userAgent.version : null,
+        userAgent != null ? userAgent.hostProductVersion : null,
         userAgent != null ? userAgent.environment : null,
         userAgent != null ? userAgent.environmentVersion : null,
         userAgent != null ? userAgent.os : null,
         userAgent != null ? userAgent.osVersion : null,
-        userAgent != null ? userAgent.hostProductName : null,
-        userAgent != null ? userAgent.hostProductVersion : null
+        userAgent != null ? userAgent.product : null,
+        userAgent != null ? userAgent.version : null
     );
   }
 

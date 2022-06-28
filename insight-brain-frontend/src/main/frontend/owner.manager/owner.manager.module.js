@@ -87,6 +87,7 @@ import ContinuousMonitoring from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring
 import artifactoryRepositoryModule from './artifactory.repository/module';
 import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/ComponentLabels/CreateComponentLabel';
 import OwnerSummaryTilesContainerController from './summary/owner.summary.tiles.container.controller';
+import ProprietaryComponentConfigurationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ProprietaryComponentConfigurationTile';
 
 export default angular
   .module('owner.manager.module', [
@@ -163,6 +164,10 @@ export default angular
   .directive('numberInputWithStringValue', NumberInputWithStringValue)
   .directive('sameOwnerEditSref', SameOwnerEditSref)
   .directive('sameOwnerViewSref', SameOwnerViewSref)
+  .component(
+    'proprietaryComponentConfigurationTile',
+    iqReact2Angular(ProprietaryComponentConfigurationTile, [], ['$ngRedux', '$state'])
+  )
   .component('continuousMonitoring', iqReact2Angular(ContinuousMonitoring, [], ['$ngRedux']))
   .component('createComponentLabel', iqReact2Angular(CreateComponentLabel, [], ['$ngRedux', '$state']))
   .config([

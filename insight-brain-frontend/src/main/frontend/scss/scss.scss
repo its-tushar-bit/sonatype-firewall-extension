@@ -121,6 +121,7 @@
 @use '../configuration/administrators/administrators';
 @use '../OrgsAndPolicies/ComponentLabels/createComponentLabel';
 @use '../firewall/firewallComponentDetailsPage/firewallComponentDetailsPage';
+@use '../OrgsAndPolicies/ownerSummary/ownerSummary';
 @use '../OrgsAndPolicies/сontinuousMonitoring/continuousMonitoring';
 @use '../firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';
 

@@ -87,7 +87,7 @@ describe('policy.tile.controller', function () {
   }));
 
   describe('mapStateToThis', () => {
-    it('sets ownerProperties, ownerName, isGrandfatheringSupported, policyMonitoringByOwner, grandfatheringStatusMessage, localProprietaryCount, inheritedProprietaryCount, monitoredStage, loadError, policiesByOwner', () => {
+    it('sets ownerProperties, ownerName, isGrandfatheringSupported, policyMonitoringByOwner, grandfatheringStatusMessage, monitoredStage, loadError, policiesByOwner', () => {
       const state = {
         router: { currentParams: { organizationId: 'org id', applicationPublicId: 'app id' } },
         productFeatures: {
@@ -136,8 +136,6 @@ describe('policy.tile.controller', function () {
             isMonitoringSupported: false,
             isGrandfatheringSupported: false,
             policyMonitoringByOwner: [{ ownerName: 'name', policyMonitoring: { stageTypeId: 1 } }],
-            inheritedProprietaryCount: 1,
-            localProprietaryCount: 3,
             grandfatheringStatusMessage: 'message',
             monitoredStage: { stageName: 'Develop', stageTypeId: 1 },
             originalStage: { stageName: 'Build', stageTypeId: 2 },
@@ -153,9 +151,6 @@ describe('policy.tile.controller', function () {
 
       expect(output.owner).toEqual({ name: 'name' });
       expect(output.ownerName).toBe('name');
-      expect(output.localProprietaryCount).toBe(3);
-      expect(output.inheritedProprietaryCount).toBe(1);
-      expect(output.inheritedProprietaryCount).toBe(1);
       expect(output.proprietaryConfigIsLoading).toBeFalse();
       expect(output.monitoredStage).toEqual({ stageName: 'Develop', stageTypeId: 1 });
       expect(output.isEnforcementSupported).toBeTrue();

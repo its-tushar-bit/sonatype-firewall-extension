@@ -21,11 +21,7 @@ import {
   selectPoliciesByOwner,
   selectSelectedOwnerName,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import {
-  selectIsLoading as selectProprietaryConfigIsLoading,
-  selectProprietaryConfigInheritedMatchersCount,
-  selectProprietaryConfigLocalMatchersCount,
-} from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
+import { selectIsLoading as selectProprietaryConfigIsLoading } from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { getActionsOverride } from 'MainRoot/OrgsAndPolicies/utility/util';
 
@@ -42,9 +38,6 @@ export default function PolicyTileController(
   vm.loadError = undefined;
   vm.actionStages = undefined;
   vm.monitoredStage = undefined;
-  vm.localProprietaryCount = 0;
-  vm.inheritedProprietaryCount = 0;
-  vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.isEnforcementSupportedForStage = isEnforcementSupportedForStage;
   vm.editPolicy = editPolicy;
   vm.doLoad = doLoad;
@@ -135,8 +128,6 @@ export default function PolicyTileController(
 export const mapStateToThis = (state) => ({
   owner: selectSelectedOwner(state),
   ownerName: selectSelectedOwnerName(state),
-  localProprietaryCount: selectProprietaryConfigLocalMatchersCount(state),
-  inheritedProprietaryCount: selectProprietaryConfigInheritedMatchersCount(state),
   proprietaryConfigIsLoading: selectProprietaryConfigIsLoading(state),
   monitoredStage: selectMonitoredStageFromActionStages(state),
   isEnforcementSupported: selectIsEnforcementSupported(state),

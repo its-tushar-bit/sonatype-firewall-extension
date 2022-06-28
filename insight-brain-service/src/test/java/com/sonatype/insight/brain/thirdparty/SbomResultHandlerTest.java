@@ -789,6 +789,53 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testProcessDependencyGraph_MavenWithoutExtension() {
+    Bom sourceBom = new Bom();
+    Bom targetBom = new Bom();
+    targetBom.addComponent(new Component());
+    Metadata metadata = new Metadata();
+    Component rootComponent = new Component();
+    rootComponent.setName("root");
+    rootComponent.setBomRef("root");
+    rootComponent.setVersion("1.0");
+    rootComponent.setPurl("pkg:maven/test/root@1.0");
+    metadata.setComponent(rootComponent);
+    targetBom.setMetadata(metadata);
+    Dependency root = createDependencyList("root", "pkg:maven/test/direct1@1.0", "pkg:maven/test/direct2@2.0");
+    Dependency d1 = createDependencyList("pkg:maven/test/direct1@1.0", "pkg:maven/test/d1t1@1.1");
+    Dependency d2 = createDependencyList("pkg:maven/test/direct2@2.0", "pkg:maven/test/d2t1@1.1");
+    Dependency d1t1 = d1.getDependencies().get(0);
+    Dependency d2t1 = d2.getDependencies().get(0);
+    sourceBom.setDependencies(Arrays.asList(root, d1, d2, d1t1, d2t1));
+
+    List<ProjectScanItem> result = new ArrayList<>();
+
+    sbomResultHandler.processDependencyGraph(sourceBom, targetBom, result,
+        new ThirdPartyFile("test-bom.xml", new Date()));
+
+    assertThat(result).hasSize(1).allSatisfy(projectItem -> {
+      assertThat(projectItem.getKind()).isEqualTo("sbom");
+      assertThat(projectItem.getId()).isEqualTo("pkg:maven/test/root@1.0?type=jar");
+      assertThat(projectItem.getPath()).isEqualTo("test-bom.xml");
+      List<com.sonatype.insight.scan.model.Dependency> rootDependencies = projectItem.getDependencies();
+      assertThat(rootDependencies).hasSize(4)
+          .extracting(com.sonatype.insight.scan.model.Dependency::getId)
+          .containsExactlyInAnyOrder(
+              "pkg:maven/test/direct1@1.0?type=jar",
+              "pkg:maven/test/direct2@2.0?type=jar",
+              "pkg:maven/test/d1t1@1.1?type=jar",
+              "pkg:maven/test/d2t1@1.1?type=jar");
+      assertParentAndChildDependency(rootDependencies,
+          "pkg:maven/test/direct1@1.0?type=jar",
+          "pkg:maven/test/d1t1@1.1?type=jar");
+      assertParentAndChildDependency(rootDependencies,
+          "pkg:maven/test/direct2@2.0?type=jar",
+          "pkg:maven/test/d2t1@1.1?type=jar");
+    });
+    assertIdentityMetadata(targetBom, metadata);
+  }
+
+  @Test
   public void testProcessDependencyGraph_WithDuplicatedDeps() {
     Bom sourceBom = new Bom();
     Bom targetBom = new Bom();
@@ -837,7 +884,7 @@ public class SbomResultHandlerTest
     rootComponent.setName("NugetProject");
     rootComponent.setBomRef("NugetProject@0.0.0");
     rootComponent.setVersion("0.0.0");
-    rootComponent.setPurl("NugetProject@0.0.0");
+    rootComponent.setPurl("pkg:nuget/NugetProject@0.0.0");
     metadata.setComponent(rootComponent);
     targetBom.setMetadata(metadata);
     Dependency root = createDependencyList("NugetProject@0.0.0", "pkg:nuget/NUnit3TestAdapter@3.11.2");
@@ -855,7 +902,7 @@ public class SbomResultHandlerTest
 
     assertThat(result).hasSize(1).allSatisfy(projectItem -> {
       assertThat(projectItem.getKind()).isEqualTo("sbom");
-      assertThat(projectItem.getId()).isEqualTo("NugetProject@0.0.0");
+      assertThat(projectItem.getId()).isEqualTo("pkg:nuget/NugetProject@0.0.0");
       assertThat(projectItem.getPath()).isEqualTo("messy-bom.xml");
       List<com.sonatype.insight.scan.model.Dependency> rootDependencies = projectItem.getDependencies();
       assertThat(rootDependencies).hasSize(3)
@@ -1383,13 +1430,14 @@ public class SbomResultHandlerTest
         new ThirdPartyScanContent("sbom-invalid-purl-missing-coords.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 1);
-    assertDebugLogOutput("Component jackson-databind 2.9.9 is missing coordinates." +
-        " The following coordinates are missing: [type]");
+    assertFilteredSbomFile(filteredContent, 2);
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
-    assertThat(coordinates).hasSize(1);
+    assertThat(coordinates).hasSize(2)
+        .extracting(ThirdPartyFileCoordinate::getPackageUrl)
+        .containsExactlyInAnyOrder("pkg:pypi/django@1.2.3",
+            "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
   }
 
   private void assertExtensionVulnerabilities(Component component) {

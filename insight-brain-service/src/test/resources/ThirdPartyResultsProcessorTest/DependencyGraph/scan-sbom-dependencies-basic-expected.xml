@@ -60,13 +60,13 @@
   </item>
   <project id="pkg:maven/org.acme/acme-app@9.1.1?type=jar" kind="sbom" path="scan-basic-bom.xml">
     <dependencies>
-      <dep direct="true" id="pkg:maven/org.acme/web-framework@1.0.0">
-        <dep id="pkg:maven/org.acme/common-util@3.0.0"/>
+      <dep direct="true" id="pkg:maven/org.acme/persistence@3.1.0?type=jar">
+        <dep id="pkg:maven/org.acme/common-util@3.0.0?type=jar"/>
       </dep>
-      <dep id="pkg:maven/org.acme/common-util@3.0.0"/>
-      <dep direct="true" id="pkg:maven/org.acme/persistence@3.1.0">
-        <dep id="pkg:maven/org.acme/common-util@3.0.0"/>
+      <dep direct="true" id="pkg:maven/org.acme/web-framework@1.0.0?type=jar">
+        <dep id="pkg:maven/org.acme/common-util@3.0.0?type=jar"/>
       </dep>
+      <dep id="pkg:maven/org.acme/common-util@3.0.0?type=jar"/>
     </dependencies>
   </project>
   <summary>

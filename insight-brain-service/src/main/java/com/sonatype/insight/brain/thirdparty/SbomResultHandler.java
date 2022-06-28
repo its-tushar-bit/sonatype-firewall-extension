@@ -383,6 +383,12 @@ public class SbomResultHandler
       }
 
       Map<String, String> qualifiers = sourcePurl.getQualifiers();
+
+      if (sourcePurl.getFormat().equalsIgnoreCase(ComponentIdentifier.FORMAT_MAVEN) &&
+          StringUtils.isBlank(qualifiers.get(PackageUrlIdentifier.PURL_MAVEN_EXTENSION))) {
+        qualifiers.put(PackageUrlIdentifier.PURL_MAVEN_EXTENSION, "jar");
+      }
+
       for (Entry<String, String> entry : qualifiers.entrySet()) {
         packageURLBuilder.withQualifier(entry.getKey(), entry.getValue());
       }
@@ -749,15 +755,18 @@ public class SbomResultHandler
 
     // If the first dep ref matches the metadata component purl just return the latter
     if (firstDep.getRef().equalsIgnoreCase(metadataComponent.getPurl())) {
-      return metadataComponent.getPurl();
+      return resolvePackageUrl(metadataComponent.getPurl()).getPackageUrl();
     }
     // Otherwise, if the first dep ref matches the metadata component bom ref (it could be a purl or a UUID)
     if (firstDep.getRef().equalsIgnoreCase(metadataComponent.getBomRef())) {
       // Return the metadata component purl if it exists
       if (StringUtils.isNotBlank(metadataComponent.getPurl())) {
-        return metadataComponent.getPurl();
+        return resolvePackageUrl(metadataComponent.getPurl()).getPackageUrl();
       }
       // Otherwise, just return the first dep ref
+      if (isPurl(firstDep.getRef())) {
+        return resolvePackageUrl(firstDep.getRef()).getPackageUrl();
+      }
       return firstDep.getRef();
     }
     return null;
@@ -770,7 +779,7 @@ public class SbomResultHandler
   {
     String ref = dependency.getRef();
     if (isPurl(ref)) {
-      return ref;
+      return resolvePackageUrl(ref).getPackageUrl();
     }
 
     if (bomRefsToPurls.isEmpty()) {
@@ -785,7 +794,7 @@ public class SbomResultHandler
   {
     for (Component component : components) {
       if (StringUtils.isNoneBlank(component.getBomRef(), component.getPurl()) && !isPurl(component.getBomRef())) {
-        bomRefPurlMap.put(component.getBomRef(), component.getPurl());
+        bomRefPurlMap.put(component.getBomRef(), resolvePackageUrl(component.getPurl()).getPackageUrl());
 
         if (component.getComponents() != null) {
           populateComponentPurlsWithBomRef(component.getComponents(), bomRefPurlMap);

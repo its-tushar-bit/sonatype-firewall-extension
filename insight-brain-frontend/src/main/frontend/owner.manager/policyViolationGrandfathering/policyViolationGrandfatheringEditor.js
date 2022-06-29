@@ -10,10 +10,10 @@ import {
   selectGrandfatheringStatusMessage,
   selectLoading,
   selectLoadError,
+  selectPolicyViolationGrandfatheringConfig,
 } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 
 import { selectIsApplication, selectIsRootOrganization } from '../../reduxUiRouter/routerSelectors';
-import { selectPolicyViolationGrandfatheringConfig } from '../../OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 
 export default {
   template,

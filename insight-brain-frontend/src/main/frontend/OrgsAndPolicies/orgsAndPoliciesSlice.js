@@ -19,7 +19,7 @@ import ownerEditorSlice from './ownerEditorSlice';
 import sourceControlSlice from './sourceControlSlice';
 import ownerSummarySlice from './ownerSummarySlice';
 import ownerDetailTreeSlice from './ownerDetailTreeSlice';
-import policyViolationGrandfatheringSlice from './policyViolationGrandfatheringSlice';
+import policyViolationGrandfatheringSlice from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
 
 export default combineReducers({
   root: rootSlice,

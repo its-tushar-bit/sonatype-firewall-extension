@@ -10,12 +10,10 @@ import { actions as proprietaryConfigActions } from 'MainRoot/OrgsAndPolicies/pr
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import {
   selectIsMonitoringSupported,
-  selectIsGrandfatheringSupported,
   selectIsEnforcementSupported,
   selectIsFirewallSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectMonitoredStageFromActionStages } from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSelectors';
-import { selectGrandfatheringStatusMessage } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 import {
   selectSelectedOwner,
   selectPoliciesByOwner,
@@ -133,8 +131,6 @@ export const mapStateToThis = (state) => ({
   isEnforcementSupported: selectIsEnforcementSupported(state),
   isFirewallSupported: selectIsFirewallSupported(state),
   isMonitoringSupported: selectIsMonitoringSupported(state),
-  isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
-  grandfatheringStatusMessage: selectGrandfatheringStatusMessage(state),
   policiesByOwner: selectPoliciesByOwner(state),
 });
 

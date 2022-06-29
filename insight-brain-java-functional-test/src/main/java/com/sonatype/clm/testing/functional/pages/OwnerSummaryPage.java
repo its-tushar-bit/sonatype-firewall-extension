@@ -58,7 +58,7 @@ public class OwnerSummaryPage
   }
 
   public static SelenideElement violationGrandfathering() {
-    return $("#violation-grandfathering");
+    return $("#policy-violation-grandfathering");
   }
 
   public static SelenideElement monitoredStage() {

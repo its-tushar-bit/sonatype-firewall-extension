@@ -5,8 +5,10 @@
  */
 import { createSelector } from '@reduxjs/toolkit';
 import { compose, ifElse, isNil, pick, prop, propOr } from 'ramda';
-import { selectIsRootOrganization } from '../reduxUiRouter/routerSelectors';
+import { selectIsRootOrganization, selectRouterSlice } from '../reduxUiRouter/routerSelectors';
 import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
+import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
+
 export const selectPolicyViolationGrandfatheringSlice = createSelector(
   selectOrgsAndPoliciesSlice,
   prop('policyViolationGrandfathering')
@@ -68,4 +70,8 @@ export const selectGrandfatheringStatusMessage = createSelector(
     }
     return msg;
   }
+);
+
+export const selectGrandfatheringLinkParams = createSelector(selectRouterSlice, (router) =>
+  deriveEditRoute(router, 'violation-grandfathering-policy')
 );

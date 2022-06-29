@@ -156,7 +156,6 @@ describe('policy.tile.controller', function () {
       expect(output.isEnforcementSupported).toBeTrue();
       expect(output.isFirewallSupported).toBeTrue();
       expect(output.isMonitoringSupported).toBeTrue();
-      expect(output.isGrandfatheringSupported).toBeTrue();
       expect(output.policiesByOwner).toEqual([{ ownerName: 'name', policies: [] }]);
     });
   });

@@ -12,7 +12,6 @@ import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organi
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { actions as sourceControlActions } from 'MainRoot/OrgsAndPolicies/sourceControlSlice';
-import { actions as policyViolationGrandfatheringActions } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
 import {
   selectIsGrandfatheringSupported,
   selectIsInnerSourceRepositorySupported,
@@ -96,7 +95,6 @@ export default function OwnerSummaryController(
     loadApplicablePoliciesByOwner: rootActions.loadApplicablePoliciesByOwner,
     setLoading: ownerSummaryActions.setLoading,
     setLoadError: ownerSummaryActions.setLoadError,
-    getGrandfathering: policyViolationGrandfatheringActions.loadPolicyViolationGrandfathering,
   })(vm);
 
   vm.doLoad();
@@ -128,7 +126,6 @@ export default function OwnerSummaryController(
     const promises = [
       vm.isApp ? vm.loadApplications(true) : vm.loadOrganizations(true),
       vm.loadApplicablePoliciesByOwner(),
-      vm.getGrandfathering(),
     ];
 
     if (vm.isApp) {
@@ -148,7 +145,7 @@ export default function OwnerSummaryController(
         vm.setSelectedOwner(owner);
 
         if (vm.isApp) {
-          vm.applicationSummary = results[4].data;
+          vm.applicationSummary = results[3].data;
           vm.setSelectedOwnerContact(vm.applicationSummary.contact);
 
           getAppChangePermissions();

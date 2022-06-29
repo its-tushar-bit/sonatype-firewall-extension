@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
+import { prop } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 import { getGrandfatheringUrl } from 'MainRoot/util/CLMLocation';
-import { prop } from 'ramda';
 
 const REDUCER_NAME = 'policyViolationGrandfathering';
 

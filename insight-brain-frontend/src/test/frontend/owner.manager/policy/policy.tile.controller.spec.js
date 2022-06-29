@@ -3,13 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import PolicyResourceMockData from 'TestRoot/owner.manager/mock.data/policy.resource.mock.data';
-import { getProprietaryConfigUrl } from 'MainRoot/util/CLMLocation';
 import { mapStateToThis } from 'MainRoot/owner.manager/policy/policy.tile.controller';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
-import { actions as proprietaryConfigActions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 import { actions as policyMonitoringActions } from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSlice';
 
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
@@ -24,39 +21,7 @@ describe('policy.tile.controller', function () {
     })
   );
 
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-
-  var vm,
-    scope,
-    $rootScope,
-    $controller,
-    stageTypeStoreDefer,
-    EventNameConstant,
-    CLMContextLocations,
-    mockProprietaryConfigurationHierarchyStoreData = [
-      {
-        ownerId: '6b365e8a8000449aa924f194a7ed0d27',
-        ownerName: 'dfgdf',
-        ownerType: 'application',
-        proprietaryConfig: {
-          id: 'f977bcf69fcb464b84837f643d8f93b7',
-          ownerId: '6b365e8a8000449aa924f194a7ed0d27',
-          packages: ['com.sonatype', 'com.local'],
-          regexes: ['.*/test\\.zip'],
-        },
-      },
-      {
-        ownerId: 'ROOT_ORGANIZATION_ID',
-        ownerName: 'Root Organization',
-        ownerType: 'organization',
-        proprietaryConfig: {
-          id: null,
-          ownerId: 'ROOT_ORGANIZATION_ID',
-          packages: [],
-          regexes: ['.*/foo\\.zip'],
-        },
-      },
-    ];
+  var vm, scope, $rootScope, $controller, stageTypeStoreDefer, EventNameConstant, CLMContextLocations;
 
   beforeEach(inject(function (
     _$rootScope_,
@@ -74,16 +39,6 @@ describe('policy.tile.controller', function () {
     EventNameConstant = $injector.get('event.name.constant');
     stageTypeStoreDefer = $q.defer();
     spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
-
-    mockAxiosCalls({
-      get: {
-        [getProprietaryConfigUrl('application', 'ownerId')]: Promise.resolve({
-          data: {
-            proprietaryConfigByOwners: mockProprietaryConfigurationHierarchyStoreData,
-          },
-        }),
-      },
-    });
   }));
 
   describe('mapStateToThis', () => {
@@ -99,18 +54,6 @@ describe('policy.tile.controller', function () {
           },
         },
         orgsAndPolicies: {
-          proprietary: {
-            loading: false,
-            localMatchers: [
-              { type: 'REGEX', matcher: 'match' },
-              { type: 'REGEX', matcher: 'match' },
-              { type: 'REGEX', matcher: 'match' },
-            ],
-            proprietaryConfigs: [
-              { proprietaryConfig: { packages: [], regexes: ['regex'] } },
-              { proprietaryConfig: { packages: [], regexes: ['regex'] } },
-            ],
-          },
           stages: {
             cli: {
               loading: false,
@@ -151,7 +94,6 @@ describe('policy.tile.controller', function () {
 
       expect(output.owner).toEqual({ name: 'name' });
       expect(output.ownerName).toBe('name');
-      expect(output.proprietaryConfigIsLoading).toBeFalse();
       expect(output.monitoredStage).toEqual({ stageName: 'Develop', stageTypeId: 1 });
       expect(output.isEnforcementSupported).toBeTrue();
       expect(output.isFirewallSupported).toBeTrue();
@@ -205,7 +147,6 @@ describe('policy.tile.controller', function () {
           ],
         },
       });
-      spyOn(proprietaryConfigActions, 'loadProprietaryConfig').and.returnValue({ payload: null });
       spyOn(policyMonitoringActions, 'loadApplicablePolicyMonitoring').and.returnValue({ payload: null });
       setPoliciesByOwnerSpy = spyOn(rootActions, 'setPoliciesByOwner').and.callThrough();
     });

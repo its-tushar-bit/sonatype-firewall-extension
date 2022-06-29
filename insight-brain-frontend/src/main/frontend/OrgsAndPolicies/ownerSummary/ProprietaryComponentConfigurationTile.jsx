@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import { NxH2, NxTile, NxList } from '@sonatype/react-shared-components';
-import { useSelector } from 'react-redux';
+import React, { useEffect } from 'react';
+import { NxH2, NxTile, NxList, NxLoadWrapper } from '@sonatype/react-shared-components';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import {
@@ -15,8 +15,22 @@ import {
 import { selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectRouterSlice } from '../../reduxUiRouter/routerSelectors';
 import { deriveEditRoute } from '../utility/util';
+import { actions as proprietaryConfigActions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
+import { selectIsLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
 
 export default function ProprietaryComponentConfigurationTile() {
+  const dispatch = useDispatch();
+  const loadData = () => {
+    dispatch(proprietaryConfigActions.loadProprietaryConfig());
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const isLoading = useSelector(selectIsLoading);
+  const loadError = useSelector(selectLoadError);
+
   const router = useSelector(selectRouterSlice());
   const { to, params } = deriveEditRoute(router, 'proprietary-config-policy');
   const uiStateRouter = useRouterState();
@@ -25,27 +39,28 @@ export default function ProprietaryComponentConfigurationTile() {
   const isRootOrg = useSelector(selectIsRootOrganization);
   const inheritedProprietaryCount = useSelector(selectProprietaryConfigInheritedMatchersCount);
   const localProprietaryCount = useSelector(selectProprietaryConfigLocalMatchersCount);
-
   const inheritedProprietaryText = `, ${inheritedProprietaryCount} inherited`;
   const localProprietaryText = `${localProprietaryCount} local`;
 
   return (
     <NxTile id="owner-pill-component-configuration">
-      <NxTile.Header>
-        <NxTile.HeaderTitle>
-          <NxH2>Proprietary Component Configuration</NxH2>
-        </NxTile.HeaderTitle>
-      </NxTile.Header>
-      <NxTile.Content>
-        <NxList id="proprietary-component-matchers">
-          <NxList.LinkItem href={href}>
-            <NxList.Text>
-              {localProprietaryText}
-              {!isRootOrg && inheritedProprietaryText}
-            </NxList.Text>
-          </NxList.LinkItem>
-        </NxList>
-      </NxTile.Content>
+      <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={loadData}>
+        <NxTile.Header>
+          <NxTile.HeaderTitle>
+            <NxH2>Proprietary Component Configuration</NxH2>
+          </NxTile.HeaderTitle>
+        </NxTile.Header>
+        <NxTile.Content>
+          <NxList id="proprietary-component-matchers">
+            <NxList.LinkItem href={href}>
+              <NxList.Text>
+                {localProprietaryText}
+                {!isRootOrg && inheritedProprietaryText}
+              </NxList.Text>
+            </NxList.LinkItem>
+          </NxList>
+        </NxTile.Content>
+      </NxLoadWrapper>
     </NxTile>
   );
 }

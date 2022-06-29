@@ -6,7 +6,6 @@
 import { prop } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions } from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSlice';
-import { actions as proprietaryConfigActions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import {
   selectIsMonitoringSupported,
@@ -19,7 +18,6 @@ import {
   selectPoliciesByOwner,
   selectSelectedOwnerName,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsLoading as selectProprietaryConfigIsLoading } from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { getActionsOverride } from 'MainRoot/OrgsAndPolicies/utility/util';
 
@@ -42,7 +40,6 @@ export default function PolicyTileController(
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     loadApplicablePolicyMonitoring: actions.loadApplicablePolicyMonitoring,
-    loadProprietaryConfig: proprietaryConfigActions.loadProprietaryConfig,
     loadActionStageTypes: stagesActions.loadActionStages,
     setPoliciesByOwner: rootActions.setPoliciesByOwner,
     loadApplicablePoliciesByOwner: rootActions.loadApplicablePoliciesByOwner,
@@ -69,7 +66,6 @@ export default function PolicyTileController(
     const promises = [
       vm.loadApplicablePoliciesByOwner(),
       vm.loadActionStageTypes(),
-      vm.loadProprietaryConfig(),
       vm.loadApplicablePolicyMonitoring(),
     ];
 
@@ -126,7 +122,6 @@ export default function PolicyTileController(
 export const mapStateToThis = (state) => ({
   owner: selectSelectedOwner(state),
   ownerName: selectSelectedOwnerName(state),
-  proprietaryConfigIsLoading: selectProprietaryConfigIsLoading(state),
   monitoredStage: selectMonitoredStageFromActionStages(state),
   isEnforcementSupported: selectIsEnforcementSupported(state),
   isFirewallSupported: selectIsFirewallSupported(state),

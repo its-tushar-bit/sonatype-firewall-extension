@@ -78,8 +78,11 @@ import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAcc
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
@@ -88,9 +91,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
+import static com.sonatype.insight.brain.integration.repository.AbstractRepositoryService.REPOSITORY_COMPONENT_METADATA_EVALUATION_TIME;
+import static com.sonatype.insight.brain.integration.repository.AbstractRepositoryService.REPOSITORY_COMPONENT_POLICY_COMPLIANT_VERSION_COUNT;
+import static com.sonatype.insight.brain.integration.repository.AbstractRepositoryService.REPOSITORY_COMPONENT_REQUESTED_VERSION_COUNT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
@@ -102,6 +109,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -153,6 +162,9 @@ public abstract class AbstractRepositoryServiceTest
   @Mock
   private DbQuarantinedComponentAccessManager quarantinedComponentAccessManager;
 
+  @Mock
+  private TelemetrySender telemetrySenderMock;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClient);
@@ -160,6 +172,7 @@ public abstract class AbstractRepositoryServiceTest
     binder.bind(FirewallQuarantineHdsClient.class).toInstance(quarantineHdsClient);
     binder.bind(RepositoryComponentTelemetryCreator.class).toInstance(repositoryComponentTelemetryCreator);
     binder.bind(DbQuarantinedComponentAccessManager.class).toInstance(quarantinedComponentAccessManager);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     super.configure(binder);
   }
 
@@ -2088,6 +2101,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, null);
     }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   @Test
@@ -2126,6 +2140,7 @@ public abstract class AbstractRepositoryServiceTest
     mockHdsRequestForMetadata(hdsResult);
 
     // Call the service
+    long start = System.currentTimeMillis();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList = getRepositoryService()
         .evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
             "testClientUserAgent");
@@ -2137,6 +2152,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(repositoryComponentEvaluationData.quarantine).isTrue();
 
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
+    assertTelemetry(componentEvaluationDataRequestList.components.size(), 0, System.currentTimeMillis() - start);
   }
 
   @Test
@@ -2154,6 +2170,7 @@ public abstract class AbstractRepositoryServiceTest
       getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
           componentEvaluationDataRequestList, null);
     }).withMessage("The format cannot be null or empty.");
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   @Test
@@ -2171,6 +2188,7 @@ public abstract class AbstractRepositoryServiceTest
       getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
           componentEvaluationDataRequestList, null);
     }).withMessage("The format cannot be null or empty.");
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   @Test
@@ -2188,6 +2206,7 @@ public abstract class AbstractRepositoryServiceTest
       getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
           componentEvaluationDataRequestList, null);
     }).withMessage("The hash cannot be null or empty.");
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   @Test
@@ -2205,6 +2224,7 @@ public abstract class AbstractRepositoryServiceTest
       getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
           componentEvaluationDataRequestList, null);
     }).withMessage("The hash cannot be null or empty.");
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   @Test
@@ -2222,6 +2242,7 @@ public abstract class AbstractRepositoryServiceTest
       getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
           componentEvaluationDataRequestList, null);
     }).withMessage("The pathname cannot be null or empty.");
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   @Test
@@ -2239,6 +2260,7 @@ public abstract class AbstractRepositoryServiceTest
       getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
           componentEvaluationDataRequestList, null);
     }).withMessage("The pathname cannot be null or empty.");
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   @Test
@@ -2250,6 +2272,7 @@ public abstract class AbstractRepositoryServiceTest
       getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
           null /* componentEvaluationDataRequestList */, null);
     }).withMessage("The repository must be enabled in quarantine mode.");
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   @Test
@@ -2261,6 +2284,7 @@ public abstract class AbstractRepositoryServiceTest
       getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
           null /* componentEvaluationDataRequestList */, null);
     }).withMessage("The repository must be enabled in quarantine mode.");
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   @Test
@@ -2278,6 +2302,7 @@ public abstract class AbstractRepositoryServiceTest
       getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
           componentEvaluationDataRequestList, null);
     }).withMessage("The repository format must be npm.");
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
   @Test
@@ -2315,6 +2340,7 @@ public abstract class AbstractRepositoryServiceTest
     mockHdsRequestForMetadata(hdsResult);
 
     // Call the service
+    long start = System.currentTimeMillis();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
         getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
             componentEvaluationDataRequestList, "testClientUserAgent");
@@ -2334,6 +2360,7 @@ public abstract class AbstractRepositoryServiceTest
     }
 
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
+    assertTelemetry(componentEvaluationDataRequestList.components.size(), 1, System.currentTimeMillis() - start);
   }
 
   @Test
@@ -2371,6 +2398,7 @@ public abstract class AbstractRepositoryServiceTest
     mockHdsRequestForMetadata(hdsResult);
 
     // Call the service
+    long start = System.currentTimeMillis();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
         getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
             componentEvaluationDataRequestList, "testClientUserAgent");
@@ -2390,6 +2418,7 @@ public abstract class AbstractRepositoryServiceTest
     }
 
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
+    assertTelemetry(componentEvaluationDataRequestList.components.size(), 1, System.currentTimeMillis() - start);
   }
 
   @Test
@@ -2427,6 +2456,7 @@ public abstract class AbstractRepositoryServiceTest
     mockHdsRequestForMetadata(hdsResult);
 
     // Call the service
+    long start = System.currentTimeMillis();
     RepositoryComponentEvaluationDataList repositoryComponentEvaluationResultList =
         getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
             componentEvaluationDataRequestList, "testClientUserAgent");
@@ -2446,6 +2476,7 @@ public abstract class AbstractRepositoryServiceTest
     }
 
     assertThat(repositoryComponentDAO.getByRepositoryId(repository.getId())).isEmpty();
+    assertTelemetry(componentEvaluationDataRequestList.components.size(), 1, System.currentTimeMillis() - start);
   }
 
   private void testAddProprietaryComponentNames_FormatTranslation(String repoFormat, String componentFormat) {
@@ -2457,5 +2488,26 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThat(proprietaryComponentNamePatternDAO.getByFormat(componentFormat))
         .extracting(ProprietaryComponentNamePattern::getNamePattern).containsExactlyInAnyOrder("format-test");
+  }
+
+  private void assertTelemetry(
+      final int requestedVersionCount,
+      final int policyCompliantVersionCount,
+      final long evaluationTime)
+  {
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock, times(1)).send(telemetryDataArgumentCaptor.capture());
+    final TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_COMPONENT_METADATA_EVALUATION);
+
+    assertThat(telemetryData.getAttributes()).hasSize(3);
+    assertThat(telemetryData.getAttributes()).containsEntry(REPOSITORY_COMPONENT_REQUESTED_VERSION_COUNT,
+        requestedVersionCount);
+    assertThat(telemetryData.getAttributes()).containsEntry(REPOSITORY_COMPONENT_POLICY_COMPLIANT_VERSION_COUNT,
+        policyCompliantVersionCount);
+    assertThat((Long) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_METADATA_EVALUATION_TIME))
+        .isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(evaluationTime);
   }
 }

@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.slf4j.Logger;
@@ -58,11 +59,12 @@ public class RepositoryService extends AbstractRepositoryService
       RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
       DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
       FirewallQuarantineHdsClient quarantineHdsClient,
-      RepositoryComponentDeleteService repositoryComponentDeleteService)
+      RepositoryComponentDeleteService repositoryComponentDeleteService,
+      TelemetrySender telemetrySender)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
         LicensedFeature.FIREWALL, repositoryComponentTelemetryCreator, quarantinedComponentAccessManager,
-        quarantineHdsClient);
+        quarantineHdsClient, telemetrySender);
     this.repositoryComponentDeleteService = repositoryComponentDeleteService;
   }
 

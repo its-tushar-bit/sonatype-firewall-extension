@@ -55,12 +55,15 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.lqa.LqaComponentIdentifier;
 import com.sonatype.insight.telemetry.SonatypeUserAgentUtil;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -96,6 +99,15 @@ public abstract class AbstractRepositoryService
 
   private final FirewallQuarantineHdsClient quarantineHdsClient;
 
+  private final TelemetrySender telemetrySender;
+
+  static final String REPOSITORY_COMPONENT_REQUESTED_VERSION_COUNT = "repository_component_requested_version_count";
+
+  static final String REPOSITORY_COMPONENT_POLICY_COMPLIANT_VERSION_COUNT =
+      "repository_component_policy_compliant_version_count";
+
+  static final String REPOSITORY_COMPONENT_METADATA_EVALUATION_TIME = "repository_component_metadata_evaluation_time";
+
   // Visible for tests
   final LicensedFeature requiredFeature;
 
@@ -108,7 +120,8 @@ public abstract class AbstractRepositoryService
       LicensedFeature requiredFeature,
       RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
       DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
-      FirewallQuarantineHdsClient quarantineHdsClient)
+      FirewallQuarantineHdsClient quarantineHdsClient,
+      TelemetrySender telemetrySender)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
@@ -118,6 +131,7 @@ public abstract class AbstractRepositoryService
     this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
     this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
     this.quarantineHdsClient = quarantineHdsClient;
+    this.telemetrySender = telemetrySender;
   }
 
   protected void checkLicenseFeature() {
@@ -332,15 +346,24 @@ public abstract class AbstractRepositoryService
         repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, componentDetailsFromHds,
             true /* withQuarantine */, false /* persistEvaluationResults */, false /* forMonitoring */);
 
+    int policyCompliantVersionCount = 0;
+
     for (int i = 0; i < componentEvaluationDataRequestList.components.size(); i++) {
       log.trace("Path {}: {}", componentEvaluationDataRequestList.components.get(i).pathname,
           result.componentEvalResults.get(i).quarantine);
+
+      if (!result.componentEvalResults.get(i).quarantine) {
+        policyCompliantVersionCount++;
+      }
     }
     updateUserAgent(clientUserAgent, repository);
 
     log.debug("Evaluated component metadata for repository {}:{} ({}) for {} components in {} ms.",
         repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId(),
         result.componentEvalResults.size(), System.currentTimeMillis() - start);
+
+    sendTelemetry(componentEvaluationDataRequestList.components.size(), policyCompliantVersionCount,
+        System.currentTimeMillis() - start);
 
     return result;
   }
@@ -800,5 +823,20 @@ public abstract class AbstractRepositoryService
     final QuarantinedComponentReport quarantinedComponentReport = new QuarantinedComponentReport();
     quarantinedComponentReport.setReportUrl(UserInterfaceLinksHelper.getQuarantinedComponentReportPath(token));
     return quarantinedComponentReport;
+  }
+
+  private void sendTelemetry(
+      final int requestedVersionCount,
+      final int policyCompliantVersionCount,
+      final long evaluationTime)
+  {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REPOSITORY_COMPONENT_METADATA_EVALUATION);
+
+    Map<String, Object> attributes = telemetryData.getAttributes();
+    attributes.put(REPOSITORY_COMPONENT_REQUESTED_VERSION_COUNT, requestedVersionCount);
+    attributes.put(REPOSITORY_COMPONENT_POLICY_COMPLIANT_VERSION_COUNT, policyCompliantVersionCount);
+    attributes.put(REPOSITORY_COMPONENT_METADATA_EVALUATION_TIME, evaluationTime);
+
+    telemetrySender.send(telemetryData);
   }
 }

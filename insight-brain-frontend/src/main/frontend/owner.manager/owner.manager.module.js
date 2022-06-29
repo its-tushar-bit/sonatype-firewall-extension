@@ -85,7 +85,7 @@ import SourceControlService from './source.control/source.control.service';
 import innerSourceRepositoryModule from './innersource.repository/module';
 import ContinuousMonitoring from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/ContinuousMonitoring';
 import artifactoryRepositoryModule from './artifactory.repository/module';
-import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/ComponentLabels/CreateComponentLabel';
+import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/componentLabels/CreateComponentLabel';
 import OwnerSummaryTilesContainerController from './summary/owner.summary.tiles.container.controller';
 import PolicyGrandfatheringTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PolicyGrandfatheringTile';
 import ProprietaryComponentConfigurationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ProprietaryComponentConfigurationTile';

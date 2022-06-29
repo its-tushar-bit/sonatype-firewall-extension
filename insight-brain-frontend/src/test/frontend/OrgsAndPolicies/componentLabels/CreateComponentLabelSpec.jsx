@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/ComponentLabels/CreateComponentLabel';
+import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/componentLabels/CreateComponentLabel';
 import * as labelsSelectors from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/labelsSlice';

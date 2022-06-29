@@ -398,8 +398,8 @@ public class ApiArtifactoryConnectionResourceTest
 
     artifactoryMockSever.stubFor(get(urlPathMatching(CHECKSUM_SEARCH_PATH))
         .withBasicAuth("user", "pass")
-        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_VERSION_HEADER_NAME,
-            ArtifactoryMockServerRule.ARTIFACTORY_VERSION_HEADER_MOCK_VALUE).withStatus(401)));
+        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
+            ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(401)));
 
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_OWNER_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId)
@@ -451,8 +451,8 @@ public class ApiArtifactoryConnectionResourceTest
     artifactoryMockSever.stubFor(get(urlPathMatching(CHECKSUM_SEARCH_PATH))
         .withBasicAuth(artifactoryConnection.getUsername(),
             String.valueOf(pwHandler.decryptPassword(artifactoryConnection.getPassword())))
-        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_VERSION_HEADER_NAME,
-            ArtifactoryMockServerRule.ARTIFACTORY_VERSION_HEADER_MOCK_VALUE).withStatus(200)));
+        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
+            ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(200)));
 
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId, artifactoryConnection.getId())
@@ -476,8 +476,8 @@ public class ApiArtifactoryConnectionResourceTest
     artifactoryMockSever.stubFor(get(urlPathMatching(CHECKSUM_SEARCH_PATH))
         .withBasicAuth(artifactoryConnection.getUsername(),
             String.valueOf(pwHandler.decryptPassword(artifactoryConnection.getPassword())))
-        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_VERSION_HEADER_NAME,
-            ArtifactoryMockServerRule.ARTIFACTORY_VERSION_HEADER_MOCK_VALUE).withStatus(401)));
+        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
+            ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE).withStatus(401)));
 
     HttpResponse response = restRequest().path(DefaultArtifactoryConnectionResource.BY_ARTIFACTORY_TEST_PATH)
         .parameter(OwnerType.APPLICATION, appId, artifactoryConnection.getId())

@@ -27,6 +27,7 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotAuthenticatedException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -50,9 +51,7 @@ public class DefaultArtifactoryClient
 
   public static final String TEST_SHA256 = "4909fb971d8373b5a1f5998fb788d6708a626c043a94b05378c54ce5760e4000";
 
-  public static final String ARTIFACTORY_VERSION_HEADER_NAME = "X-JFrog-Version";
-
-  private static final String ARTIFACTORY_VERSION_HEADER_CONTENT_LOWERCASE = "artifactory";
+  public static final String ARTIFACTORY_ID_HEADER_NAME = "X-Artifactory-Id";
 
   private final Configuration configuration;
 
@@ -119,9 +118,9 @@ public class DefaultArtifactoryClient
     HttpGet request = new HttpGet(this.configuration.getServerUrl() + CHECKSUM_SEARCH_PATH +
         UrlUtils.appendQueryParams(ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), TEST_SHA256));
     HttpResponse response = httpClient.execute(request, httpClientContext);
-    Header serverHeader = response.getFirstHeader(ARTIFACTORY_VERSION_HEADER_NAME);
+    Header serverHeader = response.getFirstHeader(ARTIFACTORY_ID_HEADER_NAME);
     String server = serverHeader == null ? null : serverHeader.getValue();
-    if (server == null || !server.toLowerCase(Locale.ROOT).contains(ARTIFACTORY_VERSION_HEADER_CONTENT_LOWERCASE)) {
+    if (StringUtils.isBlank(server)) {
       return new StatusType() {
         @Override
         public int getStatusCode() {

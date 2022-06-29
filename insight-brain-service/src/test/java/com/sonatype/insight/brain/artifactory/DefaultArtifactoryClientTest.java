@@ -155,6 +155,23 @@ public class DefaultArtifactoryClientTest
   }
 
   @Test
+  public void testGetServerStatus_MissingHeaderValue() throws Exception {
+    ArtifactoryClient artifactoryClient =
+        artifactoryClientFactory.create().forArtifactory(artifactoryMockServer.getBaseUrl(), null, null);
+    artifactoryMockServer.getWireMockServer().stubFor(get(urlPathMatching(
+        artifactoryMockServer.getUrlPath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))).withQueryParam(
+            ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), equalTo(DefaultArtifactoryClient.TEST_SHA256))
+        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME, "").withStatus(200)));
+
+    StatusType status = artifactoryClient.getServerStatus();
+
+    assertThat(status).isNotNull();
+    assertThat(status.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+    assertThat(status.getFamily()).isEqualTo(Status.BAD_REQUEST.getFamily());
+    assertThat(status.getReasonPhrase()).isEqualTo("Bad Request. Not a valid Artifactory server.");
+  }
+
+  @Test
   public void testSearchByChecksum_WithCredentials_WithPath() throws Exception {
     String path = "/artifactory";
     artifactoryMockServer.setPath(path);

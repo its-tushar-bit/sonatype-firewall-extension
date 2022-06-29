@@ -31,7 +31,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.sonatype.insight.brain.artifactory.DefaultArtifactoryClient.ARTIFACTORY_VERSION_HEADER_NAME;
+import static com.sonatype.insight.brain.artifactory.ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE;
+import static com.sonatype.insight.brain.artifactory.DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME;
 import static com.sonatype.insight.brain.artifactory.DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH;
 import static com.sonatype.insight.brain.artifactory.DefaultArtifactoryClient.TEST_SHA256;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,8 +42,6 @@ public class ArtifactoryRepositoryConfigurationModalTest
 {
   @Rule
   public WireMockRule artifactoryMockSever = new WireMockRule(wireMockConfig().dynamicPort());
-
-  public static final String ARTIFACTORY_VERSION_HEADER_MOCK_VALUE = "Artifactory/7.37.15 73715900";
 
   private final ArtifactoryConnectionDAO artifactoryConnectionDAO = new ArtifactoryConnectionDAO();
 
@@ -236,7 +235,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
     artifactoryMockSever.stubFor(get(urlPathMatching(CHECKSUM_SEARCH_PATH))
         .withQueryParam("sha256", equalTo(TEST_SHA256))
         .willReturn(aResponse()
-            .withHeader(ARTIFACTORY_VERSION_HEADER_NAME, ARTIFACTORY_VERSION_HEADER_MOCK_VALUE)
+            .withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
             .withStatus(200)));
 
     modal.test().click();
@@ -256,7 +255,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
     modal.baseUrl().input().setValue(artifactoryMockSever.baseUrl());
 
     artifactoryMockSever.stubFor(get(urlPathMatching(CHECKSUM_SEARCH_PATH)).willReturn(
-        aResponse().withHeader(ARTIFACTORY_VERSION_HEADER_NAME, ARTIFACTORY_VERSION_HEADER_MOCK_VALUE)
+        aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
             .withStatus(404)));
 
     modal.test().click();
@@ -283,7 +282,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
     ArtifactoryRepositoryConfigurationModal modal = new ArtifactoryRepositoryConfigurationModal();
 
     artifactoryMockSever.stubFor(get(urlPathMatching(CHECKSUM_SEARCH_PATH)).willReturn(
-        aResponse().withHeader(ARTIFACTORY_VERSION_HEADER_NAME, ARTIFACTORY_VERSION_HEADER_MOCK_VALUE)
+        aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
             .withStatus(200)));
 
     modal.test().click();
@@ -310,7 +309,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
     artifactoryConnectionRow.edit().click();
 
     artifactoryMockSever.stubFor(get(urlPathMatching(CHECKSUM_SEARCH_PATH)).willReturn(
-        aResponse().withHeader(ARTIFACTORY_VERSION_HEADER_NAME, ARTIFACTORY_VERSION_HEADER_MOCK_VALUE)
+        aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
             .withStatus(404)));
 
     modal.test().click();
@@ -335,7 +334,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
     artifactoryConnectionRow.edit().click();
 
     artifactoryMockSever.stubFor(get(urlPathMatching(CHECKSUM_SEARCH_PATH)).willReturn(
-        aResponse().withHeader(ARTIFACTORY_VERSION_HEADER_NAME, ARTIFACTORY_VERSION_HEADER_MOCK_VALUE)
+        aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
             .withStatus(200)));
 
     ArtifactoryRepositoryConfigurationModal modal = new ArtifactoryRepositoryConfigurationModal();
@@ -364,7 +363,7 @@ public class ArtifactoryRepositoryConfigurationModalTest
     artifactoryConnectionRow.edit().click();
 
     artifactoryMockSever.stubFor(get(urlPathMatching(CHECKSUM_SEARCH_PATH)).willReturn(
-        aResponse().withHeader(ARTIFACTORY_VERSION_HEADER_NAME, ARTIFACTORY_VERSION_HEADER_MOCK_VALUE)
+        aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
             .withStatus(404)));
 
     ArtifactoryRepositoryConfigurationModal modal = new ArtifactoryRepositoryConfigurationModal();

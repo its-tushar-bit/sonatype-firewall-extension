@@ -10,6 +10,11 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 
+/**
+ * @deprecated The related API endpoint is deprecated. To be removed when the Repository Results View migration to
+ * React is completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+ */
+@Deprecated
 public class RepositoryReportDetail
 {
   private final ComponentIdentifier componentIdentifier;

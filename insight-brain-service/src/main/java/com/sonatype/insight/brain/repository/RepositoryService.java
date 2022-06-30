@@ -231,6 +231,11 @@ public class RepositoryService
     return policyEvaluationSummary;
   }
 
+  /**
+   * @deprecated The related API endpoint is deprecated. To be removed when the Repository Results View migration to
+   * React is completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
+  @Deprecated
   public List<RepositoryReportDetail> getReportDetails(final String repositoryId, String hash, String pathname) {
     final Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
 
@@ -240,7 +245,12 @@ public class RepositoryService
     return getReportDetails(repository, hash, pathname);
   }
 
+  /**
+   * @deprecated The related API endpoint is deprecated. To be removed when the Repository Results View migration to
+   * React is completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @Authorize(permission = Permission.READ)
+  @Deprecated
   List<RepositoryReportDetail> getReportDetails(@AuthzContext(Key.REPOSITORY) final Repository repository,
                                                 String hash,
                                                 String pathname)

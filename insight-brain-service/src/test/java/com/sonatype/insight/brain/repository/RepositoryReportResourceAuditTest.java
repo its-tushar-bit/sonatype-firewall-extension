@@ -41,7 +41,12 @@ public class RepositoryReportResourceAuditTest
     assertRepositoryData(auditDTO, repository);
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @Test
+  @Deprecated
   public void testGetReportDetails() throws Exception {
     repositoryResourceRequest().path(RepositoryReportResource.DETAILS_PATH).get();
 
@@ -49,7 +54,12 @@ public class RepositoryReportResourceAuditTest
     assertRepositoryData(auditDTO, repository);
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @Test
+  @Deprecated
   public void testGetReportDetails_Unauthorized() throws Exception {
     repositoryResourceRequest().path(RepositoryReportResource.DETAILS_PATH).with(unauthorizedUser()).get();
 

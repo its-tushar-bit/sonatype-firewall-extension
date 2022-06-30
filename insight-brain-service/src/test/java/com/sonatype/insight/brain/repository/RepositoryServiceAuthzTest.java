@@ -141,20 +141,35 @@ public class RepositoryServiceAuthzTest
     repositoryService.getReportSummary(repo.getId());
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @Test
+  @Deprecated
   public void testGetReportDetails_Authorized() {
     Repository repo = createRepository();
     grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     repositoryService.getReportDetails(repo.getId(), null, null);
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @Test(expected = UnauthenticatedException.class)
+  @Deprecated
   public void testGetReportDetails_Unauthenticated() {
     Repository repo = createRepository();
     repositoryService.getReportDetails(repo.getId(), null, null);
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @Test(expected = UnauthorizedException.class)
+  @Deprecated
   public void testGetReportDetails_Unauthorized() {
     grantWritePermission();
     Repository repo = createRepository();

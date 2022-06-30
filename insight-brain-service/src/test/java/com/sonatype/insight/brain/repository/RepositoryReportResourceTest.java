@@ -84,7 +84,12 @@ public class RepositoryReportResourceTest
     assertThat(policyEvaluationSummary).isNotNull();
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @Test
+  @Deprecated
   public void testGetReportDetails() throws Exception {
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true);
 
@@ -94,7 +99,12 @@ public class RepositoryReportResourceTest
     assertThat(policyEvaluationDetail).isNotNull();
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @Test
+  @Deprecated
   public void testGetReportDetails_NoRepository() throws Exception {
     final String repositoryId = "NonExistentRepositoryId";
 
@@ -103,7 +113,12 @@ public class RepositoryReportResourceTest
     assertThat(response.getBodyText()).isEqualTo(getErrorMessage(repositoryId));
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @Test
+  @Deprecated
   public void testGetReportDetails_RepositoryDisabled() throws Exception {
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, false);
 

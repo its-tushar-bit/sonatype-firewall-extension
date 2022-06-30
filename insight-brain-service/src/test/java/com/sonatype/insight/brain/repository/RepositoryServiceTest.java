@@ -350,7 +350,12 @@ public class RepositoryServiceTest extends AbstractComponentTest
     return securityVulnerabilities;
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @Test
+  @Deprecated
   public void testTHREAT_LEVEL_DESC_PATHNAME_ASC() throws Exception {
     final RepositoryReportDetail detail1 = RepositoryReportDetail
         .create(new RepositoryComponent(null, "z", null, null, null, null, null, null));
@@ -376,7 +381,12 @@ public class RepositoryServiceTest extends AbstractComponentTest
         .as("Equal ThreatLevel and pathname").isZero();
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @Test
+  @Deprecated
   public void testGetReportDetails() throws Exception {
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
@@ -416,7 +426,12 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertRepositoryReportDetail(reportDetails.get(idx), pathname4, null, 0, true, false);
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @Test
+  @Deprecated
   public void testGetReportDetails_ByHash() throws Exception {
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
@@ -440,7 +455,12 @@ public class RepositoryServiceTest extends AbstractComponentTest
     }
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @Test
+  @Deprecated
   public void testGetReportDetails_ByPathname() throws Exception {
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
@@ -587,6 +607,11 @@ public class RepositoryServiceTest extends AbstractComponentTest
     return component;
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
+  @Deprecated
   private void assertRepositoryReportDetail(final RepositoryReportDetail actualReportDetail,
                                             final String expectedPathname,
                                             final String expectedPolicyName,

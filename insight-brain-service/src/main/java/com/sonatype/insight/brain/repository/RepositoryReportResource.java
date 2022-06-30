@@ -69,10 +69,16 @@ public class RepositoryReportResource
     public int quarantinedComponentCount;
   }
 
+  /**
+   * @deprecated Replaced in 1.140 with {@link RepositoryResultsResource#getDetails(String,
+   * RepositoryResultsDetailsRequestDto)}. To be removed when the Repository Results View migration to React is
+   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
   @GET
   @Path(DETAILS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_REPOSITORY_RESULTS)
+  @Deprecated
   public List<RepositoryReportDetail> getReportDetails(@PathParam("repositoryId") final String repositoryId,
                                                        @QueryParam("hash") String hash,
                                                        @QueryParam("pathname") String pathname)

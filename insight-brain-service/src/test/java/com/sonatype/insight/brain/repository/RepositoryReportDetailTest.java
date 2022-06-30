@@ -16,6 +16,11 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @deprecated The tested class is deprecated. To be removed when the Repository Results View migration to React is
+ * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+ */
+@Deprecated
 public class RepositoryReportDetailTest
 {
   private RepositoryReportDetail repositoryReportDetail;

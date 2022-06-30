@@ -8,7 +8,7 @@ import createEditApplicationCategoriesSlice from './createEditApplicationCategor
 import assignApplicationCategoriesSlice from './assignApplicationCategoriesSlice';
 import labelsSlice from './labelsSlice';
 import rootSlice from './rootSlice';
-import policyMonitoring from './сontinuousMonitoring/policyMonitoringSlice';
+import policyMonitoring from './continuousMonitoring/policyMonitoringSlice';
 import proprietarySlice from './proprietarySlice';
 import constraintSlice from './constraintSlice';
 import applicationsSlice from './applicationsSlice';

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { actions } from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/continuousMonitoring/policyMonitoringSlice';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 

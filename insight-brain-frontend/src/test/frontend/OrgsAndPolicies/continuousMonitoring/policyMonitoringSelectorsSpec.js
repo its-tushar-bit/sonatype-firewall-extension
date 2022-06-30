@@ -12,7 +12,7 @@ import {
   selectIsGrandfatheringSupported,
   selectIsMonitoringSupported,
   selectPolicyMonitoringMonitoredStage,
-} from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSelectors';
+} from 'MainRoot/OrgsAndPolicies/continuousMonitoring/policyMonitoringSelectors';
 
 describe('policyMonitoringSelectors', () => {
   let mockState;

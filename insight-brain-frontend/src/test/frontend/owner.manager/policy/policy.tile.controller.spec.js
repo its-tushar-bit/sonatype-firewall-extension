@@ -7,7 +7,7 @@ import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import PolicyResourceMockData from 'TestRoot/owner.manager/mock.data/policy.resource.mock.data';
 import { mapStateToThis } from 'MainRoot/owner.manager/policy/policy.tile.controller';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
-import { actions as policyMonitoringActions } from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSlice';
+import { actions as policyMonitoringActions } from 'MainRoot/OrgsAndPolicies/continuousMonitoring/policyMonitoringSlice';
 
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 

@@ -83,7 +83,7 @@ import categoryEditorTemplate from './category/category.editor.view.html';
 import appCategoryEditorTemplate from './category/application.category.editor.view.html';
 import SourceControlService from './source.control/source.control.service';
 import innerSourceRepositoryModule from './innersource.repository/module';
-import ContinuousMonitoring from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/ContinuousMonitoring';
+import ContinuousMonitoring from 'MainRoot/OrgsAndPolicies/continuousMonitoring/ContinuousMonitoring';
 import artifactoryRepositoryModule from './artifactory.repository/module';
 import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/componentLabels/CreateComponentLabel';
 import OwnerSummaryTilesContainerController from './summary/owner.summary.tiles.container.controller';

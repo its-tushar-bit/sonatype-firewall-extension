@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import ContinuousMonitoring from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/ContinuousMonitoring';
-import * as policyMonitoringSelectors from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSelectors';
+import ContinuousMonitoring from 'MainRoot/OrgsAndPolicies/continuousMonitoring/ContinuousMonitoring';
+import * as policyMonitoringSelectors from 'MainRoot/OrgsAndPolicies/continuousMonitoring/policyMonitoringSelectors';
 
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as stagesSelectors from 'MainRoot/OrgsAndPolicies/stagesSelectors';
-import { actions } from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/continuousMonitoring/policyMonitoringSlice';
 import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
 
 describe('Continuous Monitoring Component', () => {

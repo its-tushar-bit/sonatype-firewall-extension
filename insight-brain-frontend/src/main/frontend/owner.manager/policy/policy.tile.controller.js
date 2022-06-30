@@ -5,14 +5,14 @@
  */
 import { prop } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
-import { actions } from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/continuousMonitoring/policyMonitoringSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import {
   selectIsMonitoringSupported,
   selectIsEnforcementSupported,
   selectIsFirewallSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectMonitoredStageFromActionStages } from 'MainRoot/OrgsAndPolicies/сontinuousMonitoring/policyMonitoringSelectors';
+import { selectMonitoredStageFromActionStages } from 'MainRoot/OrgsAndPolicies/continuousMonitoring/policyMonitoringSelectors';
 import {
   selectSelectedOwner,
   selectPoliciesByOwner,

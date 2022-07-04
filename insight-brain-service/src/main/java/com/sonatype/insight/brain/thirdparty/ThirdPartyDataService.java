@@ -23,7 +23,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabi
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.License;
+import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -69,7 +70,7 @@ public class ThirdPartyDataService
 
   private final ThirdPartyScanDAO thirdPartyScanDAO;
   
-  private final LicenseDAO licenseDAO;
+  private final MultiLicenseDAO multiLicenseDAO;
 
   private final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO;
 
@@ -84,7 +85,7 @@ public class ThirdPartyDataService
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
-      final LicenseDAO licenseDAO,
+      final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO,
       final ThirdPartyComponentDAO thirdPartyComponentDAO,
       final TelemetrySender telemetrySender)
@@ -94,7 +95,7 @@ public class ThirdPartyDataService
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
-    this.licenseDAO = licenseDAO;
+    this.multiLicenseDAO = multiLicenseDAO;
     this.thirdPartyVulnerabilityDAO = thirdPartyVulnerabilityDAO;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
     this.telemetrySender = telemetrySender;
@@ -235,7 +236,7 @@ public class ThirdPartyDataService
       final ThirdPartyLicenseRowDTO dto)
   {
     try {
-      licenseDAO.getByIdNotNull(thirdPartyCoordinateLicense.getLicenseId());
+      multiLicenseDAO.getByIdNoReloadNotNull(thirdPartyCoordinateLicense.getLicenseId());
       final ThirdPartyLicenseDTO licenseThirdParty = new ThirdPartyLicenseDTO();
       licenseThirdParty.id = thirdPartyCoordinateLicense.getLicenseId();
       licenseThirdParty.name = thirdPartyCoordinateLicense.getName();
@@ -248,7 +249,7 @@ public class ThirdPartyDataService
   }
 
   private void licenseNotProvided(final ThirdPartyLicenseRowDTO dto) {
-    final License licenseNotProvided = licenseDAO.getByIdNotNull(License.UNSPECIFIED_ID);
+    final MultiLicense licenseNotProvided = multiLicenseDAO.getByIdNotNull(License.UNSPECIFIED_ID);
 
     final ThirdPartyLicenseDTO licenseThirdParty = new ThirdPartyLicenseDTO();
     licenseThirdParty.id = licenseNotProvided.getId();

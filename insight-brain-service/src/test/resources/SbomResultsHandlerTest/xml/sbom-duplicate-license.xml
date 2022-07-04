@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom xmlns="http://cyclonedx.org/schema/bom/1.1" serialNumber="urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79" version="1">
+  <components>
+    <component type="library" bom-ref="pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar">
+      <group>com.fasterxml.jackson.core</group>
+      <name>jackson-databind</name>
+      <version>2.9.9</version>
+      <licenses>
+        <license>
+          <id>Apache-2.0</id>
+          <url>url1</url>
+        </license>
+        <license>
+          <id>Apache-2.0</id>
+          <url>url2</url>
+        </license>
+      </licenses>
+      <purl>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</purl>
+      <modified>true</modified>
+    </component>
+  </components>
+</bom>

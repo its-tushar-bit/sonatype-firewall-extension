@@ -160,4 +160,34 @@ public class MultiLicenseDAO
           System.currentTimeMillis() - start);
     }
   }
+
+  public MultiLicense getByIdNoReload(String id) {
+    if (multiLicensesById == null) {
+      load();
+    }
+    return multiLicensesById.get(id);
+  }
+
+  public MultiLicense getByIdNoReloadNotNull(String id) {
+    MultiLicense multiLicense = getByIdNoReload(id);
+    if (multiLicense == null) {
+      throw new NotFoundException("A multi-license with ID '" + id + "' does not exist locally.");
+    }
+    return multiLicense;
+  }
+
+  public MultiLicense getByNameNoReload(String name) {
+    if (multiLicensesByName == null) {
+      load();
+    }
+    return multiLicensesByName.get(name);
+  }
+
+  public MultiLicense getByNameNoReloadNotNull(String name) {
+    MultiLicense multiLicense = getByNameNoReload(name);
+    if (multiLicense == null) {
+      throw new NotFoundException("A multi-license with name '" + name + "' does not exist locally.");
+    }
+    return multiLicense;
+  }
 }

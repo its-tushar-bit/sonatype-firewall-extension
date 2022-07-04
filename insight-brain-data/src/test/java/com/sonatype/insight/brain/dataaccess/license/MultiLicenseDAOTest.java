@@ -17,7 +17,11 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class MultiLicenseDAOTest
     extends AbstractDbDAOTest
@@ -114,6 +118,61 @@ public class MultiLicenseDAOTest
     multiLicenseLicenseDAO.delete(multiLicenseLicense);
     dao.delete(newMultiLicense);
     dao.load();
+  }
+
+  @Test
+  public void testGetByIdNoReload() {
+    MultiLicenseDAO spyDao = spy(new MultiLicenseDAO());
+    MockLicenseDataUpdater updater = new MockLicenseDataUpdater();
+    LicenseDataUpdater.setUpdater(updater);
+    assertThat(spyDao.getByIdNoReload("not-to-be-found")).isNull();
+
+    assertThat(spyDao.getByIdNoReload("not-to-be-found")).isNull();
+
+    // There may be 1 call for initialization
+    verify(spyDao, atMostOnce()).load();
+  }
+
+  @Test
+  public void testGetByIdNoReloadNotNull() {
+    MultiLicenseDAO spyDao = spy(new MultiLicenseDAO());
+    MockLicenseDataUpdater updater = new MockLicenseDataUpdater();
+    LicenseDataUpdater.setUpdater(updater);
+    assertThat(spyDao.getByIdNoReload("not-to-be-found")).isNull();
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> spyDao.getByIdNoReloadNotNull("not-to-be-found"))
+        .withMessageContaining("A multi-license with ID 'not-to-be-found' does not exist locally.");
+
+    // There may be 1 call for initialization
+    verify(spyDao, atMostOnce()).load();
+  }
+
+  @Test
+  public void testGetByNameNoReload() {
+    MultiLicenseDAO spyDao = spy(new MultiLicenseDAO());
+    MockLicenseDataUpdater updater = new MockLicenseDataUpdater();
+    LicenseDataUpdater.setUpdater(updater);
+    assertThat(spyDao.getByNameNoReload("not-to-be-found")).isNull();
+
+    assertThat(spyDao.getByNameNoReload("not-to-be-found")).isNull();
+
+    // There may be 1 call for initialization
+    verify(spyDao, atMostOnce()).load();
+  }
+
+  @Test
+  public void testGetByNameNoReloadNotNull() {
+    MultiLicenseDAO spyDao = spy(new MultiLicenseDAO());
+    MockLicenseDataUpdater updater = new MockLicenseDataUpdater();
+    LicenseDataUpdater.setUpdater(updater);
+    assertThat(spyDao.getByNameNoReload("not-to-be-found")).isNull();
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> spyDao.getByNameNoReloadNotNull("not-to-be-found"))
+        .withMessageContaining("A multi-license with name 'not-to-be-found' does not exist locally.");
+    // There may be 1 call for initialization
+    verify(spyDao, atMostOnce()).load();
   }
 
   /**

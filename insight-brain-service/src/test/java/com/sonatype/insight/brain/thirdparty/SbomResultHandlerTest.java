@@ -21,10 +21,11 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
+import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -82,7 +83,7 @@ public class SbomResultHandlerTest
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   @Inject
-  private LicenseDAO licenseDAO;
+  private MultiLicenseDAO multiLicenseDAO;
 
   @Spy
   private ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO;
@@ -297,6 +298,35 @@ public class SbomResultHandlerTest
       assertThirdPartyCoordinateLicense(unfilteredSbom.getComponents().get(0).getLicenseChoice().getLicenses().get(1),
           thirdPartyFileCoordinate.getId(),
           coordinatesLicense.get(1));
+    }
+  }
+
+  @Test
+  public void testHandleAndFilterContents_withDuplicateLicense() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-duplicate-license.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-duplicate-license.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom unfilteredSbom = getBom(sbomContent);
+    Bom filteredSbom = assertFilteredSbomFile(filteredContent, 1);
+
+    List<Component> components = filteredSbom.getComponents();
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(1);
+
+    try (TransactionContext tx = thirdPartyCoordinateLicenseDAO.createTransactionContext()) {
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate = coordinates.get(0);
+      assertThirdPartyFileCoordinate(components.get(0), thirdPartyFile, thirdPartyFileCoordinate);
+      List<ThirdPartyCoordinateLicense> coordinatesLicense =
+          thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
+      assertThat(coordinatesLicense).hasSize(1);
+      assertThirdPartyCoordinateLicense(unfilteredSbom.getComponents().get(0).getLicenseChoice().getLicenses().get(0),
+          thirdPartyFileCoordinate.getId(),
+          coordinatesLicense.get(0));
     }
   }
   
@@ -1652,12 +1682,12 @@ public class SbomResultHandlerTest
       String coordinateId,
       ThirdPartyCoordinateLicense coordinateLicense)
   {
-    com.sonatype.insight.brain.model.license.License sonatypeLicense = null;
+    MultiLicense sonatypeLicense = null;
     if (StringUtils.isNotEmpty(licenseSbom.getId())) {
-      sonatypeLicense = licenseDAO.getById(licenseSbom.getId());
+      sonatypeLicense = multiLicenseDAO.getByIdNoReload(licenseSbom.getId());
     }
     else if (StringUtils.isNotEmpty(licenseSbom.getName())) {
-      sonatypeLicense = licenseDAO.getByName(licenseSbom.getName());
+      sonatypeLicense = multiLicenseDAO.getByNameNoReload(licenseSbom.getName());
     }
     if (sonatypeLicense != null) {
       assertThat(coordinateLicense.getLicenseId()).isEqualTo(sonatypeLicense.getId());

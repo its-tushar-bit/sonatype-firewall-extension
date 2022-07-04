@@ -21,12 +21,13 @@ import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -99,7 +100,7 @@ public class SbomResultHandler
 
   private final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO = new ThirdPartyCoordinateLicenseDAO();
 
-  private final LicenseDAO licenseDAO = new LicenseDAO();
+  private final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
   @Override
   public FilteredThirdPartyContent handleAndFilterContents(
@@ -632,14 +633,22 @@ public class SbomResultHandler
         log.debug("Found empty licenses element for Component with packageUrl {}", packageUrl);
       }
       else {
+        Set<String> processedLicenseIds = new HashSet<>();
         for (License license : licenseChoice.getLicenses()) {
-          com.sonatype.insight.brain.model.license.License sonatypeLicense = getSonatypeLicense(license);
+          String licenseId = license.getId();
+          String licenseName = license.getName();
+          MultiLicense sonatypeLicense = getSonatypeLicense(license);
           if (sonatypeLicense != null) {
-            saveLicense(sonatypeLicense.getId(), sonatypeLicense.getShortDisplayName(), license.getUrl(),
-                fileCoordinateId, tx);
+            licenseId = sonatypeLicense.getId();
+            licenseName = sonatypeLicense.getShortDisplayName();
           }
-          else if (StringUtils.isNotBlank(license.getId())) {
-            saveLicense(license.getId(), license.getName(), license.getUrl(), fileCoordinateId, tx);
+          if (StringUtils.isNotBlank(licenseId)) {
+            if (processedLicenseIds.add(licenseId)) {
+              saveLicense(licenseId, licenseName, license.getUrl(), fileCoordinateId, tx);
+            }
+            else {
+              log.debug("Component with packageUrl {} has duplicate license with ID {}", packageUrl, licenseId);
+            }
           }
           else {
             log.debug("Component with packageUrl {} has license with null/empty ID", packageUrl);
@@ -649,12 +658,12 @@ public class SbomResultHandler
     }
   }
 
-  private com.sonatype.insight.brain.model.license.License getSonatypeLicense(License license) {
+  private MultiLicense getSonatypeLicense(License license) {
     if (StringUtils.isNotBlank(license.getId())) {
-      return licenseDAO.getById(license.getId());
+      return multiLicenseDAO.getByIdNoReload(license.getId());
     }
     if (StringUtils.isNotBlank(license.getName())) {
-      return licenseDAO.getByName(license.getName());
+      return multiLicenseDAO.getByNameNoReload(license.getName());
     }
     return null;
   }

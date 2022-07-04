@@ -80,9 +80,9 @@ import static org.mockito.Mockito.verify;
 public class ScmOnboardingServiceTest
     extends AbstractComponentTest
 {
-  private static final String PAGE_0 = "allRepos0.json";
+  private static final String PAGE_1 = "allRepos0.json";
 
-  public static final String PAGE_1 = "emptyResponse.json";
+  public static final String PAGE_2 = "emptyResponse.json";
 
   public static final String LIST_WITH_EMPTY_REPOS = "listWithEmptyRepos.json";
 
@@ -158,8 +158,8 @@ public class ScmOnboardingServiceTest
         .newSourceControl(org.getId(), null, plexusCipher.encrypt("TOKEN", ENC), null);
 
     // and a git service
-    mockRepoForPage(gitService, 0, getResourceAsString(PAGE_0));
     mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
 
     // then loading repositories returns the expected results
     SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
@@ -191,8 +191,8 @@ public class ScmOnboardingServiceTest
 
   @Test
   public void testLoadRepositories() throws Exception {
-    mockRepoForPage(gitService, 0, getResourceAsString(PAGE_0));
     mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
 
     // then loading repositories returns the expected results
     SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
@@ -214,12 +214,12 @@ public class ScmOnboardingServiceTest
         + repo1;
     String repo2ReplacementUrl = gitService.baseUrl().replace("localhost", "admin@localhost") + repo2;
 
-    mockRepoForPage(gitService, 0,
-        getResourceAsString(PAGE_0)
+    mockRepoForPage(gitService, 1,
+        getResourceAsString(PAGE_1)
         .replaceFirst(repo1Url, repo1ReplacementUrl)
         .replaceFirst(repo2Url, repo2ReplacementUrl)
     );
-    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
 
     // given some of the repositories are already configured for SCM
     tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + repo1, new Date());
@@ -245,8 +245,8 @@ public class ScmOnboardingServiceTest
     String repo = "/org/MixedCase.git";
     String repoReplacementUrl = gitService.baseUrl().replace("localhost", "admin:admin123@localhost") + repo;
 
-    mockRepoForPage(gitService, 0, getResourceAsString(PAGE_0).replaceFirst(repoUrl, repoReplacementUrl));
-    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1).replaceFirst(repoUrl, repoReplacementUrl));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
 
     // given the repo with mixed case url is already configured for SCM
     tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + repo, new Date());
@@ -268,8 +268,8 @@ public class ScmOnboardingServiceTest
   @Test
   public void testLoadRepositories_trimExistingConfiguredRepositories_caseInsensitive() throws Exception {
     // given a mock SCM server is configured
-    mockRepoForPage(gitService, 0, getResourceAsString(PAGE_0));
     mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
 
     // then loading repositories returns the trimmed results (i.e. not including the already configured one)
     SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
@@ -303,13 +303,13 @@ public class ScmOnboardingServiceTest
 
   @Test
   public void testLoadRepositories_sanitizeCloneUrls() throws Exception {
-    String page0 = getResourceAsString(PAGE_0);
-    mockRepoForPage(gitService, 0, page0);
-    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+    String page1 = getResourceAsString(PAGE_1);
+    mockRepoForPage(gitService, 1, page1);
+    mockRepoForPage(gitService, 2, getResourceAsString(PAGE_2));
 
     // given the raw data contains urls with embedded information
-    assertThat(page0).contains("https://admin:admin123@localhost/depshield-ci/create-react-app.git");
-    assertThat(page0).contains("https://admin@localhost/sonatype-nexus-community/nexus-repository-p2.git");
+    assertThat(page1).contains("https://admin:admin123@localhost/depshield-ci/create-react-app.git");
+    assertThat(page1).contains("https://admin@localhost/sonatype-nexus-community/nexus-repository-p2.git");
 
     // then the repository listing will strip out this embedded information to ensure it doesn't leak
     SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
@@ -329,8 +329,8 @@ public class ScmOnboardingServiceTest
   public void testLoadRepositories_setDefaultBranchWithStandardValue_forEmptyStringAndNull() throws Exception {
     // given we receive a list of repos with some having empty default branch
     String emptyRepos = getResourceAsString(LIST_WITH_EMPTY_REPOS);
-    mockRepoForPage(gitService, 0, emptyRepos);
-    mockRepoForPage(gitService, 1, "[]");
+    mockRepoForPage(gitService, 1, emptyRepos);
+    mockRepoForPage(gitService, 2, "[]");
 
     // when we get the list of repositories
     SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());

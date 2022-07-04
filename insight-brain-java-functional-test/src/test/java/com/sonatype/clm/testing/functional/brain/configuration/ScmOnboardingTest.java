@@ -122,8 +122,8 @@ public class ScmOnboardingTest
   }
 
   private void setupMockRepos() throws IOException {
-    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/allRepos0.json"));
-    mockRepoForPage(1, EMPTY_JSON_ARRAY);
+    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/allRepos0.json"));
+    mockRepoForPage(2, EMPTY_JSON_ARRAY);
   }
 
   private void setupSourceControl() {
@@ -504,7 +504,7 @@ public class ScmOnboardingTest
   @Test
   public void testPopulatesRepositories_noAvailableRepositories() throws Exception {
     // given an SCM without git repos
-    mockRepoForPage(0, EMPTY_JSON_ARRAY);
+    mockRepoForPage(1, EMPTY_JSON_ARRAY);
     setupSourceControl();
 
     // given SCM onboarding page with a selected organization
@@ -535,8 +535,8 @@ public class ScmOnboardingTest
             "ssh_url", "git@host" + repoUrl)
         )
     );
-    mockRepoForPage(0, json);
-    mockRepoForPage(1, EMPTY_JSON_ARRAY);
+    mockRepoForPage(1, json);
+    mockRepoForPage(2, EMPTY_JSON_ARRAY);
     setupOrgSourceControl();
     setupAppSourceControl(repoUrl);
 
@@ -614,8 +614,8 @@ public class ScmOnboardingTest
   @Test
   public void testSelection_resetAfterPageFlip() throws Exception {
     // given an SCM with enough git repos to require pagination
-    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
-    mockRepoForPage(1, EMPTY_JSON_ARRAY);
+    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
+    mockRepoForPage(2, EMPTY_JSON_ARRAY);
     setupSourceControl();
 
     // given SCM onboarding page with a selected organization
@@ -729,8 +729,8 @@ public class ScmOnboardingTest
   @Test
   public void testSelectAndImport_error() throws Exception {
     // given an SCM with git repos but with bad URLs
-    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/reposWithErrors.json"));
-    mockRepoForPage(1, EMPTY_JSON_ARRAY);
+    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/reposWithErrors.json"));
+    mockRepoForPage(2, EMPTY_JSON_ARRAY);
     setupSourceControl();
 
     // given SCM onboarding page with a selected organization
@@ -773,8 +773,8 @@ public class ScmOnboardingTest
   @Test
   public void testSelectAndImport_successAndError() throws Exception {
     // given an SCM with git repos but with bad URLs
-    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/reposWithErrors.json"));
-    mockRepoForPage(1, EMPTY_JSON_ARRAY);
+    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/reposWithErrors.json"));
+    mockRepoForPage(2, EMPTY_JSON_ARRAY);
     setupSourceControl();
 
     // given SCM onboarding page with a selected organization
@@ -923,8 +923,8 @@ public class ScmOnboardingTest
   public void testSort() throws Exception {
     // given an SCM with git repos that start unsorted
     setupSourceControl();
-    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
-    mockRepoForPage(1, EMPTY_JSON_ARRAY);
+    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
+    mockRepoForPage(2, EMPTY_JSON_ARRAY);
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
@@ -1032,8 +1032,8 @@ public class ScmOnboardingTest
   public void testPagination() throws Exception {
     // given an SCM with git repos that are unsorted initially
     setupSourceControl();
-    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
-    mockRepoForPage(1, EMPTY_JSON_ARRAY);
+    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
+    mockRepoForPage(2, EMPTY_JSON_ARRAY);
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
@@ -1068,8 +1068,8 @@ public class ScmOnboardingTest
   public void testFiltersAndPagination() throws Exception {
     // given an SCM with git repos that are unsorted initially
     setupSourceControl();
-    mockRepoForPage(0, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
-    mockRepoForPage(1, EMPTY_JSON_ARRAY);
+    mockRepoForPage(1, getResourceAsString("/ScmOnboardingTest/mixedOrderRepos.json"));
+    mockRepoForPage(2, EMPTY_JSON_ARRAY);
 
     // given SCM onboarding page with a selected organization
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
@@ -1183,8 +1183,8 @@ public class ScmOnboardingTest
             "ssh_url", "git@host" + repoUrl)
         )
     );
-    mockRepoForPage(secondaryGitService, 0, json);
-    mockRepoForPage(secondaryGitService, 1, EMPTY_JSON_ARRAY);
+    mockRepoForPage(secondaryGitService, 1, json);
+    mockRepoForPage(secondaryGitService, 2, EMPTY_JSON_ARRAY);
 
     // given an org that overrides the token and uses the second git service
     Organization orgCustomHost = tempEntity.newOrganization("Custom Host");
@@ -1451,8 +1451,8 @@ public class ScmOnboardingTest
             "ssh_url", "git@host" + repoUrl)
         )
     );
-    mockRepoForPage(0, json);
-    mockRepoForPage(1, EMPTY_JSON_ARRAY);
+    mockRepoForPage(1, json);
+    mockRepoForPage(2, EMPTY_JSON_ARRAY);
     setupOrgSourceControl();
     setupAppSourceControl(repoUrl);
 
@@ -1606,8 +1606,8 @@ public class ScmOnboardingTest
             "ssh_url", "git@host/org/repo.git")
         )
     );
-    mockRepoForPage(secondaryGitService, 0, json);
-    mockRepoForPage(secondaryGitService, 1, EMPTY_JSON_ARRAY);
+    mockRepoForPage(secondaryGitService, 1, json);
+    mockRepoForPage(secondaryGitService, 2, EMPTY_JSON_ARRAY);
 
     // given an org that overrides the token and uses the second git service
     Organization orgCustomHost = tempEntity.newOrganization("Custom Host");

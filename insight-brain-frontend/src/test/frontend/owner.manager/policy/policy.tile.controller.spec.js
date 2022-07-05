@@ -7,8 +7,6 @@ import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import PolicyResourceMockData from 'TestRoot/owner.manager/mock.data/policy.resource.mock.data';
 import { mapStateToThis } from 'MainRoot/owner.manager/policy/policy.tile.controller';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
-import { actions as policyMonitoringActions } from 'MainRoot/OrgsAndPolicies/continuousMonitoring/policyMonitoringSlice';
-
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
 describe('policy.tile.controller', function () {
@@ -21,22 +19,12 @@ describe('policy.tile.controller', function () {
     })
   );
 
-  var vm, scope, $rootScope, $controller, stageTypeStoreDefer, EventNameConstant, CLMContextLocations;
+  var vm, scope, $rootScope, $controller, stageTypeStoreDefer;
 
-  beforeEach(inject(function (
-    _$rootScope_,
-    $injector,
-    $q,
-    _$controller_,
-    _$timeout_,
-    _CLMLocations_,
-    _CLMContextLocations_
-  ) {
+  beforeEach(inject(function (_$rootScope_, $injector, $q, _$controller_) {
     $rootScope = _$rootScope_;
     scope = $rootScope.$new();
     $controller = _$controller_;
-    CLMContextLocations = _CLMContextLocations_;
-    EventNameConstant = $injector.get('event.name.constant');
     stageTypeStoreDefer = $q.defer();
     spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
   }));
@@ -47,7 +35,6 @@ describe('policy.tile.controller', function () {
         router: { currentParams: { organizationId: 'org id', applicationPublicId: 'app id' } },
         productFeatures: {
           productFeatures: {
-            'policy-monitoring': true,
             'policy-grandfathering': true,
             enforcement: true,
             firewall: true,
@@ -72,17 +59,6 @@ describe('policy.tile.controller', function () {
               ],
             },
           },
-          policyMonitoring: {
-            loading: false,
-            loadError: null,
-            submitError: null,
-            isMonitoringSupported: false,
-            isGrandfatheringSupported: false,
-            policyMonitoringByOwner: [{ ownerName: 'name', policyMonitoring: { stageTypeId: 1 } }],
-            grandfatheringStatusMessage: 'message',
-            monitoredStage: { stageName: 'Develop', stageTypeId: 1 },
-            originalStage: { stageName: 'Build', stageTypeId: 2 },
-          },
           root: {
             selectedOwner: { name: 'name' },
             policiesByOwner: [{ ownerName: 'name', policies: [] }],
@@ -94,10 +70,8 @@ describe('policy.tile.controller', function () {
 
       expect(output.owner).toEqual({ name: 'name' });
       expect(output.ownerName).toBe('name');
-      expect(output.monitoredStage).toEqual({ stageName: 'Develop', stageTypeId: 1 });
       expect(output.isEnforcementSupported).toBeTrue();
       expect(output.isFirewallSupported).toBeTrue();
-      expect(output.isMonitoringSupported).toBeTrue();
       expect(output.policiesByOwner).toEqual([{ ownerName: 'name', policies: [] }]);
     });
   });
@@ -106,11 +80,6 @@ describe('policy.tile.controller', function () {
     it('subscribes to the redux store', () => {
       createController();
       expect(vm.unsubscribe).toBeDefined();
-    });
-
-    it('calls loadApplicablePolicyMonitoring', () => {
-      createController();
-      expect(vm.loadApplicablePolicyMonitoring).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -147,7 +116,6 @@ describe('policy.tile.controller', function () {
           ],
         },
       });
-      spyOn(policyMonitoringActions, 'loadApplicablePolicyMonitoring').and.returnValue({ payload: null });
       setPoliciesByOwnerSpy = spyOn(rootActions, 'setPoliciesByOwner').and.callThrough();
     });
 
@@ -322,40 +290,6 @@ describe('policy.tile.controller', function () {
       scope.$destroy();
       expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
     });
-  });
-
-  it('Reloads on broadcasted owner summary reload event', function () {
-    createController();
-    $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
-
-    expect(vm.loadApplicablePolicyMonitoring).toHaveBeenCalledTimes(2);
-  });
-
-  it('does not load the grandfathering configuration if not an application or organization', function () {
-    spyOn(CLMContextLocations, 'isApplication').and.returnValue(false);
-    spyOn(CLMContextLocations, 'isOrganization').and.returnValue(false);
-
-    createController();
-
-    expect(vm.loadApplicablePolicyMonitoring).toHaveBeenCalled();
-  });
-
-  it('loads and displays the grandfathering configuration for applications', function () {
-    spyOn(CLMContextLocations, 'isApplication').and.returnValue(true);
-    spyOn(CLMContextLocations, 'isOrganization').and.returnValue(false);
-
-    createController();
-
-    expect(vm.loadApplicablePolicyMonitoring).toHaveBeenCalled();
-  });
-
-  it('loads and displays the grandfathering configuration for organizations', function () {
-    spyOn(CLMContextLocations, 'isApplication').and.returnValue(false);
-    spyOn(CLMContextLocations, 'isOrganization').and.returnValue(true);
-
-    createController();
-
-    expect(vm.loadApplicablePolicyMonitoring).toHaveBeenCalled();
   });
 
   function createController() {

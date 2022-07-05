@@ -15,7 +15,7 @@ import {
   NxErrorAlert,
   NxLoadWrapper,
 } from '@sonatype/react-shared-components';
-import { actions } from './policyMonitoringSlice';
+import { actions } from '../policyMonitoringSlice';
 import {
   selectPolicyMonitoringLoadError,
   selectPolicyMonitoringLoading,
@@ -23,11 +23,11 @@ import {
   selectSelectedMonitoredStage,
   selectContinousMonitoringIsDirty,
   selectContinuousMonitoringSubmitMaskState,
-} from './policyMonitoringSelectors';
+} from '../policyMonitoringSelectors';
 import { selectCliStagesWithInheritOrNoMonitorOption } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import { selectIsMonitoringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
-export default function ContinuousMonitoring() {
+export default function ContinuousMonitoringEditor() {
   const dispatch = useDispatch();
   const loading = useSelector(selectPolicyMonitoringLoading);
   const loadError = useSelector(selectPolicyMonitoringLoadError);

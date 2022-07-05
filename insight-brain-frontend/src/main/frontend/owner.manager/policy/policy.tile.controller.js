@@ -5,14 +5,11 @@
  */
 import { prop } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
-import { actions } from 'MainRoot/OrgsAndPolicies/continuousMonitoring/policyMonitoringSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import {
-  selectIsMonitoringSupported,
   selectIsEnforcementSupported,
   selectIsFirewallSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectMonitoredStageFromActionStages } from 'MainRoot/OrgsAndPolicies/continuousMonitoring/policyMonitoringSelectors';
 import {
   selectSelectedOwner,
   selectPoliciesByOwner,
@@ -39,7 +36,6 @@ export default function PolicyTileController(
   vm.doLoad = doLoad;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
-    loadApplicablePolicyMonitoring: actions.loadApplicablePolicyMonitoring,
     loadActionStageTypes: stagesActions.loadActionStages,
     setPoliciesByOwner: rootActions.setPoliciesByOwner,
     loadApplicablePoliciesByOwner: rootActions.loadApplicablePoliciesByOwner,
@@ -63,11 +59,7 @@ export default function PolicyTileController(
 
   function doLoad() {
     vm.loading = true;
-    const promises = [
-      vm.loadApplicablePoliciesByOwner(),
-      vm.loadActionStageTypes(),
-      vm.loadApplicablePolicyMonitoring(),
-    ];
+    const promises = [vm.loadApplicablePoliciesByOwner(), vm.loadActionStageTypes()];
 
     $q.all(promises)
       .then(function (results) {
@@ -122,10 +114,8 @@ export default function PolicyTileController(
 export const mapStateToThis = (state) => ({
   owner: selectSelectedOwner(state),
   ownerName: selectSelectedOwnerName(state),
-  monitoredStage: selectMonitoredStageFromActionStages(state),
   isEnforcementSupported: selectIsEnforcementSupported(state),
   isFirewallSupported: selectIsFirewallSupported(state),
-  isMonitoringSupported: selectIsMonitoringSupported(state),
   policiesByOwner: selectPoliciesByOwner(state),
 });
 

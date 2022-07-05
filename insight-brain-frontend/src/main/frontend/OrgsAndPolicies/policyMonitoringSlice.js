@@ -9,8 +9,8 @@ import { curryN, isNil, pick, prop } from 'ramda';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getPolicyMonitoringUrl, getApplicablePolicyMonitoringUrl } from 'MainRoot/util/CLMLocation';
-import { selectOwnerProperties } from '../orgsAndPoliciesSelectors';
-import { selectPolicyMonitoringMonitoredStage } from './policyMonitoringSelectors';
+import { selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectPolicyMonitoringMonitoredStage } from 'MainRoot/OrgsAndPolicies/policyMonitoringSelectors';
 
 import { propSet } from 'MainRoot/util/jsUtil';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
@@ -31,6 +31,13 @@ export const initialState = {
   isDirty: false,
   submitMaskState: null,
 };
+
+const loadContinuousMonitoringSummaryTileInformation = createAsyncThunk(
+  `${REDUCER_NAME}/loadContinuousMonitoringSummaryTileInformation`,
+  (_, { dispatch }) => {
+    return Promise.all([dispatch(loadApplicablePolicyMonitoring()), dispatch(stagesActions.loadActionStages())]);
+  }
+);
 
 const loadApplicablePolicyMonitoring = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicablePolicyMonitoring`,
@@ -174,4 +181,5 @@ export const actions = {
   loadApplicablePolicyMonitoring,
   savePolicyMonitoring,
   removePolicyMonitoring,
+  loadContinuousMonitoringSummaryTileInformation,
 };

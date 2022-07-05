@@ -5,14 +5,16 @@
  */
 import { createSelector } from '@reduxjs/toolkit';
 import { prop } from 'ramda';
-import { selectOrgsAndPoliciesSlice } from '../orgsAndPoliciesSelectors';
+import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
 
-import { selectActionStageTypes, selectCliStagesWithInheritOrNoMonitorOption } from '../stagesSelectors';
+import { selectActionStageTypes, selectCliStagesWithInheritOrNoMonitorOption } from './stagesSelectors';
 
 import {
   createInheritOrNoMonitorOption,
   getMonitoredStage,
 } from 'MainRoot/owner.manager/utility/monitored.stage.service';
+import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
+import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const selectPolicyMonitoringSlice = createSelector(selectOrgsAndPoliciesSlice, prop('policyMonitoring'));
 export const selectPolicyMonitoringLoading = createSelector(selectPolicyMonitoringSlice, prop('loading'));
@@ -98,4 +100,8 @@ export const selectContinousMonitoringIsDirty = createSelector(selectPolicyMonit
 export const selectContinuousMonitoringSubmitMaskState = createSelector(
   selectPolicyMonitoringSlice,
   prop('submitMaskState')
+);
+
+export const selectPolicyMonitoringLinkParams = createSelector(selectRouterSlice, (router) =>
+  deriveEditRoute(router, 'monitor-policy')
 );

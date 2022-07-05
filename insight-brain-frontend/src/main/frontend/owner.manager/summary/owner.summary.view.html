@@ -322,29 +322,7 @@ class="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-
             </div>
           </div>
           <policy-grandfathering-tile></policy-grandfathering-tile>
-          <div class="iq-tile" id="owner-pill-continuous-monitoring">
-            <div class="iq-tile-header">
-              <div class="iq-tile-header__title">
-                <i class="fa fa-bank size-20px slate iq-tile-header__icon"></i>
-                <h2>Continuous monitoring</h2>
-              </div>
-            </div>
-            <div class="iq-tile-content">
-              <div class="iq-list" id="continuous-monitoring" ng-class="{'iq-list--clickable': vm.isMonitoringSupported}">
-                <div class="iq-list__item iq-list__item--empty" ng-if="!vm.isMonitoringSupported">
-                  Policy monitoring is not supported by your license
-                </div>
-                <ul ng-if="vm.isMonitoringSupported">
-                  <li class="iq-list__item" same-owner-edit-sref="monitor-policy">
-                    <i class="fa fa-chevron-right iq-pull-right" ng-if="vm.isMonitoringSupported"></i>
-                    <div class="test-list-item-title">
-                      {{vm.monitoredStage.stageName}}
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          <continuous-monitoring-summary-tile></continuous-monitoring-summary-tile>
           <proprietary-component-configuration-tile></proprietary-component-configuration-tile>
         </div>
       </div>

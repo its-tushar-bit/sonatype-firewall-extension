@@ -83,12 +83,13 @@ import categoryEditorTemplate from './category/category.editor.view.html';
 import appCategoryEditorTemplate from './category/application.category.editor.view.html';
 import SourceControlService from './source.control/source.control.service';
 import innerSourceRepositoryModule from './innersource.repository/module';
-import ContinuousMonitoring from 'MainRoot/OrgsAndPolicies/continuousMonitoring/ContinuousMonitoring';
+import ContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/ContinuousMonitoringEditor';
 import artifactoryRepositoryModule from './artifactory.repository/module';
 import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/componentLabels/CreateComponentLabel';
 import OwnerSummaryTilesContainerController from './summary/owner.summary.tiles.container.controller';
 import PolicyGrandfatheringTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PolicyGrandfatheringTile';
 import ProprietaryComponentConfigurationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ProprietaryComponentConfigurationTile';
+import ContinuousMonitoringSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ContinuousMonitoringSummaryTile';
 
 export default angular
   .module('owner.manager.module', [
@@ -170,8 +171,12 @@ export default angular
     'proprietaryComponentConfigurationTile',
     iqReact2Angular(ProprietaryComponentConfigurationTile, [], ['$ngRedux', '$state'])
   )
-  .component('continuousMonitoring', iqReact2Angular(ContinuousMonitoring, [], ['$ngRedux']))
+  .component('continuousMonitoring', iqReact2Angular(ContinuousMonitoringEditor, [], ['$ngRedux']))
   .component('createComponentLabel', iqReact2Angular(CreateComponentLabel, [], ['$ngRedux', '$state']))
+  .component(
+    'continuousMonitoringSummaryTile',
+    iqReact2Angular(ContinuousMonitoringSummaryTile, [], ['$ngRedux', '$state'])
+  )
   .config([
     '$stateProvider',
     function ($stateProvider) {

@@ -23,6 +23,7 @@ import LegalApplicationDetailsComponentRow from './LegalApplicationDetailsCompon
 import LegalApplicationDetailsFilterContainer from './filter/LegalApplicationDetailsFilterContainer';
 import { faFilter } from '@fortawesome/pro-solid-svg-icons';
 import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
+import { expandedProgressOptions } from 'MainRoot/legal/dashboard/legalDashboardConstants';
 
 export default function LegalApplicationDetailsPage(props) {
   const {
@@ -34,6 +35,7 @@ export default function LegalApplicationDetailsPage(props) {
     componentFilter,
     licenseFilter,
     filterSidebarOpen,
+    selected,
     toggleFilterSidebar,
     sort,
     $state,
@@ -57,7 +59,16 @@ export default function LegalApplicationDetailsPage(props) {
     uniq
   );
 
+  const licenseThreatGroups = getLicenseThreatGroupsFromComponents(components.filteredResults);
+
   const errorLoading = application.error || stageType.error;
+
+  const allOrNoFilterOptionsSelected = (selectedFilter, totalOptions) =>
+    selectedFilter.size === totalOptions || selectedFilter.size === 0;
+
+  const showDirtyAsterisk =
+    !allOrNoFilterOptionsSelected(selected.licenseThreatGroups, licenseThreatGroups.length) ||
+    !allOrNoFilterOptionsSelected(selected.progressOptions, expandedProgressOptions.length);
 
   const componentSortOrder = sort.column === 'component' ? sort.sortOrder : null;
   const licensesSortOrder = sort.column === 'licenses' ? sort.sortOrder : null;
@@ -95,11 +106,7 @@ export default function LegalApplicationDetailsPage(props) {
         retryHandler={() => loadApplication(applicationPublicId, stageTypeId)}
       >
         <MenuBarBackButton href={$state.href('legal.dashboard')} text="Back" />
-        {filterSidebarOpen && (
-          <LegalApplicationDetailsFilterContainer
-            licenseThreatGroups={getLicenseThreatGroupsFromComponents(components.filteredResults)}
-          />
-        )}
+        {filterSidebarOpen && <LegalApplicationDetailsFilterContainer licenseThreatGroups={licenseThreatGroups} />}
         <div className="nx-page-title">
           <h1 className="nx-h1">{application.name} Obligations</h1>
           <div className="nx-btn-bar">
@@ -125,7 +132,7 @@ export default function LegalApplicationDetailsPage(props) {
               <div className="nx-tile__actions">
                 <NxButton id="filter-toggle" className="btn" onClick={() => toggleFilterSidebar(!filterSidebarOpen)}>
                   <NxFontAwesomeIcon icon={faFilter} />
-                  <span>Filter</span>
+                  <span>Filter{showDirtyAsterisk && <span id="filter-toggle-dirty-asterisk">*</span>}</span>
                 </NxButton>
               </div>
             </header>
@@ -234,6 +241,10 @@ LegalApplicationDetailsPage.propTypes = {
   componentFilter: PropTypes.string,
   licenseFilter: PropTypes.string,
   filterSidebarOpen: PropTypes.bool,
+  selected: PropTypes.shape({
+    licenseThreatGroups: PropTypes.instanceOf(Set),
+    progressOptions: PropTypes.instanceOf(Set),
+  }),
   toggleFilterSidebar: PropTypes.func.isRequired,
   sort: PropTypes.shape({
     column: PropTypes.string,

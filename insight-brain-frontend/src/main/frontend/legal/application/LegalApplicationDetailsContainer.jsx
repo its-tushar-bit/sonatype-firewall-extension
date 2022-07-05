@@ -19,7 +19,16 @@ import {
 function mapStateToProps({ legalApplicationDetails, router }) {
   return {
     ...pick(
-      ['application', 'stageType', 'components', 'componentFilter', 'licenseFilter', 'sort', 'filterSidebarOpen'],
+      [
+        'application',
+        'stageType',
+        'components',
+        'componentFilter',
+        'licenseFilter',
+        'sort',
+        'filterSidebarOpen',
+        'selected',
+      ],
       legalApplicationDetails
     ),
     ...pick(['applicationPublicId', 'stageTypeId'], router.currentParams),

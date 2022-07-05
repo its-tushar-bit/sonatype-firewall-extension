@@ -28,6 +28,7 @@ describe('LegalApplicationDetailsContainer', function () {
         components: 'components',
         sort: 'sort',
         filterSidebarOpen: 'filterSidebarOpen',
+        selected: 'selected',
       },
       router: {
         currentParams: {
@@ -83,6 +84,7 @@ describe('LegalApplicationDetailsContainer', function () {
     expect(wrapper).toHaveProp('stageTypeId', 'develop');
     expect(wrapper).toHaveProp('sort', 'sort');
     expect(wrapper).toHaveProp('filterSidebarOpen', 'filterSidebarOpen');
+    expect(wrapper).toHaveProp('selected', 'selected');
   });
 
   it('correctly maps the action creators to the LegalApplicationDetailsContainer props', function () {

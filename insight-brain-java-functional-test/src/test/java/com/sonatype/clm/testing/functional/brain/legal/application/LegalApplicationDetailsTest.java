@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -199,7 +200,9 @@ public class LegalApplicationDetailsTest
   public void testFilterButton() {
     SelenideElement filterContainer = LegalApplicationDetailsPage.filterContainer();
     filterContainer.shouldNotBe(visible);
-    LegalApplicationDetailsPage.filterButton().click();
+    SelenideElement filterButton = LegalApplicationDetailsPage.filterButton();
+    filterButton.shouldHave(exactText("Filter"));
+    filterButton.click();
     filterContainer.shouldBe(visible);
     eyesWatcher.eyesCheck();
     final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
@@ -209,5 +212,6 @@ public class LegalApplicationDetailsTest
     componentTable.componentNames().shouldHaveSize(2);
     componentTable.licenses().get(0).shouldHave(text("Apache-2.0"));
     componentTable.licenses().get(1).shouldHave(text("BSD-3-Clause"));
+    filterButton.shouldHave(exactText("Filter*"));
   }
 }

@@ -38,6 +38,10 @@ describe('LegalApplicationDetailsPage', function () {
         error: null,
         loading: false,
       },
+      selected: {
+        licenseThreatGroups: new Set(),
+        progressOptions: new Set(),
+      },
       components: {
         filteredResults: [
           {
@@ -148,6 +152,35 @@ describe('LegalApplicationDetailsPage', function () {
   it('shows a filter button and calls toggleFilterSidebar when clicked', function () {
     const filterButton = getShallowComponent({ filterSidebarOpen: false }).find('#filter-toggle');
     expect(filterButton).toExist();
+    expect(filterButton).toHaveText('Filter');
+    filterButton.simulate('click');
+    expect(toggleFilterSidebarSpy).toHaveBeenCalledWith(true);
+  });
+
+  it('shows a dirty asterisk on the filter button when there are selected LTGs', function () {
+    const filterButton = getShallowComponent({
+      filterSidebarOpen: false,
+      selected: {
+        licenseThreatGroups: ['Liberal'],
+        progressOptions: [],
+      },
+    }).find('#filter-toggle');
+    expect(filterButton).toExist();
+    expect(filterButton).toHaveText('Filter*');
+    filterButton.simulate('click');
+    expect(toggleFilterSidebarSpy).toHaveBeenCalledWith(true);
+  });
+
+  it('shows a dirty asterisk on the filter button when there are selected progress options', function () {
+    const filterButton = getShallowComponent({
+      filterSidebarOpen: false,
+      selected: {
+        licenseThreatGroups: [],
+        progressOptions: ['Reviewed'],
+      },
+    }).find('#filter-toggle');
+    expect(filterButton).toExist();
+    expect(filterButton).toHaveText('Filter*');
     filterButton.simulate('click');
     expect(toggleFilterSidebarSpy).toHaveBeenCalledWith(true);
   });

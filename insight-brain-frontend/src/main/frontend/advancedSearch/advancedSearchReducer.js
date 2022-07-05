@@ -141,7 +141,8 @@ function queryFulfilled(payload, state) {
       searchResult: payload,
       queryError: null,
       searchedQuery: state.formState.currentQuery,
-      searchIncludedAllComponents: state.formState.isShowingAllComponentResults,
+      searchIncludedAllComponents:
+        state.formState.isToggleComponentResultsEnabled && state.formState.isShowingAllComponentResults,
     },
     viewState: {
       ...state.viewState,

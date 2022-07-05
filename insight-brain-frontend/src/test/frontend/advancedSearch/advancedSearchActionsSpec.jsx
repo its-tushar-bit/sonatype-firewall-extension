@@ -20,16 +20,14 @@ describe('advancedSearchActions', () => {
         formState: {
           currentQuery: 'testQuery',
           isShowingAllComponentResults: false,
+          isToggleComponentResultsEnabled: false,
+          searchIncludedAllComponents: false,
         },
       },
     };
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
     store = SpecUtil.mockReduxStore(mockState);
-    defaultSearchUrl = getAdvancedSearchUrl(
-      mockState.advancedSearch.formState.currentQuery,
-      0,
-      mockState.advancedSearch.formState.isShowingAllComponentResults
-    );
+    defaultSearchUrl = getAdvancedSearchUrl(mockState.advancedSearch.formState.currentQuery, 0, false);
   });
 
   describe('submit search', () => {
@@ -70,6 +68,76 @@ describe('advancedSearchActions', () => {
           type: ADVANCED_SEARCH_QUERY_FAILED,
           payload: 'error',
         });
+        done();
+      });
+    });
+
+    it('sets showAllComponents correctly when false', (done) => {
+      const mockResponse = { data: { searchQuery: 'testQuery' } };
+
+      mockState = {
+        advancedSearch: {
+          formState: {
+            currentQuery: 'testQuery',
+            isShowingAllComponentResults: true,
+            isToggleComponentResultsEnabled: false,
+            searchIncludedAllComponents: false,
+          },
+        },
+      };
+
+      store = SpecUtil.mockReduxStore(mockState);
+
+      const defaultSearchUrlWithAllComponents = getAdvancedSearchUrl(
+        mockState.advancedSearch.formState.currentQuery,
+        0,
+        true
+      );
+
+      mockAxiosCalls({
+        get: {
+          [defaultSearchUrl]: Promise.resolve(mockResponse),
+          [defaultSearchUrlWithAllComponents]: Promise.resolve(mockResponse),
+        },
+      });
+
+      store.dispatch(searchFormSubmit()).then(() => {
+        expect(axios.get).toHaveBeenCalledWith(defaultSearchUrl);
+        done();
+      });
+    });
+
+    it('sets showAllComponents correctly when true', (done) => {
+      const mockResponse = { data: { searchQuery: 'testQuery' } };
+
+      mockState = {
+        advancedSearch: {
+          formState: {
+            currentQuery: 'testQuery',
+            isShowingAllComponentResults: true,
+            isToggleComponentResultsEnabled: true,
+            searchIncludedAllComponents: false,
+          },
+        },
+      };
+
+      store = SpecUtil.mockReduxStore(mockState);
+
+      const defaultSearchUrlWithAllComponents = getAdvancedSearchUrl(
+        mockState.advancedSearch.formState.currentQuery,
+        0,
+        true
+      );
+
+      mockAxiosCalls({
+        get: {
+          [defaultSearchUrl]: Promise.resolve(mockResponse),
+          [defaultSearchUrlWithAllComponents]: Promise.resolve(mockResponse),
+        },
+      });
+
+      store.dispatch(searchFormSubmit()).then(() => {
+        expect(axios.get).toHaveBeenCalledWith(defaultSearchUrlWithAllComponents);
         done();
       });
     });

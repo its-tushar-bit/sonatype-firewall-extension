@@ -20,6 +20,7 @@ describe('advancedSearchReducer', () => {
         searchedQuery: '',
         searchIncludedAllComponents: false,
         isToggleComponentResultsEnabled: false,
+        isShowingAllComponentResults: false,
       },
     };
   });
@@ -53,12 +54,13 @@ describe('advancedSearchReducer', () => {
   });
 
   describe('ADVANCED_SEARCH_QUERY_FULFILLED', () => {
-    it('sets the payload as the new search result and modifies the appropriate flags and searched values', () => {
+    it('sets the payload as the search result with component flags set true and modifies the searched values', () => {
       const previousState = {
         formState: {
           ...mockState.formState,
           currentQuery: 'besto component',
           isShowingAllComponentResults: true,
+          isToggleComponentResultsEnabled: true,
         },
         viewState: {
           waitingSearchResponse: true,
@@ -74,6 +76,23 @@ describe('advancedSearchReducer', () => {
       expect(newState.formState.searchedQuery).toBe('besto component');
       expect(newState.formState.searchIncludedAllComponents).toBeTrue();
       expect(newState.viewState.waitingSearchResponse).toBeFalse();
+    });
+
+    it('sets searchIncludedAllComponents to false when isToggleComponentResults is false', () => {
+      const previousState = {
+        formState: {
+          ...mockState.formState,
+          isShowingAllComponentResults: true,
+          isToggleComponentResultsEnabled: false,
+        },
+      };
+
+      const newState = reducer(previousState, {
+        type: ADVANCED_SEARCH_QUERY_FULFILLED,
+        payload: { data: [] },
+      });
+
+      expect(newState.formState.searchIncludedAllComponents).toBeFalse();
     });
   });
 });

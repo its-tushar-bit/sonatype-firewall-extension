@@ -66,7 +66,7 @@ export function searchFormSubmit(pageIncrement) {
     const formState = getState().advancedSearch.formState;
     // If next or previous is not requested, request page 0. Requesting page 0 means, firing initial search.
     const page = pageIncrement ? formState.searchResult.page + pageIncrement : 0;
-    const showAllComponents = formState.isShowingAllComponentResults;
+    const showAllComponents = formState.isToggleComponentResultsEnabled && formState.isShowingAllComponentResults;
 
     dispatch(queryRequested());
 

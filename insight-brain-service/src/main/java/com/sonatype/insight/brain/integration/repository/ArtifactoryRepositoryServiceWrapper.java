@@ -15,6 +15,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -283,5 +284,16 @@ class ArtifactoryRepositoryServiceWrapper
 
     // Return the new repository manager instance ID from the updated hash record
     return repositoryManager.getInstanceId();
+  }
+
+  QuarantinedComponentReport getQuarantinedComponentReportUrl(
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      String pathname,
+      String clientUserAgent)
+  {
+    return repositoryService.getQuarantinedComponentReportUrl(
+        getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId), repositoryPublicId,
+        pathname, clientUserAgent);
   }
 }

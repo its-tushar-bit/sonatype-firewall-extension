@@ -21,7 +21,6 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
-import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
@@ -60,6 +59,11 @@ public class RepositoryResourceTest
   @Override
   protected HttpRequest enableRequest() {
     return restRequest().path(RepositoryResource.ENABLE_PATH);
+  }
+
+  @Override
+  protected HttpRequest quarantinedComponentReportUrlRequest() {
+    return restRequest().path(RepositoryResource.QUARANTINED_COMPONENT_REPORT_URL_PATH);
   }
 
   @Test
@@ -140,21 +144,6 @@ public class RepositoryResourceTest
     assertResponseStatus(204, response);
 
     assertThat(proprietaryComponentNamePatternDAO.getByFormat("npm")).isEmpty();
-  }
-
-  @Test
-  public void testGetQuarantinedComponentReportUrl() throws Exception {
-    final RepositoryManager repoManager = tempEntity.newRepositoryManager();
-    final Repository repository = tempEntity.newRepository(repoManager, "repo-repo");
-    tempEntity.newRepositoryComponent(repository.getId());
-
-    final HttpResponse response =
-        restRequest().path(RepositoryResource.QUARANTINED_COMPONENT_REPORT_URL_PATH)
-            .parameter(repoManager.getInstanceId(), repository.getPublicId(), "path").get();
-    assertResponseStatus(200, response);
-
-    assertThat(response.getBody(QuarantinedComponentReport.class).getReportUrl())
-        .matches("ui/links/repositories/quarantinedComponent/.+");
   }
 
   @Test

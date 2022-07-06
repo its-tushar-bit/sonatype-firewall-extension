@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration.repository;
 
 import java.util.Date;
 import java.util.List;
+
 import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
@@ -14,6 +15,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
@@ -40,6 +42,8 @@ public abstract class AbstractRepositoryResourceTest
   protected abstract HttpRequest quarantineRequest();
 
   protected abstract HttpRequest enableRequest();
+
+  protected abstract HttpRequest quarantinedComponentReportUrlRequest();
 
   @Test
   public void testSetEnabled_True() throws Exception {
@@ -317,5 +321,19 @@ public abstract class AbstractRepositoryResourceTest
     }).extracting(ProprietaryComponentNamePattern::getNamePattern).containsExactlyInAnyOrder("name1", "name2");
 
     assertThat(new RepositoryDAO().getByRepositoryManagerInstanceIdAndPublicId(repoManId, repoId)).isNull();
+  }
+
+  @Test
+  public void testGetQuarantinedComponentReportUrl() throws Exception {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repoManager, "repo-repo");
+    tempEntity.newRepositoryComponent(repository.getId());
+
+    HttpResponse response = quarantinedComponentReportUrlRequest()
+        .parameter(repoManager.getInstanceId(), repository.getPublicId(), "path").get();
+    assertResponseStatus(200, response);
+
+    assertThat(response.getBody(QuarantinedComponentReport.class).getReportUrl())
+        .matches("ui/links/repositories/quarantinedComponent/.+");
   }
 }

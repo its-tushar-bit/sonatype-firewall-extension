@@ -86,6 +86,10 @@ public class ArtifactoryRepositoryServiceWrapperTest
     wrapper.getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId, 0L, null);
     verify(artifactoryRepositoryService).getUnquarantinedComponents(repositoryManagerInstanceId, repositoryPublicId, 0L,
         null);
+
+    wrapper.getQuarantinedComponentReportUrl(repositoryManagerInstanceId, repositoryPublicId, "testPathname", null);
+    verify(artifactoryRepositoryService).getQuarantinedComponentReportUrl(repositoryManagerInstanceId,
+        repositoryPublicId, "testPathname", null);
   }
 
   @Test

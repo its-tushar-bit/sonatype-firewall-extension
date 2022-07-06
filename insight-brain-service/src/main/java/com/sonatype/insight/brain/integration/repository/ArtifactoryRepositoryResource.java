@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -58,6 +59,9 @@ public class ArtifactoryRepositoryResource
   static final String UNQUARANTINED_COMPONENTS_PATH = REPOSITORY_PATH + "components/unquarantined";
 
   static final String PROPRIETARY_NAMES = REPOSITORY_PATH + "proprietary/names";
+
+  static final String QUARANTINED_COMPONENT_REPORT_URL_PATH =
+      REPOSITORY_PATH + "components/{pathname: .+}/quarantinedComponentReportUrl";
 
   private final ArtifactoryRepositoryServiceWrapper repositoryService;
 
@@ -179,5 +183,22 @@ public class ArtifactoryRepositoryResource
   {
     repositoryService.addProprietaryComponentNames(repositoryManagerInstanceId, repositoryPublicId,
         proprietaryComponentNames);
+  }
+
+  /**
+   * @since 1.142
+   */
+  @GET
+  @Path(QUARANTINED_COMPONENT_REPORT_URL_PATH)
+  @Produces({MediaType.APPLICATION_JSON})
+  @Timed
+  public QuarantinedComponentReport getQuarantinedComponentReportUrl(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      @PathParam("pathname") String pathname,
+      @Context HttpServletRequest request)
+  {
+    return repositoryService.getQuarantinedComponentReportUrl(repositoryManagerInstanceId, repositoryPublicId, pathname,
+        DefaultHdsClient.getClientUserAgent(request));
   }
 }

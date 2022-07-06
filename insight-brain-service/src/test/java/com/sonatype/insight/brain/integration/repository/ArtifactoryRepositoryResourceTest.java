@@ -37,4 +37,9 @@ public class ArtifactoryRepositoryResourceTest
   protected HttpRequest enableRequest() {
     return restRequest().path(ArtifactoryRepositoryResource.ENABLE_PATH);
   }
+
+  @Override
+  protected HttpRequest quarantinedComponentReportUrlRequest() {
+    return restRequest().path(ArtifactoryRepositoryResource.QUARANTINED_COMPONENT_REPORT_URL_PATH);
+  }
 }

@@ -3,7 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer, { initialState, matcherTypes } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
+import reducer, { initialState } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
+
+import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+const { initialState: rscInitialState } = nxTextInputStateHelpers;
 
 describe('proprietary reducer', () => {
   describe('proprietary/removeMatcher', () => {
@@ -41,7 +44,7 @@ describe('proprietary reducer', () => {
       const { isDirty, localMatchers, currentConfig } = reducer(state, {
         type: 'proprietary/removeMatcher',
         payload: {
-          type: matcherTypes.PACKAGE,
+          type: 'Package',
           matcher: 'second',
         },
       });
@@ -101,7 +104,7 @@ describe('proprietary reducer', () => {
       const { isDirty, localMatchers, currentConfig } = reducer(state, {
         type: 'proprietary/addMatcher',
         payload: {
-          type: matcherTypes.PACKAGE,
+          type: 'Package',
           matcher: 'third',
         },
       });
@@ -135,61 +138,54 @@ describe('proprietary reducer', () => {
   });
 
   describe('proprietary/resetMatcher', () => {
-    it('resets packageMatcher, regexMatcher properties', () => {
+    it('resets matcherValue properties', () => {
       const state = Object.freeze({
-        packageMatcher: 'packageMatcher',
-        regexMatcher: 'regexMatcher',
+        matcherValue: 'matcherValue',
       });
 
-      const { packageMatcher, regexMatcher } = reducer(state, { type: 'proprietary/resetMatcher' });
+      const { matcherValue } = reducer(state, { type: 'proprietary/resetMatcher' });
 
-      expect(packageMatcher).toBe(initialState.packageMatcher);
-      expect(regexMatcher).toBe(initialState.regexMatcher);
+      expect(matcherValue).toBe(initialState.matcherValue);
     });
   });
 
   describe('proprietary/setMatcherType', () => {
-    it('resets packageMatcher, regexMatcher properties and sets matcherType', () => {
+    it('when matcherType changes - matcherValue left the same', () => {
       const state = Object.freeze({
-        packageMatcher: 'packageMatcher',
-        regexMatcher: 'regexMatcher',
-        matcherType: matcherTypes.REGEX,
+        matcherValue: rscInitialState('matcherValue'),
+        matcherType: 'Regular Expression',
+        localMatchers: [],
       });
 
-      const { packageMatcher, regexMatcher, matcherType } = reducer(state, {
+      const { matcherValue, matcherType } = reducer(state, {
         type: 'proprietary/setMatcherType',
-        payload: matcherTypes.PACKAGE,
+        payload: 'Package',
       });
 
-      expect(packageMatcher).toBe(initialState.packageMatcher);
-      expect(regexMatcher).toBe(initialState.regexMatcher);
-      expect(matcherType).toBe(matcherTypes.PACKAGE);
+      expect(matcherValue.value).toBe('matcherValue');
+      expect(matcherType).toBe('Package');
     });
   });
 
-  describe('proprietary/setMatcherPackageValue', () => {
-    it('sets packageMatcher property', () => {
-      const state = Object.freeze({ packageMatcher: 'packageMatcher' });
-
-      const { packageMatcher } = reducer(state, {
-        type: 'proprietary/setMatcherPackageValue',
-        payload: 'new value',
+  describe('proprietary/setMatcherValue', () => {
+    it('sets matcherValue property', () => {
+      const state = Object.freeze({
+        matcherValue: 'matcherValue',
+        localMatchers: [],
+        matcherType: 'Package',
       });
 
-      expect(packageMatcher).toBe('new value');
-    });
-  });
-
-  describe('proprietary/setMatcherRegexValue', () => {
-    it('sets regexMatcher property', () => {
-      const state = Object.freeze({ regexMatcher: 'regexMatcher' });
-
-      const { regexMatcher } = reducer(state, {
-        type: 'proprietary/setMatcherRegexValue',
-        payload: 'new value',
+      const { matcherValue } = reducer(state, {
+        type: 'proprietary/setMatcherValue',
+        payload: 'newValue',
       });
 
-      expect(regexMatcher).toBe('new value');
+      expect(matcherValue).toEqual({
+        isPristine: false,
+        trimmedValue: 'newValue',
+        validationErrors: null,
+        value: 'newValue',
+      });
     });
   });
 

@@ -18,7 +18,7 @@ public class ProprietaryConfigInheritedList
   }
 
   public SelenideElement ownerName() {
-    return child(".iq-list__title");
+    return child(".nx-h3");
   }
 
   public ProprietaryComponentMatcher inheritedMatcher(ProprietaryComponentMatcher.MatcherType type, String name) {
@@ -26,6 +26,6 @@ public class ProprietaryConfigInheritedList
   }
 
   public ElementsCollection inheritedMatchers() {
-    return children("ul", ".iq-list__item");
+    return children("ul", ".nx-list__item");
   }
 }

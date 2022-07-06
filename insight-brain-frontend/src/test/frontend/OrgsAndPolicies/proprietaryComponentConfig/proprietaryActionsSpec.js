@@ -132,7 +132,6 @@ describe('proprietaryActions', () => {
   });
 
   describe('saveProprietaryConfig', () => {
-    let noop;
     beforeEach(() => {
       spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({
         applicationPublicId: 'ownerId',
@@ -144,8 +143,6 @@ describe('proprietaryActions', () => {
         packages: ['first', 'second'],
         regexes: ['cuatro', 'cinco'],
       });
-
-      noop = jasmine.createSpy();
     });
 
     it('updates proprietary matchers successfully', (done) => {
@@ -162,14 +159,13 @@ describe('proprietaryActions', () => {
         },
       });
 
-      store.dispatch(actions.saveProprietaryConfig({ setPristine: noop })).then(() => {
+      store.dispatch(actions.saveProprietaryConfig()).then(() => {
         expect(axios.put).toHaveBeenCalledOnceWith('/rest/proprietary/application/ownerId', {
           id: 'f977bcf69fcb464b84837f643d8f93b7',
           ownerId: '6b365e8a8000449aa924f194a7ed0d27',
           packages: ['first', 'second'],
           regexes: ['cuatro', 'cinco'],
         });
-        expect(noop).toHaveBeenCalledTimes(1);
 
         const actions = store.getActions();
         expect(actions.length).toBe(2);
@@ -196,9 +192,8 @@ describe('proprietaryActions', () => {
         },
       });
 
-      store.dispatch(actions.saveProprietaryConfig({ setPristine: noop })).then(() => {
+      store.dispatch(actions.saveProprietaryConfig()).then(() => {
         expect(axios.put).toHaveBeenCalledTimes(1);
-        expect(noop).toHaveBeenCalledTimes(1);
 
         const actions = store.getActions();
 

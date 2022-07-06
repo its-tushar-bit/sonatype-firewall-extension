@@ -47,7 +47,6 @@ import PolicyEditorActionsDirective from './policy/policy.editor.actions.directi
 import PolicyEditorNotificationsDirective from './policy/policy.editor.notifications.directive';
 import PolicyEditorConstraintsDirective from './policy/policy.editor.constraints.directive';
 import MonitoredStageService from './utility/monitored.stage.service';
-import ProprietaryConfigEditorController from './policy/proprietary.config.editor.controller';
 import PolicyEditorNotificationsController from './policy/policy.editor.notifications.controller';
 import ConfigurationTileController from './repositories/repositories.configuration.tile.controller';
 import ChangeApplicationIdController from './summary/change.application.id.controller';
@@ -77,7 +76,6 @@ import repoSummaryTemplate from './repositories/repositories.summary.view.html';
 import accessEditorTemplate from './access/access.editor.view.html';
 import summaryViewTemplate from './summary/owner.summary.view.html';
 import policyEditorTemplate from './policy/policy.editor.view.html';
-import proprietaryEditorTemplate from './policy/proprietary.config.editor.view.html';
 import ltgEditorTemplate from './license.threat.group/license.threat.group.editor.view.html';
 import categoryEditorTemplate from './category/category.editor.view.html';
 import appCategoryEditorTemplate from './category/application.category.editor.view.html';
@@ -86,6 +84,7 @@ import innerSourceRepositoryModule from './innersource.repository/module';
 import ContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/ContinuousMonitoringEditor';
 import artifactoryRepositoryModule from './artifactory.repository/module';
 import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/componentLabels/CreateComponentLabel';
+import ProprietaryComponentConfiguration from 'MainRoot/OrgsAndPolicies/proprietaryComponentConfig/ProprietaryComponentConfiguration';
 import OwnerSummaryTilesContainerController from './summary/owner.summary.tiles.container.controller';
 import PolicyGrandfatheringTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PolicyGrandfatheringTile';
 import ProprietaryComponentConfigurationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ProprietaryComponentConfigurationTile';
@@ -142,7 +141,6 @@ export default angular
   .directive('policyEditorConstraints', PolicyEditorConstraintsDirective)
   .service('monitored.stage.service', MonitoredStageService)
   .service('notification.webhook.service', NotificationWebhookService)
-  .controller('proprietary.config.editor.controller', ProprietaryConfigEditorController)
   .controller('policy.editor.notifications.controller', PolicyEditorNotificationsController)
   .controller('repositories.configuration.tile.controller', ConfigurationTileController)
   .controller('change.application.id.controller', ChangeApplicationIdController)
@@ -173,6 +171,7 @@ export default angular
   )
   .component('continuousMonitoring', iqReact2Angular(ContinuousMonitoringEditor, [], ['$ngRedux']))
   .component('createComponentLabel', iqReact2Angular(CreateComponentLabel, [], ['$ngRedux', '$state']))
+  .component('proprietaryComponentConfiguration', iqReact2Angular(ProprietaryComponentConfiguration, [], ['$ngRedux']))
   .component(
     'continuousMonitoringSummaryTile',
     iqReact2Angular(ContinuousMonitoringSummaryTile, [], ['$ngRedux', '$state'])
@@ -384,12 +383,11 @@ export default angular
             url: '/proprietary',
             data: {
               title: ownerType.name + ' Proprietary Components',
+              isDirty: ['orgsAndPolicies', 'proprietary', 'isDirty'],
             },
             views: {
               '@management.edit': {
-                controller: 'proprietary.config.editor.controller',
-                controllerAs: 'vm',
-                template: proprietaryEditorTemplate,
+                component: 'proprietaryComponentConfiguration',
               },
             },
           })

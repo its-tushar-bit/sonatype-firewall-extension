@@ -12,11 +12,9 @@ import {
   selectLocalMatchers,
   selectProprietaryConfigs,
   selectCurrentConfigs,
-  selectPackageMatcher,
-  selectRegexMatcher,
+  selectMatcherValue,
   selectMatcherType,
 } from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
-import { matcherTypes } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 
 describe('proprietarySelectors', () => {
   let mockState;
@@ -67,9 +65,8 @@ describe('proprietarySelectors', () => {
               matcher: 'cinco',
             },
           ],
-          packageMatcher: 'packageMatcher value',
-          regexMatcher: 'regexMatcher value',
-          matcherType: matcherTypes.PACKAGE,
+          matcherValue: 'matcherValue value',
+          matcherType: 'Package',
         },
       },
     };
@@ -116,21 +113,15 @@ describe('proprietarySelectors', () => {
     });
   });
 
-  describe('selectRegexMatcher', () => {
-    it('returns regexMatcher', () => {
-      expect(selectRegexMatcher(mockState)).toBe('regexMatcher value');
-    });
-  });
-
-  describe('selectPackageMatcher', () => {
-    it('returns packageMatcher', () => {
-      expect(selectPackageMatcher(mockState)).toBe('packageMatcher value');
+  describe('selectMatcherValue', () => {
+    it('returns matcherValue', () => {
+      expect(selectMatcherValue(mockState)).toBe('matcherValue value');
     });
   });
 
   describe('selectMatcherType', () => {
     it('returns matcherType', () => {
-      expect(selectMatcherType(mockState)).toBe(matcherTypes.PACKAGE);
+      expect(selectMatcherType(mockState)).toBe('Package');
     });
   });
 

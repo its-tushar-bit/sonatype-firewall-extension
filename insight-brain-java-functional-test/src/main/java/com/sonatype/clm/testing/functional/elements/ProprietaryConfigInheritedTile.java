@@ -18,7 +18,7 @@ public class ProprietaryConfigInheritedTile
   private static final String CONFIG_HIERARCHY_SELECTOR = ".inherited-proprietary-component-matchers";
 
   public ProprietaryConfigInheritedTile() {
-    super("#proprietary-config-editor");
+    super();
   }
 
   public ProprietaryConfigInheritedList proprietaryConfigInheritedList(int num) {

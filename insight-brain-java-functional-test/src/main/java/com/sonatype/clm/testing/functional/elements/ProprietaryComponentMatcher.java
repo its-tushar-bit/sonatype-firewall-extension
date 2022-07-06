@@ -7,38 +7,41 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Selenide.$;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Selenide.$$;
 
 public class ProprietaryComponentMatcher
 {
-  private final String selector;
+  private SelenideElement listItem;
 
   public ProprietaryComponentMatcher(String rootSelector, MatcherType type, String name) {
-    this.selector =
-        rootSelector + " ul li[data-matcher-type^=\"" + type.name + "\"][data-matcher-value^=\"" + name + "\"]";
+    this.listItem = $$( rootSelector + " .nx-list__subtext")
+            .findBy(text(type.listValue)).parent().findAll(".nx-list__text").findBy(text(name)).parent();
   }
 
   public SelenideElement name() {
-    return $(createSelector(selector, "li", nthChild(0)));
+    return listItem;
   }
 
   public SelenideElement deleteButton() {
-    return $(createSelector(selector, "button"));
+    return listItem.find(".nx-btn--icon-only");
   }
 
   public enum MatcherType
   {
-    PACKAGE("Package", 0), REGEX("Regular Expression", 1);
-  
+    PACKAGE("Package"), REGEX("Regular Expression", "RegEx");
+
     public final String name;
-  
-    public final int dropdownIndex;
-  
-    MatcherType(String name, int dropdownIndex) {
+
+    public final String listValue;
+
+    MatcherType(String name, String listValue) {
       this.name = name;
-      this.dropdownIndex = dropdownIndex;
+      this.listValue = listValue;
+    }
+
+    MatcherType(String name) {
+      this(name, name);
     }
   }
 }

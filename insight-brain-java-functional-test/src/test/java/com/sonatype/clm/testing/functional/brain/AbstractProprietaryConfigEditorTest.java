@@ -9,11 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.Dropdown;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.PopoverViolations;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.ProprietaryConfigInheritedList;
 import com.sonatype.clm.testing.functional.elements.ProprietaryConfigInheritedTile;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -24,18 +25,20 @@ import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.codeborne.selenide.ElementsCollection;
+
 import static com.codeborne.selenide.CollectionCondition.texts;
+
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.attribute;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.clm.testing.functional.elements.ProprietaryComponentMatcher.MatcherType.PACKAGE;
-import static com.sonatype.clm.testing.functional.elements.ProprietaryComponentMatcher.MatcherType.REGEX;
-import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.DUPLICATE_PACKAGE_MESSAGE;
-import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.DUPLICATE_REGEX_MATCHER_MESSAGE;
+import static com.sonatype.clm.testing.functional.elements.ProprietaryComponentMatcher.MatcherType.*;
+import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.DUPLICATE_VALUE_MESSAGE;
+import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.BEGINNING_OR_ENDING_PERIOD_MESSAGE;
 import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.INVALID_PACKAGE_MESSAGE;
-import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.WILDCARD_PACKAGE_MESSAGE;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -70,63 +73,75 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     OwnerSummaryPage.proprietaryComponentMatchers().click();
     waitUntilUrl(ProprietaryConfigEditorPage.url(currentOwner));
 
-    Dropdown typeDropDown = ProprietaryConfigEditorPage.typeDropdown();
-    typeDropDown.selectedItem().shouldHave(text(PACKAGE.name)).click();
+    NxFormSelect typeDropDown = ProprietaryConfigEditorPage.typeDropdown();
+    typeDropDown.listItem(PACKAGE.ordinal()).shouldHave(text(PACKAGE.name));
     typeDropDown.listItems().shouldHave(texts("Package", "Regular Expression"));
-    typeDropDown.selectedItem().click();
+    typeDropDown.chooseOption(new Option(PACKAGE.ordinal(), PACKAGE.name));
 
     ProprietaryConfigEditorPage.matcherValue().shouldBe(empty);
-    ProprietaryConfigEditorPage.addButtton().shouldHave(DISABLED);
+    ProprietaryConfigEditorPage.addButton().shouldHave(attribute("disabled"));
+
     ProprietaryConfigEditorPage.updateButton().shouldHave(DISABLED);
+
+    //take focus off of the select to prevent the select options displayed
+    SidebarNavigation.productVersion().click();
+    
     eyesWatcher.eyesCheck();
 
     assertInheritanceSection();
 
     // make sure toggling dropdown clears input
     ProprietaryConfigEditorPage.matcherValue().val("com.package");
-    typeDropDown.selectedItem().click();
-    typeDropDown.listItem(REGEX.dropdownIndex).shouldHave(text(REGEX.name)).click();
+    typeDropDown.listItem(REGEX.ordinal()).shouldHave(text(REGEX.name));
+    typeDropDown.chooseOption(new Option(REGEX.ordinal(), REGEX.name));
     ProprietaryConfigEditorPage.matcherValue().val("com.regex");
-    typeDropDown.selectedItem().click();
-    typeDropDown.listItem(PACKAGE.dropdownIndex).shouldHave(text(PACKAGE.name)).click();
-    PopoverViolations.on(ProprietaryConfigEditorPage.matcherValue()).shouldNotExist();
+
+    typeDropDown.chooseOption(new Option(PACKAGE.ordinal(), PACKAGE.name));
+    ProprietaryConfigEditorPage.matcherInvalidMessage().shouldNotBe(visible);
 
     ProprietaryConfigEditorPage.localMatchers().shouldHave(texts("com.local"));
     ProprietaryConfigEditorPage.matcherValue().val("com.local");
-    ProprietaryConfigEditorPage.addButtton().shouldHave(DISABLED);
-    PopoverViolations.on(ProprietaryConfigEditorPage.matcherValue()).shouldShowError(DUPLICATE_PACKAGE_MESSAGE);
+    ProprietaryConfigEditorPage.addButton().shouldHave(attribute("disabled"));
+    ProprietaryConfigEditorPage.matcherInvalidMessage().shouldHave(text(DUPLICATE_VALUE_MESSAGE));
+
+    // check for beginning and ending periods
+    ProprietaryConfigEditorPage.matcherValue().val(".foo");
+    ProprietaryConfigEditorPage.matcherInvalidMessage().shouldBe(visible);
+    ProprietaryConfigEditorPage.matcherInvalidMessage().shouldHave(text(BEGINNING_OR_ENDING_PERIOD_MESSAGE));
+
+    ProprietaryConfigEditorPage.matcherValue().val("foo.");
+    ProprietaryConfigEditorPage.matcherInvalidMessage().shouldBe(visible);
+    ProprietaryConfigEditorPage.matcherInvalidMessage().shouldHave(text(BEGINNING_OR_ENDING_PERIOD_MESSAGE));
 
     // check warning clears
     ProprietaryConfigEditorPage.matcherValue().val("foo");
-    PopoverViolations.on(ProprietaryConfigEditorPage.matcherValue()).shouldNotExist();
+    ProprietaryConfigEditorPage.matcherInvalidMessage().shouldNotBe(visible);
     ProprietaryConfigEditorPage.localMatchers().shouldHave(texts("com.local"));
 
     // check the various validations
-    ProprietaryConfigEditorPage.matcherValue().val("!");
-    ProprietaryConfigEditorPage.addButtton().shouldHave(DISABLED);
-    PopoverViolations.on(ProprietaryConfigEditorPage.matcherValue())
-        .shouldShowError(INVALID_PACKAGE_MESSAGE);
+    ProprietaryConfigEditorPage.matcherValue().val("/");
+    ProprietaryConfigEditorPage.addButton().shouldHave(attribute("disabled"));
+    ProprietaryConfigEditorPage.matcherInvalidMessage().shouldBe(visible).shouldHave(text(INVALID_PACKAGE_MESSAGE));
 
-    ProprietaryConfigEditorPage.matcherValue().val("*.sonatype");
-    ProprietaryConfigEditorPage.addButtton().shouldHave(DISABLED);
-    PopoverViolations.on(ProprietaryConfigEditorPage.matcherValue()).shouldShowError(WILDCARD_PACKAGE_MESSAGE);
+    typeDropDown.listItem(REGEX.ordinal()).shouldHave(text(REGEX.name));
+    typeDropDown.chooseOption(new Option(REGEX.ordinal(), REGEX.name));
 
-    typeDropDown.selectedItem().click();
-    typeDropDown.listItem(REGEX.dropdownIndex).shouldHave(text(REGEX.name)).click();
-
-    // make sure the value is cleared
-    ProprietaryConfigEditorPage.matcherValue().shouldBe(empty);
-    PopoverViolations.on(ProprietaryConfigEditorPage.matcherValue()).shouldNotExist();
+    ProprietaryConfigEditorPage.matcherInvalidMessage().shouldNotBe(visible);
 
     ProprietaryConfigEditorPage.matcherValue().val("com.sonatype.*");
-    PopoverViolations.on(ProprietaryConfigEditorPage.matcherValue()).shouldNotExist();
-    ProprietaryConfigEditorPage.addButtton().shouldNotHave(DISABLED).click();
-    ProprietaryConfigEditorPage.addButtton().shouldHave(DISABLED);
-    ProprietaryConfigEditorPage.localMatchers().shouldHave(texts("com.local", "com.sonatype.* (regex)"));
+    ProprietaryConfigEditorPage.matcherInvalidMessage().shouldNotBe(visible);
+    ProprietaryConfigEditorPage.addButton().shouldNotHave(DISABLED).click();
+    ProprietaryConfigEditorPage.addButton().shouldHave(attribute("disabled"));
+
+    ElementsCollection localMatchers = ProprietaryConfigEditorPage.localMatchers();
+    localMatchers.get(0).shouldHave(text("com.local"));
+    localMatchers.get(0).shouldHave(text("Package"));
+    localMatchers.get(1).shouldHave(text("com.sonatype.*"));
+    localMatchers.get(1).shouldHave(text("RegEx"));
 
     ProprietaryConfigEditorPage.updateButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    
+
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(currentOwner.getId());
     assertThat(config.getPackages()).containsExactly("com.local");
     assertThat(config.getRegexes()).containsExactly("com.sonatype.*");
@@ -134,22 +149,23 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     ProprietaryConfigEditorPage.updateButton().shouldHave(DISABLED);
 
     // check validation for regex
+    typeDropDown.chooseOption(new Option(REGEX.ordinal(), REGEX.name));
     ProprietaryConfigEditorPage.matcherValue().val("com.sonatype.*");
-    ProprietaryConfigEditorPage.addButtton().shouldHave(DISABLED);
-    PopoverViolations.on(ProprietaryConfigEditorPage.matcherValue()).shouldShowError(DUPLICATE_REGEX_MATCHER_MESSAGE);
+    ProprietaryConfigEditorPage.addButton().shouldHave(attribute("disabled"));
+    ProprietaryConfigEditorPage.matcherInvalidMessage().shouldHave(text(DUPLICATE_VALUE_MESSAGE));
 
     // check warning clears
     ProprietaryConfigEditorPage.matcherValue().val("");
-    PopoverViolations.on(ProprietaryConfigEditorPage.matcherValue()).shouldNotExist();
-    
+    ProprietaryConfigEditorPage.matcherInvalidMessage().shouldBe(visible);
+
     // now remove them
     ProprietaryConfigEditorPage.localMatcher(PACKAGE, "com.local").deleteButton().click();
-    ProprietaryConfigEditorPage.localMatchers().shouldHave(texts("com.sonatype.* (regex)"));
+    ProprietaryConfigEditorPage.localMatchers().shouldHave(texts("com.sonatype.* Regex"));
 
     ProprietaryConfigEditorPage.localMatcher(REGEX, "com.sonatype.*").deleteButton().click();
-    ProprietaryConfigEditorPage.localMatchers().shouldHave(texts("No local matchers configured"));
+    ProprietaryConfigEditorPage.localMatchers().shouldHave(texts("No matchers configured"));
 
-    ProprietaryConfigEditorPage.addButtton().shouldHave(DISABLED);
+    ProprietaryConfigEditorPage.addButton().shouldHave(attribute("disabled"));
     ProprietaryConfigEditorPage.updateButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
 
@@ -171,8 +187,12 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
     list.ownerName().shouldBe(visible)
         .shouldHave(ProprietaryConfigInheritedTile.inheritedText(parentOwners.get(0).getName()));
-    list.inheritedMatchers().shouldHave(texts("com.inherited", ".*test\\.zip (regex)"));
-    list.inheritedMatcher(REGEX, ".*test\\.zip (regex)").deleteButton().shouldNot(exist);
+    list.inheritedMatchers().get(0).shouldHave(text(".*test\\.zip"));
+    list.inheritedMatchers().get(0).shouldHave(text("RegEx"));
+    list.inheritedMatchers().get(1).shouldHave(text("com.inherited"));
+    list.inheritedMatchers().get(1).shouldHave(text("Package"));
+
+    list.inheritedMatcher(REGEX, ".*test\\.zip").deleteButton().shouldNot(exist);
     list.inheritedMatcher(PACKAGE, "com.inherited").deleteButton().shouldNot(exist);
   }
 }

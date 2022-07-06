@@ -4,11 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen } from 'TestRoot/SpecUtil';
 import * as proprietarySelectors from 'MainRoot/OrgsAndPolicies/proprietarySelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/proprietarySlice';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import ProprietaryComponentConfigurationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ProprietaryComponentConfigurationTile';
+import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
 describe('ProprietaryComponentConfigurationTile', () => {
   let renderComponent;
@@ -65,14 +66,14 @@ describe('ProprietaryComponentConfigurationTile', () => {
     expect(screen.getByText('1 local, 1 inherited')).toBeVisible();
   });
 
-  it('navigates to edit proprietary component configuration page', () => {
+  it('renders link with href to edit proprietary component configuration page', () => {
+    spyOn(routerStateContext, 'useRouterState').and.returnValue({
+      href: jasmine.createSpy('href').and.returnValue('editPageHref'),
+    });
+
     renderComponent();
 
     const linkItem = screen.getByText('1 local');
-
-    fireEvent.click(linkItem);
-
-    // navigates to the edit page
-    expect(screen.getByText('Proprietary Component Configuration')).toBeVisible();
+    expect(linkItem.closest('a')).toHaveAttribute('href', 'editPageHref');
   });
 });

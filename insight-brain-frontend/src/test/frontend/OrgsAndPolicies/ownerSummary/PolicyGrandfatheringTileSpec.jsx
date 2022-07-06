@@ -4,11 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen } from 'TestRoot/SpecUtil';
 import PolicyGrandfatheringTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PolicyGrandfatheringTile';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as policyGrandfatheringSelectors from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
+import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
 describe('PolicyGrandfatheringTile', () => {
   let renderComponent, selectIsGrandfatheringSupportedSpy, selectLoadErrorSpy, selectLoadingSpy;
@@ -70,12 +71,14 @@ describe('PolicyGrandfatheringTile', () => {
     expect(screen.getByText('Policy Violation Grandfathering is not supported by your license')).toBeVisible();
   });
 
-  it('navigates to policy grandfathering configuration page', () => {
+  it('renders link with href to policy grandfathering configuration page', () => {
+    spyOn(routerStateContext, 'useRouterState').and.returnValue({
+      href: jasmine.createSpy('href').and.returnValue('editPageHref'),
+    });
     renderComponent();
 
     const linkItem = screen.getByText('Grandfathering is enabled');
-    fireEvent.click(linkItem);
 
-    expect(screen.getByText('Policy Violation Grandfathering')).toBeVisible();
+    expect(linkItem.closest('a')).toHaveAttribute('href', 'editPageHref');
   });
 });

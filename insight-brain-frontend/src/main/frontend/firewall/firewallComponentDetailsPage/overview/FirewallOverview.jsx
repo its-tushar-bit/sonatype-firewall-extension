@@ -26,6 +26,7 @@ export default function FirewallOverview() {
   const currentVersionComparisonData = useSelector(selectCurrentVersionComparisonData);
   const selectedVersionComparisonData = useSelector(selectSelectedVersionComparisonData);
   const dispatch = useDispatch();
+  const selectedVersionData = useSelector(selectSelectedVersionData);
 
   return (
     <Fragment>
@@ -37,7 +38,7 @@ export default function FirewallOverview() {
           routeName=""
           componentInformation={{}}
           versionExplorerData={versionExplorerData}
-          selectedVersionData={useSelector(selectSelectedVersionData)}
+          selectedVersionData={selectedVersionData}
           loadVersionExplorerData={() => dispatch(actions.firewallLoadVersionExplorerData())}
           loadSelectedVersionData={(version) => dispatch(actions.firewallLoadSelectedVersionData(version))}
           currentVersionComparisonData={currentVersionComparisonData}

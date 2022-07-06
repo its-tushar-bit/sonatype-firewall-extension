@@ -484,7 +484,7 @@ function loadComponentDetailsFulfilled(payload, state) {
     cdp: {
       ...state.cdp,
       isLoadingComponentDetails: false,
-      componentDetails: payload,
+      componentDetails: { ...state.cdp.componentDetails, ...payload },
       componentDetailsError: null,
     },
   };
@@ -496,7 +496,6 @@ function loadComponentDetailsFailed(payload, state) {
     cdp: {
       ...state.cdp,
       isLoadingComponentDetails: false,
-      componentDetails: null,
       componentDetailsError: payload,
     },
   };

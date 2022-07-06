@@ -317,9 +317,7 @@ export function loadComponentDetails(componentDetailsParams) {
 
     return axios
       .get(getComponentDetailsUrl(requestParams))
-      .then(({ data }) => {
-        dispatch(loadComponentDetailsFulfilled(data));
-      })
+      .then(({ data }) => dispatch(loadComponentDetailsFulfilled(data)))
       .catch((error) => {
         dispatch(loadComponentDetailsFailed(Messages.getHttpErrorMessage(error)));
       });

@@ -89,4 +89,8 @@ public class FirewallCDPPage
   public SelenideElement getComponentCoordinatesPopOverCloseBtn() {
     return child("#iq-component-coordinates-popover-close-btn");
   }
+
+  public SelenideElement getNextVersionInVersionExplorer() {
+    return child("#aiVersionChartViz > svg > g > g:nth-child(24) > g:nth-child(1) > rect:nth-child(2)");
+  }
 }

@@ -14,6 +14,7 @@ import {
   getComponentDetailsUrl,
   getInnerSourceComponentLatestVersionUrl,
   getVersionGraphUrl,
+  getPolicyEvaluationTimestampUrl,
 } from 'MainRoot/util/CLMLocation';
 
 describe('componentDetailsOverviewActions', () => {
@@ -300,11 +301,14 @@ describe('componentDetailsOverviewActions', () => {
 
     it('loads component details and versions data and dispatches fulfilled action with all the data', (done) => {
       const versionExplorerData = {};
-      const componentDetails = {};
+      const componentDetails = {
+        policyEvaluationTimestamps: {},
+      };
       mockAxiosCalls({
         get: {
           [getVersionGraphUrl({})]: Promise.resolve({ data: versionExplorerData }),
           [getComponentDetailsUrl({})]: Promise.resolve({ data: componentDetails }),
+          [getPolicyEvaluationTimestampUrl()]: Promise.resolve({ data: componentDetails.policyEvaluationTimestamps }),
         },
       });
 
@@ -318,7 +322,7 @@ describe('componentDetailsOverviewActions', () => {
 
         const fulfilledPayload = actions[1].payload;
         expect(fulfilledPayload.componentVersionsData).toBe(versionExplorerData);
-        expect(fulfilledPayload.currentVersionDetails).toBe(componentDetails);
+        expect(fulfilledPayload.currentVersionDetails).toEqual(componentDetails);
 
         done();
       });

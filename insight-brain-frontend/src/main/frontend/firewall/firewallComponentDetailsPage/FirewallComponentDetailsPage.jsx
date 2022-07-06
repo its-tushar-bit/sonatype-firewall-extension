@@ -87,6 +87,7 @@ FirewallComponentDetailPage.propTypes = {
     identificationSource: PropTypes.string,
     scanId: PropTypes.string,
     tabId: PropTypes.string.isRequired,
+    componentIdentifier: PropTypes.string.isRequired,
   }).isRequired,
   CDPResponseState: PropTypes.shape({
     componentDetails: PropTypes.object,

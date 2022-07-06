@@ -16,13 +16,26 @@ import {
 import { faTrophy, faExclamationTriangle } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import { versionComparisonInfoPropType } from '../../componentDetailsUtils';
-import { formatTimeAgoUpToDay } from 'MainRoot/util/dateUtils';
+import { formatTimeAgoUpToDay, formatDate } from 'MainRoot/util/dateUtils';
 import { SECURITY, LICENSE, QUALITY, OTHER } from './policyThreatCategory';
 import { isEmpty } from 'ramda';
 
 export const CompareVersions = ({ currentVersion, selectedVersion, loading }) => {
   const showHygeneRating = currentVersion.hygieneRating || selectedVersion.hygieneRating;
   const showIntegrityRating = currentVersion.integrityRating || selectedVersion.integrityRating;
+
+  const customDateFormat = (date) => (date ? formatDate(date, 'YYYY-MM-DD HH:mm:ss') : '-');
+  const getUnquarantineStatusText = ({ unquarantineTime, autoUnquarantined }) => {
+    if (unquarantineTime) {
+      if (autoUnquarantined) {
+        return `Automatically on ${customDateFormat(unquarantineTime)}`;
+      } else {
+        return `Manually on ${customDateFormat(unquarantineTime)}`;
+      }
+    }
+    return '-';
+  };
+
   return (
     <section className="iq-compare-versions nx-grid-col__section">
       <header id="compare-versions-header" className="nx-grid-header">
@@ -121,6 +134,50 @@ export const CompareVersions = ({ currentVersion, selectedVersion, loading }) =>
                 (selectedVersion.catalogDate ? formatTimeAgoUpToDay(selectedVersion.catalogDate) : '-')}
             </NxTable.Cell>
           </NxTable.Row>
+
+          {currentVersion.policyEvaluationTimestamps && (
+            <>
+              <NxTable.Row id="firstPolicyEvaluationTime">
+                <NxTable.Cell>First Evaluation</NxTable.Cell>
+                <NxTable.Cell className="visual-testing-ignore">
+                  {customDateFormat(currentVersion.policyEvaluationTimestamps.firstPolicyEvaluationTime)}
+                </NxTable.Cell>
+                <NxTable.Cell className="visual-testing-ignore">
+                  {!isEmpty(selectedVersion) &&
+                    customDateFormat(selectedVersion.policyEvaluationTimestamps.firstPolicyEvaluationTime)}
+                </NxTable.Cell>
+              </NxTable.Row>
+              <NxTable.Row id="latestPolicyEvaluationTime">
+                <NxTable.Cell>Latest Evaluation</NxTable.Cell>
+                <NxTable.Cell className="visual-testing-ignore">
+                  {customDateFormat(currentVersion.policyEvaluationTimestamps.latestPolicyEvaluationTime)}
+                </NxTable.Cell>
+                <NxTable.Cell className="visual-testing-ignore">
+                  {!isEmpty(selectedVersion) &&
+                    customDateFormat(selectedVersion.policyEvaluationTimestamps.latestPolicyEvaluationTime)}
+                </NxTable.Cell>
+              </NxTable.Row>
+              <NxTable.Row id="quarantineTime">
+                <NxTable.Cell>Quarantined</NxTable.Cell>
+                <NxTable.Cell className="visual-testing-ignore">
+                  {customDateFormat(currentVersion.policyEvaluationTimestamps.quarantineTime)}
+                </NxTable.Cell>
+                <NxTable.Cell className="visual-testing-ignore">
+                  {!isEmpty(selectedVersion) &&
+                    customDateFormat(selectedVersion.policyEvaluationTimestamps.quarantineTime)}
+                </NxTable.Cell>
+              </NxTable.Row>
+              <NxTable.Row id="unquarantineTime">
+                <NxTable.Cell>Released from Quarantine</NxTable.Cell>
+                <NxTable.Cell className="visual-testing-ignore">
+                  {getUnquarantineStatusText(currentVersion.policyEvaluationTimestamps)}
+                </NxTable.Cell>
+                <NxTable.Cell className="visual-testing-ignore">
+                  {!isEmpty(selectedVersion) && getUnquarantineStatusText(selectedVersion.policyEvaluationTimestamps)}
+                </NxTable.Cell>
+              </NxTable.Row>
+            </>
+          )}
         </NxTable.Body>
       </NxTable>
     </section>

@@ -879,12 +879,14 @@ describe('firewallReducer', function () {
       let minimumState = {
         cdp: { isLoadingComponentDetails: true, componentDetails: null, componentDetailsError: null },
       };
-      expect(reduce(minimumState, { type: 'FIREWALL_COMPONENT_DETAILS_FULFILLED', payload: 'payload' })).toEqual({
+      expect(
+        reduce(minimumState, { type: 'FIREWALL_COMPONENT_DETAILS_FULFILLED', payload: { data: 'payload' } })
+      ).toEqual({
         ...minimumState,
         cdp: {
           ...minimumState.cdp,
           isLoadingComponentDetails: false,
-          componentDetails: 'payload',
+          componentDetails: { data: 'payload' },
           componentDetailsError: null,
         },
       });

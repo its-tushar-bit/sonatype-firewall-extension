@@ -749,6 +749,9 @@ export const getComponentDetailsUrl = ({
   return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${encodeURIComponent(ownerId)}?` + params;
 };
 
+export const getPolicyEvaluationTimestampUrl = (repositoryId, componentIdentifier) =>
+  uriTemplate`/rest/repositories/${repositoryId}/policyEvaluationTimestamps?componentIdentifier=${componentIdentifier}`;
+
 export const getVulnerabilitiesUrl = ({
   clientType,
   ownerType,

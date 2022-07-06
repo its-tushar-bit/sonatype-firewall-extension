@@ -884,4 +884,12 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getPermissionsTestUrl('ownerType', 'ownerId')).toEqual(expectedUrl);
     });
   });
+
+  describe('getPolicyEvaluationTimestampUrl', () => {
+    it('returns url to get component policy evaluation timestamps', () => {
+      const expectedUrl =
+        '/rest/repositories/repositoryId/policyEvaluationTimestamps?componentIdentifier=componentIdentifier';
+      expect(clmLocation.getPolicyEvaluationTimestampUrl('repositoryId', 'componentIdentifier')).toEqual(expectedUrl);
+    });
+  });
 });

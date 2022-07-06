@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -31,6 +34,7 @@ import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -77,6 +81,8 @@ public class FirewallCDPTest
     extends AbstractFunctionalTest
 {
   private final List<ComponentDetails> componentDetailsArrayList = new ArrayList<>();
+
+  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
   FirewallCDPPage firewallCDPPage = new FirewallCDPPage();
 
@@ -212,11 +218,13 @@ public class FirewallCDPTest
     return ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", version, "", "jar");
   }
 
-  private RepositoryComponent createRepositoryComponent(ComponentIdentifier componentIdentifier, Date quarantineTime) {
+  private RepositoryComponent createRepositoryComponent(
+      ComponentIdentifier componentIdentifier, Date lastEvaluationTime, Date quarantineTime)
+  {
     String componentVersion = componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION);
     return tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "com/lingocoder/abi.cli/" + componentVersion + "/abi.cli-" + componentVersion + ".jar", "hash",
-        componentIdentifier, date, quarantineTime);
+        componentIdentifier, lastEvaluationTime, quarantineTime);
   }
 
   private void policyViolationsTableSetup(
@@ -260,8 +268,8 @@ public class FirewallCDPTest
     componentDetailsArrayList.add(createComponentDetail(mainComponentIdentifier));
     componentDetailsArrayList.add(createComponentDetail(createComponentIdentifier("0.5.3")));
 
-    RepositoryComponent repositoryComponent = createRepositoryComponent(mainComponentIdentifier, date);
-    createRepositoryComponent(componentDetailsArrayList.get(1).getComponentIdentifier(), null);
+    RepositoryComponent repositoryComponent = createRepositoryComponent(mainComponentIdentifier, date, date);
+    createRepositoryComponent(componentDetailsArrayList.get(1).getComponentIdentifier(), date, null);
 
     riskRemediationSetup(componentDetailsArrayList);
     policyViolationsTableSetup(mainComponentIdentifier, repositoryComponent);
@@ -292,7 +300,6 @@ public class FirewallCDPTest
     refreshOrOpen(FirewallCDPPage.url(component));
     waitUntilSpinnersGone();
     firewallCDPPage.title().should(exist).shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
-    eyesWatcher.eyesCheck("Firewall component details page.");
   }
 
   @Test
@@ -384,7 +391,6 @@ public class FirewallCDPTest
     refreshOrOpen(FirewallCDPPage.url(component));
     waitUntilSpinnersGone();
 
-    eyesWatcher.eyesCheck();
     RiskRemediationTile riskRemediation = firewallCDPPage.getRiskRemediationTile();
     riskRemediation.compareVersionsTitle().shouldBe(visible).shouldHave(text("Compare Versions"));
     ScrollUtil.scrollIntoView(riskRemediation.compareVersionsTitle());
@@ -408,6 +414,122 @@ public class FirewallCDPTest
     table.highestOtherThreatRow().get(2).shouldBe(empty);
     table.catalogDateRow().get(1).shouldNotBe(empty);
     table.catalogDateRow().get(2).shouldBe(empty);
+  }
+
+  private String getDateString(Date date) {
+    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    dateFormat.setTimeZone(TimeZone.getDefault());
+    return dateFormat.format(date);
+  }
+
+  private RepositoryComponent setupAllUnquarantinedComponentTestData(
+      Date lastEvaluationTime, Date quarantineTime, Date unquarantineTime, Boolean autoUnquarantined)
+  {
+    ComponentIdentifier mainComponentIdentifier = createComponentIdentifier("0.5.2");
+    componentDetailsArrayList.add(createComponentDetail(mainComponentIdentifier));
+    ComponentIdentifier selectedComponentIdentifier = createComponentIdentifier("0.5.3");
+    componentDetailsArrayList.add(createComponentDetail(selectedComponentIdentifier));
+
+    RepositoryComponent repositoryComponent =
+        createRepositoryComponent(mainComponentIdentifier, lastEvaluationTime, quarantineTime);
+    RepositoryComponent selectedRepositoryComponent =
+        createRepositoryComponent(selectedComponentIdentifier, lastEvaluationTime, quarantineTime);
+
+    if (autoUnquarantined) {
+      repositoryComponent.setUnquarantineTimeForMonitoring(unquarantineTime);
+      selectedRepositoryComponent.setUnquarantineTimeForMonitoring(unquarantineTime);
+    }
+    else {
+      repositoryComponent.setUnquarantineTimeForManualRelease(unquarantineTime);
+      selectedRepositoryComponent.setUnquarantineTimeForManualRelease(unquarantineTime);
+    }
+
+    riskRemediationSetup(componentDetailsArrayList);
+    policyViolationsTableSetup(mainComponentIdentifier, repositoryComponent);
+    policyViolationsTableSetup(selectedComponentIdentifier, selectedRepositoryComponent);
+
+    repositoryComponentDAO.update(repositoryComponent);
+    repositoryComponentDAO.update(selectedRepositoryComponent);
+
+    return repositoryComponent;
+  }
+
+  private void testCompareVersionsValues_ForUnquarantinedComponent(
+      RepositoryComponent component,
+      String lastEvaluationTimeString,
+      String quarantineTimeString,
+      String unquarantineTimeString,
+      String unquarantineType)
+  {
+    refreshOrOpen(FirewallCDPPage.url(component));
+    waitUntilSpinnersGone();
+    firewallCDPPage.getNextVersionInVersionExplorer().click();
+    waitUntilSpinnersGone();
+
+    RiskRemediationTile riskRemediation = firewallCDPPage.getRiskRemediationTile();
+    riskRemediation.compareVersionsTitle().shouldBe(visible).shouldHave(text("Compare Versions"));
+    ScrollUtil.scrollIntoView(riskRemediation.compareVersionsTitle());
+    RiskRemediationTile.CompareVersionsTable table = riskRemediation.compareVersionsTable();
+    table.shouldBe(visible);
+    table.versionRow().get(1).shouldHave(text("0.5.2"));
+    table.versionRow().get(2).shouldHave(text("0.5.3"));
+    table.highestPolicyThreatRow().get(1).shouldHave(text("10 within 6 policies"));
+    table.highestPolicyThreatRow().get(2).shouldHave(text("5 within 2 policies"));
+    table.highestSecurityThreatRow().get(1).shouldHave(text("10"));
+    table.highestSecurityThreatRow().get(2).shouldHave(text("None"));
+    table.highestCvssScoreRow().get(1).shouldHave(text("9.1"));
+    table.highestCvssScoreRow().get(2).shouldHave(text("None"));
+    table.highestLicenseThreatRow().get(1).shouldHave(text("5"));
+    table.highestLicenseThreatRow().get(2).shouldHave(text("5"));
+    table.effectiveLicenseRow().get(1).shouldHave(text("MIT, GPL-1.0 Overridden"));
+    table.effectiveLicenseRow().get(2).shouldHave(text("Not Provided"));
+    table.highestQualityThreatRow().get(1).shouldHave(text("2"));
+    table.highestQualityThreatRow().get(2).shouldHave(text("None"));
+    table.highestOtherThreatRow().get(1).shouldHave(text("1"));
+    table.highestOtherThreatRow().get(2).shouldHave(text("1"));
+    table.catalogDateRow().get(1).shouldHave(text("Less than a day ago"));
+    table.catalogDateRow().get(2).shouldHave(text("-"));
+
+    table.firstEvaluationRow().get(1).shouldHave(text(lastEvaluationTimeString));
+    table.firstEvaluationRow().get(2).shouldHave(text(lastEvaluationTimeString));
+    table.latestEvaluationRow().get(1).shouldHave(text(lastEvaluationTimeString));
+    table.latestEvaluationRow().get(2).shouldHave(text(lastEvaluationTimeString));
+    table.quarantinedRow().get(1).shouldHave(text(quarantineTimeString));
+    table.quarantinedRow().get(2).shouldHave(text(quarantineTimeString));
+    table.releasedFromQuarantineRow().get(1).shouldHave(text(unquarantineType + " on " + unquarantineTimeString));
+    table.releasedFromQuarantineRow().get(2).shouldHave(text(unquarantineType + " on " + unquarantineTimeString));
+  }
+
+  @Test
+  public void testCompareVersionsTable_WithManuallyUnquarantinedComponent() {
+    createAllTypePolicies();
+    Date quarantineTime = date;
+    Date lastEvaluationTime = new Date(date.getTime() + 10000);
+    Date unquarantineTime = new Date(date.getTime() + 20000);
+    String unquarantineTimeString = getDateString(unquarantineTime);
+    String lastEvaluationTimeString = getDateString(lastEvaluationTime);
+    String quarantineTimeString = getDateString(quarantineTime);
+    eyesWatcher.eyesCheck(
+        "Firewall Component Details Page - Compare Versions table with a component manually released from quarantine");
+    RepositoryComponent component =
+        setupAllUnquarantinedComponentTestData(lastEvaluationTime, quarantineTime, unquarantineTime, false);
+    testCompareVersionsValues_ForUnquarantinedComponent(component, lastEvaluationTimeString, quarantineTimeString,
+        unquarantineTimeString, "Manually");
+  }
+
+  @Test
+  public void testCompareVersionsTable_WithAutoUnquarantinedComponent() {
+    createAllTypePolicies();
+    Date quarantineTime = date;
+    Date lastEvaluationTime = new Date(date.getTime() + 10000);
+    Date unquarantineTime = new Date(date.getTime() + 20000);
+    String unquarantineTimeString = getDateString(unquarantineTime);
+    String lastEvaluationTimeString = getDateString(lastEvaluationTime);
+    String quarantineTimeString = getDateString(quarantineTime);
+    RepositoryComponent component =
+        setupAllUnquarantinedComponentTestData(lastEvaluationTime, quarantineTime, unquarantineTime, true);
+    testCompareVersionsValues_ForUnquarantinedComponent(component, lastEvaluationTimeString, quarantineTimeString,
+        unquarantineTimeString, "Automatically");
   }
 
   private void testCompareButtons(int recommendationIndex) {

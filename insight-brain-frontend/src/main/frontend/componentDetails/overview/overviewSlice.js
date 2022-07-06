@@ -10,6 +10,7 @@ import {
   getComponentDetailsUrl,
   getApplicationReportsUrl,
   getInnerSourceComponentLatestVersionUrl,
+  getPolicyEvaluationTimestampUrl,
 } from '../../util/CLMLocation';
 import { BASE_URL } from '../../util/urlUtil';
 import { Messages } from '../../utilAngular/CommonServices';
@@ -219,12 +220,18 @@ const loadVersionExplorerData = createAsyncThunk(
 const loadVersionExplorerDataWithCancelToken = createAsyncThunk(
   `${REDUCER_NAME}/loadVersionExplorerDataWithCancelToken`,
   (cancelToken, { getState, rejectWithValue }) => {
+    const requestData = selectComponentDetailsRequestData(getState());
     const promises = [
       axios.get(getVersionGraphUrl(selectVersionExplorerRequestData(getState())), { cancelToken }),
-      axios.get(getComponentDetailsUrl(selectComponentDetailsRequestData(getState())), { cancelToken }),
+      axios.get(getComponentDetailsUrl(requestData), { cancelToken }),
     ];
 
-    return Promise.all(promises).then(versionExplorerDataAllPromisesHandler).catch(rejectWithValue);
+    return Promise.all(promises)
+      .then((results) => ({
+        componentVersionsData: results[0].data,
+        currentVersionDetails: results[1].data,
+      }))
+      .catch(rejectWithValue);
   }
 );
 
@@ -288,12 +295,6 @@ const openInnerSourceProducerReport = () => {
   };
 };
 
-const versionExplorerDataAllPromisesHandler = (results) => {
-  const componentVersionsData = results[0].data;
-  const currentVersionDetails = results[1].data;
-  return { componentVersionsData, currentVersionDetails };
-};
-
 /*
 Firewall Overview slices are almost the same as overview slices, the same structure on the store (componentDetailsOverview)
 and in some cases the same selectors and actions, the main difference between them is the absence of application report for 
@@ -328,12 +329,22 @@ const firewallLoadVersionExplorerData = createAsyncThunk(
 const firewallLoadVersionExplorerDataWithCancelToken = createAsyncThunk(
   `${REDUCER_NAME}/firewallLoadVersionExplorerDataWithCancelToken`,
   (cancelToken, { getState, rejectWithValue }) => {
+    const requestData = firewallSelectComponentDetailsRequestData(getState());
+
     const promises = [
-      axios.get(getVersionGraphUrl(firewallSelectVersionExplorerRequestData(getState())), { cancelToken }),
-      axios.get(getComponentDetailsUrl(firewallSelectComponentDetailsRequestData(getState())), { cancelToken }),
+      axios.get(getVersionGraphUrl(firewallSelectVersionExplorerRequestData(getState()), { cancelToken })),
+      axios.get(getComponentDetailsUrl(requestData), { cancelToken }),
+      axios.get(getPolicyEvaluationTimestampUrl(requestData.ownerId, requestData.componentIdentifier), {
+        cancelToken,
+      }),
     ];
 
-    return Promise.all(promises).then(versionExplorerDataAllPromisesHandler).catch(rejectWithValue);
+    return Promise.all(promises)
+      .then((results) => ({
+        componentVersionsData: results[0].data,
+        currentVersionDetails: { ...results[1].data, policyEvaluationTimestamps: results[2].data },
+      }))
+      .catch(rejectWithValue);
   }
 );
 
@@ -364,9 +375,16 @@ const firewallLoadSelectedVersionData = createAsyncThunk(
 const firewallLoadComponentDetailsByVerionsNumber = createAsyncThunk(
   `${REDUCER_NAME}/firewallLoadComponentDetailsByVerionsNumber`,
   (cancelToken, { getState, rejectWithValue }) => {
-    return axios
-      .get(getComponentDetailsUrl(firewallSelectComponentDetailsSelectedRequestData(getState())), { cancelToken })
-      .then(({ data }) => data)
+    const requestData = firewallSelectComponentDetailsSelectedRequestData(getState());
+    const promises = [
+      axios.get(getComponentDetailsUrl(requestData), { cancelToken }),
+      axios.get(getPolicyEvaluationTimestampUrl(requestData.ownerId, requestData.componentIdentifier), { cancelToken }),
+    ];
+
+    return Promise.all(promises)
+      .then((results) => {
+        return { ...results[0].data, policyEvaluationTimestamps: results[1].data };
+      })
       .catch(rejectWithValue);
   }
 );

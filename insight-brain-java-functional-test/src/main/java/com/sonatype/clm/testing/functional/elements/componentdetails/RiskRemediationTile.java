@@ -220,5 +220,21 @@ public class RiskRemediationTile
     public ElementsCollection catalogDateRow() {
       return children("#catalogDate .nx-cell");
     }
+
+    public ElementsCollection firstEvaluationRow() {
+      return children("#firstPolicyEvaluationTime .nx-cell");
+    }
+
+    public ElementsCollection latestEvaluationRow() {
+      return children("#latestPolicyEvaluationTime .nx-cell");
+    }
+
+    public ElementsCollection quarantinedRow() {
+      return children("#quarantineTime .nx-cell");
+    }
+
+    public ElementsCollection releasedFromQuarantineRow() {
+      return children("#unquarantineTime .nx-cell");
+    }
   }
 }

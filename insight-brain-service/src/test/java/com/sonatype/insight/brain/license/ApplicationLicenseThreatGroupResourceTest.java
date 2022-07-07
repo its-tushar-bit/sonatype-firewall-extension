@@ -60,20 +60,16 @@ public class ApplicationLicenseThreatGroupResourceTest
     assertThat(altgs.licenseThreatGroupsByOwner).hasSize(3);
     assertLicenseThreatGroupsByOwner(app.getId(), app.getName(), OwnerType.APPLICATION, 2,
         altgs.licenseThreatGroupsByOwner.get(0));
-    assertThat(altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups).allSatisfy(ltgwl -> {
-      assertThat(ltgwl.licenses).hasSize(1);
-    });
+    assertThat(altgs.licenseThreatGroupsByOwner.get(0).licenseThreatGroups)
+        .allSatisfy(ltgwl -> assertThat(ltgwl.licenses).hasSize(1));
     assertLicenseThreatGroupsByOwner(org.getId(), org.getName(), OwnerType.ORGANIZATION, 1,
         altgs.licenseThreatGroupsByOwner.get(1));
-    assertThat(altgs.licenseThreatGroupsByOwner.get(1).licenseThreatGroups).allSatisfy(ltgwl -> {
-      assertThat(ltgwl.licenses).hasSize(2);
-    });
+    assertThat(altgs.licenseThreatGroupsByOwner.get(1).licenseThreatGroups)
+        .allSatisfy(ltgwl -> assertThat(ltgwl.licenses).hasSize(2));
     assertLicenseThreatGroupsByOwner(parentOrg.getId(), parentOrg.getName(), OwnerType.ORGANIZATION,
         LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT + 1, altgs.licenseThreatGroupsByOwner.get(2));
     assertThat(altgs.licenseThreatGroupsByOwner.get(1).licenseThreatGroups)
-        .filteredOn(ltgwl -> ltgwl.name.startsWith("LTG-")).allSatisfy(ltgwl -> {
-          assertThat(ltgwl.licenses).hasSize(2);
-        });
+        .filteredOn(ltgwl -> ltgwl.name.startsWith("LTG-")).allSatisfy(ltgwl -> assertThat(ltgwl.licenses).hasSize(2));
   }
 
   @Test

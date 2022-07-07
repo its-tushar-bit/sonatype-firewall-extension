@@ -184,12 +184,10 @@ public class JiraPolicyAlertNotifierTest
     doThrow(ex).when(jiraClient).createIssue(any(JiraIssueCreateRequest.class), anyBoolean());
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> {
-      assertThat(logOutput).atErrorLevel()
-          .contains("Failed to create JIRA notification for JIRA project key " + projectKey + " and JIRA issue type id "
-              + issueTypeId + ". Failed for application " + application.getPublicId() + " and scan " + scanId
-              + " in stage " + stage.getStageTypeId(), ex);
-    });
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atErrorLevel()
+        .contains("Failed to create JIRA notification for JIRA project key " + projectKey + " and JIRA issue type id "
+            + issueTypeId + ". Failed for application " + application.getPublicId() + " and scan " + scanId
+            + " in stage " + stage.getStageTypeId(), ex));
   }
 
   @Test
@@ -212,12 +210,10 @@ public class JiraPolicyAlertNotifierTest
 
     jiraPolicyAlertNotifier.sendNotifications(application, scanId, stage, policyNotifications);
 
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> {
-      assertThat(logOutput).atDebugLevel()
-          .contains("Not sending JIRA notifications for application " + application.getPublicId() + " and scan "
-              + evaluation.getScanId() + " in stage " + evaluation.getStageTypeId()
-              + ", no JIRA projects configured for any violated policy");
-    });
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atDebugLevel()
+        .contains("Not sending JIRA notifications for application " + application.getPublicId() + " and scan "
+            + evaluation.getScanId() + " in stage " + evaluation.getStageTypeId()
+            + ", no JIRA projects configured for any violated policy"));
   }
 
   @Test
@@ -238,11 +234,10 @@ public class JiraPolicyAlertNotifierTest
 
     Application app = tempEntity.newApplicationWithParent();
 
-    assertThatThrownBy(() -> {
-      jiraPolicyAlertNotifier.createPolicyMailModel(app,
-          ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName()), "scanId",
-          new Stage(Stage.ID_BUILD), null, null);
-    }).isInstanceOf(IllegalStateException.class).hasMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+    assertThatThrownBy(() -> jiraPolicyAlertNotifier.createPolicyMailModel(app,
+        ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName()), "scanId",
+        new Stage(Stage.ID_BUILD), null, null))
+        .isInstanceOf(IllegalStateException.class).hasMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   @Test

@@ -102,9 +102,8 @@ public class ApiConfigFeaturesServiceTest
   @Test
   public void testEnableTransitive_solver_feature_AlreadyEnabled() {
     tempEntity.newSystemConfigurationProperty(TRANSITIVE_SOLVER_DISABLED, "true");
-    assertThatThrownBy(() -> {
-      service.enableFeature(FEATURE_TRANSITIVE_SOLVER);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+    assertThatThrownBy(() -> service.enableFeature(FEATURE_TRANSITIVE_SOLVER)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -116,9 +115,8 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testDisableTransitive_solver_feature_AlreadyDisabled() {
-    assertThatThrownBy(() -> {
-      service.disableFeature(FEATURE_TRANSITIVE_SOLVER);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+    assertThatThrownBy(() -> service.disableFeature(FEATURE_TRANSITIVE_SOLVER)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -130,9 +128,8 @@ public class ApiConfigFeaturesServiceTest
   @Test
   public void testDisableFeature_Dashboard_AlreadyDisabled() {
     tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
-    assertThatThrownBy(() -> {
-      service.disableFeature(FEATURE_DASHBOARD);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+    assertThatThrownBy(() -> service.disableFeature(FEATURE_DASHBOARD)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -144,9 +141,8 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testEnableFeature_Dashboard_AlreadyEnabled() {
-    assertThatThrownBy(() -> {
-      service.enableFeature(FEATURE_DASHBOARD);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+    assertThatThrownBy(() -> service.enableFeature(FEATURE_DASHBOARD)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -159,9 +155,8 @@ public class ApiConfigFeaturesServiceTest
   public void testDisableFeature_ReportsList_AlreadyDisabled() {
     tempEntity.newSystemConfigurationProperty(REPORTS_LIST_DISABLED, "true");
 
-    assertThatThrownBy(() -> {
-      service.disableFeature(FEATURE_REPORTS_LIST);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+    assertThatThrownBy(() -> service.disableFeature(FEATURE_REPORTS_LIST)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -173,9 +168,8 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testEnableFeature_ReportsList_AlreadyEnabled() {
-    assertThatThrownBy(() -> {
-      service.enableFeature(FEATURE_REPORTS_LIST);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+    assertThatThrownBy(() -> service.enableFeature(FEATURE_REPORTS_LIST)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
   }
 
   @Test
@@ -191,9 +185,9 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testDisableFeature_SecurityVulnerabilitySourcePolicyCondition_AlreadyDisabled() {
-    assertThatThrownBy(() -> {
-      service.disableFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+    assertThatThrownBy(
+        () -> service.disableFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 
   @Test
@@ -209,9 +203,9 @@ public class ApiConfigFeaturesServiceTest
     systemConfigurationPropertyDAO.delete(systemConfigurationPropertyDAO
         .getByName(SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED));
 
-    assertThatThrownBy(() -> {
-      service.enableFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+    assertThatThrownBy(
+        () -> service.enableFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 
   @Test

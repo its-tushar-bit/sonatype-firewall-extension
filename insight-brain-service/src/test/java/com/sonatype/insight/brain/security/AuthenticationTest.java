@@ -81,9 +81,8 @@ public class AuthenticationTest
     Error error = new OutOfMemoryError("Test");
     when(mockRealm.supports(any(AuthenticationToken.class))).thenThrow(new RuntimeException(error));
 
-    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(() -> {
-      subject.login(new UsernamePasswordToken("username", "password"));
-    });
+    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(
+        () -> subject.login(new UsernamePasswordToken("username", "password")));
     // The java.lang.Error must get to the handler for Errors,
     // which in a real system will (probably) terminate the JVM.
     assertThat(javaLangErrorHandler.getLastFatalError()).isEqualTo(error);

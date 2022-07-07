@@ -38,9 +38,8 @@ public class ScmOnboardingServiceAuthzTest
   public void testLoadRepositories_Authorized() throws Exception {
     grantAddApplicationPermission(org.getId());
 
-    assertThatThrownBy(() -> {
-      scmOnboardingService.loadRepositories(org.getId(), GITHUB_COM);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> scmOnboardingService.loadRepositories(org.getId(), GITHUB_COM))
+        .isInstanceOf(BadRequestException.class)
         .hasMessage("No provider configured");
   }
 

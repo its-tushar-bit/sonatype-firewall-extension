@@ -146,10 +146,8 @@ public class PolicyAlertScmNotifierTest
         buildPolicyNotifications(componentWithUnsupportedFormat));
 
     // then we see a message logged that the format is not supported
-    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-      assertThat(logOutput).atDebugLevel().contains(
-          "Format 'nuget: {packageId=foo, version=1.2.3}' is not supported for automatic remediation");
-    });
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> assertThat(logOutput).atDebugLevel().contains(
+        "Format 'nuget: {packageId=foo, version=1.2.3}' is not supported for automatic remediation"));
 
     // and the source control event service didn't publish an event
     verify(mockSourceControlEventPublisher, never()).publishEvent(any());
@@ -175,10 +173,8 @@ public class PolicyAlertScmNotifierTest
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
 
     // then we see a message logged that there are no remediations
-    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-      assertThat(logOutput).atDebugLevel().contains(
-          "No remediation options found for component [maven: {artifactId=Package1, groupId=groupid, version=1.2.3}]");
-    });
+    await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> assertThat(logOutput).atDebugLevel().contains(
+        "No remediation options found for component [maven: {artifactId=Package1, groupId=groupid, version=1.2.3}]"));
 
     // and the source control event service didn't have an event published to it
     verify(mockSourceControlEventPublisher, never()).publishEvent(any());

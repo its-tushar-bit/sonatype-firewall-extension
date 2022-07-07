@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -185,7 +186,7 @@ public class ApiCycloneDxServiceV2
   private static List<Component> createBomComponents(Version version, List<ApiReportComponentDTOV2> reportComponents) {
     Map<String, ApiReportComponentDTOV2> pathToComponent = new HashMap<>();
 
-    reportComponents.stream()
+    reportComponents
         .forEach(component -> component.pathnames.forEach(path -> pathToComponent.put(path, component)));
 
     LinkedHashMap<ApiReportComponentDTOV2, Set<ApiReportComponentDTOV2>> childToParents =
@@ -193,13 +194,12 @@ public class ApiCycloneDxServiceV2
 
     Map<ApiReportComponentDTOV2, Component> converted = new HashMap<>();
 
-    reportComponents.stream().forEach(component -> converted.put(component, createComponent(version, component)));
+    reportComponents.forEach(component -> converted.put(component, createComponent(version, component)));
 
-    childToParents.forEach((child, parents) -> {
-      parents.stream().filter(p -> p != null).forEach(parent -> {
-        converted.get(parent).addComponent(converted.get(child));
-      });
-    });
+    childToParents.forEach((child, parents) ->
+        parents.stream().filter(Objects::nonNull)
+            .forEach(parent -> converted.get(parent).addComponent(converted.get(child))
+            ));
 
     return childToParents.entrySet().stream().filter(e -> e.getValue().contains(null))
         .map(e -> converted.get(e.getKey())).collect(Collectors.toList());

@@ -40,9 +40,7 @@ public class PolicyEvaluationThreadPoolExecutorTest
     ThreadPoolExecutor threadPoolExecutor = new PolicyEvaluationThreadPoolExecutor();
 
     for (int i = 0; i < PolicyEvaluationThreadPoolExecutor.THREAD_POOL_SIZE; i++) {
-      threadPoolExecutor.submit(() -> {
-        sleep(5000);
-      });
+      threadPoolExecutor.submit(() -> sleep(5000));
     }
     assertThat(logOutput).atAnyLevel().doesNotContain("All policy evaluation threads are busy");
   }
@@ -51,9 +49,7 @@ public class PolicyEvaluationThreadPoolExecutorTest
   public void testWarningIsLoggedWhenThePoolIsExhausted() throws Exception {
     ThreadPoolExecutor threadPoolExecutor = new PolicyEvaluationThreadPoolExecutor();
     for (int i = 0; i < PolicyEvaluationThreadPoolExecutor.THREAD_POOL_SIZE + 1; i++) {
-      threadPoolExecutor.submit(() -> {
-        sleep(5000);
-      });
+      threadPoolExecutor.submit(() -> sleep(5000));
     }
     assertThat(logOutput).atWarnLevel()
         .contains("All policy evaluation threads are busy and there are 1 tasks waiting in the queue.");

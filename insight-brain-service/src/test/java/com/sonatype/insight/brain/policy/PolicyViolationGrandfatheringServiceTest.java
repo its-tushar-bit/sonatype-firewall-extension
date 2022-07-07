@@ -279,9 +279,8 @@ public class PolicyViolationGrandfatheringServiceTest
   @Test
   public void testGrandfather_MissingLicenseFeature() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      policyViolationGrandfatheringService.grandfather("APPID");
-    });
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
+        () -> policyViolationGrandfatheringService.grandfather("APPID"));
   }
 
   private void assertPolicyViolationGrandfatherTime(PolicyViolation policyViolation, Date before, Date after) {

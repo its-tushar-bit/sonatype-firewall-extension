@@ -240,17 +240,19 @@ public class ThirdPartyScanResultsProcessorTest
   @Test
   public void testHandle_ClairCorruptFile() throws Exception {
     File scanFile = getScanFile("scan-with-clair-scanner-data-corrupted.xml");
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null);
-    }).withMessage("Error reading/processing third party scan content from scan file");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(),
+            tempDir.getRoot(), null))
+        .withMessage("Error reading/processing third party scan content from scan file");
   }
 
   @Test
   public void testHandle_corruptSbomFile() throws Exception {
     File scanFile = getScanFile("sbom/scan-with-sbom-data-corrupted.xml");
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(), tempDir.getRoot(), null);
-    }).withMessage("Error reading/processing third party scan content from scan file");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempDir.newFile(),
+            tempDir.getRoot(), null))
+        .withMessage("Error reading/processing third party scan content from scan file");
   }
 
   @Test

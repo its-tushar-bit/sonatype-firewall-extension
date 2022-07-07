@@ -36,9 +36,7 @@ public class LandingResourceTest
   @Test
   @ManualServerInit
   public void testHome_NonEmptyContextPath() throws Exception {
-    initServer(config -> {
-      ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath("/testContext");
-    });
+    initServer(config -> ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath("/testContext"));
     assertThat(restRequest().getUrl()).contains("/testContext/");
 
     HttpResponse response = restRequest().anon().get();

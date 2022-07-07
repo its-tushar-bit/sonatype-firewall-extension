@@ -225,9 +225,10 @@ public class ThirdPartyComponentDAOTest
     String appId = "appId";
     when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      dao.getSecurityVulnerabilityDetailsByIdentifier(testData.get(hashGlibc), appId, scanId, referenceId);
-    }).withMessageContaining("Vulnerability with refid: " + referenceId + " not found.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(
+            () -> dao.getSecurityVulnerabilityDetailsByIdentifier(testData.get(hashGlibc), appId, scanId, referenceId))
+        .withMessageContaining("Vulnerability with refid: " + referenceId + " not found.");
   }
 
   @Test
@@ -256,9 +257,9 @@ public class ThirdPartyComponentDAOTest
     String appId = "appId";
     when(insightWork.getReportFile(appId, scanId)).thenReturn(reportZip);
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      dao.getVulnerabilityData(testData.get(hashGlibc), appId, scanId, referenceId);
-    }).withMessageContaining("Vulnerability with refid: " + referenceId + " not found.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> dao.getVulnerabilityData(testData.get(hashGlibc), appId, scanId, referenceId))
+        .withMessageContaining("Vulnerability with refid: " + referenceId + " not found.");
   }
 
   private void testGetComponentSummary(ComponentIdentifier identifier, boolean expected) {

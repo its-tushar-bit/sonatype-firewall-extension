@@ -135,9 +135,8 @@ public class SearchServiceTest
   public void testSearchIndex_TelemetryInvalidFieldNameCaptured() throws Exception {
     indexService.createSearchIndex();
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      searchService.searchIndex("invalidFieldName:value", 1, 0, false);
-    });
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> searchService.searchIndex("invalidFieldName:value", 1, 0, false));
 
     TelemetryData telemetryData = collectSearchTelemetry();
 

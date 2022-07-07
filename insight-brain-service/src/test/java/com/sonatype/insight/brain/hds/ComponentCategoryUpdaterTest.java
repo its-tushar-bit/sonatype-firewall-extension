@@ -44,9 +44,8 @@ public class ComponentCategoryUpdaterTest
     try {
       String newId = "New category id";
       ComponentCategoryDAO componentCategoryDAO = new ComponentCategoryDAO();
-      assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
-        componentCategoryDAO.getById(newId);
-      }).withMessageStartingWith("Could not retrieve component category data from Sonatype HDS:");
+      assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> componentCategoryDAO.getById(newId))
+          .withMessageStartingWith("Could not retrieve component category data from Sonatype HDS:");
     }
     finally {
       getHdsServer().start();

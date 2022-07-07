@@ -263,9 +263,8 @@ public class LabelServiceTest
     String appId = tempEntity.newApplicationWithParent().getId();
     ApiLabelDTO labelDTO = new ApiLabelDTO("Label Without Color", "Description", null);
 
-    assertThatThrownBy(() -> {
-      labelService.addLabel(OwnerType.APPLICATION, appId, labelDTO);
-    }).isInstanceOf(InvalidLabelException.class).hasMessage("The label color must be assigned.");
+    assertThatThrownBy(() -> labelService.addLabel(OwnerType.APPLICATION, appId, labelDTO))
+        .isInstanceOf(InvalidLabelException.class).hasMessage("The label color must be assigned.");
   }
 
   @Test
@@ -384,9 +383,8 @@ public class LabelServiceTest
   public void testDeleteLabel_LabelDoesNotExist() {
     Application app = tempEntity.newApplicationWithParent();
 
-    assertThatThrownBy(() -> {
-      labelService.deleteLabel(APPLICATION, app.getId(), "YettiId");
-    }).isInstanceOf(NotFoundException.class).hasMessage("Cannot find a label with ID YettiId.");
+    assertThatThrownBy(() -> labelService.deleteLabel(APPLICATION, app.getId(), "YettiId"))
+        .isInstanceOf(NotFoundException.class).hasMessage("Cannot find a label with ID YettiId.");
   }
 
   @Test
@@ -395,9 +393,8 @@ public class LabelServiceTest
     Label label = tempEntity.newLabel(appId);
     String otherAppId = tempEntity.newApplicationWithParent().getId();
 
-    assertThatThrownBy(() -> {
-      labelService.deleteLabel(OwnerType.APPLICATION, otherAppId, label.getId());
-    }).isInstanceOf(NotFoundException.class)
+    assertThatThrownBy(() -> labelService.deleteLabel(OwnerType.APPLICATION, otherAppId, label.getId()))
+        .isInstanceOf(NotFoundException.class)
         .hasMessage("Cannot find a label with ID " + label.getId() + " for application ID " + otherAppId);
   }
 
@@ -455,9 +452,9 @@ public class LabelServiceTest
     if (policyLocation != null) {
       expectedErrorMessage += " " + policyLocation;
     }
-    assertThatThrownBy(() -> {
-      labelService.deleteLabel(ownerType, ownerId, label.getId());
-    }).isInstanceOf(BadRequestException.class).hasMessage(expectedErrorMessage);
+    assertThatThrownBy(() -> labelService.deleteLabel(ownerType, ownerId, label.getId()))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage(expectedErrorMessage);
 
     assertThat(labelDAO.getById(label.getId())).isNotNull();
   }

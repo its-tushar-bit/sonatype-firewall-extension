@@ -28,9 +28,8 @@ public class ApplicableContextTest
   }
 
   private void assertSetTypeBad(final OwnerType ownerType) {
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      applicableContext.setType(ownerType);
-    }).withMessage("Unknown context type: " + ownerType);
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> applicableContext.setType(ownerType))
+        .withMessage("Unknown context type: " + ownerType);
   }
 
   @Test

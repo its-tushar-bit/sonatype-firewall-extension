@@ -99,9 +99,8 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.proceed()).thenReturn("test");
     when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyList())).thenReturn(false);
     when(subject.getPrincipal()).thenReturn(adminPrincipal());
-    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> {
-      interceptor.invoke(invoc);
-    }).withMessage("Insufficient permissions");
+    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> interceptor.invoke(invoc))
+        .withMessage("Insufficient permissions");
   }
 
   @Test
@@ -109,9 +108,8 @@ public class AuthorizeMethodInterceptorTest
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubNoContext", String.class));
     when(invoc.getArguments()).thenReturn(new Object[] { "test" });
     when(authzChecker.isPermitted(any(UserPrincipal.class), any(Permission.class), anyList())).thenReturn(true);
-    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() -> {
-      interceptor.invoke(invoc);
-    }).withMessage("Anonymous access forbidden");
+    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() -> interceptor.invoke(invoc))
+        .withMessage("Anonymous access forbidden");
   }
 
   private UserPrincipal adminPrincipal() {

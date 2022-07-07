@@ -161,9 +161,10 @@ public class SourceControlScanServiceAuditTest
         any(TelemetryData.class), any(String.class), eq(null))) //
             .thenThrow(new RuntimeException("test error"));
 
-    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
-      sourceControlScanService.doSynchronousSourceControlScan(app.getId(), new Stage(Stage.ID_BUILD), "testBranchName");
-    }).withMessage("test error");
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(
+            () -> sourceControlScanService.doSynchronousSourceControlScan(app.getId(), new Stage(Stage.ID_BUILD),
+                "testBranchName")).withMessage("test error");
 
     assertEvaluationAuditLog("server-error", app, Stage.ID_BUILD, null /* isReevaluation */);
   }

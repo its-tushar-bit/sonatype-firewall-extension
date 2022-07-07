@@ -227,9 +227,9 @@ public class PolicyEvaluateServiceTest
 
     // Verify that policy evaluation fails for a different app (doesn't own the scan).
     Application app1 = tempEntity.newApplicationWithParent();
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      policyEvaluateService.evaluate(app1.getPublicId(), scanId, stage, ScanTriggerType.CLI);
-    }).withMessage("Cannot find scan with ID " + scanId);
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> policyEvaluateService.evaluate(app1.getPublicId(), scanId, stage, ScanTriggerType.CLI))
+        .withMessage("Cannot find scan with ID " + scanId);
   }
 
   @Test
@@ -702,40 +702,40 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluateWithPolling_InvalidStage() {
-    assertThatExceptionOfType(InvalidStageException.class).isThrownBy(() -> {
-      policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
-          new Stage("invalidStage"));
-    }).withMessage("Invalid stage id=invalidStage");
+    assertThatExceptionOfType(InvalidStageException.class)
+        .isThrownBy(() -> policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(),
+            ClientScanType.SONATYPE, null, new Stage("invalidStage")))
+        .withMessage("Invalid stage id=invalidStage");
   }
 
   @Test
   public void testEvaluateWithPolling_StageNotLicensed() {
     productLicenseManager.setStageTypes(StageTypes.RELEASE);
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
-          new Stage("build"));
-    }).withMessage("Stage 'build' is not supported by your license.");
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(),
+            ClientScanType.SONATYPE, null, new Stage("build")))
+        .withMessage("Stage 'build' is not supported by your license.");
   }
 
   @Test
   public void testEvaluateWithPolling_FailsWithoutFeature() {
     productLicenseManager.setFeatures();
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      policyEvaluateService.evaluateWithPolling(IntegrationType.CI, app.getPublicId(), ClientScanType.SONATYPE, null,
-          new Stage(Stage.ID_BUILD));
-    }).withMessage("Your IQ Server license does not enable this feature.");
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> policyEvaluateService.evaluateWithPolling(IntegrationType.CI, app.getPublicId(),
+            ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD)))
+        .withMessage("Your IQ Server license does not enable this feature.");
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
-          new Stage(Stage.ID_BUILD));
-    }).withMessage("Your IQ Server license does not enable this feature.");
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(),
+            ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD)))
+        .withMessage("Your IQ Server license does not enable this feature.");
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      policyEvaluateService.evaluateWithPolling(IntegrationType.RM, app.getPublicId(), ClientScanType.SONATYPE, null,
-          new Stage(Stage.ID_BUILD));
-    }).withMessage("Your IQ Server license does not enable this feature.");
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> policyEvaluateService.evaluateWithPolling(IntegrationType.RM, app.getPublicId(),
+            ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD)))
+        .withMessage("Your IQ Server license does not enable this feature.");
   }
 
   @Test

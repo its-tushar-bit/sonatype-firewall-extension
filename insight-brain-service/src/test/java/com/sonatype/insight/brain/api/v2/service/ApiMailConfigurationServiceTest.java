@@ -68,9 +68,9 @@ public class ApiMailConfigurationServiceTest
 
   @Test
   public void testGetConfiguration_NoConfiguration() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      mailConfigurationService.getConfiguration();
-    }).withMessageContaining("Mail server not configured");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> mailConfigurationService.getConfiguration())
+        .withMessageContaining("Mail server not configured");
   }
 
   @Test
@@ -301,9 +301,9 @@ public class ApiMailConfigurationServiceTest
     configurationDTO.sslEnabled = true;
     configurationDTO.systemEmail = "nxiq@test";
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      mailConfigurationService.setConfiguration(configurationDTO);
-    }).withMessageContaining("The password must be provided when the hostname or port are updated");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> mailConfigurationService.setConfiguration(configurationDTO))
+        .withMessageContaining("The password must be provided when the hostname or port are updated");
 
     assertThat(configurationDTO.password).containsOnly('0');
 
@@ -338,9 +338,9 @@ public class ApiMailConfigurationServiceTest
     configurationDTO.sslEnabled = true;
     configurationDTO.systemEmail = "nxiq@test";
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      mailConfigurationService.setConfiguration(configurationDTO);
-    }).withMessageContaining("The password must be provided when the hostname or port are updated");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> mailConfigurationService.setConfiguration(configurationDTO))
+            .withMessageContaining("The password must be provided when the hostname or port are updated");
 
     assertThat(configurationDTO.password).containsOnly('0');
 
@@ -357,9 +357,9 @@ public class ApiMailConfigurationServiceTest
 
   @Test
   public void testSetConfiguration_NoConfigurationDTO() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      mailConfigurationService.setConfiguration(null);
-    }).withMessageContaining("No mail server configuration was provided");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> mailConfigurationService.setConfiguration(null))
+        .withMessageContaining("No mail server configuration was provided");
   }
 
   @Test
@@ -377,9 +377,9 @@ public class ApiMailConfigurationServiceTest
 
   @Test
   public void testDeleteConfiguration_NoConfiguration() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      mailConfigurationService.deleteConfiguration();
-    }).withMessageContaining("Mail server not configured");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> mailConfigurationService.deleteConfiguration())
+        .withMessageContaining("Mail server not configured");
   }
 
   @Test
@@ -447,9 +447,9 @@ public class ApiMailConfigurationServiceTest
     configurationDTO.passwordIsIncluded = false;
     configurationDTO.systemEmail = "noreply@localhost";
     String recipientEmail = "test@example.com";
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      mailConfigurationService.testConfiguration(recipientEmail, configurationDTO);
-    }).withMessageContaining("The password must be provided when the hostname or port are updated");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> mailConfigurationService.testConfiguration(recipientEmail, configurationDTO))
+        .withMessageContaining("The password must be provided when the hostname or port are updated");
 
     assertThat(configurationDTO.password).containsOnly('0');
   }
@@ -476,9 +476,9 @@ public class ApiMailConfigurationServiceTest
     configurationDTO.passwordIsIncluded = false;
     configurationDTO.systemEmail = "noreply@localhost";
     String recipientEmail = "test@example.com";
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      mailConfigurationService.testConfiguration(recipientEmail, configurationDTO);
-    }).withMessageContaining("The password must be provided when the hostname or port are updated");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> mailConfigurationService.testConfiguration(recipientEmail, configurationDTO))
+        .withMessageContaining("The password must be provided when the hostname or port are updated");
 
     assertThat(configurationDTO.password).containsOnly('0');
   }
@@ -561,9 +561,9 @@ public class ApiMailConfigurationServiceTest
     configurationDTO.password = "smtppass".toCharArray();
     configurationDTO.systemEmail = "noreply@localhost";
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      mailConfigurationService.testConfiguration("test@example.com", configurationDTO);
-    }).withMessage("The SMTP host is required.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> mailConfigurationService.testConfiguration("test@example.com", configurationDTO))
+        .withMessage("The SMTP host is required.");
     assertThat(configurationDTO.password).containsOnly('0');
   }
 
@@ -574,18 +574,17 @@ public class ApiMailConfigurationServiceTest
     configurationDTO.port = 58285;
     configurationDTO.systemEmail = "noreply@localhost";
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      mailConfigurationService.testConfiguration("test@example.com", configurationDTO);
-    }).withMessageContainingAll(
-        "Test mail configuration failed. Error ID",
-        DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> mailConfigurationService.testConfiguration("test@example.com", configurationDTO))
+        .withMessageContainingAll("Test mail configuration failed. Error ID",
+            DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   @Test
   public void testTestConfiguration_NoConfigurationDTO() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      mailConfigurationService.testConfiguration("test@example.com", null);
-    }).withMessage("No mail server configuration was provided.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> mailConfigurationService.testConfiguration("test@example.com", null))
+        .withMessage("No mail server configuration was provided.");
   }
 
   private void assertTestConfigurationEmail(

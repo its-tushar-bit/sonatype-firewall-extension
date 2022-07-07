@@ -94,18 +94,18 @@ public class SamlDeploymentManagerTest
   @Test
   public void testUpdateFromConfiguration_InvalidConfiguration() {
     tempEntity.newSamlConfiguration(null, null);
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      samlDeploymentManager.updateFromConfiguration();
-    }).withMessageContaining("Invalid SAML metadata");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> samlDeploymentManager.updateFromConfiguration())
+        .withMessageContaining("Invalid SAML metadata");
     assertThat(samlDeploymentManager.get()).isNull();
   }
 
   @Test
   public void testUpdateFromConfiguration_SigningKeyWithoutCertificate() {
     tempEntity.newSamlConfiguration(getSamlMetadata("no-certificate.xml"), null);
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      samlDeploymentManager.updateFromConfiguration();
-    }).withMessageContaining("SAML metadata for identity provider contains invalid certificate");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> samlDeploymentManager.updateFromConfiguration())
+        .withMessageContaining("SAML metadata for identity provider contains invalid certificate");
     assertThat(samlDeploymentManager.get()).isNull();
   }
 
@@ -238,9 +238,9 @@ public class SamlDeploymentManagerTest
   public void testUpdateFromConfiguration_NoSigningKeysButResponseSignatureValidationEnabled() {
     tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("no-signing-keys.xml"), "sp-entity-id",
         "firstName", "lastName", "email", "username", "groups", true, null);
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      samlDeploymentManager.updateFromConfiguration();
-    }).withMessageContaining("SAML metadata for identity provider misses signing key");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> samlDeploymentManager.updateFromConfiguration())
+        .withMessageContaining("SAML metadata for identity provider misses signing key");
     assertThat(samlDeploymentManager.get()).isNull();
   }
 
@@ -248,9 +248,9 @@ public class SamlDeploymentManagerTest
   public void testUpdateFromConfiguration_NoSigningKeysButAssertionSignatureValidationEnabled() {
     tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("no-signing-keys.xml"), "sp-entity-id",
         "firstName", "lastName", "email", "username", "groups", null, true);
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      samlDeploymentManager.updateFromConfiguration();
-    }).withMessageContaining("SAML metadata for identity provider misses signing key");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> samlDeploymentManager.updateFromConfiguration())
+        .withMessageContaining("SAML metadata for identity provider misses signing key");
     assertThat(samlDeploymentManager.get()).isNull();
   }
 

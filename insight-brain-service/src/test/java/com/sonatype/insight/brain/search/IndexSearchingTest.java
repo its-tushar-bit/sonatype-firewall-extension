@@ -327,9 +327,8 @@ public class IndexSearchingTest
   @Test
   public void testSearchByField_UnknownField() throws Exception {
     index();
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      search("unknownField:foobar");
-    }).withMessage("The search query contains invalid field names: [unknownField]");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> search("unknownField:foobar"))
+        .withMessage("The search query contains invalid field names: [unknownField]");
   }
 
   @Test

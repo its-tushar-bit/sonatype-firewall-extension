@@ -47,9 +47,9 @@ public class ExportEmbeddedDatabaseCommandTest
   public void testRun_SupportsOnlyEmbeddedDatabase() throws Exception {
     InsightConfig config = new InsightConfig();
     config.setDatabase(new DatabaseConfig());
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      new ExportEmbeddedDatabaseCommand().run(null, null, config);
-    }).withMessageContaining("can only be used when no external database is specified");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> new ExportEmbeddedDatabaseCommand().run(null, null, config))
+        .withMessageContaining("can only be used when no external database is specified");
   }
 
   private TestInsightBrainService newService() {
@@ -67,10 +67,9 @@ public class ExportEmbeddedDatabaseCommandTest
     try {
       File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
-      assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
-        newService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
-            dumpFile.getPath());
-      }).withMessageMatching(".* The database from .* is empty.*");
+      assertThatExceptionOfType(RuntimeException.class)
+          .isThrownBy(() -> newService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
+              dumpFile.getPath())).withMessageMatching(".* The database from .* is empty.*");
       assertThat(dumpFile).doesNotExist();
     }
     finally {

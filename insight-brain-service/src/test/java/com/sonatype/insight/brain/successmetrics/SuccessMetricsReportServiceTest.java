@@ -81,9 +81,9 @@ public class SuccessMetricsReportServiceTest
   public void testCreateSuccessMetricsReportForCurrentUser_NullScope() throws Exception {
     SuccessMetricsReportScopeDTO scopeDTO = null;
     SuccessMetricsReportDTO dto = new SuccessMetricsReportDTO("Metrics1", scopeDTO);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      successMetricsReportService.createSuccessMetricsReportForCurrentUser(dto);
-    }).withMessage("Scope cannot be null or missing.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> successMetricsReportService.createSuccessMetricsReportForCurrentUser(dto))
+        .withMessage("Scope cannot be null or missing.");
   }
 
   @Test
@@ -221,17 +221,17 @@ public class SuccessMetricsReportServiceTest
         JsonUtils.format(dto1.scope));
 
     // try to delete other user's record
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      successMetricsReportService.deleteSuccessMetricsReportForCurrentUser(metrics1.getId());
-    }).withMessage(
-        "Cannot find a success metrics report with id " + metrics1.getId() + " for user id " + USERNAME + ".");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> successMetricsReportService.deleteSuccessMetricsReportForCurrentUser(metrics1.getId()))
+        .withMessage(
+            "Cannot find a success metrics report with id " + metrics1.getId() + " for user id " + USERNAME + ".");
   }
 
   @Test
   public void testDeleteSuccessMetricsReportForCurrentUser_NotFound() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      successMetricsReportService.deleteSuccessMetricsReportForCurrentUser("not_found");
-    }).withMessage("Cannot find a success metrics report with id not_found for user id " + USERNAME + ".");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> successMetricsReportService.deleteSuccessMetricsReportForCurrentUser("not_found"))
+        .withMessage("Cannot find a success metrics report with id not_found for user id " + USERNAME + ".");
   }
 
   private void assertSuccessMetrics(SuccessMetricsReport actual,

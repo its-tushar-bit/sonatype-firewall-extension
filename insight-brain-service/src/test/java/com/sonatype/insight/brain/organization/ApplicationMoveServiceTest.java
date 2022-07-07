@@ -181,9 +181,9 @@ public class ApplicationMoveServiceTest
 
   @Test
   public void testMoveApplication_RootOrganizationAsDestination() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      applicationMoveService.moveApplication(app.getId(), Organization.ROOT_ORGANIZATION_ID);
-    }).withMessage("Applications cannot be moved to the root organization.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> applicationMoveService.moveApplication(app.getId(), Organization.ROOT_ORGANIZATION_ID))
+        .withMessage("Applications cannot be moved to the root organization.");
   }
 
   @Test
@@ -191,9 +191,9 @@ public class ApplicationMoveServiceTest
     String appId = app.getId();
     String organizationId = app.getOrganizationId();
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      applicationMoveService.moveApplication(appId, organizationId);
-    }).withMessage("The destination organization must be different from the current organization");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> applicationMoveService.moveApplication(appId, organizationId))
+        .withMessage("The destination organization must be different from the current organization");
   }
 
   @Test
@@ -201,9 +201,9 @@ public class ApplicationMoveServiceTest
     Tag tag = tempEntity.newTag(oldOrg.getId());
     tempEntity.newApplicationTag(app.getId(), tag.getId());
 
-    assertThatExceptionOfType(ApplicationMoveException.class).isThrownBy(() -> {
-      applicationMoveService.moveApplication(app.getId(), newOrg.getId());
-    }).satisfies(e -> assertIssues(e, tagIssue(ApplicationMoveService.TAG_MISSING_MSG, tag, oldOrg)));
+    assertThatExceptionOfType(ApplicationMoveException.class)
+        .isThrownBy(() -> applicationMoveService.moveApplication(app.getId(), newOrg.getId()))
+        .satisfies(e -> assertIssues(e, tagIssue(ApplicationMoveService.TAG_MISSING_MSG, tag, oldOrg)));
   }
 
   @Test
@@ -226,9 +226,9 @@ public class ApplicationMoveServiceTest
     Policy policy3 = tempEntity.newPolicy(newOrg.getId(), "taggedpolicy");
     tempEntity.newPolicyTag(policy3.getId(), otherTag.getId());
 
-    assertThatExceptionOfType(ApplicationMoveException.class).isThrownBy(() -> {
-      applicationMoveService.moveApplication(app.getId(), newOrg.getId());
-    }).satisfies(e -> assertIssues(e, policyIssue(ApplicationMoveService.POLICY_MISSING_MSG, inheritedPolicy, oldOrg),
+    assertThatExceptionOfType(ApplicationMoveException.class)
+        .isThrownBy(() -> applicationMoveService.moveApplication(app.getId(), newOrg.getId()))
+        .satisfies(e -> assertIssues(e, policyIssue(ApplicationMoveService.POLICY_MISSING_MSG, inheritedPolicy, oldOrg),
         policyIssue(ApplicationMoveService.TAG_MISMATCH_MSG, taggedPolicy, oldOrg)));
   }
 
@@ -299,9 +299,9 @@ public class ApplicationMoveServiceTest
     Policy newPolicy = tempEntity.newPolicy(newOrg.getId(), oldPolicy.getName());
     tempEntity.newPolicyTag(newPolicy.getId(), tempEntity.newTag(newOrg.getId()).getId());
 
-    assertThatExceptionOfType(ApplicationMoveException.class).isThrownBy(() -> {
-      applicationMoveService.moveApplication(app.getId(), newOrg.getId());
-    }).satisfies(e -> assertIssues(e, policyIssue(ApplicationMoveService.TAG_MISMATCH_2_MSG, oldPolicy, app)));
+    assertThatExceptionOfType(ApplicationMoveException.class)
+        .isThrownBy(() -> applicationMoveService.moveApplication(app.getId(), newOrg.getId()))
+        .satisfies(e -> assertIssues(e, policyIssue(ApplicationMoveService.TAG_MISMATCH_2_MSG, oldPolicy, app)));
   }
 
   @Test
@@ -426,9 +426,9 @@ public class ApplicationMoveServiceTest
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(oldOrg.getId());
     newPolicy(app, ltg);
 
-    assertThatExceptionOfType(ApplicationMoveException.class).isThrownBy(() -> {
-      applicationMoveService.moveApplication(app.getId(), newOrg.getId());
-    }).satisfies(e -> assertIssues(e, ltgIssue(ApplicationMoveService.LTG_MISSING_MSG, ltg, oldOrg)));
+    assertThatExceptionOfType(ApplicationMoveException.class)
+        .isThrownBy(() -> applicationMoveService.moveApplication(app.getId(), newOrg.getId()))
+        .satisfies(e -> assertIssues(e, ltgIssue(ApplicationMoveService.LTG_MISSING_MSG, ltg, oldOrg)));
   }
 
   @Test
@@ -485,9 +485,9 @@ public class ApplicationMoveServiceTest
     Label labelUsedByComponentLabel = tempEntity.newLabel(oldOrg.getId(), "used-by-component-label");
     tempEntity.newComponentLabel(app.getId(), labelUsedByComponentLabel.getId());
 
-    assertThatExceptionOfType(ApplicationMoveException.class).isThrownBy(() -> {
-      applicationMoveService.moveApplication(app.getId(), newOrg.getId());
-    }).satisfies(e -> assertIssues(e, labelIssue(ApplicationMoveService.LABEL_MISSING_MSG, labelUsedByPolicy, oldOrg),
+    assertThatExceptionOfType(ApplicationMoveException.class)
+        .isThrownBy(() -> applicationMoveService.moveApplication(app.getId(), newOrg.getId()))
+        .satisfies(e -> assertIssues(e, labelIssue(ApplicationMoveService.LABEL_MISSING_MSG, labelUsedByPolicy, oldOrg),
         labelIssue(ApplicationMoveService.LABEL_MISSING_MSG, labelUsedByComponentLabel, oldOrg)));
   }
 

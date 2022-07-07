@@ -39,9 +39,8 @@ public class FirstSuccessfulRealmAuthenticatorTest
 
     final Collection<Realm> realms = Collections.singletonList(realm);
 
-    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
-      firstSuccessfulRealmAuthenticator.doMultiRealmAuthentication(realms, token);
-    }).isEqualTo(cause);
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> firstSuccessfulRealmAuthenticator.doMultiRealmAuthentication(realms, token)).isEqualTo(cause);
   }
 
   @Test
@@ -50,8 +49,9 @@ public class FirstSuccessfulRealmAuthenticatorTest
     final Realm realm = mock(Realm.class);
     final Collection<Realm> realms = Collections.singletonList(realm);
 
-    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(() -> {
-      firstSuccessfulRealmAuthenticator.doMultiRealmAuthentication(realms, mock(AuthenticationToken.class));
-    }).withMessageStartingWith("Authentication token of type [");
+    assertThatExceptionOfType(AuthenticationException.class)
+        .isThrownBy(
+            () -> firstSuccessfulRealmAuthenticator.doMultiRealmAuthentication(realms, mock(AuthenticationToken.class)))
+        .withMessageStartingWith("Authentication token of type [");
   }
 }

@@ -53,37 +53,37 @@ public class SamlMetadataToolTest
 
   @Test
   public void testParseEntityDescriptor_UnknownElement() {
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      parse("unknown-element.xml");
-    }).withMessageStartingWith("Invalid SAML metadata").withMessageContaining("UnknownElement");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> parse("unknown-element.xml"))
+        .withMessageStartingWith("Invalid SAML metadata").withMessageContaining("UnknownElement");
   }
 
   @Test
   public void testParseEntityDescriptor_NoEntityDescriptors() {
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      parse("no-entity-descriptors.xml");
-    }).withMessageStartingWith("Invalid SAML metadata"); // schema validation errors are localized...
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> parse("no-entity-descriptors.xml"))
+        .withMessageStartingWith("Invalid SAML metadata"); // schema validation errors are localized...
   }
 
   @Test
   public void testParseEntityDescriptor_MultipleEntityDescriptors() {
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      parse("multiple-entity-descriptors.xml");
-    }).withMessage("Invalid SAML entity descriptor count: 2");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> parse("multiple-entity-descriptors.xml"))
+        .withMessage("Invalid SAML entity descriptor count: 2");
   }
 
   @Test
   public void testParseEntityDescriptor_MultipleIdentityProviderDescriptors() {
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      parse("multiple-idp-descriptors.xml");
-    }).withMessage("Invalid SAML identity provider count: 2");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> parse("multiple-idp-descriptors.xml"))
+        .withMessage("Invalid SAML identity provider count: 2");
   }
 
   @Test
   public void testParseEntityDescriptor_NoSuitableSingleSignOnBinding() {
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      parse("no-suitable-sso-binding.xml");
-    }).withMessageContaining("supports neither POST nor Redirect binding for SSO");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> parse("no-suitable-sso-binding.xml"))
+        .withMessageContaining("supports neither POST nor Redirect binding for SSO");
   }
 
   @Test
@@ -125,8 +125,8 @@ public class SamlMetadataToolTest
 
   @Test
   public void testParseEntityDescriptor_ExternalDTD() {
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      parse("external-dtd.xml");
-    }).withMessageStartingWith("Invalid SAML metadata").withMessageContaining("http", "accessExternalDTD");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> parse("external-dtd.xml"))
+        .withMessageStartingWith("Invalid SAML metadata").withMessageContaining("http", "accessExternalDTD");
   }
 }

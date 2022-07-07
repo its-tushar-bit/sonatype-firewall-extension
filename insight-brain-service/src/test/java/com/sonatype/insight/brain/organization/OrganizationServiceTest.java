@@ -75,9 +75,9 @@ public class OrganizationServiceTest
 
     Organization childOrg = tempEntity.newOrganization();
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      organizationService.deleteOrganization(Organization.ROOT_ORGANIZATION_ID);
-    }).withMessageContaining("root organization cannot be deleted");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> organizationService.deleteOrganization(Organization.ROOT_ORGANIZATION_ID))
+        .withMessageContaining("root organization cannot be deleted");
     assertThat(new OrganizationDAO().getById(childOrg.getId())).isNotNull();
     assertThat(iconFile).isFile();
     assertThat(iconDir).isDirectory();

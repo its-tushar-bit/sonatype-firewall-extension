@@ -114,17 +114,15 @@ public class UserTokenRealmTest
   @Test
   public void testDoGetAuthenticationInfo_NullUserName() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(null /* username */, (char[]) null);
-    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(() -> {
-      realm.doGetAuthenticationInfo(usernamePasswordToken);
-    }).withMessage("The username is required");
+    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(
+        () -> realm.doGetAuthenticationInfo(usernamePasswordToken)).withMessage("The username is required");
   }
 
   @Test
   public void testDoGetAuthenticationInfo_EmptyUserName() {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(" " /* username */, (char[]) null);
-    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(() -> {
-      realm.doGetAuthenticationInfo(usernamePasswordToken);
-    }).withMessage("The username is required");
+    assertThatExceptionOfType(AuthenticationException.class).isThrownBy(
+        () -> realm.doGetAuthenticationInfo(usernamePasswordToken)).withMessage("The username is required");
   }
 
   /**
@@ -166,9 +164,8 @@ public class UserTokenRealmTest
     UserToken userToken = tempEntity.newUserToken(username, "TestUserCode", hashedUserTokenPassword, InternalRealm.ID);
 
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "WrongPassword");
-    assertThatExceptionOfType(IncorrectCredentialsException.class).isThrownBy(() -> {
-      realm.getAuthenticationInfo(usernamePasswordToken);
-    });
+    assertThatExceptionOfType(IncorrectCredentialsException.class).isThrownBy(
+        () -> realm.getAuthenticationInfo(usernamePasswordToken));
   }
 
   @Test

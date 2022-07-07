@@ -50,9 +50,8 @@ public class ExternalTelemetryServiceTest
     telemetryValues.put("overwrite", "true");
     telemetryValues.put("force_upload", "false");
 
-    assertThatThrownBy(() -> {
-      externalTelemetryService.sendTelemetry("user-agent", telemetryValues);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Telemetry purpose is required.");
+    assertThatThrownBy(() -> externalTelemetryService.sendTelemetry("user-agent", telemetryValues))
+        .isInstanceOf(BadRequestException.class).hasMessage("Telemetry purpose is required.");
 
     verifyNoInteractions(telemetrySenderMock);
   }
@@ -66,9 +65,8 @@ public class ExternalTelemetryServiceTest
     telemetryValues.put("overwrite", "true");
     telemetryValues.put("force_upload", "false");
 
-    assertThatThrownBy(() -> {
-      externalTelemetryService.sendTelemetry("user-agent", telemetryValues);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Telemetry purpose not supported.");
+    assertThatThrownBy(() -> externalTelemetryService.sendTelemetry("user-agent", telemetryValues))
+        .isInstanceOf(BadRequestException.class).hasMessage("Telemetry purpose not supported.");
 
     verifyNoInteractions(telemetrySenderMock);
   }
@@ -82,9 +80,8 @@ public class ExternalTelemetryServiceTest
     telemetryValues.put("overwrite", "true");
     telemetryValues.put("force_upload", "false");
 
-    assertThatThrownBy(() -> {
-      externalTelemetryService.sendTelemetry("user-agent", telemetryValues);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Unknown telemetry purpose.");
+    assertThatThrownBy(() -> externalTelemetryService.sendTelemetry("user-agent", telemetryValues))
+        .isInstanceOf(BadRequestException.class).hasMessage("Unknown telemetry purpose.");
 
     verifyNoInteractions(telemetrySenderMock);
   }

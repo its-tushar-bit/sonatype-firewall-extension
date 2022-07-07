@@ -10,9 +10,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 
-import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
@@ -53,10 +51,10 @@ public class ComponentInfoServiceAuthzTest
   private void configureHdsClientMock() throws IOException {
     ComponentDetailsList componentDetailsList = new ComponentDetailsList();
     NamedComponentDetails namedComponentDetails = new NamedComponentDetails();
-    componentDetailsList.setList(new ArrayList<ComponentDetails>());
+    componentDetailsList.setList(new ArrayList<>());
     lenient().when(hdsClientMock.get(any(Class.class), any(String.class), any(Map.class))).thenReturn(
         componentDetailsList);
-    lenient().when(hdsClientMock.relay((HttpServletRequest) any(), any(Class.class), any(String.class), any(Map.class)))
+    lenient().when(hdsClientMock.relay(any(), any(Class.class), any(String.class), any(Map.class)))
         .thenReturn(new RelayResponse<>(namedComponentDetails));
   }
 

@@ -27,9 +27,9 @@ public class IdUtilsTest
 
   @Test
   public void testGetOwnerNotNull_Global() {
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      IdUtils.getOwnerNotNull(OwnerType.GLOBAL, null /* ownerId */);
-    }).withMessage(IdUtils.MSG_PREFIX_NO_OWNER_INSTANCE + OwnerType.GLOBAL);
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> IdUtils.getOwnerNotNull(OwnerType.GLOBAL, null /* ownerId */))
+        .withMessage(IdUtils.MSG_PREFIX_NO_OWNER_INSTANCE + OwnerType.GLOBAL);
   }
 
   private void assertOwnerEqualPrivateId(final Owner expected) {
@@ -100,9 +100,9 @@ public class IdUtilsTest
 
   @Test
   public void testGetInternalOwnerId_Application_NotFound() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      IdUtils.getInternalOwnerId(OwnerType.APPLICATION, "no-such-app-id");
-    }).withMessage("Could not find an application with ID no-such-app-id.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> IdUtils.getInternalOwnerId(OwnerType.APPLICATION, "no-such-app-id"))
+        .withMessage("Could not find an application with ID no-such-app-id.");
   }
 
   @Test
@@ -140,8 +140,8 @@ public class IdUtilsTest
 
   @Test
   public void testGetPublicOwnerId_Application_NotFound() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      IdUtils.getPublicOwnerId(OwnerType.APPLICATION, "no-such-app-public-id");
-    }).withMessage("Could not find an application with ID no-such-app-public-id.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> IdUtils.getPublicOwnerId(OwnerType.APPLICATION, "no-such-app-public-id"))
+        .withMessage("Could not find an application with ID no-such-app-public-id.");
   }
 }

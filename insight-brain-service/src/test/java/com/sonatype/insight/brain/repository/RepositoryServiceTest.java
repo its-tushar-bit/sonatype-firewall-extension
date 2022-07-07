@@ -147,9 +147,9 @@ public class RepositoryServiceTest extends AbstractComponentTest
     RepositoryComponent repositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), pathname, null, null);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      repositoryService.unquarantineComponent(repository.getId(), pathname, null);
-    }).withMessage("Component " + pathname + " in repository " + repository.getId() + " is not quarantined.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryService.unquarantineComponent(repository.getId(), pathname, null))
+        .withMessage("Component " + pathname + " in repository " + repository.getId() + " is not quarantined.");
     repositoryComponent = repositoryComponentDAO.getById(repositoryComponent.getId());
 
     assertThat(repositoryComponent.isQuarantined()).isFalse();
@@ -166,9 +166,9 @@ public class RepositoryServiceTest extends AbstractComponentTest
     createQuarantiningPolicy(repository);
     mockHdsRequestForComponent(repositoryComponent, true);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      repositoryService.unquarantineComponent(repository.getId(), pathname, null);
-    }).withMessage("Component " + pathname + " in repository " + repository.getId() + " has policy violations.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryService.unquarantineComponent(repository.getId(), pathname, null))
+        .withMessage("Component " + pathname + " in repository " + repository.getId() + " has policy violations.");
   }
 
   @Test
@@ -255,17 +255,17 @@ public class RepositoryServiceTest extends AbstractComponentTest
   @Test
   public void testGetPolicyThreats_RepositoryComponentDoesNotExist() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      repositoryService.getPolicyThreats(repository.getId(), "pathDoesNotExist");
-    }).withMessage(
-        "Cannot find a component with path pathDoesNotExist in repository with ID " + repository.getId() + ".");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> repositoryService.getPolicyThreats(repository.getId(), "pathDoesNotExist"))
+        .withMessage(
+            "Cannot find a component with path pathDoesNotExist in repository with ID " + repository.getId() + ".");
   }
 
   @Test
   public void testGetPolicyThreats_RepositoryDoesNotExist() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      repositoryService.getPolicyThreats("RepositoryIdDoesNotExist", null);
-    }).withMessage("Cannot find a repository with ID RepositoryIdDoesNotExist.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> repositoryService.getPolicyThreats("RepositoryIdDoesNotExist", null))
+        .withMessage("Cannot find a repository with ID RepositoryIdDoesNotExist.");
   }
 
   @Test
@@ -502,9 +502,9 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
   @Test
   public void testGetRepositoryById_UnknownId() throws Exception {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      repositoryService.getRepositoryById("foobar");
-    }).withMessage("Cannot find a repository with ID foobar.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> repositoryService.getRepositoryById("foobar"))
+        .withMessage("Cannot find a repository with ID foobar.");
   }
 
   @Test
@@ -536,9 +536,9 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
   @Test
   public void testReevaluateRepository_UnknownId() throws Exception {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      repositoryService.reevaluateRepository("foobar");
-    }).withMessage("Cannot find a repository with ID foobar.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> repositoryService.reevaluateRepository("foobar"))
+        .withMessage("Cannot find a repository with ID foobar.");
   }
 
   @Test
@@ -550,9 +550,9 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
   @Test
   public void testDeleteRepository_UnknownId() throws Exception {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      repositoryService.deleteRepository("foobar");
-    }).withMessage("Cannot find a repository with ID foobar.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> repositoryService.deleteRepository("foobar"))
+        .withMessage("Cannot find a repository with ID foobar.");
   }
 
   @Test
@@ -583,9 +583,9 @@ public class RepositoryServiceTest extends AbstractComponentTest
   @Test
   public void testReevaluateComponent_UnknownHash() throws Exception {
     Repository repo = tempEntity.newRepository();
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      repositoryService.reevaluateComponent(repo.getId(), "missing-hash", null);
-    }).withMessage("Cannot find a repository component for hash missing-hash in " + repo.getPublicId() + ".");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> repositoryService.reevaluateComponent(repo.getId(), "missing-hash", null))
+        .withMessage("Cannot find a repository component for hash missing-hash in " + repo.getPublicId() + ".");
   }
 
   private RepositoryComponent createRepositoryPolicyViolation(final Repository repository,

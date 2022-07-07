@@ -56,9 +56,9 @@ public class DateUtilsTest
     assertThat(DateUtils.getDayOfMonthSuffix(31)).isEqualTo("st");
 
     for (int notDayOfMonth : new int[]{-1, 0, 32}) {
-      assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-        DateUtils.getDayOfMonthSuffix(notDayOfMonth);
-      }).withMessage("Illegal day of month: " + notDayOfMonth);
+      assertThatExceptionOfType(IllegalArgumentException.class)
+          .isThrownBy(() -> DateUtils.getDayOfMonthSuffix(notDayOfMonth))
+          .withMessage("Illegal day of month: " + notDayOfMonth);
     }
   }
 
@@ -102,9 +102,7 @@ public class DateUtilsTest
         "0945", LocalTime.of(9, 45, 0));
 
     // verify each pair
-    timeDataAndExpectedValues.forEach((k, v) -> {
-      assertThat(DateUtils.getLocalTimeForHoursAndMinutes(k)).isEqualTo(v);
-    });
+    timeDataAndExpectedValues.forEach((k, v) -> assertThat(DateUtils.getLocalTimeForHoursAndMinutes(k)).isEqualTo(v));
   }
 
   @Test

@@ -163,9 +163,7 @@ public class TaskSchedulerTest
     taskScheduler.scheduleDailyTask(TestJob.class, TestJob.NAME, LocalTime.now().plusHours(4));
     assertThat(TestJob.getExecutions()).isZero();
     taskScheduler.triggerTaskNow(TestJob.NAME, null);
-    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
-      assertThat(TestJob.getExecutions()).isOne();
-    });
+    await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(TestJob.getExecutions()).isOne());
   }
 
   @Test

@@ -166,16 +166,17 @@ public class InsightMailTest
 
   @Test
   public void testSendHtml_MailConfigurationNull() {
-    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
-      insightMail.sendHtml(null /* mailConfiguration */, "test@example.com", "testSubject", "testBody");
-    }).withMessage("Mail is not configured.");
+    assertThatExceptionOfType(IllegalStateException.class)
+        .isThrownBy(
+            () -> insightMail.sendHtml(null /* mailConfiguration */, "test@example.com", "testSubject", "testBody"))
+        .withMessage("Mail is not configured.");
   }
 
   @Test
   public void testSendHtml_MailNotConfigured() {
-    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
-      insightMail.sendHtml("test@example.com", "testSubject", "testBody");
-    }).withMessage("Mail is not configured.");
+    assertThatExceptionOfType(IllegalStateException.class)
+        .isThrownBy(() -> insightMail.sendHtml("test@example.com", "testSubject", "testBody"))
+        .withMessage("Mail is not configured.");
   }
 
   @Test

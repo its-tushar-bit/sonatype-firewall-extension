@@ -97,9 +97,8 @@ abstract class AbstractLicenseThreatGroupResourceTest
     assertThat(actual.ownerId).isEqualTo(ownerId);
     assertThat(actual.ownerName).isEqualTo(ownerName);
     assertThat(actual.ownerType).isEqualTo(ownerType);
-    assertThat(actual.licenseThreatGroups).hasSize(licenseThreatGroupCount).allSatisfy(ltgwl -> {
-      assertThat(ltgwl.licenses).isNotNull();
-    });
+    assertThat(actual.licenseThreatGroups).hasSize(licenseThreatGroupCount)
+        .allSatisfy(ltgwl -> assertThat(ltgwl.licenses).isNotNull());
   }
 
   protected abstract String getOwnerType();

@@ -37,8 +37,7 @@ public class ExternalTelemetryServiceAuthzTest
   @Test
   public void testSetStatus_Authorized() {
     grantConfigureSystemPermission();
-    assertThatThrownBy(() -> {
-      externalTelemetryService.sendTelemetry(null, new HashMap<>());
-    }).isInstanceOf(BadRequestException.class).hasMessage("Telemetry purpose is required.");
+    assertThatThrownBy(() -> externalTelemetryService.sendTelemetry(null, new HashMap<>())).isInstanceOf(
+        BadRequestException.class).hasMessage("Telemetry purpose is required.");
   }
 }

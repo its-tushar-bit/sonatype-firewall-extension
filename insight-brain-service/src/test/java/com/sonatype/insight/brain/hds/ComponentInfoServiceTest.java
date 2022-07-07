@@ -263,9 +263,11 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetLicenses_NoComponentIdentifier() throws Exception {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      componentInfoService.getLicenses(null, null, null /* componentIdentifier */, httpRequestMock, null, null);
-    }).withMessage("componentIdentifier is required");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> componentInfoService.getLicenses(null, null, null /* componentIdentifier */, httpRequestMock, null,
+                null))
+        .withMessage("componentIdentifier is required");
   }
 
   @Test
@@ -290,9 +292,9 @@ public class ComponentInfoServiceTest
   private void testGetLicenses_BadOwnerId(final OwnerType ownerType, final String expectedErrMsgPrefix)
       throws Exception
   {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      componentInfoService.getLicenses(ownerType, "bogusOwnerId", MAVEN_A1_COORDINATES, httpRequestMock, null, null);
-    }).withMessage(expectedErrMsgPrefix + "bogusOwnerId.");
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> componentInfoService.getLicenses(ownerType, "bogusOwnerId", MAVEN_A1_COORDINATES, httpRequestMock, null,
+            null)).withMessage(expectedErrMsgPrefix + "bogusOwnerId.");
   }
 
   private void testGetMultiLicenses_BadOwnerId(OwnerType ownerType,String expectedErrMsgPrefix) throws Exception {

@@ -865,11 +865,12 @@ public class IdeResourceTest
   {
     // Setup telemetry data collection
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    initServer(config -> {
-      getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
-        responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
-      }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
-    });
+    initServer(config -> getHdsServer()
+        .respondWith((HttpResponseProcessor) (request, response) ->
+            responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"),
+                response.getStatus()))
+        .andStatus(204)
+        .atUri(TelemetrySender.RESOURCE_PATH));
 
     // Prepare request
     Application app = tempEntity.newApplicationWithParent(appId);

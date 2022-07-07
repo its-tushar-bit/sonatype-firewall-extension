@@ -193,9 +193,9 @@ public class ApplicationSummaryServiceTest
 
     testProductLicense.setMaxApplications(0);
 
-    assertThatExceptionOfType(PaymentRequiredException.class).isThrownBy(() -> {
-      service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent");
-    });
+    assertThatExceptionOfType(PaymentRequiredException.class)
+        .isThrownBy(
+            () -> service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"));
     assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNull();
 
     testProductLicense.setMaxApplications(1);

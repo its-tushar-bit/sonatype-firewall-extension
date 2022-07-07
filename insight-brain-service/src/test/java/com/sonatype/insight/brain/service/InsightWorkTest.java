@@ -36,9 +36,8 @@ public class InsightWorkTest
   @Test
   public void testGetScanDir_InvalidAppId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        work.getScanDir(invalidValue);
-      }).withMessage("Invalid value: " + invalidValue);
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> work.getScanDir(invalidValue)).withMessage("Invalid value: " + invalidValue);
     }
   }
 
@@ -51,18 +50,16 @@ public class InsightWorkTest
   @Test
   public void testGetScanFile_InvalidAppIdValidScanId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        work.getScanFile(invalidValue, VALID_ID);
-      }).withMessage("Invalid value: " + invalidValue);
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> work.getScanFile(invalidValue, VALID_ID)).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testGetScanFile_ValidAppIdInvalidScanId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        work.getScanFile(VALID_ID, invalidValue);
-      }).withMessage("Invalid value: " + invalidValue);
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> work.getScanFile(VALID_ID, invalidValue)).withMessage("Invalid value: " + invalidValue);
     }
   }
 
@@ -75,9 +72,8 @@ public class InsightWorkTest
   @Test
   public void testGetAuditDir_InvalidAppId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        work.getAuditDir(invalidValue);
-      }).withMessage("Invalid value: " + invalidValue);
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> work.getAuditDir(invalidValue)).withMessage("Invalid value: " + invalidValue);
     }
   }
 
@@ -90,27 +86,24 @@ public class InsightWorkTest
   @Test
   public void testGetReportDir_InvalidAppId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        work.getReportDir(invalidValue);
-      }).withMessage("Invalid value: " + invalidValue);
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> work.getReportDir(invalidValue)).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testGetReportDir_InvalidAppIdValidScanId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        work.getReportDir(invalidValue, VALID_ID);
-      }).withMessage("Invalid value: " + invalidValue);
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> work.getReportDir(invalidValue, VALID_ID)).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testGetReportDir_ValidAppIdInvalidScanId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        work.getReportDir(VALID_ID, invalidValue);
-      }).withMessage("Invalid value: " + invalidValue);
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> work.getReportDir(VALID_ID, invalidValue)).withMessage("Invalid value: " + invalidValue);
     }
   }
 
@@ -123,18 +116,16 @@ public class InsightWorkTest
   @Test
   public void testGetReportFile_InvalidAppIdValidScanId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        work.getReportFile(invalidValue, VALID_ID);
-      }).withMessage("Invalid value: " + invalidValue);
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> work.getReportFile(invalidValue, VALID_ID)).withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testGetReportFile_ValidAppIdInvalidScanId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        work.getReportFile(VALID_ID, invalidValue);
-      }).withMessage("Invalid value: " + invalidValue);
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> work.getReportFile(VALID_ID, invalidValue)).withMessage("Invalid value: " + invalidValue);
     }
   }
 
@@ -147,9 +138,8 @@ public class InsightWorkTest
   @Test
   public void testComponentDetailsDir_InvalidAppId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        work.getComponentDetailsDir(invalidValue);
-      }).withMessage("Invalid value: " + invalidValue);
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> work.getComponentDetailsDir(invalidValue)).withMessage("Invalid value: " + invalidValue);
     }
   }
 
@@ -162,18 +152,18 @@ public class InsightWorkTest
   @Test
   public void testComponentDetailsFile_InvalidAppIdValidResultsId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        work.getComponentDetailsFile(invalidValue, VALID_ID);
-      }).withMessage("Invalid value: " + invalidValue);
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> work.getComponentDetailsFile(invalidValue, VALID_ID))
+          .withMessage("Invalid value: " + invalidValue);
     }
   }
 
   @Test
   public void testComponentDetailsFile_ValidAppIdInvalidResultsId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        work.getComponentDetailsFile(VALID_ID, invalidValue);
-      }).withMessage("Invalid value: " + invalidValue);
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> work.getComponentDetailsFile(VALID_ID, invalidValue))
+          .withMessage("Invalid value: " + invalidValue);
     }
   }
 
@@ -186,9 +176,8 @@ public class InsightWorkTest
   @Test
   public void testSourceControlDir_InvalidAppId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        work.getSourceControlDir(invalidValue);
-      }).withMessage("Invalid value: " + invalidValue);
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> work.getSourceControlDir(invalidValue)).withMessage("Invalid value: " + invalidValue);
     }
   }
 

@@ -65,26 +65,26 @@ public class HashComponentIdentifierServiceTest
         .thenReturn(ComponentSummary.create(true));
 
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      hashComponentIdentifierService.set(hashComponentIdentifier);
-    }).withMessage("The 'gid : aid : jar : jdk15 : 1.0' coordinates are already in use.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> hashComponentIdentifierService.set(hashComponentIdentifier))
+        .withMessage("The 'gid : aid : jar : jdk15 : 1.0' coordinates are already in use.");
   }
 
   @Test
   public void testSet_NullComponentIdentifier() throws Exception {
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, null);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      hashComponentIdentifierService.set(hashComponentIdentifier);
-    }).withMessage("The component identifier cannot be null.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> hashComponentIdentifierService.set(hashComponentIdentifier))
+        .withMessage("The component identifier cannot be null.");
   }
 
   @Test
   public void testSet_InvalidComponentIdentifier() throws Exception {
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, JsonUtils.parse(
         "{\"format\":\"maven\",\"coordinates\":null}", ComponentIdentifier.class));
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      hashComponentIdentifierService.set(hashComponentIdentifier);
-    }).withMessage("A component identifier must have at least one coordinate.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> hashComponentIdentifierService.set(hashComponentIdentifier))
+        .withMessage("A component identifier must have at least one coordinate.");
   }
 
   @Test
@@ -142,9 +142,7 @@ public class HashComponentIdentifierServiceTest
 
   @Test
   public void testGet_NotFound() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      hashComponentIdentifierService.get(HASH);
-    });
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> hashComponentIdentifierService.get(HASH));
   }
 
   private void assertHashComponentIdentifierDTO(final HashComponentIdentifierDTO hashComponentIdentifierDTO,

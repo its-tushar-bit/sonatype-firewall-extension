@@ -90,9 +90,7 @@ public class SourceControlComponentLoaderTest
     // given: no report zip
 
     // when:
-    Throwable thrown = catchThrowable(() -> {
-      loader.getSourceControlComponentDetails(application.getId(), "SCAN_ID_2");
-    });
+    Throwable thrown = catchThrowable(() -> loader.getSourceControlComponentDetails(application.getId(), "SCAN_ID_2"));
 
     // then:
     assertThat(thrown)

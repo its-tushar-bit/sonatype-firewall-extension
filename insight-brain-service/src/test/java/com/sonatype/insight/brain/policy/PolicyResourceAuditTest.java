@@ -400,7 +400,7 @@ public class PolicyResourceAuditTest
     policy.setPolicyActionsOverrideAllowed(true);
     new PolicyDAO().update(policy);
 
-    Map<String, String> actionsOverride = new LinkedHashMap<String, String>();
+    Map<String, String> actionsOverride = new LinkedHashMap<>();
     actionsOverride.put("stage-release", "fail");
     actionsOverride.put("release", "fail");
     actionsOverride.put("build", "warn");

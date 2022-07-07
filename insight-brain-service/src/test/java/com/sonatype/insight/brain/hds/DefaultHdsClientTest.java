@@ -358,9 +358,9 @@ public class DefaultHdsClientTest
       }
     };
 
-    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
-      client.get(String.class, "/any", null);
-    }).withMessageContaining("401").withMessageContaining("PASSED");
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.get(String.class, "/any", null))
+        .withMessageContaining("401").withMessageContaining("PASSED");
   }
 
   @Test
@@ -379,9 +379,9 @@ public class DefaultHdsClientTest
       }
     };
 
-    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
-      client.get(String.class, "/any", null);
-    }).withMessageContaining("403").withMessageContaining("PASSED");
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.get(String.class, "/any", null))
+        .withMessageContaining("403").withMessageContaining("PASSED");
   }
 
   @Test
@@ -400,9 +400,9 @@ public class DefaultHdsClientTest
       }
     };
 
-    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
-      client.get(String.class, "/any", null);
-    }).withMessageContaining("407").withMessageContaining("PASSED");
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.get(String.class, "/any", null))
+        .withMessageContaining("407").withMessageContaining("PASSED");
   }
 
   @Test
@@ -421,9 +421,9 @@ public class DefaultHdsClientTest
       }
     };
 
-    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
-      client.get(String.class, "/any", null);
-    }).withMessageContaining("Sonatype Support");
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.get(String.class, "/any", null))
+        .withMessageContaining("Sonatype Support");
   }
 
   @Test
@@ -442,9 +442,9 @@ public class DefaultHdsClientTest
       }
     };
 
-    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
-      client.get(String.class, "/any", null);
-    }).withMessageContaining("Sonatype Data Services");
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.get(String.class, "/any", null))
+        .withMessageContaining("Sonatype Data Services");
   }
 
   @Test
@@ -452,9 +452,9 @@ public class DefaultHdsClientTest
     NetworkingHelper.assumeDnsResolutionIsNormal();
     config.setHdsUrl("http://an.unresolvable.hostname/");
     initClient();
-    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
-      client.get(String.class, "/any", null);
-    }).withMessage("The hostname for the Sonatype Data Services could not be resolved,"
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.get(String.class, "/any", null))
+        .withMessage("The hostname for the Sonatype Data Services could not be resolved,"
         + " please verify the network configuration (DNS) at the site where the Nexus IQ Server is operated");
   }
 
@@ -514,9 +514,9 @@ public class DefaultHdsClientTest
       }
     };
 
-    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
-      client.get(String.class, "/any", null);
-    }).withMessage("The Sonatype Data Services returned error " + statusCode + ", please retry in a bit.");
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.get(String.class, "/any", null))
+        .withMessage("The Sonatype Data Services returned error " + statusCode + ", please retry in a bit.");
   }
 
   @Test
@@ -534,9 +534,9 @@ public class DefaultHdsClientTest
       }
     };
 
-    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
-      client.get(Integer.class, "/any", null);
-    }).withMessage("Failed to read response entity received from Sonatype Data Services, please retry in a bit.");
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.get(Integer.class, "/any", null))
+        .withMessage("Failed to read response entity received from Sonatype Data Services, please retry in a bit.");
   }
 
   @Test
@@ -550,18 +550,18 @@ public class DefaultHdsClientTest
 
     when(httpClient.execute(any(HttpUriRequest.class))).thenThrow(new IOException("Test"));
 
-    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
-      client.get(String.class, "/any", null);
-    }).withMessage("The request to Sonatype Data Services failed, please retry in a bit.");
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.get(String.class, "/any", null))
+        .withMessage("The request to Sonatype Data Services failed, please retry in a bit.");
   }
 
   @Test
   public void testSSLExceptionFromHttpClientExecute() throws Exception {
     config.setHdsUrl(config.getHdsUrl().replace("http:", "https:"));
     initClient();
-    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
-      client.get(String.class, "/any", null);
-    }).withMessage("The SSL/TLS connection to Sonatype Data Services could not be established, "
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.get(String.class, "/any", null))
+        .withMessage("The SSL/TLS connection to Sonatype Data Services could not be established, "
         + "contact your network or system administrator for help.");
   }
 
@@ -580,9 +580,9 @@ public class DefaultHdsClientTest
       }
     };
 
-    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
-      client.get(String.class, "/any", null);
-    }).withMessage("The Sonatype Data Services returned error 500, please retry in a bit.");
+    assertThatExceptionOfType(BadGatewayException.class)
+        .isThrownBy(() -> client.get(String.class, "/any", null))
+        .withMessage("The Sonatype Data Services returned error 500, please retry in a bit.");
   }
 
   @Test

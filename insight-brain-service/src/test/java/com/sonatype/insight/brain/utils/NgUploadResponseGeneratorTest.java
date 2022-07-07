@@ -91,9 +91,9 @@ public class NgUploadResponseGeneratorTest
     final String exceptionMessage = "foo";
 
     Callable<Object> callable = new NgUploadResponseResult(new BadRequestException(exceptionMessage));
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      ngUploadResponseGenerator.run(csrfToken, httpHeaders, false, callable);
-    }).withMessage(exceptionMessage);
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> ngUploadResponseGenerator.run(csrfToken, httpHeaders, false, callable))
+        .withMessage(exceptionMessage);
   }
 
   @Test

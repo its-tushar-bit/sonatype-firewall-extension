@@ -355,9 +355,7 @@ public class ReportPurgerTest
       assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
       reportPurger = spy(reportPurger);
       when(reportPurger.getDelayForRetry(anyInt())).thenReturn(Duration.ZERO);
-      assertThatExceptionOfType(OptimisticLockException.class).isThrownBy(() -> {
-        reportPurger.purgeReports();
-      });
+      assertThatExceptionOfType(OptimisticLockException.class).isThrownBy(() -> reportPurger.purgeReports());
       verify(reportPurger).getDelayForRetry(9);
       verify(reportPurger, never()).getDelayForRetry(10);
 

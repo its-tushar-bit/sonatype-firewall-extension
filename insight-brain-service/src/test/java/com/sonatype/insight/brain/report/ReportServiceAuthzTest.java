@@ -37,9 +37,9 @@ public class ReportServiceAuthzTest
   public void testGetReportMetadata_Authorized() throws Exception {
     grantReadPermission(app.getId());
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      reportService.getReportMetadata(app.getPublicId(), "12345678");
-    }).withMessage("Could not find a report with ID 12345678");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> reportService.getReportMetadata(app.getPublicId(), "12345678"))
+        .withMessage("Could not find a report with ID 12345678");
   }
 
   @Test(expected = UnauthenticatedException.class)

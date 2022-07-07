@@ -105,9 +105,8 @@ public class DefaultLicenseDataUpdaterTest
     try {
       String newId = "New license id";
       MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
-      assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
-        multiLicenseDAO.getById(newId);
-      }).withMessageStartingWith("Could not retrieve license data from Sonatype HDS:");
+      assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> multiLicenseDAO.getById(newId))
+          .withMessageStartingWith("Could not retrieve license data from Sonatype HDS:");
     }
     finally {
       getHdsServer().start();
@@ -137,7 +136,7 @@ public class DefaultLicenseDataUpdaterTest
     assertThat(multiLicenseDAO.getById(mlWithEmptyMappedLicenses.getId())).isNull();
 
     licenseData.multiLicenses.add(mlWithEmptyMappedLicenses);
-    licenseData.multiLicenseMappings.put(mlWithEmptyMappedLicenses.getId(), new HashSet<String>());
+    licenseData.multiLicenseMappings.put(mlWithEmptyMappedLicenses.getId(), new HashSet<>());
     hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
 
     assertThat(multiLicenseDAO.getById(mlWithEmptyMappedLicenses.getId())).isNull();

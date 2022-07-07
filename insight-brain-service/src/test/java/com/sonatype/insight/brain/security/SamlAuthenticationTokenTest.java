@@ -15,9 +15,7 @@ public class SamlAuthenticationTokenTest
 {
   @Test
   public void testSamlAuthenticationToken_RequiresNonNullSamlPrincipal() {
-    assertThatThrownBy(() -> {
-      new SamlAuthenticationToken(null);
-    }).isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> new SamlAuthenticationToken(null)).isInstanceOf(NullPointerException.class);
   }
 
   @Test

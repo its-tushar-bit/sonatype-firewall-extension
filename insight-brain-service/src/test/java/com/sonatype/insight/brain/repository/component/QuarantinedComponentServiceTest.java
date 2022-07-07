@@ -170,9 +170,8 @@ public class QuarantinedComponentServiceTest
     when(quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token")).thenReturn(
         setupTestData(null, date, date, null));
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentOverview("token");
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOverview("token"))
+        .isInstanceOf(BadRequestException.class)
         .hasMessage("The component identifier for the requested component does not exist.");
   }
 

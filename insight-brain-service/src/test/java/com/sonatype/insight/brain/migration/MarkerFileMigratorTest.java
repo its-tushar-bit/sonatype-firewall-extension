@@ -91,9 +91,7 @@ public class MarkerFileMigratorTest
     markerFileMigrator = new MarkerFileMigrator(migrationTrackerDAO, insightWork);
     migrationTrackerDAO.insert(new MigrationTracker(PolicyCoordinatesConditionTypeMigrator.MIGRATION_ID));
 
-    assertThatExceptionOfType(RollbackException.class).isThrownBy(() -> {
-      markerFileMigrator.migrate();
-    });
+    assertThatExceptionOfType(RollbackException.class).isThrownBy(() -> markerFileMigrator.migrate());
     assertThat(migrationTrackerDAO.getById(MarkerFileMigrator.MARKER_FILE_MIGRATOR_ID)).isNull();
   }
 

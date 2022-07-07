@@ -241,9 +241,8 @@ public class ScanPolicyEvaluatorTest
       assertThat(violation.getPolicyName()).isEqualTo(policy.getName());
     }
     List<PolicyViolation> persistedViolations1 = new PolicyViolationDAO().getByApplicationId(application.getId());
-    assertThat(persistedViolations1).allSatisfy(violation -> {
-      assertThat(violation.getPolicyName()).isEqualTo(policy.getName());
-    });
+    assertThat(persistedViolations1)
+        .allSatisfy(violation -> assertThat(violation.getPolicyName()).isEqualTo(policy.getName()));
 
     policy.setName("PolicyName1");
     new PolicyDAO().update(policy);
@@ -251,13 +250,11 @@ public class ScanPolicyEvaluatorTest
     String scanId2 = simulateReportIsAvailable("report");
     ScanPolicyEvaluatorResults results2 =
         scanPolicyEvaluator.evaluate(application, scanId2, stage, ScanTriggerType.CLI);
-    assertThat(results2.activeViolations).allSatisfy(violation -> {
-      assertThat(violation.getPolicyName()).isEqualTo(policy.getName());
-    });
+    assertThat(results2.activeViolations)
+        .allSatisfy(violation -> assertThat(violation.getPolicyName()).isEqualTo(policy.getName()));
     List<PolicyViolation> persistedViolations2 = new PolicyViolationDAO().getByApplicationId(application.getId());
-    assertThat(persistedViolations2).allSatisfy(violation -> {
-      assertThat(violation.getPolicyName()).isEqualTo(policy.getName());
-    });
+    assertThat(persistedViolations2)
+        .allSatisfy(violation -> assertThat(violation.getPolicyName()).isEqualTo(policy.getName()));
   }
 
   @Test
@@ -666,9 +663,8 @@ public class ScanPolicyEvaluatorTest
     List<PolicyViolation> allViolations = new PolicyViolationDAO().getByApplicationId(application.getId());
     assertThat(allViolations).hasSize(36);
     List<PolicyViolation> fixedViolations = allViolations.stream().filter(PolicyViolation::isFixed).collect(toList());
-    assertThat(fixedViolations).hasSize(36).allSatisfy(violation -> {
-      assertThat(violation.getFixTime()).isEqualTo(results2.evaluation.getTime());
-    });
+    assertThat(fixedViolations).hasSize(36)
+        .allSatisfy(violation -> assertThat(violation.getFixTime()).isEqualTo(results2.evaluation.getTime()));
   }
 
   @Test
@@ -1270,23 +1266,22 @@ public class ScanPolicyEvaluatorTest
           assertThat(policyViolation.getPolicyWaiverComment()).isEqualTo(policyWaiver.getComment());
         });
     assertThat(policyViolations).filteredOn(violation -> !componentHash.equals(violation.getHash()))
-        .allSatisfy(policyViolation -> {
-          assertThat(policyViolation.isWaived()).isFalse();
-        });
+        .allSatisfy(policyViolation -> assertThat(policyViolation.isWaived()).isFalse());
   }
 
   @Test
   public void testEvaluate_InvalidStage() throws Exception {
-    assertThatExceptionOfType(InvalidStageException.class).isThrownBy(() -> {
-      scanPolicyEvaluator.evaluate(application, "scanid", new Stage("foobar"), ScanTriggerType.CLI);
-    }).withMessage("Invalid stage id=foobar");
+    assertThatExceptionOfType(InvalidStageException.class)
+        .isThrownBy(() -> scanPolicyEvaluator.evaluate(application, "scanid", new Stage("foobar"), ScanTriggerType.CLI))
+        .withMessage("Invalid stage id=foobar");
   }
 
   @Test
   public void testEvaluate_MissingReport() throws Exception {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      scanPolicyEvaluator.evaluate(application, "scanId", new Stage(Stage.ID_BUILD), ScanTriggerType.CLI);
-    }).withMessage("Could not download the report for scan ID scanId");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(
+            () -> scanPolicyEvaluator.evaluate(application, "scanId", new Stage(Stage.ID_BUILD), ScanTriggerType.CLI))
+        .withMessage("Could not download the report for scan ID scanId");
 
     PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(application.getId(),
         Stage.ID_BUILD);
@@ -1297,9 +1292,10 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_ErrorReport() throws Exception {
     String scanId = simulateReportIsAvailable("empty_report");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI);
-    }).withMessage("Unable to evaluate policy, the scan " + scanId + " could not be processed.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI))
+        .withMessage("Unable to evaluate policy, the scan " + scanId + " could not be processed.");
 
     PolicyEvaluation eval = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(application.getId(),
         Stage.ID_BUILD);

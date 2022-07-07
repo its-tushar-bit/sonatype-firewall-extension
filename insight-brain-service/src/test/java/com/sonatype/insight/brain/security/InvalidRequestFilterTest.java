@@ -40,9 +40,7 @@ public class InvalidRequestFilterTest
   @Test
   @ManualServerInit
   public void testBackslashEnabled() throws Exception {
-    initServer(config -> {
-      config.setBlockBackslashInPath(false);
-    });
+    initServer(config -> config.setBlockBackslashInPath(false));
 
     HttpResponse response = restRequest().path("any/thing/\\after-backslash").get();
     assertResponseStatus(404, response);
@@ -51,9 +49,7 @@ public class InvalidRequestFilterTest
   @Test
   @ManualServerInit
   public void testNonAsciiEnabled() throws Exception {
-    initServer(config -> {
-      config.setBlockNonAsciiInPath(false);
-    });
+    initServer(config -> config.setBlockNonAsciiInPath(false));
 
     assertThat(doRequestWithNonAsciiCharacters()).isEqualTo(404);
   }
@@ -61,9 +57,7 @@ public class InvalidRequestFilterTest
   @Test
   @ManualServerInit
   public void testNonAsciiDisabled() throws Exception {
-    initServer(config -> {
-      config.setBlockNonAsciiInPath(true);
-    });
+    initServer(config -> config.setBlockNonAsciiInPath(true));
 
     assertThat(doRequestWithNonAsciiCharacters()).isEqualTo(400);
   }
@@ -71,9 +65,7 @@ public class InvalidRequestFilterTest
   @Test
   @ManualServerInit
   public void testSemicolonEnabled() throws Exception {
-    initServer(config -> {
-      config.setBlockSemicolonInPath(false);
-    });
+    initServer(config -> config.setBlockSemicolonInPath(false));
 
     HttpResponse response = restRequest().path("any/thing/;after-backslash").get();
     assertResponseStatus(404, response);

@@ -245,9 +245,9 @@ public abstract class AbstractRepositoryServiceTest
   @Test
   public void testSetEnabled_MissingLicenseFeature() throws Exception {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
-    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Test
@@ -266,9 +266,9 @@ public abstract class AbstractRepositoryServiceTest
 
   @Test
   public void testSetQuarantine_RepositoryDoesNotExist() throws Exception {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
-    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null))
+        .withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
   @Test
@@ -276,9 +276,9 @@ public abstract class AbstractRepositoryServiceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
-    }).withMessage("Cannot enable quarantine when repository " + REPO_PUBLIC_ID + " is disabled.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null))
+        .withMessage("Cannot enable quarantine when repository " + REPO_PUBLIC_ID + " is disabled.");
   }
 
   @Test
@@ -387,16 +387,18 @@ public abstract class AbstractRepositoryServiceTest
   @Test
   public void testGetPolicyEvaluationSummary_MissingLicenseFeature() throws Exception {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null);
-    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(
+            () -> getRepositoryService().getPolicyEvaluationSummary(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Test
   public void testEvaluateComponents_WithQuarantine_RepositoryDoesNotExist() throws Exception {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, true, null);
-    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(
+            () -> getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, true, null))
+        .withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
   @Test
@@ -421,10 +423,10 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components = new ArrayList<>();
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService()
-          .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
-    }).withMessage("The pathname cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService()
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null))
+        .withMessage("The pathname cannot be null or empty.");
   }
 
   @Test
@@ -440,10 +442,10 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components = new ArrayList<>();
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService()
-          .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
-    }).withMessage("The hash cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService()
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null))
+        .withMessage("The hash cannot be null or empty.");
   }
 
   @Test
@@ -932,11 +934,9 @@ public abstract class AbstractRepositoryServiceTest
 
   @Test
   public void testEvaluateComponents_RepositoryDoesNotExist() throws Exception {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      getRepositoryService()
-          .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null /* componentEvaluationDataRequestList */,
-              false, null);
-    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> getRepositoryService()
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null /* componentEvaluationDataRequestList */,
+            false, null)).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
   @Test
@@ -1125,10 +1125,8 @@ public abstract class AbstractRepositoryServiceTest
     getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList,
         false, null);
 
-    await().atMost(Duration.ofMillis(5000)).untilAsserted(() -> {
-      assertThat(emailerLogOutput).atErrorLevel().contains(
-          "Unable to send notification email to " + userEmailAddress + " for repository " + repository.getPublicId());
-    });
+    await().atMost(Duration.ofMillis(5000)).untilAsserted(() -> assertThat(emailerLogOutput).atErrorLevel().contains(
+        "Unable to send notification email to " + userEmailAddress + " for repository " + repository.getPublicId()));
   }
 
   @Test
@@ -1532,10 +1530,10 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest("maven2", null, "hash"));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService()
-          .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null);
-    }).withMessage("The pathname cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService()
+            .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null))
+        .withMessage("The pathname cannot be null or empty.");
   }
 
   @Test
@@ -1547,10 +1545,9 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest("maven2", " ", "hash"));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService()
-          .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null);
-    }).withMessage("The pathname cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> getRepositoryService()
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null))
+        .withMessage("The pathname cannot be null or empty.");
   }
 
   @Test
@@ -1562,10 +1559,10 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest(null, "pathname", "hash"));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService()
-          .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null);
-    }).withMessage("The format cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, false, null))
+        .withMessage("The format cannot be null or empty.");
   }
 
   @Test
@@ -1577,10 +1574,10 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest(" ", "pathname", "hash"));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService()
-          .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null);
-    }).withMessage("The format cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, false, null))
+        .withMessage("The format cannot be null or empty.");
   }
 
   @Test
@@ -1594,10 +1591,10 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest("maven2", "path", hash));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService()
-          .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null);
-    }).withMessage("The hash cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, false, null))
+        .withMessage("The hash cannot be null or empty.");
   }
 
   @Test
@@ -1609,18 +1606,19 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest("maven2", "path", " "));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService()
-          .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null);
-    }).withMessage("The hash cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, false, null))
+        .withMessage("The hash cannot be null or empty.");
   }
 
   @Test
   public void testEvaluateComponents_MissingLicenseFeature() throws Exception {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, false, null);
-    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(
+            () -> getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, false, null))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   protected void mockHdsRequest(
@@ -1759,9 +1757,10 @@ public abstract class AbstractRepositoryServiceTest
 
   @Test
   public void testRemoveComponent_RepositoryDoesNotExist() throws Exception {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath", null);
-    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(
+            () -> getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath", null))
+        .withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
     verifyNoInteractions(repositoryComponentTelemetryCreator);
   }
 
@@ -1861,9 +1860,10 @@ public abstract class AbstractRepositoryServiceTest
 
   @Test
   public void testGetUnquarantinedComponents_RepositoryDoesNotExist() throws Exception {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      getRepositoryService().getUnquarantinedComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, 0, null);
-    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(
+            () -> getRepositoryService().getUnquarantinedComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, 0, null))
+        .withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
   @Test
@@ -1956,10 +1956,11 @@ public abstract class AbstractRepositoryServiceTest
   @Test
   public void testAddProprietaryComponentNames_MissingLicenseFeature() throws Exception {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      getRepositoryService().addProprietaryComponentNames(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          new ProprietaryComponentNames());
-    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(
+            () -> getRepositoryService().addProprietaryComponentNames(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+                new ProprietaryComponentNames()))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Test
@@ -1978,9 +1979,9 @@ public abstract class AbstractRepositoryServiceTest
     String repoManId = tempEntity.newRepositoryManager().getInstanceId();
     String repoId = "hosted-repo";
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().addProprietaryComponentNames(repoManId, repoId, null);
-    }).withMessageContaining("No component name patterns specified");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().addProprietaryComponentNames(repoManId, repoId, null))
+        .withMessageContaining("No component name patterns specified");
   }
 
   @Test
@@ -1989,9 +1990,10 @@ public abstract class AbstractRepositoryServiceTest
     String repoId = "hosted-repo";
     ProprietaryComponentNames proprietaryComponentNames = new ProprietaryComponentNames("npm");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames);
-    }).withMessageContaining("No component name patterns specified");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames))
+        .withMessageContaining("No component name patterns specified");
   }
 
   @Test
@@ -2000,9 +2002,10 @@ public abstract class AbstractRepositoryServiceTest
     String repoId = "hosted-repo";
     ProprietaryComponentNames proprietaryComponentNames = new ProprietaryComponentNames(null, "name");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames);
-    }).withMessageContaining("No component format specified");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> getRepositoryService().addProprietaryComponentNames(repoManId, repoId, proprietaryComponentNames))
+        .withMessageContaining("No component format specified");
   }
 
   @Test
@@ -2010,25 +2013,25 @@ public abstract class AbstractRepositoryServiceTest
     String repoManId = tempEntity.newRepositoryManager().getInstanceId();
     String repoId = "hosted-repo";
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().addProprietaryComponentNames(repoManId, repoId,
-          new ProprietaryComponentNames("npm").addNames(""));
-    }).withMessageContaining("Empty component name pattern");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().addProprietaryComponentNames(repoManId, repoId,
+            new ProprietaryComponentNames("npm").addNames("")))
+        .withMessageContaining("Empty component name pattern");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().addProprietaryComponentNames(repoManId, repoId,
-          new ProprietaryComponentNames("npm").addNames("*"));
-    }).withMessageContaining("Invalid component name pattern: *");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().addProprietaryComponentNames(repoManId, repoId,
+            new ProprietaryComponentNames("npm").addNames("*")))
+        .withMessageContaining("Invalid component name pattern: *");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().addProprietaryComponentNames(repoManId, repoId,
-          new ProprietaryComponentNames("npm").addNamespaces("foo*bar"));
-    }).withMessageContaining("Invalid component namespace pattern: foo*bar");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().addProprietaryComponentNames(repoManId, repoId,
+            new ProprietaryComponentNames("npm").addNamespaces("foo*bar")))
+        .withMessageContaining("Invalid component namespace pattern: foo*bar");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().addProprietaryComponentNames(repoManId, repoId,
-          new ProprietaryComponentNames("npm").addNamespaces("*foo*"));
-    }).withMessageContaining("Invalid component namespace pattern: *foo*");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().addProprietaryComponentNames(repoManId, repoId,
+            new ProprietaryComponentNames("npm").addNamespaces("*foo*")))
+        .withMessageContaining("Invalid component namespace pattern: *foo*");
   }
 
   @Test
@@ -2098,9 +2101,10 @@ public abstract class AbstractRepositoryServiceTest
 
   public void testEvaluateComponentMetadata_MissingLicenseFeature() throws Exception {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, null);
-    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(
+            () -> getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, null))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
@@ -2166,10 +2170,10 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest(" " /* format */, "pathname", "hash"));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage("The format cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null))
+        .withMessage("The format cannot be null or empty.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
@@ -2184,10 +2188,10 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest(null /* format */, "pathname", "hash"));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage("The format cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null))
+        .withMessage("The format cannot be null or empty.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
@@ -2202,10 +2206,10 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest("npm", "path", " " /* hash */));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage("The hash cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null))
+        .withMessage("The hash cannot be null or empty.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
@@ -2220,10 +2224,10 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest("npm", "path", null /* hash */));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage("The hash cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null))
+        .withMessage("The hash cannot be null or empty.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
@@ -2238,10 +2242,10 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest("npm", " "/* pathname */, "hash"));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage("The pathname cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null))
+        .withMessage("The pathname cannot be null or empty.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
@@ -2256,10 +2260,10 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest("npm", null /* pathname */, "hash"));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage("The pathname cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null))
+        .withMessage("The pathname cannot be null or empty.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
@@ -2268,10 +2272,10 @@ public abstract class AbstractRepositoryServiceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, false);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          null /* componentEvaluationDataRequestList */, null);
-    }).withMessage("The repository must be enabled in quarantine mode.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            null /* componentEvaluationDataRequestList */, null))
+        .withMessage("The repository must be enabled in quarantine mode.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
@@ -2280,10 +2284,10 @@ public abstract class AbstractRepositoryServiceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, false);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          null /* componentEvaluationDataRequestList */, null);
-    }).withMessage("The repository must be enabled in quarantine mode.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            null /* componentEvaluationDataRequestList */, null))
+        .withMessage("The repository must be enabled in quarantine mode.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
@@ -2298,10 +2302,10 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest("maven2", "path", "hash"));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage("The repository format must be npm.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null))
+        .withMessage("The repository format must be npm.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 

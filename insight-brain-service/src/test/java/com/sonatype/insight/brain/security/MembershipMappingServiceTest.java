@@ -79,18 +79,16 @@ public class MembershipMappingServiceTest
 
   @Test
   public void testLoadMembersByRoleForNonGlobalContext_GlobalContext() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      membershipMappingService.loadMembersByRoleForNonGlobalContext(OwnerType.GLOBAL, "ownerId",
-          null /* roles */, null/* membersByRoleByRoleId */);
-    }).withMessage("The 'global' context is not allowed.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> membershipMappingService.loadMembersByRoleForNonGlobalContext(OwnerType.GLOBAL, "ownerId",
+            null /* roles */, null/* membersByRoleByRoleId */)).withMessage("The 'global' context is not allowed.");
   }
 
   @Test
   public void testSetMembershipMappingsForNonGlobalContext_GlobalContext() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      membershipMappingService.setMembershipMappingsForNonGlobalContext(OwnerType.GLOBAL, "ownerId",
-          null /* roleToMembers */);
-    }).withMessage("The 'global' context is not allowed.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> membershipMappingService.setMembershipMappingsForNonGlobalContext(OwnerType.GLOBAL, "ownerId",
+            null /* roleToMembers */)).withMessage("The 'global' context is not allowed.");
   }
 
   @Test
@@ -567,9 +565,9 @@ public class MembershipMappingServiceTest
 
   @Test
   public void testGetIdGlobalOrRepositoryContainer_UnsupportedOwnerType() {
-    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
-      membershipMappingService.getIdGlobalOrRepositoryContainer(OwnerType.APPLICATION);
-    }).withMessage("Only for global and repository_container");
+    assertThatExceptionOfType(UnsupportedOperationException.class)
+        .isThrownBy(() -> membershipMappingService.getIdGlobalOrRepositoryContainer(OwnerType.APPLICATION))
+        .withMessage("Only for global and repository_container");
   }
 
   private void setupLdapWithNonDynamicGroupType(String serverName, LdapGroupMappingType groupMappingType) {

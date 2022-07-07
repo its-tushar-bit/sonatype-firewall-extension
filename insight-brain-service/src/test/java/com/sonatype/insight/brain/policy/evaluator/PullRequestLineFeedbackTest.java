@@ -197,25 +197,28 @@ public class PullRequestLineFeedbackTest
 
   @Test
   public void testPullRequestFeedback_nullViolations() throws Exception {
-    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
-      new PullRequestLineFeedback(null, "Test Component", lookup(DefaultBaseUrl.class).getConfigured(), null, null);
-    }).withMessageContaining("violations is required and cannot be null");
+    assertThatExceptionOfType(NullPointerException.class)
+        .isThrownBy(
+            () -> new PullRequestLineFeedback(null, "Test Component", lookup(DefaultBaseUrl.class).getConfigured(),
+                null, null)).withMessageContaining("violations is required and cannot be null");
   }
 
   @Test
   public void testPullRequestFeedback_emptyViolations() throws Exception {
-    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
-      new PullRequestLineFeedback(new ArrayList<>(), "Test Component",
-          lookup(DefaultBaseUrl.class).getConfigured(), null, null)
-          .renderTemplateAndGetContents(SourceControlProvider.GITHUB);
-    }).withMessageContaining("violations cannot be empty");
+    assertThatExceptionOfType(IllegalStateException.class)
+        .isThrownBy(() -> new PullRequestLineFeedback(new ArrayList<>(), "Test Component",
+            lookup(DefaultBaseUrl.class).getConfigured(), null, null)
+            .renderTemplateAndGetContents(SourceControlProvider.GITHUB))
+        .withMessageContaining("violations cannot be empty");
   }
 
   @Test
   public void testPullRequestFeedback_nullDisplayName() throws Exception {
-    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
-      new PullRequestLineFeedback(new ArrayList<>(), null, lookup(DefaultBaseUrl.class).getConfigured(), null, null);
-    }).withMessageContaining("displayName is required and cannot be null");
+    assertThatExceptionOfType(NullPointerException.class)
+        .isThrownBy(
+            () -> new PullRequestLineFeedback(new ArrayList<>(), null, lookup(DefaultBaseUrl.class).getConfigured(),
+                null, null))
+        .withMessageContaining("displayName is required and cannot be null");
   }
 
   private static List<PolicyViolation> defaultPolicyViolations(int count) {

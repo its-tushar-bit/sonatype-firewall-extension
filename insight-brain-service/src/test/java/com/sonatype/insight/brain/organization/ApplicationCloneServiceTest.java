@@ -97,9 +97,9 @@ public class ApplicationCloneServiceTest
 
   @Test
   public void testCloneApplication_SourceApplicationDoesNotExist() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      appCloneService.cloneApplication("AppDoesNotExistId", "clonedAppName", "clonedAppPublicId");
-    }).withMessage("Could not find an application with ID AppDoesNotExistId.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> appCloneService.cloneApplication("AppDoesNotExistId", "clonedAppName", "clonedAppPublicId"))
+        .withMessage("Could not find an application with ID AppDoesNotExistId.");
   }
 
   @Test
@@ -138,9 +138,9 @@ public class ApplicationCloneServiceTest
     String clonedAppName = "clonedAppName";
     tempEntity.newApplicationWithParent("appPublicId", clonedAppName);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      appCloneService.cloneApplication(sourceApp.getId(), clonedAppName, "clonedAppPublicId");
-    }).withMessage("An application with name '" + clonedAppName + "' already exists.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> appCloneService.cloneApplication(sourceApp.getId(), clonedAppName, "clonedAppPublicId"))
+        .withMessage("An application with name '" + clonedAppName + "' already exists.");
   }
 
   @Test
@@ -148,9 +148,9 @@ public class ApplicationCloneServiceTest
     String clonedAppPublicId = "clonedAppPublicId";
     tempEntity.newApplicationWithParent(clonedAppPublicId, "aAppName");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", clonedAppPublicId);
-    }).withMessage("An application with public ID '" + clonedAppPublicId + "' already exists.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> appCloneService.cloneApplication(sourceApp.getId(), "clonedAppName", clonedAppPublicId))
+        .withMessage("An application with public ID '" + clonedAppPublicId + "' already exists.");
   }
 
   @Test

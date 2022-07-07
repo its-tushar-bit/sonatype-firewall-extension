@@ -169,9 +169,9 @@ public class ScanHandlerTest
     String appPublicId = "NoSuchAppPublicID";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      scanHandler.handle(servletRequest, appPublicId, ClientScanType.SONATYPE);
-    }).withMessage("Could not find an application with public ID NoSuchAppPublicID.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> scanHandler.handle(servletRequest, appPublicId, ClientScanType.SONATYPE))
+        .withMessage("Could not find an application with public ID NoSuchAppPublicID.");
   }
 
   @Test

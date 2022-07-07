@@ -273,20 +273,20 @@ public class ReportServiceTest
   @Test
   public void testGetReport_DoesNotExist() throws Exception {
     ReportService reportService = createReportService();
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      reportService.getReport(app.getId(), scanId);
-    }).withMessage("Could not find a report with ID ReportServiceTestScanId");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> reportService.getReport(app.getId(), scanId))
+        .withMessage("Could not find a report with ID ReportServiceTestScanId");
   }
 
   @Test
   public void testGetReport_DoesNotExistAndEvaluationExist() throws Exception {
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
     ReportService reportService = createReportService();
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      reportService.getReport(app.getId(), scanId);
-    }).withMessageContaining("The report for application ID " + app.getId() + " and scan ID " + scanId
-        + " does not exist. Usually this means the report was deemed obsolete according "
-        + "to the data retention policies and hence purged to the trash.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> reportService.getReport(app.getId(), scanId))
+        .withMessageContaining("The report for application ID " + app.getId() + " and scan ID " + scanId
+            + " does not exist. Usually this means the report was deemed obsolete according "
+            + "to the data retention policies and hence purged to the trash.");
   }
 
   @Test
@@ -353,9 +353,9 @@ public class ReportServiceTest
     assertThat(metadata.isReevaluation()).isTrue();
 
     // Unknown scan id
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      reportService.getReportMetadata(app.getPublicId(), "12345678");
-    }).withMessage("Could not find a report with ID 12345678");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> reportService.getReportMetadata(app.getPublicId(), "12345678"))
+        .withMessage("Could not find a report with ID 12345678");
   }
 
   @Test

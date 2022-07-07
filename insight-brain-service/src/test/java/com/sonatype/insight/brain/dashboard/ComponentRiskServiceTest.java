@@ -123,17 +123,18 @@ public class ComponentRiskServiceTest
   @Test
   public void testGetComponentRisks_Unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      componentRiskService.getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0);
-    });
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(
+            () -> componentRiskService.getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0));
   }
 
   @Test
   public void testGetPolicyViolationsWithBadStageTypeId() {
     String badStageTypeId = "not a real stage type id";
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      componentRiskService.getPolicyViolations(null, null, Sets.newHashSet(badStageTypeId), null, null, null, null);
-    }).withMessage("Invalid stage type: " + badStageTypeId + ".");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> componentRiskService.getPolicyViolations(null, null, Sets.newHashSet(badStageTypeId), null, null,
+                null, null)).withMessage("Invalid stage type: " + badStageTypeId + ".");
   }
 
   @Test
@@ -146,9 +147,9 @@ public class ComponentRiskServiceTest
     assertThat(policyViolationDTOs).isEmpty();
 
     Set<String> stageTypeIds = Sets.newHashSet(BuildStageType.ID);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      componentRiskService.getPolicyViolations(null, null, stageTypeIds, null, null, null, null);
-    }).withMessage("Current license does not support stage type: " + BuildStageType.ID + ".");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> componentRiskService.getPolicyViolations(null, null, stageTypeIds, null, null, null, null))
+        .withMessage("Current license does not support stage type: " + BuildStageType.ID + ".");
   }
 
   @Test
@@ -211,10 +212,11 @@ public class ComponentRiskServiceTest
         null, null, null);
     assertThat(policyViolationDTOs).hasSize(3);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      componentRiskService.getPolicyViolations(null, null, Collections.singleton(DevelopStageType.ID), null, null, null,
-          null);
-    }).withMessage("Invalid stage type: develop.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> componentRiskService.getPolicyViolations(null, null, Collections.singleton(DevelopStageType.ID), null,
+                null, null, null))
+        .withMessage("Invalid stage type: develop.");
   }
 
   @Test
@@ -410,7 +412,7 @@ public class ComponentRiskServiceTest
     tempEntity.newApplicationTag(app1.getId(), app1Tag.getId());
 
     List<PolicyViolationDTO> policyViolationDTOs = componentRiskService.getPolicyViolations(null, null, null,
-        new HashSet<String>(), null, null, null);
+        new HashSet<>(), null, null, null);
     assertThat(policyViolationDTOs).hasSize(3);
     assertPolicyViolationDTO(policyViolationDTOs, orgPolicyViolation, app1, app1PolicyEvaluation, orgPolicy);
     assertPolicyViolationDTO(policyViolationDTOs, app1PolicyViolation, app1, app1PolicyEvaluation, app1Policy);
@@ -534,10 +536,11 @@ public class ComponentRiskServiceTest
     assertThat(result.numResults).isEqualTo(1);
     assertThat(result.dashboardResults.get(0).hash).isEqualTo(app1PolicyViolation.getHash());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      componentRiskService.getComponentRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null, null,
-          null, "-TOTAL_RISK", 1000);
-    }).withMessage("Invalid stage type: develop.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> componentRiskService.getComponentRisks(null, null, Collections.singleton(DevelopStageType.ID), null,
+                null, null, null, "-TOTAL_RISK", 1000))
+            .withMessage("Invalid stage type: develop.");
   }
 
   @Test
@@ -779,9 +782,9 @@ public class ComponentRiskServiceTest
   public void testGetComponentRisks_DashboardFeatureDisabled() {
     tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
 
-    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> {
-      componentRiskService.getComponentRisks(null, null, null, null, null, null, null, "NAME", 2);
-    }).withMessage("The dashboard feature has been disabled.");
+    assertThatExceptionOfType(ConflictException.class)
+        .isThrownBy(() -> componentRiskService.getComponentRisks(null, null, null, null, null, null, null, "NAME", 2))
+        .withMessage("The dashboard feature has been disabled.");
   }
 
   /**

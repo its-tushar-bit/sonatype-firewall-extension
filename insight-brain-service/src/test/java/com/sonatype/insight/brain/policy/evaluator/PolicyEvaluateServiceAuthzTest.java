@@ -100,10 +100,10 @@ public class PolicyEvaluateServiceAuthzTest
   @Test
   public void testPollEvaluationResult_Authorized() {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      policyEvaluateService.pollEvaluationResult(app.getPublicId(), "statusId");
-    }).withMessage("Policy evaluation status with id %s for public application id %s was not found.", "statusId",
-        app.getPublicId());
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> policyEvaluateService.pollEvaluationResult(app.getPublicId(), "statusId"))
+        .withMessage("Policy evaluation status with id %s for public application id %s was not found.", "statusId",
+            app.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)

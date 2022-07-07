@@ -393,10 +393,10 @@ public class ApiPolicyWaiverServiceTest
     PolicyViolation policyViolation2 =
         tempEntity.newPolicyViolation(policyEvaluation, policy, "g2", "a2", "v1", "c1", "java", "h1", "r1");
 
-    assertThatThrownBy(() -> {
-      apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-          policyViolation1.getId(), "waiver comment", ALL_VERSIONS, null);
-    }).isInstanceOf(BadRequestException.class).hasMessage("This policy waiver already exists.");
+    assertThatThrownBy(
+        () -> apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+            policyViolation1.getId(), "waiver comment", ALL_VERSIONS, null)).isInstanceOf(BadRequestException.class)
+        .hasMessage("This policy waiver already exists.");
 
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
         policyViolation2.getId(), "waiver comment", ALL_VERSIONS, null);

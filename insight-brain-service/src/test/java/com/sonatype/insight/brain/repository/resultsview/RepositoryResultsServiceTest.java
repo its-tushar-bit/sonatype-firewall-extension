@@ -512,9 +512,8 @@ public class RepositoryResultsServiceTest
     detailsRequest.page = 1;
     detailsRequest.pageSize = -1;
 
-    assertThatThrownBy(() -> {
-      repositoryResultsService.getDetails(repository.getId(), detailsRequest);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> repositoryResultsService.getDetails(repository.getId(), detailsRequest))
+        .isInstanceOf(BadRequestException.class)
         .hasMessage("Page and Page size must be greater than 0");
   }
 
@@ -535,9 +534,8 @@ public class RepositoryResultsServiceTest
     detailsRequest.pageSize = 1;
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
-    assertThatThrownBy(() -> {
-      repositoryResultsService.getDetails(repository.getId(), detailsRequest);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> repositoryResultsService.getDetails(repository.getId(), detailsRequest))
+        .isInstanceOf(BadRequestException.class)
         .hasMessage("sort priority cannot be same for different fields");
   }
 

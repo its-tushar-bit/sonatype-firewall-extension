@@ -606,9 +606,9 @@ public class CLMLicenseManagerTest
     config.setDatabase(new DatabaseConfig());
     mockHdsProductLicenseDetails(withFeatures());
 
-    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
-      clmLicenseManager.loadLicense();
-    }).withMessageContaining("license does not support use of an external database");
+    assertThatExceptionOfType(LicensingException.class)
+        .isThrownBy(() -> clmLicenseManager.loadLicense())
+        .withMessageContaining("license does not support use of an external database");
 
     assertThat(migrationTrackerDAO.isTrackerPresent(CLMLicenseManager.MIGRATION_TRACKER_EXTERNAL_DB)).isFalse();
   }
@@ -1318,9 +1318,9 @@ public class CLMLicenseManagerTest
   public void testInstallLicenseIfUnlicensed_FileNotFoundException() throws Exception {
     clmLicenseManager.uninstallLicense();
     String licenseFilePath = "path/to/license/file";
-    assertThatExceptionOfType(FileNotFoundException.class).isThrownBy(() -> {
-      clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
-    }).withMessageContaining(new File(licenseFilePath).getPath());
+    assertThatExceptionOfType(FileNotFoundException.class)
+        .isThrownBy(() -> clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath))
+        .withMessageContaining(new File(licenseFilePath).getPath());
     assertThat(logOutput).atInfoLevel().contains(licenseFilePath);
     assertThat(productLicense.getFingerprint()).isNull();
   }
@@ -1330,9 +1330,8 @@ public class CLMLicenseManagerTest
     licenseManager.setForceVerificationFailure(true);
     clmLicenseManager.uninstallLicense();
     String licenseFilePath = getClass().getClassLoader().getResource("CLMLicenseManagerTest/license.lic").getFile();
-    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
-      clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath);
-    });
+    assertThatExceptionOfType(LicensingException.class)
+        .isThrownBy(() -> clmLicenseManager.installLicenseIfUnlicensed(licenseFilePath));
     assertThat(logOutput).atInfoLevel().contains(licenseFilePath);
     assertThat(productLicense.getFingerprint()).isNull();
   }

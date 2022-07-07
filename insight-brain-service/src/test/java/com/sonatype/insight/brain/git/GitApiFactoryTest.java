@@ -179,9 +179,7 @@ public class GitApiFactoryTest
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
     spyGitApiFactory.sourceControlConfigurationChanged();
 
-    assertThatThrownBy(() -> {
-      spyGitApiFactory.createGitApi(sshGitRepositoryInfo);
-    })
+    assertThatThrownBy(() -> spyGitApiFactory.createGitApi(sshGitRepositoryInfo))
         .isInstanceOf(RuntimeException.class)
         .hasMessageContaining("SSH is enabled for repository")
         .hasMessageContaining("but no SSH clone URL was");
@@ -211,9 +209,7 @@ public class GitApiFactoryTest
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
     spyGitApiFactory.sourceControlConfigurationChanged();
 
-    assertThatThrownBy(() -> {
-      spyGitApiFactory.createGitApi(sshGitRepositoryInfo);
-    })
+    assertThatThrownBy(() -> spyGitApiFactory.createGitApi(sshGitRepositoryInfo))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Application with URL " + sshUrl + " is configured to use SSH with JGit");
   }

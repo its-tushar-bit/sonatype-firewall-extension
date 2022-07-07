@@ -680,9 +680,9 @@ public class PullRequestFeedbackDetailsTest
     setupTestData();
 
     final List<Map<String, Object>> result = PullRequestFeedbackDetails
-        .getConstraintsForPolicyViolationsPerPolicy(diff.getAppeared().stream().peek(policyViolation -> {
-          policyViolation.setPolicyId("1");
-        }).collect(Collectors.toList()), getBaseUrl(), CONVERT_URLS);
+        .getConstraintsForPolicyViolationsPerPolicy(
+            diff.getAppeared().stream().peek(policyViolation -> policyViolation.setPolicyId("1"))
+                .collect(Collectors.toList()), getBaseUrl(), CONVERT_URLS);
 
     assertThat(result).hasSize(6);
   }

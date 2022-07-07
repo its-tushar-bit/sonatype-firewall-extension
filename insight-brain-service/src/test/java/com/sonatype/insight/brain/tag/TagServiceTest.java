@@ -90,9 +90,8 @@ public class TagServiceTest
     ApiApplicationCategoryDTO dto = TagService.toDTO(tag);
     dto.color = "fuchsia";
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      tagService.addTag(dto.organizationId, dto);
-    }).withMessage("Unsupported color: fuchsia");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> tagService.addTag(dto.organizationId, dto))
+        .withMessage("Unsupported color: fuchsia");
   }
 
   @Test
@@ -103,9 +102,8 @@ public class TagServiceTest
     ApiApplicationCategoryDTO dto = TagService.toDTO(tag);
     dto.color = null;
 
-    assertThatExceptionOfType(InvalidTagException.class).isThrownBy(() -> {
-      tagService.addTag(dto.organizationId, dto);
-    }).withMessage("The application category color must be assigned.");
+    assertThatExceptionOfType(InvalidTagException.class).isThrownBy(() -> tagService.addTag(dto.organizationId, dto))
+        .withMessage("The application category color must be assigned.");
   }
 
   @Test
@@ -113,9 +111,8 @@ public class TagServiceTest
     ApiApplicationCategoryDTO applicationCategoryDTO = new ApiApplicationCategoryDTO();
     applicationCategoryDTO.id = "-1";
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      tagService.addTag("", applicationCategoryDTO);
-    }).withMessage("ID must be null when creating an Application Category.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> tagService.addTag("", applicationCategoryDTO))
+        .withMessage("ID must be null when creating an Application Category.");
   }
 
   @Test
@@ -126,9 +123,8 @@ public class TagServiceTest
     ApiApplicationCategoryDTO dto = TagService.toDTO(tag);
     dto.organizationId = "some-wrong-org-id";
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      tagService.addTag(organization.getId(), dto);
-    }).withMessage("Organization ID mismatch.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> tagService.addTag(organization.getId(), dto))
+        .withMessage("Organization ID mismatch.");
   }
 
   @Test
@@ -187,9 +183,8 @@ public class TagServiceTest
     ApiApplicationCategoryDTO dto = TagService.toDTO(tag);
     dto.color = "framboise";
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      tagService.updateTag(dto.organizationId, dto);
-    }).withMessage("Unsupported color: framboise");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> tagService.updateTag(dto.organizationId, dto))
+        .withMessage("Unsupported color: framboise");
   }
 
   @Test
@@ -199,9 +194,9 @@ public class TagServiceTest
     ApiApplicationCategoryDTO applicationCategoryDTO = TagService.toDTO(tag);
     applicationCategoryDTO.organizationId = "another-org";
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      tagService.updateTag(myOrganization.getId(), applicationCategoryDTO);
-    }).withMessage("Organization ID mismatch.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> tagService.updateTag(myOrganization.getId(), applicationCategoryDTO))
+        .withMessage("Organization ID mismatch.");
   }
 
   @Test
@@ -314,9 +309,10 @@ public class TagServiceTest
     Organization org2 = tempEntity.newOrganization();
     Policy policy = tempEntity.newPolicy(org2);
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      tagService.updatePolicyTags(OwnerType.ORGANIZATION, org1.getId(), policy.getId(), new ArrayList<>());
-    }).withMessage("Cannot find a policy with id " + policy.getId() + " for owner id " + org1.getId());
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(
+            () -> tagService.updatePolicyTags(OwnerType.ORGANIZATION, org1.getId(), policy.getId(), new ArrayList<>()))
+        .withMessage("Cannot find a policy with id " + policy.getId() + " for owner id " + org1.getId());
   }
 
   @Test
@@ -324,9 +320,10 @@ public class TagServiceTest
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      tagService.updatePolicyTags(OwnerType.APPLICATION, app.getPublicId(), policy.getId(), new ArrayList<>());
-    }).withMessageContaining("policy owned by application");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> tagService.updatePolicyTags(OwnerType.APPLICATION, app.getPublicId(), policy.getId(),
+            new ArrayList<>()))
+        .withMessageContaining("policy owned by application");
   }
 
   /**
@@ -339,10 +336,10 @@ public class TagServiceTest
     Organization organization2 = tempEntity.newOrganization();
     Tag tag = tempEntity.newTag(organization1.getId(), "Tag");
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      tagService.deleteTag(organization2.getId(), tag.getId());
-    }).withMessage(
-        "Cannot find an application category with id " + tag.getId() + " for organization id " + organization2.getId());
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> tagService.deleteTag(organization2.getId(), tag.getId()))
+        .withMessage("Cannot find an application category with id " + tag.getId() + " for organization id " +
+                organization2.getId());
   }
 
   @Test
@@ -449,10 +446,10 @@ public class TagServiceTest
     Organization otherOrg = tempEntity.newOrganization();
     tag.setOrganizationId(otherOrg.getId());
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      tagService.updateTag(otherOrg.getId(), TagService.toDTO(tag));
-    }).withMessage(
-        "Cannot find an application category with id " + tag.getId() + " for organization id " + otherOrg.getId());
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> tagService.updateTag(otherOrg.getId(), TagService.toDTO(tag)))
+        .withMessage(
+            "Cannot find an application category with id " + tag.getId() + " for organization id " + otherOrg.getId());
   }
 
   @Test

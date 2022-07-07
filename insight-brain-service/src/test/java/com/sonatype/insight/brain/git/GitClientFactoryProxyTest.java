@@ -48,9 +48,9 @@ public class GitClientFactoryProxyTest
     client.createPullRequestInfoClient(gitRepositoryInfo).getPullRequestsSince("namespace", OffsetDateTime.now(), 0);
   };
 
-  private static final TestConsumer createGeneralApiClient = (client, provider, url, urlSuffix, username) -> {
-    client.createGeneralApiClient(provider, url, username, "token").listAllRepositories();
-  };
+  private static final TestConsumer createGeneralApiClient =
+      (client, provider, url, urlSuffix, username) -> client.createGeneralApiClient(provider, url, username, "token")
+          .listAllRepositories();
 
   @Parameter(0)
   public TestConsumer func;

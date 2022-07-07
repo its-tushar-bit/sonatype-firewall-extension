@@ -93,35 +93,35 @@ public class FirewallMigrationServiceTest
 
   @Test
   public void testVerifyMigrationSupport_UnsupportedProtocolVersion() throws Exception {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      migrationService.verifyMigrationSupport("v2");
-    }).withMessageEndingWith("does not support migration protocol v2, please update your IQ Server.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> migrationService.verifyMigrationSupport("v2"))
+        .withMessageEndingWith("does not support migration protocol v2, please update your IQ Server.");
   }
 
   @Test
   public void testVerifyMigrationSupport_MissingLicenseFeature() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      migrationService.verifyMigrationSupport(PROTOCOL_V1);
-    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> migrationService.verifyMigrationSupport(PROTOCOL_V1))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Test
   public void testMigrateRepositoryHistory_MissingLicenseFeature() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID,
-          TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID);
-    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID,
+            SOURCE_REPOSITORY_PUBLIC_ID, TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Test
   public void testMigrateRepositoryHistory_UnknownSource() throws Exception {
     createTargetRepository();
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID,
-          TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID);
-    }).withMessage(getErrMsgMissingRepo(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID));
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID,
+            SOURCE_REPOSITORY_PUBLIC_ID, TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID))
+        .withMessage(getErrMsgMissingRepo(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID, SOURCE_REPOSITORY_PUBLIC_ID));
   }
 
   @Test
@@ -174,11 +174,9 @@ public class FirewallMigrationServiceTest
         TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID);
 
     // Wait for migration to complete
-    await().atMost(1, TimeUnit.MINUTES).untilAsserted(() -> {
-      assertThat(migrationService
-          .getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID).getState())
-              .isEqualTo(MigrationState.COMPLETED);
-    });
+    await().atMost(1, TimeUnit.MINUTES).untilAsserted(() -> assertThat(migrationService
+        .getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, TARGET_REPOSITORY_PUBLIC_ID).getState())
+            .isEqualTo(MigrationState.COMPLETED));
 
     // Assert source untouched
     assertThat(new RepositoryComponentDAO().getByRepositoryId(sourceRepository.getId()))
@@ -314,9 +312,10 @@ public class FirewallMigrationServiceTest
   public void testGetRepositoryMigrationState_UnknownRepository() throws Exception {
     tempEntity.newRepositoryManager(TARGET_REPOSITORY_MANAGER_INSTANCE_ID);
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      migrationService.getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, "unknown");
-    }).withMessage(getErrMsgMissingRepo(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, "unknown"));
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(
+            () -> migrationService.getRepositoryMigrationState(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, "unknown"))
+        .withMessage(getErrMsgMissingRepo(TARGET_REPOSITORY_MANAGER_INSTANCE_ID, "unknown"));
   }
 
   @Test

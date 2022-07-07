@@ -78,8 +78,8 @@ public class ProductLicenseServiceTest
     hdsMockServer.respondWith(licenseDetails).atUri("/rest/productLicense/v1").withoutLicense();
     config.setDatabase(new DatabaseConfig());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      productLicenseService.installLicense(new ByteArrayInputStream(new byte[1]), "auditor.lic");
-    }).withMessageContaining("license does not support use of an external database");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> productLicenseService.installLicense(new ByteArrayInputStream(new byte[1]), "auditor.lic"))
+        .withMessageContaining("license does not support use of an external database");
   }
 }

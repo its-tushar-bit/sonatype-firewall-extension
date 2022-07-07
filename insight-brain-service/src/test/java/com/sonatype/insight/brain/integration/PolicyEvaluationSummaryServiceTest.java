@@ -59,9 +59,9 @@ public class PolicyEvaluationSummaryServiceTest
   public void testGetEvaluationSummaryByApplicationId_NoApplication() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
     String appId = "invalidAppId";
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      policyEvaluationSummaryService.getEvaluationSummaryByApplicationId(appId, stage);
-    }).withMessageContaining("not find an application with ID " + appId);
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> policyEvaluationSummaryService.getEvaluationSummaryByApplicationId(appId, stage))
+        .withMessageContaining("not find an application with ID " + appId);
   }
 
   @Test
@@ -79,8 +79,9 @@ public class PolicyEvaluationSummaryServiceTest
 
     Stage stage = new Stage(Stage.ID_BUILD);
     Application application = tempEntity.newApplicationWithParent("test-app");
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      policyEvaluationSummaryService.getEvaluationSummaryByApplicationId(application.getId(), stage);
-    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(
+            () -> policyEvaluationSummaryService.getEvaluationSummaryByApplicationId(application.getId(), stage))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 }

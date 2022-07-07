@@ -87,9 +87,8 @@ public class ThirdPartyScanServiceTest
     when(thirdPartyScanResultsProcessorMock.filterAndSaveData(eq(scanFile), any(File.class), any(File.class), eq(null)))
         .thenThrow(new IllegalArgumentException("error"));
 
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      service.filterAndUpload(scanFile, app, stage.getStageTypeId(), null, null);
-    });
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
+        () -> service.filterAndUpload(scanFile, app, stage.getStageTypeId(), null, null));
   }
 
   private File createScanFile(Application app, String scanId) {

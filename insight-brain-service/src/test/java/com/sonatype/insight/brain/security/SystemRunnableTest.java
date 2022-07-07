@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SystemRunnableTest
 {
   private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 1, 1, TimeUnit.SECONDS,
-      new ArrayBlockingQueue<Runnable>(1));
+      new ArrayBlockingQueue<>(1));
 
   /**
    * JUnit reuses threads which may have MDC username set as {@link MDCUsernameScope.SYSTEM }

@@ -158,9 +158,8 @@ public class ComponentDetailServiceTest
   @Test
   public void testGetApplicationDetailsByHash_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      componentDetailService.getApplicationDetailsByHash("some-hash");
-    });
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> componentDetailService.getApplicationDetailsByHash("some-hash"));
   }
 
   @Test
@@ -357,17 +356,16 @@ public class ComponentDetailServiceTest
   @Test
   public void testGetComponentNameByHash_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      componentDetailService.getComponentNameByHash("some-hash");
-    });
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> componentDetailService.getComponentNameByHash("some-hash"));
   }
 
   @Test
   public void testGetComponentNameByHash_UnknownHash() throws Exception {
     String hash = "ababababab";
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      componentDetailService.getComponentNameByHash(hash);
-    }).withMessage("Unknown component with hash " + hash + ".");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> componentDetailService.getComponentNameByHash(hash))
+        .withMessage("Unknown component with hash " + hash + ".");
   }
 
   @Test

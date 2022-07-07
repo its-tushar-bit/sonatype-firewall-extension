@@ -93,9 +93,9 @@ public class RepositoryServiceTest
   @Test
   public void testRemoveExtraComponents_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      repositoryService.removeExtraComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null);
-    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> repositoryService.removeExtraComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null))
+        .withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Test
@@ -339,10 +339,9 @@ public class RepositoryServiceTest
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         newRepositoryComponentEvaluationDataRequestList(Collections.singletonList(componentEvaluationDataRequest));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage("The format cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null)).withMessage("The format cannot be null or empty.");
   }
 
   @Test
@@ -353,10 +352,9 @@ public class RepositoryServiceTest
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         newRepositoryComponentEvaluationDataRequestList(Collections.singletonList(componentEvaluationDataRequest));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage("The hash cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null)).withMessage("The hash cannot be null or empty.");
   }
 
   @Test
@@ -367,10 +365,9 @@ public class RepositoryServiceTest
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         newRepositoryComponentEvaluationDataRequestList(Collections.singletonList(componentEvaluationDataRequest));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage("The pathname cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null)).withMessage("The pathname cannot be null or empty.");
   }
 
   @Test
@@ -381,10 +378,9 @@ public class RepositoryServiceTest
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         newRepositoryComponentEvaluationDataRequestList(Collections.singletonList(componentEvaluationDataRequest));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage("The format cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null)).withMessage("The format cannot be null or empty.");
   }
 
   @Test
@@ -395,10 +391,9 @@ public class RepositoryServiceTest
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         newRepositoryComponentEvaluationDataRequestList(Collections.singletonList(componentEvaluationDataRequest));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage("The hash cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null)).withMessage("The hash cannot be null or empty.");
   }
 
   @Test
@@ -409,10 +404,9 @@ public class RepositoryServiceTest
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         newRepositoryComponentEvaluationDataRequestList(Collections.singletonList(componentEvaluationDataRequest));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage("The pathname cannot be null or empty.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null)).withMessage("The pathname cannot be null or empty.");
   }
 
   private void mockHdsRequestForComponent(
@@ -454,9 +448,8 @@ public class RepositoryServiceTest
         newRepositoryComponentEvaluationDataRequestList(Collections.singletonList(componentEvaluationDataRequest));
 
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-          componentEvaluationDataRequestList, null);
-    }).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
+        () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
+            componentEvaluationDataRequestList, null)).withMessage(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 }

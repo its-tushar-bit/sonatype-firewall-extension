@@ -181,9 +181,9 @@ public class ScmOnboardingServiceTest
         .newSourceControl(org.getId(), null, null, null);
 
     // then loading repositories fails
-    assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
-      scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
-    }).withMessageContaining("'token' must not be null");
+    assertThatExceptionOfType(NullPointerException.class)
+        .isThrownBy(() -> scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl()))
+        .withMessageContaining("'token' must not be null");
 
     // and: no source control evaluation events
     verifyNoSourceControlEvaluationEventsCreated();
@@ -345,9 +345,9 @@ public class ScmOnboardingServiceTest
 
   @Test
   public void testLoadRepositories_invalidOrgId() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      scmOnboardingService.loadRepositories("organizationThatDoesntExist", gitService.baseUrl());
-    }).withMessageContaining("Cannot find organization with ID organizationThatDoesntExist.");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> scmOnboardingService.loadRepositories("organizationThatDoesntExist", gitService.baseUrl()))
+        .withMessageContaining("Cannot find organization with ID organizationThatDoesntExist.");
 
     // and: no source control evaluation events
     verifyNoSourceControlEvaluationEventsCreated();
@@ -375,16 +375,16 @@ public class ScmOnboardingServiceTest
   }
 
   private void testGetDefaultHostUrl_noProvider(String provider) {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      scmOnboardingService.getDefaultHostUrl(provider, "org-id-not-checked");
-    }).withMessageContaining("Provider has not been specified");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> scmOnboardingService.getDefaultHostUrl(provider, "org-id-not-checked"))
+        .withMessageContaining("Provider has not been specified");
   }
 
   @Test
   public void testGetDefaultHostUrl_invalidProvider() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      scmOnboardingService.getDefaultHostUrl("invalid", "org-id-not-checked");
-    }).withMessageContaining("Invalid provider: invalid");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> scmOnboardingService.getDefaultHostUrl("invalid", "org-id-not-checked"))
+        .withMessageContaining("Invalid provider: invalid");
   }
 
   @Test

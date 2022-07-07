@@ -128,9 +128,8 @@ public class LdapServiceTest
     LdapServer ldapServer = tempEntity.newLdapServer("test");
     LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId());
 
-    assertThatThrownBy(() -> {
-      ldapService.testLdapConnection("fake LDAP server id", ldapConnection);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
+    assertThatThrownBy(() -> ldapService.testLdapConnection("fake LDAP server id", ldapConnection))
+        .isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
   }
 
   @Test
@@ -196,9 +195,8 @@ public class LdapServiceTest
       // force three failures by attempting auth against the dangling socket
 
       for (int failures = 0; failures < 3; failures++) {
-        assertThatThrownBy(() -> {
-          ldapService.authenticateUser("user", "pass".toCharArray());
-        }).isInstanceOf(NamingException.class).hasMessageContaining("read timed out");
+        assertThatThrownBy(() -> ldapService.authenticateUser("user", "pass".toCharArray())).isInstanceOf(
+            NamingException.class).hasMessageContaining("read timed out");
       }
 
       long lastFailure = System.currentTimeMillis();
@@ -206,9 +204,8 @@ public class LdapServiceTest
       // the next requests should be ignored while the retry delay is active
 
       for (int failures = 0; failures < 3; failures++) {
-        assertThatThrownBy(() -> {
-          ldapService.authenticateUser("user", "pass".toCharArray());
-        }).isInstanceOf(NamingException.class).hasMessageContaining("Delaying retry");
+        assertThatThrownBy(() -> ldapService.authenticateUser("user", "pass".toCharArray())).isInstanceOf(
+            NamingException.class).hasMessageContaining("Delaying retry");
       }
 
       while (System.currentTimeMillis() - lastFailure <= 5000) {
@@ -217,9 +214,8 @@ public class LdapServiceTest
 
       // the next request should NOT be ignored because the delay has expired
 
-      assertThatThrownBy(() -> {
-        ldapService.authenticateUser("user", "pass".toCharArray());
-      }).isInstanceOf(NamingException.class).hasMessageContaining("read timed out");
+      assertThatThrownBy(() -> ldapService.authenticateUser("user", "pass".toCharArray())).isInstanceOf(
+          NamingException.class).hasMessageContaining("read timed out");
     }
   }
 
@@ -227,9 +223,8 @@ public class LdapServiceTest
   public void testAuthenticateUser_SingleExceptionThrownAsIs() throws Exception {
     loadLdapServer(testLdapServer1, "Test Server1");
 
-    assertThatThrownBy(() -> {
-      ldapService.authenticateUser("test_user2_2", "test".toCharArray());
-    }).isInstanceOf(NameNotFoundException.class).hasMessage("LDAP user with username 'test_user2_2' does not exist");
+    assertThatThrownBy(() -> ldapService.authenticateUser("test_user2_2", "test".toCharArray())).isInstanceOf(
+        NameNotFoundException.class).hasMessage("LDAP user with username 'test_user2_2' does not exist");
   }
 
   @Test
@@ -237,9 +232,8 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer1, "Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
-    assertThatThrownBy(() -> {
-      ldapService.authenticateUser("test_user2_2", "badPWD".toCharArray());
-    }).isInstanceOf(AuthenticationException.class)
+    assertThatThrownBy(() -> ldapService.authenticateUser("test_user2_2", "badPWD".toCharArray()))
+        .isInstanceOf(AuthenticationException.class)
         .hasMessage("LDAP Server: Test Server2 -> [LDAP: error code 49 - INVALID_CREDENTIALS: Bind failed:"
             + " ERR_229 Cannot authenticate user uid=test_user2_2,ou=users,dc=company,dc=com]")
         .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
@@ -263,9 +257,8 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer2, "Test Server2");
 
     try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
-      assertThatThrownBy(() -> {
-        ldapService.authenticateUser("any-user", "anything".toCharArray());
-      }).isInstanceOf(NamingException.class)
+      assertThatThrownBy(() -> ldapService.authenticateUser("any-user", "anything".toCharArray()))
+          .isInstanceOf(NamingException.class)
           .hasMessageMatching("LDAP Server: Test Server1 -> LDAP response read timed out, " +
               "timeout used:\\p{Zs}?1000\\p{Zs}?ms.;\n")
           .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage)
@@ -294,9 +287,8 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer3, "Test Server3");
     try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
       try (final ServerSocket ignored2 = new ServerSocket(ldapConnection2.getPort())) {
-        assertThatThrownBy(() -> {
-          ldapService.authenticateUser("any-user", "anything".toCharArray());
-        }).isInstanceOf(NamingException.class)
+        assertThatThrownBy(() -> ldapService.authenticateUser("any-user", "anything".toCharArray()))
+            .isInstanceOf(NamingException.class)
             .hasMessageMatching("LDAP Server: Test Server1 -> LDAP response read timed out, " +
                 "timeout used:\\p{Zs}?1000\\p{Zs}?ms.;\n"
                 + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:\\p{Zs}?1000\\p{Zs}?ms.;\n")
@@ -315,9 +307,8 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer2, "Test Server2");
 
     testLdapServer1.stop();
-    assertThatThrownBy(() -> {
-      ldapService.authenticateUser("test_user4", "anything".toCharArray());
-    }).isInstanceOf(NamingException.class).hasMessageContainingAll("LDAP Server: Test Server1 -> ",
+    assertThatThrownBy(() -> ldapService.authenticateUser("test_user4", "anything".toCharArray()))
+        .isInstanceOf(NamingException.class).hasMessageContainingAll("LDAP Server: Test Server1 -> ",
         "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n").satisfies(e -> {
           assertThat(e.getSuppressed()).hasSize(2);
           assertThat(e.getSuppressed()[0].getCause()).hasMessageFindingMatch(CONNECTION_ERROR_PATTERN);
@@ -330,9 +321,8 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer1, "Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
-    assertThatThrownBy(() -> {
-      ldapService.authenticateUser("test_user4", "anything".toCharArray());
-    }).isInstanceOf(NameNotFoundException.class)
+    assertThatThrownBy(() -> ldapService.authenticateUser("test_user4", "anything".toCharArray()))
+        .isInstanceOf(NameNotFoundException.class)
         .hasMessage("LDAP Server: Test Server1 -> LDAP user with username 'test_user4' does not exist;\n"
             + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n")
         .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
@@ -377,9 +367,8 @@ public class LdapServiceTest
       // force three failures by attempting the operation against the dangling socket
 
       for (int failures = 0; failures < 3; failures++) {
-        assertThatThrownBy(() -> {
-          ldapService.getUserByName("user");
-        }).isInstanceOf(NamingException.class).hasMessageContaining("read timed out");
+        assertThatThrownBy(() -> ldapService.getUserByName("user")).isInstanceOf(NamingException.class)
+            .hasMessageContaining("read timed out");
       }
 
       long lastFailure = System.currentTimeMillis();
@@ -387,9 +376,8 @@ public class LdapServiceTest
       // the next requests should be ignored while the retry delay is active
 
       for (int failures = 0; failures < 3; failures++) {
-        assertThatThrownBy(() -> {
-          ldapService.getUserByName("user");
-        }).isInstanceOf(NamingException.class).hasMessageContaining("Delaying retry");
+        assertThatThrownBy(() -> ldapService.getUserByName("user")).isInstanceOf(NamingException.class)
+            .hasMessageContaining("Delaying retry");
       }
 
       while (System.currentTimeMillis() - lastFailure <= 5000) {
@@ -398,9 +386,8 @@ public class LdapServiceTest
 
       // the next request should NOT be ignored because the delay has expired
 
-      assertThatThrownBy(() -> {
-        ldapService.getUserByName("user");
-      }).isInstanceOf(NamingException.class).hasMessageContaining("read timed out");
+      assertThatThrownBy(() -> ldapService.getUserByName("user")).isInstanceOf(NamingException.class)
+          .hasMessageContaining("read timed out");
     }
   }
 
@@ -408,9 +395,9 @@ public class LdapServiceTest
   public void testGetUserByName_SingleExceptionThrownAsIs() throws Exception {
     loadLdapServer(testLdapServer1, "Test Server1");
 
-    assertThatThrownBy(() -> {
-      ldapService.getUserByName("test_user2_2");
-    }).isInstanceOf(NameNotFoundException.class).hasMessage("LDAP user with username 'test_user2_2' does not exist");
+    assertThatThrownBy(() -> ldapService.getUserByName("test_user2_2"))
+        .isInstanceOf(NameNotFoundException.class)
+        .hasMessage("LDAP user with username 'test_user2_2' does not exist");
   }
 
   @Test
@@ -419,9 +406,7 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer2, "Test Server2");
 
     try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
-      assertThatThrownBy(() -> {
-        ldapService.getUserByName("any-user");
-      }).isInstanceOf(NamingException.class)
+      assertThatThrownBy(() -> ldapService.getUserByName("any-user")).isInstanceOf(NamingException.class)
           .hasMessageMatching("LDAP Server: Test Server1 -> LDAP response read " +
               "timed out, timeout used:\\p{Zs}?1000\\p{Zs}?ms.;\n")
           .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage)
@@ -441,9 +426,7 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer3, "Test Server3");
     try (final ServerSocket ignored = new ServerSocket(ldapConnection1.getPort())) {
       try (final ServerSocket ignored2 = new ServerSocket(ldapConnection2.getPort())) {
-        assertThatThrownBy(() -> {
-          ldapService.getUserByName("any-user");
-        }).isInstanceOf(NamingException.class)
+        assertThatThrownBy(() -> ldapService.getUserByName("any-user")).isInstanceOf(NamingException.class)
             .hasMessageMatching("LDAP Server: Test Server1 -> " +
                 "LDAP response read timed out, timeout used:\\p{Zs}?1000\\p{Zs}?ms.;\n"
                 + "LDAP Server: Test Server2 -> LDAP response read timed out, timeout used:\\p{Zs}?1000\\p{Zs}?ms.;\n")
@@ -463,9 +446,9 @@ public class LdapServiceTest
 
     final int ldapServer1Port = testLdapServer1.getPort();
     testLdapServer1.stop();
-    assertThatThrownBy(() -> {
-      ldapService.getUserByName("test_user4");
-    }).isInstanceOf(NamingException.class).hasMessage("LDAP Server: Test Server1 -> localhost:" + ldapServer1Port
+    assertThatThrownBy(() -> ldapService.getUserByName("test_user4"))
+        .isInstanceOf(NamingException.class)
+        .hasMessage("LDAP Server: Test Server1 -> localhost:" + ldapServer1Port
         + ";\n" + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n")
         .satisfies(e -> {
           assertThat(e.getSuppressed()).hasSize(2);
@@ -480,9 +463,7 @@ public class LdapServiceTest
     loadLdapServer(testLdapServer1, "Test Server1");
     loadLdapServer(testLdapServer2, "Test Server2");
 
-    assertThatThrownBy(() -> {
-      ldapService.getUserByName("test_user4");
-    }).isInstanceOf(NameNotFoundException.class)
+    assertThatThrownBy(() -> ldapService.getUserByName("test_user4")).isInstanceOf(NameNotFoundException.class)
         .hasMessage("LDAP Server: Test Server1 -> LDAP user with username 'test_user4' does not exist;\n"
             + "LDAP Server: Test Server2 -> LDAP user with username 'test_user4' does not exist;\n")
         .satisfies(e -> assertThat(e.getSuppressed()).extracting(Throwable::getMessage).containsExactly(
@@ -790,9 +771,8 @@ public class LdapServiceTest
     LdapServer ldapServer = tempEntity.newLdapServer("test");
     LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
 
-    assertThatThrownBy(() -> {
-      ldapService.testLdapUserMapping("fake LDAP server id", ldapUserMapping, -1);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
+    assertThatThrownBy(() -> ldapService.testLdapUserMapping("fake LDAP server id", ldapUserMapping, -1))
+        .isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
   }
 
   @Test
@@ -898,9 +878,8 @@ public class LdapServiceTest
     LdapServer ldapServer = tempEntity.newLdapServer("test");
     LdapUserMapping ldapUserMapping = createUserMapping(ldapServer);
 
-    assertThatThrownBy(() -> {
-      ldapService.testLdapUserMapping(ldapServer.getId(), ldapUserMapping, -1);
-    }).isInstanceOf(BadRequestException.class).hasMessageContaining("LDAP connection is not configured");
+    assertThatThrownBy(() -> ldapService.testLdapUserMapping(ldapServer.getId(), ldapUserMapping, -1))
+        .isInstanceOf(BadRequestException.class).hasMessageContaining("LDAP connection is not configured");
   }
 
   @Test
@@ -930,9 +909,9 @@ public class LdapServiceTest
 
     LdapUserMapping ldapUserMapping = newInMemoryLdapUserMapping(ldapServer);
 
-    assertThatThrownBy(() -> {
-      ldapService.testUserLogin("fake LDAP server id", ldapUserMapping, "user", "pass".toCharArray());
-    }).isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
+    assertThatThrownBy(() -> ldapService.testUserLogin("fake LDAP server id", ldapUserMapping, "user",
+        "pass".toCharArray())).isInstanceOf(BadRequestException.class)
+        .hasMessage("Inconsistent LDAP server ID.");
   }
 
   @Test
@@ -1006,9 +985,8 @@ public class LdapServiceTest
     startLdapServer(testLdapServer1, ldapConnection);
     createUserMapping(ldapServer);
 
-    assertThatThrownBy(() -> {
-      ldapService.authenticateUser("test_user", "".toCharArray());
-    }).isInstanceOf(AuthenticationException.class);
+    assertThatThrownBy(() -> ldapService.authenticateUser("test_user", "".toCharArray()))
+        .isInstanceOf(AuthenticationException.class);
   }
 
   @Test
@@ -1867,9 +1845,8 @@ public class LdapServiceTest
     LdapServer ldapServer = tempEntity.newLdapServer("test");
     LdapConnection ldapConnection = tempEntity.newLdapConnection(ldapServer.getId());
 
-    assertThatThrownBy(() -> {
-      ldapService.upsertLdapConnection("fake LDAP server id", ldapConnection);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
+    assertThatThrownBy(() -> ldapService.upsertLdapConnection("fake LDAP server id", ldapConnection))
+        .isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
   }
 
   @Test
@@ -1998,9 +1975,8 @@ public class LdapServiceTest
     LdapServer ldapServer = tempEntity.newLdapServer("test");
     LdapUserMapping ldapUserMapping = tempEntity.newLdapUserMapping(ldapServer.getId());
 
-    assertThatThrownBy(() -> {
-      ldapService.upsertLdapUserMapping("fake LDAP server id", ldapUserMapping);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
+    assertThatThrownBy(() -> ldapService.upsertLdapUserMapping("fake LDAP server id", ldapUserMapping))
+        .isInstanceOf(BadRequestException.class).hasMessage("Inconsistent LDAP server ID.");
   }
 
   @Test
@@ -2013,9 +1989,8 @@ public class LdapServiceTest
 
     ldapConnection.setReferralIgnored(false);
     new LdapConnectionDAO().update(ldapConnection);
-    assertThatExceptionOfType(NotContextException.class).isThrownBy(() -> {
-      ldapService.getUsersByName(ldapServer, new String[]{"nobody"});
-    });
+    assertThatExceptionOfType(NotContextException.class)
+        .isThrownBy(() -> ldapService.getUsersByName(ldapServer, new String[]{"nobody"}));
 
     ldapConnection.setReferralIgnored(true);
     new LdapConnectionDAO().update(ldapConnection);

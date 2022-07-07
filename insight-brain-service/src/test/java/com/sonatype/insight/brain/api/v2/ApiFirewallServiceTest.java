@@ -438,18 +438,16 @@ public class ApiFirewallServiceTest
   public void testGetQuarantineSummary_NoReleaseIntegrityFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      apiFirewallService.getQuarantineSummary();
-    });
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
+        () -> apiFirewallService.getQuarantineSummary());
   }
 
   @Test
   public void testGetQuarantineSummary_NoFirewallAutoUnquarantineFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      apiFirewallService.getQuarantineSummary();
-    });
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> apiFirewallService.getQuarantineSummary());
   }
 
   @Test

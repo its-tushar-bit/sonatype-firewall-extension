@@ -67,9 +67,8 @@ public class CompactCommandTest
     InsightConfig insightConfig = new InsightConfig();
     insightConfig.setDatabase(new com.sonatype.insight.brain.service.DatabaseConfig());
 
-    assertThatThrownBy(() -> {
-      new CompactCommand().run(null, null, insightConfig);
-    }).isInstanceOf(BadRequestException.class).hasMessage("The compact-db command is supported only for h2 databases.");
+    assertThatThrownBy(() -> new CompactCommand().run(null, null, insightConfig)).isInstanceOf(
+        BadRequestException.class).hasMessage("The compact-db command is supported only for h2 databases.");
   }
 
   private Path setupDatabaseFile() throws Exception {

@@ -176,13 +176,11 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> {
-      assertThat(logOutput).atDebugLevel().contains(
-          "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
-              + " in stage " + eval.getStageTypeId()
-              + ". There are either no recipients configured, or no new policy violations "
-              + "for policies configured to send notifications");
-    });
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atDebugLevel().contains(
+        "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
+            + " in stage " + eval.getStageTypeId()
+            + ". There are either no recipients configured, or no new policy violations "
+            + "for policies configured to send notifications"));
   }
 
   @Test
@@ -203,11 +201,9 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> {
-      assertThat(logOutput).atDebugLevel()
-          .contains("Sending notification email via " + mailer.getServer() + " to " + email + " for application "
-              + app.getPublicId() + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId());
-    });
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atDebugLevel()
+        .contains("Sending notification email via " + mailer.getServer() + " to " + email + " for application "
+            + app.getPublicId() + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId()));
   }
 
   @Test
@@ -230,11 +226,9 @@ public class PolicyAlertEmailerTest
 
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> {
-      assertThat(logOutput).atErrorLevel()
-          .contains("Unable to send notification email to " + email + " for application " + app.getPublicId()
-              + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(), ex);
-    });
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atErrorLevel()
+        .contains("Unable to send notification email to " + email + " for application " + app.getPublicId()
+            + " and scan " + eval.getScanId() + " in stage " + eval.getStageTypeId(), ex));
   }
 
   @Test
@@ -550,13 +544,11 @@ public class PolicyAlertEmailerTest
     policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
 
     // No email should be sent out with only Jira Notification
-    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> {
-      assertThat(logOutput).atDebugLevel().contains(
-          "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
-              + " in stage " + eval.getStageTypeId()
-              + ". There are either no recipients configured, or no new policy violations "
-              + "for policies configured to send notifications");
-    });
+    await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atDebugLevel().contains(
+        "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
+            + " in stage " + eval.getStageTypeId()
+            + ". There are either no recipients configured, or no new policy violations "
+            + "for policies configured to send notifications"));
   }
 
   @Test
@@ -749,9 +741,10 @@ public class PolicyAlertEmailerTest
     policyFacts
         .add(newPolicyFact(policy, ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), "hash"));
 
-    assertThatThrownBy(() -> {
-      policyAlertEmailer.createPolicyMailModel(app, null /* appContact */, "scanId", StageTypes.BUILD, policyFacts, 0);
-    }).isInstanceOf(IllegalStateException.class).hasMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+    assertThatThrownBy(
+        () -> policyAlertEmailer.createPolicyMailModel(app, null /* appContact */, "scanId", StageTypes.BUILD,
+            policyFacts, 0)).isInstanceOf(IllegalStateException.class)
+        .hasMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   private PolicyFact newPolicyFact(Policy policy, ComponentIdentifier componentIdentifier, String hash) {

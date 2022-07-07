@@ -123,11 +123,9 @@ public class InsightBrainServiceTest
     final Map<ByteArrayDataSource, Integer> responses = new ConcurrentHashMap<>();
 
     Date expectedMinCreateTime = new Date();
-    initServer(config -> {
-      getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
-        responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
-      }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
-    });
+    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> responses.put(
+            new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
+        .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
     temporarilyEnableQuartzTelemetry();
     await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(EXPECTED_TELEMETRY_PURPOSES.length));
     Date expectedMaxCreateTime = new Date();
@@ -234,12 +232,10 @@ public class InsightBrainServiceTest
   @ManualServerInit
   public void testRun_TelemetryFail() throws Exception {
     final HttpServletResponse[] responses = new HttpServletResponse[1];
-    initServer(config -> {
-      getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
-        responses[0] = response;
-        throw new RuntimeException();
-      }).atUri(TelemetrySender.RESOURCE_PATH);
-    });
+    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
+      responses[0] = response;
+      throw new RuntimeException();
+    }).atUri(TelemetrySender.RESOURCE_PATH));
     await().atMost(5, SECONDS).until(() -> responses[0] != null);
     HttpResponse response = adminRequest().path("/healthcheck").get();
     assertResponseStatus(200, response);
@@ -250,9 +246,9 @@ public class InsightBrainServiceTest
   public void testRestEndpointTelemetry() throws Exception {
     Map<ByteArrayDataSource, Integer> responses = new ConcurrentHashMap<>();
     Date expectedMinCreateTime = new Date();
-    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
-      responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
-    }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
+    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> responses.put(
+            new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
+        .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
 
     assertResponseStatus(404,
         restRequest().path(PublicApiPaths.USER_RESOURCE_PATH_V2, DefaultApiUserResource.USERNAME_PATH)
@@ -291,19 +287,17 @@ public class InsightBrainServiceTest
   @Test
   @ManualServerInit
   public void testConfigWithHttp_SuggestsUpdateConfig() {
-    assertThatThrownBy(() -> {
-      initServer(new Configurator()
-      {
-        @Override
-        public void configure(final InsightConfig config) {
-        }
+    assertThatThrownBy(() -> initServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
 
-        @Override
-        public String getConfigFilePath() {
-          return InsightBrainService.class.getResource("/InsightBrainServiceTest/config-with-http.yml").getFile();
-        }
-      });
-    }).isInstanceOf(RuntimeException.class)
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class.getResource("/InsightBrainServiceTest/config-with-http.yml").getFile();
+      }
+    })).isInstanceOf(RuntimeException.class)
         .hasStackTraceContaining(InsightConfigurationFactory.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE);
   }
 

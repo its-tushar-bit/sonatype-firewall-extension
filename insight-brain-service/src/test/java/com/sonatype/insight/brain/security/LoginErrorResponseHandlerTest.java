@@ -35,9 +35,8 @@ public class LoginErrorResponseHandlerTest
 
     errorResponse = new ErrorResponse(HttpServletResponse.SC_ACCEPTED, null);
 
-    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
-      LoginErrorResponseHandler.sendError(response, errorResponse);
-    }).withCause(ioException);
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(
+        () -> LoginErrorResponseHandler.sendError(response, errorResponse)).withCause(ioException);
   }
 
   @Test

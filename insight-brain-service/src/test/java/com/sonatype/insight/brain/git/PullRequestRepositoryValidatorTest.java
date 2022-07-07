@@ -181,11 +181,9 @@ public class PullRequestRepositoryValidatorTest
     String repoName = String.format(TEST_REPO_URL, "https://repo.com/");
     Arrays.stream(SourceControlProvider.values())
         .filter(sourceControlProvider -> sourceControlProvider != GITHUB && sourceControlProvider != GITLAB)
-        .forEach(sourceControlProvider -> {
-          assertThat(pullRequestRepositoryValidator
-              .isInternalRepository(newGitRepositoryInfo(repoName, sourceControlProvider)))
-              .isFalse();
-        });
+        .forEach(sourceControlProvider -> assertThat(pullRequestRepositoryValidator
+            .isInternalRepository(newGitRepositoryInfo(repoName, sourceControlProvider)))
+            .isFalse());
   }
 
   private GitRepositoryInfo newGitRepositoryInfo(final String repoUrl, final SourceControlProvider provider) {

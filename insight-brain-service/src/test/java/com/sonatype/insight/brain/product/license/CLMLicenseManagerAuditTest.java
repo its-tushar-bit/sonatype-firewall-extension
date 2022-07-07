@@ -71,9 +71,8 @@ public class CLMLicenseManagerAuditTest
   public void testInstallLicenseIfUnlicensed_ServerError() throws Exception {
     licenseManager.uninstallLicense();
 
-    assertThatExceptionOfType(Exception.class).isThrownBy(() -> {
-      licenseManager.installLicenseIfUnlicensed("doesNotExist");
-    });
+    assertThatExceptionOfType(Exception.class).isThrownBy(
+        () -> licenseManager.installLicenseIfUnlicensed("doesNotExist"));
     assertAuditLog(AuditEvent.INSTALL_LICENSE, "server-error", SYSTEM_USER);
   }
 

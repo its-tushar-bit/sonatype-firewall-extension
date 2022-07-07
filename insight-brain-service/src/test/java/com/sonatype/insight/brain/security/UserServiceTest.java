@@ -208,9 +208,8 @@ public class UserServiceTest
     User updatedUser = userDAO.getByIdNotNull(user.getId());
     updatedUser.setPassword("PasswordUpdated");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      userService.updateUser(updatedUser);
-    }).withMessage("Cannot change user password.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> userService.updateUser(updatedUser))
+        .withMessage("Cannot change user password.");
 
     assertInternalUser(userDAO.getByIdNotNull(user.getId()), user.getId(), "TestUsername", user.getPassword(),
         "TestFirstName", "TestLastName", "TestEmail@example.com");
@@ -225,9 +224,8 @@ public class UserServiceTest
     updatedUser.setPassword(UserService.FAKE_PASSWORD);
     updatedUser.setUsername("TestUsernameUpdated");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      userService.updateUser(updatedUser);
-    }).withMessage("Cannot change username.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> userService.updateUser(updatedUser))
+        .withMessage("Cannot change username.");
 
     assertInternalUser(userDAO.getByIdNotNull(user.getId()), user.getId(), "TestUsername", user.getPassword(),
         "TestFirstName", "TestLastName", "TestEmail@example.com");
@@ -251,17 +249,18 @@ public class UserServiceTest
 
   @Test
   public void testFindMembersForGlobalRoles_EmptyQuery() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      userService.findMembersForRoles(OwnerType.GLOBAL, null, "" /* query */, false /* groupsEnabled */);
-    }).withMessage("No search term specified.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> userService.findMembersForRoles(OwnerType.GLOBAL, null, "" /* query */, false /* groupsEnabled */))
+        .withMessage("No search term specified.");
   }
 
   @Test
   public void testFindMembersForNonGlobalRoles_EmptyQuery() {
     Organization org = tempEntity.newOrganization();
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      userService.findMembersForRoles(OwnerType.ORGANIZATION, org.getId(), "" /* query */, false /* groupsEnabled */);
-    }).withMessage("No search term specified.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> userService.findMembersForRoles(OwnerType.ORGANIZATION, org.getId(), "" /* query */,
+            false /* groupsEnabled */)).withMessage("No search term specified.");
   }
 
   @Test
@@ -508,9 +507,8 @@ public class UserServiceTest
 
   @Test
   public void testAddUser_NullBody() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      userService.addUser((ApiUserDTO) null);
-    }).withMessageContaining("No user details specified");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> userService.addUser((ApiUserDTO) null))
+        .withMessageContaining("No user details specified");
   }
 
   @Test
@@ -526,9 +524,9 @@ public class UserServiceTest
 
   @Test
   public void testUpdateUser_NullBody() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      userService.updateUser(tempEntity.newUser().getUsername(), null);
-    }).withMessageContaining("No user details specified");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> userService.updateUser(tempEntity.newUser().getUsername(), null))
+        .withMessageContaining("No user details specified");
   }
 
   @Test

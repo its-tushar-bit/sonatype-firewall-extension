@@ -78,9 +78,10 @@ public class ProprietaryConfigServiceTest
 
   @Test
   public void testGetProprietaryConfig_InvalidGoal() throws Exception {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      proprietaryConfigService.getProprietaryConfig(Goal.SUMMARIZE_EVALUATION, application.getPublicId());
-    }).withMessage("Proprietary Configuration requested for invalid goal: " + Goal.SUMMARIZE_EVALUATION);
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> proprietaryConfigService.getProprietaryConfig(Goal.SUMMARIZE_EVALUATION, application.getPublicId()))
+        .withMessage("Proprietary Configuration requested for invalid goal: " + Goal.SUMMARIZE_EVALUATION);
   }
 
   @Test

@@ -164,9 +164,9 @@ public class RepositoryPolicyAlertEmailerTest
     List<PolicyFact> policyFacts = new ArrayList<>();
     policyFacts.add(createPolicyFact(policy, component));
 
-    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
-      emailer.createPolicyMailModel(repository, policyFacts);
-    }).withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
+    assertThatExceptionOfType(IllegalStateException.class)
+        .isThrownBy(() -> emailer.createPolicyMailModel(repository, policyFacts))
+        .withMessage(DefaultBaseUrl.ERR_MSG_BASE_URL_NOT_CONFIGURED);
   }
 
   private Policy createPolicy(User user) {

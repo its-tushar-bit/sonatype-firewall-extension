@@ -114,11 +114,9 @@ public class UserInterfaceLinksResourceTest
 
   private void testLinkToReport_WithSourceQuery(boolean anonymous) throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    initServer(config -> {
-      getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
-        responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
-      }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
-    });
+    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
+      responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
+    }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
 
     Application application = tempEntity.newApplicationWithParent();
     String appPublicId = application.getPublicId();
@@ -159,11 +157,9 @@ public class UserInterfaceLinksResourceTest
   @ManualServerInit
   public void testLinkToReport_WithoutSourceQuery() throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    initServer(config -> {
-      getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
-        responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
-      }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
-    });
+    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
+      responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
+    }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
 
     assertThat(UserInterfaceLinksHelper.getReportUrl("app id", "scan id"))
         .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/application/app%20id/report/scan%20id");

@@ -35,10 +35,8 @@ public class AntiCsrfFilterTest
 
   @Override
   protected void initServer() throws Exception {
-    initServer(config -> {
-      tempEntity.newReverseProxyAuthenticationConfiguration(true,
-          ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, false, null);
-    });
+    initServer(config -> tempEntity.newReverseProxyAuthenticationConfiguration(true,
+        ReverseProxyAuthenticationConfiguration.DEFAULT_USERNAME_HEADER, false, null));
     getCLMServer().getInstance(ApiReverseProxyAuthenticationConfigurationService.class)
         .applyReverseProxyAuthenticationConfigurationToClients();
   }

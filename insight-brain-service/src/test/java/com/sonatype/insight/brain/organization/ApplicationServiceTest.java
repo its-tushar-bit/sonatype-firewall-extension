@@ -159,9 +159,9 @@ public class ApplicationServiceTest
   @Test
   public void testAddApplication_RootOrgIsNoValidParent() {
     Application app = new Application("appPublicId", "appName", Organization.ROOT_ORGANIZATION_ID);
-    assertThatExceptionOfType(InvalidApplicationException.class).isThrownBy(() -> {
-      applicationService.addApplication(app);
-    }).withMessageContaining("cannot have the root organization as parent");
+    assertThatExceptionOfType(InvalidApplicationException.class)
+        .isThrownBy(() -> applicationService.addApplication(app))
+        .withMessageContaining("cannot have the root organization as parent");
   }
 
   @Test
@@ -222,9 +222,9 @@ public class ApplicationServiceTest
     application.setName(applicationName);
     application.setPublicId(applicationPublicId);
 
-    assertThatExceptionOfType(InvalidApplicationException.class).isThrownBy(() -> {
-      applicationService.addApplication(application);
-    }).withMessageContaining("must have a parent organization");
+    assertThatExceptionOfType(InvalidApplicationException.class)
+        .isThrownBy(() -> applicationService.addApplication(application))
+        .withMessageContaining("must have a parent organization");
   }
 
   @Test
@@ -266,27 +266,27 @@ public class ApplicationServiceTest
   @Test
   public void testDeleteApplicationByPublicId_NonExistingApplication() throws Exception {
     String applicationPublicId = "NoSuchAppPublicId";
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      applicationService.deleteApplicationByPublicId(applicationPublicId);
-    }).withMessage("Could not find an application with public ID " + applicationPublicId + ".");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> applicationService.deleteApplicationByPublicId(applicationPublicId))
+        .withMessage("Could not find an application with public ID " + applicationPublicId + ".");
   }
 
   @Test
   public void testUpdateApplication_NoOrganization() throws Exception {
     app1.setOrganizationId(null);
 
-    assertThatExceptionOfType(InvalidApplicationException.class).isThrownBy(() -> {
-      applicationService.updateApplication(app1);
-    }).withMessageContaining("not change the parent organization of an application");
+    assertThatExceptionOfType(InvalidApplicationException.class)
+        .isThrownBy(() -> applicationService.updateApplication(app1))
+        .withMessageContaining("not change the parent organization of an application");
   }
 
   @Test
   public void testUpdateApplication_ChangeOrganization() throws Exception {
     app1.setOrganizationId("newOrganizationId");
 
-    assertThatExceptionOfType(InvalidApplicationException.class).isThrownBy(() -> {
-      applicationService.updateApplication(app1);
-    }).withMessageContaining("not change the parent organization of an application");
+    assertThatExceptionOfType(InvalidApplicationException.class)
+        .isThrownBy(() -> applicationService.updateApplication(app1))
+        .withMessageContaining("not change the parent organization of an application");
   }
 
   @Test

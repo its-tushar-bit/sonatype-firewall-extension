@@ -91,7 +91,7 @@ public class ThirdPartyComponentDAO
 
   private final Cache<String, Table<String, ComponentIdentifier, ThirdPartyReportComponentDTO>> componentCache;
 
-  private static final Comparator<ComparableVersion> comparator = (v1, v2) -> v1.compareTo(v2);
+  private static final Comparator<ComparableVersion> comparator = ComparableVersion::compareTo;
 
   @Inject
   public ThirdPartyComponentDAO(final InsightWork work) {

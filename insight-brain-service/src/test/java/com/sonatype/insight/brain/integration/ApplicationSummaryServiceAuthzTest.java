@@ -172,9 +172,10 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testVerifyOrCreateApplication_NullGoal() {
     login();
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.verifyOrCreateApplication(app.getPublicId(), null /* goal */, "test_client_user_agent");
-    }).withMessage("A goal must be specified");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(
+            () -> service.verifyOrCreateApplication(app.getPublicId(), null /* goal */, "test_client_user_agent"))
+        .withMessage("A goal must be specified");
   }
 
   @Test

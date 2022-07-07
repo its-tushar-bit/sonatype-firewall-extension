@@ -335,6 +335,15 @@
   margin: 0;
   max-width: max-content;
 
+  .nx-legend {
+    column-span: all;
+  }
+
+  .nx-radio-checkbox .nx-icon {
+    margin-right: 0;
+    fill: var(--nx-selectable-color-dark, currentColor);
+  }
+
   iq-radio,
   iq-checkbox {
     // tells browser not to split the height of a single li across columns
@@ -356,14 +365,18 @@
   }
 
   .hexagon {
-    padding-top: 1px;
-    vertical-align: top;
+    vertical-align: -0.125em;
+    height: 1em;
   }
 
   .fa {
     padding-top: 2px;
     vertical-align: top;
   }
+}
+
+.iq-association-editor--full-width {
+  max-width: none;
 }
 
 .iq-association-editor--multi-column {

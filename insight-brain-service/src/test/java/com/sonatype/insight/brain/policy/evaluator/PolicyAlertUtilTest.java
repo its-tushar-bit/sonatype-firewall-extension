@@ -41,7 +41,7 @@ public class PolicyAlertUtilTest
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policyDoesNotExist);
     new PolicyDAO().delete(policyDoesNotExist);
-    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
+    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
         policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
     assertThat(alerts).hasSize(1);
     PolicyAlert alert = alerts.get(0);
@@ -67,7 +67,7 @@ public class PolicyAlertUtilTest
     constraintFact.addConditionFact(conditionFact1);
     policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
 
-    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
+    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
         policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
 
     assertThat(alerts).hasSize(1);
@@ -140,7 +140,7 @@ public class PolicyAlertUtilTest
     constraintFact.addConditionFact(conditionFact0);
     policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
 
-    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
+    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
         policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
 
     assertThat(alerts).hasSize(1);
@@ -164,7 +164,7 @@ public class PolicyAlertUtilTest
     constraintFact.addConditionFact(conditionFact0);
     policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
 
-    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Arrays.asList(policyViolation),
+    List<PolicyAlert> alerts = PolicyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
         policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), false);
 
     assertThat(alerts).hasSize(1);

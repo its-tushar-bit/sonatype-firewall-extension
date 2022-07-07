@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.hds;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -150,7 +150,8 @@ public class DefaultLicenseDataUpdaterTest
     licenseData.licenses.add(license1);
     licenseData.licenses.add(license2);
     licenseData.multiLicenses.add(existingMultiLicense);
-    licenseData.multiLicenseMappings.put(existingMultiLicense.getId(), new HashSet<>(Arrays.asList(license1.getId())));
+    licenseData.multiLicenseMappings.put(existingMultiLicense.getId(), new HashSet<>(
+        Collections.singletonList(license1.getId())));
     hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     MultiLicense storedMultiLicense = multiLicenseDAO.getById(existingMultiLicense.getId());
     assertThat(licenseDAO.getAll()).contains(license1, license2);

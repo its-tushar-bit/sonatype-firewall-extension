@@ -53,7 +53,8 @@ public class SuccessMetricsReportServiceTest
   @Test
   public void testCreateSuccessMetricsReportForCurrentUser() throws Exception {
     SuccessMetricsReportScopeDTO scopeDTO = new SuccessMetricsReportScopeDTO(
-        new HashSet<>(Arrays.asList(app1.getId(), app2.getId())), new HashSet<>(Arrays.asList(org.getId())));
+        new HashSet<>(Arrays.asList(app1.getId(), app2.getId())),
+        new HashSet<>(Collections.singletonList(org.getId())));
     SuccessMetricsReportDTO dto = new SuccessMetricsReportDTO("Metrics1", scopeDTO);
     SuccessMetricsReportDTO actualDto = successMetricsReportService.createSuccessMetricsReportForCurrentUser(dto);
 
@@ -105,9 +106,10 @@ public class SuccessMetricsReportServiceTest
     String metricsName1 = "Metrics1";
     String metricsName2 = "Metrics2";
     SuccessMetricsReportScopeDTO scopeDTO1 = new SuccessMetricsReportScopeDTO(
-        new HashSet<>(Arrays.asList(app1.getId(), app2.getId())), new HashSet<>(Arrays.asList(org.getId())));
+        new HashSet<>(Arrays.asList(app1.getId(), app2.getId())),
+        new HashSet<>(Collections.singletonList(org.getId())));
     SuccessMetricsReportScopeDTO scopeDTO2 = new SuccessMetricsReportScopeDTO(
-        new HashSet<>(Arrays.asList(app1.getId())), new HashSet<>(Arrays.asList(org.getId())));
+        new HashSet<>(Collections.singletonList(app1.getId())), new HashSet<>(Collections.singletonList(org.getId())));
 
     SuccessMetricsReportDTO dto1 = new SuccessMetricsReportDTO(metricsName1, scopeDTO1);
     tempEntity.newSuccessMetricsReport(USERNAME, metricsName1, JsonUtils.format(dto1.scope));
@@ -142,7 +144,7 @@ public class SuccessMetricsReportServiceTest
   public void testGetSuccessMetricsReportsForCurrentUser_EmptyApp() throws Exception {
     String metricsName1 = "Metrics1";
     SuccessMetricsReportScopeDTO scopeDTO1 = new SuccessMetricsReportScopeDTO(Collections.emptySet(),
-        new HashSet<>(Arrays.asList(org.getId())));
+        new HashSet<>(Collections.singletonList(org.getId())));
 
     SuccessMetricsReportDTO dto1 = new SuccessMetricsReportDTO(metricsName1, scopeDTO1);
     tempEntity.newSuccessMetricsReport(USERNAME, metricsName1, JsonUtils.format(dto1.scope));
@@ -157,7 +159,7 @@ public class SuccessMetricsReportServiceTest
   public void testGetSuccessMetricsReportsForCurrentUser_EmptyOrg() throws Exception {
     String metricsName1 = "Metrics1";
     SuccessMetricsReportScopeDTO scopeDTO1 = new SuccessMetricsReportScopeDTO(
-        new HashSet<>(Arrays.asList(app1.getId())), Collections.emptySet());
+        new HashSet<>(Collections.singletonList(app1.getId())), Collections.emptySet());
 
     SuccessMetricsReportDTO dto1 = new SuccessMetricsReportDTO(metricsName1, scopeDTO1);
     tempEntity.newSuccessMetricsReport(USERNAME, metricsName1, JsonUtils.format(dto1.scope));
@@ -188,9 +190,10 @@ public class SuccessMetricsReportServiceTest
     String metricsName1 = "Metrics1";
     String metricsName2 = "Metrics2";
     SuccessMetricsReportScopeDTO scopeDTO1 = new SuccessMetricsReportScopeDTO(
-        new HashSet<>(Arrays.asList(app1.getId(), app2.getId())), new HashSet<>(Arrays.asList(org.getId())));
+        new HashSet<>(Arrays.asList(app1.getId(), app2.getId())),
+        new HashSet<>(Collections.singletonList(org.getId())));
     SuccessMetricsReportScopeDTO scopeDTO2 = new SuccessMetricsReportScopeDTO(
-        new HashSet<>(Arrays.asList(app1.getId())), new HashSet<>(Arrays.asList(org.getId())));
+        new HashSet<>(Collections.singletonList(app1.getId())), new HashSet<>(Collections.singletonList(org.getId())));
 
     SuccessMetricsReportDTO dto1 = new SuccessMetricsReportDTO(metricsName1, scopeDTO1);
     tempEntity.newSuccessMetricsReport(USERNAME, metricsName1, JsonUtils.format(dto1.scope));
@@ -213,7 +216,8 @@ public class SuccessMetricsReportServiceTest
 
     String metricsName1 = "Metrics1";
     SuccessMetricsReportScopeDTO scopeDTO1 = new SuccessMetricsReportScopeDTO(
-        new HashSet<>(Arrays.asList(app1.getId(), app2.getId())), new HashSet<>(Arrays.asList(org.getId())));
+        new HashSet<>(Arrays.asList(app1.getId(), app2.getId())),
+        new HashSet<>(Collections.singletonList(org.getId())));
 
     SuccessMetricsReportDTO dto1 = new SuccessMetricsReportDTO(metricsName1, scopeDTO1);
     // create a record belonging to another user

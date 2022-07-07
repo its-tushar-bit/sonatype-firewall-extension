@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.zip.GZIPOutputStream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -46,7 +46,8 @@ public class GzipTest
 
   @Test
   public void testCompressedRequestBody() throws Exception {
-    hdsRespondWith(Arrays.asList("1.0")).atUri(ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH);
+    hdsRespondWith(Collections.singletonList("1.0"))
+        .atUri(ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH);
 
     ApiComponentIdentifierDTOV2 request = ApiComponentIdentifierDTOV2
         .fromComponentIdentifier(ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));

@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -68,7 +69,8 @@ public class PolicyViolationLoaderTest
   public void testGetViolations_BasicData() {
     Application app = createApplication(StageTypes.BUILD);
 
-    Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app), Arrays.asList(StageTypes.BUILD),
+    Collection<ApplicationView> appViews = loader.getViolations(Collections.singletonList(app),
+        Collections.singletonList(StageTypes.BUILD),
         false, violation -> true);
 
     assertThat(appViews).hasSize(1);
@@ -91,7 +93,7 @@ public class PolicyViolationLoaderTest
     Application app3 = createApplication(StageTypes.BUILD);
 
     Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app1, app3),
-        Arrays.asList(StageTypes.BUILD), false, violation -> true);
+        Collections.singletonList(StageTypes.BUILD), false, violation -> true);
 
     assertThat(appViews).extracting(ApplicationView::getApplication).containsExactlyInAnyOrder(app1, app3);
   }
@@ -155,7 +157,7 @@ public class PolicyViolationLoaderTest
   public void testGetViolations_FilterByStageTypes() {
     Application app = createApplication(StageTypes.BUILD, StageTypes.RELEASE, StageTypes.OPERATE);
 
-    Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app),
+    Collection<ApplicationView> appViews = loader.getViolations(Collections.singletonList(app),
         Arrays.asList(StageTypes.BUILD, StageTypes.RELEASE), false, violation -> true);
 
     assertThat(appViews).hasSize(1);
@@ -172,7 +174,7 @@ public class PolicyViolationLoaderTest
 
   @Test
   public void testGetViolations_EmptyStageTypes() {
-    testGetViolations_AllStageTypes(Arrays.asList());
+    testGetViolations_AllStageTypes(Collections.emptyList());
   }
 
   private void testGetViolations_AllStageTypes(Collection<StageType> stageTypes) {
@@ -183,7 +185,7 @@ public class PolicyViolationLoaderTest
     Application app = createApplication(evaluatedStageTypes);
 
     Collection<ApplicationView> appViews =
-        loader.getViolations(Arrays.asList(app), stageTypes, false, violation -> true);
+        loader.getViolations(Collections.singletonList(app), stageTypes, false, violation -> true);
 
     assertThat(appViews).hasSize(1);
     ApplicationView appView = appViews.iterator().next();
@@ -207,7 +209,8 @@ public class PolicyViolationLoaderTest
   public void testGetViolations_ActiveViolationsOnly() {
     Application app = createApplication(StageTypes.BUILD);
 
-    Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app), Arrays.asList(StageTypes.BUILD),
+    Collection<ApplicationView> appViews = loader.getViolations(Collections.singletonList(app),
+        Collections.singletonList(StageTypes.BUILD),
         true, violation -> true);
 
     assertThat(appViews).hasSize(1);
@@ -224,7 +227,8 @@ public class PolicyViolationLoaderTest
   public void testGetViolations_FilterByViolations() {
     Application app = createApplication(StageTypes.BUILD);
 
-    Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app), Arrays.asList(StageTypes.BUILD),
+    Collection<ApplicationView> appViews = loader.getViolations(Collections.singletonList(app),
+        Collections.singletonList(StageTypes.BUILD),
         false, violation -> violation.getThreatLevel() == 10);
 
     assertThat(appViews).hasSize(1);
@@ -241,7 +245,8 @@ public class PolicyViolationLoaderTest
   public void testGetViolations_NullViolationFilter() {
     Application app = createApplication(StageTypes.BUILD);
 
-    Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app), Arrays.asList(StageTypes.BUILD),
+    Collection<ApplicationView> appViews = loader.getViolations(Collections.singletonList(app),
+        Collections.singletonList(StageTypes.BUILD),
         false, null);
 
     assertThat(appViews).hasSize(1);
@@ -257,7 +262,8 @@ public class PolicyViolationLoaderTest
   public void testGetViolations_StageWithoutEvaluation() {
     Application app = createApplication();
 
-    Collection<ApplicationView> appViews = loader.getViolations(Arrays.asList(app), Arrays.asList(StageTypes.BUILD),
+    Collection<ApplicationView> appViews = loader.getViolations(Collections.singletonList(app),
+        Collections.singletonList(StageTypes.BUILD),
         false, violation -> true);
 
     assertThat(appViews).hasSize(1);
@@ -276,8 +282,8 @@ public class PolicyViolationLoaderTest
 
     Application app = createApplication(StageTypes.BUILD);
 
-    Collection<ApplicationView> appViewsFilteredWithBeforeDate = loader.getViolations(Arrays.asList(app),
-        Arrays.asList(StageTypes.BUILD), false, violation -> true, beforeAppCreation);
+    Collection<ApplicationView> appViewsFilteredWithBeforeDate = loader.getViolations(Collections.singletonList(app),
+        Collections.singletonList(StageTypes.BUILD), false, violation -> true, beforeAppCreation);
 
     assertThat(appViewsFilteredWithBeforeDate).hasSize(1);
     ApplicationView appViewBefore = appViewsFilteredWithBeforeDate.iterator().next();
@@ -288,8 +294,8 @@ public class PolicyViolationLoaderTest
     assertThat(appStageViewBefore.getFilteredViolations()).hasSize(2);
 
     Date afterAppCreation = new Date(Instant.now().plus(Duration.ofMinutes(1)).toEpochMilli());
-    Collection<ApplicationView> appViewsFilteredWithAfterDate = loader.getViolations(Arrays.asList(app),
-        Arrays.asList(StageTypes.BUILD), false, violation -> true, afterAppCreation);
+    Collection<ApplicationView> appViewsFilteredWithAfterDate = loader.getViolations(Collections.singletonList(app),
+        Collections.singletonList(StageTypes.BUILD), false, violation -> true, afterAppCreation);
     assertThat(appViewsFilteredWithAfterDate).hasSize(1);
     ApplicationView appViewAfter = appViewsFilteredWithAfterDate.iterator().next();
     assertThat(appViewAfter.getApplication()).isEqualTo(app);

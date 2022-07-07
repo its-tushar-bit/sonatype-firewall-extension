@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -64,8 +63,8 @@ public class SuccessMetricsReportDataServiceAuthzTest
     PolicyEvaluation buildEval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "now", new Date());
     tempEntity.newPolicyViolation(buildEval, licensePolicy, 7, LICENSE, buildComponent.getComponentIdentifier(),
         buildComponent.getHash(), FailActionType.ID);
-    orgIds = new HashSet<>(Arrays.asList(org.getId()));
-    appIds = new HashSet<>(Arrays.asList(app.getId()));
+    orgIds = new HashSet<>(Collections.singletonList(org.getId()));
+    appIds = new HashSet<>(Collections.singletonList(app.getId()));
   }
 
   private SuccessMetricsReport createSuccessMetricsReport(Set<String> organizationIds, Set<String> applicationIds) {

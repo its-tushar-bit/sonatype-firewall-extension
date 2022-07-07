@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.experimental.legal;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -309,7 +310,7 @@ public class ApiLicenseLegalHdsServiceTest
 
   @Test
   public void testGetComponentLegalComments_Empty() {
-    List<ComponentIdentifier> components = Arrays.asList(
+    List<ComponentIdentifier> components = Collections.singletonList(
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
 
     when(mockHdsClient
@@ -361,7 +362,7 @@ public class ApiLicenseLegalHdsServiceTest
   @Test
   public void testGetComponentLegalFiles_Empty() {
     List<ComponentIdentifier> components =
-        Arrays.asList(ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
+        Collections.singletonList(ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
 
     when(mockHdsClient
         .post(eq(ComponentLegalFileDTO[].class), eq(ApiLicenseLegalHdsService.LEGAL_FILE_URL), eq(components)))
@@ -389,7 +390,7 @@ public class ApiLicenseLegalHdsServiceTest
     componentLegalComment1.setComments(Sets.newHashSet(legalComment1, legalComment2));
 
     Set<ComponentLegalCommentFilePathsDTO> expectedLegalComments =
-        new LinkedHashSet<>(Arrays.asList(componentLegalComment1));
+        new LinkedHashSet<>(Collections.singletonList(componentLegalComment1));
 
     when(mockHdsClient
         .post(ComponentLegalCommentFilePathsDTO[].class,

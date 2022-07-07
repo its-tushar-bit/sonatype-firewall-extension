@@ -1638,7 +1638,7 @@ public class ComponentInfoServiceTest
   private void testGetComponentDetailsList_ReadPermission(final Owner owner, final String ownerId) throws Exception {
     ComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
-    hdsComponentDetailsList.setList(asList(hdsComponentDetails));
+    hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_A1_COORDINATES);
     ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList_ReadPermission(
         owner.getType(), ownerId, MAVEN_A1_COORDINATES, MatchState.EXACT.getId());
@@ -1673,7 +1673,7 @@ public class ComponentInfoServiceTest
         new SecurityVulnerability("cve-4", "cve", 4f)));
     ComponentDetails hdsComponentDetails2 = newNamedComponentDetails(MAVEN_A2_COORDINATES);
     hdsComponentDetails2.setCatalogDate(timestamp);
-    hdsComponentDetails2.setSecurityVulnerabilities(asList(
+    hdsComponentDetails2.setSecurityVulnerabilities(Collections.singletonList(
         new SecurityVulnerability("cve-7", "cve", 0.1f))); // too low for our security policy
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(asList(hdsComponentDetails1, hdsComponentDetails2));
@@ -1938,7 +1938,7 @@ public class ComponentInfoServiceTest
 
     ComponentDetails tpComponent = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
-    hdsComponentDetailsList.setList(asList(tpComponent));
+    hdsComponentDetailsList.setList(Collections.singletonList(tpComponent));
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_A1_COORDINATES);
 
     tpComponent.setIdentificationSource(identificationSource);
@@ -2328,7 +2328,7 @@ public class ComponentInfoServiceTest
         new SecurityVulnerability("cve-4", "cve", 4f)));
 
     ComponentDetailsList tpComponentDetailsList = new ComponentDetailsList();
-    tpComponentDetailsList.setList(Arrays.asList(tpComponentDetails));
+    tpComponentDetailsList.setList(Collections.singletonList(tpComponentDetails));
 
     when(thirdPartyComponentDAO.getAllVersions(application.getId(), componentIdentifier1, scanId))
         .thenReturn(tpComponentDetailsList);
@@ -2369,7 +2369,7 @@ public class ComponentInfoServiceTest
         new SecurityVulnerability("cve-4", "cve", 4f)));
 
     ComponentDetailsList tpComponentDetailsList = new ComponentDetailsList();
-    tpComponentDetailsList.setList(Arrays.asList(tpComponentDetails));
+    tpComponentDetailsList.setList(Collections.singletonList(tpComponentDetails));
 
     when(thirdPartyComponentDAO.getAllVersions(application.getId(), componentIdentifier1, scanId))
         .thenReturn(tpComponentDetailsList);

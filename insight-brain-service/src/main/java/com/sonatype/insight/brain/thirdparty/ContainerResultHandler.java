@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.thirdparty;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -127,7 +127,7 @@ public class ContainerResultHandler
             rating.setScore((double) vulnerability.getScore_v3());
             rating.setSeverity(Severity.fromString(vulnerability.getSeverity().toLowerCase(Locale.ROOT)));
             rating.setVector(vulnerability.getVectors_v3());
-            cycloneDxVulnerability.setRatings(Arrays.asList(rating));
+            cycloneDxVulnerability.setRatings(Collections.singletonList(rating));
 
             Source source = new Source();
             source.setName(IdentificationSource.SONATYPE_CONTAINER.getName());

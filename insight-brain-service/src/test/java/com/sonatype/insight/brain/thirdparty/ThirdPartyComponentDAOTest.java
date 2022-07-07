@@ -11,6 +11,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -106,7 +107,8 @@ public class ThirdPartyComponentDAOTest
     assertThat(data.get(hashApt).securityRows.stream().map(s -> s.reference)).containsOnly("CVE-2019-3462",
         "CVE-2017-1000409", "CVE-2017-1000410", "CVE-2018-6485", "CVE-2019-9169", "CVE-2017-16997");
 
-    assertThat(data.get(hashGlibc).licensesRow.declaredLicenses.equals(new TreeSet<>(Arrays.asList("Apache-2.0"))));
+    assertThat(data.get(hashGlibc).licensesRow.declaredLicenses.equals(new TreeSet<>(
+        Collections.singletonList("Apache-2.0"))));
     assertThat(
         data.get(hashApt).licensesRow.declaredLicenses.equals(new TreeSet<>(Arrays.asList("AFL-1.2", "Apache-2.0"))));
 

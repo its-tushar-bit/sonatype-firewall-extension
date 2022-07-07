@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -63,9 +64,7 @@ public class DashboardFilterServiceAuthzTest
     NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
     DashboardFilterDTO dto = new DashboardFilterDTO();
     dto.applicationFilters = new ArrayList<>();
-    for (String applicationId : applicationIDs) {
-      dto.applicationFilters.add(applicationId);
-    }
+    dto.applicationFilters.addAll(Arrays.asList(applicationIDs));
     namedDashboardFilterDTO.filter = dto;
     namedDashboardFilterDTO.name = filterName;
     return namedDashboardFilterDTO;

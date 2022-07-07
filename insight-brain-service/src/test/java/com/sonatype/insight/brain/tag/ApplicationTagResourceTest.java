@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.tag;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -52,7 +53,7 @@ public class ApplicationTagResourceTest
     assertTag(tags.get(1), retrievedTags[1]);
 
     // Delete
-    response = request.body(Arrays.asList()).put();
+    response = request.body(Collections.emptyList()).put();
     assertResponseStatus(204, response);
 
     // Get

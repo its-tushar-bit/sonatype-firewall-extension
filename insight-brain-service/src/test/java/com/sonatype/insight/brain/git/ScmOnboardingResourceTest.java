@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -129,7 +128,7 @@ public class ScmOnboardingResourceTest
 
     // when we make a call to import a repository
     String repoUrl = "https://localhost:5333/org/repo.git";
-    List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
+    List<SCMRepository> toAdd = singletonList(new SCMRepository(SourceControlProvider.GITHUB,
         repoUrl, null, true, "org", "repo", null));
     HttpResponse response = restRequest()
         .path(UriBuilder.fromPath(IMPORT_REPO_PATH).build(org.getId()).toString())
@@ -150,7 +149,7 @@ public class ScmOnboardingResourceTest
   public void testImportRepositories_missingOrg() throws Exception {
     // when we make a call to import a repository that doesn't exist
     String repoUrl = "https://localhost:5333/org/repo.git";
-    List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
+    List<SCMRepository> toAdd = singletonList(new SCMRepository(SourceControlProvider.GITHUB,
         repoUrl, null, true, "org", "repo", null));
     HttpResponse response = restRequest()
         .path(UriBuilder.fromPath(IMPORT_REPO_PATH).build("missing-org-id").toString())

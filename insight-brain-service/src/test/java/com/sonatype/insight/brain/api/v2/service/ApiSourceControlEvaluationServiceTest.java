@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -82,7 +81,7 @@ public class ApiSourceControlEvaluationServiceTest
 
     String stageId = Stage.ID_DEVELOP;
     String branchName = "a-branch";
-    List<String> scanTargets = Arrays.asList("testScanTarget");
+    List<String> scanTargets = Collections.singletonList("testScanTarget");
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(stageId, branchName, scanTargets);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = apiSourceControlEvaluationService

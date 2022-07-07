@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import javax.inject.Inject;
 
@@ -48,7 +49,7 @@ public class PropertiesTelemetryCollectorTest
   @Test
   public void testCollectData_ConnectorTypes_AppHttpOnly() throws Exception {
     ((DefaultServerFactory) insightConfig.getServerFactory())
-        .setApplicationConnectors(Arrays.asList(new HttpConnectorFactory()));
+        .setApplicationConnectors(Collections.singletonList(new HttpConnectorFactory()));
     TelemetryData telemetryData = telemetryCollector.collectData();
     assertThat(telemetryData.getAttributes()).containsEntry(PropertiesTelemetryCollector.CONNECTOR_HTTP, true)
         .containsEntry(PropertiesTelemetryCollector.CONNECTOR_HTTPS, false);
@@ -57,7 +58,7 @@ public class PropertiesTelemetryCollectorTest
   @Test
   public void testCollectData_ConnectorTypes_AppHttpsOnly() throws Exception {
     ((DefaultServerFactory) insightConfig.getServerFactory())
-        .setApplicationConnectors(Arrays.asList(new HttpsConnectorFactory()));
+        .setApplicationConnectors(Collections.singletonList(new HttpsConnectorFactory()));
     TelemetryData telemetryData = telemetryCollector.collectData();
     assertThat(telemetryData.getAttributes()).containsEntry(PropertiesTelemetryCollector.CONNECTOR_HTTP, false)
         .containsEntry(PropertiesTelemetryCollector.CONNECTOR_HTTPS, true);
@@ -75,7 +76,7 @@ public class PropertiesTelemetryCollectorTest
   @Test
   public void testCollectData_ConnectorTypes_AdminHttpOnly() throws Exception {
     ((DefaultServerFactory) insightConfig.getServerFactory())
-        .setAdminConnectors(Arrays.asList(new HttpConnectorFactory()));
+        .setAdminConnectors(Collections.singletonList(new HttpConnectorFactory()));
     TelemetryData telemetryData = telemetryCollector.collectData();
     assertThat(telemetryData.getAttributes()).containsEntry(PropertiesTelemetryCollector.ADMIN_CONNECTOR_HTTP, true)
         .containsEntry(PropertiesTelemetryCollector.ADMIN_CONNECTOR_HTTPS, false);
@@ -84,7 +85,7 @@ public class PropertiesTelemetryCollectorTest
   @Test
   public void testCollectData_ConnectorTypes_AdminHttpsOnly() throws Exception {
     ((DefaultServerFactory) insightConfig.getServerFactory())
-        .setAdminConnectors(Arrays.asList(new HttpsConnectorFactory()));
+        .setAdminConnectors(Collections.singletonList(new HttpsConnectorFactory()));
     TelemetryData telemetryData = telemetryCollector.collectData();
     assertThat(telemetryData.getAttributes()).containsEntry(PropertiesTelemetryCollector.ADMIN_CONNECTOR_HTTP, false)
         .containsEntry(PropertiesTelemetryCollector.ADMIN_CONNECTOR_HTTPS, true);

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.repository.resultsview;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -183,7 +184,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.pageSize = 10;
     detailsRequest.matchStateFilters = ImmutableList.of(MatchStateFilter.MATCH_STATE_UNKNOWN);
     detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_QUARANTINED);
-    detailsRequest.sortFields = Arrays.asList(sortField);
+    detailsRequest.sortFields = Collections.singletonList(sortField);
 
     List<RepositoryResultsDetailsResponseDto> responseDtos =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
@@ -316,7 +317,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.pageSize = 50;
     detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_NOT_VIOLATING,
         ViolationStateFilter.VIOLATION_STATE_WAIVED);
-    detailsRequest.sortFields = Arrays.asList(sortField);
+    detailsRequest.sortFields = Collections.singletonList(sortField);
 
     List<RepositoryResultsDetailsResponseDto> responseDtos =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
@@ -347,7 +348,7 @@ public class RepositoryResultsServiceTest
     detailsRequest.matchStateFilters = ImmutableList.of(MatchStateFilter.MATCH_STATE_EXACT);
     detailsRequest.violationStateFilters =
         ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_OPEN, ViolationStateFilter.VIOLATION_STATE_QUARANTINED);
-    detailsRequest.sortFields = Arrays.asList(sortField);
+    detailsRequest.sortFields = Collections.singletonList(sortField);
 
     List<RepositoryResultsDetailsResponseDto> responseDtos =
         repositoryResultsService.getDetails(repository.getId(), detailsRequest);
@@ -558,9 +559,9 @@ public class RepositoryResultsServiceTest
     RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
     detailsRequest.page = 1;
     detailsRequest.pageSize = 1;
-    detailsRequest.matchStateFilters = Arrays.asList(MatchStateFilter.MATCH_STATE_ALL);
-    detailsRequest.violationStateFilters = Arrays.asList(ViolationStateFilter.VIOLATION_STATE_ALL);
-    detailsRequest.searchFilters = Arrays.asList(searchFilter);
+    detailsRequest.matchStateFilters = Collections.singletonList(MatchStateFilter.MATCH_STATE_ALL);
+    detailsRequest.violationStateFilters = Collections.singletonList(ViolationStateFilter.VIOLATION_STATE_ALL);
+    detailsRequest.searchFilters = Collections.singletonList(searchFilter);
     detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
 
     RepositoryResultsDetailsFilter filter = repositoryResultsService.validateAndInitializeDetailsFilter(detailsRequest);

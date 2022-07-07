@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import javax.inject.Inject;
 
@@ -37,7 +37,7 @@ public class ApiRepositoryPathServiceAuthzTest
             ComponentIdentifier.createNpmCoordinates("comp1", "1"), true);
 
     ApiRepositoryPathResponseDTO dto = apiRepositoryPathService.getQuarantinedByPathnames(
-        "repositoryManager1", repository.getPublicId(), Arrays.asList("comp1/-/comp1-1.tgz"));
+        "repositoryManager1", repository.getPublicId(), Collections.singletonList("comp1/-/comp1-1.tgz"));
     assertThat(dto).isNotNull();
   }
 
@@ -49,7 +49,7 @@ public class ApiRepositoryPathServiceAuthzTest
         ComponentIdentifier.createNpmCoordinates("comp1", "1"), true);
     assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(
         () -> apiRepositoryPathService.getQuarantinedByPathnames("repositoryManager1",
-            repository.getPublicId(), Arrays.asList("comp1/-/comp1-1.tgz")));
+            repository.getPublicId(), Collections.singletonList("comp1/-/comp1-1.tgz")));
   }
 
   @Test
@@ -59,6 +59,6 @@ public class ApiRepositoryPathServiceAuthzTest
         ComponentIdentifier.createNpmCoordinates("comp1", "1"), true);
     assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(
         () -> apiRepositoryPathService.getQuarantinedByPathnames("repositoryManager1",
-            repository.getPublicId(), Arrays.asList("comp1/-/comp1-1.tgz")));
+            repository.getPublicId(), Collections.singletonList("comp1/-/comp1-1.tgz")));
   }
 }

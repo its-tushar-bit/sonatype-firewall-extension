@@ -973,7 +973,7 @@ public class SuccessMetricsReportDataServiceTest
     // cause the initial report data to be generated
     SuccessMetricsChartDataDTO results = service.getChartData(successMetricsReport.getId());
 
-    List<MttrDTO> expectedMttrs = Arrays.asList(new MttrDTO("Oct", 1, null));
+    List<MttrDTO> expectedMttrs = Collections.singletonList(new MttrDTO("Oct", 1, null));
 
     ApplicationCountsDTO expectedApplicationCounts = new ApplicationCountsDTO(1, 1,
         new ThreatCategoryApplicationCount(1, 0), //

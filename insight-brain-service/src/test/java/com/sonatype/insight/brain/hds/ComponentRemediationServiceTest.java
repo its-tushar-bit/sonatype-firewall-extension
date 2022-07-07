@@ -698,7 +698,7 @@ public class ComponentRemediationServiceTest
     detailsMap.put(purlA2V2,  detailsA2V2);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
-    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V2);
+    List<ComponentDetailsDTO> allVersions = Collections.singletonList(detailsDtoA1V2);
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V2,
@@ -791,7 +791,7 @@ public class ComponentRemediationServiceTest
     detailsMap.put(purlA2V1,  detailsA2V1);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
-    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V3);
+    List<ComponentDetailsDTO> allVersions = Collections.singletonList(detailsDtoA1V3);
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V3,
@@ -914,7 +914,7 @@ public class ComponentRemediationServiceTest
     detailsMap.put(purlA2V1,  detailsA2V1);
 
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
-    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V3);
+    List<ComponentDetailsDTO> allVersions = Collections.singletonList(detailsDtoA1V3);
     mockHdsGetComponentDependencies(returnDto);
     mockLicenseFeature(true);
     ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V3,

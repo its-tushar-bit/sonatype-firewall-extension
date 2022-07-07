@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -183,7 +183,8 @@ public class SourceControlComponentLoaderTest
         new ComponentInfo(ComponentDisplayNameUtil.fromIdentifier(log4jCoreComponentId).toString(), false);
     identifierToComponentInfoMap.put(log4jCoreComponentId, componentInfo);
     List<PullRequestLineCommentDTO> lineComments =
-        Arrays.asList(new PullRequestLineCommentDTO(log4jCoreComponentId, new DiffPosition("path", 1, 0, 1, 1)));
+        Collections.singletonList(
+            new PullRequestLineCommentDTO(log4jCoreComponentId, new DiffPosition("path", 1, 0, 1, 1)));
 
     componentInfo = details.getComponentInfo(log4jCoreComponentId);
     assertThat(componentInfo.getDirectDependency()).isFalse();

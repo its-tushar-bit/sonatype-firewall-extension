@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -136,7 +135,7 @@ public abstract class AbstractComponentInfoResourceTest
   protected void testGetComponentDetailsList_EvaluateComponentPermission() throws Exception {
     ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
-    hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
+    hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
     HttpRequest request = listRequest(getOwnerId(), MAVEN_COORDINATES);
     hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(request.getUrl()));
 
@@ -168,7 +167,7 @@ public abstract class AbstractComponentInfoResourceTest
   void testGetComponentDetailsList_ReadPermission() throws Exception {
     ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
-    hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
+    hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
     HttpRequest request = listRequest(getOwnerId(), MAVEN_COORDINATES);
     hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(request.getUrl()));
 
@@ -186,7 +185,7 @@ public abstract class AbstractComponentInfoResourceTest
   public void testGetComponentVersionInfo() throws Exception {
     ComponentDetails hdsComponentDetails = newComponentDetails(MAVEN_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
-    hdsComponentDetailsList.setList(Arrays.asList(hdsComponentDetails));
+    hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
     HttpRequest request = allVersionsRequest(getOwnerId(), MAVEN_COORDINATES);
     hdsRespondWith(hdsComponentDetailsList).atUri(convertToHdsUrl(request.getUrl()));
     hdsRespondWith(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>())).atUri("rest/component/dependencies");

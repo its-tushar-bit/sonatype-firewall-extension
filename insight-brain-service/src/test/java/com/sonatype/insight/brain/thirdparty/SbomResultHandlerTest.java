@@ -944,7 +944,7 @@ public class SbomResultHandlerTest
           "pkg:nuget/NUnit3TestAdapter@3.11.2", "pkg:nuget/Microsoft.DotNet.InternalAbstractions@1.0.0");
       assertParentAndChildDependency(rootDependencies,
           "pkg:nuget/Microsoft.DotNet.InternalAbstractions@1.0.0", "pkg:nuget/System.AppContext@4.1.0");
-      assertThat(rootDependencies.stream().filter(dependency -> dependency.isDirect())).hasSize(1);
+      assertThat(rootDependencies.stream().filter(com.sonatype.insight.scan.model.Dependency::isDirect)).hasSize(1);
       assertThat(rootDependencies.stream().filter(dependency -> !dependency.isDirect())).hasSize(2);
     });
     assertIdentityMetadata(targetBom, metadata);

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -56,7 +57,7 @@ public class MemberAttributeResolverTest
     member.setType(MemberType.USER);
     member.setInternalName("clmUser");
 
-    List<Member> members = Arrays.asList(member);
+    List<Member> members = Collections.singletonList(member);
 
     memberAttributeResolver.resolve(members);
 

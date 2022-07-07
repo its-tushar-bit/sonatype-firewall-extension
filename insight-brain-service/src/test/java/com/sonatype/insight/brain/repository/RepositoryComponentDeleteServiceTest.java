@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -36,7 +37,6 @@ import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.model.component.MatchState.EXACT;
 import static com.sonatype.insight.brain.model.component.MatchState.UNKNOWN;
-import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -86,7 +86,7 @@ public class RepositoryComponentDeleteServiceTest
 
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
-    hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), asList(".*sha$"));
+    hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), Collections.singletonList(".*sha$"));
     when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
@@ -134,7 +134,7 @@ public class RepositoryComponentDeleteServiceTest
 
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
-    hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), asList(".*sha$"));
+    hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), Collections.singletonList(".*sha$"));
     when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
@@ -161,7 +161,7 @@ public class RepositoryComponentDeleteServiceTest
 
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
-    hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), asList(".*sha$"));
+    hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), Collections.singletonList(".*sha$"));
     when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
@@ -188,7 +188,7 @@ public class RepositoryComponentDeleteServiceTest
 
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
-    hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), asList(".*sha$"));
+    hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), Collections.singletonList(".*sha$"));
     when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 
@@ -214,7 +214,8 @@ public class RepositoryComponentDeleteServiceTest
 
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
-    hdsResult.regexpsByRepositoryFormat.put("some_format_different_than_our_repos_format", asList(".*sha"));
+    hdsResult.regexpsByRepositoryFormat.put("some_format_different_than_our_repos_format",
+        Collections.singletonList(".*sha"));
     when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 

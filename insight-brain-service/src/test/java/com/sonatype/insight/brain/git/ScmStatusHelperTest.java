@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.git;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -213,7 +213,7 @@ public class ScmStatusHelperTest
   }
 
   private void addActionToPolicyResult(PolicyEvaluationResult result, Action action) {
-    PolicyAlert alert = new PolicyAlert(new PolicyFact(), Arrays.asList(action));
+    PolicyAlert alert = new PolicyAlert(new PolicyFact(), Collections.singletonList(action));
     result.getAlerts().add(alert);
   }
 

@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -144,7 +145,7 @@ public class SearchServiceTest
     List<SearchCount> actualSearchCounts =
         (List<SearchCount>) telemetryData.getAttributes().get(TOTAL_SEARCHES_BY_FIELD_NAME);
     List<SearchCount> expectedSearchCounts =
-        Arrays.asList(new SearchCount("invalidFieldName", 1));
+        Collections.singletonList(new SearchCount("invalidFieldName", 1));
 
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.ADVANCED_SEARCH);
     assertThat(telemetryData.getAttributes()).containsOnlyKeys(TOTAL_SEARCHES, TOTAL_SEARCHES_BY_FIELD_NAME);
@@ -161,7 +162,7 @@ public class SearchServiceTest
     @SuppressWarnings("unchecked")
     List<SearchCount> actualSearchCounts =
         (List<SearchCount>) telemetryData.getAttributes().get(TOTAL_SEARCHES_BY_FIELD_NAME);
-    List<SearchCount> expectedSearchCounts = Arrays.asList(new SearchCount("itemType", 1));
+    List<SearchCount> expectedSearchCounts = Collections.singletonList(new SearchCount("itemType", 1));
 
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.ADVANCED_SEARCH);
     assertThat(telemetryData.getAttributes()).containsOnlyKeys(TOTAL_SEARCHES, TOTAL_SEARCHES_BY_FIELD_NAME);

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.license;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
@@ -36,7 +37,7 @@ public class LicenseThreatGroupLicenseResourceAuditTest
   public void testSetLicenseThreatGroupLicenses_Application() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(application.getId());
-    restRequest(application, ltg.getId()).body(Arrays.asList()).put();
+    restRequest(application, ltg.getId()).body(Collections.emptyList()).put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES, null);
     assertApplicationData(auditDTO, application);
@@ -58,7 +59,8 @@ public class LicenseThreatGroupLicenseResourceAuditTest
   public void testSetLicenseThreatGroupLicenses_Unauthorized() throws Exception {
     Organization organization = tempEntity.newOrganization();
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(organization.getId());
-    restRequest(organization, ltg.getId()).with(unauthorizedUser()).body(Arrays.asList("Not-Declared")).put();
+    restRequest(organization, ltg.getId())
+        .with(unauthorizedUser()).body(Collections.singletonList("Not-Declared")).put();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CONFIGURE_LICENSE_THREAT_GROUP_LICENSES, "unauthorized");
     assertOrganizationData(auditDTO, organization);

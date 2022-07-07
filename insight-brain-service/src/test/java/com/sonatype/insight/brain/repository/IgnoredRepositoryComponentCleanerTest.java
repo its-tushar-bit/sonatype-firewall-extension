@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.repository;
 
+import java.util.Collections;
 import java.util.HashMap;
 
 import javax.inject.Inject;
@@ -23,7 +24,6 @@ import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -57,7 +57,7 @@ public class IgnoredRepositoryComponentCleanerTest
 
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
-    hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), asList(".*sha$"));
+    hdsResult.regexpsByRepositoryFormat.put(repository.getFormat(), Collections.singletonList(".*sha$"));
     when(hdsClientMock.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
 

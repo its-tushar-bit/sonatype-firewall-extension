@@ -21,6 +21,10 @@ public abstract class OwnerTile
     return child(".iq-tile-header__subtitle");
   }
 
+  public SelenideElement nxSubHeader() {
+    return child(".nx-tile-header__subtitle");
+  }
+
   public SelenideElement newButton() {
     return child("button");
   }

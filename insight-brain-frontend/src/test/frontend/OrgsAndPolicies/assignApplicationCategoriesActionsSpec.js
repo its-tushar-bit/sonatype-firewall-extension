@@ -274,6 +274,7 @@ describe('assignApplicationCategoriesActions', () => {
         });
     });
   });
+
   describe('goToEditCategories', () => {
     beforeEach(() => {
       spyOn(routerSelectors, 'selectRouterSlice').and.returnValue({

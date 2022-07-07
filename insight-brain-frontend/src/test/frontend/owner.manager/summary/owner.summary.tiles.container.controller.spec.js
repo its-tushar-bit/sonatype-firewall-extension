@@ -19,7 +19,7 @@ describe('owner.summary.tiles.container.controller', function () {
 
   beforeEach(inject(function (_$rootScope_, $controller) {
     scope = _$rootScope_.$new();
-    vm = $controller('ApplicationCategoryTileControllerOrg', {
+    vm = $controller('OwnerSummaryTilesContainerController', {
       $scope: scope,
     });
   }));

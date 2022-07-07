@@ -330,13 +330,6 @@ const goToCreateCategory = createAsyncThunk(`${REDUCER_NAME}/goToCreateCategory`
   dispatch(stateGo(to, params));
 });
 
-const goToEditCategory = createAsyncThunk(`${REDUCER_NAME}/goToEditCategory`, (categoryId, { getState, dispatch }) => {
-  const router = selectRouterSlice(getState());
-  const { to, params } = deriveEditRoute(router, 'category', { categoryId });
-
-  dispatch(stateGo(to, params));
-});
-
 const removeApplicationCategory = createAsyncThunk(
   `${REDUCER_NAME}/removeApplicationCategory`,
   (_, { getState, dispatch, rejectWithValue }) => {
@@ -403,7 +396,6 @@ export const actions = {
   loadCategoryEditor,
   saveApplicationCategory,
   removeApplicationCategory,
-  goToEditCategory,
   goToCreateCategory,
   loadApplicableCategories,
   loadApplicableCategoriesByOwner,

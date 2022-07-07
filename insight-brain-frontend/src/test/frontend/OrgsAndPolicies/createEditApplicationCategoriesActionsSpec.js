@@ -281,43 +281,6 @@ describe('createEditApplicationCategoriesSlice Actions', () => {
     });
   });
 
-  describe('goToEditCategory', () => {
-    beforeEach(() => {
-      spyOn(routerSelectors, 'selectRouterSlice').and.returnValue({
-        currentState: {
-          name: 'organization.somewhere',
-        },
-        currentParams: {
-          organizationId: 'organizationId',
-        },
-      });
-    });
-
-    it('redirects to proper edit category path', (done) => {
-      store.dispatch(actions.goToEditCategory('categoryId')).then(() => {
-        const actions = store.getActions();
-
-        expect(actions.length).toBe(3);
-        expect(actions).toHaveActionTypesInOrder([
-          'applicationCategories/createEdit/goToEditCategory/pending',
-          '@@reduxUiRouter/stateGo',
-          'applicationCategories/createEdit/goToEditCategory/fulfilled',
-        ]);
-
-        expect(actions[1].payload).toEqual({
-          to: 'management.edit.organization.category',
-          params: {
-            organizationId: 'organizationId',
-            categoryId: 'categoryId',
-          },
-          options: undefined,
-        });
-
-        done();
-      });
-    });
-  });
-
   describe('loadCategoryEditor', () => {
     const categoryId = 'appCategoryId_1';
     const matchingApplicationIdForTag = 'applicationId';

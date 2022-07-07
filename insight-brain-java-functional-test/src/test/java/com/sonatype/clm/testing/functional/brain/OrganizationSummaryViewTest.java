@@ -11,23 +11,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.clm.testing.functional.elements.ActionDropDown;
-import com.sonatype.clm.testing.functional.elements.CategoryTile;
-import com.sonatype.clm.testing.functional.elements.DataRetentionTile;
-import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.ImportPolicyModal;
-import com.sonatype.clm.testing.functional.elements.LabelTile;
-import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
-import com.sonatype.clm.testing.functional.elements.PolicyTile;
-import com.sonatype.clm.testing.functional.elements.PolicyTileList;
+import com.sonatype.clm.testing.functional.elements.*;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
-import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
-import com.sonatype.clm.testing.functional.elements.SourceControlTile;
-import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
-import com.sonatype.clm.testing.functional.elements.TileSimpleList;
 import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.utils.NxColor;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
@@ -46,6 +35,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -60,7 +50,6 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
-import static com.sonatype.clm.testing.functional.elements.TileSimpleList.CLICKABLE;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -192,22 +181,23 @@ public class OrganizationSummaryViewTest
     // scroll to the application categories tile
     OwnerSummaryPage.summaryTile().appCategoriesButton().shouldBe(visible).click();
     CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
-    TileSimpleList categoryList = categoryTile.categoryList(0);
+    NxList categoryList = categoryTile.categoryList(0);
     categoryList.elements().shouldBe(empty);
     categoryList.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
   }
 
   private void testApplicationCategoryTile_Empty() {
     CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
-    categoryTile.subHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(organization));
+    categoryTile.nxSubHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(organization));
     categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.buttonText(organization));
 
-    categoryTile.categoryLists().shouldHaveSize(1);
+    categoryTile.categoryLists().shouldHaveSize(2);
 
-    TileSimpleList list = categoryTile.categoryList(0);
+    NxList list = categoryTile.categoryList(0);
+    SelenideElement subsectionHeader = categoryTile.categoryListSubheader(0);
     list.elements().shouldBe(empty);
 
-    list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
+    subsectionHeader.shouldBe(visible).shouldHave(text("Local"));
     list.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
   }
 
@@ -235,21 +225,20 @@ public class OrganizationSummaryViewTest
     categoryTile.categoryLists().shouldHaveSize(hierarchySize);
 
     for (int i = 0; i < hierarchySize; i++) {
-      TileSimpleList list = categoryTile.categoryList(i);
+      NxList list = categoryTile.categoryList(i);
 
       if (i == 0) {
-        list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
-        list.root.shouldHave(CLICKABLE);
+        categoryTile.categoryListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
       }
       else {
-        list.subsectionHeader().shouldBe(visible).shouldHave(CategoryTile.inheritedText(owners.get(i).getName()));
-        list.root.shouldNotHave(CLICKABLE);
+        categoryTile.categoryListSubheader(1).shouldBe(visible)
+                .shouldHave(CategoryTile.inheritedText(owners.get(i).getName()));
       }
 
       list.elements().shouldHaveSize(ownerTags.get(i).size());
 
       for (int j = 0; j < ownerTags.get(i).size(); j++) {
-        TileSimpleListElement actualCategory = list.element(j);
+        NxList.NxListItem actualCategory = list.element(j);
         Tag expectedCategory = ownerTags.get(i).get(j);
 
         if (i == 0) {
@@ -266,7 +255,9 @@ public class OrganizationSummaryViewTest
           actualCategory.description().shouldBe(visible).shouldHave(text(expectedCategory.getDescription()));
         }
 
-        actualCategory.icon().shouldBe(visible).shouldHave(cssClass(expectedCategory.getColor().toValue()));
+        String nxColorClass = NxColor.getNxColorFromColor(expectedCategory.getColor()).toNxClass();
+
+        actualCategory.icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
         actualCategory.name().shouldBe(visible).shouldHave(text(expectedCategory.getName()));
       }
     }

@@ -3,15 +3,25 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { actions as createEditApplicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
 export default function ImportPolicyModalController(
   $rootScope,
   $scope,
   $http,
   $cookies,
   Messages,
-  CLMContextLocations
+  CLMContextLocations,
+  $ngRedux
 ) {
   var vm = this;
+
+  vm.unsubscribe = $ngRedux.connect(null, {
+    loadApplicableCategories: createEditApplicationCategoriesActions.loadApplicableCategories,
+  })(vm);
+
+  $scope.$on('$destroy', () => {
+    vm.unsubscribe();
+  });
 
   vm.importFile = undefined;
   vm.csrfTokenName = $http.defaults.xsrfHeaderName;
@@ -52,6 +62,9 @@ export default function ImportPolicyModalController(
       function () {
         $rootScope.$broadcast('policy.imported');
         $scope.$close();
+        // This action is dispatched to update the Application Categories Tile
+        // TODO: When this http request is merged to Redux, move the action to that success thunk as well
+        vm.loadApplicableCategories();
       },
       function (error) {
         setError(Messages.getHttpErrorMessage(error), doSubmit);
@@ -60,4 +73,12 @@ export default function ImportPolicyModalController(
   }
 }
 
-ImportPolicyModalController.$inject = ['$rootScope', '$scope', '$http', '$cookies', 'Messages', 'CLMContextLocations'];
+ImportPolicyModalController.$inject = [
+  '$rootScope',
+  '$scope',
+  '$http',
+  '$cookies',
+  'Messages',
+  'CLMContextLocations',
+  '$ngRedux',
+];

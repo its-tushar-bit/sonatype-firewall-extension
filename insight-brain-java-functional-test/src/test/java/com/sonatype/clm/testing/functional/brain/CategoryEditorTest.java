@@ -105,7 +105,7 @@ public class CategoryEditorTest
 
   @Test
   public void testEditCategory() {
-    OwnerSummaryPage.categoryTile().localCategory(category.getName()).click();
+    OwnerSummaryPage.categoryTile().localCategoryLink(category.getName()).click();
     CategoryEditorPage.title().shouldHave(text("Edit"));
     CategoryEditorPage.categoryName().shouldBe(visible).shouldHave(CLM.PRISTINE)
         .shouldHave(value("original name"));

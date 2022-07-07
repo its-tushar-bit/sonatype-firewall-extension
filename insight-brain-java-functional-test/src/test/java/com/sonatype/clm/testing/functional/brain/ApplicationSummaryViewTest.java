@@ -10,28 +10,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.clm.testing.functional.elements.ActionDropDown;
-import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.CategoryTile;
-import com.sonatype.clm.testing.functional.elements.ChangeApplicationIdDialog;
-import com.sonatype.clm.testing.functional.elements.Dropdown;
-import com.sonatype.clm.testing.functional.elements.EvaluateApplicationModal;
-import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.LabelTile;
-import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
-import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
-import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
-import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
+import com.sonatype.clm.testing.functional.elements.*;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
-import com.sonatype.clm.testing.functional.elements.RemoveModal;
-import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
-import com.sonatype.clm.testing.functional.elements.SelectContactModal;
-import com.sonatype.clm.testing.functional.elements.SourceControlTile;
-import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
-import com.sonatype.clm.testing.functional.elements.TileSimpleList;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.utils.NxColor;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -286,12 +269,12 @@ public class ApplicationSummaryViewTest
 
   private void testApplicationCategoryTile_noneDefined() {
     CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
-    categoryTile.subHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application));
+    categoryTile.nxSubHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application));
     categoryTile.newButton().shouldBe(visible).shouldHave(CategoryTile.buttonText(application), CLM.DISABLED);
 
     categoryTile.categoryLists().shouldHaveSize(1);
 
-    TileSimpleList appliedCategoryList = categoryTile.categoryList(0);
+    NxList appliedCategoryList = categoryTile.categoryList(0);
 
     appliedCategoryList.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
     appliedCategoryList.elements().shouldBe(empty);
@@ -299,12 +282,12 @@ public class ApplicationSummaryViewTest
 
   private void testApplicationCategoryTile_Empty() {
     CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
-    categoryTile.subHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application));
+    categoryTile.nxSubHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application));
     categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.buttonText(application));
 
     categoryTile.categoryLists().shouldHaveSize(1);
 
-    TileSimpleList appliedCategoryList = categoryTile.categoryList(0);
+    NxList appliedCategoryList = categoryTile.categoryList(0);
 
     appliedCategoryList.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneAssignedText());
     appliedCategoryList.elements().shouldBe(empty);
@@ -316,18 +299,20 @@ public class ApplicationSummaryViewTest
     refresh();
 
     CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
-    categoryTile.subHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application));
+    categoryTile.nxSubHeader().shouldBe(visible).shouldHave(CategoryTile.subHeaderText(application));
     categoryTile.newButton().shouldBe(visible, enabled).shouldHave(CategoryTile.buttonText(application));
 
     categoryTile.categoryLists().shouldHaveSize(1);
 
-    TileSimpleList appliedCategoryList = categoryTile.categoryList(0);
+    NxList appliedCategoryList = categoryTile.categoryList(0);
+
+    String nxColorClass = NxColor.getNxColorFromColor(category.getColor()).toNxClass();
 
     appliedCategoryList.emptyDescriptor().shouldBe(hidden);
     appliedCategoryList.elements().shouldHaveSize(1);
     appliedCategoryList.element(0).name().shouldBe(visible).shouldHave(text(category.getName()));
     appliedCategoryList.element(0).description().shouldBe(visible).shouldHave(text(category.getDescription()));
-    appliedCategoryList.element(0).icon().shouldBe(visible).shouldHave(cssClass(category.getColor().toValue()));
+    appliedCategoryList.element(0).icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
     appliedCategoryList.element(0).chevron().shouldBe(hidden);
   }
 

@@ -39,7 +39,7 @@ public class CategoryTile
   }
 
   public static Condition buttonText(@SuppressWarnings("unused") Application application) {
-    return Condition.text("assign app categories");
+    return Condition.text("assign a category");
   }
 
   public static Condition buttonText(@SuppressWarnings("unused") Organization organization) {
@@ -55,14 +55,26 @@ public class CategoryTile
   }
 
   public ElementsCollection categoryLists() {
-    return children(".iq-list");
+    return children(".nx-list");
   }
 
-  public TileSimpleList categoryList(int num) {
-    return new TileSimpleList(categoryLists().get(num));
+  public ElementsCollection categoryListsSubheaders() {
+    return children(".nx-h3");
+  }
+
+  public NxList categoryList(int num) {
+    return new NxList(categoryLists().get(num));
+  }
+
+  public SelenideElement categoryListSubheader(int num) {
+    return this.categoryListsSubheaders().get(num);
   }
 
   public SelenideElement localCategory(String categoryName) {
-    return children("ul .iq-list__item").findBy(text(categoryName));
+    return children("ul .nx-list__item").findBy(text(categoryName));
+  }
+
+  public SelenideElement localCategoryLink(String categoryName) {
+    return children("ul .nx-list__link").findBy(text(categoryName));
   }
 }

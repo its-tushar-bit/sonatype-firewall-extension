@@ -26,8 +26,6 @@ import LocalRoleService from './utility/local.role.service';
 import SameOwnerStateNavigationService from './utility/same.owner.state.navigation.service';
 import RoleMappingService from './access/role.mapping.service';
 import ApplicationCategoryEditorController from './category/application.category.editor.controller';
-import ApplicationCategoryTileControllerApp from './category/application.category.tile.controller.app';
-import ApplicationCategoryTileControllerOrg from './category/application.category.tile.controller.org';
 import CategoryEditorController from './category/category.editor.controller';
 import LabelTileController from './label/label.tile.controller';
 import LicenseThreatGroupEditorController from './license.threat.group/license.threat.group.editor.controller';
@@ -88,6 +86,7 @@ import ProprietaryComponentConfiguration from 'MainRoot/OrgsAndPolicies/propriet
 import OwnerSummaryTilesContainerController from './summary/owner.summary.tiles.container.controller';
 import PolicyGrandfatheringTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PolicyGrandfatheringTile';
 import ProprietaryComponentConfigurationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ProprietaryComponentConfigurationTile';
+import ApplicationCategoriesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ApplicationCategoriesTile';
 import ContinuousMonitoringSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ContinuousMonitoringSummaryTile';
 
 export default angular
@@ -117,8 +116,6 @@ export default angular
   .controller('AccessTileController', AccessTileController)
   .directive('accessTile', AccessTile)
   .controller('application.category.editor.controller', ApplicationCategoryEditorController)
-  .controller('ApplicationCategoryTileControllerApp', ApplicationCategoryTileControllerApp)
-  .controller('ApplicationCategoryTileControllerOrg', ApplicationCategoryTileControllerOrg)
   .controller('category.editor.controller', CategoryEditorController)
   .controller('LabelTileController', LabelTileController)
   .controller('license.threat.group.editor.controller', LicenseThreatGroupEditorController)
@@ -171,6 +168,7 @@ export default angular
   )
   .component('continuousMonitoring', iqReact2Angular(ContinuousMonitoringEditor, [], ['$ngRedux']))
   .component('createComponentLabel', iqReact2Angular(CreateComponentLabel, [], ['$ngRedux', '$state']))
+  .component('applicationCategoriesTile', iqReact2Angular(ApplicationCategoriesTile, [], ['$ngRedux', '$state']))
   .component('proprietaryComponentConfiguration', iqReact2Angular(ProprietaryComponentConfiguration, [], ['$ngRedux']))
   .component(
     'continuousMonitoringSummaryTile',

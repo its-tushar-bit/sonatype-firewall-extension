@@ -49,9 +49,11 @@ const removeOwner = createAsyncThunk(
     return axios
       .delete(url)
       .then(() => {
-        isApp
-          ? dispatch(applicationsActions.removeApplicationFromList(ownerToDelete.id))
-          : dispatch(organizationActions.removeOrganizationFromList(ownerToDelete.id));
+        if (isApp) {
+          dispatch(applicationsActions.removeApplicationFromList(ownerToDelete.id));
+        } else {
+          dispatch(organizationActions.removeOrganizationFromList(ownerToDelete.id));
+        }
       })
       .catch(rejectWithValue);
   }
@@ -71,9 +73,11 @@ const updateOwner = createAsyncThunk(
       .then(({ data }) => {
         const updatedOwner = { isNew, [isApp ? 'application' : 'organization']: data };
 
-        isApp
-          ? dispatch(applicationsActions.updateApplication(updatedOwner))
-          : dispatch(organizationActions.updateOrganization(updatedOwner));
+        if (isApp) {
+          dispatch(applicationsActions.updateApplication(updatedOwner));
+        } else {
+          dispatch(organizationActions.updateOrganization(updatedOwner));
+        }
 
         return updatedOwner;
       })

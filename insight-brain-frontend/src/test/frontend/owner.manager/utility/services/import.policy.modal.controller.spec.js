@@ -13,12 +13,14 @@ describe('import.policy.modal.controller.spec.js', function () {
       $provide.value('$cookies', {
         get: angular.noop,
       });
+      SpecUtil.mockNgRedux($provide);
     })
   );
 
   beforeEach(inject(function ($rootScope, $q, $controller, _$httpBackend_, _CLMContextLocations_) {
     scope = $rootScope.$new();
     scope.$dismiss = jasmine.createSpy('$dismiss');
+    scope.$close = jasmine.createSpy('$close ');
 
     $httpBackend = _$httpBackend_;
     CLMContextLocations = _CLMContextLocations_;
@@ -26,6 +28,16 @@ describe('import.policy.modal.controller.spec.js', function () {
     vm = $controller('import.policy.modal.controller', { $scope: scope });
     vm.importPolicyMask = { wrap: SpecUtil.promiseWrapper($q) };
   }));
+
+  it('subscribes to the redux store', () => {
+    expect(vm.unsubscribe).toBeDefined();
+  });
+
+  it('unsubscribes from the redux store', () => {
+    expect(vm.unsubscribe).not.toHaveBeenCalled();
+    scope.$destroy();
+    expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
+  });
 
   it('Test Form validation', function () {
     expect(vm.importFile).toBeFalsy();
@@ -65,6 +77,16 @@ describe('import.policy.modal.controller.spec.js', function () {
 
       expect(vm.error).toBeDefined();
       expect(submitEvent.preventDefault).toHaveBeenCalled();
+    });
+
+    it('Test import success', function () {
+      validateInitialState();
+      $httpBackend.expectPOST(CLMContextLocations.getImportPolicyUrl()).respond({ data: ['foo'], id: 'bar' });
+
+      vm.doSubmit(submitEvent);
+      $httpBackend.flush();
+
+      expect(vm.loadApplicableCategories).toHaveBeenCalled();
     });
   });
 });

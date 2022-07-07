@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -282,7 +282,7 @@ public class PolicyAlertScmNotifierTest
         new UserNotification("foo@mail.com", "release")
     );
     PolicyNotification policyNotification1 = new PolicyNotification(policyFact1, notifications);
-    return Arrays.asList(policyNotification1);
+    return Collections.singletonList(policyNotification1);
   }
 
   private String randomString() {

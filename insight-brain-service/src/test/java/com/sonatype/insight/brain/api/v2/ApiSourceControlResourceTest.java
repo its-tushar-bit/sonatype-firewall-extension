@@ -165,7 +165,7 @@ public class ApiSourceControlResourceTest
     ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
         tempEntity.newSourceControl(org.getId(), null, "token", null));
 
-    ObjectNode node = (ObjectNode) OBJECT_MAPPER.valueToTree(sourceControl);
+    ObjectNode node = OBJECT_MAPPER.valueToTree(sourceControl);
     node.put("provider", "invalid_scm");
 
     HttpResponse response = restRequest()

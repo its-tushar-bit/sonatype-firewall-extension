@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
@@ -47,14 +48,14 @@ public class ComponentNameMatcherTest
 
   @Test
   public void testFindMatch_NoCoordinates() {
-    ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NPM, Arrays.asList());
+    ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NPM, Collections.emptyList());
     assertThat(matcher.findMatch(null, null)).isNull();
   }
 
   @Test
   public void testFindMatch_Namespace_ExactMatch() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NPM,
-        Arrays.asList(newNamespacePattern(ComponentIdentifier.FORMAT_NPM, "@sonatype")));
+        Collections.singletonList(newNamespacePattern(ComponentIdentifier.FORMAT_NPM, "@sonatype")));
     assertMatch(matcher.findMatch("@sonatype", "cli"), "@sonatype/*");
     assertThat(matcher.findMatch("@sonatypeNOThere", "cli")).isNull();
   }
@@ -62,7 +63,7 @@ public class ComponentNameMatcherTest
   @Test
   public void testFindMatch_Namespace_PrefixMatch() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NPM,
-        Arrays.asList(newNamespacePattern(ComponentIdentifier.FORMAT_NPM, "@sonatype*")));
+        Collections.singletonList(newNamespacePattern(ComponentIdentifier.FORMAT_NPM, "@sonatype*")));
     assertMatch(matcher.findMatch("@sonatype", "cli"), "@sonatype*/*");
     assertMatch(matcher.findMatch("@sonatypeTOO", "cli"), "@sonatype*/*");
     assertThat(matcher.findMatch("@sonatyp", "cli")).isNull();
@@ -80,7 +81,7 @@ public class ComponentNameMatcherTest
   @Test
   public void testFindMatch_Name_ExactMatch() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NPM,
-        Arrays.asList(newNamePattern(ComponentIdentifier.FORMAT_NPM, "cli")));
+        Collections.singletonList(newNamePattern(ComponentIdentifier.FORMAT_NPM, "cli")));
     assertMatch(matcher.findMatch(null, "cli"), "cli");
     assertThat(matcher.findMatch("@scope", "cli")).isNull();
   }
@@ -88,7 +89,7 @@ public class ComponentNameMatcherTest
   @Test
   public void testFindMatch_Name_PrefixMatch() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NPM,
-        Arrays.asList(newNamePattern(ComponentIdentifier.FORMAT_NPM, "sonatype-*")));
+        Collections.singletonList(newNamePattern(ComponentIdentifier.FORMAT_NPM, "sonatype-*")));
     assertMatch(matcher.findMatch(null, "sonatype-cli"), "sonatype-*");
     assertThat(matcher.findMatch(null, "sonademo-cli")).isNull();
     assertThat(matcher.findMatch(null, "sonatype")).isNull();
@@ -98,7 +99,7 @@ public class ComponentNameMatcherTest
   @Test
   public void testFindMatch_Name_SuffixMatch() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NPM,
-        Arrays.asList(newNamePattern(ComponentIdentifier.FORMAT_NPM, "*-sonatype")));
+        Collections.singletonList(newNamePattern(ComponentIdentifier.FORMAT_NPM, "*-sonatype")));
     assertMatch(matcher.findMatch(null, "cli-sonatype"), "*-sonatype");
     assertThat(matcher.findMatch(null, "cli-demotype")).isNull();
     assertThat(matcher.findMatch(null, "sonatype")).isNull();
@@ -108,7 +109,7 @@ public class ComponentNameMatcherTest
   @Test
   public void testFindMatch_Maven_AutoPrefixMatchForGroupId() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_MAVEN,
-        Arrays.asList(newNamespacePattern(ComponentIdentifier.FORMAT_MAVEN, "org.sonatype")));
+        Collections.singletonList(newNamespacePattern(ComponentIdentifier.FORMAT_MAVEN, "org.sonatype")));
     assertMatch(matcher.findMatch("org.sonatype", "cli"), "org.sonatype/*");
     assertMatch(matcher.findMatch("org.sonatype.sub.id", "cli"), "org.sonatype.*/*");
     assertThat(matcher.findMatch("org.sonatypeNOThere", "cli")).isNull();
@@ -117,7 +118,7 @@ public class ComponentNameMatcherTest
   @Test
   public void testFindMatch_Pypi_CaseInsensitive() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_PYPI,
-        Arrays.asList(newNamePattern(ComponentIdentifier.FORMAT_PYPI, "Cli")));
+        Collections.singletonList(newNamePattern(ComponentIdentifier.FORMAT_PYPI, "Cli")));
     assertMatch(matcher.findMatch(null, "cli"), "cli");
     assertMatch(matcher.findMatch(null, "CLI"), "cli");
   }
@@ -125,7 +126,7 @@ public class ComponentNameMatcherTest
   @Test
   public void testFindMatch_Nuget_CaseInsensitive() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NUGET,
-        Arrays.asList(newNamePattern(ComponentIdentifier.FORMAT_NUGET, "Cli")));
+        Collections.singletonList(newNamePattern(ComponentIdentifier.FORMAT_NUGET, "Cli")));
     assertMatch(matcher.findMatch(null, "cli"), "cli");
     assertMatch(matcher.findMatch(null, "CLI"), "cli");
   }
@@ -133,7 +134,7 @@ public class ComponentNameMatcherTest
   @Test
   public void testFindMatch_Pypi_Normalization() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_PYPI,
-        Arrays.asList(newNamePattern(ComponentIdentifier.FORMAT_PYPI, "Sonatype-Cli")));
+        Collections.singletonList(newNamePattern(ComponentIdentifier.FORMAT_PYPI, "Sonatype-Cli")));
     assertMatch(matcher.findMatch(null, "sonatype-cli"), "sonatype-cli");
     assertMatch(matcher.findMatch(null, "sonatype-CLI"), "sonatype-cli");
     assertMatch(matcher.findMatch(null, "sonatype.CLI"), "sonatype-cli");
@@ -144,7 +145,7 @@ public class ComponentNameMatcherTest
   @Test
   public void testAdd() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NPM,
-        Arrays.asList(newNamePattern(ComponentIdentifier.FORMAT_NPM, "sonatype*")));
+        Collections.singletonList(newNamePattern(ComponentIdentifier.FORMAT_NPM, "sonatype*")));
 
     ProprietaryComponentNamePattern pattern1 = newNamePattern(ComponentIdentifier.FORMAT_NPM, "sonatype*");
     ProprietaryComponentNamePattern pattern2 = newNamePattern(ComponentIdentifier.FORMAT_NPM, "sonatype");
@@ -154,7 +155,7 @@ public class ComponentNameMatcherTest
 
     ProprietaryComponentNamePattern pattern4 = newNamespacePattern(pattern3.getFormat(), pattern3.getNamespacePattern())
         .withRepository("repo-man-id", "repo-id");
-    assertThat(matcher.add(Arrays.asList(pattern4))).containsExactlyInAnyOrder(pattern4);
-    assertThat(matcher.add(Arrays.asList(pattern4))).isEmpty();
+    assertThat(matcher.add(Collections.singletonList(pattern4))).containsExactlyInAnyOrder(pattern4);
+    assertThat(matcher.add(Collections.singletonList(pattern4))).isEmpty();
   }
 }

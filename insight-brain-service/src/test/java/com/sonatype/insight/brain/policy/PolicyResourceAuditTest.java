@@ -96,7 +96,7 @@ public class PolicyResourceAuditTest
     LicenseThreatGroup organizationLTG = tempEntity.newLicenseThreatGroup(organization.getId());
     LicenseThreatGroup applicationLTG = tempEntity.newLicenseThreatGroup(application.getId());
     PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.policies = Arrays.asList(policy());
+    policyExportResult.policies = Collections.singletonList(policy());
 
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
@@ -111,8 +111,8 @@ public class PolicyResourceAuditTest
   public void testImportPolicies_DontLogDeletedLicenseThreatGroupsIfTransactionFails() throws Exception {
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(organization.getId());
     PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.policies = Arrays.asList(policy());
-    policyExportResult.labels = Arrays.asList(new Label(organization.getId(), LONG_LABEL_NAME));
+    policyExportResult.policies = Collections.singletonList(policy());
+    policyExportResult.labels = Collections.singletonList(new Label(organization.getId(), LONG_LABEL_NAME));
 
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
@@ -126,8 +126,8 @@ public class PolicyResourceAuditTest
     LicenseThreatGroup ltg = new LicenseThreatGroup(organization.getId(), "Test LTG", 6);
     ltg.setId(tempEntity.uuid());
     PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.policies = Arrays.asList(policy());
-    policyExportResult.licenseThreatGroups = Arrays.asList(ltg);
+    policyExportResult.policies = Collections.singletonList(policy());
+    policyExportResult.licenseThreatGroups = Collections.singletonList(ltg);
     policyExportResult.licenseThreatGroupLicenses = Arrays.asList(
         new LicenseThreatGroupLicense(null, ltg.getId(), "Apache-UNSPECIFIED"),
         new LicenseThreatGroupLicense(null, ltg.getId(), "PUBLIC-DOMAIN"));
@@ -147,8 +147,9 @@ public class PolicyResourceAuditTest
   public void testImportPolicies_DontLogInheritedLicenseThreatGroups() throws Exception {
     LicenseThreatGroup inheritedLTG = tempEntity.newLicenseThreatGroup(rootOrganization.getId());
     PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.policies = Arrays.asList(policy());
-    policyExportResult.licenseThreatGroups = Arrays.asList(new LicenseThreatGroup(null, inheritedLTG.getName(), 6));
+    policyExportResult.policies = Collections.singletonList(policy());
+    policyExportResult.licenseThreatGroups =
+        Collections.singletonList(new LicenseThreatGroup(null, inheritedLTG.getName(), 6));
 
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
@@ -160,7 +161,7 @@ public class PolicyResourceAuditTest
   @Test
   public void testImportPolicies_DontLogImportedLicenseThreatGroupsIfTransactionFails() throws Exception {
     PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.policies = Arrays.asList(policy());
+    policyExportResult.policies = Collections.singletonList(policy());
     policyExportResult.licenseThreatGroups = Arrays.asList(new LicenseThreatGroup(null, "Test LTG", 6),
         new LicenseThreatGroup(null, "Test LTG", 6));
 
@@ -214,8 +215,8 @@ public class PolicyResourceAuditTest
   public void testImportPolicies_ImportNewLabel() throws Exception {
     Label label = new Label(organization.getId(), "labelName", "labelDescription", Color.dark_blue);
     PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.policies = Arrays.asList(policy());
-    policyExportResult.labels = Arrays.asList(label);
+    policyExportResult.policies = Collections.singletonList(policy());
+    policyExportResult.labels = Collections.singletonList(label);
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT_LABEL, null);
@@ -229,8 +230,8 @@ public class PolicyResourceAuditTest
     Label importedLabel = new Label(organization.getId(), existingLabel.getLabel(), "newLabelDescription",
         Color.dark_red);
     PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.policies = Arrays.asList(policy());
-    policyExportResult.labels = Arrays.asList(importedLabel);
+    policyExportResult.policies = Collections.singletonList(policy());
+    policyExportResult.labels = Collections.singletonList(importedLabel);
 
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
@@ -244,8 +245,8 @@ public class PolicyResourceAuditTest
   public void testImportPolicies_ImportLongLabel_BadRequest() throws Exception {
     Label label = new Label(organization.getId(), LONG_LABEL_NAME, "labelDescription", Color.dark_blue);
     PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.policies = Arrays.asList(policy());
-    policyExportResult.labels = Arrays.asList(label);
+    policyExportResult.policies = Collections.singletonList(policy());
+    policyExportResult.labels = Collections.singletonList(label);
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.IMPORT, "bad-request");
@@ -501,7 +502,7 @@ public class PolicyResourceAuditTest
     List<ConstraintDTO> orgPolicyConstraints = ConstraintDTO.transcribe(orgPolicy.getConstraints());
 
     PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.policies = Arrays.asList(policy());
+    policyExportResult.policies = Collections.singletonList(policy());
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     List<AuditDTO> auditDTOs = awaitLogEntries(AuditEvent.DELETE_POLICY, 2);
@@ -514,8 +515,8 @@ public class PolicyResourceAuditTest
     Policy policy = tempEntity.newPolicy(organization);
 
     PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.policies = Arrays.asList(policy());
-    policyExportResult.labels = Arrays.asList(new Label(organization.getId(), LONG_LABEL_NAME));
+    policyExportResult.policies = Collections.singletonList(policy());
+    policyExportResult.labels = Collections.singletonList(new Label(organization.getId(), LONG_LABEL_NAME));
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
     assertAuditLog(AuditEvent.IMPORT, "bad-request");
@@ -530,7 +531,7 @@ public class PolicyResourceAuditTest
 
     PolicyExportResult policyExportResult = new PolicyExportResult();
     Policy policy = policy();
-    policyExportResult.policies = Arrays.asList(policy);
+    policyExportResult.policies = Collections.singletonList(policy);
     policyExportResult.tags = Arrays.asList(existingTag, newTag);
     policyExportResult.policyTags = Arrays
         .asList(new PolicyTag(policy.getId(), existingTag.getId()), new PolicyTag(policy.getId(), newTag.getId()));
@@ -546,7 +547,7 @@ public class PolicyResourceAuditTest
   public void testImportPolicies_PolicyTags_InheritAll() throws Exception {
     PolicyExportResult policyExportResult = new PolicyExportResult();
     Policy policy = policy();
-    policyExportResult.policies = Arrays.asList(policy);
+    policyExportResult.policies = Collections.singletonList(policy);
 
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 
@@ -563,7 +564,7 @@ public class PolicyResourceAuditTest
     invalidPolicy.setName(policy1.getName());
     policyExportResult.policies = Arrays.asList(policy1, invalidPolicy);
     Tag existingTag = tempEntity.newTag(organization.getId(), tempEntity.uuid());
-    policyExportResult.policyTags = Arrays.asList(new PolicyTag(policy1.getId(), existingTag.getId()));
+    policyExportResult.policyTags = Collections.singletonList(new PolicyTag(policy1.getId(), existingTag.getId()));
 
     policyResourceRequest(organization).path("import").part("file", "file", policyExportResult).post();
 

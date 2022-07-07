@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import javax.inject.Inject;
 
@@ -114,8 +115,9 @@ public class ProprietaryComponentNameDetectorTest
         .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("@NOTsonatype/cli", "99"))).isNull();
 
     assertThat(proprietaryComponentNameDetector.addPatterns(ComponentIdentifier.FORMAT_NPM,
-        Arrays.asList(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM).withNamePattern("sonatype*")
-            .withRepository(repoManId, repoId)))).isEqualTo(0);
+        Collections.singletonList(
+            new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM).withNamePattern("sonatype*")
+                .withRepository(repoManId, repoId)))).isEqualTo(0);
 
     assertThat(proprietaryComponentNamePatternDAO.getByFormat(ComponentIdentifier.FORMAT_NPM))
         .extracting(ProprietaryComponentNamePattern::getId)

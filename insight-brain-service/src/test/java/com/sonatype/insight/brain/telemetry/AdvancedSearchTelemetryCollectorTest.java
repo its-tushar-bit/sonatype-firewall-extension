@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -58,8 +58,8 @@ public class AdvancedSearchTelemetryCollectorTest
 
   @Test
   public void testCollectAllData_SearchData() {
-    metrics.addSearch(new HashSet<>(Arrays.asList("foo")));
-    metrics.addSearch(new HashSet<>(Arrays.asList("foo")));
+    metrics.addSearch(new HashSet<>(Collections.singletonList("foo")));
+    metrics.addSearch(new HashSet<>(Collections.singletonList("foo")));
 
     List<TelemetryData> allTelemetryData = collector.collectAllData();
     assertThat(allTelemetryData).hasSize(1);
@@ -69,7 +69,7 @@ public class AdvancedSearchTelemetryCollectorTest
     @SuppressWarnings("unchecked")
     List<SearchCount> actualSearchCounts =
         (List<SearchCount>) telemetryData.getAttributes().get(TOTAL_SEARCHES_BY_FIELD_NAME);
-    List<SearchCount> expectedSearchCounts = Arrays.asList(new SearchCount("foo", 2));
+    List<SearchCount> expectedSearchCounts = Collections.singletonList(new SearchCount("foo", 2));
 
     assertThat(telemetryData.getAttributes()).containsOnlyKeys(TOTAL_SEARCHES_BY_FIELD_NAME, TOTAL_SEARCHES);
     assertThat(actualSearchCounts).usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(expectedSearchCounts);

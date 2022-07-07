@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -54,7 +53,7 @@ public class SuccessMetricsReportResourceTest
     Application app = tempEntity.newApplication(org.getId());
 
     SuccessMetricsReportScopeDTO successMetricsScopeDTO = new SuccessMetricsReportScopeDTO(
-        new HashSet<>(Arrays.asList(app.getId())), null);
+        new HashSet<>(Collections.singletonList(app.getId())), null);
     SuccessMetricsReportDTO successMetricsDTO = new SuccessMetricsReportDTO(metricsName, successMetricsScopeDTO);
     
     // Create

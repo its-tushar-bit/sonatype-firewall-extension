@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -56,7 +56,8 @@ public class ClairScannerResultsHandlerTest
   @Test
   public void testHandleAndFilterContents_truncate() {
     ClairScannerResult clairScannerResult = new ClairScannerResult();
-    clairScannerResult.setVulnerabilities(new HashSet<>(Arrays.asList(buildVulnerabilityToTruncateValues())));
+    clairScannerResult.setVulnerabilities(
+        new HashSet<>(Collections.singletonList(buildVulnerabilityToTruncateValues())));
 
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(clairScannerResult));
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();

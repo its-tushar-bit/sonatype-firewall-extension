@@ -490,8 +490,8 @@ public class ApiLicenseLegalServiceTest
     licenseMetadataDTOs.get(0).setLicenseObligations(new LinkedHashSet<>(Arrays
         .asList(new LicenseObligationDTO("obligation1", Collections.emptySet()),
             new LicenseObligationDTO("obligation2", Collections.emptySet()))));
-    licenseMetadataDTOs.get(1).setLicenseObligations(new LinkedHashSet<>(Arrays
-        .asList(new LicenseObligationDTO("obligation3", Collections.emptySet()))));
+    licenseMetadataDTOs.get(1).setLicenseObligations(new LinkedHashSet<>(
+        Collections.singletonList(new LicenseObligationDTO("obligation3", Collections.emptySet()))));
     licenseMetadataDTOs.get(2).setLicenseObligations(new LinkedHashSet<>(Arrays
         .asList(new LicenseObligationDTO("obligation4", Collections.emptySet()),
             new LicenseObligationDTO("obligation5", Collections.emptySet()))));
@@ -564,7 +564,7 @@ public class ApiLicenseLegalServiceTest
   @Test
   public void testGetLicenseLegalComponentDashboard_ByReviewProgressOpen() {
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    List<String> licenseIds = Arrays.asList("MIT");
+    List<String> licenseIds = Collections.singletonList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
     setupLicenseObligations(app, componentIdentifier1, licenseIds, ObligationStatus.OPEN, ObligationStatus.OPEN);
     ApiLicenseLegalComponentDashboardResultDTO resultDto = apiLicenseLegalService
@@ -579,7 +579,7 @@ public class ApiLicenseLegalServiceTest
   @Test
   public void testGetLicenseLegalComponentDashboard_ByReviewProgressFullfilled() {
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    List<String> licenseIds = Arrays.asList("MIT");
+    List<String> licenseIds = Collections.singletonList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
     app.setId(Organization.ROOT_ORGANIZATION_ID);
     setupLicenseObligations(app, componentIdentifier1, licenseIds, ObligationStatus.FULFILLED,
@@ -595,7 +595,7 @@ public class ApiLicenseLegalServiceTest
   @Test
   public void testGetLicenseLegalComponentDashboard_ByReviewProgressIgnored() {
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    List<String> licenseIds = Arrays.asList("MIT");
+    List<String> licenseIds = Collections.singletonList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
     app.setId(Organization.ROOT_ORGANIZATION_ID);
     setupLicenseObligations(app, componentIdentifier1, licenseIds, ObligationStatus.IGNORED, ObligationStatus.IGNORED);
@@ -610,7 +610,7 @@ public class ApiLicenseLegalServiceTest
   @Test
   public void testGetLicenseLegalComponentDashboard_ByReviewProgressIgnoredFullfiled() {
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    List<String> licenseIds = Arrays.asList("MIT");
+    List<String> licenseIds = Collections.singletonList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
     app.setId(Organization.ROOT_ORGANIZATION_ID);
     setupLicenseObligations(app, componentIdentifier1, licenseIds, ObligationStatus.IGNORED,
@@ -626,7 +626,7 @@ public class ApiLicenseLegalServiceTest
   @Test
   public void testGetLicenseLegalComponentDashboard_ByReviewProgressFullfilledOpen() {
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    List<String> licenseIds = Arrays.asList("MIT");
+    List<String> licenseIds = Collections.singletonList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
     app.setId(Organization.ROOT_ORGANIZATION_ID);
     setupLicenseObligations(app, componentIdentifier1, licenseIds, ObligationStatus.FULFILLED, ObligationStatus.OPEN);
@@ -641,7 +641,7 @@ public class ApiLicenseLegalServiceTest
   @Test
   public void testGetLicenseLegalComponentDashboard_ByReviewProgressOpenIgnored() {
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    List<String> licenseIds = Arrays.asList("MIT");
+    List<String> licenseIds = Collections.singletonList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
     app.setId(Organization.ROOT_ORGANIZATION_ID);
     setupLicenseObligations(app, componentIdentifier1, licenseIds, ObligationStatus.OPEN, ObligationStatus.IGNORED);
@@ -1216,7 +1216,7 @@ public class ApiLicenseLegalServiceTest
         setupComponentDashboardEntities("Tag3", BuildStageType.ID, "somHash3", componentIdentifier3, "MIT");
     setupComponentDashboardEntities("Tag4", BuildStageType.ID, "somHash4", componentIdentifier4, "PUBLIC-DOMAIN");
 
-    List<String> licenses = Arrays.asList("MIT");
+    List<String> licenses = Collections.singletonList("MIT");
 
     applicationTagPair1.getLeft().setId(Organization.ROOT_ORGANIZATION_ID);
     applicationTagPair2.getLeft().setId(Organization.ROOT_ORGANIZATION_ID);
@@ -1261,7 +1261,7 @@ public class ApiLicenseLegalServiceTest
         setupComponentDashboardEntities("Tag2", BuildStageType.ID, "somHash2", componentIdentifier2, "MIT");
     setupComponentDashboardEntities("Tag3", BuildStageType.ID, "somHash3", componentIdentifier3, "UNSPECIFIED");
 
-    List<String> licenses = Arrays.asList("MIT");
+    List<String> licenses = Collections.singletonList("MIT");
     applicationTagPair1.getLeft().setId(Organization.ROOT_ORGANIZATION_ID);
     applicationTagPair2.getLeft().setId(Organization.ROOT_ORGANIZATION_ID);
     setupLicenseObligations(applicationTagPair1.getLeft(), componentIdentifier1, licenses, ObligationStatus.OPEN);
@@ -2436,8 +2436,8 @@ public class ApiLicenseLegalServiceTest
     Owner owner = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c", "e");
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails(
-        Arrays.asList("CDDL-1.1-GPL-2.0-CPE"),
-        Arrays.asList("MIT"));
+        Collections.singletonList("CDDL-1.1-GPL-2.0-CPE"),
+        Collections.singletonList("MIT"));
 
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
@@ -2460,8 +2460,8 @@ public class ApiLicenseLegalServiceTest
     Owner owner = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c", "e");
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails(
-        Arrays.asList("BSD-3-Clause-GPL-2.0"),
-        Arrays.asList("MIT"));
+        Collections.singletonList("BSD-3-Clause-GPL-2.0"),
+        Collections.singletonList("MIT"));
 
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
@@ -2528,8 +2528,8 @@ public class ApiLicenseLegalServiceTest
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     NamedComponentDetails namedComponentDetails = createNamedComponentDetails(
-        Arrays.asList("CDDL-1.1-GPL-2.0-CPE"),
-        Arrays.asList("MIT"));
+        Collections.singletonList("CDDL-1.1-GPL-2.0-CPE"),
+        Collections.singletonList("MIT"));
     namedComponentDetails.setComponentIdentifier(componentIdentifier);
     doReturn(namedComponentDetails)
         .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());

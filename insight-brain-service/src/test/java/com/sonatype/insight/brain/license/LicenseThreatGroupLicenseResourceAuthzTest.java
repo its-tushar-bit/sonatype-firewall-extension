@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.license;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -41,7 +41,7 @@ public class LicenseThreatGroupLicenseResourceAuthzTest
 
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(app.getId());
 
-    HttpRequest request = restRequest().body(Arrays.asList("MIT"));
+    HttpRequest request = restRequest().body(Collections.singletonList("MIT"));
     testAuthzPut(request.parameter(OwnerType.APPLICATION, app.getPublicId(), ltg.getId()));
 
     grantWritePermission(org.getId());

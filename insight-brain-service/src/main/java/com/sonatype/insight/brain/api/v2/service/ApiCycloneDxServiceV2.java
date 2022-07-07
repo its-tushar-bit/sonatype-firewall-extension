@@ -220,7 +220,7 @@ public class ApiCycloneDxServiceV2
       while (!pathSegments.isEmpty()) {
         pathSegments.removeLast();
 
-        String parentCandidate = pathSegments.stream().collect(Collectors.joining("/"));
+        String parentCandidate = String.join("/", pathSegments);
         if (pathToComponent.containsKey(parentCandidate)) {
           ApiReportComponentDTOV2 parent = pathToComponent.get(parentCandidate);
           ApiReportComponentDTOV2 child = pathToComponent.get(path);

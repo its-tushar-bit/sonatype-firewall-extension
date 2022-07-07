@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 
 import javax.inject.Inject;
@@ -34,8 +35,8 @@ public class AdvancedSearchTelemetryMetricsTest
   @Test
   public void testComputeStatsAndReset() {
     metrics.addSearch(new HashSet<>(Arrays.asList("organizationName", "vulnerabilityId")));
-    metrics.addSearch(new HashSet<>(Arrays.asList("organizationName")));
-    metrics.addSearch(new HashSet<>(Arrays.asList("itemType")));
+    metrics.addSearch(new HashSet<>(Collections.singletonList("organizationName")));
+    metrics.addSearch(new HashSet<>(Collections.singletonList("itemType")));
 
     AggregatedSearchStats stats = metrics.computeStatsAndReset();
     assertThat(stats.getSearchCounts()).hasSize(3);
@@ -48,7 +49,7 @@ public class AdvancedSearchTelemetryMetricsTest
   @Test
   public void testComputeStatsAndReset_TelemetryTotalsAreReset() {
     metrics.addSearch(new HashSet<>(Arrays.asList("organizationName", "vulnerabilityId")));
-    metrics.addSearch(new HashSet<>(Arrays.asList("organizationName")));
+    metrics.addSearch(new HashSet<>(Collections.singletonList("organizationName")));
 
     AggregatedSearchStats stats1 = metrics.computeStatsAndReset();
     assertThat(stats1.getSearchCounts()).hasSize(2);

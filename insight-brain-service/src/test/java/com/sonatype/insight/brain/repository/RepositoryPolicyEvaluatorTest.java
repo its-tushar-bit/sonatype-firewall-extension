@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.repository;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -194,7 +193,7 @@ public class RepositoryPolicyEvaluatorTest
   }
 
   private List<SecurityVulnerability> createSecurityVulnerabilities() {
-    return Arrays.asList(new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f, ""));
+    return Collections.singletonList(new SecurityVulnerability("cve-2019-1234", "sonatype", 5.0f, ""));
   }
 
   private void assertPolicyViolationsLogged(PolicyViolationLogEvent policyViolationLogEvent,

@@ -117,7 +117,7 @@ public class ApiRepositoryPathServiceTest
     // using a maven path instead of an npm path
     assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() ->
         apiRepositoryPathService.getQuarantinedByPathnames("repositoryManager1", repository.getPublicId(),
-            Arrays.asList("g/a/v/a-v.jar")));
+            Collections.singletonList("g/a/v/a-v.jar")));
   }
 
   @Test
@@ -128,7 +128,7 @@ public class ApiRepositoryPathServiceTest
 
     assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() ->
         apiRepositoryPathService.getQuarantinedByPathnames("repositoryManager1", repository.getPublicId(),
-            Arrays.asList("g/a/v/a-v.jar")));
+            Collections.singletonList("g/a/v/a-v.jar")));
   }
 
   private void assertPath(final ApiRepositoryComponentPath apiRepositoryComponentPath, String pathname) {

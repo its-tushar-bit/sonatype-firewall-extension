@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -100,7 +99,7 @@ public class MembershipMappingServiceTest
     tempEntity.newMembershipMapping(ROOT_ORGANIZATION_ID, role.getId(), "username");
     Member member = new Member(MemberType.USER, "username", "username");
 
-    Map<String, List<Member>> roleToMembers = Collections.singletonMap(role.getId(), Arrays.asList(member));
+    Map<String, List<Member>> roleToMembers = Collections.singletonMap(role.getId(), Collections.singletonList(member));
     membershipMappingService.setMembershipMappings(OwnerType.ORGANIZATION, ROOT_ORGANIZATION_ID, roleToMembers);
 
     assertThat(handler.getLatch().await(5, SECONDS)).isTrue();

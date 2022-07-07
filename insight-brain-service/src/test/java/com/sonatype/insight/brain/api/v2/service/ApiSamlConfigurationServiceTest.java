@@ -468,7 +468,7 @@ public class ApiSamlConfigurationServiceTest
       statement.execute("INSERT INTO insight_brain_ods.saml_configuration " +
           "VALUES ('474878d8bfe44d2086ca8387e340692f', '{}', '', '');");
     }
-    assertThatThrownBy(() -> samlConfigurationDAO.get()).hasMessage("Could not load SAML keystore.");
+    assertThatThrownBy(samlConfigurationDAO::get).hasMessage("Could not load SAML keystore.");
     apiSamlConfigurationService.deleteSamlConfiguration();
     assertThat(samlConfigurationDAO.get()).isNull();
     assertThat(samlDeploymentManager.get()).isNull();

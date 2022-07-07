@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -113,7 +112,8 @@ public class DefaultHdsClientProxyTest
 
     HttpServletRequest mockedRequest = mock(HttpServletRequest.class);
     when(mockedRequest.getMethod()).thenReturn("GET");
-    when(mockedRequest.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
+    when(mockedRequest.getHeaderNames()).thenReturn(Collections.enumeration(
+        Collections.singletonList(HttpHeaders.USER_AGENT)));
 
     final Map<String, String> headers = new HashMap<>();
     handler = new AbstractHandler()

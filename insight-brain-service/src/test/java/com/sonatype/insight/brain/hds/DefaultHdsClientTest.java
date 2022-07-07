@@ -135,7 +135,8 @@ public class DefaultHdsClientTest
     Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
 
     HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
+    when(request.getHeaderNames())
+        .thenReturn(Collections.enumeration(Collections.singletonList(HttpHeaders.USER_AGENT)));
     when(request.getHeader(eq(HttpHeaders.USER_AGENT))).thenReturn(testClientUserAgent);
     when(request.getMethod()).thenReturn("GET");
 
@@ -235,7 +236,8 @@ public class DefaultHdsClientTest
     String testPath = "/rest/test";
 
     HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
+    when(request.getHeaderNames())
+        .thenReturn(Collections.enumeration(Collections.singletonList(HttpHeaders.USER_AGENT)));
     when(request.getHeader(any(String.class))).thenReturn("header-value");
     when(request.getMethod()).thenReturn("GET");
 
@@ -331,7 +333,8 @@ public class DefaultHdsClientTest
     HttpServletRequest request = mock(HttpServletRequest.class);
 
     when(request.getInputStream()).thenReturn(new ServletInputStreamImpl(test));
-    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
+    when(request.getHeaderNames())
+        .thenReturn(Collections.enumeration(Collections.singletonList(HttpHeaders.USER_AGENT)));
     // Use a smaller content-length than the actual incoming request (simulate gzip entity) 
     when(request.getContentLength()).thenReturn(1);
     when(request.getMethod()).thenReturn("POST");

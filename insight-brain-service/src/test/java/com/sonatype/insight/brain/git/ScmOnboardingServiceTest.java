@@ -276,7 +276,7 @@ public class ScmOnboardingServiceTest
     assertThat(repositories.totalRepositories).isEqualTo(13);
     assertThat(repositories.availableRepositories.size()).isEqualTo(13);
     assertThat(repositories.availableRepositories.stream() //
-        .map(scmRepo -> scmRepo.getHttpCloneUrl()) //
+        .map(SCMRepository::getHttpCloneUrl) //
         .filter(url -> url.contains("MixedCase")) //
         .findAny().isPresent()) //
         .isTrue();
@@ -292,7 +292,7 @@ public class ScmOnboardingServiceTest
     // avail repos is one fewer to account for the existing repo getting filtered out
     assertThat(repositories.availableRepositories.size()).isEqualTo(12);
     assertThat(repositories.availableRepositories.stream() //
-        .map(scmRepo -> scmRepo.getHttpCloneUrl()) //
+        .map(SCMRepository::getHttpCloneUrl) //
         .filter(url -> url.contains("MixedCase")) //
         .findAny().isPresent()) //
         .isFalse();
@@ -851,7 +851,7 @@ public class ScmOnboardingServiceTest
 
     // when we make a call to import a repository
     String repoUrl = "https://localhost:5333/org/repo.git";
-    List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
+    List<SCMRepository> toAdd = singletonList(new SCMRepository(SourceControlProvider.GITHUB,
         repoUrl, null, true, "??invalidorg??", "!!invalidproject!!", null));
     ImportResults importResults = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(toAdd, 5, 2));
@@ -871,14 +871,14 @@ public class ScmOnboardingServiceTest
 
     // and we have an existing repository
     String repoUrl1 = "https://localhost:5333/org/repo1.git";
-    List<SCMRepository> toAdd = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
+    List<SCMRepository> toAdd = singletonList(new SCMRepository(SourceControlProvider.GITHUB,
         repoUrl1, null, true, "org", "project", null));
     scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(toAdd, 5, 2));
 
     // when we import another repository where the name only differs in invalid characters that have been stripped out
     String repoUrl2 = "https://localhost:5333/org/repo2.git";
-    List<SCMRepository> toAddConflicting = Arrays.asList(new SCMRepository(SourceControlProvider.GITHUB,
+    List<SCMRepository> toAddConflicting = singletonList(new SCMRepository(SourceControlProvider.GITHUB,
         repoUrl2, null, true, "org", "project!!", null));
     ImportResults importResults = scmOnboardingService.importRepositories(org.getId(),
         new ImportRepositoriesRequest(toAddConflicting, 5, 2));

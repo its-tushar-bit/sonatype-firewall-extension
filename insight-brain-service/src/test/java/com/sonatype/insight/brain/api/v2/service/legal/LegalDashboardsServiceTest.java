@@ -108,7 +108,7 @@ public class LegalDashboardsServiceTest
   @Test
   public void testReviewStatusCompletedWithMultilicense() {
     Set<String> allObligationNames = Collections.emptySet();
-    Set<String> multiLicenseIds = new HashSet<>(Arrays.asList("MIT"));
+    Set<String> multiLicenseIds = new HashSet<>(Collections.singletonList("MIT"));
     asserGetReviewStatus(0, 0, 0, allObligationNames, multiLicenseIds, LicenseObligationReviewStatus.COMPLETED);
   }
 
@@ -141,8 +141,8 @@ public class LegalDashboardsServiceTest
 
   @Test
   public void testLicenseObligationsFromHDSWithLicensesList() {
-    List<String> licenses = Arrays.asList("MIT");
-    Set<String> multiLicenseIds = new HashSet<>(Arrays.asList("MIT"));
+    List<String> licenses = Collections.singletonList("MIT");
+    Set<String> multiLicenseIds = new HashSet<>(Collections.singletonList("MIT"));
     Set<String> obligations = new HashSet<>(Arrays.asList("obligation0", "obligation1"));
     setupLicenseObligationsWithMock(licenses, ObligationStatus.OPEN, ObligationStatus.FLAGGED);
     Map<String, Set<String>> result = legalDashboardService.getLicenseObligationsFromHds(multiLicenseIds);
@@ -178,7 +178,8 @@ public class LegalDashboardsServiceTest
   private void assertObligationsList(int open, int flagged, int addresed, ObligationStatus... obligationStatuses) {
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     List<ComponentObligation> obligations = setupLicenseObligations(componentIdentifier1, obligationStatuses);
-    Set<String> allObligationNames = obligations.stream().map(ob -> ob.getObligationName()).collect(Collectors.toSet());
+    Set<String> allObligationNames =
+        obligations.stream().map(ComponentObligation::getObligationName).collect(Collectors.toSet());
 
     Map<String, Integer> mapCount = legalDashboardService.countObligations(obligations, allObligationNames);
 

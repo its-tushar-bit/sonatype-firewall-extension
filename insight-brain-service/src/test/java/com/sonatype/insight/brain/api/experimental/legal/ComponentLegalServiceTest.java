@@ -1255,7 +1255,7 @@ public class ComponentLegalServiceTest
   public void testDeleteComponentObligation_DoesNotExist() {
     String id = "doesNotExist";
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> componentLegalService.deleteComponentObligations(Arrays.asList(id)))
+        .isThrownBy(() -> componentLegalService.deleteComponentObligations(Collections.singletonList(id)))
         .withMessageContaining("ComponentObligation with ID " + id + " does not exist.");
   }
 
@@ -1267,7 +1267,7 @@ public class ComponentLegalServiceTest
         dto.getComponentIdentifier().toComponentIdentifier(), app.getId(), dto.getName(), dto.getComment(),
         dto.getStatus(), ComponentLegalService.NOT_IMPLEMENTED);
 
-    componentLegalService.deleteComponentObligations(Arrays.asList(componentObligation.getId()));
+    componentLegalService.deleteComponentObligations(Collections.singletonList(componentObligation.getId()));
 
     assertThat(componentObligationDAO.getById(componentObligation.getId())).isNull();
   }

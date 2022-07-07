@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,7 @@ public class PolicyResourceTest
 
   private PolicyExportResult createImportBody() {
     PolicyExportResult policyExportResult = new PolicyExportResult();
-    policyExportResult.policies = Arrays.asList(new Policy());
+    policyExportResult.policies = Collections.singletonList(new Policy());
 
     return policyExportResult;
   }

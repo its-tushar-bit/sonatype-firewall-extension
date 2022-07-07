@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -74,7 +73,7 @@ public class AuthzFilterMethodInterceptorTest
   @Test
   @SuppressWarnings("unchecked")
   public void testInvoke_FilteredReturnValue() throws Throwable {
-    Collection<Organization> entities = Arrays.asList(tempEntity.newOrganization());
+    Collection<Organization> entities = Collections.singletonList(tempEntity.newOrganization());
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubOrgs"));
     when(invoc.getArguments()).thenReturn(new Object[0]);
     when(invoc.proceed()).thenReturn(entities);
@@ -89,7 +88,7 @@ public class AuthzFilterMethodInterceptorTest
   @Test
   @SuppressWarnings("unchecked")
   public void testInvoke_NoPrincipal() throws Throwable {
-    Collection<Organization> entities = Arrays.asList(tempEntity.newOrganization());
+    Collection<Organization> entities = Collections.singletonList(tempEntity.newOrganization());
     when(invoc.getMethod()).thenReturn(getClass().getMethod("stubOrgs"));
     when(invoc.getArguments()).thenReturn(new Object[0]);
     when(invoc.proceed()).thenReturn(entities);

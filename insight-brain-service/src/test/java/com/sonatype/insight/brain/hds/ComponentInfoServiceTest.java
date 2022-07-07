@@ -262,7 +262,7 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetLicenses_NoComponentIdentifier() throws Exception {
+  public void testGetLicenses_NoComponentIdentifier() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
             () -> componentInfoService.getLicenses(null, null, null /* componentIdentifier */, httpRequestMock, null,
@@ -271,33 +271,31 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetMultiLicenses_NoComponentIdentifier() throws Exception {
+  public void testGetMultiLicenses_NoComponentIdentifier() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> 
       componentInfoService.getMultiLicenses(null, null, null /* componentIdentifier */, httpRequestMock, null, null)
     ).withMessage("componentIdentifier is required");
   }
 
   @Test
-  public void testGetLicenses_BadOwnerId() throws Exception {
+  public void testGetLicenses_BadOwnerId() {
     testGetLicenses_BadOwnerId(OwnerType.APPLICATION, "Could not find an application with ID ");
     testGetLicenses_BadOwnerId(OwnerType.REPOSITORY, "Cannot find a repository with ID ");
   }
 
   @Test
-  public void testGetMultiLicenses_BadOwnerId() throws Exception {
+  public void testGetMultiLicenses_BadOwnerId() {
     testGetMultiLicenses_BadOwnerId(OwnerType.APPLICATION, "Could not find an application with ID ");
     testGetMultiLicenses_BadOwnerId(OwnerType.REPOSITORY, "Cannot find a repository with ID ");
   }
 
-  private void testGetLicenses_BadOwnerId(final OwnerType ownerType, final String expectedErrMsgPrefix)
-      throws Exception
-  {
+  private void testGetLicenses_BadOwnerId(final OwnerType ownerType, final String expectedErrMsgPrefix) {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
         () -> componentInfoService.getLicenses(ownerType, "bogusOwnerId", MAVEN_A1_COORDINATES, httpRequestMock, null,
             null)).withMessage(expectedErrMsgPrefix + "bogusOwnerId.");
   }
 
-  private void testGetMultiLicenses_BadOwnerId(OwnerType ownerType,String expectedErrMsgPrefix) throws Exception {
+  private void testGetMultiLicenses_BadOwnerId(OwnerType ownerType,String expectedErrMsgPrefix) {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> 
       componentInfoService.getMultiLicenses(ownerType, "bogusOwnerId", MAVEN_A1_COORDINATES, httpRequestMock, null,
         null)
@@ -844,7 +842,7 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentDetailsList() throws Exception {
+  public void testGetComponentDetailsList() {
     // Create an application without LTGs
     Organization organization = tempEntity.newOrganization("testGetComponentDetailsList");
     String applicationPublicId = "testGetComponentDetailsList";
@@ -1534,7 +1532,7 @@ public class ComponentInfoServiceTest
     verify(componentInfoServiceMock, times(1)).getPoliciesById(application);
   }
 
-  private void addPolicy(String applicationPublicId, Policy policy) throws Exception {
+  private void addPolicy(String applicationPublicId, Policy policy) {
     String appId = new ApplicationDAO().getByPublicIdNotNull(applicationPublicId).getId();
     PolicyDAO policyDAO = new PolicyDAO();
     policy.setOwnerId(appId);
@@ -1635,10 +1633,10 @@ public class ComponentInfoServiceTest
   }
 
   @Deprecated
-  private void testGetComponentDetailsList_ReadPermission(final Owner owner, final String ownerId) throws Exception {
+  private void testGetComponentDetailsList_ReadPermission(final Owner owner, final String ownerId) {
     ComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
-    hdsComponentDetailsList.setList(asList(hdsComponentDetails));
+    hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_A1_COORDINATES);
     ComponentDetailsList componentDetailsList = componentInfoService.getComponentDetailsList_ReadPermission(
         owner.getType(), ownerId, MAVEN_A1_COORDINATES, MatchState.EXACT.getId());
@@ -1650,20 +1648,20 @@ public class ComponentInfoServiceTest
 
   @Deprecated
   @Test
-  public void testGetComponentDetailsList_ReadPermission_Application() throws Exception {
+  public void testGetComponentDetailsList_ReadPermission_Application() {
     testGetComponentDetailsList_ReadPermission(application, application.getPublicId());
   }
 
   @Deprecated
   @Test
-  public void testGetComponentDetailsList_ReadPermission_Repository() throws Exception {
+  public void testGetComponentDetailsList_ReadPermission_Repository() {
     testGetComponentDetailsList_ReadPermission(repository, repository.getId());
   }
 
   private ComponentVersionInfoDTO testGetComponentVersionInfo_ReadPermission(
       final Owner owner,
       final String ownerId,
-      final String stageId) throws Exception
+      final String stageId)
   {
     ComponentDetails hdsComponentDetails1 = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     long timestamp = DateTime.now().getMillis();
@@ -1673,7 +1671,7 @@ public class ComponentInfoServiceTest
         new SecurityVulnerability("cve-4", "cve", 4f)));
     ComponentDetails hdsComponentDetails2 = newNamedComponentDetails(MAVEN_A2_COORDINATES);
     hdsComponentDetails2.setCatalogDate(timestamp);
-    hdsComponentDetails2.setSecurityVulnerabilities(asList(
+    hdsComponentDetails2.setSecurityVulnerabilities(Collections.singletonList(
         new SecurityVulnerability("cve-7", "cve", 0.1f))); // too low for our security policy
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
     hdsComponentDetailsList.setList(asList(hdsComponentDetails1, hdsComponentDetails2));
@@ -1708,7 +1706,7 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentVersionInfo_ReadPermission_Application_NoStageId() throws Exception {
+  public void testGetComponentVersionInfo_ReadPermission_Application_NoStageId() {
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "8"));
     Policy policy1 = new Policy("security-high", "Security-High");
@@ -1753,7 +1751,7 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentVersionInfo_ReadPermission_Application_WithStageId() throws Exception {
+  public void testGetComponentVersionInfo_ReadPermission_Application_WithStageId() {
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "8"));
     Policy policy1 = new Policy("security-high", "Security-High");
@@ -1803,13 +1801,13 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentVersionInfo_ReadPermission_Repository() throws Exception {
+  public void testGetComponentVersionInfo_ReadPermission_Repository() {
     ComponentVersionInfoDTO dto = testGetComponentVersionInfo_ReadPermission(repository, repository.getId(), null);
     assertThat(dto.remediation).isNotNull();
   }
 
   @Test
-  public void testGetComponentVersionInfo_ReadPermission_ExtraParams() throws Exception {
+  public void testGetComponentVersionInfo_ReadPermission_ExtraParams() {
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "8"));
     constraint1.addCondition(new Condition(DependencyTypeConditionType.ID, "is", "transitive"));
@@ -1868,7 +1866,7 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentVersionInfo_ReadPermission_PackageManifest() throws Exception {
+  public void testGetComponentVersionInfo_ReadPermission_PackageManifest() {
     String identificationSource = IdentificationSource.PACKAGE_MANIFEST.getId();
     String scanId = "scanId";
 
@@ -1938,7 +1936,7 @@ public class ComponentInfoServiceTest
 
     ComponentDetails tpComponent = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
-    hdsComponentDetailsList.setList(asList(tpComponent));
+    hdsComponentDetailsList.setList(Stream.of(tpComponent).collect(Collectors.toList()));
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_A1_COORDINATES);
 
     tpComponent.setIdentificationSource(identificationSource);
@@ -2328,7 +2326,7 @@ public class ComponentInfoServiceTest
         new SecurityVulnerability("cve-4", "cve", 4f)));
 
     ComponentDetailsList tpComponentDetailsList = new ComponentDetailsList();
-    tpComponentDetailsList.setList(Arrays.asList(tpComponentDetails));
+    tpComponentDetailsList.setList(Collections.singletonList(tpComponentDetails));
 
     when(thirdPartyComponentDAO.getAllVersions(application.getId(), componentIdentifier1, scanId))
         .thenReturn(tpComponentDetailsList);
@@ -2369,7 +2367,7 @@ public class ComponentInfoServiceTest
         new SecurityVulnerability("cve-4", "cve", 4f)));
 
     ComponentDetailsList tpComponentDetailsList = new ComponentDetailsList();
-    tpComponentDetailsList.setList(Arrays.asList(tpComponentDetails));
+    tpComponentDetailsList.setList(Collections.singletonList(tpComponentDetails));
 
     when(thirdPartyComponentDAO.getAllVersions(application.getId(), componentIdentifier1, scanId))
         .thenReturn(tpComponentDetailsList);
@@ -2405,7 +2403,7 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentVersionInfo_WithAdvancedRecommendation() throws Exception {
+  public void testGetComponentVersionInfo_WithAdvancedRecommendation() {
     Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
     constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
     Policy policy1 = new Policy("security-low", "Security-Low");

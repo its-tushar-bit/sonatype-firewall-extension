@@ -222,8 +222,7 @@ public class ThirdPartyDataService
     List<ThirdPartyCoordinateLicense> licenses = thirdPartyCoordinateLicenseDAO.getByFileCoordinateId(coord.getId());
     final ThirdPartyLicenseRowDTO dto = new ThirdPartyLicenseRowDTO(componentIdentifier, coord.getHash());
     if (!licenses.isEmpty()) {
-      licenses.stream()
-          .forEach(thirdPartyCoordinateLicense -> addLicense(thirdPartyCoordinateLicense, dto));
+      licenses.forEach(thirdPartyCoordinateLicense -> addLicense(thirdPartyCoordinateLicense, dto));
     }
     else {
       licenseNotProvided(dto);

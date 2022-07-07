@@ -87,7 +87,7 @@ public class AuthorizationCheckerTest
     Application app = tempEntity.newApplication(org.getId());
     User user = tempEntity.newUser();
     newMembershipMapping(user, app.getId(), roleDAO.getByName("Owner").getId());
-    Collection<String> contextIds = Arrays.asList(app.getId());
+    Collection<String> contextIds = Collections.singletonList(app.getId());
 
     UserPrincipal owner = newPrincipal(user);
     assertThat(checker.isPermitted(owner, Permission.READ, contextIds)).isTrue();
@@ -101,7 +101,7 @@ public class AuthorizationCheckerTest
     Application app = tempEntity.newApplication(org.getId());
     User user = tempEntity.newUser();
     newMembershipMapping(user, app.getId(), roleDAO.getByName("Developer").getId());
-    Collection<String> contextIds = Arrays.asList(app.getId());
+    Collection<String> contextIds = Collections.singletonList(app.getId());
 
     UserPrincipal developer = newPrincipal(user);
     assertThat(checker.isPermitted(developer, Permission.READ, contextIds)).isTrue();
@@ -145,7 +145,7 @@ public class AuthorizationCheckerTest
     Role role = tempEntity.newRole(false /* global */, globalPermission, nonGlobalPermission);
     String groupName = "group";
     newGroupMapping(groupName, app.getId(), role.getId());
-    Collection<String> contextIds = Arrays.asList(app.getId());
+    Collection<String> contextIds = Collections.singletonList(app.getId());
 
     UserPrincipal userPrincipalNoGroups = newPrincipal(user);
     assertThat(checker.isPermitted(userPrincipalNoGroups, globalPermission, contextIds)).isFalse();
@@ -222,7 +222,7 @@ public class AuthorizationCheckerTest
 
   @Test
   public void testFilter_NonMemberHasNoAccess() {
-    Collection<Organization> entities = Arrays.asList(tempEntity.newOrganization());
+    Collection<Organization> entities = Collections.singletonList(tempEntity.newOrganization());
     User user = tempEntity.newUser();
     UserPrincipal userPrincipal = newPrincipal(user);
 
@@ -234,7 +234,7 @@ public class AuthorizationCheckerTest
 
   @Test
   public void testFilter_AnonymousHasNoAccess() {
-    Collection<Organization> entities = Arrays.asList(tempEntity.newOrganization());
+    Collection<Organization> entities = Collections.singletonList(tempEntity.newOrganization());
     for (Permission perm : Permission.values()) {
       assertThat(checker.filterByPermission(null, Permission.READ, entities, Context.ORGANIZATION)).as(perm.toString())
           .isEmpty();

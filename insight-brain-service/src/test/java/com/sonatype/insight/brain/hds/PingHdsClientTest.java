@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 
 import javax.inject.Inject;
@@ -76,7 +75,8 @@ public class PingHdsClientTest
     long start = System.currentTimeMillis();
 
     HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList(HttpHeaders.USER_AGENT)));
+    when(request.getHeaderNames())
+        .thenReturn(Collections.enumeration(Collections.singletonList(HttpHeaders.USER_AGENT)));
     when(request.getMethod()).thenReturn("GET");
     assertThatThrownBy(() -> {
       client.relay(request, String.class, "/rest/test");

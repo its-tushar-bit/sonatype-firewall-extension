@@ -101,7 +101,7 @@ public class SuccessMetricsReportResourceAuditTest
     Organization org = tempEntity.newOrganization();
     String appId = "appId";
     SuccessMetricsReportScopeDTO successMetricsScopeDTO = new SuccessMetricsReportScopeDTO(
-        new HashSet<>(Arrays.asList(appId)), toIds(org));
+        new HashSet<>(Collections.singletonList(appId)), toIds(org));
     SuccessMetricsReportDTO successMetricsDTO = new SuccessMetricsReportDTO(METRICS_NAME, successMetricsScopeDTO);
     HttpResponse response = successMetricsReportRequest().body(successMetricsDTO).post();
     SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);
@@ -116,7 +116,7 @@ public class SuccessMetricsReportResourceAuditTest
     Application app = tempEntity.newApplicationWithParent();
     String orgId = "orgId";
     SuccessMetricsReportScopeDTO successMetricsScopeDTO = new SuccessMetricsReportScopeDTO(toIds(app),
-        new HashSet<>(Arrays.asList(orgId)));
+        new HashSet<>(Collections.singletonList(orgId)));
     SuccessMetricsReportDTO successMetricsDTO = new SuccessMetricsReportDTO(METRICS_NAME, successMetricsScopeDTO);
     HttpResponse response = successMetricsReportRequest().body(successMetricsDTO).post();
     SuccessMetricsReportDTO result = response.getBody(SuccessMetricsReportDTO.class);

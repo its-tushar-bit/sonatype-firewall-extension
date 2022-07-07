@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import javax.inject.Inject;
 
@@ -65,8 +66,8 @@ public class PolicyAlertNotifierTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan-id");
     ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
     results.evaluation = eval;
-    results.notifiableViolations = Arrays.asList();
-    results.allViolations = Arrays.asList();
+    results.notifiableViolations = Collections.emptyList();
+    results.allViolations = Collections.emptyList();
 
     notifier.sendNotifications(app, results);
     assertThat(logOutput).atDebugLevel()
@@ -83,7 +84,7 @@ public class PolicyAlertNotifierTest
     PolicyViolation grandfatheredViolation = tempEntity.newGrandfatheredPolicyViolation(eval, tempEntity.newPolicy());
     ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
     results.evaluation = eval;
-    results.notifiableViolations = Arrays.asList(violation);
+    results.notifiableViolations = Collections.singletonList(violation);
     results.allViolations = Arrays.asList(violation, grandfatheredViolation);
 
     // when we send a notification
@@ -107,7 +108,7 @@ public class PolicyAlertNotifierTest
     PolicyViolation grandfatheredViolation = tempEntity.newGrandfatheredPolicyViolation(eval, tempEntity.newPolicy());
     ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
     results.evaluation = eval;
-    results.notifiableViolations = Arrays.asList(violation);
+    results.notifiableViolations = Collections.singletonList(violation);
     results.allViolations = Arrays.asList(violation, grandfatheredViolation);
 
     // given each notifier throws an exception

@@ -17,7 +17,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -83,14 +83,15 @@ public class ReportPurgerTest
     try {
       Path reportDir = work.getReportDir(evaluation.getApplicationId(), evaluation.getScanId()).toPath();
       Files.createDirectories(reportDir);
-      Files.write(reportDir.resolve("report.zip"), Arrays.asList("report.zip"));
-      Files.write(reportDir.resolve("report.pdf"), Arrays.asList("report.pdf"));
+      Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
+      Files.write(reportDir.resolve("report.pdf"), Collections.singletonList("report.pdf"));
       reportDir = reportDir.resolve(Report.CACHE_DIRECTORY_NAME);
       Files.createDirectories(reportDir);
       for (String filename : new String[]{"index.html", "bom.json", Report.DATA_JSON_FILENAME, "licenses.json",
           "licensethreats.json", "partialmatched.json", "policyalerts.json", "policythreats.json", "security.json",
           "summary.json"}) {
-        Files.write(reportDir.resolve(filename), Arrays.asList(Report.CACHE_DIRECTORY_NAME + "/" + filename));
+        Files.write(reportDir.resolve(filename),
+            Collections.singletonList(Report.CACHE_DIRECTORY_NAME + "/" + filename));
       }
     }
     catch (IOException e) {

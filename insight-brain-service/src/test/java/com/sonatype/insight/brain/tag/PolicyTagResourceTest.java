@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.tag;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -64,7 +64,8 @@ public class PolicyTagResourceTest
     Tag tag = tempEntity.newTag(org.getId());
     String policyId = tempEntity.newPolicy(org).getId();
 
-    HttpResponse response = restRequest(policyId, OwnerType.ORGANIZATION, org.getId()).body(Arrays.asList(tag)).put();
+    HttpResponse response = restRequest(policyId, OwnerType.ORGANIZATION, org.getId()).body(
+        Collections.singletonList(tag)).put();
     assertResponseStatus(200, response);
     Tag[] tags = response.getBody(Tag[].class);
     assertThat(tags).hasSize(1);

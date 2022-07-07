@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -39,7 +40,7 @@ public class RoleResourceAuditTest
     for (Permission permission : permissions) {
       permissionCategoryDTO.permissions.add(new PermissionDTO(permission, true));
     }
-    roleDTO.permissionCategories = Arrays.asList(permissionCategoryDTO);
+    roleDTO.permissionCategories = Collections.singletonList(permissionCategoryDTO);
     return roleDTO;
   }
 

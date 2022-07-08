@@ -46,147 +46,174 @@ pipeline {
     }
     stage('Create Post IQ Release Integrations Team Jira Tickets') {
       steps {
-        createIntegrationTicketsAfterIQRelease()
+        createIntegrationTicketsAfterIQRelease(params.releaseVersion)
       }
     }
   }
 }
 
-def createIntegrationTicketsAfterIQRelease() {
-  List<Map> tickets = getTickets()
+def createIntegrationTicketsAfterIQRelease(String releaseVersion) {
+  List<Map> tickets = getTickets(releaseVersion)
   tickets.each { Map fields ->
     def newIssue = jiraNewIssue issue: [fields: fields], site: 'issues.sonatype.com'
     echo "New issue created: ${newIssue.data.key}"
   }
 }
 
-def getTickets() {
+def getTickets(String releaseVersion) {
   return [
     // Bamboo Plugin
     [
         project: [key: 'INT'],
-        summary: 'Release the Bamboo plugin with updated insight dependencies',
-        description: '''Update the Bamboo plugin and release it in response to a new IQ Server (insight-brain) release.
+        summary: "Release the Bamboo plugin with updated insight dependencies - IQ ${releaseVersion}",
+        description: """Update the Bamboo plugin and release it in response to IQ Server Release ${releaseVersion}.
 
 Bump insight version number and follow instructions to release:
 https://docs.sonatype.com/display/INT/Nexus+IQ+Bamboo+Plugin+Release+Process
-      ''',
-        labels: ['maintenance'],
+      """,
+        labels: ['iq-release-trigger', 'maintenance'],
         components: [[name: 'Bamboo']],
+        priority: [name: 'Blocker', id: '1'],
         issuetype: [name: 'Task'],
-        customfield_10132: 0.5
+        customfield_10132: 0.5,
+        customfield_14100: 'maintenance',
+        customfield_12601 : '54'
     ],
     // Jenkins Plugin
     [
         project: [key: 'INT'],
-        summary: 'Release the Jenkins plugin with updated insight dependencies',
-        description: '''Evaluate whether Jenkins plugin should be updated and released as follow-up to IQ release. 
+        summary: "Release the Jenkins plugin with updated insight dependencies - IQ ${releaseVersion}",
+        description: """Evaluate whether Jenkins plugin should be updated and released as follow-up to IQ Server Release ${releaseVersion}. 
 
 Bump insight version number and follow instructions to release:
-https://docs.sonatype.com/display/INT/Jenkins+Plugin+Release+Process''',
-        labels: ['maintenance'],
+https://docs.sonatype.com/display/INT/Jenkins+Plugin+Release+Process""",
+        labels: ['iq-release-trigger', 'maintenance'],
         components: [[name: 'Jenkins']],
+        priority: [name: 'Blocker', id: '1'],
         issuetype: [name: 'Task'],
-        customfield_10132: 0.5
+        customfield_10132: 0.5,
+        customfield_14100: 'maintenance',
+        customfield_12601 : '54'
     ],
     // Maven Plugin
     [
         project: [key: 'INT'],
-        summary: 'Release the Maven plugin with updated insight dependencies',
-        description: '''Update the Maven plugin and release it in response to a new IQ Server (insight-brain) release.
+        summary: "Release the Maven plugin with updated insight dependencies - IQ ${releaseVersion}",
+        description: """Update the Maven plugin and release it in response to IQ Server Release ${releaseVersion}.
 
 Bump insight version number and follow instructions to release:
-https://docs.sonatype.com/display/INT/Nexus+IQ+Maven+Plugin+Release+Process''',
+https://docs.sonatype.com/display/INT/Nexus+IQ+Maven+Plugin+Release+Process""",
         labels: ['iq-release-trigger', 'maintenance'],
         components: [[name: 'Maven Plugin']],
+        priority: [name: 'Blocker', id: '1'],
         issuetype: [name: 'Task'],
-        customfield_10132: 0.5
+        customfield_10132: 0.5,
+        customfield_14100: 'maintenance',
+        customfield_12601 : '54'
     ],
     // Azure DevOps Extension
     [
         project: [key: 'INT'],
-        summary: 'Release the Azure DevOps Extension',
-        description: '''Update the IQ Azure DevOps Extension and release it in response to a new IQ Server (insight-brain) release.  
+        summary: "Release the Azure DevOps Extension with updated insight dependencies - IQ ${releaseVersion}",
+        description: """Update the IQ Azure DevOps Extension and release it in response to IQ Server Release ${releaseVersion}.  
 
-Follow instructions with the extension: https://github.com/sonatype/iq-azure-devops/blob/main/README.md#release-steps''',
-        labels: ['maintenance'],
+Follow instructions with the extension: https://github.com/sonatype/iq-azure-devops/blob/main/README.md#release-steps""",
+        labels: ['iq-release-trigger', 'maintenance'],
         components: [[name: 'IQ Azure DevOps Extension']],
+        priority: [name: 'Blocker', id: '1'],
         issuetype: [name: 'Task'],
-        customfield_10132: 0.5
+        customfield_10132: 0.5,
+        customfield_14100: 'maintenance',
+        customfield_12601 : '54'
     ],
     // Firewall for Artifactory
     [
         project: [key: 'CLM'],
-        summary: 'Release nexus-firewall-for-artifactory with updated insight dependencies',
+        summary: "Release nexus-firewall-for-artifactory with updated insight dependencies - IQ ${releaseVersion}",
         description: '''https://github.com/sonatype/firewall-for-artifactory
 
 Bump version of insight dependencies in pom and ensure build passes using instructions on https://docs.sonatype.com/pages/viewpage.action?pageId=135857472''',
-        labels: ['maintenance'],
+        labels: ['iq-release-trigger', 'maintenance'],
         issuetype: [name: 'Task']
     ],
     // GitLab Docker Image
     [
         project: [key: 'INT'],
-        summary: 'Release GitLab Docker image for latest IQ release',
-        description: '''The purpose of this task is to update the GitLab Nexus Platform Plugin and release it in response to a new IQ Server (insight-brain) release.  
+        summary: "Release GitLab Docker image for latest IQ release ${releaseVersion}",
+        description: """The purpose of this task is to update the GitLab Nexus Platform Plugin and release it in response to IQ Server Release ${releaseVersion}.  
 
-Use the following instructions to update and release the gitlab-nexus-platform-plugin (https://github.com/sonatype/gitlab-nexus-platform-plugin) project:  https://docs.sonatype.com/display/INT/GitLab+Docker+image+release+checklist''',
-        labels: ['maintenance'],
+Use the following instructions to update and release the gitlab-nexus-platform-plugin (https://github.com/sonatype/gitlab-nexus-platform-plugin) project:  https://docs.sonatype.com/display/INT/GitLab+Docker+image+release+checklist""",
+        labels: ['iq-release-trigger', 'maintenance'],
         components: [[name: 'GitLab Nexus Platform Plugin']],
+        priority: [name: 'Blocker', id: '1'],
         issuetype: [name: 'Task'],
-        customfield_10132: 0.5
+        customfield_10132: 0.5,
+        customfield_14100: 'maintenance',
+        customfield_12601 : '54'
     ],
     // Native CLI Binaries
     [
         project: [key: 'INT'],
-        summary: 'Release Native IQ CLI Binaries',
-        description: '''The purpose of this task is to update the Native IQ CLI binaries and release them in response to a new IQ CLI release.  
+        summary: "Release Native IQ CLI Binaries with updated insight dependencies - IQ ${releaseVersion}",
+        description: """The purpose of this task is to update the Native IQ CLI binaries and release them in response to IQ CLI Release ${releaseVersion}.  
 
 Use the following instructions to update and release:
-https://docs.sonatype.com/display/INT/Nexus+IQ+CLI+Native+Binaries+Release+Checklist''',
-        labels: ['maintenance'],
+https://docs.sonatype.com/display/INT/Nexus+IQ+CLI+Native+Binaries+Release+Checklist""",
+        labels: ['iq-release-trigger', 'maintenance'],
         components: [[name: 'native-image-nexus-iq-cli']],
+        priority: [name: 'Blocker', id: '1'],
         issuetype: [name: 'Task'],
-        customfield_10132: 0.5
+        customfield_10132: 0.5,
+        customfield_14100: 'maintenance',
+        customfield_12601 : '54'
     ],
     // CLI Docker Image
     [
         project: [key: 'INT'],
-        summary: 'Release the Nexus IQ CLI for Docker',
-        description: '''Update the Nexus IQ CLI for Docker and release it in response to a new IQ Server (insight-brain) release.  
+        summary: "Release the Nexus IQ CLI for Docker with updated insight dependencies - IQ ${releaseVersion}",
+        description: """Update the Nexus IQ CLI for Docker and release it in response to IQ Server Release ${releaseVersion}.  
 
-Follow instructions with the extension: https://docs.sonatype.com/display/INT/Docker+Nexus+IQ+CLI+Release+Process''',
-        labels: ['maintenance'],
+Follow instructions with the extension: https://docs.sonatype.com/display/INT/Docker+Nexus+IQ+CLI+Release+Process""",
+        labels: ['iq-release-trigger', 'maintenance'],
         components: [[name: 'docker-nexus-iq-cli']],
+        priority: [name: 'Blocker', id: '1'],
         issuetype: [name: 'Task'],
-        customfield_10132: 0.5
+        customfield_10132: 0.5,
+        customfield_14100: 'maintenance',
+        customfield_12601 : '54'
     ],
     // Nexus Java API
     [
         project: [key: 'INT'],
-        summary: 'Release the nexus-java-api with updated insight dependencies',
-        description: '''Release a new version of Nexus Java API.
+        summary: "Release the nexus-java-api with updated insight dependencies - IQ ${releaseVersion}",
+        description: """Release a new version of Nexus Java API in response to IQ Server Release ${releaseVersion}.
 
-Follow release instructions here: https://docs.sonatype.com/display/INT/Nexus+Platform+API+Release+Process''',
-        labels: ['maintenance'],
+Follow release instructions here: https://docs.sonatype.com/display/INT/Nexus+Platform+API+Release+Process""",
+        labels: ['iq-release-trigger', 'maintenance'],
         components: [[name: 'Java_API']],
+        priority: [name: 'Blocker', id: '1'],
         issuetype: [name: 'Task'],
-        customfield_10132: 0.5
+        customfield_10132: 0.5,
+        customfield_14100: 'maintenance',
+        customfield_12601 : '54'
     ],
     // RedHat Docker Image
     [
         project: [key: 'INT'],
-        summary: 'Release Nexus IQ RedHat certified container',
-        description: '''Trigger the build at 
+        summary: "Release Nexus IQ RedHat certified container with updated insight dependencies - IQ ${releaseVersion}",
+        description: """Release Nexus IQ RedHat container in response to IQ Server Release ${releaseVersion}. Trigger the build at 
 https://connect.redhat.com/projects/5e61602c2f3c1acdd05f61d3/builds
 
 
 Click publish (and apply latest) for the new image when it passes scanning at 
-https://connect.redhat.com/projects/5e61602c2f3c1acdd05f61d3/images''',
-        labels: ['maintenance'],
+https://connect.redhat.com/projects/5e61602c2f3c1acdd05f61d3/images""",
+        labels: ['iq-release-trigger', 'maintenance'],
         components: [[name: 'Operator - IQ']],
+        priority: [name: 'Blocker', id: '1'],
         issuetype: [name: 'Task'],
-        customfield_10132: 0.5
+        customfield_10132: 0.5,
+        customfield_14100: 'maintenance',
+        customfield_12601 : '54'
     ]
   ]
 }

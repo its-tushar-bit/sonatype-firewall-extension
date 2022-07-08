@@ -746,6 +746,7 @@
                 <include>**/TestTaskScheduler*</include>
                 <include>**/productlicense/license.lic</include>
                 <include>**/SlowMoFilter*</include>
+                <include>**/RestRequestFilter*</include>
                 <include>**/TemporaryEntity*</include>
                 <include>**/HttpRequest*</include>
                 <include>**/HttpResponse*</include>

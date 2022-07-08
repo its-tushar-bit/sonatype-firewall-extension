@@ -8,6 +8,10 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.function.BiConsumer;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
@@ -94,6 +98,8 @@ public class TestInsightBrainService
   private LicenseDataUpdater savedLicenseDataUpdater;
 
   private InsightConfig insightConfig;
+
+  private BiConsumer<ServletRequest, ServletResponse> restRequestFilterHandler;
 
   public void setHttpPort(final int port) {
     testPort = port;
@@ -278,11 +284,24 @@ public class TestInsightBrainService
 
     SlowMoFilter.configure(env);
 
+    RestRequestFilter.configure(env, (request, response) -> getRestRequestFilterHandler().accept(request, response));
+
     super.run(config, env);
 
     disableForTesting();
 
     getInstance(ApplicationLifecycle.class).boot();
+  }
+
+  /**
+   * Provide a handler to install a RestRequestFilter handler or <i>null</i> to disable.
+   */
+  public void setRestRequestFilterHandler(final BiConsumer<ServletRequest, ServletResponse> restRequestFilterHandler) {
+    this.restRequestFilterHandler = restRequestFilterHandler;
+  }
+
+  public BiConsumer<ServletRequest, ServletResponse> getRestRequestFilterHandler() {
+    return restRequestFilterHandler != null ? restRequestFilterHandler : (a, b) -> { };
   }
 
   public void disableForTesting() {

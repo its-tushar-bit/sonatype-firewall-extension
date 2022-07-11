@@ -62,6 +62,18 @@ public class ComponentDAOTest
     return sv;
   }
 
+  private SecurityVulnerability newSVWithAlias(String refId,
+                                      String source,
+                                      Float severity,
+                                      SecurityVulnerabilityOverrideStatus status, String... aliases)
+  {
+    SecurityVulnerability sv = newSV(refId, source, severity, status);
+    for (String alias : aliases) {
+      sv.addAlias(alias);
+    }
+    return sv;
+  }
+
   private void assertSecurityVulnerabilities(List<SecurityVulnerability> actual, SecurityVulnerability... expected) {
     assertThat(actual).hasSameSizeAs(expected);
     for (int i = 0, n = expected.length; i < n; i++) {
@@ -75,6 +87,7 @@ public class ComponentDAOTest
     assertThat(actual.getSeverity()).isEqualTo(expected.getSeverity());
     assertThat(actual.getStatus()).isEqualTo(expected.getStatus());
     assertThat(actual.getVulnerabilityCategories()).isEqualTo(expected.getVulnerabilityCategories());
+    assertThat(actual.getAliases()).isEqualTo(expected.getAliases());
   }
 
   private void assertLicenseThreatGroups(Set<LicenseThreatGroup> actual, String... expected) {
@@ -117,6 +130,7 @@ public class ComponentDAOTest
     com.sonatype.clm.dto.model.SecurityVulnerability sv =
         new com.sonatype.clm.dto.model.SecurityVulnerability("12345", "osvdb", 4f);
     sv.setVulnerabilityCategories(Collections.singletonList("cat1"));
+    sv.setAliases(Collections.singletonList("alias1"));
     matchedComponent
         .addSecurityVulnerability(sv);
     Component component = new ComponentDAO(application).getComponent(matchedComponent);
@@ -135,7 +149,12 @@ public class ComponentDAOTest
     assertThat(component.getLicenseOverrideIds()).isEmpty();
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1");
     assertSecurityVulnerabilities(component.getSecurityVulnerabilities(),
-        newSV("12345", "osvdb", 4f, SecurityVulnerabilityOverrideStatus.OPEN));
+        newSVWithAlias("12345", "osvdb", 4f, SecurityVulnerabilityOverrideStatus.OPEN, "alias1"));
+
+    SecurityVulnerability svWithAlias = component.getSecurityVulnerabilities().get(0);
+    svWithAlias.addAlias("New Alias");
+    assertSecurityVulnerability(svWithAlias,
+        newSVWithAlias("12345", "osvdb", 4f, SecurityVulnerabilityOverrideStatus.OPEN, "alias1", "New Alias"));
 
     assertThat(component.getLabelIds()).containsExactlyInAnyOrder(appLabel.getId(), orgLabel.getId());
     assertThat(component.getHygieneRating().getId()).isEqualTo(String.valueOf(hygieneRating.getId()));

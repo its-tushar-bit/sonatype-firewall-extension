@@ -31,10 +31,10 @@ import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileLis
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
 import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList.ThreatGroupTileSimpleListElement;
-import com.sonatype.clm.testing.functional.elements.TileSimpleList;
-import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
+import com.sonatype.clm.testing.functional.elements.NxList;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.utils.NxColor;
 import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -154,7 +154,7 @@ public abstract class AbstractSummaryViewTest
     testAccessTile_no_local_access();
     testPolicyTile_no_policies();
   }
-  
+
   @Test
   public void testInnerSourceRepositoryTile_NotConfigured() {
     setCurrentOwnerRepositoryConnectionStatus(currentOwner, true);
@@ -383,7 +383,6 @@ public abstract class AbstractSummaryViewTest
   }
 
   public void testLabelTile_no_labels() {
-
     LabelTile labelTile = OwnerSummaryPage.labelTile();
     labelTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(currentOwner.getName()));
     labelTile.newButton().shouldBe(visible, enabled);
@@ -395,13 +394,12 @@ public abstract class AbstractSummaryViewTest
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
 
-    TileSimpleList list = labelTile.labelList(0);
-    list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
+    NxList list = labelTile.labelList(0);
+    labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
     list.emptyDescriptor().shouldBe(visible);
   }
 
   public void testAccessTile_no_local_access() {
-
     int hierarchySize = getHierarchySize(currentOwner);
     AccessTile accessTile = OwnerSummaryPage.accessTile();
     accessTile.subHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText(currentOwner.getName()));
@@ -488,7 +486,6 @@ public abstract class AbstractSummaryViewTest
   }
 
   private void testLabelTile_Local(List<Label> localLabels) {
-
     LabelTile labelTile = OwnerSummaryPage.labelTile();
     labelTile.labelLists().shouldHaveSize(1);
 
@@ -496,13 +493,13 @@ public abstract class AbstractSummaryViewTest
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
 
-    TileSimpleList list = labelTile.labelList(0);
-    list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
+    NxList list = labelTile.labelList(0);
+    labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
     list.emptyDescriptor().shouldNot(exist);
     list.elements().shouldHaveSize(localLabels.size());
 
     for (int i = 0; i < localLabels.size(); i++) {
-      TileSimpleListElement actualLabel = list.element(i);
+      NxList.NxListItem actualLabel = list.element(i);
       Label expectedLabel = localLabels.get(i);
 
       if (expectedLabel.getDescription() == null) {
@@ -512,7 +509,10 @@ public abstract class AbstractSummaryViewTest
         actualLabel.description().shouldBe(visible).shouldHave(text(expectedLabel.getDescription()));
       }
 
-      actualLabel.icon().shouldBe(visible).shouldHave(cssClass(expectedLabel.getColor().toValue()));
+      String nxColorClass = NxColor.getNxColorFromColor(expectedLabel.getColor()).toNxClass();
+
+      actualLabel.icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
+
       actualLabel.name().shouldBe(visible).shouldHave(text(expectedLabel.getLabel()));
       actualLabel.chevron().shouldBe(visible);
     }
@@ -723,21 +723,22 @@ public abstract class AbstractSummaryViewTest
     OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
-      TileSimpleList list = labelTile.labelList(i);
+      NxList list = labelTile.labelList(i);
 
       if (i == 0) {
-        list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
+        labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
+
         list.emptyDescriptor().shouldBe(visible);
         list.elements().shouldBe(empty);
       }
       else {
         final int expectedLabelCount = inheritedLabels.get(i - 1).size();
         list.elements().shouldHaveSize(expectedLabelCount);
-        list.subsectionHeader().shouldBe(visible)
+        labelTile.labelListSubheader(i).shouldBe(visible)
             .shouldHave(LabelTile.inheritedText(parentOwners.get(i - 1).getName()));
 
         for (int j = 0; j < expectedLabelCount; j++) {
-          TileSimpleListElement actualLabel = list.element(j);
+          NxList.NxListItem actualLabel = list.element(j);
           Label expectedLabel = inheritedLabels.get(i - 1).get(j);
 
           if (expectedLabel.getDescription() == null) {
@@ -747,7 +748,9 @@ public abstract class AbstractSummaryViewTest
             actualLabel.description().shouldBe(visible).shouldHave(text(expectedLabel.getDescription()));
           }
 
-          actualLabel.icon().shouldBe(visible).shouldHave(cssClass(expectedLabel.getColor().toValue()));
+          String nxColorClass = NxColor.getNxColorFromColor(expectedLabel.getColor()).toNxClass();
+
+          actualLabel.icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
           actualLabel.name().shouldBe(visible).shouldHave(text(expectedLabel.getLabel()));
           actualLabel.chevron().shouldNot(exist);
         }
@@ -988,11 +991,11 @@ public abstract class AbstractSummaryViewTest
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
-    
+
     assertPolicyTile_Foundation(policy, true);
     eyesWatcher.eyesCheck();
   }
-  
+
   private void assertPolicyTile_Foundation(Policy policy, boolean proxyActionReadOnly) {
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     PolicyTileList list = policyTile.policyList(0);
@@ -1033,7 +1036,7 @@ public abstract class AbstractSummaryViewTest
         .add(tempEntity.newPolicy(currentOwner.getId(), "Release", 10, Action.ID_FAIL, Stage.ID_RELEASE, null));
 
     setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK);
-    
+
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
 

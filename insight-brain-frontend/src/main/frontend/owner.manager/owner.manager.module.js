@@ -26,7 +26,6 @@ import LocalRoleService from './utility/local.role.service';
 import SameOwnerStateNavigationService from './utility/same.owner.state.navigation.service';
 import RoleMappingService from './access/role.mapping.service';
 import ApplicationCategoryEditorController from './category/application.category.editor.controller';
-import LabelTileController from './label/label.tile.controller';
 import LicenseThreatGroupEditorController from './license.threat.group/license.threat.group.editor.controller';
 import LicenseThreatGroupTileController from './license.threat.group/license.threat.group.tile.controller';
 import OwnerDetailTreeViewController from './navigation/owner.detail.tree.view.controller';
@@ -79,6 +78,7 @@ import SourceControlService from './source.control/source.control.service';
 import innerSourceRepositoryModule from './innersource.repository/module';
 import ContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/ContinuousMonitoringEditor';
 import artifactoryRepositoryModule from './artifactory.repository/module';
+import LabelsTile from 'MainRoot/OrgsAndPolicies/ownerSummary/labelsTile/LabelsTile';
 import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/componentLabels/CreateComponentLabel';
 import CreateEditApplicationCategory from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/CreateEditApplicationCategory';
 import ProprietaryComponentConfiguration from 'MainRoot/OrgsAndPolicies/proprietaryComponentConfig/ProprietaryComponentConfiguration';
@@ -115,7 +115,6 @@ export default angular
   .controller('AccessTileController', AccessTileController)
   .directive('accessTile', AccessTile)
   .controller('application.category.editor.controller', ApplicationCategoryEditorController)
-  .controller('LabelTileController', LabelTileController)
   .controller('license.threat.group.editor.controller', LicenseThreatGroupEditorController)
   .controller('LicenseThreatGroupTileController', LicenseThreatGroupTileController)
   .controller('OwnerDetailTreeViewController', OwnerDetailTreeViewController)
@@ -166,6 +165,7 @@ export default angular
   )
   .component('continuousMonitoring', iqReact2Angular(ContinuousMonitoringEditor, [], ['$ngRedux']))
   .component('createComponentLabel', iqReact2Angular(CreateComponentLabel, [], ['$ngRedux', '$state']))
+  .component('labelsTile', iqReact2Angular(LabelsTile, [], ['$ngRedux', '$state']))
   .component('applicationCategoriesTile', iqReact2Angular(ApplicationCategoriesTile, [], ['$ngRedux', '$state']))
   .component('proprietaryComponentConfiguration', iqReact2Angular(ProprietaryComponentConfiguration, [], ['$ngRedux']))
   .component(

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { actions as labelsActions } from 'MainRoot/OrgsAndPolicies/labelsSlice';
 import { actions as createEditApplicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSlice';
 export default function ImportPolicyModalController(
   $rootScope,
@@ -16,6 +17,7 @@ export default function ImportPolicyModalController(
   var vm = this;
 
   vm.unsubscribe = $ngRedux.connect(null, {
+    loadApplicableLabels: labelsActions.loadApplicableLabels,
     loadApplicableCategories: createEditApplicationCategoriesActions.loadApplicableCategories,
   })(vm);
 
@@ -65,6 +67,8 @@ export default function ImportPolicyModalController(
         // This action is dispatched to update the Application Categories Tile
         // TODO: When this http request is merged to Redux, move the action to that success thunk as well
         vm.loadApplicableCategories();
+        // This action is dispatched to update the Labels Tile
+        vm.loadApplicableLabels();
       },
       function (error) {
         setError(Messages.getHttpErrorMessage(error), doSubmit);

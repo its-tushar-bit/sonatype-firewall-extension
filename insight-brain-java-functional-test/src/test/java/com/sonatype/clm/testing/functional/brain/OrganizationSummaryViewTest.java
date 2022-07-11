@@ -13,7 +13,6 @@ import java.util.List;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.elements.*;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
-import com.sonatype.clm.testing.functional.elements.TileSimpleList.TileSimpleListElement;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.utils.NxColor;
@@ -152,10 +151,10 @@ public class OrganizationSummaryViewTest
 
     LabelTile labelTile = OwnerSummaryPage.labelTile();
     labelTile.labelList(0);
-    TileSimpleList list = labelTile.labelList(0);
-    list.subsectionHeader().shouldBe(visible).shouldHave(text("Local"));
+    NxList list = labelTile.labelList(0);
+    labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
     list.elements().shouldHaveSize(1);
-    TileSimpleListElement actualLabel = list.element(0);
+    NxList.NxListItem actualLabel = list.element(0);
     actualLabel.name().shouldBe(visible).shouldHave(text("Test Label"));
 
     // scroll to the ltgs

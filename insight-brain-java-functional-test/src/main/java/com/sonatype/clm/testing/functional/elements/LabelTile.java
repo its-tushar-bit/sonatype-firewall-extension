@@ -32,14 +32,27 @@ public class LabelTile
   }
 
   public ElementsCollection labelLists() {
-    return children(".iq-list");
+    return children(".nx-list");
   }
 
-  public TileSimpleList labelList(int num) {
-    return new TileSimpleList(labelLists().get(num));
+  public NxList labelList(int num) {
+    return new NxList(labelLists().get(num));
+  }
+
+  public ElementsCollection labelListsSubheaders() {
+    return children(".nx-h3");
+  }
+
+  public SelenideElement labelListSubheader(int num) {
+    return this.labelListsSubheaders().get(num);
   }
 
   public SelenideElement localLabel(String labelName) {
-    return children("ul .test-list-item-title").findBy(text(labelName));
+    return children("ul .nx-list__text").findBy(text(labelName));
+  }
+
+  @Override
+  public SelenideElement subHeader() {
+    return child(".nx-tile-header__subtitle");
   }
 }

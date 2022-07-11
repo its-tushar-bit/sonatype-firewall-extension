@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ownerManagerModule from '../../../../../main/frontend/owner.manager/owner.manager.module';
+import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 
 describe('import.policy.modal.controller.spec.js', function () {
   var scope, vm, $httpBackend, CLMContextLocations;
@@ -86,6 +86,7 @@ describe('import.policy.modal.controller.spec.js', function () {
       vm.doSubmit(submitEvent);
       $httpBackend.flush();
 
+      expect(vm.loadApplicableLabels).toHaveBeenCalled();
       expect(vm.loadApplicableCategories).toHaveBeenCalled();
     });
   });

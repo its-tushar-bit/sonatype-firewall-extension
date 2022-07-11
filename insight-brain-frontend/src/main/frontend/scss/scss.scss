@@ -124,6 +124,7 @@
 @use '../OrgsAndPolicies/proprietaryComponentConfig/proprietaryComponentConfiguration';
 @use '../firewall/firewallComponentDetailsPage/firewallComponentDetailsPage';
 @use '../OrgsAndPolicies/ownerSummary/ownerSummary';
+@use '../OrgsAndPolicies/ownerSummary/labelsTile/labelsTile';
 @use '../OrgsAndPolicies/сontinuousMonitoringEditor/continuousMonitoringEditor';
 @use '../firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';
 

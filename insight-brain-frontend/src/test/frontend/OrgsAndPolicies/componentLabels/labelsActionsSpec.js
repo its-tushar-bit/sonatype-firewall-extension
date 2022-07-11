@@ -114,43 +114,6 @@ describe('labelsActions', () => {
     });
   });
 
-  describe('goToEditLabel', () => {
-    beforeEach(() => {
-      spyOn(routerSelectors, 'selectRouterSlice').and.returnValue({
-        currentState: {
-          name: 'organization.what',
-        },
-        currentParams: {
-          organizationId: 'organizationId',
-        },
-      });
-    });
-
-    it('redirects to proper edit label path', (done) => {
-      store.dispatch(actions.goToEditLabel('labelId')).then(() => {
-        const actions = store.getActions();
-
-        expect(actions.length).toBe(3);
-        expect(actions).toHaveActionTypesInOrder([
-          'labels/goToEditLabel/pending',
-          '@@reduxUiRouter/stateGo',
-          'labels/goToEditLabel/fulfilled',
-        ]);
-
-        expect(actions[1].payload).toEqual({
-          to: 'management.edit.organization.label',
-          params: {
-            organizationId: 'organizationId',
-            labelId: 'labelId',
-          },
-          options: undefined,
-        });
-
-        done();
-      });
-    });
-  });
-
   describe('loadApplicableLabelsByOwner', () => {
     beforeEach(() => {
       spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({

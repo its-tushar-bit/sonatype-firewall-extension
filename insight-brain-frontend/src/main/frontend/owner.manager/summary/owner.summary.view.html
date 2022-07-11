@@ -234,54 +234,7 @@ class="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-
           <proprietary-component-configuration-tile></proprietary-component-configuration-tile>
         </div>
       </div>
-      <div class="iq-tile" id="owner-pill-comp-labels" ng-controller="LabelTileController as labelTile">
-        <div load-wrapper="labelTile.error"
-             loading="labelTile.loading"
-             reload="labelTile.doLoad()">
-          <div class="iq-tile__actions">
-            <button id="add-label-button" same-owner-edit-sref="create-label" class="iq-btn iq-btn--tertiary">
-              <i class="fa fa-plus"></i>Add a Label
-            </button>
-          </div>
-          <div class="iq-tile-header">
-            <div class="iq-tile-header__title">
-              <i class="fa fa-tag size-20px outline iq-tile-header__icon"></i>
-              <h2>Component Labels</h2>
-            </div>
-            <div class="iq-tile-header__subtitle">
-              available to {{labelTile.ownerName}} policies
-            </div>
-          </div>
-          <div class="iq-tile-content">
-            <div class="iq-list"
-                 ng-class="{'iq-list--clickable': !ownerLabelList.inherited}"
-                 ng-if="!ownerLabelList.inherited || (ownerLabelList.inherited && ownerLabelList.labels.length > 0)"
-                 ng-repeat="ownerLabelList in labelTile.applicableLabels">
-              <h4 class="iq-list__title" ng-if="!ownerLabelList.inherited">
-                Local
-              </h4>
-              <h4 class="iq-list__title" ng-if="ownerLabelList.inherited && ownerLabelList.labels.length > 0">
-                Inherited from {{ownerLabelList.ownerName}}
-              </h4>
-              <div class="iq-list__item iq-list__item--empty"
-                   ng-if="!ownerLabelList.inherited && ownerLabelList.labels.length <= 0">
-                No local component labels defined
-              </div>
-              <ul ng-if="ownerLabelList.labels.length > 0">
-                <li class="iq-list__item"
-                    ng-repeat="label in ownerLabelList.labels"
-                    ng-click="labelTile.editLabel(label.id, ownerLabelList.inherited)">
-                  <i class="fa fa-chevron-right iq-pull-right" ng-if="!ownerLabelList.inherited"></i>
-                  <span class="test-list-item-title">
-                    <i class="fa fa-tag size-16px {{label.color}}"></i>{{label.label}}
-                  </span>
-                  <p class="iq-list__subtext" ng-if="label.description">{{label.description}}</p>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
+      <labels-tile></labels-tile>
       <div class="iq-tile" id="owner-pill-ltgs" ng-controller="LicenseThreatGroupTileController as vm">
         <div load-wrapper="vm.loadError"
              loading="!(vm.ownerName && vm.applicableLicenseGroups)"

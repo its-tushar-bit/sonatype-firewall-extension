@@ -167,13 +167,6 @@ const goToCreateLabel = createAsyncThunk(`${REDUCER_NAME}/goToCreateLabel`, (_, 
   dispatch(stateGo(to, params));
 });
 
-const goToEditLabel = createAsyncThunk(`${REDUCER_NAME}/goToEditLabel`, (labelId, { getState, dispatch }) => {
-  const router = selectRouterSlice(getState());
-  const { to, params } = deriveEditRoute(router, 'label', { labelId });
-
-  dispatch(stateGo(to, params));
-});
-
 const loadLabels = createAsyncThunk(`${REDUCER_NAME}/loadLabels`, (_, { getState, rejectWithValue }) => {
   const { ownerType, ownerId } = selectOwnerProperties(getState());
   return axios.get(getLabelsUrl(ownerType, ownerId)).then(prop('data')).catch(rejectWithValue);
@@ -388,7 +381,6 @@ export const actions = {
   loadLabelsEditor,
   saveLabel,
   removeLabel,
-  goToEditLabel,
   goToCreateLabel,
   loadApplicableLabelsByOwner,
 };

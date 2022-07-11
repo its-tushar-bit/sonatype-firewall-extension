@@ -32,12 +32,12 @@ import {
   selectLoadError,
   selectIsLoading,
   selectAppCategoryOwners,
-} from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
+} from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSelectors';
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsApplication, selectIsOrganization, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { actions as assignApplicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
-import { actions as createEditApplicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
+import { actions as createEditApplicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSlice';
 import { curryN } from 'ramda';
 import { selectSelectedOwner } from '../orgsAndPoliciesSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';

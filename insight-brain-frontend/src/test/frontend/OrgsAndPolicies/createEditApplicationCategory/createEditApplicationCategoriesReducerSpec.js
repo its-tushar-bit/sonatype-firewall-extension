@@ -3,16 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer, { initialState } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
+import reducer, {
+  initialState,
+} from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSlice';
+import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+const { initialState: rscInitialState } = nxTextInputStateHelpers;
 
 describe('orgsAndPoliciesApplicationCategories reducer', () => {
   describe('applicationCategories/createEdit/setCategoryDescription', () => {
     it('sets description to currentCategory and isDirty property', () => {
       const state = Object.freeze({
         currentCategory: {
-          color: null,
-          description: null,
-          name: null,
+          color: 'light-purple',
+          description: rscInitialState(''),
+          name: rscInitialState(''),
         },
         serverCategory: null,
         isDirty: false,
@@ -24,7 +28,12 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       expect(isDirty).toBeTrue();
-      expect(currentCategory.description).toBe('category description');
+      expect(currentCategory.description).toEqual({
+        isPristine: false,
+        value: 'category description',
+        trimmedValue: 'category description',
+        validationErrors: [],
+      });
     });
   });
 
@@ -32,9 +41,9 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     it('sets color to currentCategory and isDirty property', () => {
       const state = Object.freeze({
         currentCategory: {
-          color: null,
-          description: null,
-          name: null,
+          color: 'light-purple',
+          description: rscInitialState(''),
+          name: rscInitialState(''),
         },
         serverCategory: null,
         isDirty: false,
@@ -54,11 +63,12 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
     it('sets name to currentCategory and isDirty property', () => {
       const state = Object.freeze({
         currentCategory: {
-          color: null,
-          description: null,
-          name: null,
+          color: 'light-purple',
+          description: rscInitialState(''),
+          name: rscInitialState(''),
         },
         serverCategory: null,
+        siblings: [],
         isDirty: false,
       });
 
@@ -68,7 +78,12 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       });
 
       expect(isDirty).toBeTrue();
-      expect(currentCategory.name).toBe('name');
+      expect(currentCategory.name).toEqual({
+        isPristine: false,
+        value: 'name',
+        trimmedValue: 'name',
+        validationErrors: [],
+      });
     });
   });
 
@@ -112,7 +127,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
           isEditMode: true,
           savedCategory: {
             color: 'light-brown',
-            description: null,
+            description: 'description',
             name: 'category name',
             id: '1242345',
           },
@@ -123,20 +138,20 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       expect(newState.isDirty).toBeFalse();
       expect(newState.currentCategory).toEqual({
         color: 'light-brown',
-        description: null,
-        name: 'category name',
+        description: { isPristine: true, value: 'description', trimmedValue: 'description', validationErrors: null },
+        name: { isPristine: true, value: 'category name', trimmedValue: 'category name', validationErrors: null },
         id: '1242345',
       });
       expect(newState.serverCategory).toEqual({
         color: 'light-brown',
-        description: null,
+        description: 'description',
         name: 'category name',
         id: '1242345',
       });
       expect(newState.siblings).toEqual([
         {
           color: 'light-brown',
-          description: null,
+          description: 'description',
           name: 'category name',
           id: '1242345',
         },
@@ -200,25 +215,18 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
 
   describe('applicationCategories/createEdit/removeApplicationCategory/pending', () => {
     it('sets deleting property to null', () => {
-      const state = Object.freeze({ deleting: false });
-
-      const { deleteModal } = reducer(state, {
+      const state = Object.freeze({ deleteMaskState: null });
+      const { deleteMaskState } = reducer(state, {
         type: 'applicationCategories/createEdit/removeApplicationCategory/pending',
       });
-
-      expect(deleteModal.deleting).toBeTrue();
+      expect(deleteMaskState).toBeFalse();
     });
   });
 
   describe('applicationCategories/createEdit/removeApplicationCategory/fulfilled', () => {
     it('sets currentCategory, serverCategory to initialState', () => {
       const state = Object.freeze({
-        deleteModal: {
-          deleting: true,
-          errorState: null,
-
-          success: null,
-        },
+        deleteMaskState: null,
         isDirty: true,
         currentCategory: {
           color: 'foo',
@@ -247,11 +255,9 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
         payload: 'id',
       });
 
-      expect(newState.deleteModal.deleting).toBeNull();
-      expect(newState.deleteModal.errorState).toBeNull();
+      expect(newState.deleteMaskState).toBeTrue();
 
       expect(newState.isDirty).toBeFalse();
-      expect(newState.deleteModal.success).toBeTrue();
       expect(newState.currentCategory).toEqual(initialState.currentCategory);
       expect(newState.serverCategory).toEqual(initialState.serverCategory);
       expect(newState.siblings).toEqual([]);
@@ -261,19 +267,15 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
   describe('applicationCategories/createEdit/removeApplicationCategory/rejected', () => {
     it('sets errorState, deleting', () => {
       const state = Object.freeze({
-        deleteModal: {
-          deleting: true,
-          errorState: null,
-        },
+        deleteError: null,
       });
 
-      const { deleteModal } = reducer(state, {
+      const { deleteError } = reducer(state, {
         type: 'applicationCategories/createEdit/removeApplicationCategory/rejected',
         payload: 'error',
       });
 
-      expect(deleteModal.deleting).toBeFalse();
-      expect(deleteModal.errorState).toBe('error');
+      expect(deleteError).toBe('error');
     });
   });
 
@@ -376,15 +378,13 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
         deleteModal: {
           associatedApplicationNames: null,
           tagPolicyList: null,
-          success: true,
-          deleting: true,
-          errorState: 'someError',
         },
+        deleteMaskState: null,
       });
 
-      const currentCategory = {
+      const currentCategoryDataToSave = {
         color: 'light-green',
-        description: null,
+        description: 'description',
         id: 'id',
         name: 'x3',
         ownerId: 'ownerId',
@@ -393,7 +393,7 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       const siblings = [
         {
           color: 'light-green',
-          description: null,
+          description: 'sibling description',
           id: 'ae63051b2e304c3bbabf94c2443b03fb',
           name: 'n3',
           ownerId: '6b365e8a8000449aa924f194a7ed0d21',
@@ -405,23 +405,27 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
       const newState = reducer(state, {
         type: 'applicationCategories/createEdit/loadCategoryEditor/fulfilled',
         payload: {
-          currentCategory,
+          currentCategory: currentCategoryDataToSave,
           siblings,
           associatedApplicationNames,
           tagPolicyList,
         },
       });
-
       expect(newState.loading).toBeFalse();
       expect(newState.loadError).toBeNull();
-      expect(newState.currentCategory).toEqual(currentCategory);
-      expect(newState.serverCategory).toEqual(currentCategory);
+      expect(newState.currentCategory).toEqual({
+        color: 'light-green',
+        name: { isPristine: true, trimmedValue: 'x3', validationErrors: null, value: 'x3' },
+        description: { isPristine: true, trimmedValue: 'description', validationErrors: null, value: 'description' },
+        id: 'id',
+        ownerId: 'ownerId',
+        ownerType: 'APPLICATION',
+      });
+      expect(newState.serverCategory).toEqual(currentCategoryDataToSave);
       expect(newState.siblings).toEqual(siblings);
       expect(newState.deleteModal.associatedApplicationNames).toEqual(associatedApplicationNames);
       expect(newState.deleteModal.tagPolicyList).toEqual(tagPolicyList);
-      expect(newState.deleteModal.success).toBeNull();
-      expect(newState.deleteModal.deleting).toBeNull();
-      expect(newState.deleteModal.errorState).toBeNull();
+      expect(newState.deleteMaskState).toBeNull();
     });
   });
 

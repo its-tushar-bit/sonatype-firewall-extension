@@ -6,8 +6,9 @@
 
 import { createSelector } from '@reduxjs/toolkit';
 import { isNil, path, prop } from 'ramda';
-import { selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
-import { selectOrgsAndPoliciesSlice } from './orgsAndPoliciesSelectors';
+import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
+import { selectOrgsAndPoliciesSlice } from '../orgsAndPoliciesSelectors';
+import { hasValidationErrors, GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
 
 export const selectApplicationCategoriesSlice = createSelector(
   selectOrgsAndPoliciesSlice,
@@ -17,9 +18,20 @@ export const selectIsEditMode = createSelector(selectRouterCurrentParams, ({ cat
 export const selectAppCategoryOwners = createSelector(selectApplicationCategoriesSlice, prop('appCategoryOwners'));
 export const selectIsLoading = createSelector(selectApplicationCategoriesSlice, prop('loading'));
 export const selectLoadError = createSelector(selectApplicationCategoriesSlice, prop('loadError'));
+export const selectSubmitError = createSelector(selectApplicationCategoriesSlice, prop('submitError'));
 export const selectIsDirty = createSelector(selectApplicationCategoriesSlice, prop('isDirty'));
 export const selectCurrentCategory = createSelector(selectApplicationCategoriesSlice, prop('currentCategory'));
 export const selectDeleteModal = createSelector(selectApplicationCategoriesSlice, prop('deleteModal'));
 export const selectAssociatedApplicationNames = createSelector(selectDeleteModal, prop('associatedApplicationNames'));
 export const selectTagPolicyList = createSelector(selectDeleteModal, prop('tagPolicyList'));
 export const selectSiblings = createSelector(selectApplicationCategoriesSlice, prop('siblings'));
+export const selectSubmitMaskState = createSelector(selectApplicationCategoriesSlice, prop('submitMaskState'));
+export const selectValidationError = createSelector(selectApplicationCategoriesSlice, ({ currentCategory }) =>
+  hasValidationErrors(currentCategory.name.validationErrors) ||
+  hasValidationErrors(currentCategory.description.validationErrors)
+    ? GLOBAL_FORM_VALIDATION_ERROR
+    : null
+);
+
+export const selectDeleteMaskState = createSelector(selectApplicationCategoriesSlice, prop('deleteMaskState'));
+export const selectDeleteError = createSelector(selectApplicationCategoriesSlice, prop('deleteError'));

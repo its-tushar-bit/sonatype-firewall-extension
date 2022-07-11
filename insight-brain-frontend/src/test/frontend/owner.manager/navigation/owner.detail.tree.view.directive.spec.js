@@ -11,7 +11,7 @@ import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organi
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 import { actions as ownerDetailTreeActions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
-import * as createEditApplicationCategoriesSelectors from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
+import * as createEditApplicationCategoriesSelectors from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSelectors';
 import * as policySelectors from 'MainRoot/OrgsAndPolicies/policySelectors';
 import * as labelsSelectors from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';

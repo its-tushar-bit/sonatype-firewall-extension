@@ -5,10 +5,10 @@
  */
 import axios from 'axios';
 
-import { actions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
+import { actions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSlice';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import * as applicationsSelectors from 'MainRoot/OrgsAndPolicies/applicationsSelectors';
-import * as selectors from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
+import * as selectors from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   getApplicableCategoriesUrl,
@@ -20,6 +20,8 @@ import {
   getApplicablePolicies,
 } from 'MainRoot/util/CLMLocation';
 import TagResourceMockData from 'TestRoot/owner.manager/mock.data/tag.resource.mock.data';
+import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+const { initialState: rscInitialState } = nxTextInputStateHelpers;
 
 describe('createEditApplicationCategoriesSlice Actions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -418,6 +420,11 @@ describe('createEditApplicationCategoriesSlice Actions', () => {
 
         expect(actions[3].payload).toEqual({
           siblings: flattenedApplicationCategories,
+          currentCategory: {
+            name: '',
+            description: '',
+            color: 'light-purple',
+          },
         });
 
         done();
@@ -517,15 +524,19 @@ describe('createEditApplicationCategoriesSlice Actions', () => {
     beforeEach(() => {
       spyOn(selectors, 'selectCurrentCategory').and.returnValue({
         color: 'red',
-        description: 'red is blue',
-        name: 'old',
+        description: rscInitialState('red is blue'),
+        name: rscInitialState('old'),
       });
 
       spyOn(selectors, 'selectIsEditMode').and.returnValue(true);
     });
 
     it('updates category successfully', (done) => {
-      const currentCategoryData = { color: 'red', description: 'red is blue', name: 'old' };
+      const currentCategoryData = {
+        color: 'red',
+        description: 'red is blue',
+        name: 'old',
+      };
       const savedCategory = {
         ownerId: mockOwnerId,
         ownerType: mockOwnerType,

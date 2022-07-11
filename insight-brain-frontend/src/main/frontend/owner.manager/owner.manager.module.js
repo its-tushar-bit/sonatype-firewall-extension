@@ -26,7 +26,6 @@ import LocalRoleService from './utility/local.role.service';
 import SameOwnerStateNavigationService from './utility/same.owner.state.navigation.service';
 import RoleMappingService from './access/role.mapping.service';
 import ApplicationCategoryEditorController from './category/application.category.editor.controller';
-import CategoryEditorController from './category/category.editor.controller';
 import LabelTileController from './label/label.tile.controller';
 import LicenseThreatGroupEditorController from './license.threat.group/license.threat.group.editor.controller';
 import LicenseThreatGroupTileController from './license.threat.group/license.threat.group.tile.controller';
@@ -75,13 +74,13 @@ import accessEditorTemplate from './access/access.editor.view.html';
 import summaryViewTemplate from './summary/owner.summary.view.html';
 import policyEditorTemplate from './policy/policy.editor.view.html';
 import ltgEditorTemplate from './license.threat.group/license.threat.group.editor.view.html';
-import categoryEditorTemplate from './category/category.editor.view.html';
 import appCategoryEditorTemplate from './category/application.category.editor.view.html';
 import SourceControlService from './source.control/source.control.service';
 import innerSourceRepositoryModule from './innersource.repository/module';
 import ContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/ContinuousMonitoringEditor';
 import artifactoryRepositoryModule from './artifactory.repository/module';
 import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/componentLabels/CreateComponentLabel';
+import CreateEditApplicationCategory from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/CreateEditApplicationCategory';
 import ProprietaryComponentConfiguration from 'MainRoot/OrgsAndPolicies/proprietaryComponentConfig/ProprietaryComponentConfiguration';
 import OwnerSummaryTilesContainerController from './summary/owner.summary.tiles.container.controller';
 import PolicyGrandfatheringTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PolicyGrandfatheringTile';
@@ -116,7 +115,6 @@ export default angular
   .controller('AccessTileController', AccessTileController)
   .directive('accessTile', AccessTile)
   .controller('application.category.editor.controller', ApplicationCategoryEditorController)
-  .controller('category.editor.controller', CategoryEditorController)
   .controller('LabelTileController', LabelTileController)
   .controller('license.threat.group.editor.controller', LicenseThreatGroupEditorController)
   .controller('LicenseThreatGroupTileController', LicenseThreatGroupTileController)
@@ -174,6 +172,7 @@ export default angular
     'continuousMonitoringSummaryTile',
     iqReact2Angular(ContinuousMonitoringSummaryTile, [], ['$ngRedux', '$state'])
   )
+  .component('createEditApplicationCategory', iqReact2Angular(CreateEditApplicationCategory, [], ['$ngRedux']))
   .config([
     '$stateProvider',
     function ($stateProvider) {
@@ -421,12 +420,11 @@ export default angular
           url: '/category/{categoryId}',
           data: {
             title: 'Organization Category',
+            isDirty: ['orgsAndPolicies', 'applicationCategories', 'createEdit', 'isDirty'],
           },
           views: {
             '@management.edit': {
-              template: categoryEditorTemplate,
-              controller: 'category.editor.controller',
-              controllerAs: 'vm',
+              component: 'createEditApplicationCategory',
             },
           },
         })
@@ -434,12 +432,11 @@ export default angular
           url: '/category',
           data: {
             title: 'Organization Category',
+            isDirty: ['orgsAndPolicies', 'applicationCategories', 'createEdit', 'isDirty'],
           },
           views: {
             '@management.edit': {
-              template: categoryEditorTemplate,
-              controller: 'category.editor.controller',
-              controllerAs: 'vm',
+              component: 'createEditApplicationCategory',
             },
           },
         })

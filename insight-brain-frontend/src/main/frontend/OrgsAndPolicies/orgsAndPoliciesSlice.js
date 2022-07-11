@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { combineReducers } from 'redux';
-import createEditApplicationCategoriesSlice from './createEditApplicationCategoriesSlice';
+import createEditApplicationCategoriesSlice from './createEditApplicationCategory/createEditApplicationCategoriesSlice';
 import assignApplicationCategoriesSlice from './assignApplicationCategoriesSlice';
 import labelsSlice from './labelsSlice';
 import rootSlice from './rootSlice';

@@ -16,7 +16,7 @@ import {
   selectDeleteModal,
   selectSiblings,
   selectTagPolicyList,
-} from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
+} from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSelectors';
 import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 

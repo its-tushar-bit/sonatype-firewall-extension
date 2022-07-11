@@ -9,7 +9,7 @@ import { selectSiblings as selectPolicySiblings } from 'MainRoot/OrgsAndPolicies
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { actions as ownerDetailTreeActions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
-import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSelectors';
+import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSelectors';
 import { selectLabelsSiblings } from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import {
   selectIsMonitoringSupported,
@@ -117,6 +117,11 @@ export default function OwnerDetailTreeViewController(
   $scope.$on('resource.data.modified', vm.doLoad);
   $scope.$watch('vm.labels', (labels) => {
     if (labels) {
+      vm.doLoad();
+    }
+  });
+  $scope.$watch('vm.categories', (categories) => {
+    if (categories) {
       vm.doLoad();
     }
   });

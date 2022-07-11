@@ -23,7 +23,7 @@ import {
   selectIsEditMode,
   selectIsOrgOwner,
 } from './policySelectors';
-import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategoriesSlice';
+import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSlice';
 import { deriveEditRoute, getActionsOverride } from './utility/util';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet, pathSet } from 'MainRoot/util/jsUtil';

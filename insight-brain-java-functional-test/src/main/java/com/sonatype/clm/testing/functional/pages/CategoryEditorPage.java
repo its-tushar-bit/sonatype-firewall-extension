@@ -5,9 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import com.sonatype.clm.testing.functional.elements.ColorPicker;
+import com.sonatype.clm.testing.functional.elements.NxColorPicker;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
-import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
@@ -18,9 +18,7 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class CategoryEditorPage
 {
-  private static SelenideElement root = $("#category-editor");
-
-  private static final ColorPicker colorPicker = new ColorPicker("#editor-category-color-picker");
+  private static final NxColorPicker nxColorPicker = new NxColorPicker("#editor-category-color-picker");
 
   public static String urlToEdit(String ownerId, String categoryId) {
     return urlToCreate(ownerId) + "/" + categoryId;
@@ -30,32 +28,48 @@ public class CategoryEditorPage
     return BaseUrl.resolvePageUrl("/management/edit/organization/{ownerId}/category", ownerId);
   }
 
-  public static SelenideElement root() {
-    return root;
+  public static SelenideElement title() {
+    return $("h1");
   }
 
-  public static SelenideElement title() {
-    return root().$("h2");
+  public static SelenideElement categoryNameDiv() {
+    return $("#editor-category-name .nx-text-input");
   }
 
   public static SelenideElement categoryName() {
-    return $("#editor-category-name");
+    return $("#editor-category-name .nx-text-input .nx-text-input__input");
+  }
+
+  public static SelenideElement categoryInvalidMessage() {
+    return $("#editor-category-name > .nx-text-input > .nx-text-input__invalid-message");
+  }
+
+  public static SelenideElement descriptionDiv() {
+    return $("#editor-category-description .nx-text-input");
   }
 
   public static SelenideElement description() {
-    return $("#editor-category-description");
+    return $("#editor-category-description .nx-text-input .nx-text-input__input");
   }
 
-  public static ColorPicker colorPicker() {
-    return colorPicker;
+  public static SelenideElement descriptionInvalidMessage() {
+    return $("#editor-category-description > .nx-text-input > .nx-text-input__invalid-message");
+  }
+
+  public static NxColorPicker nxColorPicker() {
+    return nxColorPicker;
   }
 
   public static SelenideElement saveButton() {
-    return root().$("button[type^=submit]");
+    return $("#create-edit-category .nx-form__submit-btn");
   }
 
   public static SelenideElement deleteButton() {
     return $("#delete-category-button");
+  }
+
+  public static NxDeleteModal getDeleteModal() {
+    return new NxDeleteModal("#category-delete-modal");
   }
 
   public static Condition deleteWarningText() {
@@ -68,25 +82,8 @@ public class CategoryEditorPage
         baseMessage + " It is in use by the following applications: " + applicationNames + ".");
   }
 
-  public static class DeleteErrorModal
-  {
-    private static final String ROOT_SELECTOR = "#delete-application-category-error-modal";
-
-    public static SelenideElement root() {
-      return $(ROOT_SELECTOR);
-    }
-
-    public static SelenideElement message() {
-      return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".iq-alert"));
-    }
-
-    public static SelenideElement closeButton() {
-      return $(SelectorUtils.createSelector(ROOT_SELECTOR, ".btn"));
-    }
-
-    public static Condition associatedPoliciesText(String... policyNames) {
-      return text("You cannot delete this application category because it is associated with the following policies: " +
-          Joiner.on(", ").join(policyNames));
-    }
+  public static Condition associatedPoliciesText(String... policyNames) {
+    return text("You cannot delete this application category because it is associated with the following policies: " +
+            Joiner.on(", ").join(policyNames));
   }
 }

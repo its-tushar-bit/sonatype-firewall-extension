@@ -22,22 +22,30 @@ import {
   reject,
 } from 'ramda';
 
+import { nxTextInputStateHelpers, combineValidationErrors } from '@sonatype/react-shared-components';
+
 import {
   getApplicableCategoriesUrl,
   getCategoriesUrl,
   getDeleteCategoriesUrl,
   getOrganizationAppliedTagUrl,
   getOrganizationPolicyTagUrl,
-} from '../util/CLMLocation';
+} from '../../util/CLMLocation';
 import { selectRouterCurrentParams, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsEditMode, selectCurrentCategory } from './createEditApplicationCategoriesSelectors';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { pathSet, propSet } from '../util/jsUtil';
+import { pathSet, propSet } from '../../util/jsUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { actions as applicationActions } from './applicationsSlice';
-import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
-import { deriveEditRoute } from './utility/util';
-import { actions as rootActions } from './rootSlice';
+import { actions as applicationActions } from '../applicationsSlice';
+import { selectOwnerProperties } from '../orgsAndPoliciesSelectors';
+import { deriveEditRoute } from '../utility/util';
+import { actions as rootActions } from '../rootSlice';
+
+import { validateMaxLength, validateNameCharacters, validateNonEmpty } from 'MainRoot/util/validationUtil';
+import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
+import { rscToAngularColorMap } from '../utility/util';
+
+const { initialState: rscInitialState, userInput } = nxTextInputStateHelpers;
 
 const REDUCER_NAME = 'applicationCategories/createEdit';
 
@@ -49,19 +57,19 @@ export const initialState = {
   isDirty: false,
   currentCategory: {
     id: null,
-    color: null,
-    name: null,
-    description: null,
+    color: Object.values(rscToAngularColorMap)[0],
+    name: rscInitialState('', validateNonEmpty),
+    description: rscInitialState('', validateNonEmpty),
   },
   serverCategory: null,
   deleteModal: {
     associatedApplicationNames: null,
     tagPolicyList: null,
-    // deleting, success and errorState props are required by the Delete Modal and can't be renamed while using DeleteModalService
-    deleting: null,
-    success: null,
-    errorState: null,
   },
+  deleteError: null,
+  submitMaskState: null,
+  deleteMaskState: null,
+  validationError: null,
 };
 
 const loadOrganizationPolicyTags = createAsyncThunk(
@@ -130,6 +138,10 @@ const loadApplicableCategoriesFailed = (state, { payload }) => {
   state.loadError = Messages.getHttpErrorMessage(payload);
 };
 
+const clearDeleteError = (state) => {
+  state.deleteError = null;
+};
+
 const loadCategoryEditorRequested = (state) => {
   state.loading = true;
   state.loadError = null;
@@ -138,13 +150,17 @@ const loadCategoryEditorRequested = (state) => {
 const loadCategoryEditorFulfilled = (state, { payload }) => {
   state.loading = false;
   state.loadError = null;
-  state.deleteModal.success = null;
-  state.deleteModal.deleting = null;
-  state.deleteModal.errorState = null;
+  state.submitError = null;
+  state.deleteError = null;
+  state.isDirty = false;
 
-  const { associatedApplicationNames, siblings, currentCategory, tagPolicyList } = payload;
-  state.currentCategory = currentCategory;
-  state.serverCategory = currentCategory;
+  const { associatedApplicationNames, siblings, currentCategory: currentCategoryPayload, tagPolicyList } = payload;
+  state.currentCategory = {
+    ...currentCategoryPayload,
+    name: rscInitialState(currentCategoryPayload?.name ?? '', validateNonEmpty),
+    description: rscInitialState(currentCategoryPayload?.description ?? '', validateNonEmpty),
+  };
+  state.serverCategory = currentCategoryPayload;
   state.siblings = siblings || [];
   state.deleteModal.associatedApplicationNames = associatedApplicationNames;
   state.deleteModal.tagPolicyList = tagPolicyList;
@@ -236,6 +252,11 @@ const loadCategoryEditor = createAsyncThunk(
         if (!isEditMode) {
           return {
             siblings: siblingsFromAllOwners,
+            currentCategory: {
+              name: '',
+              description: '',
+              color: Object.values(rscToAngularColorMap)[0],
+            },
           };
         }
 
@@ -266,29 +287,64 @@ const loadCategoryEditor = createAsyncThunk(
 
 const computeIsDirty = (state) => {
   const { currentCategory, serverCategory } = state;
+  const computedCurrentCategory = {
+    ...currentCategory,
+    description: currentCategory?.description.value,
+    name: currentCategory?.name.value,
+  };
 
   const isDirtyObservedProps = ['color', 'name', 'description'];
   const isDirty = isNil(serverCategory)
     ? any((prop) => !isEmpty(currentCategory[prop]), isDirtyObservedProps)
-    : any((prop) => currentCategory[prop] !== serverCategory[prop], isDirtyObservedProps);
+    : any((prop) => computedCurrentCategory[prop] !== serverCategory[prop], isDirtyObservedProps);
 
   return propSet('isDirty', isDirty, state);
 };
 
-const setTextInput = curryN(3, function setTextInput(fieldName, state, { payload }) {
-  return computeIsDirty(pathSet(['currentCategory', fieldName], payload, state));
+const validateDuplicationName = (value, { siblings, currentCategory }) => {
+  const isExist = any(
+    (item) => item.name?.toLowerCase() === value.toLowerCase() && item.id !== currentCategory.id,
+    siblings
+  );
+  return isExist ? 'Name is already in use' : null;
+};
+
+const categoryNameValidator = (val, state) => () =>
+  combineValidationErrors(
+    validateNonEmpty(val),
+    validateMaxLength(60, val),
+    validateDuplicationName(val, state),
+    validateNameCharacters(val)
+  );
+
+const categoryDescriptionValidator = (val) => () =>
+  combineValidationErrors(validateNonEmpty(val), validateMaxLength(255, val));
+
+const setTextInput = curryN(4, function setTextInput(fieldName, validationFunc, state, { payload }) {
+  return computeIsDirty(
+    pathSet(['currentCategory', fieldName], userInput(validationFunc(payload, state), payload), state)
+  );
+});
+
+const setColorInput = curryN(2, function setTextInput(state, { payload }) {
+  return computeIsDirty(pathSet(['currentCategory', 'color'], payload, state));
 });
 
 const saveApplicationCategory = createAsyncThunk(
   `${REDUCER_NAME}/saveApplicationCategory`,
-  (_, { getState, rejectWithValue }) => {
+  (_, { getState, rejectWithValue, dispatch }) => {
     const state = getState();
     const isEditMode = selectIsEditMode(state);
     const { ownerType, ownerId } = selectOwnerProperties(state);
     const categoryToSave = selectCurrentCategory(state);
-
-    return axios[isEditMode ? 'put' : 'post'](getCategoriesUrl(ownerType, ownerId), categoryToSave)
+    const newCategory = {
+      ...categoryToSave,
+      description: categoryToSave.description.trimmedValue,
+      name: categoryToSave.name.trimmedValue,
+    };
+    return axios[isEditMode ? 'put' : 'post'](getCategoriesUrl(ownerType, ownerId), newCategory)
       .then(({ data: savedCategory }) => {
+        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone);
         return {
           savedCategory,
           isEditMode,
@@ -298,13 +354,23 @@ const saveApplicationCategory = createAsyncThunk(
   }
 );
 
+const saveCategoryPending = (state) => {
+  state.submitError = null;
+  state.submitMaskState = false;
+};
+
 const saveApplicationCategoryFulfilled = (state, { payload }) => {
   state.submitError = null;
   state.isDirty = false;
+  state.submitMaskState = true;
 
   const { savedCategory, isEditMode } = payload;
   if (isEditMode) {
-    state.currentCategory = savedCategory;
+    state.currentCategory = {
+      ...savedCategory,
+      name: rscInitialState(savedCategory?.name ?? '', validateNonEmpty),
+      description: rscInitialState(savedCategory?.description ?? '', validateNonEmpty),
+    };
     state.serverCategory = savedCategory;
   } else {
     state.currentCategory = initialState.currentCategory;
@@ -321,6 +387,7 @@ const saveApplicationCategoryFulfilled = (state, { payload }) => {
 
 const saveApplicationCategoryFailed = (state, { payload }) => {
   state.submitError = Messages.getHttpErrorMessage(payload);
+  state.submitMaskState = null;
 };
 
 const goToCreateCategory = createAsyncThunk(`${REDUCER_NAME}/goToCreateCategory`, (_, { getState, dispatch }) => {
@@ -340,6 +407,7 @@ const removeApplicationCategory = createAsyncThunk(
     return axios
       .delete(getDeleteCategoriesUrl(ownerType, ownerId, categoryToRemove.id))
       .then(() => {
+        startSaveMaskSuccessTimer(dispatch, actions.deleteMaskTimerDone);
         dispatch(actions.resetIsDirty());
         dispatch(actions.goToCreateCategory());
         return categoryToRemove.id;
@@ -348,29 +416,36 @@ const removeApplicationCategory = createAsyncThunk(
   }
 );
 
+const removeCategoryPending = (state) => {
+  state.submitError = null;
+  state.deleteMaskState = false;
+};
+
 const removeApplicationCategoryFulfilled = (state, { payload }) => {
   state.isDirty = false;
-  state.deleteModal.success = true;
-  state.deleteModal.deleting = null;
-  state.deleteModal.errorState = null;
+  state.deleteMaskState = true;
+  state.deleteError = null;
   state.currentCategory = initialState.currentCategory;
   state.serverCategory = initialState.serverCategory;
   state.siblings = reject(propEq('id', payload), state.siblings);
 };
 
 const removeApplicationCategoryFailed = (state, { payload }) => {
-  state.deleteModal.deleting = false;
-  state.deleteModal.errorState = Messages.getHttpErrorMessage(payload);
+  state.deleteMaskState = null;
+  state.deleteError = Messages.getHttpErrorMessage(payload);
 };
 
 const createEditApplicationCategoriesSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
-    setCategoryDescription: setTextInput('description'),
-    setCategoryName: setTextInput('name'),
-    setCategoryColor: setTextInput('color'),
+    setCategoryName: setTextInput('name', categoryNameValidator),
+    setCategoryDescription: setTextInput('description', categoryDescriptionValidator),
+    setCategoryColor: setColorInput,
     resetIsDirty: propSet('isDirty', false),
+    saveMaskTimerDone: propSet('submitMaskState', null),
+    deleteMaskTimerDone: propSet('deleteMaskState', null),
+    clearDeleteError,
   },
   extraReducers: {
     [loadApplicableCategories.pending]: loadApplicableCategoriesRequested,
@@ -379,10 +454,10 @@ const createEditApplicationCategoriesSlice = createSlice({
     [loadCategoryEditor.pending]: loadCategoryEditorRequested,
     [loadCategoryEditor.fulfilled]: loadCategoryEditorFulfilled,
     [loadCategoryEditor.rejected]: loadCategoryEditorFailed,
-    [saveApplicationCategory.pending]: propSet('submitError', null),
+    [saveApplicationCategory.pending]: saveCategoryPending,
     [saveApplicationCategory.fulfilled]: saveApplicationCategoryFulfilled,
     [saveApplicationCategory.rejected]: saveApplicationCategoryFailed,
-    [removeApplicationCategory.pending]: pathSet(['deleteModal', 'deleting'], true),
+    [removeApplicationCategory.pending]: removeCategoryPending,
     [removeApplicationCategory.fulfilled]: removeApplicationCategoryFulfilled,
     [removeApplicationCategory.rejected]: removeApplicationCategoryFailed,
   },

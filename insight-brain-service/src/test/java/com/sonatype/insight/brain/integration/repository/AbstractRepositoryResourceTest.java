@@ -37,13 +37,39 @@ public abstract class AbstractRepositoryResourceTest
 
   private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
 
-  protected abstract HttpRequest summaryRequest();
+  protected abstract String getUserAgent();
 
-  protected abstract HttpRequest quarantineRequest();
+  private HttpRequest summaryRequest() {
+    return restRequest().path(AbstractRepositoryResource.SUMMARY_PATH);
+  }
 
-  protected abstract HttpRequest enableRequest();
+  private HttpRequest quarantineRequest() {
+    return restRequest().path(AbstractRepositoryResource.QUARANTINE_PATH);
+  }
 
-  protected abstract HttpRequest quarantinedComponentReportUrlRequest();
+  private HttpRequest enableRequest() {
+    return restRequest().path(AbstractRepositoryResource.ENABLE_PATH);
+  }
+
+  private HttpRequest evaluateComponentsRequest() {
+    return restRequest().path(AbstractRepositoryResource.EVALUATE_COMPONENTS_PATH);
+  }
+
+  private HttpRequest componentsRequest() {
+    return restRequest().path(AbstractRepositoryResource.COMPONENTS_PATH);
+  }
+
+  private HttpRequest unquarantinedComponentsRequest() {
+    return restRequest().path(AbstractRepositoryResource.UNQUARANTINED_COMPONENTS_PATH);
+  }
+
+  private HttpRequest proprietaryNamesRequest() {
+    return restRequest().path(AbstractRepositoryResource.PROPRIETARY_NAMES_PATH);
+  }
+
+  private HttpRequest quarantinedComponentReportUrlRequest() {
+    return restRequest().path(AbstractRepositoryResource.QUARANTINED_COMPONENT_REPORT_URL_PATH);
+  }
 
   @Test
   public void testSetEnabled_True() throws Exception {
@@ -64,7 +90,7 @@ public abstract class AbstractRepositoryResourceTest
 
   @Test
   public void testSetEnabled_WithClientUserAgent() throws Exception {
-    String userAgent = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+    String userAgent = getUserAgent();
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
@@ -97,7 +123,7 @@ public abstract class AbstractRepositoryResourceTest
 
   @Test
   public void testSetQuarantine_WithClientUserAgent() throws Exception {
-    String userAgent = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+    String userAgent = getUserAgent();
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
 
@@ -145,7 +171,7 @@ public abstract class AbstractRepositoryResourceTest
 
   @Test
   public void testGetPolicyEvaluationSummary_WithClientUserAgent() throws Exception {
-    String userAgent = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+    String userAgent = getUserAgent();
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, "path1",
@@ -201,7 +227,7 @@ public abstract class AbstractRepositoryResourceTest
 
     ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
 
-    HttpResponse response = restRequest().path(RepositoryResource.EVALUATE_COMPONENTS_PATH)
+    HttpResponse response = evaluateComponentsRequest()
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).body(componentEvaluationDataRequestList)
         .post();
 
@@ -213,13 +239,13 @@ public abstract class AbstractRepositoryResourceTest
 
   @Test
   public void testEvaluateComponents_WithClientUserAgent() throws Exception {
-    String userAgent = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+    String userAgent = getUserAgent();
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
     ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
 
-    HttpResponse response = restRequest().path(RepositoryResource.EVALUATE_COMPONENTS_PATH)
+    HttpResponse response = evaluateComponentsRequest()
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).body(componentEvaluationDataRequestList)
         .header(HttpHeaders.USER_AGENT, userAgent)
         .post();
@@ -235,7 +261,7 @@ public abstract class AbstractRepositoryResourceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
 
-    HttpResponse response = restRequest().path(RepositoryResource.COMPONENTS_PATH)
+    HttpResponse response = componentsRequest()
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), "somepath/subpath").delete();
 
     RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
@@ -246,11 +272,11 @@ public abstract class AbstractRepositoryResourceTest
 
   @Test
   public void testRemoveComponent_WithClientUserAgent() throws Exception {
-    String userAgent = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+    String userAgent = getUserAgent();
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
 
-    HttpResponse response = restRequest().path(RepositoryResource.COMPONENTS_PATH)
+    HttpResponse response = componentsRequest()
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), "somepath/subpath")
         .header(HttpHeaders.USER_AGENT, userAgent).delete();
 
@@ -268,7 +294,7 @@ public abstract class AbstractRepositoryResourceTest
     String pathname = "test/pathname";
     tempEntity.newRepositoryComponent(repository.getId(), pathname, now, now);
 
-    HttpResponse response = restRequest().path(RepositoryResource.UNQUARANTINED_COMPONENTS_PATH)
+    HttpResponse response = unquarantinedComponentsRequest()
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
         .query("sinceUtcTimestamp=" + (now.getTime())).get();
     assertResponseStatus(200, response);
@@ -282,14 +308,14 @@ public abstract class AbstractRepositoryResourceTest
 
   @Test
   public void testGetUnquarantinedComponents_WithClientUserAgent() throws Exception {
-    String userAgent = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+    String userAgent = getUserAgent();
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
     Date now = new Date();
     String pathname = "test/pathname";
     tempEntity.newRepositoryComponent(repository.getId(), pathname, now, now);
 
-    HttpResponse response = restRequest().path(RepositoryResource.UNQUARANTINED_COMPONENTS_PATH)
+    HttpResponse response = unquarantinedComponentsRequest()
         .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
         .query("sinceUtcTimestamp=" + (now.getTime())).header(HttpHeaders.USER_AGENT, userAgent)
         .get();
@@ -308,7 +334,8 @@ public abstract class AbstractRepositoryResourceTest
     String repoId = "hosted-repo";
     ProprietaryComponentNames proprietaryComponentNames = new ProprietaryComponentNames("npm", "name1", "name2");
 
-    HttpResponse response = restRequest().path(RepositoryResource.PROPRIETARY_NAMES_PATH).parameter(repoManId, repoId)
+    HttpResponse response =
+        proprietaryNamesRequest().parameter(repoManId, repoId)
         .body(proprietaryComponentNames).post();
     assertResponseStatus(204, response);
 

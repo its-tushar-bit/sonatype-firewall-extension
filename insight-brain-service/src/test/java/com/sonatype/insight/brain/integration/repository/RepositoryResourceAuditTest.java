@@ -17,38 +17,8 @@ public class RepositoryResourceAuditTest
     extends AbstractRepositoryResourceAuditTest
 {
   @Override
-  protected String getEnablePath() {
-    return RepositoryResource.ENABLE_PATH;
-  }
-
-  @Override
   protected String getResourcePath() {
     return RepositoryResource.RESOURCE_PATH;
-  }
-
-  @Override
-  protected String getEvaluateComponentsPath() {
-    return RepositoryResource.EVALUATE_COMPONENTS_PATH;
-  }
-
-  @Override
-  protected String getQuarantinePath() {
-    return RepositoryResource.QUARANTINE_PATH;
-  }
-
-  @Override
-  protected String getComponentsPath() {
-    return RepositoryResource.COMPONENTS_PATH;
-  }
-
-  @Override
-  protected String getEvaluateComponentsWithQuarantinePath() {
-    return RepositoryResource.EVALUATE_COMPONENTS_WITH_QUARANTINE_PATH;
-  }
-
-  @Override
-  protected String getProprietaryComponentsNamePath() {
-    return RepositoryResource.PROPRIETARY_NAMES_PATH;
   }
 
   @Test
@@ -99,7 +69,7 @@ public class RepositoryResourceAuditTest
 
   @Test
   public void testRemoveProprietaryComponentNames() throws Exception {
-    restRequest().path(getResourcePath(), getProprietaryComponentsNamePath())
+    restRequest().path(getResourcePath(), AbstractRepositoryResource.PROPRIETARY_NAMES_PATH)
         .parameter(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_PROPRIETARY_COMPONENT_NAMES, null);
@@ -109,7 +79,7 @@ public class RepositoryResourceAuditTest
 
   @Test
   public void testRemoveProprietaryComponentNames_Unauthorized() throws Exception {
-    restRequest().path(getResourcePath(), getProprietaryComponentsNamePath())
+    restRequest().path(getResourcePath(), AbstractRepositoryResource.PROPRIETARY_NAMES_PATH)
         .parameter(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID).with(unauthorizedUser()).delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_PROPRIETARY_COMPONENT_NAMES, "unauthorized");

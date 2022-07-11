@@ -39,29 +39,9 @@ import com.codahale.metrics.annotation.Timed;
 @Timed
 @Path(ArtifactoryRepositoryResource.RESOURCE_PATH)
 public class ArtifactoryRepositoryResource
+    extends AbstractRepositoryResource
 {
   static final String RESOURCE_PATH = "rest/integration/artifactory/repositories";
-
-  private static final String REPOSITORY_PATH = "{repositoryManagerInstanceId}/{repositoryPublicId}/";
-
-  static final String SUMMARY_PATH = REPOSITORY_PATH + "summary";
-
-  static final String ENABLE_PATH = REPOSITORY_PATH + "enable/{enabled}";
-
-  static final String QUARANTINE_PATH = REPOSITORY_PATH + "quarantine/{enabled}";
-
-  static final String EVALUATE_COMPONENTS_PATH = REPOSITORY_PATH + "evaluate/audit";
-
-  static final String COMPONENTS_PATH = REPOSITORY_PATH + "components/{pathname: .+}";
-
-  static final String EVALUATE_COMPONENTS_WITH_QUARANTINE_PATH = REPOSITORY_PATH + "evaluate/quarantine";
-
-  static final String UNQUARANTINED_COMPONENTS_PATH = REPOSITORY_PATH + "components/unquarantined";
-
-  static final String PROPRIETARY_NAMES = REPOSITORY_PATH + "proprietary/names";
-
-  static final String QUARANTINED_COMPONENT_REPORT_URL_PATH =
-      REPOSITORY_PATH + "components/{pathname: .+}/quarantinedComponentReportUrl";
 
   private final ArtifactoryRepositoryServiceWrapper repositoryService;
 
@@ -76,7 +56,7 @@ public class ArtifactoryRepositoryResource
    */
   @POST
   @Path(ENABLE_PATH)
-  @Consumes(MediaType.APPLICATION_JSON)
+  @Timed
   public void setEnabled(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,
@@ -91,6 +71,7 @@ public class ArtifactoryRepositoryResource
   @GET
   @Path(SUMMARY_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
   public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary(
       @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") final String repositoryPublicId,
@@ -104,6 +85,7 @@ public class ArtifactoryRepositoryResource
   @Path(EVALUATE_COMPONENTS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_REPOSITORY)
+  @Timed
   public void evaluateComponents(@PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
                                  @PathParam("repositoryPublicId") String repositoryPublicId,
                                  RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
@@ -119,6 +101,7 @@ public class ArtifactoryRepositoryResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_REPOSITORY)
+  @Timed
   public RepositoryComponentEvaluationDataList evaluateComponentsWithQuarantine(
       @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") final String repositoryPublicId,
@@ -134,6 +117,7 @@ public class ArtifactoryRepositoryResource
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CONFIGURE_QUARANTINE)
+  @Timed
   public void setQuarantine(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,
@@ -146,6 +130,7 @@ public class ArtifactoryRepositoryResource
 
   @DELETE
   @Path(COMPONENTS_PATH)
+  @Timed
   public void removeComponent(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,
@@ -159,6 +144,7 @@ public class ArtifactoryRepositoryResource
   @GET
   @Path(UNQUARANTINED_COMPONENTS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Timed
   public UnquarantinedComponentList getUnquarantinedComponents(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,
@@ -173,9 +159,10 @@ public class ArtifactoryRepositoryResource
    * @since 1.106
    */
   @POST
-  @Path(PROPRIETARY_NAMES)
+  @Path(PROPRIETARY_NAMES_PATH)
   @Consumes({MediaType.APPLICATION_JSON})
   @Audited(AuditEvent.ADD_PROPRIETARY_COMPONENT_NAMES)
+  @Timed
   public void addProprietaryComponentNames(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,

@@ -18,37 +18,7 @@ public class ArtifactoryRepositoryResourceAuditTest
   }
 
   @Override
-  protected String getEnablePath() {
-    return ArtifactoryRepositoryResource.ENABLE_PATH;
-  }
-
-  @Override
   protected String getResourcePath() {
     return ArtifactoryRepositoryResource.RESOURCE_PATH;
-  }
-
-  @Override
-  protected String getEvaluateComponentsPath() {
-    return ArtifactoryRepositoryResource.EVALUATE_COMPONENTS_PATH;
-  }
-
-  @Override
-  protected String getQuarantinePath() {
-    return ArtifactoryRepositoryResource.QUARANTINE_PATH;
-  }
-
-  @Override
-  protected String getComponentsPath() {
-    return ArtifactoryRepositoryResource.COMPONENTS_PATH;
-  }
-
-  @Override
-  protected String getEvaluateComponentsWithQuarantinePath() {
-    return ArtifactoryRepositoryResource.EVALUATE_COMPONENTS_WITH_QUARANTINE_PATH;
-  }
-
-  @Override
-  protected String getProprietaryComponentsNamePath() {
-    return ArtifactoryRepositoryResource.PROPRIETARY_NAMES;
   }
 }

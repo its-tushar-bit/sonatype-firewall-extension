@@ -24,22 +24,8 @@ public class ArtifactoryRepositoryResourceTest
   }
 
   @Override
-  protected HttpRequest summaryRequest() {
-    return restRequest().path(ArtifactoryRepositoryResource.SUMMARY_PATH);
-  }
-
-  @Override
-  protected HttpRequest quarantineRequest() {
-    return restRequest().path(ArtifactoryRepositoryResource.QUARANTINE_PATH);
-  }
-
-  @Override
-  protected HttpRequest enableRequest() {
-    return restRequest().path(ArtifactoryRepositoryResource.ENABLE_PATH);
-  }
-
-  @Override
-  protected HttpRequest quarantinedComponentReportUrlRequest() {
-    return restRequest().path(ArtifactoryRepositoryResource.QUARANTINED_COMPONENT_REPORT_URL_PATH);
+  protected String getUserAgent() {
+    return "Firewall_For_Jfrog_Artifactory/2.3.1 (; Linux; 5.10.109-104.500.amzn2.x86_64; amd64; 11.0.13; Jfrog"
+        + " Artifactory 7.37.15)";
   }
 }

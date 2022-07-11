@@ -43,20 +43,8 @@ public abstract class AbstractRepositoryResourceAuditTest
   protected static final String REPOSITORY_MANAGER_INSTANCE_ID = "repoManInsId";
 
   protected static final String REPOSITORY_PUBLIC_ID = "repoPubId";
-
-  protected abstract String getEnablePath();
-
+  
   protected abstract String getResourcePath();
-
-  protected abstract String getEvaluateComponentsPath();
-
-  protected abstract String getQuarantinePath();
-
-  protected abstract String getComponentsPath();
-
-  protected abstract String getEvaluateComponentsWithQuarantinePath();
-
-  protected abstract String getProprietaryComponentsNamePath();
 
   @Test
   public void testSetEnabled_Connect() throws Exception {
@@ -360,7 +348,7 @@ public abstract class AbstractRepositoryResourceAuditTest
   public void testAddProprietaryComponentNames() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
 
-    restRequest().path(getResourcePath(), getProprietaryComponentsNamePath())
+    restRequest().path(getResourcePath(), AbstractRepositoryResource.PROPRIETARY_NAMES_PATH)
         .parameter(repositoryManager.getInstanceId(), REPOSITORY_PUBLIC_ID)
         .body(new ProprietaryComponentNames("npm").addNames("name1", "name").addNamespaces("namespace1")).post();
 
@@ -374,7 +362,7 @@ public abstract class AbstractRepositoryResourceAuditTest
   public void testAddProprietaryComponentNames_Unauthorized() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
 
-    restRequest().path(getResourcePath(), getProprietaryComponentsNamePath())
+    restRequest().path(getResourcePath(), AbstractRepositoryResource.PROPRIETARY_NAMES_PATH)
         .parameter(repositoryManager.getInstanceId(), REPOSITORY_PUBLIC_ID)
         .body(new ProprietaryComponentNames("npm").addNames("name1", "name").addNamespaces("namespace1"))
         .with(unauthorizedUser()).post();
@@ -385,7 +373,7 @@ public abstract class AbstractRepositoryResourceAuditTest
   }
 
   private HttpRequest enableRequest(String repositoryManagerInstanceId, String repositoryPublicId, boolean enabled) {
-    return restRequest().path(getResourcePath(), getEnablePath())
+    return restRequest().path(getResourcePath(), AbstractRepositoryResource.ENABLE_PATH)
         .parameter(repositoryManagerInstanceId, repositoryPublicId, enabled);
   }
 
@@ -395,7 +383,8 @@ public abstract class AbstractRepositoryResourceAuditTest
                                       RepositoryComponentEvaluationDataRequestList repoComponentEvalList)
   {
     return restRequest().path(getResourcePath(),
-        withQuarantine ? getEvaluateComponentsWithQuarantinePath() : getEvaluateComponentsPath())
+        withQuarantine ? AbstractRepositoryResource.EVALUATE_COMPONENTS_WITH_QUARANTINE_PATH
+            : AbstractRepositoryResource.EVALUATE_COMPONENTS_PATH)
         .parameter(repositoryManagerInstanceId, repositoryPublicId).body(repoComponentEvalList);
   }
 
@@ -403,12 +392,12 @@ public abstract class AbstractRepositoryResourceAuditTest
                                         String repositoryPublicId,
                                         boolean enabled)
   {
-    return restRequest().path(getResourcePath(), getQuarantinePath())
+    return restRequest().path(getResourcePath(), AbstractRepositoryResource.QUARANTINE_PATH)
         .parameter(repositoryManagerInstanceId, repositoryPublicId, enabled);
   }
 
   private HttpRequest componentRequest(String repositoryManagerInstanceId, String repositoryPublicId, String pathname) {
-    return restRequest().path(getResourcePath(), getComponentsPath())
+    return restRequest().path(getResourcePath(), AbstractRepositoryResource.COMPONENTS_PATH)
         .parameter(repositoryManagerInstanceId, repositoryPublicId, pathname);
   }
 

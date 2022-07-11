@@ -46,26 +46,6 @@ public class RepositoryResourceTest
     return super.restRequest().path(RepositoryResource.RESOURCE_PATH);
   }
 
-  @Override
-  protected HttpRequest summaryRequest() {
-    return restRequest().path(RepositoryResource.SUMMARY_PATH);
-  }
-
-  @Override
-  protected HttpRequest quarantineRequest() {
-    return restRequest().path(RepositoryResource.QUARANTINE_PATH);
-  }
-
-  @Override
-  protected HttpRequest enableRequest() {
-    return restRequest().path(RepositoryResource.ENABLE_PATH);
-  }
-
-  @Override
-  protected HttpRequest quarantinedComponentReportUrlRequest() {
-    return restRequest().path(RepositoryResource.QUARANTINED_COMPONENT_REPORT_URL_PATH);
-  }
-
   @Test
   public void testGetIgnorePatterns() throws Exception {
     // Prepare request and mock the HDS request
@@ -188,5 +168,10 @@ public class RepositoryResourceTest
     assertThat(repositoryComponentDAO.getById(componentRepo1ToDelete.getId())).isNull();
     assertThat(repositoryComponentDAO.getById(componentRepo1ToKeepBecauseItIsNewer.getId())).isNotNull();
     assertThat(repositoryComponentDAO.getById(componentRepo2.getId())).isNotNull();
+  }
+
+  @Override
+  protected String getUserAgent() {
+    return "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
   }
 }

@@ -19,6 +19,7 @@ A live document containing our _current_ best practices, approaches, patterns an
     - [ Authors - Responding to Feedback ](#authors-responding-to-feedback)
 - [ Code Conventions ](#code-conventions)
   - [ Helpful Utilities ](#helpful-utilities)
+  - [ Directory Structure ](#directory-structure)
   - [ React Sample component ](#react-sample-component)
   - [ Using Redux-Toolkit ](#using-redux-toolkit)
   - [ Miscelaneous ](#miscelaneous)
@@ -103,6 +104,29 @@ There are several helpful utility files and functions that have been implemented
 - `componentIdentifierUtils.js` - Helper function to serialize component identifiers
 
 If you find yourself implementing a simple pattern that is or may be reusable, please consider exporting it to a helper file in this directory.
+
+### Directory Structure
+
+The directory structure should resemble the component tree. The top level components (usually representing the page), should have their own directory under `src/main/frontend`. If components consist of other components, they should be placed in the directory representing their parent component and so on. Directories should be named using `camelCase`.
+
+In the example below, `HomePage.jsx` consists of `Header.jsx`, `Footer.jsx` and complex `Main.jsx`, which consists of other components. 
+
+```
+frontend
+    - homePage
+        - HomePage.jsx
+        - homePage.scss
+        - Header.jsx
+        - Footer.jsx
+        - main
+            - Main.jsx
+            - dashboard
+                - Dashboard.jsx
+                - DashboardFilter.jsx
+
+```
+
+Generic reusable React components should be placed in `src/main/frontend/react`.
 
 ### React Sample component
 

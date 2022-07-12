@@ -52,7 +52,7 @@ public class DatabaseMigrator
     }
 
     try {
-      int desiredVersion = determineDesiredVersion(databaseName);
+      int desiredVersion = getDesiredVersion(databaseName);
 
       if (new DataSourceFactory().isNewDataSource(dataSource)) {
         // This is a new database, nothing to migrate here.
@@ -140,12 +140,17 @@ public class DatabaseMigrator
     }
   }
 
+  // Visible for testing
+  public int getDesiredVersion(String databaseName) {
+    return DatabaseMigrator.determineDesiredVersion(databaseName);
+  }
+
   private static String getIncrementalFileName(String databaseName, String extension, int scriptIndex) {
     return "/db/" + databaseName + "/schema_incremental_" + String.format("%1$04d", scriptIndex) + "." + extension;
   }
 
-  // Package visibility for tests only.
-  static int determineDesiredVersion(String databaseName) {
+  // Public visibility for tests only.
+  public static int determineDesiredVersion(String databaseName) {
     boolean foundScripts = false;
     for (int version = 1; version < 10000; version++) {
       Resource incrementalScript = loadIncrementalScriptResource(getIncrementalFileName(databaseName, "sql", version));

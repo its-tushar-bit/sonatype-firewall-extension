@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -35,6 +36,8 @@ import org.quartz.impl.jdbcjobstore.JobStoreTX;
 import org.quartz.spi.OperableTrigger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
@@ -49,16 +52,16 @@ public class QuartzJobStoreTXTest
   public LogOutput logOutput = new LogOutput(QuartzJobStoreTX.class);
 
   @Inject
-  public QuartzJobStoreTX quartzJobStoreTX;
+  private QuartzJobStoreTX quartzJobStoreTX;
 
   @Inject
-  public TestProductLicense testProductLicense;
+  private TestProductLicense testProductLicense;
 
   @Inject
-  public TaskScheduler taskScheduler;
+  private TaskScheduler taskScheduler;
 
   @Inject
-  public InsightConfig insightConfig;
+  private InsightConfig insightConfig;
 
   private QuartzJobStoreTX quartzJobStoreTXSpy;
 
@@ -107,6 +110,7 @@ public class QuartzJobStoreTXTest
     assertThat(jobStoreTX.getDataSource()).isEqualTo("ods");
     assertThat(jobStoreTX.getTablePrefix()).isEqualTo(OperationalDataStoreProvider.ID + ".QRTZ_");
     assertThat(jobStoreTX.canUseProperties()).isTrue();
+    assertThat(jobStoreTX.getClusterCheckinInterval()).isEqualTo(QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS);
   }
 
   @Test
@@ -114,7 +118,7 @@ public class QuartzJobStoreTXTest
     insightConfig.setClusterDirectory(
         Paths.get(insightConfig.getSonatypeWork().getAbsolutePath(), "clusterDirectory").toString());
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    doNothing().when(quartzJobStoreTXSpy).exitInNewThread();
+    doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
     createSchedulerStateRecord("other",
@@ -126,12 +130,32 @@ public class QuartzJobStoreTXTest
         .contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy).exitInNewThread();
+    verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
+        QuartzJobStoreTX.UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
+  }
+
+  @Test
+  public void testDoCheckin_SchemaMigrationInProgress() throws Exception {
+    try {
+      insightConfig.setClusterDirectory(
+          Paths.get(insightConfig.getSonatypeWork().getAbsolutePath(), "clusterDirectory").toString());
+      doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
+      ClusterLock.createForSchemaMigrationInProgress();
+
+      quartzJobStoreTXSpy.doCheckin();
+
+      assertThat(logOutput).atErrorLevel().contains(QuartzJobStoreTX.SCHEMA_MIGRATION_UNFINISHED_MESSAGE);
+      verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.SCHEMA_MIGRATION_UNFINISHED_EXIT_STATUS,
+          QuartzJobStoreTX.SCHEMA_MIGRATION_UNFINISHED_SHUTDOWN_THREAD_NAME);
+    }
+    finally {
+      ClusterLock.deleteForSchemaMigrationInProgress();
+    }
   }
 
   @Test
   public void testDoCheckin_ClusterDirectoryNotSet() throws Exception {
-    doNothing().when(quartzJobStoreTXSpy).exitInNewThread();
+    doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());;
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
     createSchedulerStateRecord("other",
@@ -143,13 +167,14 @@ public class QuartzJobStoreTXTest
         .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .contains(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy).exitInNewThread();
+    verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
+        QuartzJobStoreTX.UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
   }
 
   @Test
   public void testDoCheckin_NodeClusteringNotSupportedAndClusterDirectoryNotSet() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    doNothing().when(quartzJobStoreTXSpy).exitInNewThread();
+    doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
     createSchedulerStateRecord("other",
@@ -161,13 +186,14 @@ public class QuartzJobStoreTXTest
         .contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .contains(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy).exitInNewThread();
+    verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
+        QuartzJobStoreTX.UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
   }
 
   @Test
   public void testDoCheckin_NoLicenseLoaded() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread();
+    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());;
     quartzJobStoreTXSpy.doCheckin();
     createSchedulerStateRecord("other",
         quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
@@ -178,14 +204,14 @@ public class QuartzJobStoreTXTest
         .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy, never()).exitInNewThread();
+    verify(quartzJobStoreTXSpy, never()).exitInNewThread(anyInt(), anyString());;
   }
 
   @Test
   public void testDoCheckin_HasNodeClusteringFeatureAndClusterDirectoryIsSetByUser() throws Exception {
     insightConfig.setClusterDirectory(
         Paths.get(insightConfig.getSonatypeWork().getAbsolutePath(), "clusterDirectory").toString());
-    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread();
+    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());;
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
     createSchedulerStateRecord("other",
@@ -197,13 +223,13 @@ public class QuartzJobStoreTXTest
         .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy, never()).exitInNewThread();
+    verify(quartzJobStoreTXSpy, never()).exitInNewThread(anyInt(), anyString());;
   }
 
   @Test
   public void testDoCheckin_NoOtherNodesCheckedInAfter() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread();
+    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());;
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
     createSchedulerStateRecord("other",
@@ -215,13 +241,13 @@ public class QuartzJobStoreTXTest
         .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy, never()).exitInNewThread();
+    verify(quartzJobStoreTXSpy, never()).exitInNewThread(anyInt(), anyString());;
   }
 
   @Test
   public void testDoCheckin_OtherNodeCheckinSameTime_AlphaLess() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread();
+    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());;
     doReturn("me").when(quartzJobStoreTXSpy).getInstanceId();
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
@@ -233,13 +259,13 @@ public class QuartzJobStoreTXTest
         .doesNotContain(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .doesNotContain(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy, never()).exitInNewThread();
+    verify(quartzJobStoreTXSpy, never()).exitInNewThread(anyInt(), anyString());;
   }
 
   @Test
   public void testDoCheckin_OtherNodeCheckinSameTime_AlphaMore() throws Exception {
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    doNothing().when(quartzJobStoreTXSpy).exitInNewThread();
+    doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());;
     doReturn("stillme").when(quartzJobStoreTXSpy).getInstanceId();
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
@@ -251,7 +277,8 @@ public class QuartzJobStoreTXTest
         .contains(QuartzJobStoreTX.NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE)
         .contains(QuartzJobStoreTX.CLUSTER_DIRECTORY_NOT_SET_BY_USER_MESSAGE)
         .contains(QuartzJobStoreTX.SHUTTING_DOWN_EXCESS_NODE_MESSAGE);
-    verify(quartzJobStoreTXSpy).exitInNewThread();
+    verify(quartzJobStoreTXSpy).exitInNewThread(QuartzJobStoreTX.NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS,
+        QuartzJobStoreTX.UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
   }
 
   @Test

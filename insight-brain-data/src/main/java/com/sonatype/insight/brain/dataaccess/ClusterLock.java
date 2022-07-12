@@ -51,6 +51,18 @@ public class ClusterLock
   static final String AUDIT_JSON_FILE_STORE_LOCK_PREFIX = "audit-json-file-store-";
 
   // Visible for testing
+  static final String SCHEMA_MIGRATION = "schema-migration";
+
+  // Visible for testing
+  static final String SCHEMA_MIGRATION_IN_PROGRESS = "schema-migration-in-progress";
+
+  // Visible for testing
+  static final String DATA_MIGRATION = "data-migration";
+
+  // Visible for testing
+  static final String NEW_INSTANCE_POPULATION = "new-instance-population";
+
+  // Visible for testing
   final String lockId;
 
   // Visible for testing
@@ -159,6 +171,69 @@ public class ClusterLock
 
   public static String getLockIdForAuditJsonFileStore(String ownerId) {
     return AUDIT_JSON_FILE_STORE_LOCK_PREFIX + ownerId;
+  }
+
+  public static ClusterLock createForSchemaMigration() {
+    return new ClusterLock(getLockIdForSchemaMigration());
+  }
+
+  // Visible for testing
+  public static void deleteForSchemaMigration() {
+    deleteFor(getLockIdForSchemaMigration());
+  }
+
+  // Visible for testing
+  public static String getLockIdForSchemaMigration() {
+    return SCHEMA_MIGRATION;
+  }
+
+  public static ClusterLock createForSchemaMigrationInProgress() {
+    return new ClusterLock(getLockIdForSchemaMigrationInProgress());
+  }
+
+  public static void deleteForSchemaMigrationInProgress() {
+    deleteFor(getLockIdForSchemaMigrationInProgress());
+  }
+
+  public static String getLockIdForSchemaMigrationInProgress() {
+    return SCHEMA_MIGRATION_IN_PROGRESS;
+  }
+
+  public static ClusterLock createForDataMigration() {
+    return new ClusterLock(getLockIdForDataMigration());
+  }
+
+  // Visible for testing
+  public static void deleteForDataMigration() {
+    deleteFor(getLockIdForDataMigration());
+  }
+
+  // Visible for testing
+  public static String getLockIdForDataMigration() {
+    return DATA_MIGRATION;
+  }
+
+  public static ClusterLock createForNewInstancePopulation() {
+    return new ClusterLock(getLockIdForNewInstancePopulation());
+  }
+
+  // Visible for testing
+  public static void deleteForNewInstancePopulation() {
+    deleteFor(getLockIdForNewInstancePopulation());
+  }
+
+  // Visible for testing
+  public static String getLockIdForNewInstancePopulation() {
+    return NEW_INSTANCE_POPULATION;
+  }
+
+  private static void deleteFor(String lockId) {
+    LockDAO lockDAO = new LockDAO();
+    try (TransactionContext tx = lockDAO.createTransactionContext()) {
+      tx.begin();
+      deleteLock(tx, lockId);
+      tx.commit();
+    }
   }
 
   public void lock() {

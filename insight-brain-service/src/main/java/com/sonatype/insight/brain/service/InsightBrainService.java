@@ -28,14 +28,10 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditFilter;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
-import com.sonatype.insight.brain.db.DatabaseName;
-import com.sonatype.insight.brain.db.DatamartProvider;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
+import com.sonatype.insight.brain.migration.DbMigrationCommand;
 import com.sonatype.insight.brain.security.AuthenticationLoggingFilter;
 import com.sonatype.insight.brain.security.ContentTypeOptionsHeaderFilter;
 import com.sonatype.insight.brain.security.CspHeaderFilter;
@@ -43,8 +39,8 @@ import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
+import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.version.VersionService;
-import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
@@ -153,6 +149,7 @@ public class InsightBrainService
     startTime = System.currentTimeMillis();
 
     final Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(this);
+    bootstrap.addCommand(new DbMigrationCommand());
     bootstrap.addCommand(new ServerCommand<InsightConfig>(this)
     {
       private volatile InsightFileLock insightFileLock;
@@ -222,7 +219,7 @@ public class InsightBrainService
   public void run(InsightConfig configuration, Environment environment) throws Exception {
     logServerInstanceMessage("Started " + getServerInstanceMessage());
 
-    initializeDatabases(configuration);
+    DatabaseProvisionUtils.initializeDatabases(configuration, getDatabaseConfigProvider(configuration));
 
     super.run(configuration, environment);
 
@@ -374,8 +371,8 @@ public class InsightBrainService
     return objectMapper;
   }
 
-  protected DatabaseConfig getDatabaseConfig(DatabaseConfigProvider databaseConfigProvider, DatabaseName databaseName) {
-    return databaseConfigProvider.getDatabaseConfig(databaseName);
+  protected DatabaseConfigProvider getDatabaseConfigProvider(InsightConfig insightConfig) {
+    return new DatabaseConfigProvider(insightConfig);
   }
 
   @Override
@@ -426,24 +423,6 @@ public class InsightBrainService
     JaxRsExceptionMapper jaxRsExceptionMapper = getInstance(JaxRsExceptionMapper.class);
     jaxRsExceptionMapper.setExitOnFatalError(config.isExitOnFatalError());
     environment.jersey().register(jaxRsExceptionMapper);
-  }
-
-  private void initializeDatabases(final InsightConfig config) {
-    DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
-
-    // NOTE: The ODS can refuse upgrade if the existing schema is too old. So initialize&upgrade it first to avoid
-    // upgrading the other databases if the ODS fails and a previous server version must be run first instead.
-    DatabaseConfig odsDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.ods);
-    OperationalDataStoreProvider.init(odsDatabaseConfig, config.isConsentToUpgradeToVersion_1_45());
-
-    DatabaseConfig dmDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.dm);
-    DatamartProvider.init(dmDatabaseConfig);
-
-    DatabaseConfig tpsDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.third_party_scans);
-    ThirdPartyScansProvider.init(tpsDatabaseConfig);
-
-    DatabaseConfig aggregationDatabaseConfig = getDatabaseConfig(databaseConfigProvider, DatabaseName.aggregation);
-    AggregationDataStoreProvider.init(aggregationDatabaseConfig);
   }
 
   @Override

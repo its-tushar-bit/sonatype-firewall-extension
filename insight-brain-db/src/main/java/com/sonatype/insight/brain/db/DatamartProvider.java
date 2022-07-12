@@ -34,7 +34,15 @@ public class DatamartProvider
   private DatamartProvider() {
   }
 
-  public static synchronized void init(DatabaseConfig databaseConfig) {
+  public static void init(DatabaseConfig databaseConfig) {
+    init(databaseConfig, true);
+  }
+
+  public static void initWithoutMigration(DatabaseConfig databaseConfig) {
+    init(databaseConfig, false);
+  }
+
+  public static synchronized void init(DatabaseConfig databaseConfig, boolean migrateDatabase) {
     if (isInitialized) {
       return;
     }
@@ -44,13 +52,19 @@ public class DatamartProvider
 
     DatamartProvider.databaseConfig = databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
-    new DatabaseMigrator().migrate(databaseConfig, ID, dataSource);
+    if (migrateDatabase) {
+      migrate();
+    }
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);
     entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainDM", props);
     isInitialized = true;
 
     log.info("Initialized the {} data store in {} ms.", ID, System.currentTimeMillis() - start);
+  }
+
+  public static void migrate() {
+    new DatabaseMigrator().migrate(databaseConfig, ID, dataSource);
   }
 
   public static DataSource getDataSource() {

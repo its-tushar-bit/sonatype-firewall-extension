@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -42,9 +43,17 @@ public class QuartzJobStoreTX
 {
   private static final Logger log = LoggerFactory.getLogger(QuartzJobStoreTX.class);
 
-  private static final String SHUTDOWN_THREAD_NAME = "Unclustered-Node-Shutdown";
+  // Visible for testing
+  static final String UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME = "Unclustered-Node-Shutdown";
 
-  private static final int NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS = 13;
+  // Visible for testing
+  static final int NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS = 13;
+
+  // Visible for testing
+  static final String SCHEMA_MIGRATION_UNFINISHED_SHUTDOWN_THREAD_NAME = "Schema-Migration-Unfinished-Shutdown";
+
+  // Visible for testing
+  static final int SCHEMA_MIGRATION_UNFINISHED_EXIT_STATUS = 15;
 
   // Visible for testing
   static final String NODE_CLUSTERING_NOT_SUPPORTED_MESSAGE =
@@ -55,6 +64,12 @@ public class QuartzJobStoreTX
 
   // Visible for testing
   static final String SHUTTING_DOWN_EXCESS_NODE_MESSAGE = "Shutting down this excess node.";
+
+  // Visible for testing
+  static final String SCHEMA_MIGRATION_UNFINISHED_MESSAGE =
+      "Database schema migration is unfinished. Shutting down this node.";
+
+  public static final long CLUSTER_CHECKIN_INTERVAL_MILLIS = 7500;
 
   private static final String DATA_SOURCE_NAME = "ods";
 
@@ -83,6 +98,7 @@ public class QuartzJobStoreTX
     setDataSource(DATA_SOURCE_NAME);
     setTablePrefix(OperationalDataStoreProvider.ID + ".QRTZ_");
     setUseProperties("true");
+    setClusterCheckinInterval(CLUSTER_CHECKIN_INTERVAL_MILLIS);
     DatabaseEngine dbEngine = DataSourceFactory.getDatabaseEngine(OperationalDataStoreProvider.getDataSource());
     if (H2DatabaseEngine.INSTANCE.equals(dbEngine)) {
       setIsClustered(false);
@@ -107,11 +123,24 @@ public class QuartzJobStoreTX
       //   TaskScheduler stops our org.quartz.Scheduler, which in turn waits for clusterManagementThread to finish
       // i.e. clusterManagementThread waits for ShutdownThread, and ShutdownThread waits for clusterManagementThread
       isShuttingDown = true;
-      exitInNewThread();
+      exitInNewThread(NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS, UNCLUSTERED_NODE_SHUTDOWN_THREAD_NAME);
+      return false;
+    }
+    if (shouldExitDueToSchemaMigration()) {
+      isShuttingDown = true;
+      exitInNewThread(SCHEMA_MIGRATION_UNFINISHED_EXIT_STATUS, SCHEMA_MIGRATION_UNFINISHED_SHUTDOWN_THREAD_NAME);
       return false;
     }
     // Defer calling super.doCheckin() to allow us to check if other nodes checked-in after our previous check-in
     return super.doCheckin();
+  }
+
+  private boolean shouldExitDueToSchemaMigration() {
+    boolean schemaMigrationUnfinished = ClusterLock.lockExists(ClusterLock.getLockIdForSchemaMigrationInProgress());
+    if (schemaMigrationUnfinished) {
+      log.error(SCHEMA_MIGRATION_UNFINISHED_MESSAGE);
+    }
+    return schemaMigrationUnfinished;
   }
 
   private boolean shouldExitDueToOtherNodeInCluster() throws JobPersistenceException {
@@ -188,8 +217,8 @@ public class QuartzJobStoreTX
   }
 
   // Visible for testing
-  void exitInNewThread() {
-    new Thread(() -> System.exit(NODE_CLUSTERING_NOT_ENABLED_EXIT_STATUS), SHUTDOWN_THREAD_NAME).start();
+  void exitInNewThread(int status, String threadName) {
+    new Thread(() -> System.exit(status), threadName).start();
   }
 
   @Override

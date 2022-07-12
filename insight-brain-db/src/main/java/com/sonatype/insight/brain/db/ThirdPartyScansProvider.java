@@ -53,7 +53,7 @@ public class ThirdPartyScansProvider
     ThirdPartyScansProvider.databaseConfig = databaseConfig;
     dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
     if (migrateDatabase) {
-      new DatabaseMigrator().migrate(databaseConfig, ID, dataSource);
+      migrate();
     }
     Map<String, Object> props = new LinkedHashMap<>();
     props.put("openjpa.ConnectionFactory", dataSource);
@@ -61,6 +61,10 @@ public class ThirdPartyScansProvider
     isInitialized = true;
 
     log.info("Initialized the {} data store in {} ms.", ID, System.currentTimeMillis() - start);
+  }
+
+  public static void migrate() {
+    new DatabaseMigrator().migrate(databaseConfig, ID, dataSource);
   }
 
   public static DataSource getDataSource() {

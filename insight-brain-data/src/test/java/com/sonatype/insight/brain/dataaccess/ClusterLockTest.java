@@ -553,4 +553,104 @@ public class ClusterLockTest
       assertThat(clusterLock.lockId).isEqualTo(ClusterLock.getLockIdForAuditJsonFileStore(ownerId));
     }
   }
+
+  @Test
+  public void testGetLockIdForSchemaMigration() {
+    assertThat(ClusterLock.getLockIdForSchemaMigration()).isEqualTo(ClusterLock.SCHEMA_MIGRATION)
+        .isEqualTo("schema-migration");
+  }
+
+  @Test
+  public void testCreateForSchemaMigration() {
+    try (ClusterLock clusterLock = ClusterLock.createForSchemaMigration()) {
+      clusterLock.lock();
+
+      assertThat(clusterLock.lockId).isEqualTo(ClusterLock.getLockIdForSchemaMigration());
+    }
+  }
+
+  @Test
+  public void testDeleteForSchemaMigration() {
+    ClusterLock.createForSchemaMigration();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForSchemaMigration())).isTrue();
+
+    ClusterLock.deleteForSchemaMigration();
+
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForSchemaMigration())).isFalse();
+  }
+
+  @Test
+  public void testGetLockIdForSchemaMigrationInProgress() {
+    assertThat(ClusterLock.getLockIdForSchemaMigrationInProgress()).isEqualTo(ClusterLock.SCHEMA_MIGRATION_IN_PROGRESS)
+        .isEqualTo("schema-migration-in-progress");
+  }
+
+  @Test
+  public void testCreateForSchemaMigrationInProgress() {
+    try (ClusterLock clusterLock = ClusterLock.createForSchemaMigrationInProgress()) {
+      clusterLock.lock();
+
+      assertThat(clusterLock.lockId).isEqualTo(ClusterLock.getLockIdForSchemaMigrationInProgress());
+    }
+  }
+
+  @Test
+  public void testDeleteForSchemaMigrationInProgress() {
+    ClusterLock.createForSchemaMigrationInProgress();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForSchemaMigrationInProgress())).isTrue();
+
+    ClusterLock.deleteForSchemaMigrationInProgress();
+
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForSchemaMigrationInProgress())).isFalse();
+  }
+
+  @Test
+  public void testGetLockIdForDataMigration() {
+    assertThat(ClusterLock.getLockIdForDataMigration()).isEqualTo(ClusterLock.DATA_MIGRATION)
+        .isEqualTo("data-migration");
+  }
+
+  @Test
+  public void testCreateForDataMigration() {
+    try (ClusterLock clusterLock = ClusterLock.createForDataMigration()) {
+      clusterLock.lock();
+
+      assertThat(clusterLock.lockId).isEqualTo(ClusterLock.getLockIdForDataMigration());
+    }
+  }
+
+  @Test
+  public void testDeleteForDataMigration() {
+    ClusterLock.createForDataMigration();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForDataMigration())).isTrue();
+
+    ClusterLock.deleteForDataMigration();
+
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForDataMigration())).isFalse();
+  }
+
+  @Test
+  public void testGetLockIdForNewInstancePopulation() {
+    assertThat(ClusterLock.getLockIdForNewInstancePopulation()).isEqualTo(ClusterLock.NEW_INSTANCE_POPULATION)
+        .isEqualTo("new-instance-population");
+  }
+
+  @Test
+  public void testCreateForNewInstancePopulation() {
+    try (ClusterLock clusterLock = ClusterLock.createForNewInstancePopulation()) {
+      clusterLock.lock();
+
+      assertThat(clusterLock.lockId).isEqualTo(ClusterLock.getLockIdForNewInstancePopulation());
+    }
+  }
+
+  @Test
+  public void testDeleteForNewInstancePopulation() {
+    ClusterLock.createForNewInstancePopulation();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForNewInstancePopulation())).isTrue();
+
+    ClusterLock.deleteForNewInstancePopulation();
+
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForNewInstancePopulation())).isFalse();
+  }
 }

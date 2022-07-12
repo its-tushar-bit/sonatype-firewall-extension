@@ -12,6 +12,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
@@ -63,9 +68,12 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
+import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 
@@ -232,5 +240,59 @@ public class AbstractComponentTest
     ApiJiraConfigurationService jiraConfigurationService = lookup(ApiJiraConfigurationService.class);
     jiraConfigurationService.setConfigurationNoAuthz(JsonUtils.asTree(dto));
     jiraConfigurationService.applyJiraConfigurationToClients();
+  }
+
+  public void testCallable_DisallowConcurrentExecution(Callable<Void> callable, Consumer<Answer<Void>> answerConsumer)
+      throws Exception
+  {
+    CountDownLatch started = new CountDownLatch(2);
+    CountDownLatch block = new CountDownLatch(1);
+
+    answerConsumer.accept(invocation -> {
+      started.countDown();
+      block.await();
+      return null;
+    });
+
+    CountDownLatch oneFinished = new CountDownLatch(1);
+    AtomicReference<Exception> oneException = new AtomicReference<>();
+    Thread threadOne = new Thread(() -> {
+      try {
+        callable.call();
+      }
+      catch (Exception e) {
+        oneException.set(e);
+      }
+      finally {
+        oneFinished.countDown();
+      }
+    });
+
+    CountDownLatch twoFinished = new CountDownLatch(1);
+    AtomicReference<Exception> twoException = new AtomicReference<>();
+    Thread threadTwo = new Thread(() -> {
+      try {
+        callable.call();
+      }
+      catch (Exception e) {
+        twoException.set(e);
+      }
+      finally {
+        twoFinished.countDown();
+      }
+    });
+
+    threadOne.start();
+    await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(started.getCount()).isEqualTo(1));
+
+    threadTwo.start();
+    await().pollDelay(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(started.getCount()).isEqualTo(1));
+
+    block.countDown();
+
+    assertThat(oneFinished.await(2, TimeUnit.SECONDS)).isTrue();
+    assertThat(oneException).hasValue(null);
+    assertThat(twoFinished.await(2, TimeUnit.SECONDS)).isTrue();
+    assertThat(twoException).hasValue(null);
   }
 }

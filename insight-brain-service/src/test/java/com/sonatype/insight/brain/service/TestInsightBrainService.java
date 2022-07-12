@@ -339,9 +339,15 @@ public class TestInsightBrainService
   }
 
   @Override
-  protected DatabaseConfig getDatabaseConfig(DatabaseConfigProvider databaseConfigProvider, DatabaseName databaseName) {
+  protected DatabaseConfigProvider getDatabaseConfigProvider(InsightConfig insightConfig) {
     // Use in memory db
-    return null;
+    return new DatabaseConfigProvider(insightConfig)
+    {
+      @Override
+      public DatabaseConfig getDatabaseConfig(DatabaseName databaseName) {
+        return null;
+      }
+    };
   }
 
   public InsightConfig getConfiguration() {

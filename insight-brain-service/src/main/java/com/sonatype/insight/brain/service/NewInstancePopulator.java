@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
@@ -59,6 +60,14 @@ class NewInstancePopulator
   }
 
   void populateIfNewInstance() {
+    try (ClusterLock clusterLock = ClusterLock.createForNewInstancePopulation()) {
+      clusterLock.lock();
+      doPopulateIfNewInstance();
+    }
+  }
+
+  // Visible for testing
+  void doPopulateIfNewInstance() {
     long start = System.currentTimeMillis();
 
     OrganizationDAO organizationDAO = new OrganizationDAO();

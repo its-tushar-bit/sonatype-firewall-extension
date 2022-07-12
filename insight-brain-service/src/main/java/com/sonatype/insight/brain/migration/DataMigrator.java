@@ -10,6 +10,8 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
+
 /**
  * Migrates operational data from an earlier schema/format to the latest version.
  *
@@ -99,6 +101,14 @@ public class DataMigrator
    * Runs the data migration steps (if any). Obviously, this is best invoked before the application starts.
    */
   public void migrate() throws IOException {
+    try (ClusterLock clusterLock = ClusterLock.createForDataMigration()) {
+      clusterLock.lock();
+      runMigrators();
+    }
+  }
+
+  // Visible for testing
+  void runMigrators() throws IOException {
     markerFileMigrator.migrate();
     policyJsonMigrator.migrate();
     policyDroolsCodeMigrator.migrate();

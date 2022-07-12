@@ -49,7 +49,7 @@ public class TaskScheduler
     implements Managed
 {
   // Visible for testing
-  static final String DEFAULT_SCHEDULER_NAME = "QuartzScheduler";
+  public static final String DEFAULT_SCHEDULER_NAME = "QuartzScheduler";
 
   static final String QUARTZ_NODE_ID = "quartz.nodeId";
 

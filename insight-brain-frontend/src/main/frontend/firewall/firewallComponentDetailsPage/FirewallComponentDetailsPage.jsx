@@ -16,10 +16,11 @@ import {
 import { NxLoadWrapper } from '@sonatype/react-shared-components';
 import { createTabConfiguration } from '../../componentDetails/componentDetailsUtils';
 import FirewallOverview from './overview/FirewallOverview';
+import FirewallPolicyViolations from './policyViolations/FirewallPolicyViolations';
 
 export const tabsConfiguration = [
   createTabConfiguration('overview', 'Overview', <FirewallOverview />),
-  createTabConfiguration('violations', 'Policy Violations'),
+  createTabConfiguration('violations', 'Policy Violations', <FirewallPolicyViolations />),
   createTabConfiguration('security', 'Security'),
   createTabConfiguration('legal', 'Legal'),
   createTabConfiguration('labels', 'Labels'),

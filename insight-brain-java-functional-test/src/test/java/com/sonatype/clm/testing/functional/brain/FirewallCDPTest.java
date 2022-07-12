@@ -29,6 +29,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
+import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
 import com.sonatype.clm.testing.functional.pages.FirewallCDPPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -67,6 +68,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
+import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.cssClass;
@@ -612,5 +614,135 @@ public class FirewallCDPTest
     firewallCDPPage.getComponentCoordinatesPopOverData(3).shouldHave(text("0.5.2"));
     firewallCDPPage.getComponentCoordinatesPopOverCloseBtn().click();
     firewallCDPPage.getComponentCoordinatesPopOver().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testComponentDirectLinkFirewallPolicyViolations() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallCDPPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    firewallCDPPage.getPolicyViolationsComponent().shouldBe(visible);
+  }
+
+  @Test
+  public void testComponentFirewallPolicyViolationsClickTab() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallCDPPage.url(component));
+    waitUntilSpinnersGone();
+    ElementsCollection tabs = firewallCDPPage.tabs();
+    tabs.shouldHaveSize(5);
+    tabs.get(1).click();
+    tabs.get(1).shouldHave(cssClass("active"));
+    assertThat(getWebDriver().getCurrentUrl()).contains("/violations?");
+
+    firewallCDPPage.getPolicyViolationsComponent().shouldBe(visible);
+  }
+
+  @Test
+  public void testComponentPolicyViolationsTitle() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallCDPPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    firewallCDPPage.getComponentPolicyViolationsTitle().shouldBe(visible);
+  }
+
+  @Test
+  public void testComponentPolicyViolationsTable() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallCDPPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    firewallCDPPage.getComponentPolicyViolationsTable().shouldBe(visible);
+  }
+
+  @Test
+  public void testComponentPolicyViolationsRows() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallCDPPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    firewallCDPPage.getComponentPolicyViolationsTableCols().first().findAll(By.tagName("td"));
+  }
+
+  @Test
+  public void testComponentPolicyViolationsRowHeaders() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallCDPPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    firewallCDPPage.getComponentPolicyViolationsTableHeaders(0).shouldHave(text("Threat"));
+    firewallCDPPage.getComponentPolicyViolationsTableHeaders(1).shouldHave(text("Policy/Action"));
+    firewallCDPPage.getComponentPolicyViolationsTableHeaders(2).shouldHave(text("Constraint Name"));
+    firewallCDPPage.getComponentPolicyViolationsTableHeaders(3).shouldHave(text("Condition"));
+    
+    eyesWatcher.eyesCheck(
+        "Firewall Component Details Page - Policy violation table ");
+  }
+
+  @Test
+  public void testPolicyViolationsTableContent() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallCDPPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = firewallCDPPage.getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(6);
+
+    ElementsCollection securityViolationCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
+    securityViolationCells.shouldHaveSize(6);
+    securityViolationCells.get(0).shouldHave(text("10"));
+    securityViolationCells.get(1).shouldHave(text("SecurityPolicy"));
+    securityViolationCells.get(2).shouldHave(text("SecurityPolicy constraint"));
+    securityViolationCells.get(3).shouldHave(text("Found security vulnerability"));
+    securityViolationCells.get(4).shouldBe(empty);
+
+    ElementsCollection securityLowViolationCells = policyViolationsTable.getRows().get(1).findAll(By.tagName("td"));
+    securityLowViolationCells.get(0).shouldHave(text("6"));
+    securityLowViolationCells.get(1).shouldHave(text("Security-Low"));
+    securityLowViolationCells.get(2).shouldHave(text("Security-low constraint"));
+    securityLowViolationCells.get(3).shouldHave(text("Found security vulnerability"));
+    securityLowViolationCells.get(4).shouldBe(empty);
+
+    ElementsCollection licenseViolationCells = policyViolationsTable.getRows().get(2)
+        .findAll(By.tagName("td"));
+    licenseViolationCells.get(0).shouldHave(text("5"));
+    licenseViolationCells.get(1).shouldHave(text("LicensePolicy"));
+    licenseViolationCells.get(2).shouldHave(text("LicensePolicy constraint"));
+    licenseViolationCells.get(3).shouldHave(text("Found license threat group"));
+    licenseViolationCells.get(4).shouldBe(empty);
+
+    ElementsCollection qualityAgeInDaysViolationCells = policyViolationsTable.getRows().get(3)
+        .findAll(By.tagName("td"));
+    qualityAgeInDaysViolationCells.get(0).shouldHave(text("2"));
+    qualityAgeInDaysViolationCells.get(1).shouldHave(text("QualityPolicyAgeInDays"));
+    qualityAgeInDaysViolationCells.get(2).shouldHave(text("QualityPolicyAgeInDays constraint"));
+    qualityAgeInDaysViolationCells.get(3).shouldHave(text("Found component younger than 50 days"));
+    qualityAgeInDaysViolationCells.get(4).shouldBe(empty);
+
+    ElementsCollection qualityPopularityViolationCells = policyViolationsTable.getRows().get(4)
+        .findAll(By.tagName("td"));
+    qualityPopularityViolationCells.get(0).shouldHave(text("2"));
+    qualityPopularityViolationCells.get(1).shouldHave(text("QualityPolicyRelativePopularity"));
+    qualityPopularityViolationCells.get(2).shouldHave(text("QualityPolicyRelativePopularity constraint"));
+    qualityPopularityViolationCells.get(3).shouldHave(text("Relative popularity was"));
+    qualityPopularityViolationCells.get(4).shouldBe(empty);
+
+    ElementsCollection otherViolationCells = policyViolationsTable.getRows().get(5)
+        .findAll(By.tagName("td"));
+    otherViolationCells.get(0).shouldHave(text("1"));
+    otherViolationCells.get(1).shouldHave(text("CoordinatesPolicy"));
+    otherViolationCells.get(2).shouldHave(text("CoordinatesPolicy constraint"));
+    otherViolationCells.get(3).shouldHave(text("Coordinates were com.lingocoder"));
+    otherViolationCells.get(4).shouldBe(empty);
   }
 }

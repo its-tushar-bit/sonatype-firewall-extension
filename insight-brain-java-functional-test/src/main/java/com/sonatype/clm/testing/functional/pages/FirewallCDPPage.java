@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
+import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 
@@ -88,6 +89,49 @@ public class FirewallCDPPage
 
   public SelenideElement getComponentCoordinatesPopOverCloseBtn() {
     return child("#iq-component-coordinates-popover-close-btn");
+  }
+
+  public static String urlViolationsTab(RepositoryComponent component) {
+    ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
+    try {
+      String componentIdentifierJSONString =
+          URLEncoder.encode(toJson(componentIdentifier), String.valueOf(StandardCharsets.UTF_8));
+      String url =
+          "/firewall/repository/" + component.getRepositoryId() + "/component/" + componentIdentifierJSONString + "/" +
+              component.getHash() + "/" + component.getMatchStateId() + "/violations" + "?proprietary=false";
+      return BaseUrl.resolvePageUrl(url);
+    }
+    catch (UnsupportedEncodingException e) {
+      return null;
+    }
+  }
+
+  public SelenideElement getPolicyViolationsComponent() {
+    return child("#component-details-violations-tab-content");
+  }
+
+  public SelenideElement getComponentPolicyViolationsTitle() {
+    return child(".nx-tile-header__title");
+  }
+
+  public SelenideElement getComponentPolicyViolationsTable() {
+    return child(".firewall-policy-violation-table");
+  }
+
+  public ElementsCollection getComponentPolicyViolationsTableCols() {
+    return children("tbody > tr");
+  }
+
+  public SelenideElement getComponentPolicyViolationsTableHeaders(int index) {
+    return children(".nx-cell--header").get(index);
+  }
+
+  public SelenideElement iqPolicyViolationCol(int index) {
+    return children(".iq-policy-violation-row .nx-cell").get(index);
+  }
+
+  public FirewallPolicyViolationsTable getFirewallPolicyViolationsTable() {
+    return FirewallPolicyViolationsTable.getPolicyViolationsTableForParent(ROOT);
   }
 
   public SelenideElement getNextVersionInVersionExplorer() {

@@ -83,6 +83,59 @@ describe('LegalApplicationDetailsPage', function () {
             reviewTotalCount: 10,
           },
         ],
+        results: [
+          {
+            displayName: 'g1 : a1 : v1',
+            hash: 'some-hash-1',
+            licenses: [
+              {
+                licenseName: 'lic1',
+                licenseThreatGroups: [{ licenseThreatGroupName: 'ltg1a' }, { licenseThreatGroupName: 'ltg1b' }],
+              },
+              {
+                licenseName: 'lic2',
+                licenseThreatGroups: [{ licenseThreatGroupName: 'ltg2' }],
+              },
+            ],
+            reviewCompletedCount: 0,
+            reviewStatus: 'COMPLETED',
+            reviewTotalCount: 0,
+          },
+          {
+            displayName: 'g2 : a2 : v2',
+            hash: 'some-hash-2',
+            licenses: [
+              {
+                licenseName: 'lic1',
+                licenseThreatGroups: [{ licenseThreatGroupName: 'ltg1c' }],
+              },
+              {
+                licenseName: 'lic3',
+                licenseThreatGroups: [{ licenseThreatGroupName: 'newLtg' }],
+              },
+              {
+                licenseName: 'lic4',
+                licenseThreatGroups: [{ licenseThreatGroupName: 'newLtg' }],
+              },
+            ],
+            reviewCompletedCount: 1,
+            reviewStatus: 'IN_PROGRESS',
+            reviewTotalCount: 10,
+          },
+          {
+            displayName: 'filtered out component',
+            hash: 'some-hash-3',
+            licenses: [
+              {
+                licenseName: 'lic5',
+                licenseThreatGroups: [{ licenseThreatGroupName: 'filteredOutLTG' }],
+              },
+            ],
+            reviewCompletedCount: 1,
+            reviewStatus: 'IN_PROGRESS',
+            reviewTotalCount: 10,
+          },
+        ],
         error: null,
         loading: false,
       },
@@ -192,8 +245,8 @@ describe('LegalApplicationDetailsPage', function () {
     expect(filterContainer).toExist();
   });
 
-  it('correctly passes the licenseThreatGroups to the LegalApplicationDetailsFilterContainer, ', function () {
-    const expectedLTGs = ['ltg1a', 'ltg1b', 'ltg2', 'ltg1c', 'newLtg'];
+  it('correctly passes all licenseThreatGroups to the LegalApplicationDetailsFilterContainer, ', function () {
+    const expectedLTGs = ['ltg1a', 'ltg1b', 'ltg2', 'ltg1c', 'newLtg', 'filteredOutLTG'];
     const filterContainer = getShallowComponent({ filterSidebarOpen: true }).find(
       LegalApplicationDetailsFilterContainer
     );
@@ -203,7 +256,7 @@ describe('LegalApplicationDetailsPage', function () {
   it('includes the "No LTG Assigned" value to the LegalApplicationDetailsFilterContainer, ', function () {
     const components = {
       ...minimalProps.components,
-      filteredResults: [
+      results: [
         {
           displayName: 'g1 : a1 : v1',
           hash: 'some-hash-1',

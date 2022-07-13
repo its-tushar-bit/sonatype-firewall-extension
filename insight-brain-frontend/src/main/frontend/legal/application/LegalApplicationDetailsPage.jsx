@@ -59,7 +59,7 @@ export default function LegalApplicationDetailsPage(props) {
     uniq
   );
 
-  const licenseThreatGroups = getLicenseThreatGroupsFromComponents(components.filteredResults);
+  const licenseThreatGroups = getLicenseThreatGroupsFromComponents(components.results);
 
   const errorLoading = application.error || stageType.error;
 
@@ -237,6 +237,7 @@ LegalApplicationDetailsPage.propTypes = {
     filteredResults: PropTypes.arrayOf(LegalApplicationDetailsComponentRow.propTypes.row),
     loading: PropTypes.bool,
     error: LoadWrapper.propTypes.error,
+    results: PropTypes.arrayOf(LegalApplicationDetailsComponentRow.propTypes.row),
   }),
   componentFilter: PropTypes.string,
   licenseFilter: PropTypes.string,

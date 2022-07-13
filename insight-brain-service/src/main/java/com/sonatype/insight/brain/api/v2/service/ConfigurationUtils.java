@@ -5,11 +5,15 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URL;
+import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,5 +60,17 @@ public class ConfigurationUtils
       log.info("Server base URL: {}", baseUrl);
     }
     return booleanValue == null ? null : Boolean.toString(booleanValue);
+  }
+
+  public static List<String> getStringToList(String value) {
+    if (value != null) {
+      try {
+        return JsonUtils.parse(value.getBytes(), List.class);
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException("Invalid json: " + value, e);
+      }
+    }
+    return null;
   }
 }

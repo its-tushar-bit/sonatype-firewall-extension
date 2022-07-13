@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.json.store.JsonUtils;
 
 public class ConfigurationProperty
 {
@@ -21,7 +23,10 @@ public class ConfigurationProperty
           (tx, o) -> ConfigurationUtils.urlValueToString(o)),
       new ConfigurationProperty(SystemConfigurationProperty.FORCE_BASE_URL, Boolean.class,
           (tx, s) -> Boolean.parseBoolean(s),
-          ConfigurationUtils::forceBaseUrlToString)
+          ConfigurationUtils::forceBaseUrlToString),
+      new ConfigurationProperty(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST, List.class,
+          (tx, value) -> ConfigurationUtils.getStringToList(value),
+          (tx, value) -> JsonUtils.writeUnformatted(value))
   };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

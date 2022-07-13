@@ -392,6 +392,7 @@ public class InsightBrainService
     addServletFilter(env, IndexCacheControlFilter.class, IndexCacheControlFilter.URL_PATTERN);
     addServletFilter(env, AuthenticationLoggingFilter.class, AuthenticationLoggingFilter.URL_PATTERN);
     addServletFilter(env, CspHeaderFilter.class, CspHeaderFilter.URL_PATTERN);
+    addServletFilter(env, CspFrameHeaderFilter.class, CspFrameHeaderFilter.URL_PATTERN);
 
     log.debug("HDS URL: {}", config.getHdsUrl());
     log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());

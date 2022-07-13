@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -16,6 +19,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.Assert.assertEquals;
 
 public class ConfigurationUtilsTest
 {
@@ -75,5 +79,26 @@ public class ConfigurationUtilsTest
     }
 
     assertThat(logOutput).atInfoLevel().contains("Server base URL: http://baseUrl/");
+  }
+
+  @Test
+  public void getStringToList_ReturnList() {
+    String value = "[\"first\", \"second\"]";
+    List<String> result = new ArrayList<>();
+    result.add("first");
+    result.add("second");
+
+    List<String> stringToList = ConfigurationUtils.getStringToList(value);
+    assertEquals(result, stringToList);
+  }
+
+  @Test
+  public void getStringToList_ReturnNullIfConfigurationIsEmpty() {
+    assertEquals(null, ConfigurationUtils.getStringToList(null));
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void getStringToList_ThrowsException() {
+    ConfigurationUtils.getStringToList("invalid_value");
   }
 }

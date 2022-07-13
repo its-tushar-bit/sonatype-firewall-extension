@@ -32,7 +32,7 @@ public class ApiFirewallServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
-  public ApiFirewallService apiFirewallService;
+  private ApiFirewallService apiFirewallService;
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
@@ -42,7 +42,7 @@ public class ApiFirewallServiceAuthzTest
   }
 
   @Test
-  public void testGetFirewallUnquarantineSummary_Authorized() {
+  public void testGetReleaseQuarantineSummary_Authorized() {
     grantGlobalPermission(Permission.READ);
 
     ApiFirewallReleaseQuarantineSummaryDTO dto = apiFirewallService.getReleaseQuarantineSummary();
@@ -51,18 +51,18 @@ public class ApiFirewallServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetFirewallQuarantineSummary_Unauthorized() {
+  public void testGetReleaseQuarantineSummary_Unauthorized() {
     login();
     apiFirewallService.getReleaseQuarantineSummary();
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetFirewallQuarantineSummary_Unauthenticated() {
+  public void testGetReleaseQuarantineSummary_Unauthenticated() {
     apiFirewallService.getReleaseQuarantineSummary();
   }
 
   @Test
-  public void testGetFirewallAutoUnquarantineConfig_Authorized() {
+  public void testGetReleaseQuarantineConfig_Authorized() {
     grantGlobalPermission(Permission.READ);
 
     List<ApiFirewallReleaseQuarantineConfigDTO> dtos = apiFirewallService.getReleaseQuarantineConfig();
@@ -71,18 +71,18 @@ public class ApiFirewallServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetFirewallAutoUnquarantineConfig_Unauthorized() {
+  public void testGetReleaseQuarantineConfig_Unauthorized() {
     login();
     apiFirewallService.getReleaseQuarantineConfig();
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetFirewallAutoUnquarantineConfig_Unauthenticated() {
+  public void testReleaseQuarantineConfig_Unauthenticated() {
     apiFirewallService.getReleaseQuarantineConfig();
   }
 
   @Test
-  public void testSetFirewallAutoUnquarantineConfig_Authorized() {
+  public void testSetReleaseQuarantineConfig_Authorized() {
     grantGlobalPermission(Permission.READ);
     grantGlobalPermission(Permission.WRITE);
 
@@ -92,13 +92,13 @@ public class ApiFirewallServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testSetFirewallAutoUnquarantineConfig_Unauthorized() {
+  public void testSetReleaseQuarantineConfig_Unauthorized() {
     login();
     apiFirewallService.setReleaseQuarantineConfig(null);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testSetFirewallAutoUnquarantineConfig_Unauthenticated() {
+  public void testSetReleaseQuarantineConfig_Unauthenticated() {
     apiFirewallService.setReleaseQuarantineConfig(null);
   }
 

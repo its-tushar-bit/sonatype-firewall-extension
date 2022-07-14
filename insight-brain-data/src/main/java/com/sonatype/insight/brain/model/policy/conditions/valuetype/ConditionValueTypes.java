@@ -36,6 +36,7 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new DependencyTypeValueType());
     allConditionValueTypes.add(new SecurityVulnerabilityCategoryValueType());
     allConditionValueTypes.add(new SecurityVulnerabilitySourceValueType());
+    allConditionValueTypes.add(new SecurityVulnerabilityIdValueType());
     allConditionValueTypes.add(new IacControlValueType());
     return allConditionValueTypes;
   }

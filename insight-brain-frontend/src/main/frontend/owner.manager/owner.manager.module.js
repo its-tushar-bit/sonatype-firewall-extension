@@ -84,6 +84,7 @@ import CreateEditApplicationCategory from 'MainRoot/OrgsAndPolicies/createEditAp
 import ProprietaryComponentConfiguration from 'MainRoot/OrgsAndPolicies/proprietaryComponentConfig/ProprietaryComponentConfiguration';
 import OwnerSummaryTilesContainerController from './summary/owner.summary.tiles.container.controller';
 import PolicyGrandfatheringTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PolicyGrandfatheringTile';
+import PoliciesHeaderTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PoliciesHeaderTile';
 import ProprietaryComponentConfigurationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ProprietaryComponentConfigurationTile';
 import ApplicationCategoriesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ApplicationCategoriesTile';
 import ContinuousMonitoringSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ContinuousMonitoringSummaryTile';
@@ -159,6 +160,7 @@ export default angular
   .directive('sameOwnerEditSref', SameOwnerEditSref)
   .directive('sameOwnerViewSref', SameOwnerViewSref)
   .component('policyGrandfatheringTile', iqReact2Angular(PolicyGrandfatheringTile, [], ['$ngRedux', '$state']))
+  .component('policiesHeaderTile', iqReact2Angular(PoliciesHeaderTile, [], ['$ngRedux']))
   .component(
     'proprietaryComponentConfigurationTile',
     iqReact2Angular(ProprietaryComponentConfigurationTile, [], ['$ngRedux', '$state'])

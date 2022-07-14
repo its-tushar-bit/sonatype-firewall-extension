@@ -627,6 +627,7 @@ export const actions = {
   saveActionsOverride,
   removeActionsOverride,
   checkEditIqPermission,
+  goToCreatePolicy,
 };
 
 export default policySlice.reducer;

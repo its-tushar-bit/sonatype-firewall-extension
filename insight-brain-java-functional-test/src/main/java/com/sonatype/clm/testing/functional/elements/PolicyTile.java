@@ -49,4 +49,9 @@ public class PolicyTile
   public SelenideElement localPolicy(String policyName) {
     return children("table tr > .iq-cell--policy-list-name").findBy(text(policyName));
   }
+
+  @Override
+  public SelenideElement subHeader() {
+    return child(".nx-tile-header__subtitle");
+  }
 }

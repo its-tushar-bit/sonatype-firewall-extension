@@ -206,20 +206,7 @@ class="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-
       <div ng-controller="policy.tile.controller as vm">
         <div load-wrapper="vm.loadError" loading="vm.loading || vm.proprietaryConfigIsLoading" reload="vm.doLoad()">
           <div class="iq-tile" id="owner-pill-policy">
-            <div class="iq-tile__actions">
-              <button id="add-policy-button" class="iq-btn iq-btn--tertiary" same-owner-edit-sref="create-policy">
-                <i class="fa fa-plus"></i>Add a Policy
-              </button>
-            </div>
-            <div class="iq-tile-header">
-              <div class="iq-tile-header__title">
-                <i class="fa fa-bank size-20px slate iq-tile-header__icon"></i>
-                <h2>Policies</h2>
-              </div>
-              <div class="iq-tile-header__subtitle">
-                applying to {{vm.ownerName}}
-              </div>
-            </div>
+            <policies-header-tile></policies-header-tile>
             <div class="iq-tile-content">
               <owner-policy-list ng-repeat="ownerPolicyList in vm.policiesByOwner track by ownerPolicyList.ownerId"
                                 owner-policy-list="ownerPolicyList"

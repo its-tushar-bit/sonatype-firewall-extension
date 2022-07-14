@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.json.store.JsonUtils;
 
 public class ConfigurationProperty
 {
@@ -26,7 +25,7 @@ public class ConfigurationProperty
           ConfigurationUtils::forceBaseUrlToString),
       new ConfigurationProperty(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST, List.class,
           (tx, value) -> ConfigurationUtils.getStringToList(value),
-          (tx, value) -> JsonUtils.writeUnformatted(value))
+          (tx, value) -> ConfigurationUtils.getListToString((List<String>) value))
   };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

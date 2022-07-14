@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -20,6 +21,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class ConfigurationUtilsTest
 {
@@ -83,22 +85,43 @@ public class ConfigurationUtilsTest
 
   @Test
   public void getStringToList_ReturnList() {
-    String value = "[\"first\", \"second\"]";
-    List<String> result = new ArrayList<>();
-    result.add("first");
-    result.add("second");
-
-    List<String> stringToList = ConfigurationUtils.getStringToList(value);
-    assertEquals(result, stringToList);
+    List<String> stringToList = ConfigurationUtils.getStringToList("[\"first\",\"second\"]");
+    assertEquals(getAllowlist(), stringToList);
   }
 
   @Test
   public void getStringToList_ReturnNullIfConfigurationIsEmpty() {
-    assertEquals(null, ConfigurationUtils.getStringToList(null));
+    assertNull(ConfigurationUtils.getStringToList(null));
   }
 
   @Test(expected = RuntimeException.class)
   public void getStringToList_ThrowsException() {
     ConfigurationUtils.getStringToList("invalid_value");
+  }
+
+  @Test
+  public void getListToString_ReturnsNullIfListIsEmpty() {
+    assertNull(ConfigurationUtils.getListToString(Collections.emptyList()));
+  }
+
+  @Test
+  public void getListToString() {
+    String listToString = ConfigurationUtils.getListToString(getAllowlist());
+    assertEquals("[\"first\",\"second\"]", listToString);
+  }
+
+  @Test
+  public void getListToString_RemoveNullValues() {
+    List<String> allowlist = getAllowlist();
+    allowlist.add(null);
+    String listToString = ConfigurationUtils.getListToString(allowlist);
+    assertEquals("[\"first\",\"second\"]", listToString);
+  }
+
+  private List<String> getAllowlist() {
+    List<String> result = new ArrayList<>();
+    result.add("first");
+    result.add("second");
+    return result;
   }
 }

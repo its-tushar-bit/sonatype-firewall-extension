@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -70,6 +72,14 @@ public class ConfigurationUtils
       catch (IOException e) {
         throw new UncheckedIOException("Invalid json: " + value, e);
       }
+    }
+    return null;
+  }
+
+  public static String getListToString(List<String> values) {
+    if (!values.isEmpty()) {
+      List<String> filteredValues = values.stream().filter(Objects::nonNull).collect(Collectors.toList());
+      return JsonUtils.writeUnformatted(filteredValues);
     }
     return null;
   }

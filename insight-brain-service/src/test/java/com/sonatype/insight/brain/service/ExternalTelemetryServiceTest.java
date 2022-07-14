@@ -143,4 +143,32 @@ public class ExternalTelemetryServiceTest
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
   }
+
+  @Test
+  public void testSendTelemetry_JiraPluginConfigurationTelemetry() {
+    Map<String, String> telemetryValues = new HashMap<>();
+    telemetryValues.put("telemetry_purpose", "JIRA_PLUGIN_CONFIGURATION_METRICS");
+    telemetryValues.put("aggregation_by_component_count", "1");
+    telemetryValues.put("aggregation_by_iq_evaluation_count", "2");
+    telemetryValues.put("automatic_workflow_transition_count", "3");
+    telemetryValues.put("total_project_count", "5");
+
+    externalTelemetryService.sendTelemetry("user-agent", telemetryValues);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
+
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("jira_plugin_aggregation_by_component_count", 1);
+    expectedAttributes.put("jira_plugin_aggregation_by_iq_evaluation_count", 2);
+    expectedAttributes.put("jira_plugin_automatic_workflow_transition_count", 3);
+    expectedAttributes.put("jira_plugin_total_project_count", 5);
+
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.JIRA_PLUGIN_CONFIGURATION_METRICS);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+  }
 }

@@ -53,7 +53,10 @@ public class ExternalTelemetryService
     switch (telemetryPurpose) {
       case SSC_INTEGRATION_METRICS:
         sendSscIntegrationMetricsTelemetry(userAgent, telemetryValues);
-        return;
+        break;
+      case JIRA_PLUGIN_CONFIGURATION_METRICS:
+        sendJiraPluginConfigurationTelemetry(telemetryValues);
+        break;
       default:
         log.info("External telemetry endpoint called with an unsupported `telemetry_purpose`.");
         throw new BadRequestException("Telemetry purpose not supported.");
@@ -83,6 +86,21 @@ public class ExternalTelemetryService
       userAgent = userAgent.substring(0, 500);
     }
     telemetryData.put("user_agent", userAgent);
+
+    telemetrySender.send(telemetryData);
+  }
+
+  private void sendJiraPluginConfigurationTelemetry(Map<String, String> telemetryValues) {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.JIRA_PLUGIN_CONFIGURATION_METRICS);
+
+    telemetryData.put("jira_plugin_aggregation_by_component_count",
+        Integer.valueOf(telemetryValues.get("aggregation_by_component_count")));
+    telemetryData.put("jira_plugin_aggregation_by_iq_evaluation_count",
+        Integer.valueOf(telemetryValues.get("aggregation_by_iq_evaluation_count")));
+    telemetryData.put("jira_plugin_automatic_workflow_transition_count",
+        Integer.valueOf(telemetryValues.get("automatic_workflow_transition_count")));
+    telemetryData.put("jira_plugin_total_project_count",
+        Integer.valueOf(telemetryValues.get("total_project_count")));
 
     telemetrySender.send(telemetryData);
   }

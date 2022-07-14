@@ -10,6 +10,7 @@ import java.io.IOException;
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
@@ -48,6 +49,8 @@ public class FirewallClient
   private static final String PROPRIETARY_NAMES_PATH = "proprietary/names";
 
   static final String QUARANTINED_COMPONENT_REPORT_URL_PATH =  "quarantinedComponentReportUrl";
+
+  private static final String REMOVE_EXTRA_COMPONENTS_PATH = "removeExtraComponents";
 
   private final String repositoryManagerInstanceId;
 
@@ -143,6 +146,23 @@ public class FirewallClient
         path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_COMPONENT_METADATA_PATH)
             .post(entity);
     return parseResult(result, RepositoryComponentEvaluationDataList.class);
+  }
+
+  /**
+   * Removes all components from the given repository that have paths not in the given pathname list and with timestamp
+   * before or equal to the given timestamp.
+   * 
+   * @param repositoryComponentPathnames the pathname list and timestamp used to filter the components to be deleted.
+   * 
+   * @since 1.142
+   */
+  public void removeExtraComponents(RepositoryComponentPathnames repositoryComponentPathnames) throws IOException {
+    ByteArrayEntity entity =
+        new ByteArrayEntity(JsonUtils.generate(repositoryComponentPathnames), ContentType.APPLICATION_JSON);
+
+    Result result =
+        path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, REMOVE_EXTRA_COMPONENTS_PATH).post(entity);
+    verifyStatusCode(result);
   }
 
   public RepositoryPolicyEvaluationSummary getPolicyEvaluationSummary() throws IOException {

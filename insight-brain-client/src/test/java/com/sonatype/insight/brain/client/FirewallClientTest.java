@@ -21,6 +21,7 @@ import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
+import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
@@ -326,6 +327,37 @@ public class FirewallClientTest
         client.evaluateComponentMetadata(componentEvaluationDataRequestList);
     assertThat(repositoryComponentEvaluationResult.componentEvalResults).hasSize(1);
     assertThat(repositoryComponentEvaluationResult.componentEvalResults.get(0).quarantine).isFalse();
+  }
+
+  @Test
+  public void testRemoveExtraComponents() throws Exception {
+    assumeThat(resourcePath).as("removeExtraComponents is not available for Artifactory")
+        .isEqualTo(FirewallClient.NEXUS_RESOURCE_PATH);
+
+    Date now = new Date();
+    Repository repository1 = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true);
+    RepositoryComponent componentRepo1ToKeep =
+        tempEntity.newRepositoryComponent(repository1.getId(), "pathname1_1", now);
+    RepositoryComponent componentRepo1ToDelete =
+        tempEntity.newRepositoryComponent(repository1.getId(), "pathname1_2", now);
+    RepositoryComponent componentRepo1ToKeepBecauseItIsNewer =
+        tempEntity.newRepositoryComponent(repository1.getId(), "pathname1_3", new Date(now.getTime() + 1));
+
+    Repository repository2 = tempEntity.newRepository(repositoryManager, "testRepoPublicId2", true);
+    RepositoryComponent componentRepo2 = tempEntity.newRepositoryComponent(repository2.getId(), "pathname2_1", now);
+
+    RepositoryComponentPathnames repositoryComponentPathnames = new RepositoryComponentPathnames();
+    repositoryComponentPathnames.time = now;
+    repositoryComponentPathnames.pathnames.add(componentRepo1ToKeep.getPathname());
+
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
+    client.removeExtraComponents(repositoryComponentPathnames);
+
+    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+    assertThat(repositoryComponentDAO.getById(componentRepo1ToKeep.getId())).isNotNull();
+    assertThat(repositoryComponentDAO.getById(componentRepo1ToDelete.getId())).isNull();
+    assertThat(repositoryComponentDAO.getById(componentRepo1ToKeepBecauseItIsNewer.getId())).isNotNull();
+    assertThat(repositoryComponentDAO.getById(componentRepo2.getId())).isNotNull();
   }
 
   @Test

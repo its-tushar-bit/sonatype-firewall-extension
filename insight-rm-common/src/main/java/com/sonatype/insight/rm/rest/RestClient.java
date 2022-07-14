@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
+import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
@@ -113,6 +114,16 @@ public interface RestClient
      * @since 1.127
      */
     QuarantinedComponentReport getQuarantinedComponentReport(String pathname) throws IOException;
+
+    /**
+     * Removes all components from the given repository that have paths not in the given pathname list and with
+     * timestamp before or equal to the given timestamp.
+     * 
+     * @param repositoryComponentPathnames the pathname list and timestamp used to filter the components to be deleted.
+     * 
+     * @since 1.142
+     */
+    void removeExtraComponents(RepositoryComponentPathnames repositoryComponentPathnames) throws IOException;
   }
 
   interface FirewallMigration

@@ -10,32 +10,27 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Named
-@Singleton
 public class AsyncEventBusImpl
     implements AsyncEventBus
 {
   private static final Logger log = LoggerFactory.getLogger(AsyncEventBusImpl.class);
 
+  private final ThreadPoolExecutor threadPoolExecutor;
+
   private final com.google.common.eventbus.AsyncEventBus delegate;
 
-  @Inject
-  public AsyncEventBusImpl(final EventBusConfig eventBusConfig) {
+  public AsyncEventBusImpl(int maxPoolSize) {
     ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("AsyncEventBusThread-%d")
         .build();
 
-    ThreadPoolExecutor threadPool = new ThreadPoolExecutor(0, eventBusConfig.getMaxPoolSize(), 60L, TimeUnit.SECONDS,
-        new SynchronousQueue<Runnable>(), threadFactory, new AsyncEventBusDiscardPolicy());
+    threadPoolExecutor = new ThreadPoolExecutor(0, maxPoolSize, 60L, TimeUnit.SECONDS,
+        new SynchronousQueue<>(), threadFactory, new AsyncEventBusDiscardPolicy());
 
-    delegate = new com.google.common.eventbus.AsyncEventBus(threadPool, new AsyncEventBusExceptionHandler());
+    delegate = new com.google.common.eventbus.AsyncEventBus(threadPoolExecutor, new AsyncEventBusExceptionHandler());
   }
 
   @Override
@@ -54,5 +49,15 @@ public class AsyncEventBusImpl
   public void post(final Object event) {
     log.debug("AsyncEvent '{}' fired", event);
     delegate.post(event);
+  }
+
+  @Override
+  public int getMaxPoolSize() {
+    return threadPoolExecutor.getMaximumPoolSize();
+  }
+
+  @Override
+  public void setMaxPoolSize(int maxPoolSize) {
+    threadPoolExecutor.setMaximumPoolSize(maxPoolSize);
   }
 }

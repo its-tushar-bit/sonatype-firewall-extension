@@ -17,7 +17,6 @@ import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
@@ -40,7 +39,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
@@ -51,6 +50,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
+import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.insight.scan.model.ItemContentType;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -87,7 +87,7 @@ public class ReportServiceTest
   private String scanId = "ReportServiceTestScanId";
 
   @Inject
-  private InsightConfig insightConfig;
+  private Configuration configuration;
 
   @Inject
   private ThirdPartyDataService thirdPartyDataService;
@@ -113,7 +113,7 @@ public class ReportServiceTest
   }
 
   private ReportService createReportService() {
-    return new ReportService(insightWork, reportDownloader, new PolicyEvaluationDAO(), insightConfig,
+    return new ReportService(insightWork, reportDownloader, new PolicyEvaluationDAO(), configuration,
         new ApplicationDAO(), new OrganizationDAO(), thirdPartyDataServiceSpy, telemetrySender, repositoryMatcher);
   }
 

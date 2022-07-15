@@ -34,8 +34,6 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.google.common.collect.ImmutableMap.of;
-import static com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature.SCM_ONBOARDING;
 
 public class OwnerTreeViewTest
     extends AbstractFunctionalTest
@@ -133,8 +131,6 @@ public class OwnerTreeViewTest
 
   @Test
   public void testOrganizationImport() {
-    // delete this section when feature flag is removed
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(SCM_ONBOARDING.getFlag(), true));
     logout();
     refreshOrOpen(OwnerSummaryPage.url());
     loginAsAdmin();
@@ -149,8 +145,6 @@ public class OwnerTreeViewTest
 
     twisty.shouldBe(CLM.COLLAPSED);
 
-    // delete this section when feature flag is removed
-    testCLMServer.getCLMServer().getConfiguration().setExperimentalFeatures(of(SCM_ONBOARDING.getFlag(), false));
     logout();
     refreshOrOpen(OwnerSummaryPage.url());
     loginAsAdmin();

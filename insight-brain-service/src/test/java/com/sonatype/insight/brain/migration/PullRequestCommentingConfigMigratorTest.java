@@ -7,16 +7,14 @@ package com.sonatype.insight.brain.migration;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
@@ -27,9 +25,6 @@ public class PullRequestCommentingConfigMigratorTest
 {
   @Inject
   private PullRequestCommentingConfigMigrator pullRequestCommentingConfigMigrator;
-
-  @Inject
-  private InsightConfig insightConfig;
 
   private MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
 
@@ -61,7 +56,7 @@ public class PullRequestCommentingConfigMigratorTest
 
     // by default, insightConfig will return true for any 'feature' that is not otherwise defined;
     // disable PR commenting explicitly
-    insightConfig.setFeatures(ImmutableMap.of(Feature.PR_COMMENTING.getFlag(), false));
+    SystemConfigurationPropertyFeature.PR_COMMENTING.setEnabled(false);
 
     // when:
     pullRequestCommentingConfigMigrator.migrate();
@@ -75,7 +70,7 @@ public class PullRequestCommentingConfigMigratorTest
     assertThat(sourceControl.getPullRequestCommentingEnabled()).isFalse();
 
     // when: migrate is called again AFTER "config was flipped"
-    insightConfig.setFeatures(ImmutableMap.of(Feature.PR_COMMENTING.getFlag(), true));
+    SystemConfigurationPropertyFeature.PR_COMMENTING.setEnabled(true);
 
     pullRequestCommentingConfigMigrator.migrate();
 

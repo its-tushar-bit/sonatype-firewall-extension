@@ -39,6 +39,9 @@ import com.google.common.cache.LoadingCache;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class ReleaseGraphPerformance
 {
   private ThreadPoolExecutor pool;
@@ -58,7 +61,9 @@ public class ReleaseGraphPerformance
     pool = new ThreadPoolExecutor(threads, threads, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(threads));
     cache = CacheBuilder.newBuilder().maximumSize(1000)
         .build(new ReleaseGraphCacheLoader(new ReportItemCacheLoader(null, new ApplicationDAO())));
-    reportResource = new ReleaseGraphResource(new ReleaseGraphService(cache));
+    ReleaseGraphCacheProvider mockReleaseGraphCacheProvider = mock(ReleaseGraphCacheProvider.class);
+    when(mockReleaseGraphCacheProvider.get()).thenReturn(cache);
+    reportResource = new ReleaseGraphResource(new ReleaseGraphService(mockReleaseGraphCacheProvider));
 
     // trigger db
     testApplication = new Application();

@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
@@ -40,19 +41,17 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
+import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverDTOTestUtils.assertApiPolicyWaiverDTO;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
-import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverDTOTestUtils.assertApiPolicyWaiverDTO;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -345,8 +344,7 @@ public class ApiPolicyViolationResourceV2Test
 
   @Test
   public void testGetTransitivePolicyViolationsByOwnerStageComponent_FeatureDisabled() throws Exception {
-    getCLMServer().getConfiguration()
-        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
+    SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.setEnabled(false);
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
@@ -357,13 +355,12 @@ public class ApiPolicyViolationResourceV2Test
 
     assertResponseStatus(403, response);
     assertThat(response.getBodyText())
-        .contains(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag() + " feature is disabled.");
+        .contains(SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.getId() + " feature is disabled.");
   }
 
   @Test
   public void testGetTransitivePolicyViolationsByAppScanComponent_FeatureDisabled() throws Exception {
-    getCLMServer().getConfiguration()
-        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
+    SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.setEnabled(false);
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
@@ -374,6 +371,6 @@ public class ApiPolicyViolationResourceV2Test
 
     assertResponseStatus(403, response);
     assertThat(response.getBodyText())
-        .contains(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag() + " feature is disabled.");
+        .contains(SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.getId() + " feature is disabled.");
   }
 }

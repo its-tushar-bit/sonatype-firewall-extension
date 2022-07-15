@@ -13,8 +13,10 @@ import java.util.function.BiConsumer;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
@@ -24,6 +26,7 @@ import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventOrches
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PersistedPolicyEvaluationPollingResultCleaner;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
@@ -116,6 +119,10 @@ public class TestInsightBrainService
 
   public void setHdsUrl(final String hdsUrl) {
     testHdsUrl = hdsUrl;
+  }
+
+  public ProxyServerConfiguration getTestProxyServerConfiguration() {
+    return testProxyServerConfiguration;
   }
 
   public void setProxyServerConfiguration(final String host, final int port, final String user, final String pass) {
@@ -264,7 +271,7 @@ public class TestInsightBrainService
     // disable graceful shutdown, i.e. don't waste time waiting nor risk timeout errors
     defaultServerFactory.setShutdownGracePeriod(Duration.milliseconds(0));
     if (testHdsUrl != null) {
-      config.setHdsUrl(testHdsUrl);
+      new SystemConfigurationPropertyDAO().set(SystemConfigurationProperty.HDS_URL, testHdsUrl);
     }
 
     if (testProxyServerConfiguration != null) {
@@ -279,6 +286,7 @@ public class TestInsightBrainService
       @Override
       public void serverStarted(final Server server) {
         testBrainServer = server;
+        getInstance(ApiConfigurationService.class).applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
       }
     });
 
@@ -336,6 +344,7 @@ public class TestInsightBrainService
 
       LicenseDataUpdater.setUpdater(savedLicenseDataUpdater);
     }
+    new SystemConfigurationPropertyDAO().set(SystemConfigurationProperty.HDS_URL, null);
   }
 
   @Override

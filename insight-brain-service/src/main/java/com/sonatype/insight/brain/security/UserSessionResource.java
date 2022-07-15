@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import java.net.URI;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -21,11 +20,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.sonatype.insight.brain.api.v2.service.ReverseProxyAuthenticationConfigurationListener;
-import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
+import com.sonatype.insight.brain.service.Configuration;
 
 import com.codahale.metrics.annotation.Timed;
 import org.apache.shiro.SecurityUtils;
@@ -41,23 +39,17 @@ import org.apache.shiro.subject.Subject;
 @Named
 @Singleton
 @Timed
-public class UserSessionResource
-    implements ReverseProxyAuthenticationConfigurationListener
+public class UserSessionResource 
 {
   public static final String RESOURCE_PATH = "rest/user/session";
 
   public static final String LOGOUT_PATH = "logout";
 
-  private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
-
-  private final AtomicReference<ReverseProxyAuthenticationConfiguration>
-      reverseProxyAuthenticationConfigurationAtomicReference = new AtomicReference<>();
+  private final Configuration configuration;
 
   @Inject
-  public UserSessionResource(
-      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO)
-  {
-    this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
+  public UserSessionResource(Configuration configuration) {
+    this.configuration = configuration;
   }
 
   /**
@@ -80,7 +72,7 @@ public class UserSessionResource
   public Response logout() {
     SecurityUtils.getSubject().logout();
     ReverseProxyAuthenticationConfiguration reverseProxyAuthenticationConfiguration =
-        reverseProxyAuthenticationConfigurationAtomicReference.get();
+        configuration.getReverseProxyAuthenticationConfiguration();
     if (reverseProxyAuthenticationConfiguration != null &&
         reverseProxyAuthenticationConfiguration.isEnabled() &&
         reverseProxyAuthenticationConfiguration.getLogoutUrl() != null) {
@@ -187,10 +179,5 @@ public class UserSessionResource
     public void setGroups(Set<String> groups) {
       this.groups = groups;
     }
-  }
-
-  @Override
-  public void reverseProxyAuthenticationConfigurationChanged() {
-    reverseProxyAuthenticationConfigurationAtomicReference.set(reverseProxyAuthenticationConfigurationDAO.get());
   }
 }

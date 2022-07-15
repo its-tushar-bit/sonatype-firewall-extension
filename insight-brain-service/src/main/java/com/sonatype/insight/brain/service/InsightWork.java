@@ -6,41 +6,33 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.api.v2.service.SourceControlConfigurationListener;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.utils.IdValidationUtils;
 
 @Named
 @Singleton
-public class InsightWork
-    implements SourceControlConfigurationListener
+public class InsightWork 
 {
   private final InsightConfig insightConfig;
 
-  private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
-
-  // Visible for testing
-  final AtomicReference<SourceControlConfiguration> sourceControlConfigurationAtomicReference = new AtomicReference<>();
+  private final Configuration configuration;
 
   @Inject
   public InsightWork(
       final InsightConfig insightConfig,
-      final SourceControlConfigurationDAO sourceControlConfigurationDAO)
+      final Configuration configuration)
   {
     this.insightConfig = insightConfig;
-    this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
-    sourceControlConfigurationChanged();
+    this.configuration = configuration;
   }
 
   public InsightWork(final InsightConfig insightConfig) {
-    this(insightConfig, new SourceControlConfigurationDAO());
+    this(insightConfig, null);
   }
 
   public File getWorkDir() {
@@ -141,7 +133,7 @@ public class InsightWork
   }
 
   public File getResolvedCloneDirectory() {
-    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationAtomicReference.get();
+    SourceControlConfiguration sourceControlConfiguration = configuration.getSourceControlConfigurationOrDefault();
     File file = new File(sourceControlConfiguration.getCloneDirectory());
     if (!file.isAbsolute()) {
       file = new File(insightConfig.getSonatypeWork(), sourceControlConfiguration.getCloneDirectory());
@@ -161,14 +153,5 @@ public class InsightWork
    */
   public String getInitialAdminPassword() {
     return insightConfig.getInitialAdminPassword();
-  }
-
-  @Override
-  public void sourceControlConfigurationChanged() {
-    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
-    if (sourceControlConfiguration == null) {
-      sourceControlConfiguration = new SourceControlConfiguration();
-    }
-    sourceControlConfigurationAtomicReference.set(sourceControlConfiguration);
   }
 }

@@ -723,6 +723,7 @@ INSERT INTO migration_tracker(migration_tracker_id) VALUES('reverse-proxy-authen
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('base-url-config');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('jira-config');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('source-control-config');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('simple-config');
 
 CREATE TABLE search_index_change (
   search_index_change_id varchar(50) NOT NULL,

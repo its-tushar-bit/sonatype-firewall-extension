@@ -10,6 +10,8 @@ import java.util.Collections;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -31,6 +33,9 @@ public class PropertiesTelemetryCollectorTest
   @Inject
   private InsightConfig insightConfig;
 
+  @Inject
+  private ApiConfigurationService configurationService;
+
   @Test
   public void testCollectData_TelemetryPurpose() throws Exception {
     TelemetryData telemetryData = telemetryCollector.collectData();
@@ -40,7 +45,9 @@ public class PropertiesTelemetryCollectorTest
   @Test
   public void testCollectData_ReturnsConfiguredReportTimeout() throws Exception {
     int configuredTimeout = 600;
-    insightConfig.setReportTimeoutInSeconds(configuredTimeout);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS,
+        configuredTimeout);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS);
     TelemetryData telemetryData = telemetryCollector.collectData();
     assertThat(telemetryData.getAttributes().get(PropertiesTelemetryCollector.REPORT_TIMEOUT_SECONDS))
         .isEqualTo(configuredTimeout);

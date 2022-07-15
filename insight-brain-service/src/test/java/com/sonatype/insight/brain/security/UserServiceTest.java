@@ -12,6 +12,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserListDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
@@ -19,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.SamlUser;
@@ -27,7 +29,6 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -58,7 +59,7 @@ public class UserServiceTest
   private SamlUserDAO samlUserDAO;
 
   @Inject
-  private InsightConfig insightConfig;
+  private ApiConfigurationService configurationService;
 
   @Mock
   private SessionDAO sessionDAOMock;
@@ -375,7 +376,8 @@ public class UserServiceTest
   public void testShouldDisplayDefaultPasswordWarning_DisabledByConfig() {
     assertThat(userService.shouldDisplayDefaultPasswordWarning()).isTrue();
 
-    insightConfig.setEnableDefaultPasswordWarning(false);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING, false);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
 
     assertThat(userService.shouldDisplayDefaultPasswordWarning()).isFalse();
   }

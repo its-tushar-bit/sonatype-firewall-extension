@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
@@ -40,7 +40,7 @@ public class WebhookServiceTest
   private WebhookService webhookService;
 
   @Inject
-  private InsightConfig insightConfig;
+  private Configuration configuration;
 
   @Inject
   private PlexusCipher plexusCipher;
@@ -102,7 +102,7 @@ public class WebhookServiceTest
     assertThat(webhook.getSecretKey()).isNotEqualTo(secretKey);
     synchronized (plexusCipher) {
       final String decryptedSecretKey = plexusCipher
-          .decrypt(webhook.getSecretKey(), insightConfig.getWebhookSecretPassphrase());
+          .decrypt(webhook.getSecretKey(), configuration.getWebhookSecretPassphrase());
       assertThat(decryptedSecretKey).isEqualTo(secretKey);
     }
 
@@ -169,7 +169,7 @@ public class WebhookServiceTest
     assertThat(webhook.getSecretKey()).isNotEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
     synchronized (plexusCipher) {
       final String decryptedSecretKey = plexusCipher
-          .decrypt(webhook.getSecretKey(), insightConfig.getWebhookSecretPassphrase());
+          .decrypt(webhook.getSecretKey(), configuration.getWebhookSecretPassphrase());
       assertThat(decryptedSecretKey).isEqualTo(WEBHOOK_SECRET_KEY_CLEAR);
     }
   }

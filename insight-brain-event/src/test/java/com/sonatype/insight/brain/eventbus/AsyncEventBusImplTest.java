@@ -20,8 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class AsyncEventBusImplTest
 {
-  private EventBusConfig config = new EventBusConfig();
-
   private AsyncEventBusImpl underTest;
 
   private Handler handler1;
@@ -35,7 +33,7 @@ public class AsyncEventBusImplTest
 
   @Before
   public void setUp() {
-    underTest = new AsyncEventBusImpl(config);
+    underTest = new AsyncEventBusImpl(AsyncEventBus.DEFAULT_MAX_POOL_SIZE);
     handler1 = new Handler(underTest, new CountDownLatch(1));
     handler2 = new Handler(underTest, new CountDownLatch(1));
     handlerWithException = new HandlerWithException(underTest, new CountDownLatch(1));
@@ -60,8 +58,7 @@ public class AsyncEventBusImplTest
 
   @Test
   public void testRegister_LogsDiscarded() throws InterruptedException {
-    config.setMaxPoolSize(1);
-    underTest = new AsyncEventBusImpl(config);
+    underTest = new AsyncEventBusImpl(1);
 
     HandlerWithLongExecution longHandler = new HandlerWithLongExecution(underTest, new CountDownLatch(2), 200);
 

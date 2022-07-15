@@ -10,6 +10,8 @@ import com.sonatype.clm.testing.functional.elements.ExternalLinkModal;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
@@ -31,12 +33,26 @@ public class ExternalLinkTest
 
   @After
   public void after() {
-    testCLMServer.getCLMServer().getConfiguration().setExternalHyperlinksAllowed(true);
+    setExternalHyperlinksAllowed(null);
     logout();
   }
 
   @Test
-  public void testExternalLinks_Enabled() {
+  public void testExternalLinks_Enabled_By_Default() {
+    refreshOrOpen(GettingStartedPage.url());
+    loginAsAdmin();
+    GettingStartedPage gettingStartedPage = new GettingStartedPage();
+
+    gettingStartedPage.systemSetup().shouldBe(visible);
+    gettingStartedPage.docLink(0).shouldBe(visible).click();
+    assertThat(WebDriverRunner.getAndCheckWebDriver().getWindowHandles()).hasSize(2);
+    Selenide.switchTo().window(1).close();
+    Selenide.switchTo().window(0);
+  }
+
+  @Test
+  public void testExternalLinks_Enabled_Explicitly() {
+    setExternalHyperlinksAllowed(true);
     refreshOrOpen(GettingStartedPage.url());
     loginAsAdmin();
     GettingStartedPage gettingStartedPage = new GettingStartedPage();
@@ -50,7 +66,7 @@ public class ExternalLinkTest
 
   @Test
   public void testExternalLinks_Disabled() {
-    testCLMServer.getCLMServer().getConfiguration().setExternalHyperlinksAllowed(false);
+    setExternalHyperlinksAllowed(false);
     refreshOrOpen(GettingStartedPage.url());
     loginAsAdmin();
     GettingStartedPage gettingStartedPage = new GettingStartedPage();
@@ -69,7 +85,7 @@ public class ExternalLinkTest
 
   @Test
   public void testExternalLinks_Disabled_Icon() {
-    testCLMServer.getCLMServer().getConfiguration().setExternalHyperlinksAllowed(false);
+    setExternalHyperlinksAllowed(false);
     refreshOrOpen(GettingStartedPage.url());
     loginAsAdmin();
     GettingStartedPage gettingStartedPage = new GettingStartedPage();
@@ -80,5 +96,13 @@ public class ExternalLinkTest
     modal.shouldBe(visible).body().shouldHave(text("http://links.sonatype.com/products/nxiq/doc/requirements"));
     modal.closeButton().click();
     modal.shouldBe(hidden);
+  }
+
+  private void setExternalHyperlinksAllowed(Boolean externalHyperlinksAllowed) {
+    ApiConfigurationService configurationService =
+        testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
+        externalHyperlinksAllowed);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED);
   }
 }

@@ -8,8 +8,6 @@ showRootOrganization: true
 
 importReferencePoliciesFromHDS: false
 
-enableDefaultPasswordWarning: false
-
 logging:
   level: INFO
   loggers:

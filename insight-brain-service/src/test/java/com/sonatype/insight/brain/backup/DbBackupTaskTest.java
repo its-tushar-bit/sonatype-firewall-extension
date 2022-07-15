@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.H2DatabaseBackup;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.db.DatabaseConfig;
 
@@ -52,8 +53,8 @@ public class DbBackupTaskTest
     assertThat(message).startsWith(DbBackupTask.RESPONSE_MESSAGE_PREFIX);
     File dbBackupDir = new File(message.substring(DbBackupTask.RESPONSE_MESSAGE_PREFIX.length()));
     assertThat(dbBackupDir).isDirectory();
-    assertThat(dbBackupDir.getParentFile().getAbsolutePath())
-        .isEqualTo(getCLMServer().getConfiguration().getDbBackupDir().getAbsolutePath());
+    assertThat(dbBackupDir.getParentFile().getAbsolutePath()).isEqualTo(
+        getCLMServer().getInstance(Configuration.class).getDbBackupDir());
     assertThat(new File(dbBackupDir, DatabaseName.ods + H2DatabaseBackup.BACKUP_FILENAME_SUFFIX)).isFile();
   }
 

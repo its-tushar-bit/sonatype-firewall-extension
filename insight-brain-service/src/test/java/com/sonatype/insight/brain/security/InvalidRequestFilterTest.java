@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.Authentication;
 
@@ -38,34 +40,38 @@ public class InvalidRequestFilterTest
   }
 
   @Test
-  @ManualServerInit
   public void testBackslashEnabled() throws Exception {
-    initServer(config -> config.setBlockBackslashInPath(false));
+    ApiConfigurationService configurationService = getCLMServer().getInstance(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, false);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH);
 
     HttpResponse response = restRequest().path("any/thing/\\after-backslash").get();
     assertResponseStatus(404, response);
   }
 
   @Test
-  @ManualServerInit
   public void testNonAsciiEnabled() throws Exception {
-    initServer(config -> config.setBlockNonAsciiInPath(false));
+    ApiConfigurationService configurationService = getCLMServer().getInstance(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, false);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH);
 
     assertThat(doRequestWithNonAsciiCharacters()).isEqualTo(404);
   }
 
   @Test
-  @ManualServerInit
   public void testNonAsciiDisabled() throws Exception {
-    initServer(config -> config.setBlockNonAsciiInPath(true));
+    ApiConfigurationService configurationService = getCLMServer().getInstance(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, true);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH);
 
     assertThat(doRequestWithNonAsciiCharacters()).isEqualTo(400);
   }
 
   @Test
-  @ManualServerInit
   public void testSemicolonEnabled() throws Exception {
-    initServer(config -> config.setBlockSemicolonInPath(false));
+    ApiConfigurationService configurationService = getCLMServer().getInstance(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, false);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH);
 
     HttpResponse response = restRequest().path("any/thing/;after-backslash").get();
     assertResponseStatus(404, response);

@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -18,12 +19,9 @@ import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,9 +38,6 @@ public class ApiSearchServiceV2Test
 
   @Inject
   private InsightWork insightWork;
-
-  @Inject
-  private InsightConfig insightConfig;
 
   @Before
   public void before() {
@@ -119,7 +114,7 @@ public class ApiSearchServiceV2Test
   public void testSearchComponent_InnerSourceData_WithDisabledComponentSearchApiWithInnerSource()
       throws URISyntaxException, IOException
   {
-    insightConfig.setFeatures(ImmutableMap.of(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), false));
+    SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.setEnabled(false);
     Application application = tempEntity.newApplication(ROOT_ORGANIZATION_ID);
     ApplicationComponent appComponent = tempEntity
         .newApplicationComponent(application.getId(), BuildStageType.ID, "2b8e230d2ab644e4ecaa",

@@ -10,15 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.api.v2.service.JiraConfigurationListener;
-import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
+import com.sonatype.insight.brain.service.Configuration;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -36,28 +34,24 @@ import static com.sonatype.insight.brain.jira.JiraField.SUMMARY;
 @Named
 @Singleton
 public class JiraService
-    implements JiraConfigurationListener
 {
   private static final Logger log = LoggerFactory.getLogger(JiraService.class);
 
-  private final JiraConfigurationDAO jiraConfigurationDAO;
+  private final Configuration configuration;
 
   private final JiraClientFactory clientFactory;
 
-  private final AtomicReference<JiraConfiguration> jiraConfigurationAtomicReference = new AtomicReference<>();
-
   @Inject
   public JiraService(
-      final JiraConfigurationDAO jiraConfigurationDAO,
+      final Configuration configuration,
       final JiraClientFactory clientFactory)
   {
-    this.jiraConfigurationDAO = jiraConfigurationDAO;
+    this.configuration = configuration;
     this.clientFactory = clientFactory;
-    jiraConfigurationChanged();
   }
 
   public JiraConfiguration getConfiguration() {
-    return jiraConfigurationAtomicReference.get();
+    return configuration.getJiraConfiguration();
   }
 
   public boolean isEnabled() {
@@ -138,10 +132,5 @@ public class JiraService
       }
     }
     return true;
-  }
-
-  @Override
-  public void jiraConfigurationChanged() {
-    jiraConfigurationAtomicReference.set(jiraConfigurationDAO.get());
   }
 }

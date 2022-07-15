@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,15 +14,20 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.test.LogOutput;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.util.Maps;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
@@ -40,6 +46,9 @@ import static org.mockito.Mockito.when;
 public class ApiConfigurationServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(ConfigurationUtils.class);
+
   @Inject
   private ApiConfigurationService service;
 
@@ -51,6 +60,9 @@ public class ApiConfigurationServiceTest
 
   @Mock
   private ConfigurationListener mockConfigurationListener;
+
+  @Inject
+  private InsightConfig insightConfig;
 
   @Override
   public void configure(Binder binder) {
@@ -76,7 +88,7 @@ public class ApiConfigurationServiceTest
   @Test
   public void testGetConfiguration_InvalidPropertyName() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.getConfiguration(ImmutableSet.of("invalidPropertyName"))).withMessageContaining(
+        () -> service.getConfiguration(SetUtils.hashSet("invalidPropertyName"))).withMessageContaining(
         String.format(ApiConfigurationService.INVALID_PROPERTY_NAME_ERROR_MSG, "invalidPropertyName"));
   }
 
@@ -86,7 +98,7 @@ public class ApiConfigurationServiceTest
     dao.set(SystemConfigurationProperty.FORCE_BASE_URL, String.valueOf(Boolean.TRUE));
 
     Map<String, Object> configuration = service.getConfiguration(
-        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
+        SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
 
     assertThat(configuration).hasSize(2).containsEntry(SystemConfigurationProperty.BASE_URL, "http://baseUrl/")
         .containsEntry(SystemConfigurationProperty.FORCE_BASE_URL, true);
@@ -177,14 +189,14 @@ public class ApiConfigurationServiceTest
   @Test
   public void testDeleteConfiguration_InvalidPropertyName() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.deleteConfiguration(ImmutableSet.of("invalidPropertyName"))).withMessageContaining(
+        () -> service.deleteConfiguration(SetUtils.hashSet("invalidPropertyName"))).withMessageContaining(
         String.format(ApiConfigurationService.INVALID_PROPERTY_NAME_ERROR_MSG, "invalidPropertyName"));
   }
 
   @Test
   public void testDeleteConfiguration_NullValues() {
     service.deleteConfiguration(
-        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
+        SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
 
     assertThat(dao.getByName(SystemConfigurationProperty.BASE_URL)).isNull();
     assertThat(dao.getByName(SystemConfigurationProperty.FORCE_BASE_URL)).isNull();
@@ -196,7 +208,7 @@ public class ApiConfigurationServiceTest
     dao.set(SystemConfigurationProperty.FORCE_BASE_URL, String.valueOf(Boolean.TRUE));
 
     service.deleteConfiguration(
-        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
+        SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL));
 
     assertThat(dao.getByName(SystemConfigurationProperty.BASE_URL)).isNull();
     assertThat(dao.getByName(SystemConfigurationProperty.FORCE_BASE_URL)).isNull();
@@ -206,7 +218,7 @@ public class ApiConfigurationServiceTest
   public void testUpdateAllClusterNodesFromConfiguration() {
     ApiConfigurationService spy = spy(service);
     Set<String> propertyNames =
-        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
+        SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
 
     spy.updateAllClusterNodesFromConfiguration(propertyNames);
 
@@ -221,7 +233,7 @@ public class ApiConfigurationServiceTest
   @Test
   public void testApplyConfigurationToClients() {
     Set<String> propertyNames =
-        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
+        SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
 
     service.applyConfigurationToClients(propertyNames);
 
@@ -229,9 +241,195 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testGetConfiguration_ForceBaseUrlNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.FORCE_BASE_URL))).containsEntry(
+        SystemConfigurationProperty.FORCE_BASE_URL, false);
+  }
+
+  @Test
+  public void testGetConfiguration_HdsUrlNotSet_ReturnsDefault() {
+    setHdsUrl(null);
+
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.HDS_URL))).containsEntry(
+        SystemConfigurationProperty.HDS_URL, "https://clm.sonatype.com/");
+  }
+
+  @Test
+  public void testGetConfiguration_CdnUrlNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CDN_URL))).containsEntry(
+        SystemConfigurationProperty.CDN_URL, "https://cdn.sonatype.com/");
+  }
+
+  @Test
+  public void testGetConfiguration_SupportReadLimitBytesNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES))).containsEntry(
+        SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 31457280L);
+  }
+
+  @Test
+  public void testGetConfiguration_EventBusMaxThreadPoolSizeNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE))).containsEntry(
+        SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, AsyncEventBus.DEFAULT_MAX_POOL_SIZE);
+  }
+
+  @Test
+  public void testGetConfiguration_CsrfProtectionNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CSRF_PROTECTION))).containsEntry(
+        SystemConfigurationProperty.CSRF_PROTECTION, true);
+  }
+
+  @Test
+  public void testGetConfiguration_CspEnabledNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CSP_ENABLED))).containsEntry(
+        SystemConfigurationProperty.CSP_ENABLED, true);
+  }
+
+  @Test
+  public void testGetConfiguration_BlockSemicolonInPathNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH))).containsEntry(
+        SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, true);
+  }
+
+  @Test
+  public void testGetConfiguration_BlockBackslashInPathNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH))).containsEntry(
+        SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, true);
+  }
+
+  @Test
+  public void testGetConfiguration_BlockNonAsciiInPathNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH))).containsEntry(
+        SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, false);
+  }
+
+  @Test
+  public void testGetConfiguration_ReleaseGraphCacheSizeNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE))).containsEntry(
+        SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE, 1000);
+  }
+
+  @Test
+  public void testGetConfiguration_LicenseLegalHdsRequestLimitNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT))).containsEntry(
+        SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT, 50);
+  }
+
+  @Test
+  public void testGetConfiguration_MaxApplicationsToQueryOnDashboardNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD))).containsEntry(
+        SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD, 0);
+  }
+
+  @Test
+  public void testGetConfiguration_MaxAdvancedSearchClauseCountNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT))).containsEntry(
+        SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 2048);
+  }
+
+  @Test
+  public void testGetConfiguration_AdvancedSearchCSVExportDelimiterNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER))).containsEntry(
+        SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, ",");
+  }
+
+  @Test
+  public void testGetConfiguration_ConnectTimeoutInSecondsNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS))).containsEntry(
+        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, 20);
+  }
+
+  @Test
+  public void testGetConfiguration_SocketTimeoutInSecondsNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS))).containsEntry(
+        SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, 3 * 60);
+  }
+
+  @Test
+  public void testGetConfiguration_ReportTimeoutInSecondsNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS))).containsEntry(
+        SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 35 * 60);
+  }
+
+  @Test
+  public void testGetConfiguration_NeedsAcknowledgementOfInitialDashboardFilterNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER))).containsEntry(
+        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER, false);
+  }
+
+  @Test
+  public void testGetConfiguration_EnableDefaultPasswordWarningNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING))).containsEntry(
+        SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING, true);
+  }
+
+  @Test
+  public void testGetConfiguration_PolicyMonitoringHourNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.POLICY_MONITORING_HOUR))).containsEntry(
+        SystemConfigurationProperty.POLICY_MONITORING_HOUR, 0);
+  }
+
+  @Test
+  public void testGetConfiguration_DbBackupDirNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
+        SystemConfigurationProperty.DB_BACKUP_DIR,
+        new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
+  }
+
+  @Test
+  public void testGetConfiguration_WebhookSecretPassphraseNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE))).containsEntry(
+        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, "^d1swM!FF&qQ");
+  }
+
+  @Test
+  public void testGetConfiguration_ExternalHyperlinksAllowedNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED))).containsEntry(
+        SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, true);
+  }
+
+  @Test
+  public void testGetConfiguration_MatcherConfiguration_DisableConanNamespaceMatchingNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
+        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING))).containsEntry(
+        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, false);
+  }
+
+  @Test
   public void testExecute() throws Exception {
     Set<String> propertyNames =
-        ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
+        SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
     Map<String, String> parameters = new HashMap<>();
     parameters.put(ApiConfigurationService.TASK_PARAM_PROPERTIES,
         StringUtils.join(propertyNames, ApiConfigurationService.TASK_PARAM_PROPERTIES_DELIMITER));
@@ -240,7 +438,8 @@ public class ApiConfigurationServiceTest
     doAnswer(invocationOnMock -> {
       assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
       return null;
-    }).when(spy).applyConfigurationToClients(propertyNames);
+    }).when(spy)
+        .applyConfigurationToClients(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
     JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
     when(mockJobExecutionContext.getMergedJobDataMap()).thenReturn(jobDataMap);
 
@@ -248,11 +447,669 @@ public class ApiConfigurationServiceTest
       spy.execute(mockJobExecutionContext);
     }
 
-    verify(spy).applyConfigurationToClients(propertyNames);
+    verify(spy).applyConfigurationToClients(SystemConfigurationProperty.BASE_URL,
+        SystemConfigurationProperty.FORCE_BASE_URL);
   }
 
   @Test
   public void testDisallowConcurrentExecution() {
     assertThat(JobBuilder.newJob(ApiConfigurationService.class).build().isConcurrentExectionDisallowed()).isTrue();
+  }
+
+  @Test
+  public void testSetConfiguration_NarrowerType_To_WiderType() {
+    Map<String, Object> properties = Maps.newHashMap(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 500);
+
+    service.setConfiguration(properties);
+
+    assertThat(dao.get(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES)).isEqualTo("500");
+  }
+
+  @Test
+  public void testSetConfiguration_SameType() {
+    Map<String, Object> properties = Maps.newHashMap(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 500L);
+
+    service.setConfiguration(properties);
+
+    assertThat(dao.get(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES)).isEqualTo("500");
+  }
+
+  @Test
+  public void testSetConfiguration_WiderType_To_NarrowerType() {
+    Map<String, Object> properties = Maps.newHashMap(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, 500L);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.setConfiguration(properties))
+        .withMessageContaining(String.format(ApiConfigurationService.INVALID_PROPERTY_VALUE_TYPE_ERROR_MSG,
+            SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, int.class, long.class));
+  }
+
+  @Test
+  public void testSetConfiguration_BaseUrlAndForceBaseUrl_Null() {
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(SystemConfigurationProperty.BASE_URL, null);
+    properties.put(SystemConfigurationProperty.FORCE_BASE_URL, null);
+
+    service.setConfiguration(properties);
+
+    assertThat(dao.get(SystemConfigurationProperty.BASE_URL)).isNull();
+    assertThat(dao.get(SystemConfigurationProperty.FORCE_BASE_URL)).isNull();
+    assertThat(service.getConfiguration(
+        SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL)))
+        .containsEntry(SystemConfigurationProperty.BASE_URL, null)
+        .containsEntry(SystemConfigurationProperty.FORCE_BASE_URL, false);
+    logOutput.assertThat().atErrorLevel().doesNotContain("DEPRECATION NOTICE");
+  }
+
+  @Test
+  public void testSetConfiguration_BaseUrlAndForceBaseUrl() {
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(SystemConfigurationProperty.BASE_URL, "http://my-base-url/");
+    properties.put(SystemConfigurationProperty.FORCE_BASE_URL, true);
+
+    service.setConfiguration(properties);
+
+    assertThat(dao.get(SystemConfigurationProperty.BASE_URL)).isEqualTo("http://my-base-url/");
+    assertThat(dao.get(SystemConfigurationProperty.FORCE_BASE_URL)).isEqualTo("true");
+    assertThat(service.getConfiguration(
+        SetUtils.hashSet(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL)))
+        .containsEntry(SystemConfigurationProperty.BASE_URL, "http://my-base-url/")
+        .containsEntry(SystemConfigurationProperty.FORCE_BASE_URL, true);
+    logOutput.assertThat().atErrorLevel().contains("http://my-base-url/");
+  }
+
+  @Test
+  public void testSetConfiguration_NoDatabaseHdsUrl_NoInsightConfigHdsUrl() {
+    insightConfig.setHdsUrl(null);
+
+    setHdsUrl(null);
+
+    assertThat(dao.get(SystemConfigurationProperty.HDS_URL)).isNull();
+    assertThat(service.getConfiguration(SetUtils.hashSet(SystemConfigurationProperty.HDS_URL))).containsEntry(
+        SystemConfigurationProperty.HDS_URL, "https://clm.sonatype.com/");
+  }
+
+  @Test
+  public void testSetConfiguration_NoDatabaseHdsUrl_InsightConfigHdsUrl() {
+    String expected = "http://my-config-hds-url/";
+    insightConfig.setHdsUrl(expected);
+
+    setHdsUrl(null);
+
+    assertThat(dao.get(SystemConfigurationProperty.HDS_URL)).isNull();
+    assertThat(service.getConfiguration(SetUtils.hashSet(SystemConfigurationProperty.HDS_URL))).containsEntry(
+        SystemConfigurationProperty.HDS_URL, expected);
+  }
+
+  @Test
+  public void testSetConfiguration_DatabaseHdsUrl_NoInsightConfigHdsUrl() {
+    String expected = "http://my-db-hds-url/";
+    insightConfig.setHdsUrl(null);
+
+    setHdsUrl(expected);
+
+    assertThat(dao.get(SystemConfigurationProperty.HDS_URL)).isEqualTo(expected);
+    assertThat(service.getConfiguration(SetUtils.hashSet(SystemConfigurationProperty.HDS_URL))).containsEntry(
+        SystemConfigurationProperty.HDS_URL, expected);
+  }
+
+  @Test
+  public void testSetConfiguration_DatabaseHdsUrl_InsightConfigHdsUrl() {
+    String expected = "http://my-db-hds-url/";
+    insightConfig.setHdsUrl("http://my-config-hds-url");
+
+    setHdsUrl(expected);
+
+    assertThat(dao.get(SystemConfigurationProperty.HDS_URL)).isEqualTo(expected);
+    assertThat(service.getConfiguration(SetUtils.hashSet(SystemConfigurationProperty.HDS_URL))).containsEntry(
+        SystemConfigurationProperty.HDS_URL, expected);
+  }
+
+  @Test
+  public void testSetConfiguration_CdnUrl_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.CDN_URL, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.CDN_URL)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.CDN_URL))).containsEntry(
+        SystemConfigurationProperty.CDN_URL, "https://cdn.sonatype.com/");
+  }
+
+  @Test
+  public void testSetConfiguration_CdnUrl() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.CDN_URL, "http://my-cdn-url/"));
+
+    assertThat(dao.get(SystemConfigurationProperty.CDN_URL)).isEqualTo("http://my-cdn-url/");
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.CDN_URL))).containsEntry(
+        SystemConfigurationProperty.CDN_URL, "http://my-cdn-url/");
+  }
+
+  @Test
+  public void testSetConfiguration_SupportReadLimitBytes_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES))).containsEntry(
+        SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 31457280L);
+  }
+
+  @Test
+  public void testSetConfiguration_SupportReadLimitBytes() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 10L));
+
+    assertThat(dao.get(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES)).isEqualTo("10");
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES))).containsEntry(
+        SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 10L);
+  }
+
+  @Test
+  public void testSetConfiguration_EventBusMaxThreadPoolSize_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE))).containsEntry(
+        SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, AsyncEventBus.DEFAULT_MAX_POOL_SIZE);
+  }
+
+  @Test
+  public void testSetConfiguration_EventBusMaxThreadPoolSize() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, 10));
+
+    assertThat(dao.get(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE)).isEqualTo("10");
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE))).containsEntry(
+        SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE, 10);
+  }
+
+  @Test
+  public void testSetConfiguration_CsrfProtection_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.CSRF_PROTECTION, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.CSRF_PROTECTION)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CSRF_PROTECTION))).containsEntry(
+        SystemConfigurationProperty.CSRF_PROTECTION, true);
+  }
+
+  @Test
+  public void testSetConfiguration_CsrfProtection() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.CSRF_PROTECTION, false));
+
+    assertThat(dao.get(SystemConfigurationProperty.CSRF_PROTECTION)).isEqualTo("false");
+    assertThat(
+        service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CSRF_PROTECTION))).containsEntry(
+        SystemConfigurationProperty.CSRF_PROTECTION, false);
+  }
+
+  @Test
+  public void testSetConfiguration_UserAgentSuffix_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.USER_AGENT_SUFFIX, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.USER_AGENT_SUFFIX)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.USER_AGENT_SUFFIX))).containsEntry(
+        SystemConfigurationProperty.USER_AGENT_SUFFIX, null);
+  }
+
+  @Test
+  public void testSetConfiguration_UserAgentSuffix() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.USER_AGENT_SUFFIX, "test"));
+
+    assertThat(dao.get(SystemConfigurationProperty.USER_AGENT_SUFFIX)).isEqualTo("test");
+    assertThat(
+        service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.USER_AGENT_SUFFIX))).containsEntry(
+        SystemConfigurationProperty.USER_AGENT_SUFFIX, "test");
+  }
+
+  @Test
+  public void testSetConfiguration_CspEnabled_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.CSP_ENABLED, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.CSP_ENABLED)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CSP_ENABLED))).containsEntry(
+        SystemConfigurationProperty.CSP_ENABLED, true);
+  }
+
+  @Test
+  public void testSetConfiguration_CspEnabled() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.CSP_ENABLED, false));
+
+    assertThat(dao.get(SystemConfigurationProperty.CSP_ENABLED)).isEqualTo("false");
+    assertThat(
+        service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CSP_ENABLED))).containsEntry(
+        SystemConfigurationProperty.CSP_ENABLED, false);
+  }
+
+  @Test
+  public void testSetConfiguration_BlockSemicolonInPath_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH))).containsEntry(
+        SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, true);
+  }
+
+  @Test
+  public void testSetConfiguration_BlockSemicolonInPath() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, false));
+
+    assertThat(dao.get(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH)).isEqualTo("false");
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH))).containsEntry(
+        SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH, false);
+  }
+
+  @Test
+  public void testSetConfiguration_BlockBackslashInPath_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH))).containsEntry(
+        SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, true);
+  }
+
+  @Test
+  public void testSetConfiguration_BlockBackslashInPath() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, false));
+
+    assertThat(dao.get(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH)).isEqualTo("false");
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH))).containsEntry(
+        SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, false);
+  }
+
+  @Test
+  public void testSetConfiguration_BlockNonAsciiInPath_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH))).containsEntry(
+        SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, false);
+  }
+
+  @Test
+  public void testSetConfiguration_BlockNonAsciiInPath() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, true));
+
+    assertThat(dao.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH)).isEqualTo("true");
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH))).containsEntry(
+        SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH, true);
+  }
+
+  @Test
+  public void testSetConfiguration_ReleaseGraphCacheSize_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE))).containsEntry(
+        SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE, 1000);
+  }
+
+  @Test
+  public void testSetConfiguration_ReleaseGraphCacheSize() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE, 10));
+
+    assertThat(dao.get(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE)).isEqualTo("10");
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE))).containsEntry(
+        SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE, 10);
+  }
+
+  @Test
+  public void testSetConfiguration_LicenseLegalHdsRequestLimit_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT))).containsEntry(
+        SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT, 50);
+  }
+
+  @Test
+  public void testSetConfiguration_LicenseLegalHdsRequestLimit() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT, 10));
+
+    assertThat(dao.get(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT)).isEqualTo("10");
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT))).containsEntry(
+        SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT, 10);
+  }
+
+  @Test
+  public void testSetConfiguration_MaxApplicationsToQueryOnDashboard_Null() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD))).containsEntry(
+        SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD, 0);
+  }
+
+  @Test
+  public void testSetConfiguration_MaxApplicationsToQueryOnDashboard() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD, 10));
+
+    assertThat(dao.get(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD)).isEqualTo("10");
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD))).containsEntry(
+        SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD, 10);
+  }
+
+  @Test
+  public void testSetConfiguration_MaxAdvancedSearchClauseCount_Null() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT))).containsEntry(
+        SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 2048);
+  }
+
+  @Test
+  public void testSetConfiguration_MaxAdvancedSearchClauseCount() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 10));
+
+    assertThat(dao.get(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT)).isEqualTo("10");
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT))).containsEntry(
+        SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 10);
+  }
+
+  @Test
+  public void testSetConfiguration_AdvancedSearchCSVExportDelimiter_Null() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER))).containsEntry(
+        SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, ",");
+  }
+
+  @Test
+  public void testSetConfiguration_AdvancedSearchCSVExportDelimiter() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, ";"));
+
+    assertThat(dao.get(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER)).isEqualTo(";");
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER))).containsEntry(
+        SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, ";");
+  }
+
+  @Test
+  public void testSetConfiguration_ConnectTimeoutInSeconds_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS))).containsEntry(
+        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, 20);
+  }
+
+  @Test
+  public void testSetConfiguration_ConnectTimeoutInSeconds() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, 10));
+
+    assertThat(dao.get(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS)).isEqualTo("10");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS))).containsEntry(
+        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, 10);
+    assertMinAndMax(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, 5, 60 * 60);
+  }
+
+  @Test
+  public void testSetConfiguration_SocketTimeoutInSeconds_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS))).containsEntry(
+        SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, 3 * 60);
+  }
+
+  @Test
+  public void testSetConfiguration_SocketTimeoutInSeconds() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, 10));
+
+    assertThat(dao.get(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS)).isEqualTo("10");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS))).containsEntry(
+        SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, 10);
+    assertMinAndMax(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS, 5, 60 * 60);
+  }
+
+  @Test
+  public void testSetConfiguration_ReportTimeoutInSeconds_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS))).containsEntry(
+        SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 35 * 60);
+  }
+
+  @Test
+  public void testSetConfiguration_ReportTimeoutInSeconds() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 35));
+
+    assertThat(dao.get(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS)).isEqualTo("35");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS))).containsEntry(
+        SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 35);
+    assertMinAndMax(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS, 30, 60 * 60);
+  }
+
+  @Test
+  public void testSetConfiguration_NeedsAcknowledgementOfInitialDashboardFilter_Null() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER))).containsEntry(
+        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER, false);
+  }
+
+  @Test
+  public void testSetConfiguration_NeedsAcknowledgementOfInitialDashboardFilter() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER, true));
+
+    assertThat(dao.get(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER)).isEqualTo(
+        "true");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER))).containsEntry(
+        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER, true);
+  }
+
+  @Test
+  public void testSetConfiguration_EnableDefaultPasswordWarning_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING))).containsEntry(
+        SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING, true);
+  }
+
+  @Test
+  public void testSetConfiguration_EnableDefaultPasswordWarning() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING, false));
+
+    assertThat(dao.get(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING)).isEqualTo("false");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING))).containsEntry(
+        SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING, false);
+  }
+
+  @Test
+  public void testSetConfiguration_PolicyMonitoringHour_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.POLICY_MONITORING_HOUR, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.POLICY_MONITORING_HOUR)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.POLICY_MONITORING_HOUR))).containsEntry(
+        SystemConfigurationProperty.POLICY_MONITORING_HOUR, 0);
+  }
+
+  @Test
+  public void testSetConfiguration_PolicyMonitoringHour() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.POLICY_MONITORING_HOUR, 22));
+
+    assertThat(dao.get(SystemConfigurationProperty.POLICY_MONITORING_HOUR)).isEqualTo("22");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.POLICY_MONITORING_HOUR))).containsEntry(
+        SystemConfigurationProperty.POLICY_MONITORING_HOUR, 22);
+    assertMinAndMax(SystemConfigurationProperty.POLICY_MONITORING_HOUR, 0, 23);
+  }
+
+  @Test
+  public void testSetConfiguration_DbBackupDir_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.DB_BACKUP_DIR, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.DB_BACKUP_DIR)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
+        SystemConfigurationProperty.DB_BACKUP_DIR,
+        new File(insightConfig.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR).getAbsolutePath());
+  }
+
+  @Test
+  public void testSetConfiguration_DbBackupDir() throws Exception {
+    String dbBackupDir = InsightConfig.DEFAULT_BACKUP_DIR + "-2";
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.DB_BACKUP_DIR, dbBackupDir));
+
+    assertThat(dao.get(SystemConfigurationProperty.DB_BACKUP_DIR)).isEqualTo(dbBackupDir);
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
+        SystemConfigurationProperty.DB_BACKUP_DIR,
+        new File(insightConfig.getSonatypeWork(), dbBackupDir).getAbsolutePath());
+
+    String absolutePath = tempDir.newFolder().getAbsolutePath();
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.DB_BACKUP_DIR, absolutePath));
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.DB_BACKUP_DIR))).containsEntry(
+        SystemConfigurationProperty.DB_BACKUP_DIR, absolutePath);
+  }
+
+  @Test
+  public void testSetConfiguration_WebhookSecretPassphrase_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE))).containsEntry(
+        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, "^d1swM!FF&qQ");
+  }
+
+  @Test
+  public void testSetConfiguration_WebhookSecretPassphrase() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, "custom"));
+
+    assertThat(dao.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE)).isEqualTo("custom");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE))).containsEntry(
+        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, "custom");
+  }
+
+  @Test
+  public void testSetConfiguration_ExternalHyperlinksAllowed_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED))).containsEntry(
+        SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, true);
+  }
+
+  @Test
+  public void testSetConfiguration_ExternalHyperlinksAllowed() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, false));
+
+    assertThat(dao.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED)).isEqualTo("false");
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED))).containsEntry(
+        SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, false);
+  }
+
+  @Test
+  public void testSetConfiguration_MatcherConfiguration_DisableConanNamespaceMatching_Null() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING)).isNull();
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
+        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING))).containsEntry(
+        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, false);
+  }
+
+  @Test
+  public void testSetConfiguration_MatcherConfiguration_DisableConanNamespaceMatching() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, true));
+
+    assertThat(dao.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING)).isEqualTo(
+        "true");
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
+        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING))).containsEntry(
+        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, true);
+  }
+
+  private void assertMinAndMax(String name, int min, int max) {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> service.setConfigurationNoAuthz(name, min - 1))
+        .withMessageContaining(String.format(ConfigurationUtils.OUTSIDE_RANGE_ERROR_MSG, name, min, max));
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> service.setConfigurationNoAuthz(name, max + 1))
+        .withMessageContaining(String.format(ConfigurationUtils.OUTSIDE_RANGE_ERROR_MSG, name, min, max));
+    service.setConfigurationNoAuthz(name, min);
+    assertThat(dao.get(name)).isEqualTo(Integer.toString(min));
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(name))).containsEntry(name, min);
+    service.setConfigurationNoAuthz(name, max);
+    assertThat(dao.get(name)).isEqualTo(Integer.toString(max));
+    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(name))).containsEntry(name, max);
   }
 }

@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -43,7 +44,6 @@ import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -81,6 +81,9 @@ public class PullRequestMonitorTest
 
   @Inject
   private SourceControlConfigurationDAO sourceControlConfigurationDAO;
+  
+  @Inject
+  private Configuration configuration;
 
   @Override
   public void configure(Binder binder) {
@@ -346,7 +349,7 @@ public class PullRequestMonitorTest
 
   @Test
   public void testSourceControlConfigurationChanged_NullConfiguration() {
-    pullRequestMonitor.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     verify(taskSchedulerMock).schedulePeriodicTask(PullRequestMonitor.class, PullRequestMonitor.TASK_NAME,
         Duration.ofSeconds(new SourceControlConfiguration().getPullRequestMonitoringIntervalSeconds()));
@@ -354,13 +357,11 @@ public class PullRequestMonitorTest
 
   @Test
   public void testSourceControlConfigurationChanged_UpdatedPullRequestMonitoringIntervalSeconds() {
-    pullRequestMonitor.sourceControlConfigurationChanged();
-    clearInvocations(taskSchedulerMock);
     SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
     sourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(30);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
 
-    pullRequestMonitor.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     verify(taskSchedulerMock).schedulePeriodicTask(PullRequestMonitor.class, PullRequestMonitor.TASK_NAME,
         Duration.ofSeconds(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()));
@@ -368,13 +369,11 @@ public class PullRequestMonitorTest
 
   @Test
   public void testSourceControlConfigurationChanged_NoRelevantUpdate() {
-    pullRequestMonitor.sourceControlConfigurationChanged();
-    clearInvocations(taskSchedulerMock);
     SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
     sourceControlConfiguration.setGitImplementation(GitImplementation.JAVA);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
 
-    pullRequestMonitor.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any(), any());
   }

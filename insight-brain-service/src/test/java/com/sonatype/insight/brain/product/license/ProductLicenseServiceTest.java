@@ -52,6 +52,7 @@ public class ProductLicenseServiceTest
     Files.copy(getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.p12"),
         new File(tempDir.getRoot(), "hds.p12").toPath());
     hdsMockServer.reset();
+    setHdsUrl(hdsMockServer.getHttpUrl());
   }
 
   @Override
@@ -61,11 +62,6 @@ public class ProductLicenseServiceTest
     productLicenseConfig.setKeyStoreAliasGroup("licensing-key-test");
     binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
     super.configure(binder);
-  }
-
-  @Override
-  protected void customizeConfig(InsightConfig config) {
-    config.setHdsUrl(hdsMockServer.getHttpUrl());
   }
 
   @Test

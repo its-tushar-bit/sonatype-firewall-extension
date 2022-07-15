@@ -11,18 +11,15 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.service.SourceControlConfigurationListener;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -31,8 +28,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.utils.DateUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -56,19 +52,17 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class DefaultBranchMonitor
-    implements Managed, Job, SourceControlConfigurationListener
+    implements Managed, Job
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultBranchMonitor.class);
 
-  static final String TASK_NAME = "DefaultBranchMonitor";
-
-  private final InsightConfig insightConfig;
+  public static final String TASK_NAME = "DefaultBranchMonitor";
 
   private final TaskScheduler taskScheduler;
 
   private final SourceControlEventPublisher sourceControlEventPublisher;
 
-  private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
+  private final Configuration configuration;
 
   private final SourceControlDAO sourceControlDAO;
 
@@ -80,22 +74,17 @@ public class DefaultBranchMonitor
 
   private final int randomizedStartOffsetInMinutes = new Random().nextInt(10);
 
-  private final AtomicReference<SourceControlConfiguration> sourceControlConfigurationAtomicReference =
-      new AtomicReference<>();
-
   @Inject
   public DefaultBranchMonitor(
-      InsightConfig insightConfig,
       TaskScheduler taskScheduler,
       SourceControlEventPublisher sourceControlEventPublisher,
-      SourceControlConfigurationDAO sourceControlConfigurationDAO,
+      Configuration configuration,
       SourceControlDAO sourceControlDAO,
       IqForScmLicenseChecker licenseChecker)
   {
-    this.insightConfig = insightConfig;
     this.taskScheduler = taskScheduler;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
-    this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
+    this.configuration = configuration;
     this.sourceControlDAO = sourceControlDAO;
     this.licenseChecker = licenseChecker;
   }
@@ -106,23 +95,22 @@ public class DefaultBranchMonitor
       return;
     }
 
-    taskScheduler.unscheduleTask(TASK_NAME);
-
-    if (!insightConfig.isFeatureEnabled(Feature.DEFAULT_BRANCH_MONITORING)) {
-      return;
-    }
-
-    sourceControlConfigurationChanged();
+    scheduleDefaultBranchMonitoring();
   }
 
-  private void scheduleDefaultBranchMonitoring() {
+  public void scheduleDefaultBranchMonitoring() {
+    taskScheduler.unscheduleTask(TASK_NAME);
+
+    if (!SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.isEnabled()) {
+      return;
+    }
     // If we schedule the task every intervalInHours (as configured),
     // then apps that have policy evals after now - intervalInHours are not included in the next default branch
     // monitoring execution,
     // which means they will be included only in the subsequent execution,
     // resulting in a policy eval triggered by monitoring every 2 * intervalInHours.
     // That's why we use half intervalInHours below.
-    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationAtomicReference.get();
+    SourceControlConfiguration sourceControlConfiguration = configuration.getSourceControlConfigurationOrDefault();
     intervalInMinutes = sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours() * 60 / 2;
 
     Date defaultBranchMonitorStartTime = getDefaultBranchMonitorStartTime(sourceControlConfiguration);
@@ -234,28 +222,5 @@ public class DefaultBranchMonitor
   @VisibleForTesting
   int getIntervalInMinutes() {
     return intervalInMinutes;
-  }
-
-  @Override
-  public void sourceControlConfigurationChanged() {
-    SourceControlConfiguration currentSourceControlConfiguration = sourceControlConfigurationAtomicReference.get();
-    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
-    if (sourceControlConfiguration == null) {
-      sourceControlConfiguration = new SourceControlConfiguration();
-    }
-    sourceControlConfigurationAtomicReference.set(sourceControlConfiguration);
-
-    if (!taskScheduler.isSchedulerInitialized()) {
-      return;
-    }
-
-    if (!taskScheduler.isTaskScheduled(TASK_NAME) ||
-        currentSourceControlConfiguration == null ||
-        !Objects.equals(currentSourceControlConfiguration.getDefaultBranchMonitoringStartTime(),
-            sourceControlConfiguration.getDefaultBranchMonitoringStartTime()) ||
-        currentSourceControlConfiguration.getDefaultBranchMonitoringIntervalHours() !=
-            sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours()) {
-      scheduleDefaultBranchMonitoring();
-    }
   }
 }

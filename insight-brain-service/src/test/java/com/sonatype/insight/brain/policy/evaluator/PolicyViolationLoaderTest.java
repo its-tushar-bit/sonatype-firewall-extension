@@ -11,12 +11,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -25,9 +26,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 
-import com.google.inject.Binder;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,15 +37,8 @@ public class PolicyViolationLoaderTest
   @Inject
   private PolicyViolationLoader loader;
 
-  private InsightConfig config;
-
-  @Override
-  public void configure(final Binder binder) {
-    config = new InsightConfig();
-    config.setFeatures(new HashMap<>());
-    binder.bind(InsightConfig.class).toInstance(config);
-    super.configure(binder);
-  }
+  @Inject
+  private ApiConfigurationService configurationService;
 
   private Application createApplication(StageType... stageTypes) {
     Application app = tempEntity.newApplicationWithParent();
@@ -100,9 +92,11 @@ public class PolicyViolationLoaderTest
 
   @Test
   public void testGetViolations_FilterByApplications_WithLimit() {
-    final int currentMaxApplicationConfiguration = config.getMaxApplicationsToQueryOnDashboard();
     try {
-      config.setMaxApplicationsToQueryOnDashboard(2);
+      configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD,
+          2);
+      configurationService.applyConfigurationToClients(
+          SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD);
       Application app1 = createApplication(StageTypes.BUILD, StageTypes.RELEASE);
       Application app2 = createApplication(StageTypes.BUILD);
       Application app3 = createApplication(StageTypes.BUILD, StageTypes.RELEASE);
@@ -149,7 +143,10 @@ public class PolicyViolationLoaderTest
       assertThat(appStageView.getFilteredViolations()).hasSize(2);
     }
     finally {
-      config.setMaxApplicationsToQueryOnDashboard(currentMaxApplicationConfiguration);
+      configurationService.deleteConfigurationNoAuthz(
+          SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD);
+      configurationService.applyConfigurationToClients(
+          SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD);
     }
   }
 

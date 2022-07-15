@@ -13,6 +13,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -24,8 +25,6 @@ import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
@@ -66,9 +65,6 @@ public class BitbucketCodeInsightsServiceTest
 
   @Inject
   private InsightWork insightWork;
-
-  @Inject
-  private InsightConfig config;
 
   @Inject
   private OrganizationDAO organizationDAO;
@@ -114,7 +110,7 @@ public class BitbucketCodeInsightsServiceTest
     setBaseUrl("http://localhost:1122");
     application = tempEntity.newApplicationWithParent();
     service =
-        new BitbucketCodeInsightsService(applicationDAO, config, baseUrl);
+        new BitbucketCodeInsightsService(applicationDAO, baseUrl);
 
     createReportFile(application.getId(), FROM_SCAN_ID,
         zipReportDir("/BitbucketCodeInsightsServiceTest/from-report", tempDir), insightWork);
@@ -148,13 +144,13 @@ public class BitbucketCodeInsightsServiceTest
   @Test
   public void testCodeInsightFeatureFlag() throws IOException {
     // verify when disabled that the feature is not interacted with
-    config.setFeatures(ImmutableMap.of(Feature.CODE_INSIGHTS.getFlag(), Boolean.FALSE));
+    SystemConfigurationPropertyFeature.CODE_INSIGHTS.setEnabled(false);
     service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, componentDetails,
         featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
     verifyNoInteractions(bitbucketApiClient);
 
     // verify when enabled that the feature is interacted with
-    config.setFeatures(ImmutableMap.of(Feature.CODE_INSIGHTS.getFlag(), Boolean.TRUE));
+    SystemConfigurationPropertyFeature.CODE_INSIGHTS.setEnabled(true);
     service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, componentDetails,
         featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
     verify(bitbucketApiClient).deleteCodeInsightReport(anyString(), anyString()); //interaction itself doesn't matter

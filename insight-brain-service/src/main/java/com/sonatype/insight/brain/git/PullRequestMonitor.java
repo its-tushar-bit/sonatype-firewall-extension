@@ -18,15 +18,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.api.v2.service.SourceControlConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
@@ -36,6 +33,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -65,17 +63,17 @@ import static java.util.stream.Collectors.toSet;
 @Singleton
 @DisallowConcurrentExecution
 public class PullRequestMonitor
-    implements Managed, Job, SourceControlConfigurationListener
+    implements Managed, Job
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestMonitor.class);
 
-  static final String TASK_NAME = "PullRequestMonitor";
+  public static final String TASK_NAME = "PullRequestMonitor";
 
   private static final int THREAD_POOL_SIZE = 1;
 
   private static final long LS_REMOTE_DELAY_MS = 1_000;
 
-  private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
+  private final Configuration configuration;
 
   private final TaskScheduler taskScheduler;
 
@@ -97,14 +95,11 @@ public class PullRequestMonitor
 
   private final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator;
 
-  private final AtomicReference<SourceControlConfiguration> sourceControlConfigurationAtomicReference =
-      new AtomicReference<>();
-
   public boolean disableForTesting;
 
   @Inject
   public PullRequestMonitor(
-      SourceControlConfigurationDAO sourceControlConfigurationDAO,
+      Configuration configuration,
       TaskScheduler taskScheduler,
       GitApiFactory gitApiFactory,
       SourceControlUtils sourceControlUtils,
@@ -115,7 +110,7 @@ public class PullRequestMonitor
       SourceControlPullRequestDAO sourceControlPullRequestDAO,
       PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator)
   {
-    this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
+    this.configuration = configuration;
     this.taskScheduler = taskScheduler;
     this.gitApiFactory = gitApiFactory;
     this.sourceControlUtils = sourceControlUtils;
@@ -144,12 +139,11 @@ public class PullRequestMonitor
     if (disableForTesting) {
       return;
     }
-    taskScheduler.unscheduleTask(TASK_NAME);
-    sourceControlConfigurationChanged();
+    schedulePullRequestMonitor();
   }
 
-  private void schedulePullRequestMonitor() {
-    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationAtomicReference.get();
+  public void schedulePullRequestMonitor() {
+    SourceControlConfiguration sourceControlConfiguration = configuration.getSourceControlConfigurationOrDefault();
     int intervalInSeconds = sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds();
     taskScheduler.schedulePeriodicTask(PullRequestMonitor.class, TASK_NAME, Duration.ofSeconds(intervalInSeconds));
     log.debug("Scheduled PullRequestMonitor, interval={} seconds.", intervalInSeconds);
@@ -204,25 +198,6 @@ public class PullRequestMonitor
   public void stop() {
     if (!disableForTesting) {
       taskScheduler.unscheduleTask(TASK_NAME);
-    }
-  }
-
-  @Override
-  public void sourceControlConfigurationChanged() {
-    SourceControlConfiguration currentSourceControlConfiguration = sourceControlConfigurationAtomicReference.get();
-    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
-    if (sourceControlConfiguration == null) {
-      sourceControlConfiguration = new SourceControlConfiguration();
-    }
-    if (!taskScheduler.isSchedulerInitialized()) {
-      return;
-    }
-    sourceControlConfigurationAtomicReference.set(sourceControlConfiguration);
-    if (!taskScheduler.isTaskScheduled(TASK_NAME) ||
-        currentSourceControlConfiguration == null ||
-        currentSourceControlConfiguration.getPullRequestMonitoringIntervalSeconds() !=
-            sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()) {
-      schedulePullRequestMonitor();
     }
   }
 

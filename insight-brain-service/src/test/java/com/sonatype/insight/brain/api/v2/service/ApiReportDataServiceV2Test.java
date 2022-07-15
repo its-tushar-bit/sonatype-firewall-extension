@@ -10,7 +10,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -18,6 +17,7 @@ import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
@@ -40,15 +40,12 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.inject.Binder;
 import org.assertj.core.groups.Tuple;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Before;
@@ -66,8 +63,6 @@ public class ApiReportDataServiceV2Test
   @Inject
   private InsightWork work;
 
-  private InsightConfig config;
-
   private final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
   @Inject
@@ -80,14 +75,6 @@ public class ApiReportDataServiceV2Test
   private File reportFile;
 
   private PolicyEvaluation policyEvaluation;
-
-  @Override
-  public void configure(final Binder binder) {
-    config = new InsightConfig();
-    config.setFeatures(new HashMap<>());
-    binder.bind(InsightConfig.class).toInstance(config);
-    super.configure(binder);
-  }
 
   private File makeReportFile() throws Exception {
     File reportFile = work.getReportFile(app.getId(), scanId);
@@ -248,8 +235,6 @@ public class ApiReportDataServiceV2Test
     assertThat(component.dependencyData.directDependency).isFalse();
     assertThat(component.dependencyData.innerSource).isFalse();
     assertThat(component.dependencyData.innerSourceData).isNull();
-
-    config.getFeatures().clear();
   }
 
   @Test
@@ -269,7 +254,7 @@ public class ApiReportDataServiceV2Test
 
   @Test
   public void testGetRawData_DependencyDataConfigDisabled() throws Exception {
-    config.getFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false);
+    SystemConfigurationPropertyFeature.DEPENDENCY_DATA_IN_API.setEnabled(false);
     makeReport("report-1");
     ApiReportRawDataDTOV2 data = reportDataService.getRawData(app.getPublicId(), scanId);
     assertThat(data).isNotNull();
@@ -290,7 +275,7 @@ public class ApiReportDataServiceV2Test
 
   @Test
   public void testGetDataNoAuth_UseLicensesJsonOverriddenLicenses_True() throws Exception {
-    config.getFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false);
+    SystemConfigurationPropertyFeature.DEPENDENCY_DATA_IN_API.setEnabled(false);
     makeReport("report-1");
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
         "com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
@@ -324,7 +309,7 @@ public class ApiReportDataServiceV2Test
 
   @Test
   public void testGetDataNoAuth_UseLicensesJsonOverriddenLicenses_False() throws Exception {
-    config.getFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false);
+    SystemConfigurationPropertyFeature.DEPENDENCY_DATA_IN_API.setEnabled(false);
     makeReport("report-1");
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates(
         "com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
@@ -421,13 +406,11 @@ public class ApiReportDataServiceV2Test
     assertThat(component.dependencyData.directDependency).isFalse();
     assertThat(component.dependencyData.innerSource).isFalse();
     assertThat(component.dependencyData.innerSourceData).isNull();
-
-    config.getFeatures().clear();
   }
 
   @Test
   public void testGetPolicyViolationsData_DependencyDataConfigDisabled() throws Exception {
-    config.getFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false);
+    SystemConfigurationPropertyFeature.DEPENDENCY_DATA_IN_API.setEnabled(false);
     ComponentIdentifier innerSourceId = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
     ComponentIdentifier innerSourceChildId =

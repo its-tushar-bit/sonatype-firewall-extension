@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.api.v2.DefaultApiReportDataResourceV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
 import org.apache.commons.collections.MapUtils;
@@ -41,12 +41,12 @@ public class ScanUploader
 
   private final HdsClient client;
 
-  private final InsightConfig insightConfig;
+  private final Configuration configuration;
 
   @Inject
-  public ScanUploader(final HdsClient client, final InsightConfig insightConfig) {
+  public ScanUploader(final HdsClient client, final Configuration configuration) {
     this.client = client;
-    this.insightConfig = insightConfig;
+    this.configuration = configuration;
   }
 
   /**
@@ -83,7 +83,7 @@ public class ScanUploader
           uploadMetadata.put("stageTypeId", stageTypeId);
         }
 
-        Map<String, String> matcherConfiguration = insightConfig.getMatcherConfiguration();
+        Map<String, String> matcherConfiguration = configuration.getMatcherConfiguration();
         if (MapUtils.isNotEmpty(matcherConfiguration)) {
           uploadMetadata.putAll(matcherConfiguration);
         }
@@ -119,6 +119,6 @@ public class ScanUploader
     receipt.setReportUrl(UserInterfaceLinksHelper.getReportUrl(applicationPublicId, receipt.getScanId()));
     receipt.setPdfUrl(UserInterfaceLinksHelper.getPdfUrl(applicationPublicId, receipt.getScanId()));
     receipt.setDataUrl(DefaultApiReportDataResourceV2.getDataUrl(applicationPublicId, receipt.getScanId()));
-    receipt.setReportTimeoutInSeconds(insightConfig.getReportTimeoutInSeconds());
+    receipt.setReportTimeoutInSeconds(configuration.getReportTimeoutInSeconds());
   }
 }

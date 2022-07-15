@@ -9,7 +9,6 @@ import java.util.Locale;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -18,14 +17,8 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.junit.After;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_DASHBOARD;
-import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_REPORTS_LIST;
-import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION;
-import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_TRANSITIVE_SOLVER;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.REPORTS_LIST_DISABLED;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.TRANSITIVE_SOLVER_DISABLED;
+import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.*;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -56,6 +49,22 @@ public class ApiConfigFeaturesServiceTest
     assertThat(service.getPropertyNameForFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION)).isEqualTo(
         SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED);
     assertThat(service.getPropertyNameForFeature(FEATURE_TRANSITIVE_SOLVER)).isEqualTo(TRANSITIVE_SOLVER_DISABLED);
+    assertThat(service.getPropertyNameForFeature(FEATURE_CODE_INSIGHTS)).isEqualTo(CODE_INSIGHTS);
+    assertThat(service.getPropertyNameForFeature(FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE)).isEqualTo(
+        COMPONENT_SEARCH_API_WITH_INNERSOURCE);
+    assertThat(service.getPropertyNameForFeature(FEATURE_DEFAULT_BRANCH_MONITORING)).isEqualTo(
+        DEFAULT_BRANCH_MONITORING);
+    assertThat(service.getPropertyNameForFeature(FEATURE_DEPENDENCY_DATA_IN_API)).isEqualTo(DEPENDENCY_DATA_IN_API);
+    assertThat(service.getPropertyNameForFeature(FEATURE_INNER_SOURCE_TRANSITIVE_WAIVER)).isEqualTo(
+        INNER_SOURCE_TRANSITIVE_WAIVER);
+    assertThat(service.getPropertyNameForFeature(FEATURE_INNER_SOURCE_REPOSITORY_INTEGRATION)).isEqualTo(
+        INNER_SOURCE_REPOSITORY_INTEGRATION);
+    assertThat(service.getPropertyNameForFeature(FEATURE_PR_COMMENTING)).isEqualTo(PR_COMMENTING);
+    assertThat(service.getPropertyNameForFeature(FEATURE_PR_LINE_COMMENTING)).isEqualTo(PR_LINE_COMMENTING);
+    assertThat(service.getPropertyNameForFeature(FEATURE_ENABLE_UNAUTHENTICATED_PAGES)).isEqualTo(
+        ENABLE_UNAUTHENTICATED_PAGES);
+    assertThat(service.getPropertyNameForFeature(FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)).isEqualTo(
+        INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
     assertThat(service.getPropertyNameForFeature("default-value")).isEqualTo("default-value");
   }
 
@@ -89,6 +98,28 @@ public class ApiConfigFeaturesServiceTest
     assertThat(service.getSystemConfigurationPropertyFeature(
         SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED)).isEqualTo(
         SystemConfigurationPropertyFeature.VULNERABILITY_SOURCE);
+
+    assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_CODE_INSIGHTS))
+        .isEqualTo(SystemConfigurationPropertyFeature.CODE_INSIGHTS);
+    assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE))
+        .isEqualTo(SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE);
+    assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_DEFAULT_BRANCH_MONITORING))
+        .isEqualTo(SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING);
+    assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_DEPENDENCY_DATA_IN_API))
+        .isEqualTo(SystemConfigurationPropertyFeature.DEPENDENCY_DATA_IN_API);
+    assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_INNER_SOURCE_TRANSITIVE_WAIVER))
+        .isEqualTo(SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER);
+    assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_INNER_SOURCE_REPOSITORY_INTEGRATION))
+        .isEqualTo(SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION);
+    assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_PR_COMMENTING))
+        .isEqualTo(SystemConfigurationPropertyFeature.PR_COMMENTING);
+    assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_PR_LINE_COMMENTING))
+        .isEqualTo(SystemConfigurationPropertyFeature.PR_LINE_COMMENTING);
+    assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_ENABLE_UNAUTHENTICATED_PAGES))
+        .isEqualTo(SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES);
+    assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS))
+        .isEqualTo(SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
+
     assertThatThrownBy(() -> service.getSystemConfigurationPropertyFeature("bogus-feature")).isInstanceOf(
         BadRequestException.class).hasMessage("Feature not supported: bogus-feature");
   }
@@ -269,5 +300,289 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(
         () -> service.disableFeature(SystemConfigurationProperty.CROWD_INTEGRATION)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testEnableFeature_CodeInsights() {
+    tempEntity.newSystemConfigurationProperty(CODE_INSIGHTS, "false");
+    service.enableFeature(CODE_INSIGHTS);
+    assertThat(systemConfigurationPropertyDAO.getByName(CODE_INSIGHTS)).isNull();
+  }
+
+  @Test
+  public void testEnableFeature_CodeInsights_AlreadyEnabled() {
+    tempEntity.newSystemConfigurationProperty(CODE_INSIGHTS, "false");
+    service.enableFeature(CODE_INSIGHTS);
+    assertThatThrownBy(() -> service.enableFeature(CODE_INSIGHTS))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_CodeInsights() {
+    service.disableFeature(CODE_INSIGHTS);
+    assertThat(systemConfigurationPropertyDAO.getByName(CODE_INSIGHTS).getValue()).isEqualTo("false");
+  }
+
+  @Test
+  public void testDisableFeature_CodeInsights_AlreadyDisabled() {
+    tempEntity.newSystemConfigurationProperty(CODE_INSIGHTS, "false");
+    assertThatThrownBy(() -> service.disableFeature(CODE_INSIGHTS))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testEnableFeature_ComponentSearchApiWithInnerSource() {
+    tempEntity.newSystemConfigurationProperty(COMPONENT_SEARCH_API_WITH_INNERSOURCE, "false");
+    service.enableFeature(COMPONENT_SEARCH_API_WITH_INNERSOURCE);
+    assertThat(systemConfigurationPropertyDAO.getByName(COMPONENT_SEARCH_API_WITH_INNERSOURCE)).isNull();
+  }
+
+  @Test
+  public void testEnableFeature_ComponentSearchApiWithInnerSource_AlreadyEnabled() {
+    tempEntity.newSystemConfigurationProperty(COMPONENT_SEARCH_API_WITH_INNERSOURCE, "false");
+    service.enableFeature(COMPONENT_SEARCH_API_WITH_INNERSOURCE);
+    assertThatThrownBy(() -> service.enableFeature(COMPONENT_SEARCH_API_WITH_INNERSOURCE))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_ComponentSearchApiWithInnerSource() {
+    service.disableFeature(COMPONENT_SEARCH_API_WITH_INNERSOURCE);
+    assertThat(systemConfigurationPropertyDAO.getByName(COMPONENT_SEARCH_API_WITH_INNERSOURCE).getValue()).isEqualTo(
+        "false");
+  }
+
+  @Test
+  public void testDisableFeature_ComponentSearchApiWithInnerSource_AlreadyDisabled() {
+    tempEntity.newSystemConfigurationProperty(COMPONENT_SEARCH_API_WITH_INNERSOURCE, "false");
+    assertThatThrownBy(() -> service.disableFeature(COMPONENT_SEARCH_API_WITH_INNERSOURCE))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testEnableFeature_DefaultBranchMonitoring() {
+    tempEntity.newSystemConfigurationProperty(DEFAULT_BRANCH_MONITORING, "false");
+    service.enableFeature(DEFAULT_BRANCH_MONITORING);
+    assertThat(systemConfigurationPropertyDAO.getByName(DEFAULT_BRANCH_MONITORING)).isNull();
+  }
+
+  @Test
+  public void testEnableFeature_DefaultBranchMonitoring_AlreadyEnabled() {
+    tempEntity.newSystemConfigurationProperty(DEFAULT_BRANCH_MONITORING, "false");
+    service.enableFeature(DEFAULT_BRANCH_MONITORING);
+    assertThatThrownBy(() -> service.enableFeature(DEFAULT_BRANCH_MONITORING))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_DefaultBranchMonitoring() {
+    service.disableFeature(DEFAULT_BRANCH_MONITORING);
+    assertThat(systemConfigurationPropertyDAO.getByName(DEFAULT_BRANCH_MONITORING).getValue()).isEqualTo("false");
+  }
+
+  @Test
+  public void testDisableFeature_DefaultBranchMonitoring_AlreadyDisabled() {
+    tempEntity.newSystemConfigurationProperty(DEFAULT_BRANCH_MONITORING, "false");
+    assertThatThrownBy(() -> service.disableFeature(DEFAULT_BRANCH_MONITORING))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testEnableFeature_DependencyDataInApi() {
+    tempEntity.newSystemConfigurationProperty(DEPENDENCY_DATA_IN_API, "false");
+    service.enableFeature(DEPENDENCY_DATA_IN_API);
+    assertThat(systemConfigurationPropertyDAO.getByName(DEPENDENCY_DATA_IN_API)).isNull();
+  }
+
+  @Test
+  public void testEnableFeature_DependencyDataInApi_AlreadyEnabled() {
+    tempEntity.newSystemConfigurationProperty(DEPENDENCY_DATA_IN_API, "false");
+    service.enableFeature(DEPENDENCY_DATA_IN_API);
+    assertThatThrownBy(() -> service.enableFeature(DEPENDENCY_DATA_IN_API))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_DependencyDataInApi() {
+    service.disableFeature(DEPENDENCY_DATA_IN_API);
+    assertThat(systemConfigurationPropertyDAO.getByName(DEPENDENCY_DATA_IN_API).getValue()).isEqualTo("false");
+  }
+
+  @Test
+  public void testDisableFeature_DependencyDataInApi_AlreadyDisabled() {
+    tempEntity.newSystemConfigurationProperty(DEPENDENCY_DATA_IN_API, "false");
+    assertThatThrownBy(() -> service.disableFeature(DEPENDENCY_DATA_IN_API))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testEnableFeature_InnerSourceTransitiveWaiver() {
+    tempEntity.newSystemConfigurationProperty(INNER_SOURCE_TRANSITIVE_WAIVER, "false");
+    service.enableFeature(INNER_SOURCE_TRANSITIVE_WAIVER);
+    assertThat(systemConfigurationPropertyDAO.getByName(INNER_SOURCE_TRANSITIVE_WAIVER)).isNull();
+  }
+
+  @Test
+  public void testEnableFeature_InnerSourceTransitiveWaiver_AlreadyEnabled() {
+    tempEntity.newSystemConfigurationProperty(INNER_SOURCE_TRANSITIVE_WAIVER, "false");
+    service.enableFeature(INNER_SOURCE_TRANSITIVE_WAIVER);
+    assertThatThrownBy(() -> service.enableFeature(INNER_SOURCE_TRANSITIVE_WAIVER))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_InnerSourceTransitiveWaiver() {
+    service.disableFeature(INNER_SOURCE_TRANSITIVE_WAIVER);
+    assertThat(systemConfigurationPropertyDAO.getByName(INNER_SOURCE_TRANSITIVE_WAIVER).getValue()).isEqualTo("false");
+  }
+
+  @Test
+  public void testDisableFeature_InnerSourceTransitiveWaiver_AlreadyDisabled() {
+    tempEntity.newSystemConfigurationProperty(INNER_SOURCE_TRANSITIVE_WAIVER, "false");
+    assertThatThrownBy(() -> service.disableFeature(INNER_SOURCE_TRANSITIVE_WAIVER))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testEnableFeature_InnerSourceRepositoryIntegration() {
+    tempEntity.newSystemConfigurationProperty(INNER_SOURCE_REPOSITORY_INTEGRATION, "false");
+    service.enableFeature(INNER_SOURCE_REPOSITORY_INTEGRATION);
+    assertThat(systemConfigurationPropertyDAO.getByName(INNER_SOURCE_REPOSITORY_INTEGRATION)).isNull();
+  }
+
+  @Test
+  public void testEnableFeature_InnerSourceRepositoryIntegration_AlreadyEnabled() {
+    tempEntity.newSystemConfigurationProperty(INNER_SOURCE_REPOSITORY_INTEGRATION, "false");
+    service.enableFeature(INNER_SOURCE_REPOSITORY_INTEGRATION);
+    assertThatThrownBy(() -> service.enableFeature(INNER_SOURCE_REPOSITORY_INTEGRATION))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_InnerSourceRepositoryIntegration() {
+    service.disableFeature(INNER_SOURCE_REPOSITORY_INTEGRATION);
+    assertThat(systemConfigurationPropertyDAO.getByName(INNER_SOURCE_REPOSITORY_INTEGRATION).getValue()).isEqualTo(
+        "false");
+  }
+
+  @Test
+  public void testDisableFeature_InnerSourceRepositoryIntegration_AlreadyDisabled() {
+    tempEntity.newSystemConfigurationProperty(INNER_SOURCE_REPOSITORY_INTEGRATION, "false");
+    assertThatThrownBy(() -> service.disableFeature(INNER_SOURCE_REPOSITORY_INTEGRATION))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testEnableFeature_PrCommenting() {
+    tempEntity.newSystemConfigurationProperty(PR_COMMENTING, "false");
+    service.enableFeature(PR_COMMENTING);
+    assertThat(systemConfigurationPropertyDAO.getByName(PR_COMMENTING)).isNull();
+  }
+
+  @Test
+  public void testEnableFeature_PrCommenting_AlreadyEnabled() {
+    tempEntity.newSystemConfigurationProperty(PR_COMMENTING, "false");
+    service.enableFeature(PR_COMMENTING);
+    assertThatThrownBy(() -> service.enableFeature(PR_COMMENTING))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_PrCommenting() {
+    service.disableFeature(PR_COMMENTING);
+    assertThat(systemConfigurationPropertyDAO.getByName(PR_COMMENTING).getValue()).isEqualTo("false");
+  }
+
+  @Test
+  public void testDisableFeature_PrCommenting_AlreadyDisabled() {
+    tempEntity.newSystemConfigurationProperty(PR_COMMENTING, "false");
+    assertThatThrownBy(() -> service.disableFeature(PR_COMMENTING))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testEnableFeature_PrLineCommenting() {
+    tempEntity.newSystemConfigurationProperty(PR_LINE_COMMENTING, "false");
+    service.enableFeature(PR_LINE_COMMENTING);
+    assertThat(systemConfigurationPropertyDAO.getByName(PR_LINE_COMMENTING)).isNull();
+  }
+
+  @Test
+  public void testEnableFeature_PrLineCommenting_AlreadyEnabled() {
+    tempEntity.newSystemConfigurationProperty(PR_LINE_COMMENTING, "false");
+    service.enableFeature(PR_LINE_COMMENTING);
+    assertThatThrownBy(() -> service.enableFeature(PR_LINE_COMMENTING))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_PrLineCommenting() {
+    service.disableFeature(PR_LINE_COMMENTING);
+    assertThat(systemConfigurationPropertyDAO.getByName(PR_LINE_COMMENTING).getValue()).isEqualTo("false");
+  }
+
+  @Test
+  public void testDisableFeature_PrLineCommenting_AlreadyDisabled() {
+    tempEntity.newSystemConfigurationProperty(PR_LINE_COMMENTING, "false");
+    assertThatThrownBy(() -> service.disableFeature(PR_LINE_COMMENTING))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testEnableFeature_EnableUnauthenticatedPages() {
+    tempEntity.newSystemConfigurationProperty(ENABLE_UNAUTHENTICATED_PAGES, "false");
+    service.enableFeature(ENABLE_UNAUTHENTICATED_PAGES);
+    assertThat(systemConfigurationPropertyDAO.getByName(ENABLE_UNAUTHENTICATED_PAGES)).isNull();
+  }
+
+  @Test
+  public void testEnableFeature_EnableUnauthenticatedPages_AlreadyEnabled() {
+    tempEntity.newSystemConfigurationProperty(ENABLE_UNAUTHENTICATED_PAGES, "false");
+    service.enableFeature(ENABLE_UNAUTHENTICATED_PAGES);
+    assertThatThrownBy(() -> service.enableFeature(ENABLE_UNAUTHENTICATED_PAGES))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_EnableUnauthenticatedPages() {
+    service.disableFeature(ENABLE_UNAUTHENTICATED_PAGES);
+    assertThat(systemConfigurationPropertyDAO.getByName(ENABLE_UNAUTHENTICATED_PAGES).getValue()).isEqualTo("false");
+  }
+
+  @Test
+  public void testDisableFeature_EnableUnauthenticatedPages_AlreadyDisabled() {
+    tempEntity.newSystemConfigurationProperty(ENABLE_UNAUTHENTICATED_PAGES, "false");
+    assertThatThrownBy(() -> service.disableFeature(ENABLE_UNAUTHENTICATED_PAGES))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testEnableFeature_InternalSourceControlPolicyEvaluations() {
+    tempEntity.newSystemConfigurationProperty(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS, "false");
+    service.enableFeature(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
+    assertThat(systemConfigurationPropertyDAO.getByName(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)).isNull();
+  }
+
+  @Test
+  public void testEnableFeature_InternalSourceControlPolicyEvaluations_AlreadyEnabled() {
+    tempEntity.newSystemConfigurationProperty(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS, "false");
+    service.enableFeature(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
+    assertThatThrownBy(() -> service.enableFeature(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_InternalSourceControlPolicyEvaluations() {
+    service.disableFeature(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
+    assertThat(
+        systemConfigurationPropertyDAO.getByName(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS).getValue()).isEqualTo(
+        "false");
+  }
+
+  @Test
+  public void testDisableFeature_InternalSourceControlPolicyEvaluations_AlreadyDisabled() {
+    tempEntity.newSystemConfigurationProperty(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS, "false");
+    assertThatThrownBy(() -> service.disableFeature(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
   }
 }

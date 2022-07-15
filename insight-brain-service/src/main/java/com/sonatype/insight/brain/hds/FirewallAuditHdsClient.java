@@ -9,15 +9,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
 
 /**
  * Dedicated HTTP client with separate connection pool for accessing HDS in context of repository firewall audit.
- * 
+ *
  * @since 1.18
  */
 @Named
@@ -27,14 +26,12 @@ public class FirewallAuditHdsClient
 {
   @Inject
   public FirewallAuditHdsClient(
-      final InsightProxy proxy,
+      InsightProxy proxy,
       ProductLicense productLicense,
-      InsightConfig insightConfig,
-      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
+      Configuration configuration,
       VersionService versionService,
       TelemetryId telemetryId)
   {
-    super(proxy, productLicense, insightConfig, reverseProxyAuthenticationConfigurationDAO, versionService,
-        telemetryId, 20);
+    super(proxy, productLicense, configuration, versionService, telemetryId, 20);
   }
 }

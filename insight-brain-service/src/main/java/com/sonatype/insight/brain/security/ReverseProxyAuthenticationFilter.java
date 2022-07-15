@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.security;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -18,10 +17,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.brain.api.v2.service.ReverseProxyAuthenticationConfigurationListener;
-import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.service.Configuration;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -39,7 +37,6 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class ReverseProxyAuthenticationFilter
     extends AuthenticatingFilter
-    implements ReverseProxyAuthenticationConfigurationListener
 {
   private static final Logger log = LoggerFactory.getLogger(ReverseProxyAuthenticationFilter.class);
 
@@ -47,17 +44,11 @@ public class ReverseProxyAuthenticationFilter
 
   private static final String USERNAME_HEADER_NAME_ATTRIBUTE = "USERNAME_HEADER_NAME_ATTRIBUTE";
 
-  private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
-
-  private final AtomicReference<ReverseProxyAuthenticationConfiguration>
-      reverseProxyAuthenticationConfigurationAtomicReference = new AtomicReference<>();
+  private final Configuration configuration;
 
   @Inject
-  public ReverseProxyAuthenticationFilter(
-      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO)
-  {
-    this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
-    reverseProxyAuthenticationConfigurationChanged();
+  public ReverseProxyAuthenticationFilter(Configuration configuration) {
+    this.configuration = configuration;
   }
 
   private String getUsername(ServletRequest request) {
@@ -135,7 +126,7 @@ public class ReverseProxyAuthenticationFilter
   @Override
   protected boolean isEnabled(ServletRequest request, ServletResponse response) throws ServletException, IOException {
     ReverseProxyAuthenticationConfiguration reverseProxyAuthenticationConfiguration =
-        reverseProxyAuthenticationConfigurationAtomicReference.get();
+        configuration.getReverseProxyAuthenticationConfiguration();
     if (reverseProxyAuthenticationConfiguration == null) {
       return false;
     }
@@ -154,10 +145,5 @@ public class ReverseProxyAuthenticationFilter
   @Override
   public void setEnabled(boolean enabled) {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void reverseProxyAuthenticationConfigurationChanged() {
-    reverseProxyAuthenticationConfigurationAtomicReference.set(reverseProxyAuthenticationConfigurationDAO.get());
   }
 }

@@ -7,15 +7,6 @@ sonatypeWork: ./sonatype-work/clm-server
 
 clusterDirectory: ./sonatype-work/cluster-directory
 
-# Hour of the day(0-23) to schedule Policy Monitoring execution. The default is midnight.
-#policyMonitoringHour: 0
-
-# Enables/disables cross-site request forgery protection. Defaults to true for increased security.
-#csrfProtection: true
-
-# A custom fragment to add to the "user-agent" for HTTP calls
-#userAgentSuffix: "example fragment"
-
 # HTTP-specific options.
 server:
 
@@ -197,14 +188,6 @@ logging:
 
       # The number of archived files to keep.
       archivedFileCount: 50
-
-# Passphrase used to encrypt the Webhook Secret Keys
-#webhookSecretPassphrase: "^d1swM!FF&qQ"
-
-#eventBus:
-  # Configures the number of threads used for the EventBus
-  # Defaults to 500 if not provided.
-  # maxPoolSize: 500
 
 testPassword:
   nestedPassData: yadda

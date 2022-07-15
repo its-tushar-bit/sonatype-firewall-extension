@@ -26,6 +26,7 @@ import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -40,7 +41,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.repository.client.NexusRepository3Client;
 import com.sonatype.insight.brain.repository.client.NexusRepository3Client.NXRM3SearchResponse;
 import com.sonatype.insight.brain.repository.client.NexusRepository3Client.NexusItem;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
@@ -50,7 +50,6 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -90,8 +89,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   @Before
   public void start() throws IOException {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
+    SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.setEnabled(false);
     Organization org = tempEntity.newOrganization("ApplicationReportTest");
     app = tempEntity.newApplicationWithSpecificId("8bbaa746602142d9adf2de00a9ca4d4a", "ApplicationReportTest",
         "ApplicationReportTest", org.getId());
@@ -286,8 +284,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
   @Test
   public void testRiskRemediationTile_RepositorySource_InnerSourceDependency_FeatureDisabled() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
+    SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.setEnabled(false);
     testCLMServer.getHdsServer().respondWith(new ComponentDetailsList()).atUri("/componentDetails/list");
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForViolation(10, "cefa389a797ca9d030ef");
     componentDetailsPage.overviewTab().shouldBe(visible);

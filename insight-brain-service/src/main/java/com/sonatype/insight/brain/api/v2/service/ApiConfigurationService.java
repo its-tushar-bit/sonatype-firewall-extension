@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,10 +22,12 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.util.CollectionUtils;
 import org.quartz.DisallowConcurrentExecution;
@@ -65,16 +68,20 @@ public class ApiConfigurationService
 
   private final List<ConfigurationListener> configurationListeners;
 
+  private final InsightConfig insightConfig;
+
   private final TaskScheduler taskScheduler;
 
   @Inject
   public ApiConfigurationService(
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       List<ConfigurationListener> configurationListeners,
+      InsightConfig insightConfig,
       TaskScheduler taskScheduler)
   {
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.configurationListeners = configurationListeners;
+    this.insightConfig = insightConfig;
     this.taskScheduler = taskScheduler;
   }
 
@@ -89,6 +96,10 @@ public class ApiConfigurationService
     }
   }
 
+  public Object getConfigurationNoAuthz(String propertyName) {
+    return getConfigurationNoAuthz(Collections.singleton(propertyName)).get(propertyName);
+  }
+
   public Map<String, Object> getConfigurationNoAuthz(TransactionContext tx, Set<String> propertyNames) {
     if (CollectionUtils.isEmpty(propertyNames)) {
       throw new BadRequestException(NO_PROPERTIES_ERROR_MSG);
@@ -97,7 +108,7 @@ public class ApiConfigurationService
     for (String propertyName : propertyNames) {
       validatePropertyName(propertyName);
       result.put(propertyName, ConfigurationProperty.PROPERTY_BY_NAME.get(propertyName).getStringToValue()
-          .apply(tx, systemConfigurationPropertyDAO.get(tx, propertyName)));
+          .apply(new Object[]{insightConfig}, systemConfigurationPropertyDAO.get(tx, propertyName)));
     }
     return result;
   }
@@ -106,6 +117,10 @@ public class ApiConfigurationService
   public void setConfiguration(Map<String, Object> properties) {
     setConfigurationNoAuthz(properties);
     updateAllClusterNodesFromConfiguration(properties.keySet());
+  }
+
+  public void setConfigurationNoAuthz(String propertyName, Object propertyValue) {
+    setConfigurationNoAuthz(Collections.singletonMap(propertyName, propertyValue));
   }
 
   public void setConfigurationNoAuthz(Map<String, Object> properties) {
@@ -126,7 +141,7 @@ public class ApiConfigurationService
       AuditData.get().setData(property.getKey(), property.getValue());
       systemConfigurationPropertyDAO.set(tx, property.getKey(),
           ConfigurationProperty.PROPERTY_BY_NAME.get(property.getKey()).getValueToString()
-              .apply(tx, property.getValue()));
+              .apply(new Object[]{tx}, property.getValue()));
     }
   }
 
@@ -134,6 +149,10 @@ public class ApiConfigurationService
   public void deleteConfiguration(Set<String> propertyNames) {
     deleteConfigurationNoAuthz(propertyNames);
     updateAllClusterNodesFromConfiguration(propertyNames);
+  }
+
+  public void deleteConfigurationNoAuthz(String... propertyNames) {
+    deleteConfigurationNoAuthz(Sets.newHashSet(propertyNames));
   }
 
   public void deleteConfigurationNoAuthz(Set<String> propertyNames) {
@@ -152,17 +171,21 @@ public class ApiConfigurationService
       validatePropertyName(propertyName);
       ConfigurationProperty property = ConfigurationProperty.PROPERTY_BY_NAME.get(propertyName);
       AuditData.get().setData(propertyName,
-          property.getStringToValue().apply(tx, systemConfigurationPropertyDAO.get(tx, propertyName)));
+          property.getStringToValue()
+              .apply(new Object[]{insightConfig}, systemConfigurationPropertyDAO.get(tx, propertyName)));
       systemConfigurationPropertyDAO.set(tx, propertyName, null);
     }
+  }
+
+  public void applyConfigurationToClients(String... propertyNames) {
+    applyConfigurationToClients(Sets.newHashSet(propertyNames));
   }
 
   public void applyConfigurationToClients(Set<String> propertyNames) {
     configurationListeners.forEach(configurationListener -> configurationListener.configurationChanged(propertyNames));
   }
 
-  // Visible for testing
-  void updateAllClusterNodesFromConfiguration(Set<String> propertyNames) {
+  public void updateAllClusterNodesFromConfiguration(Set<String> propertyNames) {
     applyConfigurationToClients(propertyNames);
     Map<String, String> parameters = new HashMap<>();
     parameters.put(TASK_PARAM_PROPERTIES, StringUtils.join(propertyNames, TASK_PARAM_PROPERTIES_DELIMITER));
@@ -181,7 +204,13 @@ public class ApiConfigurationService
     }
     Class<?> expectedType = ConfigurationProperty.PROPERTY_BY_NAME.get(propertyName).getType();
     Class<?> actualType = propertyValue.getClass();
-    if (!expectedType.isAssignableFrom(actualType)) {
+    Class<?> primitiveExpectedType = ClassUtils.wrapperToPrimitive(expectedType);
+    Class<?> primitiveActualType = ClassUtils.wrapperToPrimitive(actualType);
+    if (primitiveExpectedType != null && primitiveActualType != null) {
+      expectedType = primitiveExpectedType;
+      actualType = primitiveActualType;
+    }
+    if (!ClassUtils.isAssignable(actualType, expectedType)) {
       throw new BadRequestException(
           String.format(INVALID_PROPERTY_VALUE_TYPE_ERROR_MSG, propertyName, expectedType, actualType));
     }
@@ -191,9 +220,8 @@ public class ApiConfigurationService
   public void execute(JobExecutionContext context) throws JobExecutionException {
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
       if (context.getMergedJobDataMap().containsKey(TASK_PARAM_PROPERTIES)) {
-        applyConfigurationToClients(Sets.newHashSet(
-            StringUtils.split(context.getMergedJobDataMap().getString(TASK_PARAM_PROPERTIES),
-                TASK_PARAM_PROPERTIES_DELIMITER)));
+        applyConfigurationToClients(StringUtils.split(context.getMergedJobDataMap().getString(TASK_PARAM_PROPERTIES),
+            TASK_PARAM_PROPERTIES_DELIMITER));
       }
     }
     catch (Exception e) {

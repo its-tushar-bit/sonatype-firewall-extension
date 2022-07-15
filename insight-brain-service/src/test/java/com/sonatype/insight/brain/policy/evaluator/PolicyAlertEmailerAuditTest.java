@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightMail;
 
 import com.google.inject.Binder;
@@ -58,9 +57,6 @@ public class PolicyAlertEmailerAuditTest
   @Mock
   private InsightMail mockInsightMail;
 
-  @Inject
-  private InsightConfig config;
-
   private Application application;
 
   @Override
@@ -72,7 +68,7 @@ public class PolicyAlertEmailerAuditTest
   @Before
   public void before() {
     setBaseUrl("http://localhost");
-    when(mockInsightMail.getCdnUrl()).thenReturn(config.getCdnUrl());
+    when(mockInsightMail.getCdnUrl()).thenReturn("https://cdn.sonatype.com/");
     application = tempEntity.newApplicationWithParent();
   }
 

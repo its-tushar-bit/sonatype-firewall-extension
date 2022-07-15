@@ -31,10 +31,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.NetworkingHelper;
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
@@ -64,6 +63,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -71,14 +72,16 @@ public class DefaultHdsClientTest
     extends AbstractHdsClientTest
 {
   @Inject
-  private ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
+  private Configuration configuration;
+
+  private InsightProxy spyInsightProxy;
 
   @Override
   protected void initClient() {
     ProductLicense productLicense = mock(ProductLicense.class);
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
-    client = new DefaultHdsClient(new InsightProxy(config, new ProxyServerConfigurationDAO(), passwordHandler),
-        productLicense, config, reverseProxyAuthenticationConfigurationDAO, new VersionService(), telemetryId);
+    spyInsightProxy = spy(new InsightProxy(configuration, passwordHandler));
+    client = new DefaultHdsClient(spyInsightProxy, productLicense, configuration, new VersionService(), telemetryId);
   }
 
   /**
@@ -266,6 +269,7 @@ public class DefaultHdsClientTest
   public void testDoNotLeakUserCredentialsToHds() throws Exception {
     String usernameHeader = "My-User-Header";
     tempEntity.newReverseProxyAuthenticationConfiguration(true, usernameHeader, false, null);
+    configuration.reverseProxyAuthenticationConfigurationChanged();
     initClient();
 
     final Set<String> headers = new HashSet<>();
@@ -453,7 +457,7 @@ public class DefaultHdsClientTest
   @Test
   public void testTransformUnknownHost() throws Exception {
     NetworkingHelper.assumeDnsResolutionIsNormal();
-    config.setHdsUrl("http://an.unresolvable.hostname/");
+    setHdsUrl("http://an.unresolvable.hostname/");
     initClient();
     assertThatExceptionOfType(BadGatewayException.class)
         .isThrownBy(() -> client.get(String.class, "/any", null))
@@ -559,8 +563,9 @@ public class DefaultHdsClientTest
   }
 
   @Test
-  public void testSSLExceptionFromHttpClientExecute() throws Exception {
-    config.setHdsUrl(config.getHdsUrl().replace("http:", "https:"));
+  public void testSSLExceptionFromHttpClientExecute() {
+    String hdsUrl = configuration.getHdsUrl();
+    setHdsUrl(hdsUrl.replace("http:", "https:"));
     initClient();
     assertThatExceptionOfType(BadGatewayException.class)
         .isThrownBy(() -> client.get(String.class, "/any", null))
@@ -799,5 +804,48 @@ public class DefaultHdsClientTest
     client.forwardingProxy(request, queryParams);
     assertThat(headers).containsEntry("X-CLM-Token", "license-fingerprint");
     assertThat(headers).containsEntry("X-CLM-Instance-Id", telemetryId.getId());
+  }
+  
+  @Test
+  public void testDefaultHdsClient_NoDatabaseHdsUrl_NoInsightConfigHdsUrl() {
+    config.setHdsUrl(null);
+    setHdsUrl(null);
+
+    initClient();
+
+    verify(spyInsightProxy).contextualize(any(), eq("https://clm.sonatype.com/"));
+  }
+
+  @Test
+  public void testDefaultHdsClient_NoDatabaseHdsUrl_InsightConfigHdsUrl() {
+    String expected = "http://my-config-hds-url/";
+    config.setHdsUrl(expected);
+    setHdsUrl(null);
+
+    initClient();
+
+    verify(spyInsightProxy).contextualize(any(), eq(expected));
+  }
+
+  @Test
+  public void testDefaultHdsClient_DatabaseHdsUrl_NoInsightConfigHdsUrl() {
+    String expected = "http://my-db-hds-url/";
+    config.setHdsUrl(null);
+    setHdsUrl(expected);
+
+    initClient();
+
+    verify(spyInsightProxy).contextualize(any(), eq(expected));
+  }
+
+  @Test
+  public void testDefaultHdsClient_DatabaseHdsUrl_InsightConfigHdsUrl() {
+    String expected = "http://my-db-hds-url/";
+    config.setHdsUrl("http://my-config-hds-url");
+    setHdsUrl(expected);
+
+    initClient();
+
+    verify(spyInsightProxy).contextualize(any(), eq(expected));
   }
 }

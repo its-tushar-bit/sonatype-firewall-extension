@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -21,12 +20,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.api.v2.service.ReverseProxyAuthenticationConfigurationListener;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.util.StringUtils;
@@ -42,7 +39,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class AntiCsrfFilter
-    extends AuthenticationFilter implements ReverseProxyAuthenticationConfigurationListener
+    extends AuthenticationFilter
 {
   private static final Logger log = LoggerFactory.getLogger(AntiCsrfFilter.class);
 
@@ -55,11 +52,6 @@ public class AntiCsrfFilter
   public static final String EXPLICIT_AUTH_ALLOWED = "explicitAuthAllowed";
 
   public static final String FORM_POST_ALLOWED = "formPostAllowed";
-
-  private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
-
-  private final AtomicReference<ReverseProxyAuthenticationConfiguration>
-      reverseProxyAuthenticationConfigurationAtomicReference = new AtomicReference<>();
 
   private static class PathConfig
   {
@@ -76,21 +68,11 @@ public class AntiCsrfFilter
     }
   }
 
-  @Inject
-  public AntiCsrfFilter(
-      InsightConfig config,
-      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO)
-  {
-    this(config.isCsrfProtection(), reverseProxyAuthenticationConfigurationDAO);
-  }
+  private final Configuration configuration;
 
-  private AntiCsrfFilter(
-      boolean enabled,
-      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO)
-  {
-    setEnabled(enabled);
-    this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
-    reverseProxyAuthenticationConfigurationChanged();
+  @Inject
+  private AntiCsrfFilter(Configuration configuration) {
+    this.configuration = configuration;
   }
 
   @Override
@@ -206,7 +188,7 @@ public class AntiCsrfFilter
 
   private boolean isReverseProxyAuthenticationWithCsrf(final HttpServletRequest httpRequest) {
     ReverseProxyAuthenticationConfiguration reverseProxyAuthenticationConfiguration =
-        reverseProxyAuthenticationConfigurationAtomicReference.get();
+        configuration.getReverseProxyAuthenticationConfiguration();
     return reverseProxyAuthenticationConfiguration != null
         && reverseProxyAuthenticationConfiguration.isEnabled()
         && httpRequest.getHeader(reverseProxyAuthenticationConfiguration.getUsernameHeader()) != null
@@ -214,7 +196,12 @@ public class AntiCsrfFilter
   }
 
   @Override
-  public void reverseProxyAuthenticationConfigurationChanged() {
-    reverseProxyAuthenticationConfigurationAtomicReference.set(reverseProxyAuthenticationConfigurationDAO.get());
+  public boolean isEnabled() {
+    return configuration.isAntiCsrfEnabled();
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    configuration.setAntiCsrfEnabled(enabled);
   }
 }

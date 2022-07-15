@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.version.VersionService;
@@ -76,6 +77,8 @@ class SupportService
 
   private final InsightConfig config;
 
+  private final Configuration configuration;
+
   private final VersionService versionService;
 
   private final LdapService ldapService;
@@ -88,6 +91,7 @@ class SupportService
 
   @Inject
   public SupportService(final InsightConfig config,
+                        final Configuration configuration,
                         final VersionService versionService,
                         final LdapService ldapService,
                         final JmxInfo jmxInfo,
@@ -95,6 +99,7 @@ class SupportService
                         final SystemInfo systemInfo)
   {
     this.config = config;
+    this.configuration = configuration;
     this.versionService = versionService;
     this.ldapService = ldapService;
     this.jmxInfo = jmxInfo;
@@ -339,7 +344,7 @@ class SupportService
         else {
           // Limit max size of file content we allow to copy
           try (LimitedFileInputStream lis = new LimitedFileInputStream(fileToAdd.file,
-              config.getSupportConfig().getReadLimitBytes())) {
+              configuration.getSupportReadLimitBytes())) {
             copyLimited(lis, zos);
             if (lis.isReadLimitMet()) {
               isTruncated = true;
@@ -410,4 +415,3 @@ class SupportService
         keyname, SupportFileType.DB, true);
   }
 }
-

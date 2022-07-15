@@ -9,9 +9,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
 
@@ -27,14 +26,12 @@ public class FirewallQuarantineHdsClient
 {
   @Inject
   public FirewallQuarantineHdsClient(
-      final InsightProxy proxy,
+      InsightProxy proxy,
       ProductLicense productLicense,
-      InsightConfig insightConfig,
-      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
+      Configuration configuration,
       VersionService versionService,
       TelemetryId telemetryId)
   {
-    super(proxy, productLicense, insightConfig, reverseProxyAuthenticationConfigurationDAO, versionService,
-        telemetryId, 20);
+    super(proxy, productLicense, configuration, versionService, telemetryId, 20);
   }
 }

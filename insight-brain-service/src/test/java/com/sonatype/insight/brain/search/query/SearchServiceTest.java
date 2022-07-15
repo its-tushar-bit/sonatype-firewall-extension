@@ -13,13 +13,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -35,7 +38,6 @@ import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics.SearchCount;
@@ -73,7 +75,7 @@ public class SearchServiceTest
   private AdvancedSearchTelemetryCollector advancedSearchTelemetryCollector;
 
   @Inject
-  private InsightConfig insightConfig;
+  private ApiConfigurationService configurationService;
 
   @Mock
   private VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
@@ -356,7 +358,6 @@ public class SearchServiceTest
 
   @Test
   public void testSearchIndex_MaxAdvancedSearchClauseCountLimitExceeded() throws IOException {
-    int maxAdvancedSearchClauseCount = insightConfig.getMaxAdvancedSearchClauseCount();
     try {
       Role nonGlobalReadRole = tempEntity.newRole(false, Permission.READ);
 
@@ -371,7 +372,8 @@ public class SearchServiceTest
       tempEntity.newMembershipMapping(oneMoreApplication.getId(), nonGlobalReadRole.getId(),
           userPrincipal.getUsername());
 
-      insightConfig.setMaxAdvancedSearchClauseCount(2);
+      configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT, 2);
+      configurationService.applyConfigurationToClients(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
       indexService.createSearchIndex();
 
       assertThatExceptionOfType(BadRequestException.class)
@@ -380,7 +382,8 @@ public class SearchServiceTest
               + "organization or update your configuration to support larger queries.");
     }
     finally {
-      insightConfig.setMaxAdvancedSearchClauseCount(maxAdvancedSearchClauseCount);
+      configurationService.deleteConfigurationNoAuthz(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
+      configurationService.applyConfigurationToClients(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
     }
   }
 
@@ -444,12 +447,22 @@ public class SearchServiceTest
     assertThat(items.get(ItemType.NON_VULNERABLE_COMPONENT.name()).get(0).get(12)).isEqualTo(
         components.get(1).componentName);
 
-    insightConfig.setAdvancedSearchCSVExportDelimiter(";");
-    stream = (StreamingOutput) searchService.exportSearch("itemType:*", true).getEntity();
-    baos = new ByteArrayOutputStream();
-    stream.write(baos);
-    export = Arrays.stream(baos.toString().split("\n")).collect(Collectors.toList());
-    assertThat(export.get(0).split(";")).hasSize(16);
+    try {
+      configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER,
+          ";");
+      configurationService.applyConfigurationToClients(
+          SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
+      stream = (StreamingOutput) searchService.exportSearch("itemType:*", true).getEntity();
+      baos = new ByteArrayOutputStream();
+      stream.write(baos);
+      export = Arrays.stream(baos.toString().split("\n")).collect(Collectors.toList());
+      assertThat(export.get(0).split(";")).hasSize(16);
+    }
+    finally {
+      configurationService.deleteConfigurationNoAuthz(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
+      configurationService.applyConfigurationToClients(
+          SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
+    }
   }
 
   private PolicyEvaluation newAppReport(String appId, String stageId, String reportId, String reportResourceName)

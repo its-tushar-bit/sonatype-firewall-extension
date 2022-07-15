@@ -16,9 +16,7 @@ import com.sonatype.insight.brain.model.security.User;
 
 import com.codeborne.selenide.Condition;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.hidden;
@@ -37,25 +35,16 @@ public class ChangeDefaultAdminPasswordNoticeTest
 
   private UserDAO userDAO = new UserDAO();
 
-  @BeforeClass
-  public static void beoreClass() {
-    testCLMServer.getCLMServer().getConfiguration().setEnableDefaultPasswordWarning(true);
-  }
-
-  @AfterClass
-  public static void afterClass() {
-    testCLMServer.getCLMServer().getConfiguration().setEnableDefaultPasswordWarning(false);
-  }
-
   @Before
   public void before() {
+    setEnableDefaultPasswordWarning(true);
     refreshOrOpen(DashboardPage.url());
   }
 
   @After
   public void after() {
     logout();
-    testCLMServer.getCLMServer().getConfiguration().setEnableDefaultPasswordWarning(true);
+    setEnableDefaultPasswordWarning(false);
   }
 
   @Test
@@ -80,7 +69,7 @@ public class ChangeDefaultAdminPasswordNoticeTest
       userDAO.update(admin);
     }
 
-    testCLMServer.getCLMServer().getConfiguration().setEnableDefaultPasswordWarning(false);
+    setEnableDefaultPasswordWarning(false);
     refresh();
     assertNotice(hidden);
   }
@@ -101,7 +90,7 @@ public class ChangeDefaultAdminPasswordNoticeTest
 
     assertNotice(visible, text("The \"admin\" user has the default password set"));
     eyesWatcher.eyesCheck();
-    testCLMServer.getCLMServer().getConfiguration().setEnableDefaultPasswordWarning(false);
+    setEnableDefaultPasswordWarning(false);
     refresh();
     assertNotice(hidden);
   }

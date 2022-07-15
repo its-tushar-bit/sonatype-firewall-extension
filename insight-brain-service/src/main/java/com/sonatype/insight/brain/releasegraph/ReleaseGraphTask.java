@@ -19,16 +19,17 @@ import io.dropwizard.servlets.tasks.Task;
 public class ReleaseGraphTask
     extends Task
 {
-  private LoadingCache<ReleaseGraphKey, byte[]> cache;
+  private final ReleaseGraphCacheProvider releaseGraphCacheProvider;
 
   @Inject
-  public ReleaseGraphTask(LoadingCache<ReleaseGraphKey, byte[]> cache) {
+  public ReleaseGraphTask(ReleaseGraphCacheProvider releaseGraphCacheProvider) {
     super("clearReleaseGraphCache");
-    this.cache = cache;
+    this.releaseGraphCacheProvider = releaseGraphCacheProvider;
   }
 
   @Override
   public void execute(final Map<String, List<String>> parameters, final PrintWriter output) throws Exception {
+    LoadingCache<ReleaseGraphKey, byte[]> cache = releaseGraphCacheProvider.get();
     output.write("Starting cache size: " + cache.size());
     cache.invalidateAll();
     output.write("\nFinal cache size: " + cache.size());

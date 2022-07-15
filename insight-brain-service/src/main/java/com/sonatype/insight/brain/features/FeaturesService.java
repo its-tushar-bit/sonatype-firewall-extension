@@ -18,7 +18,7 @@ import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.Syst
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -36,18 +36,18 @@ public class FeaturesService
 
   private final ProductLicense productLicense;
 
-  private final InsightConfig insightConfig;
-
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  private final Configuration configuration;
 
   @Inject
   public FeaturesService(
       ProductLicense productLicense,
-      InsightConfig insightConfig,
+      Configuration configuration,
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
   {
     this.productLicense = productLicense;
-    this.insightConfig = insightConfig;
+    this.configuration = configuration;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
@@ -62,20 +62,9 @@ public class FeaturesService
       addLicenseSpecificFeatures(features);
       features.add(NonLicensedFeature.REPORTS_LIST);
 
-      if (insightConfig.isExternalHyperlinksAllowed()) {
+      if (configuration.isExternalHyperlinksAllowed()) {
         features.add(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
       }
-
-      features.addAll(
-          Arrays.stream(InsightConfig.Feature.values())
-              .filter(insightConfig::isFeatureEnabled)
-              .collect(Collectors.toSet())
-      );
-      features.addAll(
-          Arrays.stream(InsightConfig.ExperimentalFeature.values())
-              .filter(insightConfig::isExperimentalFeatureEnabled)
-              .collect(Collectors.toSet())
-      );
       features.addAll(
           Arrays.stream(ApiConfigFeaturesService.SystemConfigurationPropertyFeature.values())
               .filter(SystemConfigurationPropertyFeature::isEnabled)

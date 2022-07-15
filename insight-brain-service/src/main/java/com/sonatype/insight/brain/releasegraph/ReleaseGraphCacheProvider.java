@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.releasegraph;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
@@ -20,18 +22,26 @@ import com.google.common.cache.LoadingCache;
 public class ReleaseGraphCacheProvider
     implements Provider<LoadingCache<ReleaseGraphKey, byte[]>>
 {
-  private final InsightConfig config;
+  private final Configuration configuration;
 
   private final Provider<ReleaseGraphCacheLoader> cacheLoaderProvider;
 
+  private final AtomicReference<LoadingCache<ReleaseGraphKey, byte[]>> cache = new AtomicReference<>();
+
   @Inject
-  public ReleaseGraphCacheProvider(InsightConfig config, Provider<ReleaseGraphCacheLoader> cacheLoaderProvider) {
-    this.config = config;
+  public ReleaseGraphCacheProvider(Configuration configuration, Provider<ReleaseGraphCacheLoader> cacheLoaderProvider) {
+    this.configuration = configuration;
     this.cacheLoaderProvider = cacheLoaderProvider;
+    initializeCache();
+  }
+
+  public void initializeCache() {
+    cache.set(CacheBuilder.newBuilder().maximumSize(configuration.getReleaseGraphCacheSize())
+        .build(cacheLoaderProvider.get()));
   }
 
   @Override
   public LoadingCache<ReleaseGraphKey, byte[]> get() {
-    return CacheBuilder.newBuilder().maximumSize(config.getReleaseGraphCacheSize()).build(cacheLoaderProvider.get());
+    return cache.get();
   }
 }

@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultDTOV2;
@@ -39,8 +40,6 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -68,8 +67,6 @@ public class ApiSearchServiceV2
 
   private final ReportService reportService;
 
-  private final InsightConfig insightConfig;
-
   @Inject
   public ApiSearchServiceV2(
       final BaseUrl baseUrl,
@@ -77,8 +74,7 @@ public class ApiSearchServiceV2
       final PolicyEvaluationDAO policyEvaluationDAO,
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyViolationDAO policyViolationDAO,
-      final ReportService reportService,
-      final InsightConfig insightConfig)
+      final ReportService reportService)
   {
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
@@ -86,7 +82,6 @@ public class ApiSearchServiceV2
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.reportService = reportService;
-    this.insightConfig = insightConfig;
   }
 
   public ApiSearchResultsDTOV2 searchComponent(
@@ -197,7 +192,7 @@ public class ApiSearchServiceV2
   {
     ApiDependencyDataDTO dependencyData = new ApiDependencyDataDTO();
 
-    if (!insightConfig.isFeatureEnabled(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE)) {
+    if (!SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.isEnabled()) {
       return null;
     }
 

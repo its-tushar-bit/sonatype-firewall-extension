@@ -7,23 +7,19 @@ package com.sonatype.insight.brain.features;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -40,14 +36,14 @@ public class FeaturesServiceTest
   @Inject
   private FeaturesService featuresService;
 
-  @Inject
-  private InsightConfig insightConfig;
-
   @Mock
   private ProductLicense productLicense;
 
   @Inject
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  @Inject
+  private ApiConfigurationService configurationService;
 
   @Override
   public void configure(Binder binder) {
@@ -82,8 +78,15 @@ public class FeaturesServiceTest
   @Test
   public void testGetFeatures_WithoutAllowExternalLinks() {
     when(productLicense.isValid()).thenReturn(true);
-    insightConfig.setExternalHyperlinksAllowed(false);
-    assertThat(featuresService.getFeatures()).doesNotContain(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
+    try {
+      configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, false);
+      configurationService.applyConfigurationToClients(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED);
+      assertThat(featuresService.getFeatures()).doesNotContain(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
+    }
+    finally {
+      configurationService.deleteConfigurationNoAuthz(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED);
+      configurationService.applyConfigurationToClients(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED);
+    }
   }
 
   @Test
@@ -134,65 +137,6 @@ public class FeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.DASHBOARD_DISABLED, "true");
 
     assertThat(featuresService.getFeatures()).doesNotContain(LicensedFeature.DASHBOARD);
-  }
-
-  @Test
-  public void testGetFeatures_Experimental_Null() {
-    when(productLicense.isValid()).thenReturn(true);
-    insightConfig.setExperimentalFeatures(null);
-
-    assertThat(featuresService.getFeatures()).doesNotContain(ExperimentalFeature.values());
-  }
-
-  @Test
-  public void testGetFeatures_Experimental_NoneSpecified() {
-    when(productLicense.isValid()).thenReturn(true);
-    insightConfig.setExperimentalFeatures(Collections.emptyMap());
-
-    assertThat(featuresService.getFeatures()).doesNotContain(ExperimentalFeature.values());
-  }
-
-  @Test
-  public void testGetFeatures_Experimental_AllFalse() {
-    when(productLicense.isValid()).thenReturn(true);
-    Map<String, Boolean> experimentalFeatures =
-        Arrays.stream(ExperimentalFeature.values())
-            .collect(Collectors.toMap(ExperimentalFeature::getFlag, feature -> false));
-    insightConfig.setExperimentalFeatures(experimentalFeatures);
-
-    assertThat(featuresService.getFeatures()).doesNotContain(ExperimentalFeature.values());
-  }
-
-  @Test
-  public void testGetFeatures_Experimental_AllTrue() {
-    when(productLicense.isValid()).thenReturn(true);
-    Map<String, Boolean> experimentalFeatures =
-        Arrays.stream(ExperimentalFeature.values())
-            .collect(Collectors.toMap(ExperimentalFeature::getFlag, feature -> true));
-    insightConfig.setExperimentalFeatures(experimentalFeatures);
-
-    assertThat(featuresService.getFeatures()).contains(ExperimentalFeature.values());
-  }
-
-  @Test
-  public void testGetFeatures_Experimental_NotAFeature() {
-    when(productLicense.isValid()).thenReturn(true);
-    Map<String, Boolean> experimentalFeatures = new HashMap<>();
-    experimentalFeatures.put("foo", true);
-    insightConfig.setExperimentalFeatures(experimentalFeatures);
-
-    assertThat(featuresService.getFeatures()).extracting(com.sonatype.insight.license.model.Feature::getId)
-        .doesNotContain("foo");
-  }
-
-  @Test
-  public void testGetFeatures_Experimental_NotAnExperimentalFeature() {
-    when(productLicense.isValid()).thenReturn(true);
-    Map<String, Boolean> experimentalFeatures = new HashMap<>();
-    experimentalFeatures.put(LicensedFeature.ADVANCED_LEGAL_PACK.getId(), true);
-    insightConfig.setExperimentalFeatures(experimentalFeatures);
-
-    assertThat(featuresService.getFeatures()).doesNotContain(LicensedFeature.ADVANCED_LEGAL_PACK);
   }
 
   @Test

@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.policy.PolicyMonitoringTask;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
@@ -34,7 +34,7 @@ public class PolicyMonitorSchedulerTest
   private PolicyMonitorScheduler policyMonitorScheduler;
 
   @Inject
-  private InsightConfig insightConfig;
+  private Configuration configuration;
 
   @Mock
   private ProductLicense productLicenseMock;
@@ -91,8 +91,8 @@ public class PolicyMonitorSchedulerTest
     ArgumentCaptor<LocalTime> startTimeCaptor = ArgumentCaptor.forClass(LocalTime.class);
     verify(taskSchedulerMock).scheduleDailyTask(eq(PolicyMonitoringTask.class), eq(PolicyMonitoringTask.NAME),
         startTimeCaptor.capture());
-    assertThat(startTimeCaptor.getValue()).isBetween(LocalTime.of(insightConfig.getPolicyMonitoringHour(), 0),
-        LocalTime.of(insightConfig.getPolicyMonitoringHour(), 15));
+    assertThat(startTimeCaptor.getValue()).isBetween(LocalTime.of(configuration.getPolicyMonitoringHour(), 0),
+        LocalTime.of(configuration.getPolicyMonitoringHour(), 15));
   }
 
   @Test
@@ -115,8 +115,8 @@ public class PolicyMonitorSchedulerTest
     ArgumentCaptor<LocalTime> startTimeCaptor = ArgumentCaptor.forClass(LocalTime.class);
     verify(taskSchedulerMock).scheduleDailyTask(eq(PolicyMonitoringTask.class), eq(PolicyMonitoringTask.NAME),
         startTimeCaptor.capture());
-    assertThat(startTimeCaptor.getValue()).isBetween(LocalTime.of(insightConfig.getPolicyMonitoringHour(), 0),
-        LocalTime.of(insightConfig.getPolicyMonitoringHour(), 15));
+    assertThat(startTimeCaptor.getValue()).isBetween(LocalTime.of(configuration.getPolicyMonitoringHour(), 0),
+        LocalTime.of(configuration.getPolicyMonitoringHour(), 15));
   }
 
   @Test

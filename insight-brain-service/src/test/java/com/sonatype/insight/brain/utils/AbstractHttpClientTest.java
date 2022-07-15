@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadGatewayException;
@@ -32,6 +33,9 @@ public abstract class AbstractHttpClientTest
 
   @Inject
   private PasswordHandler passwordHandler;
+
+  @Inject
+  private ApiProxyServerConfigurationService proxyServerConfigurationService;
 
   @Test
   public void testProxyUsage() throws Exception {
@@ -63,6 +67,8 @@ public abstract class AbstractHttpClientTest
       tempEntity.setProxyServerConfiguration("localhost",
           ((NetworkConnector) proxyServer.getConnectors()[0]).getLocalPort(), "test-proxy-user",
           passwordHandler.encryptPassword("test-proxy-pass".toCharArray()));
+      proxyServerConfigurationService.applyProxyServerConfigurationToClients();
+
       pingUrl("http://proxy.test/");
     }
     catch (HttpResponseException | BadGatewayException ignored) {
@@ -95,6 +101,7 @@ public abstract class AbstractHttpClientTest
     targetServer.start();
     try {
       tempEntity.setProxyServerConfiguration("proxy.test", 80, null, null, "localhost");
+      proxyServerConfigurationService.applyProxyServerConfigurationToClients();
       pingUrl("http://localhost:" + ((NetworkConnector) targetServer.getConnectors()[0]).getLocalPort() + "/");
     }
     catch (HttpResponseException | BadGatewayException ignored) {

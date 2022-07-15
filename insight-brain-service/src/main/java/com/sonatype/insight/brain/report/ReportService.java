@@ -18,6 +18,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -32,7 +33,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
@@ -59,7 +60,7 @@ public class ReportService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final InsightConfig insightConfig;
+  private final Configuration configuration;
 
   private final ApplicationDAO applicationDAO;
 
@@ -76,7 +77,7 @@ public class ReportService
       InsightWork work,
       ReportDownloader reportDownloader,
       PolicyEvaluationDAO policyEvaluationDAO,
-      InsightConfig insightConfig,
+      Configuration configuration,
       ApplicationDAO applicationDAO,
       OrganizationDAO organizationDAO,
       ThirdPartyDataService thirdPartyDataService,
@@ -86,7 +87,7 @@ public class ReportService
     this.work = work;
     this.reportDownloader = reportDownloader;
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.insightConfig = insightConfig;
+    this.configuration = configuration;
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.thirdPartyDataService = thirdPartyDataService;
@@ -100,7 +101,7 @@ public class ReportService
     String appId = app.getId();
     final File reportFile = work.getReportFile(appId, scanId);
     if (!reportFile.exists()) {
-      int reportTimeoutInSeconds = insightConfig.getReportTimeoutInSeconds();
+      int reportTimeoutInSeconds = configuration.getReportTimeoutInSeconds();
       final File tempFile = FileUtils.createTempFile("temp-", ".zip", reportFile.getParentFile());
       if (!reportDownloader.downloadReport(scanId, tempFile, reportTimeoutInSeconds, 5)) {
         throw new NotFoundException("Could not download the report for scan ID " + scanId);

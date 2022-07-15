@@ -8,17 +8,15 @@ package com.sonatype.insight.brain.git;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicReference;
 
-import com.sonatype.insight.brain.api.v2.service.SourceControlConfigurationListener;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
@@ -38,7 +36,6 @@ import org.slf4j.LoggerFactory;
  * by pushing the changes to a newly created PullRequest.
  */
 public class PullRequestTask
-    implements SourceControlConfigurationListener
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestTask.class);
 
@@ -54,10 +51,7 @@ public class PullRequestTask
 
   private final SourceControlUtils sourceControlUtils;
 
-  private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
-
-  // Visible for testing
-  final AtomicReference<SourceControlConfiguration> sourceControlConfigurationAtomicReference = new AtomicReference<>();
+  private final Configuration configuration;
 
   @Inject
   public PullRequestTask(
@@ -66,15 +60,14 @@ public class PullRequestTask
       final GitApiFactory gitApiFactory,
       final AuditRecorder auditRecorder,
       final SourceControlUtils sourceControlUtils,
-      final SourceControlConfigurationDAO sourceControlConfigurationDAO)
+      final Configuration configuration)
   {
     this.gitClientFactory = gitClientFactory;
     this.metrics = metrics;
     this.gitApiFactory = gitApiFactory;
     this.auditRecorder = auditRecorder;
     this.sourceControlUtils = sourceControlUtils;
-    this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
-    sourceControlConfigurationChanged();
+    this.configuration = configuration;
   }
 
   public void run(
@@ -91,7 +84,7 @@ public class PullRequestTask
     }
     String applicationId = pullRequestRemediationDetails.getApp().getId();
     GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
-    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationAtomicReference.get();
+    SourceControlConfiguration sourceControlConfiguration = configuration.getSourceControlConfigurationOrDefault();
     maybeUpdateRepoUrlWithUsername(sourceControlConfiguration, gitRepositoryInfo);
 
     File checkoutDir = null;
@@ -182,14 +175,5 @@ public class PullRequestTask
     return sourceControlConfiguration.getCommitEmail() != null
         ? sourceControlConfiguration.getCommitEmail()
         : GitApi.DEFAULT_COMMITTER_EMAIL;
-  }
-
-  @Override
-  public void sourceControlConfigurationChanged() {
-    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
-    if (sourceControlConfiguration == null) {
-      sourceControlConfiguration = new SourceControlConfiguration();
-    }
-    sourceControlConfigurationAtomicReference.set(sourceControlConfiguration);
   }
 }

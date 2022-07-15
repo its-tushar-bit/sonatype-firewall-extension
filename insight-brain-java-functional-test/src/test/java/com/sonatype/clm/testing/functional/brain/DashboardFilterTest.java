@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.ChangePasswordModal;
 import com.sonatype.clm.testing.functional.elements.DashboardApplications.ApplicationsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents.ComponentsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
@@ -28,14 +29,15 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxPolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.elements.ChangePasswordModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -109,7 +111,7 @@ public class DashboardFilterTest
 
   @After
   public void after() {
-    testCLMServer.getCLMServer().getConfiguration().setNeedsAcknowledgementOfInitialDashboardFilter(false);
+    setNeedsAcknowledgementOfInitialDashboardFilter(null);
     clearFilters();
   }
 
@@ -751,7 +753,7 @@ public class DashboardFilterTest
 
   @Test
   public void testNeedsAcknowledgement() {
-    testCLMServer.getCLMServer().getConfiguration().setNeedsAcknowledgementOfInitialDashboardFilter(true);
+    setNeedsAcknowledgementOfInitialDashboardFilter(true);
     refreshOrOpen(DashboardPage.urlToViolations());
 
     DashboardFilters.filterContainer().shouldBe(visible);
@@ -809,7 +811,7 @@ public class DashboardFilterTest
     assertThat(filters.get(0).isAcknowledged()).isFalse();
     assertThat(filters.get(1).isAcknowledged()).isFalse();
 
-    testCLMServer.getCLMServer().getConfiguration().setNeedsAcknowledgementOfInitialDashboardFilter(true);
+    setNeedsAcknowledgementOfInitialDashboardFilter(true);
     refreshOrOpen(DashboardPage.urlToViolations());
 
     DashboardPage.filterToggle().shouldBe(visible).click();
@@ -1320,5 +1322,15 @@ public class DashboardFilterTest
 
   private void pressEscape() {
     Selenide.actions().sendKeys(Keys.ESCAPE).perform();
+  }
+
+  private void setNeedsAcknowledgementOfInitialDashboardFilter(Boolean needsAcknowledgementOfInitialDashboardFilter) {
+    ApiConfigurationService configurationService =
+        testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(
+        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
+        needsAcknowledgementOfInitialDashboardFilter);
+    configurationService.applyConfigurationToClients(
+        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER);
   }
 }

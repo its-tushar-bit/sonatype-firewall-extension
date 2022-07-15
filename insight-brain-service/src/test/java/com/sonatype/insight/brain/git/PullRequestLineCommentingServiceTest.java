@@ -13,12 +13,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.iq.location.discovery.PositionDiscoveryExecutor;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
@@ -647,8 +646,8 @@ public class PullRequestLineCommentingServiceTest
         }
       }
 
-      pullRequestCommentingEligibilityValidator =
-          new PullRequestCommentingEligibilityValidator(getInsightConfig(featureFlagEnabled));
+      SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.setEnabled(featureFlagEnabled);
+      pullRequestCommentingEligibilityValidator = new PullRequestCommentingEligibilityValidator();
 
       return new PullRequestLineCommentingService(
           mockGitClientFactory,
@@ -700,14 +699,6 @@ public class PullRequestLineCommentingServiceTest
     TestablePullRequestLineCommentingServiceBuilder withCommentVersion(Integer commentVersion) {
       this.commentVersion = commentVersion;
       return this;
-    }
-
-    private InsightConfig getInsightConfig(boolean enableFeatureFlag) {
-      InsightConfig config = new InsightConfig();
-      Map<String, Boolean> features = new HashMap<>();
-      features.put(Feature.PR_LINE_COMMENTING.getFlag(), enableFeatureFlag);
-      config.setFeatures(features);
-      return config;
     }
   }
 }

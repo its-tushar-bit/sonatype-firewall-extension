@@ -11,19 +11,20 @@ import java.util.NoSuchElementException;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -31,9 +32,13 @@ import com.sonatype.insight.brain.version.VersionService;
 
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.server.DefaultServerFactory;
+import org.assertj.core.util.Maps;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class HdsIdeResourcePerformanceUtils
 {
@@ -64,19 +69,22 @@ public class HdsIdeResourcePerformanceUtils
 
   static HttpServletRequest createRequest() throws Exception {
     HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-    Mockito.when(request.getMethod()).thenReturn("GET");
-    Mockito.when(request.getHeaderNames()).thenReturn(EmptyEnumeration.getInstance());
+    when(request.getMethod()).thenReturn("GET");
+    when(request.getHeaderNames()).thenReturn(EmptyEnumeration.getInstance());
     return request;
   }
 
   static HdsClient createHdsClient(String hdsUrl) {
     InsightConfig config = new InsightConfig();
-    config.setHdsUrl(hdsUrl);
+    ApiConfigurationService mockConfigurationService = mock(ApiConfigurationService.class);
+    when(mockConfigurationService.getConfigurationNoAuthz(any(),
+        ArgumentMatchers.eq(Collections.singleton(SystemConfigurationProperty.HDS_URL)))).thenReturn(
+        Maps.newHashMap(SystemConfigurationProperty.HDS_URL, hdsUrl));
+
     ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
         .setPort(8877);
-    return new DefaultHdsClient(new InsightProxy(config, new ProxyServerConfigurationDAO(), new PasswordHandler(null)),
-        mock(ProductLicense.class), config, new ReverseProxyAuthenticationConfigurationDAO(), new VersionService(),
-        new TelemetryId(config));
+    return new DefaultHdsClient(new InsightProxy(mock(Configuration.class), new PasswordHandler(null)),
+        mock(ProductLicense.class), mock(Configuration.class), new VersionService(), new TelemetryId(config));
   }
 
   static TelemetrySender createTelemetrySender() {

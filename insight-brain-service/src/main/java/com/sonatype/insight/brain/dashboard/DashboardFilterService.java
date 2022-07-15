@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -44,20 +44,20 @@ public class DashboardFilterService
 
   private final DashboardUtils dashboardUtils;
 
-  private final InsightConfig insightConfig;
+  private final Configuration configuration;
 
   @Inject
   public DashboardFilterService(ApplicationDAO applicationDAO,
                                 DashboardFilterDAO dashboardFilterDAO,
                                 CurrentUser currentUser,
                                 DashboardUtils dashboardUtils,
-                                InsightConfig insightConfig)
+                                Configuration configuration)
   {
     this.applicationDAO = applicationDAO;
     this.dashboardFilterDAO = dashboardFilterDAO;
     this.currentUser = currentUser;
     this.dashboardUtils = dashboardUtils;
-    this.insightConfig = insightConfig;
+    this.configuration = configuration;
   }
 
   /**
@@ -78,7 +78,7 @@ public class DashboardFilterService
 
     NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
     namedDashboardFilterDTO.name = ACTIVE_FILTER_NAME;
-    namedDashboardFilterDTO.needsAcknowledgement = insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter()
+    namedDashboardFilterDTO.needsAcknowledgement = configuration.isNeedsAcknowledgementOfInitialDashboardFilter()
         && !dashboardFilter.isAcknowledged() && dashboardFilter.getBasedOnFilterName() == null;
     namedDashboardFilterDTO.filter = dto;
     namedDashboardFilterDTO.basedOnFilterName = dashboardFilter.getBasedOnFilterName();
@@ -127,7 +127,7 @@ public class DashboardFilterService
     
     NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
     namedDashboardFilterDTO.name = ACTIVE_FILTER_NAME;
-    namedDashboardFilterDTO.needsAcknowledgement = insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter();
+    namedDashboardFilterDTO.needsAcknowledgement = configuration.isNeedsAcknowledgementOfInitialDashboardFilter();
     namedDashboardFilterDTO.filter = dashboardFilterDTO;
     return namedDashboardFilterDTO;
   }
@@ -151,7 +151,7 @@ public class DashboardFilterService
       dashboardFilter.setRealmId(realmId);
       dashboardFilter.setFilter(JsonUtils.format(namedDashboardFilterDTO.filter));
       dashboardFilter.setName(filterName);
-      dashboardFilter.setAcknowledged(insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter());
+      dashboardFilter.setAcknowledged(configuration.isNeedsAcknowledgementOfInitialDashboardFilter());
 
       DashboardFilter existingDashboardFilter = getNewOrLegacyDashboardFilter(username, realmId, filterName);
       if (existingDashboardFilter == null) {
@@ -179,7 +179,7 @@ public class DashboardFilterService
     newActiveFilter.setRealmId(realmId);
     newActiveFilter.setFilter(JsonUtils.format(namedDashboardFilterDTO.filter));
     newActiveFilter.setName(ACTIVE_FILTER_NAME);
-    newActiveFilter.setAcknowledged(insightConfig.isNeedsAcknowledgementOfInitialDashboardFilter());
+    newActiveFilter.setAcknowledged(configuration.isNeedsAcknowledgementOfInitialDashboardFilter());
 
     if (namedDashboardFilterDTO.basedOnFilterName != null) {
       newActiveFilter.setBasedOnFilterName(namedDashboardFilterDTO.basedOnFilterName);

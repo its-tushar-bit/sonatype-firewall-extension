@@ -2,7 +2,6 @@ hdsUrl: https://clm-staging.sonatype.com/
 #hdsUrl: "http://localhost:8080/"
 
 consentToUpgradeToVersion_1_45: true
-enableDefaultPasswordWarning: false
 
 logging:
   # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.

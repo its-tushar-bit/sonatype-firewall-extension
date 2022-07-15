@@ -23,16 +23,12 @@ import javax.net.ssl.SSLException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.insight.brain.api.v2.service.ProxyServerConfigurationListener;
-import com.sonatype.insight.brain.api.v2.service.ReverseProxyAuthenticationConfigurationListener;
-import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.HttpClientUtils;
-import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
@@ -72,12 +68,12 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class DefaultHdsClient
-    implements HdsClient, Managed, ProxyServerConfigurationListener, ReverseProxyAuthenticationConfigurationListener
+    implements HdsClient, Managed
 {
   // Logger is instance variable so that subclasses will have a different one which can be configured differently
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private volatile Configuration config;
+  private volatile HttpClientUtils.Configuration config;
 
   private volatile CloseableHttpClient client;
 
@@ -85,23 +81,19 @@ public class DefaultHdsClient
 
   private final InsightProxy proxy;
 
-  private final InsightConfig insightConfig;
-
   private final ProductLicense productLicense;
 
   private final TelemetryId telemetryId;
 
   private final VersionService versionService;
   
-  private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
+  private final Configuration configuration;
 
   private static volatile String version;
 
   public static final String UPLOAD_FILE_ATTRIBUTE = "hds.upload.file";
 
   public static final String CLM_CLIENT_USER_AGENT_HEADER = "X-CLM-Client-User-Agent";
-
-  private volatile String rutHeader;
 
   static final String OWNER_TYPE_HEADER = "X-CLM-Owner-Type";
 
@@ -113,45 +105,48 @@ public class DefaultHdsClient
 
   @Inject
   public DefaultHdsClient(
-      final InsightProxy proxy,
+      InsightProxy proxy,
       ProductLicense productLicense,
-      InsightConfig insightConfig,
-      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
+      Configuration configuration,
       VersionService versionService,
       TelemetryId telemetryId)
   {
-    this(proxy, productLicense, insightConfig, reverseProxyAuthenticationConfigurationDAO, versionService,
-        telemetryId, 20);
+    this(proxy, productLicense, configuration, versionService, telemetryId, 20);
   }
 
   protected DefaultHdsClient(
-      final InsightProxy proxy,
+      InsightProxy proxy,
       ProductLicense productLicense,
-      InsightConfig insightConfig,
-      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
+      Configuration configuration,
       VersionService versionService,
       TelemetryId telemetryId,
       int poolSize)
   {
     this.proxy = proxy;
     this.productLicense = productLicense;
-    this.insightConfig = insightConfig;
     connectionPoolSize = poolSize;
-    updateClient();
     this.versionService = versionService;
-    this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
-    reverseProxyAuthenticationConfigurationChanged();
+    this.configuration = configuration;
+    this.telemetryId = telemetryId;
+    updateClient();
     // TODO Need to determine if there is additional information we should be sending to the HDS
     loadVersion();
-    this.telemetryId = telemetryId;
+  }
+
+  private String getRutHeader() {
+    ReverseProxyAuthenticationConfiguration reverseProxyAuthenticationConfiguration =
+        configuration.getReverseProxyAuthenticationConfiguration();
+    return reverseProxyAuthenticationConfiguration != null && reverseProxyAuthenticationConfiguration.isEnabled() ?
+        reverseProxyAuthenticationConfiguration.getUsernameHeader() : null;
   }
 
   private synchronized void updateClient() {
-    Configuration config = new Configuration();
-    config.setConnectTimeout(insightConfig.getConnectTimeoutInSeconds() * 1000);
-    config.setSocketTimeout(insightConfig.getSocketTimeoutInSeconds() * 1000);
+    HttpClientUtils.Configuration config = new HttpClientUtils.Configuration();
+    config.setConnectTimeout(configuration.getConnectTimeoutInSeconds() * 1000);
+    config.setSocketTimeout(configuration.getSocketTimeoutInSeconds() * 1000);
     customizeConfiguration(config);
     proxy.contextualize(config);
+    log.debug("HDS URL: {}", config.getServerUrl());
     this.config = config;
     HttpClientBuilder clientBuilder = HttpClientUtils.create(config);
     clientBuilder.setMaxConnTotal(connectionPoolSize);
@@ -177,7 +172,7 @@ public class DefaultHdsClient
     }
   }
 
-  protected void customizeConfiguration(@SuppressWarnings("unused") Configuration configuration) {
+  protected void customizeConfiguration(@SuppressWarnings("unused") HttpClientUtils.Configuration configuration) {
   }
 
   @Override
@@ -190,9 +185,9 @@ public class DefaultHdsClient
   }
 
   @Override
-  public void proxyServerConfigurationChanged() {
+  public void serverConfigurationChanged() {
     updateClient();
-    log.debug("Applied new proxy server configuration");
+    log.debug("Applied new server configuration");
   }
 
   @Override
@@ -551,7 +546,7 @@ public class DefaultHdsClient
             && !HttpHeaders.CONTENT_ENCODING.equalsIgnoreCase(headerName)
             && !HttpHeaders.AUTHORIZATION.equalsIgnoreCase(headerName)
             && !HttpHeaders.PROXY_AUTHORIZATION.equalsIgnoreCase(headerName) && !"COOKIE".equalsIgnoreCase(headerName)
-            && !"COOKIE2".equalsIgnoreCase(headerName) && !headerName.equalsIgnoreCase(rutHeader)
+            && !"COOKIE2".equalsIgnoreCase(headerName) && !headerName.equalsIgnoreCase(getRutHeader())
             && !headerName.startsWith("X-Forward")) {
           req.setHeader(headerName, orig.getHeader(headerName));
         }
@@ -634,13 +629,5 @@ public class DefaultHdsClient
     }
 
     version = versionService.getVersion("Unknown");
-  }
-
-  @Override
-  public void reverseProxyAuthenticationConfigurationChanged() {
-    ReverseProxyAuthenticationConfiguration reverseProxyAuthenticationConfiguration =
-        reverseProxyAuthenticationConfigurationDAO.get();
-    rutHeader = reverseProxyAuthenticationConfiguration != null && reverseProxyAuthenticationConfiguration.isEnabled() ?
-        reverseProxyAuthenticationConfiguration.getUsernameHeader() : null;
   }
 }

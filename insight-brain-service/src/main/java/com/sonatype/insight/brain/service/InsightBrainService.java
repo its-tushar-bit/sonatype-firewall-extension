@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditFilter;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
-import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
 import com.sonatype.insight.brain.migration.DbMigrationCommand;
@@ -394,7 +393,6 @@ public class InsightBrainService
     addServletFilter(env, CspHeaderFilter.class, CspHeaderFilter.URL_PATTERN);
     addServletFilter(env, CspFrameHeaderFilter.class, CspFrameHeaderFilter.URL_PATTERN);
 
-    log.debug("HDS URL: {}", config.getHdsUrl());
     log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());
     log.debug("Features flags: {}", config.getFeatures());
     log.debug("Experimental features flags: {}", config.getExperimentalFeatures());
@@ -433,7 +431,6 @@ public class InsightBrainService
       @Override
       protected void configure() {
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
-        bind(EventBusConfig.class).toInstance(config.getEventBusConfig());
         bind(CsvMapper.class).toInstance(configureObjectMapper(new CsvMapper()));
       }
     };

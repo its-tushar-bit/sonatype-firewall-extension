@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -14,7 +14,6 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.configuration.ldap.LdapRealm;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
-import com.sonatype.insight.brain.service.InsightConfig;
 
 import com.google.inject.TypeLiteral;
 import com.google.inject.binder.AnnotatedBindingBuilder;
@@ -25,8 +24,6 @@ import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.session.SessionListener;
 import org.apache.shiro.session.mgt.SessionManager;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
-import org.apache.shiro.web.filter.InvalidRequestFilter;
-import org.apache.shiro.web.filter.mgt.DefaultFilter;
 import org.apache.shiro.web.filter.mgt.DefaultFilterChainManager;
 import org.apache.shiro.web.filter.mgt.FilterChainManager;
 import org.apache.shiro.web.filter.mgt.FilterChainResolver;
@@ -232,7 +229,7 @@ public class SecurityModule
         SessionExpirationCookieFilter sessionExpirationCookieFilter,
         MissingAuthenticationFilter missingAuthenticationFilter,
         SamlFilter samlFilter,
-        InsightConfig insightConfig)
+        InvalidRequestFilter invalidRequestFilter)
     {
       filterChainManager.addFilter("antiCsrf", antiCsrfFilter);
       filterChainManager.addFilter("authcBasic", basicHttpAuthenticationFilter);
@@ -241,13 +238,8 @@ public class SecurityModule
       filterChainManager.addFilter("reverseProxy", reverseProxyAuthenticationFilter);
       filterChainManager.addFilter("secureCookies", secureCookiesFilter);
       filterChainManager.addFilter("sessionExpirationCookie", sessionExpirationCookieFilter);
-      filterChainManager.setGlobalFilters(Arrays.asList(DefaultFilter.invalidRequest.name()));
-
-      InvalidRequestFilter invalidRequestFilter =
-          (InvalidRequestFilter) filterChainManager.getFilters().get(DefaultFilter.invalidRequest.name());
-      invalidRequestFilter.setBlockSemicolon(insightConfig.isBlockSemicolonInPath());
-      invalidRequestFilter.setBlockBackslash(insightConfig.isBlockBackslashInPath());
-      invalidRequestFilter.setBlockNonAscii(insightConfig.isBlockNonAsciiInPath());
+      filterChainManager.addFilter("sonatypeInvalidRequest", invalidRequestFilter);
+      filterChainManager.setGlobalFilters(Collections.singletonList("sonatypeInvalidRequest"));
 
       configureFilterChains(filterChainManager);
     }

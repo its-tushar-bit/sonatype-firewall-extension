@@ -30,13 +30,13 @@ public class InsightMail
 {
   private static final Logger log = LoggerFactory.getLogger(InsightMail.class);
 
-  private final InsightConfig config;
+  private final Configuration configuration;
 
   private final PasswordHandler passwordHandler;
 
   @Inject
-  public InsightMail(final InsightConfig config, PasswordHandler passwordHandler) {
-    this.config = config;
+  public InsightMail(Configuration configuration, PasswordHandler passwordHandler) {
+    this.configuration = configuration;
     this.passwordHandler = passwordHandler;
   }
 
@@ -54,7 +54,7 @@ public class InsightMail
   }
 
   public String getCdnUrl() {
-    return config.getCdnUrl();
+    return configuration.getCdnUrl();
   }
 
   public void sendHtml(String mailAddress, String subject, String body) {

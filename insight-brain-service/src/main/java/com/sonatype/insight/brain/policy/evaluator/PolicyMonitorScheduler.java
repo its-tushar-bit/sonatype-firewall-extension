@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.policy.PolicyMonitoringTask;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 
 import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
@@ -34,7 +34,7 @@ public class PolicyMonitorScheduler
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyMonitorScheduler.class);
 
-  private final InsightConfig config;
+  private final Configuration configuration;
 
   private final ProductLicense productLicense;
 
@@ -43,8 +43,12 @@ public class PolicyMonitorScheduler
   public boolean disableForTesting;
 
   @Inject
-  public PolicyMonitorScheduler(InsightConfig config, ProductLicense productLicense, TaskScheduler taskScheduler) {
-    this.config = config;
+  public PolicyMonitorScheduler(
+      Configuration configuration,
+      ProductLicense productLicense,
+      TaskScheduler taskScheduler)
+  {
+    this.configuration = configuration;
     this.productLicense = productLicense;
     this.taskScheduler = taskScheduler;
   }
@@ -53,8 +57,17 @@ public class PolicyMonitorScheduler
     if (disableForTesting) {
       return;
     }
+    schedulePolicyMonitoring();
+  }
+
+  public void schedulePolicyMonitoring() {
+    if (!PolicyMonitor.isLicensed(productLicense)) {
+      log.info("Policy Monitor is not licensed");
+      return;
+    }
+    log.info("Policy Monitor is licensed");
     // randomize minute to avoid coordinated load spike for HDS scan processing
-    LocalTime startTime = LocalTime.of(config.getPolicyMonitoringHour(), new Random().nextInt(15));
+    LocalTime startTime = LocalTime.of(configuration.getPolicyMonitoringHour(), new Random().nextInt(15));
     taskScheduler.scheduleDailyTask(PolicyMonitoringTask.class, PolicyMonitoringTask.NAME, startTime);
     log.info("Next Policy Monitor execution scheduled for {}",
         taskScheduler.getNextExecutionTime(PolicyMonitoringTask.NAME));

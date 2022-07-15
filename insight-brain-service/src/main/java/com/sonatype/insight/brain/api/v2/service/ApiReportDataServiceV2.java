@@ -21,6 +21,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationBaseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
@@ -52,8 +53,6 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -63,7 +62,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,21 +88,17 @@ public class ApiReportDataServiceV2
 
   private final ApiSecurityDataAdapter securityDataAdapter;
 
-  private final InsightConfig insightConfig;
-
   @Inject
   public ApiReportDataServiceV2(
       ApplicationDAO appDAO,
       ReportService reportService,
       ApiLicenseDataAdapter licenseDataAdapter,
-      ApiSecurityDataAdapter securityDataAdapter,
-      InsightConfig insightConfig)
+      ApiSecurityDataAdapter securityDataAdapter)
   {
     this.appDAO = appDAO;
     this.reportService = reportService;
     this.licenseDataAdapter = licenseDataAdapter;
     this.securityDataAdapter = securityDataAdapter;
-    this.insightConfig = insightConfig;
   }
 
   @Authorize(permission = Permission.READ)
@@ -438,7 +432,7 @@ public class ApiReportDataServiceV2
   }
 
   private boolean isDependencyDataInRestApiSupported() {
-    return insightConfig.isFeatureEnabled(Feature.DEPENDENCY_DATA_IN_API);
+    return SystemConfigurationPropertyFeature.DEPENDENCY_DATA_IN_API.isEnabled();
   }
 
   private void populateDependencyData(final Component comp, final ApiReportComponentDTOV2 component) {

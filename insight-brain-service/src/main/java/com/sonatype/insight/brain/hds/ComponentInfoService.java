@@ -38,6 +38,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -70,8 +71,6 @@ import com.sonatype.insight.brain.repository.RepositorySourceResponseDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -114,8 +113,6 @@ public class ComponentInfoService
 
   private final ThirdPartyComponentDAO thirdPartyComponentDAO;
 
-  private final InsightConfig insightConfig;
-
   private final RepositoryQueryService repositoryQueryService;
 
   private final MultiLicenseDAO multiLicenseDAO;
@@ -131,7 +128,6 @@ public class ComponentInfoService
       ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
       ComponentRemediationService componentRemediationService,
       ThirdPartyComponentDAO thirdPartyComponentDAO,
-      InsightConfig insightConfig,
       RepositoryQueryService repositoryQueryService,
       MultiLicenseDAO multiLicenseDAO)
   {
@@ -140,7 +136,6 @@ public class ComponentInfoService
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.componentRemediationService = componentRemediationService;
     this.thirdPartyComponentDAO = thirdPartyComponentDAO;
-    this.insightConfig = insightConfig;
     this.repositoryQueryService = repositoryQueryService;
     this.multiLicenseDAO = multiLicenseDAO;
     initUnspecifiedLicense();
@@ -660,7 +655,7 @@ public class ComponentInfoService
 
     if (DependencyType.INNER_SOURCE.equals(dependencyType) &&
         RepositoryClient.REPOSITORY_SUPPORTED_FORMATS.contains(identifier.getFormat()) &&
-        insightConfig.isFeatureEnabled(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION)) {
+        SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.isEnabled()) {
 
       if (CollectionUtils.isNotEmpty(componentDetailsList.getList()) && componentDetailsList.getList().size() == 1) {
         return isThirdPartyIdentificationSource(identificationSource) ||

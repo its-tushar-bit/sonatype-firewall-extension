@@ -20,9 +20,9 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
-import com.sonatype.insight.brain.service.InsightConfig;
 
 import com.google.inject.Binder;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -50,9 +50,9 @@ public class CLMLicenseManagerAuditTest
     super.configure(binder);
   }
 
-  @Override
-  protected void customizeConfig(InsightConfig config) {
-    config.setHdsUrl(hdsMockServer.getHttpUrl());
+  @Before
+  public void before() {
+    setHdsUrl(hdsMockServer.getHttpUrl());
   }
 
   @Test

@@ -23,7 +23,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -46,14 +45,17 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.model.PerpetualLock;
+import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -83,7 +85,6 @@ import org.sonatype.licensing.product.util.LicenseFingerprinter;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import org.codehaus.plexus.util.FileUtils;
@@ -159,6 +160,14 @@ public abstract class AbstractBrainServiceTest
       initServer();
     }
     setUpTestLicenseThreatGroups();
+    if (testCLMServer != null) {
+      ProxyServerConfiguration proxyServerConfiguration = getCLMServer().getProxyServerConfiguration();
+      if (proxyServerConfiguration != null) {
+        new ProxyServerConfigurationDAO().set(proxyServerConfiguration);
+        tempEntity.setSavedProxyServerConfiguration(proxyServerConfiguration);
+        getCLMServer().getInstance(ApiProxyServerConfigurationService.class).applyProxyServerConfigurationToClients();
+      }
+    }
   }
 
   private void initHds() throws Exception {
@@ -199,6 +208,7 @@ public abstract class AbstractBrainServiceTest
       testCLMServer.start();
     }
     setBaseUrl("http://localhost");
+    testCLMServer.getCLMServer().setHdsUrl();
   }
 
   @After
@@ -235,9 +245,33 @@ public abstract class AbstractBrainServiceTest
         getCLMServer().getConfiguration().setFeatures(Collections.emptyMap());
         getCLMServer().getConfiguration().setExperimentalFeatures(Collections.emptyMap());
       }
-      resetBaseUrl();
+      resetProperties(SystemConfigurationProperty.BASE_URL,
+          SystemConfigurationProperty.FORCE_BASE_URL,
+          SystemConfigurationProperty.CSRF_PROTECTION,
+          SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH,
+          SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH,
+          SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH,
+          SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS,
+          SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS,
+          SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS,
+          SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
+          SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
+          SystemConfigurationProperty.POLICY_MONITORING_HOUR,
+          SystemConfigurationProperty.DB_BACKUP_DIR,
+          SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
+          SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
+          SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING);
     }
     releaseScmPerpetualLock();
+    new ProxyServerConfigurationDAO().delete();
+    tempEntity.setSavedProxyServerConfiguration(null);
+    if (testCLMServer != null) {
+      ApiProxyServerConfigurationService proxyServerConfigurationService =
+          getCLMServer().getInstance(ApiProxyServerConfigurationService.class);
+      if (proxyServerConfigurationService != null) {
+        proxyServerConfigurationService.applyProxyServerConfigurationToClients();
+      }
+    }
   }
 
   private void releaseScmPerpetualLock() {
@@ -534,11 +568,9 @@ public abstract class AbstractBrainServiceTest
     service.applyConfigurationToClients(properties.keySet());
   }
 
-  public void resetBaseUrl() {
+  public void resetProperties(String... propertyNames) {
     ApiConfigurationService service = getCLMServer().getInstance(ApiConfigurationService.class);
     if (service != null) {
-      Set<String> propertyNames =
-          ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
       service.deleteConfigurationNoAuthz(propertyNames);
       service.applyConfigurationToClients(propertyNames);
     }

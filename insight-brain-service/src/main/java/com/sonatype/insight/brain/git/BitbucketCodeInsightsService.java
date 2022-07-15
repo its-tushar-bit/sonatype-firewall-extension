@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -19,8 +20,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestCodeInsightsDetails;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.scm.bitbucket.BitbucketApiClient;
@@ -58,18 +57,14 @@ public class BitbucketCodeInsightsService
 
   private final ApplicationDAO applicationDAO;
 
-  private final InsightConfig insightConfig;
-
   private final BaseUrl baseUrl;
 
   @Inject
   public BitbucketCodeInsightsService(
       final ApplicationDAO applicationDAO,
-      final InsightConfig insightConfig,
       final BaseUrl baseUrl)
   {
     this.applicationDAO = applicationDAO;
-    this.insightConfig = insightConfig;
     this.baseUrl = baseUrl;
   }
 
@@ -88,7 +83,7 @@ public class BitbucketCodeInsightsService
     if (!gitRepositoryInfo.provider.supportsCodeInsights()) {
       return;
     }
-    if (!insightConfig.isFeatureEnabled(Feature.CODE_INSIGHTS)) {
+    if (!SystemConfigurationPropertyFeature.CODE_INSIGHTS.isEnabled()) {
       return;
     }
 

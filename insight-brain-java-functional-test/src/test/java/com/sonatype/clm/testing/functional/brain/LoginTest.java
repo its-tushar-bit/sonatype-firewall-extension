@@ -10,28 +10,28 @@ import java.util.Map;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
-import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
-import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.attribute;
 import static com.sonatype.clm.testing.functional.utils.InputUtils.clearInput;
 
 public class LoginTest
@@ -59,7 +59,7 @@ public class LoginTest
     Map<String, Boolean> currentFeatures = insightConfig.getFeatures();
     try {
       insightConfig.setFeatures(new HashMap<>());
-      insightConfig.getFeatures().put(Feature.ENABLE_UNAUTHENTICATED_PAGES.getFlag(), false);
+      SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES.setEnabled(false);
 
       refreshOrOpen(ReportListPage.url());
       loginModal.vulnerabilityLookupLink().shouldBe(hidden);
@@ -76,7 +76,7 @@ public class LoginTest
     Map<String, Boolean> currentFeatures = insightConfig.getFeatures();
     try {
       insightConfig.setFeatures(new HashMap<>());
-      insightConfig.getFeatures().put(Feature.ENABLE_UNAUTHENTICATED_PAGES.getFlag(), false);
+      SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES.setEnabled(false);
 
       refreshOrOpen(VulnerabilitySearchPage.url());
       loginModal.vulnerabilityLookupLink().shouldBe(hidden);

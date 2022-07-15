@@ -21,7 +21,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.license.dto.model.AnameAggregateFileGroup;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentFilePathsDTO;
@@ -53,12 +53,12 @@ public class ApiLicenseLegalHdsService
 
   private final HdsClient hdsClient;
 
-  private final InsightConfig insightConfig;
+  private final Configuration configuration;
 
   @Inject
-  public ApiLicenseLegalHdsService(HdsClient hdsClient, InsightConfig insightConfig) {
+  public ApiLicenseLegalHdsService(HdsClient hdsClient, Configuration configuration) {
     this.hdsClient = hdsClient;
-    this.insightConfig = insightConfig;
+    this.configuration = configuration;
   }
 
   public List<LicenseMetadataDTO> getLicenseMetadata(Collection<String> licenses) {
@@ -68,7 +68,7 @@ public class ApiLicenseLegalHdsService
   public Set<ComponentLegalCommentDTO> getComponentLegalComments(Collection<ComponentIdentifier> componentIdentifiers) {
     return StreamSupport.stream(
         Iterables
-            .partition(filterComponentIdentifiers(componentIdentifiers), insightConfig.getLicenseLegalHdsRequestLimit())
+            .partition(filterComponentIdentifiers(componentIdentifiers), configuration.getLicenseLegalHdsRequestLimit())
             .spliterator(), true)
         .flatMap(
             partition -> Arrays.stream(hdsClient.post(ComponentLegalCommentDTO[].class, LEGAL_COMMENT_URL, partition)))
@@ -78,7 +78,7 @@ public class ApiLicenseLegalHdsService
   public Set<ComponentLegalFileDTO> getComponentLegalFiles(Collection<ComponentIdentifier> componentIdentifiers) {
     return StreamSupport.stream(
         Iterables
-            .partition(filterComponentIdentifiers(componentIdentifiers), insightConfig.getLicenseLegalHdsRequestLimit())
+            .partition(filterComponentIdentifiers(componentIdentifiers), configuration.getLicenseLegalHdsRequestLimit())
             .spliterator(), true)
         .flatMap(partition -> Arrays.stream(hdsClient.post(ComponentLegalFileDTO[].class, LEGAL_FILE_URL, partition)))
         .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -116,7 +116,7 @@ public class ApiLicenseLegalHdsService
     return StreamSupport.stream(
         Iterables.partition(
             filteredGroups,
-            insightConfig.getLicenseLegalHdsRequestLimit()).spliterator(),
+            configuration.getLicenseLegalHdsRequestLimit()).spliterator(),
         true)
         .flatMap(
             partition -> Arrays

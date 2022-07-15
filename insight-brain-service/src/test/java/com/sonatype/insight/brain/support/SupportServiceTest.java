@@ -20,9 +20,11 @@ import java.util.zip.ZipFile;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightBrainService;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -43,7 +45,10 @@ public class SupportServiceTest
   private static final String CONFIG_YML_FILENAME = "config-support-test.yml";
 
   @Inject
-  private InsightConfig insightConfig;
+  private ApiConfigurationService configurationService;
+
+  @Inject
+  private Configuration configuration;
 
   @Inject
   private SupportService supportService;
@@ -103,7 +108,8 @@ public class SupportServiceTest
   public void testCreateSupportZip_TruncatedFileStartsWithToken() throws Exception {
     InsightBrainService.setConfigFile(getConfigYml());
 
-    insightConfig.getSupportConfig().setReadLimitBytes(500);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 500L);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES);
 
     final File supportZip = supportService.createSupportZip(false, null, false);
     // read file from zip and assert token suffix
@@ -125,7 +131,8 @@ public class SupportServiceTest
   public void testCreateSupportZip_TruncatedZipIncludesTruncatedEntry() throws Exception {
     InsightBrainService.setConfigFile(getConfigYml());
 
-    insightConfig.getSupportConfig().setReadLimitBytes(5);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 5L);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES);
 
     final File supportZip = supportService.createSupportZip(false, null, false);
     // read zip and assert truncated entry
@@ -276,12 +283,13 @@ public class SupportServiceTest
   }
 
   private File createPopulatedZip(final boolean noLimit, final File fileToAdd) throws Exception {
-    insightConfig.getSupportConfig().setReadLimitBytes(1);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 1L);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES);
     final File workDir = tempDir.newFolder("populateZipTest");
     final String prefix = "prefix";
     final File supportZip = new File(workDir, prefix + ".zip").getCanonicalFile();
 
-    assertThat(fileToAdd.length()).isGreaterThan(insightConfig.getSupportConfig().getReadLimitBytes());
+    assertThat(fileToAdd.length()).isGreaterThan(configuration.getSupportReadLimitBytes());
     final List<SupportFile> filesToZip = new ArrayList<>();
     filesToZip.add(new SupportFile(SupportFileType.CONFIG, fileToAdd, false));
 
@@ -300,9 +308,10 @@ public class SupportServiceTest
       final ZipEntry firstEntry = entries.nextElement();
       assertThat(firstEntry.getName()).isEqualTo(
           getZipFileBasename(supportZip) + "/" + SupportFileType.CONFIG.getDirName() + "/" + CONFIG_YML_FILENAME);
+      long readLimitBytes = configuration.getSupportReadLimitBytes();
       assertThat(firstEntry.getSize()).isEqualTo(
           // expected size includes the limit size, plus the appended "Truncated" message, plus a newline
-          insightConfig.getSupportConfig().getReadLimitBytes() + (SupportService.TRUNCATED_TOKEN + "\n").length());
+          readLimitBytes + (SupportService.TRUNCATED_TOKEN + "\n").length());
 
       assertThat(entries.nextElement().getName()).isEqualTo(getZipFileBasename(supportZip) + "/truncated");
 

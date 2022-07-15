@@ -16,11 +16,14 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
@@ -50,9 +53,18 @@ public class DefaultHdsClientProxyTimeOutTest
 
   @Inject
   private PasswordHandler passwordHandler;
-  
+
   @Inject
-  private ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
+  private ApiConfigurationService configurationService;
+
+  @Inject
+  private ApiProxyServerConfigurationService proxyServerConfigurationService;
+
+  @Inject
+  private Configuration configuration;
+
+  @Inject
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   private InsightConfig config;
 
@@ -103,28 +115,36 @@ public class DefaultHdsClientProxyTimeOutTest
     port = PortAllocator.nextFreePort();
 
     tempEntity.setProxyServerConfiguration("localhost", port);
+    proxyServerConfigurationService.applyProxyServerConfigurationToClients();
 
     config = new InsightConfig();
-    config.setHdsUrl("https://www.example.com/");
-    config.setConnectTimeoutInSeconds(1);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, "https://www.example.com/");
+    // Need to use the DAO since the service doesn't allow connect timeout to be below 5
+    systemConfigurationPropertyDAO.set(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS, "1");
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL,
+        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
     telemetryId = new TelemetryId(config);
 
     productLicense = mock(ProductLicense.class);
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
 
     nonResponsiveServerThread = new Thread(nonResponsiveServer);
-    insightProxy = new InsightProxy(config, new ProxyServerConfigurationDAO(), passwordHandler);
+    insightProxy = new InsightProxy(configuration, passwordHandler);
   }
 
   @After
   public void exit() {
     nonResponsiveServerThread.interrupt();
+    configurationService.deleteConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL,
+        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL,
+        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
   }
 
   @Test(timeout = 5000)
   public void testMustTimeOutAndNotWaitForever() throws InterruptedException {
-    HdsClient client = new DefaultHdsClient(insightProxy, productLicense, config,
-        reverseProxyAuthenticationConfigurationDAO, new VersionService(), telemetryId, 20);
+    HdsClient client = new DefaultHdsClient(insightProxy, productLicense, configuration, new VersionService(),
+        telemetryId, 20);
 
     nonResponsiveServerThread.start();
 

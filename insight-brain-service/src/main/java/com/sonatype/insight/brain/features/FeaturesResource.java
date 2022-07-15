@@ -14,8 +14,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.Feature;
 
 import com.codahale.metrics.annotation.Timed;
@@ -61,7 +61,7 @@ public class FeaturesResource
   @Path(ENABLE_UNAUTHENTICATED_PAGES)
   public Set<Feature> getEnableUnauthenticatedPages() {
     Set<Feature> features = featuresService.getFeatures();
-    features.removeIf(feature -> feature != InsightConfig.Feature.ENABLE_UNAUTHENTICATED_PAGES);
+    features.removeIf(feature -> feature != SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES);
     return features;
   }
 }

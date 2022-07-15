@@ -5,16 +5,13 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.api.v2.service.SourceControlConfigurationListener;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -29,28 +26,22 @@ import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
-public class GitApiFactory
-    implements SourceControlConfigurationListener
+public class GitApiFactory 
 {
   private static final Logger log = LoggerFactory.getLogger(GitApiFactory.class);
 
-  private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
-
-  // Visible for testing
-  final AtomicReference<SourceControlConfiguration> sourceControlConfigurationAtomicReference =
-      new AtomicReference<>();
+  private final Configuration configuration;
 
   private final InsightWork insightWork;
 
   @Inject
-  public GitApiFactory(final SourceControlConfigurationDAO sourceControlConfigurationDAO, InsightWork insightWork) {
-    this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
+  public GitApiFactory(Configuration configuration, InsightWork insightWork) {
+    this.configuration = configuration;
     this.insightWork = insightWork;
-    sourceControlConfigurationChanged();
   }
 
   public GitApi createGitApi(final GitRepositoryInfo gitInfo) {
-    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationAtomicReference.get();
+    SourceControlConfiguration sourceControlConfiguration = configuration.getSourceControlConfigurationOrDefault();
     GitImplementation gitImplFromConfig = sourceControlConfiguration.getGitImplementation();
     String gitExecutable = sourceControlConfiguration.getGitExecutable();
     int gitTimeoutSeconds = sourceControlConfiguration.getGitTimeoutSeconds();
@@ -132,14 +123,5 @@ public class GitApiFactory
       return gitRepositoryInfo.getSshRepositoryUrl();
     }
     return gitRepositoryInfo.getRepositoryUrl();
-  }
-
-  @Override
-  public void sourceControlConfigurationChanged() {
-    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
-    if (sourceControlConfiguration == null) {
-      sourceControlConfiguration = new SourceControlConfiguration();
-    }
-    sourceControlConfigurationAtomicReference.set(sourceControlConfiguration);
   }
 }

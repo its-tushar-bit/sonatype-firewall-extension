@@ -17,7 +17,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 
 /**
  * @since 1.59
@@ -28,11 +28,11 @@ public class CspHeaderFilter
 {
   public static final String URL_PATTERN = "/assets/*";
 
-  private final boolean cspEnabled;
+  private final Configuration configuration;
 
   @Inject
-  public CspHeaderFilter(InsightConfig config) {
-    this.cspEnabled = config.isCspEnabled();
+  public CspHeaderFilter(Configuration configuration) {
+    this.configuration = configuration;
   }
 
   @Override
@@ -43,7 +43,7 @@ public class CspHeaderFilter
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
       throws IOException, ServletException
   {
-    if (cspEnabled) {
+    if (configuration.isCspEnabled()) {
       HttpServletResponse httpResponse = (HttpServletResponse) response;
 
       httpResponse.setHeader("Content-Security-Policy",

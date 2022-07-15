@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -83,6 +84,9 @@ public class SystemInfoTest
 
   @Inject
   private SamlDeploymentManager samlDeploymentManager;
+
+  @Inject
+  private PasswordHandler passwordHandler;
 
   @Inject
   @Override
@@ -648,7 +652,7 @@ public class SystemInfoTest
     proxyServerConfiguration.setHostname("testHostname");
     proxyServerConfiguration.setPort(4567);
     proxyServerConfiguration.setUsername("testUsername");
-    proxyServerConfiguration.setPassword("testPassword".toCharArray());
+    proxyServerConfiguration.setPassword(passwordHandler.encryptPassword("testPassword".toCharArray()));
     proxyServerConfiguration.setExcludeHosts("host1,host2");
     new ProxyServerConfigurationDAO().set(proxyServerConfiguration);
 
@@ -692,7 +696,7 @@ public class SystemInfoTest
     proxyServerConfiguration.setHostname("testHostname");
     proxyServerConfiguration.setPort(4567);
     proxyServerConfiguration.setUsername("testUsername");
-    proxyServerConfiguration.setPassword("testPassword".toCharArray());
+    proxyServerConfiguration.setPassword(passwordHandler.encryptPassword("testPassword".toCharArray()));
     proxyServerConfiguration.setExcludeHosts(null);
     new ProxyServerConfigurationDAO().set(proxyServerConfiguration);
 

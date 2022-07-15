@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
-import java.net.URL;
 import java.nio.file.Files;
 import java.util.Map;
 
@@ -14,8 +13,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 
 import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.migration.JiraConfigurationMigrator;
@@ -32,7 +29,6 @@ import io.dropwizard.Configuration;
 import io.dropwizard.server.DefaultServerFactory;
 import io.dropwizard.validation.ValidationMethod;
 import io.dropwizard.web.conf.WebConfiguration;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,13 +65,11 @@ public class InsightConfig
   @JsonProperty
   private Boolean forceBaseUrl;
 
-  @NotNull
   @JsonProperty
-  private String hdsUrl = "https://clm.sonatype.com/";
+  private String hdsUrl;
 
-  @NotNull
   @JsonProperty
-  private String cdnUrl = "https://cdn.sonatype.com/";
+  private String cdnUrl;
 
   @NotNull
   @JsonProperty
@@ -87,9 +81,8 @@ public class InsightConfig
   @JsonProperty
   private String clusterDirectory;
 
-  @NotNull
   @JsonProperty
-  private SupportConfig support = new SupportConfig();
+  private SupportConfig support;
 
   /**
    * @since 1.65
@@ -105,11 +98,10 @@ public class InsightConfig
    * @since 1.15.0
    */
   @JsonProperty
-  private String dbBackupDir = DEFAULT_BACKUP_DIR;
+  private String dbBackupDir;
 
-  @NotNull
   @JsonProperty
-  private int releaseGraphCacheSize = 1000;
+  private Integer releaseGraphCacheSize;
 
   /**
    * will be appended to the jdbc url, primarily intended for diagnostic usage
@@ -125,27 +117,20 @@ public class InsightConfig
   @JsonProperty
   private Integer dbCacheSizePercent;
 
-  @NotNull
   @JsonProperty
-  @Min(0)
-  @Max(23)
-  private int policyMonitoringHour = 0;
+  private Integer policyMonitoringHour;
 
   /**
    * @since 1.16.0
    */
-  @NotNull
   @JsonProperty
-  private boolean csrfProtection = true;
+  private Boolean csrfProtection;
 
   /**
    * @since 1.14.0
    */
-  @NotNull
   @JsonProperty
-  @Size(max = 128)
-  @Pattern(regexp = "[^\\p{Cntrl}]*")
-  private String userAgentSuffix = "";
+  private String userAgentSuffix;
 
   /**
    * @since 1.16.0
@@ -169,34 +154,28 @@ public class InsightConfig
   /**
    * @since 1.25.0
    */
-  @NotNull
   @JsonProperty
-  private String webhookSecretPassphrase = "^d1swM!FF&qQ";
+  private String webhookSecretPassphrase;
 
   /**
    * @since 1.25.0
    */
-  @NotNull
   @JsonProperty
-  private EventBusConfig eventBus = new EventBusConfig();
+  private EventBusConfig eventBus;
 
   /**
    * @since 1.32
    */
-  @NotNull
   @JsonProperty
-  @Min(30)
-  @Max(60 * 60)
-  private int reportTimeoutInSeconds = 35 * 60;
+  private Integer reportTimeoutInSeconds;
 
   /**
    * If true, users must configure and acknowledge a filter before being able to see any data in the dashboard.
    *
    * @since 1.29
    */
-  @NotNull
   @JsonProperty
-  private boolean needsAcknowledgementOfInitialDashboardFilter = false;
+  private Boolean needsAcknowledgementOfInitialDashboardFilter;
 
   /**
    * @since 1.43
@@ -226,7 +205,7 @@ public class InsightConfig
    * @since 1.47
    */
   @JsonProperty
-  private boolean enableDefaultPasswordWarning = true;
+  private Boolean enableDefaultPasswordWarning;
 
   /**
    * @since 1.52
@@ -238,7 +217,7 @@ public class InsightConfig
    * @since 1.55
    */
   @JsonProperty
-  private boolean externalHyperlinksAllowed = true;
+  private Boolean externalHyperlinksAllowed;
 
   /**
    * @since 1.59
@@ -246,7 +225,7 @@ public class InsightConfig
    * tests
    */
   @JsonProperty
-  private boolean cspEnabled = true;
+  private Boolean cspEnabled;
 
   /**
    * @since 1.73
@@ -294,7 +273,7 @@ public class InsightConfig
    * @since 1.98
    */
   @JsonProperty
-  private boolean blockSemicolonInPath = true;
+  private Boolean blockSemicolonInPath;
 
   /**
    * This configuration blocks requests containing backslash in the path to avoid malicious attacks.
@@ -302,7 +281,7 @@ public class InsightConfig
    * @since 1.98
    */
   @JsonProperty
-  private boolean blockBackslashInPath = true;
+  private Boolean blockBackslashInPath;
 
   /**
    * This configuration blocks requests containing non-ASCII characters in the path to avoid malicious attacks.
@@ -314,7 +293,7 @@ public class InsightConfig
    * @since 1.98
    */
   @JsonProperty
-  private boolean blockNonAsciiInPath = false;
+  private Boolean blockNonAsciiInPath;
 
   /**
    * This configuration limits the number of parallel requests for license data made to HDS for the Advanced Legal Pack.
@@ -322,7 +301,7 @@ public class InsightConfig
    * @since 1.101
    */
   @JsonProperty
-  private int licenseLegalHdsRequestLimit = 50;
+  private Integer licenseLegalHdsRequestLimit;
 
   /**
    * This configuration allows adjusting/tuning matcher behaviours based on specific customer needs.
@@ -346,7 +325,7 @@ public class InsightConfig
    * @since 1.126
    */
   @JsonProperty
-  private int maxApplicationsToQueryOnDashboard = 0;
+  private Integer maxApplicationsToQueryOnDashboard;
 
   @JsonProperty
   private String initialAdminPassword;
@@ -365,7 +344,7 @@ public class InsightConfig
    * @since 1.136
    */
   @JsonProperty
-  private int maxAdvancedSearchClauseCount = 2048;
+  private Integer maxAdvancedSearchClauseCount;
 
   /**
    * Default delimiter for Advanced Search CSV export file
@@ -373,7 +352,7 @@ public class InsightConfig
    * @since 1.137
    */
   @JsonProperty
-  private String advancedSearchCSVExportDelimiter = ",";
+  private String advancedSearchCSVExportDelimiter;
 
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
@@ -383,7 +362,7 @@ public class InsightConfig
     return mail;
   }
 
-  public int getReleaseGraphCacheSize() {
+  public Integer getReleaseGraphCacheSize() {
     return releaseGraphCacheSize;
   }
 
@@ -438,7 +417,7 @@ public class InsightConfig
     this.mail = mailConfig;
   }
 
-  public void setReleaseGraphCacheSize(int releaseGraphCacheSize) {
+  public void setReleaseGraphCacheSize(Integer releaseGraphCacheSize) {
     this.releaseGraphCacheSize = releaseGraphCacheSize;
   }
 
@@ -488,23 +467,6 @@ public class InsightConfig
 
   public void setCdnUrl(String cdnUrl) {
     this.cdnUrl = cdnUrl;
-    if (cdnUrl != null && !cdnUrl.endsWith("/")) {
-      this.cdnUrl += '/';
-    }
-  }
-
-  @JsonIgnore
-  @ValidationMethod(message = "cdnUrl is invalid")
-  public boolean isValidCdnUrl() {
-    try {
-      String url = getCdnUrl();
-      new URL(url);
-      return true;
-    }
-    catch (Exception e) {
-      log.error("Invalid cndUrl: {}", e.getMessage());
-      return false;
-    }
   }
 
   @JsonIgnore
@@ -516,14 +478,14 @@ public class InsightConfig
   /**
    * @since 1.8
    */
-  public int getPolicyMonitoringHour() {
+  public Integer getPolicyMonitoringHour() {
     return policyMonitoringHour;
   }
 
   /**
    * @since 1.8
    */
-  public void setPolicyMonitoringHour(final int policyMonitoringHour) {
+  public void setPolicyMonitoringHour(final Integer policyMonitoringHour) {
     this.policyMonitoringHour = policyMonitoringHour;
   }
 
@@ -553,11 +515,11 @@ public class InsightConfig
         + "The anonymousClientAccessAllowed configuration option should be removed from the config yml file.");
   }
 
-  public boolean isCsrfProtection() {
+  public Boolean isCsrfProtection() {
     return csrfProtection;
   }
 
-  public void setCsrfProtection(boolean csrfProtection) {
+  public void setCsrfProtection(Boolean csrfProtection) {
     this.csrfProtection = csrfProtection;
   }
 
@@ -578,17 +540,8 @@ public class InsightConfig
   /**
    * @since 1.15.0
    */
-  public File getDbBackupDir() {
-    if (StringUtils.isBlank(dbBackupDir)) {
-      dbBackupDir = DEFAULT_BACKUP_DIR;
-    }
-
-    File result = new File(dbBackupDir);
-    if (!result.isAbsolute()) {
-      result = new File(getSonatypeWork(), dbBackupDir);
-    }
-
-    return result;
+  public String getDbBackupDir() {
+    return dbBackupDir;
   }
 
   /**
@@ -600,7 +553,7 @@ public class InsightConfig
         + "The showRootOrganization configuration option should be removed from the config yml file.");
   }
 
-  void setDbBackupDir(String dbBackupDir) {
+  public void setDbBackupDir(String dbBackupDir) {
     this.dbBackupDir = dbBackupDir;
   }
 
@@ -682,14 +635,14 @@ public class InsightConfig
    *
    * @since 1.29
    */
-  public boolean isNeedsAcknowledgementOfInitialDashboardFilter() {
+  public Boolean isNeedsAcknowledgementOfInitialDashboardFilter() {
     return needsAcknowledgementOfInitialDashboardFilter;
   }
 
   /**
    * @since 1.29
    */
-  public void setNeedsAcknowledgementOfInitialDashboardFilter(boolean needsAcknowledgementOfInitialDashboardFilter) {
+  public void setNeedsAcknowledgementOfInitialDashboardFilter(Boolean needsAcknowledgementOfInitialDashboardFilter) {
     this.needsAcknowledgementOfInitialDashboardFilter = needsAcknowledgementOfInitialDashboardFilter;
   }
 
@@ -730,14 +683,14 @@ public class InsightConfig
    *
    * @since 1.32
    */
-  public int getReportTimeoutInSeconds() {
+  public Integer getReportTimeoutInSeconds() {
     return reportTimeoutInSeconds;
   }
 
   /**
    * @since 1.32
    */
-  public void setReportTimeoutInSeconds(final int reportTimeoutInSeconds) {
+  public void setReportTimeoutInSeconds(final Integer reportTimeoutInSeconds) {
     this.reportTimeoutInSeconds = reportTimeoutInSeconds;
   }
 
@@ -750,11 +703,11 @@ public class InsightConfig
     this.consentToUpgradeToVersion_1_45 = consentToUpgradeToVersion_1_45;
   }
 
-  public boolean isEnableDefaultPasswordWarning() {
+  public Boolean isEnableDefaultPasswordWarning() {
     return enableDefaultPasswordWarning;
   }
 
-  public void setEnableDefaultPasswordWarning(boolean enableDefaultPasswordWarning) {
+  public void setEnableDefaultPasswordWarning(Boolean enableDefaultPasswordWarning) {
     this.enableDefaultPasswordWarning = enableDefaultPasswordWarning;
   }
 
@@ -766,19 +719,19 @@ public class InsightConfig
     this.licenseFile = licenseFile;
   }
 
-  public boolean isExternalHyperlinksAllowed() {
+  public Boolean isExternalHyperlinksAllowed() {
     return externalHyperlinksAllowed;
   }
 
-  public void setExternalHyperlinksAllowed(final boolean externalHyperlinksAllowed) {
+  public void setExternalHyperlinksAllowed(final Boolean externalHyperlinksAllowed) {
     this.externalHyperlinksAllowed = externalHyperlinksAllowed;
   }
 
-  public boolean isCspEnabled() {
+  public Boolean isCspEnabled() {
     return cspEnabled;
   }
 
-  public void setCspEnabled(final boolean cspEnabled) {
+  public void setCspEnabled(final Boolean cspEnabled) {
     this.cspEnabled = cspEnabled;
   }
 
@@ -799,10 +752,7 @@ public class InsightConfig
    * @since 1.67
    */
   @JsonProperty
-  @NotNull
-  @Min(5)
-  @Max(60 * 60)  // 1 hour
-  private int connectTimeoutInSeconds = 20;
+  private Integer connectTimeoutInSeconds;
 
   /**
    * This uses a generous default value to account for batched component data requests that are known to occasionally
@@ -811,10 +761,7 @@ public class InsightConfig
    * @since 1.101
    */
   @JsonProperty
-  @NotNull
-  @Min(5)
-  @Max(60 * 60) // 1 hour
-  private int socketTimeoutInSeconds = 60 * 3;
+  private Integer socketTimeoutInSeconds;
 
   /**
    * @since 1.114
@@ -822,19 +769,19 @@ public class InsightConfig
   @JsonProperty
   private Integer pullRequestMonitoringIntervalInSeconds;
 
-  public int getConnectTimeoutInSeconds() {
+  public Integer getConnectTimeoutInSeconds() {
     return connectTimeoutInSeconds;
   }
 
-  public void setConnectTimeoutInSeconds(int connectTimeoutInSeconds) {
+  public void setConnectTimeoutInSeconds(Integer connectTimeoutInSeconds) {
     this.connectTimeoutInSeconds = connectTimeoutInSeconds;
   }
 
-  public int getSocketTimeoutInSeconds() {
+  public Integer getSocketTimeoutInSeconds() {
     return socketTimeoutInSeconds;
   }
 
-  public void setSocketTimeoutInSeconds(int socketTimeoutInSeconds) {
+  public void setSocketTimeoutInSeconds(Integer socketTimeoutInSeconds) {
     this.socketTimeoutInSeconds = socketTimeoutInSeconds;
   }
 
@@ -915,35 +862,35 @@ public class InsightConfig
     this.experimentalFeatures = experimentalFeatures;
   }
 
-  public boolean isBlockSemicolonInPath() {
+  public Boolean isBlockSemicolonInPath() {
     return blockSemicolonInPath;
   }
 
-  public void setBlockSemicolonInPath(boolean blockSemicolonInPath) {
+  public void setBlockSemicolonInPath(Boolean blockSemicolonInPath) {
     this.blockSemicolonInPath = blockSemicolonInPath;
   }
 
-  public boolean isBlockBackslashInPath() {
+  public Boolean isBlockBackslashInPath() {
     return blockBackslashInPath;
   }
 
-  public void setBlockBackslashInPath(boolean blockBackslashInPath) {
+  public void setBlockBackslashInPath(Boolean blockBackslashInPath) {
     this.blockBackslashInPath = blockBackslashInPath;
   }
 
-  public boolean isBlockNonAsciiInPath() {
+  public Boolean isBlockNonAsciiInPath() {
     return blockNonAsciiInPath;
   }
 
-  public void setBlockNonAsciiInPath(boolean blockNonAsciiInPath) {
+  public void setBlockNonAsciiInPath(Boolean blockNonAsciiInPath) {
     this.blockNonAsciiInPath = blockNonAsciiInPath;
   }
 
-  public int getLicenseLegalHdsRequestLimit() {
+  public Integer getLicenseLegalHdsRequestLimit() {
     return licenseLegalHdsRequestLimit;
   }
 
-  public void setLicenseLegalHdsRequestLimit(int licenseLegalHdsRequestLimit) {
+  public void setLicenseLegalHdsRequestLimit(Integer licenseLegalHdsRequestLimit) {
     this.licenseLegalHdsRequestLimit = licenseLegalHdsRequestLimit;
   }
 
@@ -1025,8 +972,7 @@ public class InsightConfig
   public enum ExperimentalFeature
       implements com.sonatype.insight.license.model.Feature
   {
-    SCM_ONBOARDING("scmOnboarding");
-
+    ;
     private final String flag;
 
     ExperimentalFeature(final String flag) {
@@ -1046,11 +992,11 @@ public class InsightConfig
     this.pullRequestMonitoringIntervalInSeconds = pullRequestMonitoringIntervalInSeconds;
   }
 
-  public int getMaxApplicationsToQueryOnDashboard() {
+  public Integer getMaxApplicationsToQueryOnDashboard() {
     return maxApplicationsToQueryOnDashboard;
   }
 
-  public void setMaxApplicationsToQueryOnDashboard(int maxApplicationsToQueryOnDashboard) {
+  public void setMaxApplicationsToQueryOnDashboard(Integer maxApplicationsToQueryOnDashboard) {
     this.maxApplicationsToQueryOnDashboard = maxApplicationsToQueryOnDashboard;
   }
 
@@ -1070,11 +1016,11 @@ public class InsightConfig
     this.webConfiguration = webConfiguration;
   }
 
-  public int getMaxAdvancedSearchClauseCount() {
+  public Integer getMaxAdvancedSearchClauseCount() {
     return maxAdvancedSearchClauseCount;
   }
 
-  public void setMaxAdvancedSearchClauseCount(int maxAdvancedSearchClauseCount) {
+  public void setMaxAdvancedSearchClauseCount(Integer maxAdvancedSearchClauseCount) {
     this.maxAdvancedSearchClauseCount = maxAdvancedSearchClauseCount;
   }
 

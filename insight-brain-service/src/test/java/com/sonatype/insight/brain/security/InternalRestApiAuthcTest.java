@@ -9,6 +9,7 @@ import java.net.HttpCookie;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.hds.DeprecatedCIResource;
 import com.sonatype.insight.brain.hds.DeprecatedCLIResource;
 import com.sonatype.insight.brain.hds.RepoManResource;
@@ -17,13 +18,12 @@ import com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstant
 import com.sonatype.insight.brain.integration.PolicyEvaluationSummaryResource;
 import com.sonatype.insight.brain.integration.ProprietaryConfigResource;
 import com.sonatype.insight.brain.integration.repository.RepositoryResource;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.organization.ApplicationResource;
 import com.sonatype.insight.brain.policy.LicensedStagesResource;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.Test;
 
@@ -72,15 +72,10 @@ public class InternalRestApiAuthcTest
   }
 
   @Test
-  @ManualServerInit
   public void testSessionCookieSufficientWhenCsrfProtectionDisabled() throws Exception {
-    initServer(new Configurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        config.setCsrfProtection(false);
-      }
-    });
+    ApiConfigurationService configurationService = getCLMServer().getInstance(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.CSRF_PROTECTION, false);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.CSRF_PROTECTION);
 
     HttpResponse response = login();
     assertResponseStatus(204, response);

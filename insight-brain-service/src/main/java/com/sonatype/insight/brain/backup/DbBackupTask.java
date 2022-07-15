@@ -17,6 +17,7 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.db.H2DatabaseBackup;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -40,10 +41,13 @@ public class DbBackupTask
 
   private final InsightConfig config;
 
+  private final Configuration configuration;
+
   @Inject
-  public DbBackupTask(InsightConfig config) {
+  public DbBackupTask(InsightConfig config, Configuration configuration) {
     super(PATH);
     this.config = config;
+    this.configuration = configuration;
   }
 
   @Override
@@ -63,6 +67,6 @@ public class DbBackupTask
   private File getDbBackupDir() {
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss");
     String newBackupDir = "backup-" + dateFormat.format(new Date());
-    return new File(config.getDbBackupDir(), newBackupDir);
+    return new File(configuration.getDbBackupDir(), newBackupDir);
   }
 }

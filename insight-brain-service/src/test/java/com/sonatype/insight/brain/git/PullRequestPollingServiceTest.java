@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -661,7 +660,7 @@ public class PullRequestPollingServiceTest
       return new PullRequestPollingService(applicationDAO, sourceControlDAO,
           sourceControlPullRequestDAO, sourceControlEventPublisher, mockSourceControlUtils, mockGitClientFactory,
           mockPullRequestRepositoryValidator, mockSourceControlInstanceManager, mockLicenseChecker,
-          new PullRequestCommentingEligibilityValidator(new InsightConfig()));
+          new PullRequestCommentingEligibilityValidator());
     }
 
     TestablePullRequestPollingServiceBuilder forRepository(

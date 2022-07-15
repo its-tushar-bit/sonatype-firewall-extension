@@ -79,16 +79,8 @@ extends GebReportingSpec {
   }
 
   def createServiceRule() {
-    def rule = new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
+    new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
         "http://localhost:" + hdsPort, false, getBrainModules())
-
-    rule.setConfigurator(new Configurator() {
-      @Override
-      void configure(InsightConfig config) {
-        // HTTP CSP headers that prohibit eval break webdriver control of phantomjs
-        config.setCspEnabled(false)
-      }
-    })
   }
 
   def setupSpec() {
@@ -96,6 +88,8 @@ extends GebReportingSpec {
     def baseUrl = resolveBaseUrl(driver, "http://localhost:${serviceRule.getPort()}/")
 
     System.setProperty("geb.build.baseUrl", baseUrl)
+    // HTTP CSP headers that prohibit eval break webdriver control of phantomjs
+    serviceRule.setCspEnabled(false)
     BrowserInfo.init(driver)
   }
 

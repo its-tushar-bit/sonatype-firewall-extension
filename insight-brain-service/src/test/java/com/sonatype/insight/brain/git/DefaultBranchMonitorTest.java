@@ -14,6 +14,7 @@ import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
@@ -26,11 +27,9 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -42,7 +41,6 @@ import org.slf4j.MDC;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -55,10 +53,10 @@ public class DefaultBranchMonitorTest
     extends AbstractComponentTest
 {
   @Inject
-  private InsightConfig insightConfig;
-
-  @Inject
   private DefaultBranchMonitor defaultBranchMonitor;
+  
+  @Inject
+  private Configuration configuration;
 
   @Mock
   private TaskScheduler taskSchedulerMock;
@@ -148,7 +146,7 @@ public class DefaultBranchMonitorTest
 
   @Test
   public void testStart_FeatureDisabled() throws Exception {
-    insightConfig.setFeatures(ImmutableMap.of(Feature.DEFAULT_BRANCH_MONITORING.getFlag(), false));
+    SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.setEnabled(false);
     defaultBranchMonitor.start();
 
     verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any());
@@ -198,8 +196,8 @@ public class DefaultBranchMonitorTest
   }
 
   @Test
-  public void testSourceControlConfigurationChanged_NullConfiguration() {
-    defaultBranchMonitor.sourceControlConfigurationChanged();
+  public void testSourceControlConfigurationChanged_NullConfiguration() throws Exception {
+    defaultBranchMonitor.start();
 
     verify(taskSchedulerMock).schedulePeriodicTask(DefaultBranchMonitor.class, DefaultBranchMonitor.TASK_NAME,
         Duration.ofHours(12),
@@ -208,13 +206,11 @@ public class DefaultBranchMonitorTest
 
   @Test
   public void testSourceControlConfigurationChanged_UpdatedDefaultBranchMonitoringStartTime() {
-    defaultBranchMonitor.sourceControlConfigurationChanged();
-    clearInvocations(taskSchedulerMock);
     SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
     sourceControlConfiguration.setDefaultBranchMonitoringStartTime(LocalTime.of(1, 11));
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
 
-    defaultBranchMonitor.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     verify(taskSchedulerMock).schedulePeriodicTask(DefaultBranchMonitor.class, DefaultBranchMonitor.TASK_NAME,
         Duration.ofHours(12),
@@ -223,13 +219,11 @@ public class DefaultBranchMonitorTest
 
   @Test
   public void testSourceControlConfigurationChanged_UpdatedDefaultBranchMonitoringIntervalHours() {
-    defaultBranchMonitor.sourceControlConfigurationChanged();
-    clearInvocations(taskSchedulerMock);
     SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
     sourceControlConfiguration.setDefaultBranchMonitoringIntervalHours(12);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
 
-    defaultBranchMonitor.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     verify(taskSchedulerMock).schedulePeriodicTask(DefaultBranchMonitor.class, DefaultBranchMonitor.TASK_NAME,
         Duration.ofHours(6),
@@ -238,13 +232,11 @@ public class DefaultBranchMonitorTest
 
   @Test
   public void testSourceControlConfigurationChanged_NoRelevantUpdate() {
-    defaultBranchMonitor.sourceControlConfigurationChanged();
-    clearInvocations(taskSchedulerMock);
     SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
     sourceControlConfiguration.setGitImplementation(GitImplementation.JAVA);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
 
-    defaultBranchMonitor.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any(), any());
   }

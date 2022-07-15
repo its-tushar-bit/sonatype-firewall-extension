@@ -27,6 +27,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
@@ -67,8 +68,6 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -106,8 +105,6 @@ public class ApiPolicyViolationServiceV2
 
   private final StageTypeService stageTypeService;
 
-  private final InsightConfig insightConfig;
-
   @Inject
   public ApiPolicyViolationServiceV2(
       final ApplicationService applicationService,
@@ -117,8 +114,7 @@ public class ApiPolicyViolationServiceV2
       final PolicyViolationDAO policyViolationDAO,
       final OwnerDAO ownerDAO,
       final ReportService reportService,
-      final StageTypeService stageTypeService,
-      final InsightConfig insightConfig)
+      final StageTypeService stageTypeService)
   {
     this.applicationService = applicationService;
     this.applicationAdapter = applicationAdapter;
@@ -128,7 +124,6 @@ public class ApiPolicyViolationServiceV2
     this.ownerDAO = ownerDAO;
     this.reportService = reportService;
     this.stageTypeService = stageTypeService;
-    this.insightConfig = insightConfig;
   }
 
   public ApiApplicationViolationListDTOV2 getPolicyViolations(final Set<String> policyIds) {
@@ -248,8 +243,9 @@ public class ApiPolicyViolationServiceV2
   }
 
   public void ensureInnerSourceTransitiveWaiverEnabled() {
-    if (!insightConfig.isFeatureEnabled(Feature.INNER_SOURCE_TRANSITIVE_WAIVER)) {
-      throw new UnauthorizedException(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag() + " feature is disabled.");
+    if (!SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.isEnabled()) {
+      throw new UnauthorizedException(
+          SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER.getId() + " feature is disabled.");
     }
   }
 

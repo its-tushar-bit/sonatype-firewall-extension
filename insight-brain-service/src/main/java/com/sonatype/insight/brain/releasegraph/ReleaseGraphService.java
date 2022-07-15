@@ -7,12 +7,12 @@ package com.sonatype.insight.brain.releasegraph;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.ws.rs.WebApplicationException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.error.HttpStatusCode;
 
-import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,17 +22,18 @@ import org.slf4j.LoggerFactory;
  * @since 1.10
  */
 @Named
+@Singleton
 public class ReleaseGraphService
 {
   public static final String CONTENT_TYPE = "image/png";
 
   private static final Logger log = LoggerFactory.getLogger(ReleaseGraphService.class);
 
-  private final LoadingCache<ReleaseGraphKey, byte[]> cache;
+  private final ReleaseGraphCacheProvider releaseGraphCacheProvider;
 
   @Inject
-  public ReleaseGraphService(LoadingCache<ReleaseGraphKey, byte[]> cache) {
-    this.cache = cache;
+  public ReleaseGraphService(ReleaseGraphCacheProvider releaseGraphCacheProvider) {
+    this.releaseGraphCacheProvider = releaseGraphCacheProvider;
   }
 
   public byte[] getImage(final String applicationPublicId,
@@ -41,7 +42,8 @@ public class ReleaseGraphService
   {
     log.debug("Creating popularity graph for {} for scan {}", componentIdentifier, scanId);
     try {
-      return cache.get(new ReleaseGraphKey(componentIdentifier, new ReportItemKey(applicationPublicId, scanId)));
+      return releaseGraphCacheProvider.get()
+          .get(new ReleaseGraphKey(componentIdentifier, new ReportItemKey(applicationPublicId, scanId)));
     }
     catch (Exception e) {
       // undo any wrapping of resource exceptions introduced by Guava caches

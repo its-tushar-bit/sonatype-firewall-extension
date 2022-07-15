@@ -9,12 +9,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
-import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
+import com.sonatype.insight.client.utils.HttpClientUtils;
 
 /**
  * Dedicated HTTP client with a short timeout for accessing HDS ping endpoint.
@@ -34,17 +33,15 @@ public class PingHdsClient
   public PingHdsClient(
       InsightProxy proxy,
       ProductLicense productLicense,
-      InsightConfig insightConfig,
-      ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
+      Configuration configuration,
       VersionService versionService,
       TelemetryId telemetryId)
   {
-    super(proxy, productLicense, insightConfig, reverseProxyAuthenticationConfigurationDAO, versionService,
-        telemetryId);
+    super(proxy, productLicense, configuration, versionService, telemetryId);
   }
 
   @Override
-  protected void customizeConfiguration(Configuration configuration) {
+  protected void customizeConfiguration(HttpClientUtils.Configuration configuration) {
     configuration.setSocketTimeout(SOCKET_TIMEOUT);
     configuration.setConnectTimeout(CONNECT_TIMEOUT);
   }

@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
@@ -43,17 +44,21 @@ public class ScanUploaderTest
 
   @Mock
   private InsightConfig insightConfig;
+  
+  @Mock
+  private Configuration mockConfiguration;
 
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(hdsClient);
     binder.bind(InsightConfig.class).toInstance(insightConfig);
+    binder.bind(Configuration.class).toInstance(mockConfiguration);
     super.configure(binder);
   }
 
   @Test
   public void testAugmentScanReceipt() {
-    when(insightConfig.getReportTimeoutInSeconds()).thenReturn(2100);
+    when(mockConfiguration.getReportTimeoutInSeconds()).thenReturn(2100);
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan id");
     scanUploader.augmentScanReceipt("app id", receipt);
@@ -136,7 +141,7 @@ public class ScanUploaderTest
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scanId");
     ImmutableMap<String, String> matcherConfigs = ImmutableMap.of("k1", "v1");
-    when(insightConfig.getMatcherConfiguration()).thenReturn(matcherConfigs);
+    when(mockConfiguration.getMatcherConfiguration()).thenReturn(matcherConfigs);
     ArgumentCaptor<Map<String, String>> metadataArgs = ArgumentCaptor.forClass(Map.class);
 
     when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),

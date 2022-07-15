@@ -8,13 +8,12 @@ package com.sonatype.insight.brain.migration;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.slf4j.Logger;
@@ -30,19 +29,15 @@ public class PullRequestCommentingConfigMigrator
 
   static final String MIGRATION_ID = "pull-request-commenting-config";
 
-  private final InsightConfig insightConfig;
-
   private final MigrationTrackerDAO migrationTrackerDAO;
 
   private final SourceControlDAO sourceControlDAO;
 
   @Inject
   public PullRequestCommentingConfigMigrator(
-      InsightConfig insightConfig,
       MigrationTrackerDAO migrationTrackerDAO,
       SourceControlDAO sourceControlDAO)
   {
-    this.insightConfig = insightConfig;
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.sourceControlDAO = sourceControlDAO;
   }
@@ -62,7 +57,7 @@ public class PullRequestCommentingConfigMigrator
     try (TransactionContext txn = sourceControlDAO.createTransactionContext()) {
       txn.begin();
 
-      boolean isPullRequestCommentingEnabled = insightConfig.isFeatureEnabled(Feature.PR_COMMENTING);
+      boolean isPullRequestCommentingEnabled = SystemConfigurationPropertyFeature.PR_COMMENTING.isEnabled();
       rootOrgSourceControl.setPullRequestCommentingEnabled(isPullRequestCommentingEnabled);
       sourceControlDAO.update(txn, rootOrgSourceControl);
       migrationTrackerDAO.insert(txn, new MigrationTracker(MIGRATION_ID));

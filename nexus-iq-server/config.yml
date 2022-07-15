@@ -1,13 +1,5 @@
-# TODO unset this property; choosing false for now to simplify development of org/policy import on first-run
-csrfProtection: ${CSRF_PROTECTION:-false}
-
-# WARNING: DO NOT DISABLE - used only internal facing and development systems only
-cspEnabled: ${CSP_ENABLED:-true}
-
 # Directory for data files.
 sonatypeWork: ${SONATYPE_WORK:-./sonatype-work/clm-server}
-
-enableDefaultPasswordWarning: ${ENABLE_DEFAULT_PASSWORD_WARNING:-false}
 
 # HTTP Strict Transport Security (HSTS) is supported using dropwizard-web configuration
 # HSTS headers are enabled by default, uncomment web: section below and set enabled: false to disable

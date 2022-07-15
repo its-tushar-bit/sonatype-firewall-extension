@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -123,6 +124,9 @@ public class PullRequestTaskTest
   private InsightWork insightWork;
 
   private GitRepositoryInfo gitRepositoryInfo;
+  
+  @Inject
+  private Configuration configuration;
 
   @Override
   public void configure(Binder binder) {
@@ -144,12 +148,6 @@ public class PullRequestTaskTest
   }
 
   @Test
-  public void testPullRequestTask_HasDefaultSourceControlConfiguration() {
-    assertThat(pullRequestTask.sourceControlConfigurationAtomicReference.get()).usingRecursiveComparison().isEqualTo(
-        new SourceControlConfiguration());
-  }
-
-  @Test
   public void testRun_notInited() {
     pullRequestTask.run(null, null);
     assertThat(logOutput).atErrorLevel().contains("Missing required PullRequestRemediationDetails");
@@ -167,8 +165,7 @@ public class PullRequestTaskTest
     File sonatypeWorkDir = tempDir.newFolder();
     insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
     tempEntity.newSourceControlConfiguration();
-    insightWork.sourceControlConfigurationChanged();
-    pullRequestTask.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
     File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
     configureExpectations();
     when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
@@ -189,8 +186,7 @@ public class PullRequestTaskTest
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setCloneDirectory(APP_INTERNAL_ID);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    insightWork.sourceControlConfigurationChanged();
-    pullRequestTask.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
     File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
     configureExpectations();
     when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
@@ -207,8 +203,7 @@ public class PullRequestTaskTest
     File sonatypeWorkDir = tempDir.newFolder();
     insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
     tempEntity.newSourceControlConfiguration();
-    insightWork.sourceControlConfigurationChanged();
-    pullRequestTask.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
     File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
     targetDirectory.mkdirs();
     File pomFile = new File(targetDirectory, "pom.xml");
@@ -240,8 +235,7 @@ public class PullRequestTaskTest
     insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
 
     tempEntity.newSourceControlConfiguration();
-    insightWork.sourceControlConfigurationChanged();
-    pullRequestTask.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
     File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
     configureExpectations();
     when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
@@ -261,8 +255,7 @@ public class PullRequestTaskTest
     File sonatypeWorkDir = tempDir.newFolder();
     insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
 
-    pullRequestTask.sourceControlConfigurationChanged();
-    insightWork.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
     File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
     configureExpectations();
     when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
@@ -284,8 +277,7 @@ public class PullRequestTaskTest
     sourceControlConfiguration.setCommitUsername("bar");
     sourceControlConfiguration.setCommitEmail("foo@bar.com");
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    insightWork.sourceControlConfigurationChanged();
-    pullRequestTask.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     File sonatypeWorkDir = tempDir.newFolder();
     insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
@@ -311,8 +303,7 @@ public class PullRequestTaskTest
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setUseUsernameInRepositoryCloneUrl(true);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    insightWork.sourceControlConfigurationChanged();
-    pullRequestTask.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     File sonatypeWorkDir = tempDir.newFolder();
     insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());

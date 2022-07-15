@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -22,9 +21,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.Configuration;
-import io.dropwizard.jersey.validation.Validators;
 import io.dropwizard.util.Duration;
-import io.dropwizard.validation.ConstraintViolations;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -38,27 +35,6 @@ public class InsightConfigTest
 
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
-
-  @Test
-  public void testCdnUrl() {
-    InsightConfig config = new InsightConfig();
-    assertThat(config.getCdnUrl()).isEqualTo("https://cdn.sonatype.com/");
-    assertThat(config.isValidCdnUrl()).isTrue();
-
-    config.setCdnUrl("https://clm.sonatype.com/");
-    assertThat(config.getCdnUrl()).isEqualTo("https://clm.sonatype.com/");
-    assertThat(config.isValidCdnUrl()).isTrue();
-
-    config.setCdnUrl("https://clm.sonatype.com");
-    assertThat(config.getCdnUrl()).isEqualTo("https://clm.sonatype.com/");
-    assertThat(config.isValidCdnUrl()).isTrue();
-
-    config.setCdnUrl("invalid");
-    assertThat(config.isValidCdnUrl()).isFalse();
-
-    config.setCdnUrl(null);
-    assertThat(config.isValidCdnUrl()).isFalse();
-  }
 
   @Test
   public void testClusterDirectory() {
@@ -75,47 +51,6 @@ public class InsightConfigTest
     config.setClusterDirectory(tempDir.getRoot().getAbsolutePath() + "/cluster-directory");
     assertThat(config.isValidClusterDirectory()).isTrue();
     assertThat(config.isClusterDirectorySetByUser()).isTrue();
-  }
-
-  @Test
-  public void testUserAgentSuffix_NoControlCharactersToBlockHeaderInjection() {
-    InsightConfig config = new InsightConfig();
-    config.setUserAgentSuffix("\nInjected-Header: Value");
-    Collection<String> errors =
-        ConstraintViolations.format(Validators.newValidatorFactory().getValidator().validate(config));
-    assertThat(errors).hasSize(1);
-    assertThat(errors.iterator().next()).contains("userAgentSuffix"); // validator messages are localized...
-    config.setUserAgentSuffix("Valid User Agent Suffix (Custom/1.0, Bla)");
-    errors = ConstraintViolations.format(Validators.newValidatorFactory().getValidator().validate(config));
-    assertThat(errors).isEmpty();
-  }
-
-  @Test
-  public void testGetDbBackupDir() {
-    InsightConfig config = new InsightConfig();
-    assertThat(config.getDbBackupDir()).isEqualTo(new File(config.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR));
-
-    config.setDbBackupDir("");
-    assertThat(config.getDbBackupDir()).isEqualTo(new File(config.getSonatypeWork(), InsightConfig.DEFAULT_BACKUP_DIR));
-
-    String relativePath = "abc";
-    assertThat(new File(relativePath)).isRelative();
-    config.setDbBackupDir(relativePath);
-    assertThat(config.getDbBackupDir()).isEqualTo(new File(config.getSonatypeWork(), relativePath));
-
-    String absolutePath = new File("abc").getAbsolutePath();
-    assertThat(new File(absolutePath)).isAbsolute();
-    config.setDbBackupDir(absolutePath);
-    assertThat(config.getDbBackupDir()).isEqualTo(new File(absolutePath));
-  }
-
-  @Test
-  public void testSupport() {
-    InsightConfig config = new InsightConfig();
-    assertThat(config.getSupportConfig().getReadLimitBytes()).isEqualTo(SupportConfig.DEFAULT_READ_LIMIT_30MB);
-
-    config.getSupportConfig().setReadLimitBytes(-1);
-    assertThat(config.getSupportConfig().getReadLimitBytes()).isEqualTo(-1);
   }
 
   @Test
@@ -242,7 +177,7 @@ public class InsightConfigTest
     insightFieldNames.removeAll(inheritedFieldNames);
 
     assertThat(insightFieldNames)
-        .withFailMessage(
+        .as(
             "InsightConfig should not be changed except for migrating values from config.yml to the database." +
                 " Any new configuration should be added to the database," +
                 " see https://github.com/sonatype/insight-brain#adding-configuration for more information.")
@@ -266,7 +201,6 @@ public class InsightConfigTest
             "defaultBranchMonitoring",
             "enableDefaultPasswordWarning",
             "eventBus",
-            "eventBus.maxPoolSize",
             "exitOnFatalError",
             "experimentalFeatures",
             "externalHyperlinksAllowed",
@@ -293,7 +227,6 @@ public class InsightConfigTest
             "sonatypeWork",
             "sourceControl",
             "support",
-            "support.readLimitBytes",
             "userAgentSuffix",
             "web",
             "web.content-type-options",

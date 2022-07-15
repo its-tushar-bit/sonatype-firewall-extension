@@ -246,11 +246,7 @@ import org.codehaus.plexus.util.StringUtils;
 import org.joda.time.LocalDate;
 import org.junit.rules.ExternalResource;
 
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.BUILT_FROM_SOURCE;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.CROWD_INTEGRATION;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
-import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.REPORTS_LIST_DISABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.*;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.QUALITY;
@@ -685,7 +681,17 @@ public class TemporaryEntity
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
 
     String[] names = new String[]{
-        DASHBOARD_DISABLED, REPORTS_LIST_DISABLED, BUILT_FROM_SOURCE, CROWD_INTEGRATION
+        DASHBOARD_DISABLED, REPORTS_LIST_DISABLED, BUILT_FROM_SOURCE, CROWD_INTEGRATION, BASE_URL, FORCE_BASE_URL,
+        HDS_URL, CDN_URL, SUPPORT_READ_LIMIT_BYTES, EVENT_BUS_MAX_THREAD_POOL_SIZE, CSRF_PROTECTION, USER_AGENT_SUFFIX,
+        CSP_ENABLED, BLOCK_SEMICOLON_IN_PATH, BLOCK_BACKSLASH_IN_PATH, BLOCK_NON_ASCII_IN_PATH,
+        RELEASE_GRAPH_CACHE_SIZE, LICENSE_LEGAL_HDS_REQUEST_LIMIT, MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD,
+        MAX_ADVANCED_SEARCH_CLAUSE_COUNT, ADVANCED_SEARCH_CSV_EXPORT_DELIMITER, CONNECT_TIMEOUT_IN_SECONDS,
+        SOCKET_TIMEOUT_IN_SECONDS, REPORT_TIMEOUT_IN_SECONDS, NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
+        ENABLE_DEFAULT_PASSWORD_WARNING, POLICY_MONITORING_HOUR, DB_BACKUP_DIR, WEBHOOK_SECRET_PASSPHRASE,
+        EXTERNAL_HYPERLINKS_ALLOWED, CODE_INSIGHTS, COMPONENT_SEARCH_API_WITH_INNERSOURCE, DEFAULT_BRANCH_MONITORING,
+        DEPENDENCY_DATA_IN_API, INNER_SOURCE_TRANSITIVE_WAIVER, INNER_SOURCE_REPOSITORY_INTEGRATION, PR_COMMENTING,
+        PR_LINE_COMMENTING, ENABLE_UNAUTHENTICATED_PAGES, INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS,
+        MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING
     };
     for (String name : names) {
       SystemConfigurationProperty property = systemConfigurationPropertyDAO.getByName(name);
@@ -880,6 +886,10 @@ public class TemporaryEntity
 
   public void register(DashboardFilter... dashboardFilters) {
     Collections.addAll(this.dashboardFilters, dashboardFilters);
+  }
+
+  public void setSavedProxyServerConfiguration(ProxyServerConfiguration savedProxyServerConfiguration) {
+    this.savedProxyServerConfiguration = savedProxyServerConfiguration;
   }
 
   public void register(Application... applications) {

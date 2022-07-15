@@ -21,6 +21,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiOwnerRepositoryConnectionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryConnectionStatusRequestDTO;
@@ -29,8 +30,6 @@ import com.sonatype.insight.brain.api.v2.service.ApiRepositoryConnectionService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 
 import com.codahale.metrics.annotation.Timed;
@@ -60,15 +59,9 @@ public class DefaultRepositoryConnectionResource
 
   private final ApiRepositoryConnectionService repositoryConnectionService;
 
-  private final InsightConfig insightConfig;
-
   @Inject
-  public DefaultRepositoryConnectionResource(
-      final ApiRepositoryConnectionService repositoryConnectionService,
-      final InsightConfig insightConfig)
-  {
+  public DefaultRepositoryConnectionResource(final ApiRepositoryConnectionService repositoryConnectionService) {
     this.repositoryConnectionService = repositoryConnectionService;
-    this.insightConfig = insightConfig;
   }
 
   @POST
@@ -173,8 +166,9 @@ public class DefaultRepositoryConnectionResource
   }
 
   private void checkInnerSourceRepositoryIntegrationEnabled() {
-    if (!insightConfig.isFeatureEnabled(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION)) {
-      throw new NotAuthorizedException(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag() + " feature is disabled");
+    if (!SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.isEnabled()) {
+      throw new NotAuthorizedException(
+          SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.getId() + " feature is disabled");
     }
   }
 

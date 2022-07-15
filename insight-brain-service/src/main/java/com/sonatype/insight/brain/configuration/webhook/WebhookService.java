@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
@@ -45,18 +45,18 @@ public class WebhookService
 
   private final WebhookDAO webhookDao = new WebhookDAO();
 
-  private final InsightConfig insightConfig;
+  private final Configuration configuration;
 
   private final PlexusCipher plexusCipher;
 
   private final ProductLicense productLicense;
 
   @Inject
-  public WebhookService(final InsightConfig insightConfig,
+  public WebhookService(final Configuration configuration,
                         final PlexusCipher plexusCipher,
                         final ProductLicense productLicense)
   {
-    this.insightConfig = insightConfig;
+    this.configuration = configuration;
     this.plexusCipher = plexusCipher;
     this.productLicense = productLicense;
   }
@@ -170,7 +170,7 @@ public class WebhookService
       synchronized (plexusCipher) {
         try {
           webhook.setSecretKey(
-              plexusCipher.encrypt(webhook.getSecretKey(), insightConfig.getWebhookSecretPassphrase()));
+              plexusCipher.encrypt(webhook.getSecretKey(), configuration.getWebhookSecretPassphrase()));
         }
         catch (PlexusCipherException e) {
           log.error("Unable to encrypt Webhook secret key", e);
@@ -185,7 +185,7 @@ public class WebhookService
       synchronized (plexusCipher) {
         try {
           webhook.setSecretKey(plexusCipher
-              .decrypt(webhook.getSecretKey(), insightConfig.getWebhookSecretPassphrase()));
+              .decrypt(webhook.getSecretKey(), configuration.getWebhookSecretPassphrase()));
         }
         catch (PlexusCipherException e) {
           log.error("Unable to decrypt Webhook secret key", e);

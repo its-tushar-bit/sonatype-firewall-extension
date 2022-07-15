@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -63,7 +63,7 @@ public class UserService
 
   private final UserDirectory userDirectory;
 
-  private final InsightConfig insightConfig;
+  private final Configuration configuration;
 
   private final UserDAO userDAO;
 
@@ -81,7 +81,7 @@ public class UserService
       UserDAO userDAO,
       SamlUserDAO samlUserDAO,
       UserDirectory userDirectory,
-      InsightConfig insightConfig,
+      Configuration configuration,
       CurrentUser currentUser,
       DefaultWebSessionManager defaultWebSessionManager)
   {
@@ -91,7 +91,7 @@ public class UserService
     this.userDAO = userDAO;
     this.samlUserDAO = samlUserDAO;
     this.userDirectory = userDirectory;
-    this.insightConfig = insightConfig;
+    this.configuration = configuration;
     this.currentUser = currentUser;
     this.defaultWebSessionManager = defaultWebSessionManager;
   }
@@ -309,7 +309,7 @@ public class UserService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public boolean shouldDisplayDefaultPasswordWarning() {
-    if (!insightConfig.isEnableDefaultPasswordWarning()) {
+    if (!configuration.isEnableDefaultPasswordWarning()) {
       return false;
     }
 

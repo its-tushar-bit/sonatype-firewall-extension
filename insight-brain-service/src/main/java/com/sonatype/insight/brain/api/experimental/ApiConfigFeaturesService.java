@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.features.FeaturesResource;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.Feature;
@@ -33,6 +34,26 @@ public class ApiConfigFeaturesService
   static final String FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION = "vulnerabilitySource";
 
   static final String FEATURE_TRANSITIVE_SOLVER = "transitiveSolverDisable";
+
+  static final String FEATURE_CODE_INSIGHTS = "codeInsights";
+
+  static final String FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE = "componentSearchApiWithInnerSource";
+
+  static final String FEATURE_DEFAULT_BRANCH_MONITORING = "defaultBranchMonitoring";
+
+  static final String FEATURE_DEPENDENCY_DATA_IN_API = "dependencyDataInApi";
+
+  static final String FEATURE_INNER_SOURCE_TRANSITIVE_WAIVER = "innerSourceTransitiveWaiver";
+
+  static final String FEATURE_INNER_SOURCE_REPOSITORY_INTEGRATION = "innerSourceRepositoryIntegration";
+
+  static final String FEATURE_PR_COMMENTING = "prCommenting";
+
+  static final String FEATURE_PR_LINE_COMMENTING = "prLineCommenting";
+
+  static final String FEATURE_ENABLE_UNAUTHENTICATED_PAGES = "enableUnauthenticatedPages";
+
+  static final String FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS = "internalSourceControlPolicyEvaluations";
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
@@ -74,8 +95,24 @@ public class ApiConfigFeaturesService
     VULNERABILITY_SOURCE(
         SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED, true, true),
     BUILT_FROM_SOURCE(SystemConfigurationProperty.BUILT_FROM_SOURCE, false),
-    CROWD_INTEGRATION(SystemConfigurationProperty.CROWD_INTEGRATION, true), 
-    TRANSITIVE_SOLVER(SystemConfigurationProperty.TRANSITIVE_SOLVER_DISABLED, false);
+    CROWD_INTEGRATION(SystemConfigurationProperty.CROWD_INTEGRATION, true),
+    TRANSITIVE_SOLVER(SystemConfigurationProperty.TRANSITIVE_SOLVER_DISABLED, false),
+    CODE_INSIGHTS(SystemConfigurationProperty.CODE_INSIGHTS, true),
+    COMPONENT_SEARCH_API_WITH_INNERSOURCE(SystemConfigurationProperty.COMPONENT_SEARCH_API_WITH_INNERSOURCE, true),
+    DEFAULT_BRANCH_MONITORING(SystemConfigurationProperty.DEFAULT_BRANCH_MONITORING, true),
+    DEPENDENCY_DATA_IN_API(SystemConfigurationProperty.DEPENDENCY_DATA_IN_API, true),
+    INNER_SOURCE_TRANSITIVE_WAIVER(SystemConfigurationProperty.INNER_SOURCE_TRANSITIVE_WAIVER, true),
+    INNER_SOURCE_REPOSITORY_INTEGRATION(SystemConfigurationProperty.INNER_SOURCE_REPOSITORY_INTEGRATION, true),
+    PR_COMMENTING(SystemConfigurationProperty.PR_COMMENTING, true),
+    PR_LINE_COMMENTING(SystemConfigurationProperty.PR_LINE_COMMENTING, true),
+    ENABLE_UNAUTHENTICATED_PAGES(SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES, true),
+
+    /**
+     * @deprecated Use {@link SourceControl#getSourceControlEvaluationsEnabled() instead}
+     */
+    @Deprecated
+    INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS(
+        SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS, true);
 
     private final String propertyName;
 
@@ -136,6 +173,10 @@ public class ApiConfigFeaturesService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void enableFeature(String feature) {
+    enableFeatureNoAuthz(feature);
+  }
+
+  public void enableFeatureNoAuthz(String feature) {
     enableFeature(systemConfigurationPropertyDAO, getSystemConfigurationPropertyFeature(feature));
     log.debug("Enabled feature '{}'", feature);
   }
@@ -157,7 +198,7 @@ public class ApiConfigFeaturesService
   {
     SystemConfigurationProperty systemConfiguration = systemConfigurationPropertyDAO.getByName(featureName);
     if (isEnabled(systemConfiguration, enabledWhenAbsent)) {
-      throw new BadRequestException("Feature is already enabled.");
+      throw new FeatureAlreadyEnabledException("Feature is already enabled.");
     }
     if (enabledWhenAbsent) {
       systemConfigurationPropertyDAO.delete(systemConfiguration);
@@ -169,6 +210,10 @@ public class ApiConfigFeaturesService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void disableFeature(String feature) {
+    disableFeatureNoAuthz(feature);
+  }
+
+  public void disableFeatureNoAuthz(String feature) {
     disableFeature(systemConfigurationPropertyDAO, getSystemConfigurationPropertyFeature(feature));
     log.debug("Disabled feature '{}'", feature);
   }
@@ -190,7 +235,7 @@ public class ApiConfigFeaturesService
   {
     SystemConfigurationProperty systemConfiguration = systemConfigurationPropertyDAO.getByName(featureName);
     if (!isEnabled(systemConfiguration, enabledWhenAbsent)) {
-      throw new BadRequestException("Feature is already disabled.");
+      throw new FeatureAlreadyDisabledException("Feature is already disabled.");
     }
     if (!enabledWhenAbsent) {
       systemConfigurationPropertyDAO.delete(systemConfiguration);
@@ -229,6 +274,26 @@ public class ApiConfigFeaturesService
         return SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
       case FEATURE_TRANSITIVE_SOLVER:
         return SystemConfigurationProperty.TRANSITIVE_SOLVER_DISABLED;
+      case FEATURE_CODE_INSIGHTS:
+        return SystemConfigurationProperty.CODE_INSIGHTS;
+      case FEATURE_COMPONENT_SEARCH_API_WITH_INNERSOURCE:
+        return SystemConfigurationProperty.COMPONENT_SEARCH_API_WITH_INNERSOURCE;
+      case FEATURE_DEFAULT_BRANCH_MONITORING:
+        return SystemConfigurationProperty.DEFAULT_BRANCH_MONITORING;
+      case FEATURE_DEPENDENCY_DATA_IN_API:
+        return SystemConfigurationProperty.DEPENDENCY_DATA_IN_API;
+      case FEATURE_INNER_SOURCE_TRANSITIVE_WAIVER:
+        return SystemConfigurationProperty.INNER_SOURCE_TRANSITIVE_WAIVER;
+      case FEATURE_INNER_SOURCE_REPOSITORY_INTEGRATION:
+        return SystemConfigurationProperty.INNER_SOURCE_REPOSITORY_INTEGRATION;
+      case FEATURE_PR_COMMENTING:
+        return SystemConfigurationProperty.PR_COMMENTING;
+      case FEATURE_PR_LINE_COMMENTING:
+        return SystemConfigurationProperty.PR_LINE_COMMENTING;
+      case FEATURE_ENABLE_UNAUTHENTICATED_PAGES:
+        return SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES;
+      case FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS:
+        return SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
       default:
         return feature;
     }

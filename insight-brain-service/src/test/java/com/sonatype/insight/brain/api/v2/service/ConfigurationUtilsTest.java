@@ -15,6 +15,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.test.LogOutput;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -123,5 +124,31 @@ public class ConfigurationUtilsTest
     result.add("first");
     result.add("second");
     return result;
+  }
+
+  @Test
+  public void testUserAgentSuffix_Null() {
+    assertThat(ConfigurationUtils.userAgentSuffix(null)).isNull();
+  }
+
+  @Test
+  public void testUserAgentSuffix_MaxLength() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> ConfigurationUtils.userAgentSuffix(
+        StringUtils.repeat("a", ConfigurationUtils.MAX_USER_AGENT_SUFFIX_SIZE + 1))).withMessageContaining(
+        String.format(ConfigurationUtils.LONG_USER_AGENT_SUFFIX_ERROR_MSG,
+            ConfigurationUtils.MAX_USER_AGENT_SUFFIX_SIZE));
+  }
+
+  @Test
+  public void testUserAgentSuffix_NoControlCharactersToBlockHeaderInjection() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> ConfigurationUtils.userAgentSuffix("\nInjected-Header: Value"))
+        .withMessageContaining(ConfigurationUtils.INVALID_USER_AGENT_SUFFIX_ERROR_MSG);
+  }
+
+  @Test
+  public void testUserAgentSuffix() {
+    String validUserAgentSuffix = "Valid User Agent Suffix (Custom/1.0, Bla)";
+    assertThat(ConfigurationUtils.userAgentSuffix(validUserAgentSuffix)).isEqualTo(validUserAgentSuffix);
   }
 }

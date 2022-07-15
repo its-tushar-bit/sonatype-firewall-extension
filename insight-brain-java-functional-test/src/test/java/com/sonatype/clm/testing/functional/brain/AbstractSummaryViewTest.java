@@ -58,11 +58,9 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.ElementsCollection;
-import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -261,8 +259,7 @@ public abstract class AbstractSummaryViewTest
 
   @Test
   public void testInnerSourceRepositoryTile_FeatureDisabled() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setFeatures(ImmutableMap.of(Feature.INNER_SOURCE_REPOSITORY_INTEGRATION.getFlag(), false));
+    SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.setEnabled(false);
     refresh();
     SidebarNavigation.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();

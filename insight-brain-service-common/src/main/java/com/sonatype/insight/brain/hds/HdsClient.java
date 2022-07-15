@@ -35,7 +35,7 @@ public interface HdsClient
 
   void stop() throws Exception;
 
-  void proxyServerConfigurationChanged();
+  void serverConfigurationChanged();
 
   <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams);
 

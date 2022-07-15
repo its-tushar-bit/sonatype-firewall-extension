@@ -14,10 +14,12 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -29,7 +31,7 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -64,7 +66,10 @@ public class DashboardFilterServiceTest
   private DashboardFilterService dashboardFilterService;
 
   @Inject
-  private InsightConfig insightConfig;
+  private Configuration configuration;
+
+  @Inject
+  private ApiConfigurationService configurationService;
 
   @Inject
   private TestProductLicense testProductLicense;
@@ -256,7 +261,7 @@ public class DashboardFilterServiceTest
         tempEntity.newDashboardFilter(USERNAME, InternalRealm.ID, filterName1, JsonUtils.format(dto1.filter));
     assertThat(filter1.isAcknowledged()).isFalse();
 
-    insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
+    setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
 
     NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName1, 3, 9);
     //this should update the above filter
@@ -297,7 +302,7 @@ public class DashboardFilterServiceTest
     assertThat(filter.getRealmId()).isNull();
     assertThat(filter.isAcknowledged()).isFalse();
 
-    insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
+    setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
 
     NamedDashboardFilterDTO dto2 = createNamedDashboardFilterDTO(filterName, 3, 9);
     // this should update the above filter
@@ -344,7 +349,7 @@ public class DashboardFilterServiceTest
   private void testCreateOrUpdateDashboardFilterForCurrentUser_Insert(
       boolean needsAcknowledgementOfInitialDashboardFilter) throws Exception
   {
-    insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
+    setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
 
     NamedDashboardFilterDTO dto1 = createNamedDashboardFilterDTO("Filter1", 2, 10);
     dashboardFilterService.createOrUpdateDashboardFilterForCurrentUser(dto1);
@@ -401,7 +406,7 @@ public class DashboardFilterServiceTest
   private void testGetActiveDashboardFilterForCurrentUser_NewFilter(
       boolean needsAcknowledgementOfInitialDashboardFilter) throws Exception
   {
-    insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
+    setNeedsAcknowledgementOfInitialDashboardFilter(needsAcknowledgementOfInitialDashboardFilter);
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
     assertNamedDashboardFilterDTO(actual, ACTIVE_FILTER_NAME, null /* basedOnFilterName */,
         needsAcknowledgementOfInitialDashboardFilter);
@@ -446,7 +451,7 @@ public class DashboardFilterServiceTest
         false /* acknowledged */, null, JsonUtils.format(namedDashboardFilterDTO.filter));
 
     // Enable the needsAcknowledgementOfInitialDashboardFilter config option
-    insightConfig.setNeedsAcknowledgementOfInitialDashboardFilter(true);
+    setNeedsAcknowledgementOfInitialDashboardFilter(true);
 
     // The existing filter must be marked as needing acknowledgement.
     NamedDashboardFilterDTO actual = dashboardFilterService.getActiveDashboardFilterForCurrentUser();
@@ -565,7 +570,7 @@ public class DashboardFilterServiceTest
     DashboardUtils dashboardUtilsMock = Mockito.mock(DashboardUtils.class);
 
     DashboardFilterService dashboardFilterService = new DashboardFilterService(null, dashboardFilterDaoSpy,
-        currentUserMock, dashboardUtilsMock, insightConfig);
+        currentUserMock, dashboardUtilsMock, configuration);
 
     when(currentUserMock.getUsername()).thenReturn(USERNAME);
     when(currentUserMock.getRealmId()).thenReturn(InternalRealm.ID);
@@ -643,5 +648,13 @@ public class DashboardFilterServiceTest
     assertThat(actual.getNameLowercaseNoWhitespace()).isEqualTo(nameLowercaseNoWhitespace);
     assertThat(actual.getBasedOnFilterName()).isEqualTo(basedOnFilterName);
     assertThat(actual.isAcknowledged()).isEqualTo(acknowledged);
+  }
+
+  private void setNeedsAcknowledgementOfInitialDashboardFilter(Boolean needsAcknowledgementOfInitialDashboardFilter) {
+    configurationService.setConfigurationNoAuthz(
+        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
+        needsAcknowledgementOfInitialDashboardFilter);
+    configurationService.applyConfigurationToClients(
+        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER);
   }
 }

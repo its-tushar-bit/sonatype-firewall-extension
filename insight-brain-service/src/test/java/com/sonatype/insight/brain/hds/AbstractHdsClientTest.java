@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -23,6 +21,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.InjectedTest;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.inject.Binder;
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.server.DefaultServerFactory;
 import org.eclipse.jetty.server.NetworkConnector;
@@ -39,6 +38,9 @@ public abstract class AbstractHdsClientTest
 {
   @Inject
   protected PasswordHandler passwordHandler;
+
+  @Inject
+  private ApiConfigurationService configurationService;
 
   protected static final String USER_AGENT_SUFFIX = "test suffix";
 
@@ -58,6 +60,13 @@ public abstract class AbstractHdsClientTest
 
   protected TelemetryId telemetryId;
 
+  @Override
+  public void configure(final Binder binder) {
+    config = new InsightConfig();
+    binder.bind(InsightConfig.class).toInstance(config);
+    super.configure(binder);
+  }
+
   @Before
   public void init() throws Exception {
     server = new Server(0);
@@ -74,9 +83,8 @@ public abstract class AbstractHdsClientTest
     });
     server.start();
 
-    config = new InsightConfig();
-    config.setHdsUrl("http://localhost:" + ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
-    config.setUserAgentSuffix(USER_AGENT_SUFFIX);
+    setHdsUrl("http://localhost:" + ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
+    setUserAgentSuffix(USER_AGENT_SUFFIX);
     ((HttpConnectorFactory) ((DefaultServerFactory) config.getServerFactory()).getApplicationConnectors().get(0))
         .setPort(1234);
     telemetryId = new TelemetryId(config);
@@ -98,10 +106,8 @@ public abstract class AbstractHdsClientTest
 
   public void setBaseUrl(String baseUrl) {
     ApiConfigurationService service = lookup(ApiConfigurationService.class);
-    Map<String, Object> properties = new HashMap<>();
-    properties.put(SystemConfigurationProperty.BASE_URL, baseUrl);
-    service.setConfigurationNoAuthz(properties);
-    service.applyConfigurationToClients(properties.keySet());
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
+    service.applyConfigurationToClients(SystemConfigurationProperty.BASE_URL);
   }
 
   public void resetBaseUrl() {
@@ -110,5 +116,15 @@ public abstract class AbstractHdsClientTest
         ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
     service.deleteConfigurationNoAuthz(propertyNames);
     service.applyConfigurationToClients(propertyNames);
+  }
+
+  public void setHdsUrl(String hdsUrl) {
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, hdsUrl);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
+  }
+  
+  private void setUserAgentSuffix(String userAgentSuffix) {
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.USER_AGENT_SUFFIX, userAgentSuffix);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.USER_AGENT_SUFFIX);
   }
 }

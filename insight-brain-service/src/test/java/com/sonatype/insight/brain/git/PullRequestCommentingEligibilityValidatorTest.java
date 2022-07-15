@@ -5,10 +5,9 @@
  */
 package com.sonatype.insight.brain.git;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -222,9 +221,6 @@ public class PullRequestCommentingEligibilityValidatorTest
   private class TestScenario
   {
     @Mock
-    private InsightConfig mockInsightConfig;
-
-    @Mock
     private PolicyViolationDiff<PolicyViolation> mockPolicyViolationDiff;
 
     @Mock
@@ -238,7 +234,7 @@ public class PullRequestCommentingEligibilityValidatorTest
     }
 
     TestScenario withLineCommentingFeatureFlagEnabled(boolean enabled) {
-      doReturn(enabled).when(mockInsightConfig).isFeatureEnabled(Feature.PR_LINE_COMMENTING);
+      SystemConfigurationPropertyFeature.PR_LINE_COMMENTING.setEnabled(enabled);
       return this;
     }
 
@@ -263,18 +259,16 @@ public class PullRequestCommentingEligibilityValidatorTest
     }
 
     boolean isLocationDiscoveryNeededAndAllowed() {
-      return new PullRequestCommentingEligibilityValidator(mockInsightConfig)
+      return new PullRequestCommentingEligibilityValidator()
           .isLocationDiscoveryNeededAndAllowed(mockSourceControlProvider, mockPolicyViolationDiff);
     }
 
     boolean isPullRequestCommentingEnabled() {
-      return new PullRequestCommentingEligibilityValidator(mockInsightConfig)
-          .isPullRequestCommentingEnabled(gitRepositoryInfo);
+      return new PullRequestCommentingEligibilityValidator().isPullRequestCommentingEnabled(gitRepositoryInfo);
     }
 
     boolean isPullRequestLineCommentingEnabled() {
-      return new PullRequestCommentingEligibilityValidator(mockInsightConfig)
-          .isPullRequestLineCommentingEnabled(gitRepositoryInfo);
+      return new PullRequestCommentingEligibilityValidator().isPullRequestLineCommentingEnabled(gitRepositoryInfo);
     }
   }
 }

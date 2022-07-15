@@ -11,9 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -165,10 +163,15 @@ public abstract class AbstractFunctionalTest
 
   public static void setBaseUrl(String baseUrl) {
     ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
-    Map<String, Object> properties = new HashMap<>();
-    properties.put(SystemConfigurationProperty.BASE_URL, baseUrl);
-    service.setConfigurationNoAuthz(properties);
-    service.applyConfigurationToClients(properties.keySet());
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.BASE_URL, baseUrl);
+    service.applyConfigurationToClients(SystemConfigurationProperty.BASE_URL);
+  }
+
+  public static void setEnableDefaultPasswordWarning(boolean enableDefaultPasswordWarning) {
+    ApiConfigurationService service = testCLMServer.getCLMServer().getInstance(ApiConfigurationService.class);
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
+        enableDefaultPasswordWarning);
+    service.applyConfigurationToClients(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
   }
 
   @ClassRule
@@ -266,6 +269,8 @@ public abstract class AbstractFunctionalTest
   @Before
   public final void beforeTest() {
     log.info("Before: {}", testName.getMethodName());
+    testCLMServer.getCLMServer().setHdsUrl();
+    setEnableDefaultPasswordWarning(false);
   }
 
   @After

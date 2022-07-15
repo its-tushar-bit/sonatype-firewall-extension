@@ -48,11 +48,83 @@ public class SystemConfigurationProperty
 
   public static final String TRANSITIVE_SOLVER_DISABLED = "TRANSITIVE_SOLVER_DISABLED";
 
+  public static final String CODE_INSIGHTS = "CODE_INSIGHTS";
+
+  public static final String COMPONENT_SEARCH_API_WITH_INNERSOURCE = "COMPONENT_SEARCH_API_WITH_INNERSOURCE";
+
+  public static final String DEFAULT_BRANCH_MONITORING = "DEFAULT_BRANCH_MONITORING";
+
+  public static final String DEPENDENCY_DATA_IN_API = "DEPENDENCY_DATA_IN_API";
+
+  public static final String INNER_SOURCE_TRANSITIVE_WAIVER = "INNER_SOURCE_TRANSITIVE_WAIVER";
+
+  public static final String INNER_SOURCE_REPOSITORY_INTEGRATION = "INNER_SOURCE_REPOSITORY_INTEGRATION";
+
+  public static final String PR_COMMENTING = "PR_COMMENTING";
+
+  public static final String PR_LINE_COMMENTING = "PR_LINE_COMMENTING";
+
+  public static final String ENABLE_UNAUTHENTICATED_PAGES = "ENABLE_UNAUTHENTICATED_PAGES";
+
+  public static final String INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS = "INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS";
+
   public static final String BASE_URL = "baseUrl";
 
   public static final String FORCE_BASE_URL = "forceBaseUrl";
 
   public static final String FRAME_ANCESTORS_ALLOWLIST = "frameAncestorsAllowlist";
+
+  public static final String HDS_URL = "hdsUrl";
+
+  public static final String CDN_URL = "cdnUrl";
+
+  public static final String SUPPORT_READ_LIMIT_BYTES = "support.readLimitBytes";
+
+  public static final String EVENT_BUS_MAX_THREAD_POOL_SIZE = "eventBus.maxThreadPoolSize";
+
+  public static final String CSRF_PROTECTION = "csrfProtection";
+
+  public static final String USER_AGENT_SUFFIX = "userAgentSuffix";
+
+  public static final String CSP_ENABLED = "cspEnabled";
+
+  public static final String BLOCK_SEMICOLON_IN_PATH = "blockSemicolonInPath";
+
+  public static final String BLOCK_BACKSLASH_IN_PATH = "blockBackslashInPath";
+
+  public static final String BLOCK_NON_ASCII_IN_PATH = "blockNonAsciiInPath";
+
+  public static final String RELEASE_GRAPH_CACHE_SIZE = "releaseGraphCacheSize";
+
+  public static final String LICENSE_LEGAL_HDS_REQUEST_LIMIT = "licenseLegalHdsRequestLimit";
+
+  public static final String MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD = "maxApplicationsToQueryOnDashboard";
+
+  public static final String MAX_ADVANCED_SEARCH_CLAUSE_COUNT = "maxAdvancedSearchClauseCount";
+
+  public static final String ADVANCED_SEARCH_CSV_EXPORT_DELIMITER = "advancedSearchCSVExportDelimiter";
+
+  public static final String CONNECT_TIMEOUT_IN_SECONDS = "connectTimeoutInSeconds";
+
+  public static final String SOCKET_TIMEOUT_IN_SECONDS = "socketTimeoutInSeconds";
+
+  public static final String REPORT_TIMEOUT_IN_SECONDS = "reportTimeoutInSeconds";
+
+  public static final String NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER =
+      "needsAcknowledgementOfInitialDashboardFilter";
+
+  public static final String ENABLE_DEFAULT_PASSWORD_WARNING = "enableDefaultPasswordWarning";
+
+  public static final String POLICY_MONITORING_HOUR = "policyMonitoringHour";
+
+  public static final String DB_BACKUP_DIR = "dbBackupDir";
+
+  public static final String WEBHOOK_SECRET_PASSPHRASE = "webhookSecretPassphrase";
+
+  public static final String EXTERNAL_HYPERLINKS_ALLOWED = "externalHyperlinksAllowed";
+
+  public static final String MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING =
+      "matcherConfiguration.disableConanNamespaceMatching";
 
   @Id
   @Column(name = "system_configuration_property_id")

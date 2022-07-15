@@ -98,6 +98,7 @@ public class CLMLicenseManagerTest
     Files.copy(getClass().getResourceAsStream("/productlicense/licensing-keystore-hds.p12"),
         new File(tempDir.getRoot(), "hds.p12").toPath());
     hdsMockServer.reset();
+    setHdsUrl(hdsMockServer.getHttpUrl());
   }
 
   @Override
@@ -108,11 +109,6 @@ public class CLMLicenseManagerTest
     binder.bind(ProductLicenseConfig.class).toInstance(productLicenseConfig);
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     super.configure(binder);
-  }
-
-  @Override
-  protected void customizeConfig(InsightConfig config) {
-    config.setHdsUrl(hdsMockServer.getHttpUrl());
   }
 
   private void mockHdsProductLicenseDetails() {

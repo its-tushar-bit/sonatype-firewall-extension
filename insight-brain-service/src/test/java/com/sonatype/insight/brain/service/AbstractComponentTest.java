@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
+import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -76,6 +77,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 
 /**
  * Support class for tests of Sisu components.
@@ -218,7 +220,7 @@ public class AbstractComponentTest
     catch (IOException e) {
       throw new UncheckedIOException(e);
     }
-    config.setHdsUrl("http://unknownhost");
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.HDS_URL, "http://unknownhost");
     customizeConfig(config);
     binder.bind(InsightConfig.class).toInstance(config);
     binder.bind(ProductLicense.class).to(TestProductLicense.class);
@@ -227,6 +229,7 @@ public class AbstractComponentTest
     binder.bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);
     binder.bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
     binder.bind(TaskScheduler.class).to(TestTaskScheduler.class);
+    binder.bind(TelemetryId.class).toInstance(mock(TelemetryId.class));
   }
 
   protected void customizeConfig(@SuppressWarnings("unused") InsightConfig config) {
@@ -240,6 +243,12 @@ public class AbstractComponentTest
     ApiJiraConfigurationService jiraConfigurationService = lookup(ApiJiraConfigurationService.class);
     jiraConfigurationService.setConfigurationNoAuthz(JsonUtils.asTree(dto));
     jiraConfigurationService.applyJiraConfigurationToClients();
+  }
+
+  public void setHdsUrl(String hdsUrl) {
+    ApiConfigurationService configurationService = lookup(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, hdsUrl);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
   }
 
   public void testCallable_DisallowConcurrentExecution(Callable<Void> callable, Consumer<Answer<Void>> answerConsumer)

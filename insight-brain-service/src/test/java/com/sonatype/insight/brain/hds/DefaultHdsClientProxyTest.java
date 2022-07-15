@@ -16,11 +16,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.utils.AbstractHttpClientTest;
 import com.sonatype.insight.brain.version.VersionService;
@@ -56,13 +56,13 @@ public class DefaultHdsClientProxyTest
   private AbstractHandler handler;
 
   @Inject
-  private InsightConfig config;
-
-  @Inject
   private TelemetryId telemetryId;
 
   @Inject
-  private ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
+  private Configuration configuration;
+
+  @Inject
+  private ApiProxyServerConfigurationService proxyServerConfigurationService;
 
   @Before
   public void init() throws Exception {
@@ -81,16 +81,17 @@ public class DefaultHdsClientProxyTest
     server.start();
 
     tempEntity.setProxyServerConfiguration("localhost", ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
+    proxyServerConfigurationService.applyProxyServerConfigurationToClients();
 
-    config.setHdsUrl("https://www.somehost.com/");
+    setHdsUrl("https://www.somehost.com/");
     initClient();
   }
 
   private void initClient() {
     ProductLicense productLicense = mock(ProductLicense.class);
     lenient().when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
-    client = new DefaultHdsClient(new InsightProxy(config, new ProxyServerConfigurationDAO(), passwordHandler),
-        productLicense, config, reverseProxyAuthenticationConfigurationDAO, new VersionService(), telemetryId);
+    client = new DefaultHdsClient(new InsightProxy(configuration, passwordHandler), productLicense, configuration,
+        new VersionService(), telemetryId);
   }
 
   @After
@@ -102,13 +103,13 @@ public class DefaultHdsClientProxyTest
 
   @Override
   protected void pingUrl(String url) throws Exception {
-    config.setHdsUrl(url);
+    setHdsUrl(url);
     initClient();
     client.get(String.class, "test/path");
   }
 
   @Test
-  public void testUserAgentAddedToConnectRequest() throws Exception {
+  public void testUserAgentAddedToConnectRequest() {
 
     HttpServletRequest mockedRequest = mock(HttpServletRequest.class);
     when(mockedRequest.getMethod()).thenReturn("GET");
@@ -144,13 +145,12 @@ public class DefaultHdsClientProxyTest
   }
 
   @Test
-  public void testProxyServerConfigurationChanged() throws Exception {
+  public void testProxyServerConfigurationChanged() {
     new ProxyServerConfigurationDAO().delete();
-    config.setHdsUrl("http://proxy.test/");
-    initClient();
-
+    setHdsUrl("http://proxy.test/");
     tempEntity.setProxyServerConfiguration("localhost", ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
-    client.proxyServerConfigurationChanged();
+    configuration.proxyServerConfigurationChanged();
+    initClient();
 
     String proxyResponse = "PROXY-TEST-PASSED";
     handler = new AbstractHandler()

@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -104,9 +103,7 @@ public class ScmOnboardingTest
   @Before
   public void setup() {
     pwHandler = testCLMServer.getCLMServer().getInstance(PasswordHandler.class);
-    // given the feature flag is true
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(ExperimentalFeature.SCM_ONBOARDING.getFlag(), true));
+
     gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
         .willReturn(aResponse()
             .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")

@@ -14,9 +14,9 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 
 import com.google.inject.Binder;
 import org.junit.Test;
@@ -43,6 +43,9 @@ public class JiraServiceTest
 
   @Mock
   private TaskScheduler mockTaskScheduler;
+
+  @Inject
+  private Configuration configuration;
 
   @Inject
   private JiraService jiraService;
@@ -152,7 +155,7 @@ public class JiraServiceTest
     when(mockJiraClient.getIssueCreateMeta()).thenReturn(jiraIssueCreateMeta);
 
     createJiraConfiguration(customFields);
-    JiraService underTest = new JiraService(new JiraConfigurationDAO(), mockJiraClientFactory);
+    JiraService underTest = new JiraService(configuration, mockJiraClientFactory);
     jiraProjectList = underTest.getProjectsWithAcceptableIssueTypes();
 
     assertThat(jiraProjectList).hasSize(1);

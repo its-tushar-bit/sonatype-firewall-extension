@@ -8,15 +8,6 @@ sonatypeWork: ./sonatype-work/clm-server
 # Path to a license file to automatically install if unlicensed.
 #licenseFile: ./license.lic
 
-# Hour of the day(0-23) to schedule Policy Monitoring execution. The default is midnight.
-#policyMonitoringHour: 0
-
-# Enables/disables cross-site request forgery protection. Defaults to true for increased security.
-#csrfProtection: true
-
-# A custom fragment to add to the "user-agent" for HTTP calls
-#userAgentSuffix: "example fragment"
-
 # HTTP Strict Transport Security (HSTS) is supported using dropwizard-web configuration
 # HSTS headers are enabled by default, uncomment web: section below and set enabled: false to disable
 # Refer to https://github.com/dropwizard/dropwizard-web#supports for detailed configuration guide
@@ -156,14 +147,6 @@ logging:
 
       # The number of archived files to keep.
       archivedFileCount: 50
-
-# Passphrase used to encrypt the Webhook Secret Keys
-#webhookSecretPassphrase: "^d1swM!FF&qQ"
-
-#eventBus:
-  # Configures the number of threads used for the EventBus
-  # Defaults to 500 if not provided.
-  # maxPoolSize: 500
 
 # Sample data is created for new installs.
 createSampleData: true

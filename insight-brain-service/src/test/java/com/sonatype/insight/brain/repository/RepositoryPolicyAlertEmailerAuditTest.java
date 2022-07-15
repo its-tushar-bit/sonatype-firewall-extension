@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightMail;
 
 import com.google.inject.Binder;
@@ -51,9 +50,6 @@ public class RepositoryPolicyAlertEmailerAuditTest
   @Mock
   private InsightMail mockInsightMail;
 
-  @Inject
-  private InsightConfig config;
-
   private Repository repository;
 
   @Override
@@ -65,7 +61,7 @@ public class RepositoryPolicyAlertEmailerAuditTest
   @Before
   public void before() {
     setBaseUrl("http://localhost");
-    when(mockInsightMail.getCdnUrl()).thenReturn(config.getCdnUrl());
+    when(mockInsightMail.getCdnUrl()).thenReturn("https://cdn.sonatype.com/");
     repository = tempEntity.newRepository();
   }
 

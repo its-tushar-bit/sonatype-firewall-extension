@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
@@ -655,7 +654,7 @@ public class PullRequestCommentingEventHandlerTest
           mockPullRequestPolicyEvaluationResolver,
           mockPolicyEvaluationDAO,
           mockPullRequestStatusService,
-          new PullRequestCommentingEligibilityValidator(new InsightConfig()),
+          new PullRequestCommentingEligibilityValidator(),
           mockGitCommitHistoryService
       );
     }

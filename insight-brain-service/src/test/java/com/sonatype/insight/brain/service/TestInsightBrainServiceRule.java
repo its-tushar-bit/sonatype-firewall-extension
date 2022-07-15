@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.service;
 import java.net.URL;
 import java.util.List;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
@@ -85,6 +88,18 @@ public class TestInsightBrainServiceRule
     log.info("Started TestInsightBrainService in {} ms.", System.currentTimeMillis() - start);
   }
 
+  public void setHdsUrl() {
+    ApiConfigurationService configurationService = getInstance(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, hdsUrl);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
+  }
+
+  public void setCspEnabled(boolean cspEnabled) {
+    ApiConfigurationService configurationService = getInstance(ApiConfigurationService.class);
+    configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.CSP_ENABLED, cspEnabled);
+    configurationService.applyConfigurationToClients(SystemConfigurationProperty.CSP_ENABLED);
+  }
+
   void stop() {
     long start = System.currentTimeMillis();
 
@@ -134,5 +149,12 @@ public class TestInsightBrainServiceRule
       brain.disableForTesting();
       log.info("Reset TestInsightBrainService");
     }
+  }
+
+  public ProxyServerConfiguration getProxyServerConfiguration() {
+    if (brain == null) {
+      return null;
+    }
+    return brain.getTestProxyServerConfiguration();
   }
 }

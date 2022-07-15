@@ -8,13 +8,12 @@ package com.sonatype.insight.brain.migration;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.slf4j.Logger;
@@ -30,19 +29,15 @@ public class InternalSourceControlPolicyEvaluationsConfigMigrator
 
   static final String MIGRATION_ID = "internal-source-control-policy-evaluations-config";
 
-  private final InsightConfig insightConfig;
-
   private final MigrationTrackerDAO migrationTrackerDAO;
 
   private final SourceControlDAO sourceControlDAO;
 
   @Inject
   public InternalSourceControlPolicyEvaluationsConfigMigrator(
-      InsightConfig insightConfig,
       MigrationTrackerDAO migrationTrackerDAO,
       SourceControlDAO sourceControlDAO)
   {
-    this.insightConfig = insightConfig;
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.sourceControlDAO = sourceControlDAO;
   }
@@ -64,7 +59,7 @@ public class InternalSourceControlPolicyEvaluationsConfigMigrator
 
       @SuppressWarnings("deprecation")
       boolean internalSourceControlPolicyEvaluationsEnabled =
-          insightConfig.isFeatureEnabled(Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
+          SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS.isEnabled();
       rootOrgSourceControl.setSourceControlEvaluationsEnabled(internalSourceControlPolicyEvaluationsEnabled);
       sourceControlDAO.update(txn, rootOrgSourceControl);
       migrationTrackerDAO.insert(txn, new MigrationTracker(MIGRATION_ID));

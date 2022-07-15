@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 
 import org.slf4j.Logger;
@@ -52,17 +52,17 @@ public class PolicyViolationLoader
 
   private final PolicyViolationDAO policyViolationDAO;
 
-  private final InsightConfig insightConfig;
+  private final Configuration configuration;
 
   @Inject
   public PolicyViolationLoader(
       PolicyEvaluationDAO policyEvaluationDAO,
       PolicyViolationDAO policyViolationDAO,
-      InsightConfig insightConfig)
+      Configuration configuration)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationDAO = policyViolationDAO;
-    this.insightConfig = insightConfig;
+    this.configuration = configuration;
   }
 
   public Collection<ApplicationView> getViolations(Collection<Application> applications,
@@ -88,7 +88,7 @@ public class PolicyViolationLoader
 
     Collection<PolicyEvaluation> evaluations = loadEvaluations(applicationIds, stageTypeIds, minDate);
 
-    final int maxApplications = insightConfig.getMaxApplicationsToQueryOnDashboard();
+    final int maxApplications = configuration.getMaxApplicationsToQueryOnDashboard();
     if (maxApplications > 0) {
       // find most recent evaluations and put out appIds until limit
       applicationIds = evaluations.stream().sorted(Comparator.comparing(PolicyEvaluation::getTime).reversed())

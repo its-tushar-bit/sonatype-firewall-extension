@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigur
 import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.JGitApi;
@@ -42,6 +43,9 @@ public class GitApiFactoryTest
 
   @Inject
   private GitApiFactory gitApiFactory;
+  
+  @Inject
+  private Configuration configuration;
 
   private GitApiFactory spyGitApiFactory;
 
@@ -49,12 +53,6 @@ public class GitApiFactoryTest
   public void setup() {
     // Note usage of spy in order to override isNativeGitAvailable
     spyGitApiFactory = spy(gitApiFactory);
-  }
-
-  @Test
-  public void testGitApiFactory_HasDefaultSourceControlConfiguration() {
-    assertThat(gitApiFactory.sourceControlConfigurationAtomicReference.get()).usingRecursiveComparison().isEqualTo(
-        new SourceControlConfiguration());
   }
 
   @Test
@@ -72,7 +70,7 @@ public class GitApiFactoryTest
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setGitImplementation(GitImplementation.JAVA);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    spyGitApiFactory.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     GitApi gitApi = spyGitApiFactory.createGitApi(GIT_REPOSITORY_INFO);
 
@@ -95,7 +93,7 @@ public class GitApiFactoryTest
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setGitExecutable(GIT_EXECUTABLE);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    spyGitApiFactory.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     GitApi gitApi = spyGitApiFactory.createGitApi(GIT_REPOSITORY_INFO);
 
@@ -108,7 +106,7 @@ public class GitApiFactoryTest
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setGitImplementation(GitImplementation.NATIVE);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    spyGitApiFactory.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     GitApi gitApi = spyGitApiFactory.createGitApi(GIT_REPOSITORY_INFO);
 
@@ -121,7 +119,7 @@ public class GitApiFactoryTest
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setGitImplementation(GitImplementation.NATIVE);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    spyGitApiFactory.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     GitApi gitApi = spyGitApiFactory.createGitApi(GIT_REPOSITORY_INFO);
 
@@ -134,7 +132,7 @@ public class GitApiFactoryTest
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setGitTimeoutSeconds(600);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    spyGitApiFactory.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     GitApi gitApi = spyGitApiFactory.createGitApi(GIT_REPOSITORY_INFO);
 
@@ -148,7 +146,7 @@ public class GitApiFactoryTest
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setGitTimeoutSeconds(600);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    spyGitApiFactory.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     GitApi gitApi = spyGitApiFactory.createGitApi(GIT_REPOSITORY_INFO);
 
@@ -163,7 +161,7 @@ public class GitApiFactoryTest
     sourceControlConfiguration.setGitImplementation(GitImplementation.NATIVE);
     sourceControlConfiguration.setGitExecutable(GIT_EXECUTABLE);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    spyGitApiFactory.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     GitApi gitApi = spyGitApiFactory.createGitApi(GIT_REPOSITORY_INFO);
 
@@ -177,7 +175,7 @@ public class GitApiFactoryTest
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setGitImplementation(GitImplementation.NATIVE);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    spyGitApiFactory.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     assertThatThrownBy(() -> spyGitApiFactory.createGitApi(sshGitRepositoryInfo))
         .isInstanceOf(RuntimeException.class)
@@ -193,7 +191,7 @@ public class GitApiFactoryTest
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setGitImplementation(GitImplementation.NATIVE);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    spyGitApiFactory.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     GitApi gitApi = spyGitApiFactory.createGitApi(sshGitRepositoryInfo);
     assertThat(gitApi).hasFieldOrPropertyWithValue("repositoryUrl", sshUrl);
@@ -207,7 +205,7 @@ public class GitApiFactoryTest
     SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
     sourceControlConfiguration.setGitImplementation(GitImplementation.JAVA);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    spyGitApiFactory.sourceControlConfigurationChanged();
+    configuration.sourceControlConfigurationChanged();
 
     assertThatThrownBy(() -> spyGitApiFactory.createGitApi(sshGitRepositoryInfo))
         .isInstanceOf(IllegalArgumentException.class)

@@ -53,7 +53,7 @@ import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
@@ -119,7 +119,7 @@ public class SearchService
 
   private final OwnerDAO ownerDAO;
 
-  private final InsightConfig insightConfig;
+  private final Configuration configuration;
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
@@ -130,7 +130,7 @@ public class SearchService
       PermissionService permissionService,
       CurrentUser currentUser,
       OwnerDAO ownerDAO,
-      InsightConfig insightConfig,
+      Configuration configuration,
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO)
   {
     this.luceneComponents = luceneComponents;
@@ -138,7 +138,7 @@ public class SearchService
     this.permissionService = permissionService;
     this.currentUser = currentUser;
     this.ownerDAO = ownerDAO;
-    this.insightConfig = insightConfig;
+    this.configuration = configuration;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
   }
 
@@ -429,7 +429,7 @@ public class SearchService
 
     contextIdsWithReadPermission.addAll(getChildContextIds(contextIdsWithReadPermission));
 
-    BooleanQuery.setMaxClauseCount(insightConfig.getMaxAdvancedSearchClauseCount());
+    BooleanQuery.setMaxClauseCount(configuration.getMaxAdvancedSearchClauseCount());
     Builder allowedContextIdsQueryBuilder = new Builder();
 
     try {
@@ -464,7 +464,7 @@ public class SearchService
   private StreamingOutput createAdvancedSearchCSV(List<SearchResultItemDTO> searchResultItemsDTOS) {
     CSVFormat csvFormat = CSVFormat.Builder.create()
         .setHeader(EXPORT_SEARCH_HEADERS)
-        .setDelimiter(insightConfig.getAdvancedSearchCSVExportDelimiter())
+        .setDelimiter(configuration.getAdvancedSearchCSVExportDelimiter())
         .build();
 
     String baseUrl = Objects.toString(systemConfigurationPropertyDAO.get(SystemConfigurationProperty.BASE_URL), "");

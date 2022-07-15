@@ -411,12 +411,12 @@ public class OrganizationSummaryViewTest
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
-    tile.subHeader().shouldBe(visible).shouldHave(Condition.text(String
+    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
     tile.rows().shouldHaveSize(1);
 
-    tile.itemText().shouldNotBe(visible);
-    tile.itemSubText().shouldBe(visible)
+    tile.itemSubText().shouldNotBe(visible);
+    tile.itemText().shouldBe(visible)
         .shouldHave(Condition.text("Source Control not configured"));
 
     SourceControl rootSourceControl =
@@ -428,7 +428,7 @@ public class OrganizationSummaryViewTest
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
-    tile.subHeader().shouldBe(visible).shouldHave(Condition.text(String
+    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
     tile.rows().shouldHaveSize(1);
 
@@ -444,7 +444,7 @@ public class OrganizationSummaryViewTest
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
-    tile.subHeader().shouldBe(visible).shouldHave(Condition.text(String
+    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
     tile.rows().shouldHaveSize(1);
 
@@ -460,7 +460,7 @@ public class OrganizationSummaryViewTest
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
-    tile.subHeader().shouldBe(visible).shouldHave(Condition.text(String
+    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
     tile.rows().shouldHaveSize(1);
 
@@ -482,7 +482,7 @@ public class OrganizationSummaryViewTest
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
-    tile.subHeader().shouldBe(visible).shouldHave(Condition.text(String
+    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
     tile.notSupported().shouldBe(visible);
     tile.content().shouldNotBe(visible);
@@ -505,11 +505,11 @@ public class OrganizationSummaryViewTest
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
-    tile.subHeader().shouldBe(visible).shouldHave(Condition.text(String
+    tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
         .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
     tile.notSupported().shouldNotBe(visible);
     tile.content().shouldBe(visible);
 
-    tile.itemSubText().shouldBe(visible);
+    tile.itemText().shouldBe(visible);
   }
 }

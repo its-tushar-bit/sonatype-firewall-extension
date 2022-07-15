@@ -11,13 +11,11 @@ import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applica
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
-import { actions as sourceControlActions } from 'MainRoot/OrgsAndPolicies/sourceControlSlice';
 import {
   selectIsGrandfatheringSupported,
   selectIsInnerSourceRepositorySupported,
   selectIsArtifactoryRepositorySupported,
   selectIsEvaluateApplicationAvailable,
-  selectIsSourceControlForSourceTileSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectDeleteModal } from 'MainRoot/OrgsAndPolicies/ownerEditorSelectors';
 import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
@@ -91,7 +89,6 @@ export default function OwnerSummaryController(
     loadOrganizations: organizationsActions.loadOrganizations,
     removeOwner: ownerEditorActions.removeOwner,
     resetDeleteModalState: ownerEditorActions.resetDeleteModalState,
-    getSourceControl: sourceControlActions.loadSourceControl,
     loadApplicablePoliciesByOwner: rootActions.loadApplicablePoliciesByOwner,
     setLoading: ownerSummaryActions.setLoading,
     setLoadError: ownerSummaryActions.setLoadError,
@@ -151,7 +148,6 @@ export default function OwnerSummaryController(
           getAppChangePermissions();
           getAppEvaluatePermissions();
         }
-        if (vm.isSourceControlSupported) vm.getSourceControl();
       })
       .catch((error) => {
         vm.setLoadError(error);
@@ -298,7 +294,6 @@ const mapStateToThis = (state) => ({
   loadError: selectLoadError(state),
   isGrandfatheringEnabled: selectCalculatedEnabled(state),
   grandfatheringStatusMessage: selectGrandfatheringStatusMessage(state),
-  isSourceControlSupported: selectIsSourceControlForSourceTileSupported(state),
 });
 
 OwnerSummaryController.$inject = [

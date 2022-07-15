@@ -18,15 +18,15 @@ public class SourceControlTile
   }
 
   public ElementsCollection rows() {
-    return children(".iq-list__item");
+    return children(".nx-list__item");
   }
 
   public SelenideElement itemText() {
-    return child(".test-list-item-title");
+    return child(".nx-list__text");
   }
 
   public SelenideElement itemSubText() {
-    return child(".iq-list__subtext");
+    return child(".nx-list__subtext");
   }
 
   public SelenideElement notSupported() {
@@ -34,6 +34,6 @@ public class SourceControlTile
   }
 
   public SelenideElement content() {
-    return child(".iq-tile-content");
+    return child(".nx-tile-content");
   }
 }

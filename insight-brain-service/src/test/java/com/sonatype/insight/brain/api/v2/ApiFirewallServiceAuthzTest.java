@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -43,7 +44,7 @@ public class ApiFirewallServiceAuthzTest
 
   @Test
   public void testGetReleaseQuarantineSummary_Authorized() {
-    grantGlobalPermission(Permission.READ);
+    grantPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.READ);
 
     ApiFirewallReleaseQuarantineSummaryDTO dto = apiFirewallService.getReleaseQuarantineSummary();
 
@@ -63,7 +64,7 @@ public class ApiFirewallServiceAuthzTest
 
   @Test
   public void testGetReleaseQuarantineConfig_Authorized() {
-    grantGlobalPermission(Permission.READ);
+    grantPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.READ);
 
     List<ApiFirewallReleaseQuarantineConfigDTO> dtos = apiFirewallService.getReleaseQuarantineConfig();
 
@@ -77,14 +78,13 @@ public class ApiFirewallServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testReleaseQuarantineConfig_Unauthenticated() {
+  public void testGetReleaseQuarantineConfig_Unauthenticated() {
     apiFirewallService.getReleaseQuarantineConfig();
   }
 
   @Test
   public void testSetReleaseQuarantineConfig_Authorized() {
-    grantGlobalPermission(Permission.READ);
-    grantGlobalPermission(Permission.WRITE);
+    grantPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.WRITE);
 
     List<ApiFirewallReleaseQuarantineConfigDTO> dtos = apiFirewallService.setReleaseQuarantineConfig(new ArrayList<>());
 
@@ -104,7 +104,7 @@ public class ApiFirewallServiceAuthzTest
 
   @Test
   public void testGetQuarantineSummary_Authorized() {
-    grantGlobalPermission(Permission.READ);
+    grantPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.READ);
 
     assertThat(apiFirewallService.getQuarantineSummary()).isNotNull();
   }
@@ -123,7 +123,7 @@ public class ApiFirewallServiceAuthzTest
 
   @Test
   public void testGetComponents_Authorized() {
-    grantGlobalPermission(Permission.READ);
+    grantPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.READ);
 
     final FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
@@ -158,7 +158,7 @@ public class ApiFirewallServiceAuthzTest
 
   @Test
   public void testSetQuarantinedComponentViewAnonymousAccess_Authorized() {
-    grantGlobalPermission(Permission.WRITE);
+    grantPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.WRITE);
     apiFirewallService.setQuarantinedComponentViewAnonymousAccess(true);
   }
 

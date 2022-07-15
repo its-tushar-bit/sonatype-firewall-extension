@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.ConditionType;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
@@ -44,10 +45,12 @@ import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.telemetry.AutoReleaseQuarantineTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -91,7 +94,7 @@ public class ApiFirewallService
   private final TelemetrySender telemetrySender;
 
   @Inject
-  public ApiFirewallService(
+  ApiFirewallService(
       final ProductLicense productLicense,
       final RepositoryComponentDAO repositoryComponentDAO,
       final RepositoryDAO repositoryDAO,
@@ -118,8 +121,16 @@ public class ApiFirewallService
   }
 
   @Authorize(permission = Permission.READ)
-  public ApiFirewallQuarantineSummaryDTO getQuarantineSummary() {
+  void checkReadPermission(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner) {
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  void checkWritePermission(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner) {
+  }
+
+  ApiFirewallQuarantineSummaryDTO getQuarantineSummary() {
     checkProductLicense();
+    checkReadPermission(RepositoryContainer.SINGLETON);
 
     ApiFirewallQuarantineSummaryDTO summary = new ApiFirewallQuarantineSummaryDTO();
     summary.repositoryCount = repositoryDAO.getCount();
@@ -131,10 +142,14 @@ public class ApiFirewallService
     return summary;
   }
 
-  @Authorize(permission = Permission.READ)
-  public List<ApiFirewallReleaseQuarantineConfigDTO> getReleaseQuarantineConfig() {
+  List<ApiFirewallReleaseQuarantineConfigDTO> getReleaseQuarantineConfig() {
     checkProductLicense();
+    checkReadPermission(RepositoryContainer.SINGLETON);
 
+    return getReleaseQuarantineConfig_NoChecks();
+  }
+
+  private List<ApiFirewallReleaseQuarantineConfigDTO> getReleaseQuarantineConfig_NoChecks() {
     final Set<String> enabledPolicyConditionTypes = getAutoUnquarantineEnabledPolicyConditionTypesIds();
 
     return ConditionTypes.getAllWithAutoUnquarantineSupported().stream()
@@ -142,11 +157,11 @@ public class ApiFirewallService
         .collect(Collectors.toList());
   }
 
-  @Authorize(permission = Permission.WRITE)
-  public List<ApiFirewallReleaseQuarantineConfigDTO> setReleaseQuarantineConfig(
+  List<ApiFirewallReleaseQuarantineConfigDTO> setReleaseQuarantineConfig(
       final List<ApiFirewallReleaseQuarantineConfigDTO> apiFirewallReleaseQuarantineConfigDTOS)
   {
     checkProductLicense();
+    checkWritePermission(RepositoryContainer.SINGLETON);
 
     if (apiFirewallReleaseQuarantineConfigDTOS == null) {
       throw new BadRequestException("No policy condition types were specified for update.");
@@ -166,7 +181,7 @@ public class ApiFirewallService
       });
     }
 
-    final List<ApiFirewallReleaseQuarantineConfigDTO> result = getReleaseQuarantineConfig();
+    final List<ApiFirewallReleaseQuarantineConfigDTO> result = getReleaseQuarantineConfig_NoChecks();
     sendAutoReleaseQuarantineConfigTelemetry(result);
     return result;
   }
@@ -256,9 +271,9 @@ public class ApiFirewallService
     }
   }
 
-  @Authorize(permission = Permission.READ)
-  public ApiFirewallReleaseQuarantineSummaryDTO getReleaseQuarantineSummary() {
+  ApiFirewallReleaseQuarantineSummaryDTO getReleaseQuarantineSummary() {
     checkProductLicense();
+    checkReadPermission(RepositoryContainer.SINGLETON);
 
     final Date startOfCurMonth =
         Date.from((LocalDate.now().withDayOfMonth(1)).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -277,8 +292,9 @@ public class ApiFirewallService
     return apiFirewallReleaseQuarantineSummaryDTO;
   }
 
-  @Authorize(permission = Permission.READ)
-  public ApiPageResult<ApiFirewallComponentDTO> getComponents(FirewallRepositoryComponentFilter filter) {
+  ApiPageResult<ApiFirewallComponentDTO> getComponents(FirewallRepositoryComponentFilter filter) {
+    checkReadPermission(RepositoryContainer.SINGLETON);
+
     if (null == filter.sortableField) {
       filter.sortableField = FirewallSortableField.RELEASE_QUARANTINE_TIME;
     }
@@ -359,8 +375,9 @@ public class ApiFirewallService
     return repositoryMap;
   }
 
-  @Authorize(permission = Permission.WRITE)
-  public void setQuarantinedComponentViewAnonymousAccess(boolean enabled) {
+  void setQuarantinedComponentViewAnonymousAccess(boolean enabled) {
+    checkWritePermission(RepositoryContainer.SINGLETON);
+
     AuditData auditData = AuditData.get();
     auditData.setData("enabled", enabled);
 
@@ -369,7 +386,7 @@ public class ApiFirewallService
     log.info("Quarantined Component View anonymous access was " + (enabled ? "enabled" : "disabled") + ".");
   }
 
-  public String getQuarantinedComponentViewAnonymousAccess() {
+  String getQuarantinedComponentViewAnonymousAccess() {
     return Boolean.toString(quarantinedComponentAccessDAO.isAnonymousAccessEnabled());
   }
 }

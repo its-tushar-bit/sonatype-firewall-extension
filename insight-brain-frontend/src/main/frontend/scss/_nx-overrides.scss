@@ -84,6 +84,11 @@
   }
 }
 
+.nx-table.iq-component-risk-item-table > tbody > .nx-table-row > .iq-component-risk-cell {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 /**
   Fix to solve issues of select element overflowing from modal:
   RSC Variable override: Latest RSC uses --nx-width-form-element-wide: 800px;

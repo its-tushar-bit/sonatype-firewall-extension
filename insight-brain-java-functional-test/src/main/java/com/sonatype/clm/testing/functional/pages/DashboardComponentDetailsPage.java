@@ -5,14 +5,13 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.CustomRootBasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
+import static com.codeborne.selenide.Selenide.$$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class DashboardComponentDetailsPage
@@ -21,147 +20,151 @@ public class DashboardComponentDetailsPage
     return BaseUrl.resolvePageUrl("/dashboard/component/{hash}", hash);
   }
 
-  private static final String ROOT = ".component-container";
-
   public SelenideElement header() {
-    return $("#component-name");
+    return $("#iq-component-name");
   }
 
   public SelenideElement totalRisk() {
-    return $("#total-risk");
+    return $("#iq-component-total-risk");
   }
 
-  public ApplicationRow getApplicationRow(int index) {
-    return new ApplicationRow(index);
+  public ApplicationCard getApplicationRow(int index) {
+    return new ApplicationCard($$(".iq-component-risk-item-content").get(index));
   }
 
-  public SelenideElement breadCrumb() {
-    return $(createSelector(ROOT, " [breadcrumb]"));
-  }
-
-  public SelenideElement breadCrumbLink() {
-    return $(createSelector(ROOT, " [breadcrumb] a"));
-  }
-
-  public static class ApplicationRow
-      extends ComponentDetailsRow
+  public static class ApplicationCard
+      extends CustomRootBasicElement<ApplicationCard>
   {
-    private final String accordionSelector;
-
-    public static String appIconImageSource(String applicationId) {
-      return BaseUrl.resolveRestUrl("/application/icon/{applicationId}", applicationId);
+    public ApplicationCard(SelenideElement element) {
+      super(element);
     }
 
-    public ApplicationRow(int index) {
-      super("#application-row-" + index, 4);
-      accordionSelector = "#application-" + index;
+    public ApplicationCardTotals totals() {
+      return new ApplicationCardTotals(child(".iq-component-risk-data"));
     }
 
-    public SelenideElement twisty() {
-      return child(".twisty");
+    public ApplicationCardTable table() {
+      return new ApplicationCardTable(child(".iq-component-risk-item-table"));
+    }
+
+    public SelenideElement accordionRow() {
+      return child(".nx-accordion__header");
     }
 
     public SelenideElement name() {
-      return child("td", nthChild(2));
-    }
-
-    public SelenideElement appIcon() {
-      return child("td", nthChild(2), "img.image-thumbnail");
-    }
-
-    public Accordion accordion() {
-      return new Accordion(accordionSelector);
+      return child(".iq-component-risk-application-name");
     }
   }
 
-  public static class Accordion
-      extends BasicElement<Accordion>
+  public static class ApplicationCardTotals
+      extends CustomRootBasicElement<ApplicationCardTotals>
   {
-    public Accordion(String selector) {
-      super(selector);
-    }
+    private static final String BASE_SELECTOR = ".iq-component-risk-data-element";
 
-    public AccordionRow entry(int index) {
-      return new AccordionRow(childSelector("tr", nthChild(index)));
-    }
-
-    public ElementsCollection entries() {
-      return children("tr");
-    }
-  }
-
-  public static class AccordionRow
-      extends ComponentDetailsRow
-  {
-    public AccordionRow(String selector) {
-      super(selector, 5);
-    }
-
-    public SelenideElement threatBar() {
-      return child("td.clm-bar");
-    }
-
-    public SelenideElement threat() {
-      return child("td.threat-column");
-    }
-
-    public SelenideElement policyName() {
-      return child("td", nthChild(3));
-    }
-  }
-
-  public static class ComponentDetailsRow
-      extends BasicElement<ComponentDetailsRow>
-  {
-    private final int stageColumnOffset;
-
-    public ComponentDetailsRow(String selector, int stageColumnOffset) {
-      super(selector);
-      this.stageColumnOffset = stageColumnOffset;
+    public ApplicationCardTotals(SelenideElement element) {
+      super(element);
     }
 
     public SelenideElement pie() {
-      return child("svg");
+      return child(BASE_SELECTOR, nthChild(1)).$("svg");
     }
 
     public SelenideElement shareOfRisk() {
-      return child("td.share-risk-column");
+      return child(BASE_SELECTOR, nthChild(1)).$("dd");
     }
 
     public SelenideElement risk() {
-      return child("td.risk-column");
+      return child(BASE_SELECTOR, nthChild(2)).$("dd");
     }
 
     public Cell source() {
-      return new Cell(childSelector("td.stage-column", nthChild(stageColumnOffset + 1)));
+      return new Cell(child(BASE_SELECTOR, nthChild(3)).$("dd"));
     }
 
     public Cell build() {
-      return new Cell(childSelector("td.stage-column", nthChild(stageColumnOffset + 2)));
+      return new Cell(child(BASE_SELECTOR, nthChild(4)).$("dd"));
     }
 
     public Cell stage() {
-      return new Cell(childSelector("td.stage-column", nthChild(stageColumnOffset + 3)));
+      return new Cell(child(BASE_SELECTOR, nthChild(5)).$("dd"));
     }
 
     public Cell release() {
-      return new Cell(childSelector("td.stage-column", nthChild(stageColumnOffset + 4)));
+      return new Cell(child(BASE_SELECTOR, nthChild(6)).$("dd"));
     }
 
     public Cell operate() {
-      return new Cell(childSelector("td.stage-column", nthChild(stageColumnOffset + 5)));
+      return new Cell(child(BASE_SELECTOR, nthChild(7)).$("dd"));
+    }
+  }
+
+  public static class ApplicationCardTable
+      extends CustomRootBasicElement<ApplicationCardTable>
+  {
+    private static final String BASE_SELECTOR = ".iq-component-risk-cell";
+
+    public ApplicationCardTable(SelenideElement element) {
+      super(element);
+    }
+
+    public SelenideElement threatIndicator() {
+      return child(".nx-threat-indicator");
+    }
+
+    public SelenideElement threat() {
+      return child(".nx-threat-number");
+    }
+
+    public SelenideElement pie() {
+      return child(".iq-component-risk-table-donut-chart");
+    }
+
+    public SelenideElement policyName() {
+      return child(BASE_SELECTOR, nthChild(2));
+    }
+
+    public SelenideElement shareOfRisk() {
+      return child(BASE_SELECTOR + ".percentage");
+    }
+
+    public SelenideElement risk() {
+      return child(BASE_SELECTOR, nthChild(4));
+    }
+
+    public Cell source() {
+      return new Cell(child(BASE_SELECTOR + ".stage", nthChild(5)));
+    }
+
+    public Cell build() {
+      return new Cell(child(BASE_SELECTOR + ".stage", nthChild(6)));
+    }
+
+    public Cell stage() {
+      return new Cell(child(BASE_SELECTOR + ".stage", nthChild(7)));
+    }
+
+    public Cell release() {
+      return new Cell(child(BASE_SELECTOR + ".stage", nthChild(8)));
+    }
+
+    public Cell operate() {
+      return new Cell(child(BASE_SELECTOR + ".stage", nthChild(9)));
     }
   }
 
   public static class Cell
-      extends BasicElement<Cell>
+      extends CustomRootBasicElement<Cell>
   {
-    public Cell(String selector) {
-      super(selector);
+    public Cell(SelenideElement element) {
+      super(element);
     }
 
     public SelenideElement anchor() {
       return child("a");
+    }
+
+    public SelenideElement anchorText() {
+      return child("a").$("span");
     }
   }
 }

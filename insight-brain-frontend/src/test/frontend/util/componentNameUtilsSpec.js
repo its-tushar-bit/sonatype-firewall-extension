@@ -7,6 +7,7 @@ import {
   getComponentName,
   getArtifactName,
   getComponentNameWithoutVersion,
+  getFilenameFromPath,
 } from '../../../main/frontend/util/componentNameUtils';
 
 describe('componentNameUtils', function () {
@@ -54,6 +55,17 @@ describe('componentNameUtils', function () {
       const componentName = getComponentName(component);
       expect(componentName).toEqual('Unknown');
     });
+
+    it('sets up a component name from Pathname', function () {
+      const component = {
+        displayName: {
+          parts: [{ field: 'Pathname', value: 'asd/123/asd/123/verylongpath/almost-there/asd.jpg' }],
+        },
+        filename: null,
+      };
+      const componentName = getComponentName(component);
+      expect(componentName).toEqual('asd.jpg');
+    });
   });
 
   describe('getArtifactName', function () {
@@ -88,6 +100,20 @@ describe('componentNameUtils', function () {
       const component = {};
       const componentName = getComponentName(component);
       expect(componentName).toEqual('Unknown');
+    });
+  });
+
+  describe('getFilenameFromPath', function () {
+    it('returns the filename from the path', function () {
+      const filenamePath = 'bac/acs/asdas/file.jpg';
+      const filename = getFilenameFromPath(filenamePath);
+      expect(filename).toEqual('file.jpg');
+    });
+
+    it('returns the string passed if is not a path', function () {
+      const filenamePath = 'my file';
+      const filename = getFilenameFromPath(filenamePath);
+      expect(filename).toEqual(filenamePath);
     });
   });
 

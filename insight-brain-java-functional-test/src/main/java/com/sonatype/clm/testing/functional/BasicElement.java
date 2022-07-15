@@ -17,7 +17,7 @@ public abstract class BasicElement<T extends BasicElement<T>>
 {
   protected final String selector;
 
-  private SelenideElement element;
+  protected SelenideElement element;
 
   protected BasicElement(String... selectors) {
     selector = createSelector(selectors);

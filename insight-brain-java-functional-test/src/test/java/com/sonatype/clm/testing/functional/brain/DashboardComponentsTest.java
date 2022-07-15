@@ -302,23 +302,6 @@ public class DashboardComponentsTest
   }
 
   @Test
-  public void testBreadCrumb() {
-    addComponentWithViolation("g", "a", "v", "hash-b", 7);
-
-    refreshOrOpen(DashboardPage.urlToComponents());
-    DashboardPage.dashboardContainer().shouldBe(visible);
-    ComponentsResults table = DashboardPage.componentsView().results();
-
-    table.firstComponent().name().click();
-
-    DashboardComponentDetailsPage dashboardComponentDetailsPage = new DashboardComponentDetailsPage();
-
-    dashboardComponentDetailsPage.breadCrumb().shouldHave(text("Dashboard/ Component Details"));
-    dashboardComponentDetailsPage.breadCrumbLink().shouldHave(text("Dashboard")).click();
-    DashboardPage.componentsView().results().shouldBe(visible);
-  }
-
-  @Test
   public void testSortsOnBackend() {
     ComponentsResults table = DashboardPage.componentsView().results();
     ComponentsHeaders headers = DashboardPage.componentsView().headers();

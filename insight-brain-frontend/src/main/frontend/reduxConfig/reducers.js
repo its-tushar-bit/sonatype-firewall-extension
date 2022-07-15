@@ -74,6 +74,7 @@ import artifactoryRepositoryDeleteConfigurationModalSlice from 'MainRoot/artifac
 import otherVersionsSlice from 'MainRoot/quarantinedComponentReport/otherVersionsTile/otherVersionsSlice';
 import samlConfigurationSlice from '../configuration/saml/samlConfigurationSlice';
 import quarantinedRiskRemediationSlice from 'MainRoot/quarantinedComponentReport/riskRemediationTile/riskRemediationSlice';
+import componentRiskDetails from 'MainRoot/dashboard/results/componentRisk/componentRiskSlice';
 import orgsAndPoliciesSlice from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSlice';
 import reportsSlice from 'MainRoot/report/react/reportsSlice';
 import productFeaturesSlice from 'MainRoot/productFeatures/productFeaturesSlice';
@@ -114,6 +115,7 @@ export default combineReducers({
   componentLicenseFileDetails: componentLicenseFilesDetailsReducer,
   componentLicenseDetails: componentLicenseDetailsReducer,
   componentCopyrightDetails: componentCopyrightDetailsReducer,
+  componentRiskDetails: componentRiskDetails,
   firewall: firewallReducer,
   firewallConfigurationModal: firewallConfigurationModalReducer,
   manageLegalFilters: manageLegalFiltersReducer,

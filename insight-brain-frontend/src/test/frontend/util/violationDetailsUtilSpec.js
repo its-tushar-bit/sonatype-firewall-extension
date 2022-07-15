@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { extractViolationDetails } from '../../../main/frontend/util/violationDetailsUtil';
+import { extractViolationDetails } from 'MainRoot/util/violationDetailsUtil';
 
 describe('violationDetailsUtil', function () {
   describe('extractViolationDetails', () => {

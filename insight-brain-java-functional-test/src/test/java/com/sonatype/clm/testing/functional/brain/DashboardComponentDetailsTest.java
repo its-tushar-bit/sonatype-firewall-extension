@@ -5,15 +5,16 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.util.Date;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents.ComponentsResults;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage;
-import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage.AccordionRow;
-import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage.ApplicationRow;
-import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage.ComponentDetailsRow;
+import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage.ApplicationCard;
+import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage.ApplicationCardTable;
+import com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage.ApplicationCardTotals;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -35,9 +37,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.pages.DashboardComponentDetailsPage.ApplicationRow.appIconImageSource;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
-import static java.util.Arrays.asList;
 
 public class DashboardComponentDetailsTest
     extends AbstractFunctionalTest
@@ -79,11 +79,13 @@ public class DashboardComponentDetailsTest
 
     app1 = tempEntity.newApplication("App 1", "DashboardComponentDetailsTestApp1", org.getId());
     tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash", component);
-    eval1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "DashboardComponentsTestEval1");
+    eval1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "DashboardComponentsTestEval1",
+        DateUtils.addMinutes(new Date(), -1));
     tempEntity.newPolicyViolation(eval1, policy1, 9, LICENSE, component, "hash", FailActionType.ID);
 
     app2 = tempEntity.newApplication("App 2", "DashboardComponentDetailsTestApp2", org.getId());
-    eval2 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "DashboardComponentsTestEval2");
+    eval2 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "DashboardComponentsTestEval2",
+        DateUtils.addMinutes(new Date(), -1));
     tempEntity.newApplicationComponent(app2.getId(), ReleaseStageType.ID, "hash", component);
     tempEntity.newPolicyViolation(eval2, policy2, 5, LICENSE, component, "hash", WarnActionType.ID);
 
@@ -109,71 +111,69 @@ public class DashboardComponentDetailsTest
     eyesWatcher.eyesCheck("Initial state");
 
     // top row
-    ApplicationRow app1Row = dashboardComponentDetailsPage.getApplicationRow(0);
-    app1Row.accordion().shouldNotBe(visible);
+    ApplicationCard app1Row = dashboardComponentDetailsPage.getApplicationRow(0).shouldBe(visible);
 
-    app1Row.appIcon().shouldHave(attribute("src", appIconImageSource(app1.getPublicId())));
-    app1Row.name().shouldHave(text(org.getName() + " : " + app1.getName()));
-    app1Row.twisty().shouldBe(CLM.EXPANDED).click();
+    app1Row.name().shouldHave(text(app1.getName()));
 
-    app1Row.accordion().shouldBe(visible);
-    app1Row.accordion().entries().shouldHaveSize(1);
-    AccordionRow accordion1Row = app1Row.accordion().entry(1);
-    accordion1Row.threatBar().shouldHave(cssClass("critical"));
-    accordion1Row.threat().shouldHave(text("9"));
-    accordion1Row.policyName().shouldHave(text(policy1.getName()));
+    ApplicationCardTotals app1Totals = app1Row.totals().shouldBe(visible);
+    app1Totals.pie().shouldBe(visible);
+    app1Totals.shareOfRisk().shouldHave(text("64%"));
+    app1Totals.risk().shouldHave(text("9"));
+    app1Totals.source().shouldBe(empty);
+    app1Totals.build().anchor().shouldHave(attribute("href", ApplicationReportPage.url(app1, eval1.getScanId())));
+    app1Totals.build().anchorText().shouldHave(text("1min"));
+    app1Totals.stage().shouldBe(empty);
+    app1Totals.release().shouldBe(empty);
+    app1Totals.operate().shouldBe(empty);
 
-    for (ComponentDetailsRow row : asList(app1Row, accordion1Row)) {
-      row.pie().shouldBe(visible);
-      row.shareOfRisk().shouldHave(text("64%"));
-      row.risk().shouldHave(text("9"));
-      row.source().shouldBe(empty);
-      row.build().anchor().shouldHave(text("1min"), attribute("title", "View application report"),
-          attribute("href", ApplicationReportPage.url(app1, eval1.getScanId())));
-      row.stage().shouldBe(empty);
-      row.release().shouldBe(empty);
-      row.operate().shouldBe(empty);
-    }
+    app1Row.accordionRow().shouldBe(visible).click();
+    ApplicationCardTable app1Table = app1Row.table().shouldBe(visible);
+
+    app1Table.threatIndicator().shouldHave(cssClass("nx-threat-indicator--critical"));
+    app1Table.threat().shouldHave(text("9"));
+    app1Table.policyName().shouldHave(text(policy1.getName()));
+    app1Table.pie().shouldBe(visible);
+    app1Table.shareOfRisk().shouldHave(text("64%"));
+    app1Table.risk().shouldHave(text("9"));
+    app1Table.source().shouldBe(empty);
+    app1Table.build().anchor().shouldHave(attribute("href", ApplicationReportPage.url(app1, eval1.getScanId())));
+    app1Table.build().anchorText().shouldHave(text("1min"));
+    app1Table.stage().shouldBe(empty);
+    app1Table.release().shouldBe(empty);
+    app1Table.operate().shouldBe(empty);
 
     // bottom row
-    ApplicationRow app2Row = dashboardComponentDetailsPage.getApplicationRow(1);
-    app2Row.accordion().shouldNotBe(visible);
+    ApplicationCard app2Row = dashboardComponentDetailsPage.getApplicationRow(1).shouldBe(visible);
 
-    app2Row.appIcon().shouldHave(attribute("src", appIconImageSource(app2.getPublicId())));
-    app2Row.name().shouldHave(text(org.getName() + " : " + app2.getName()));
-    app2Row.twisty().shouldBe(CLM.EXPANDED).click();
+    app2Row.name().shouldHave(text(app2.getName()));
 
-    app2Row.accordion().shouldBe(visible);
-    app2Row.accordion().entries().shouldHaveSize(1);
-    AccordionRow accordion2Row = app2Row.accordion().entry(1);
-    accordion2Row.threatBar().shouldHave(cssClass("severe"));
-    accordion2Row.threat().shouldHave(text("5"));
-    accordion2Row.policyName().shouldHave(text(policy2.getName()));
+    ApplicationCardTotals app2Totals = app2Row.totals().shouldBe(visible);
+    app2Totals.pie().shouldBe(visible);
+    app2Totals.shareOfRisk().shouldHave(text("36%"));
+    app2Totals.risk().shouldHave(text("5"));
+    app2Totals.source().shouldBe(empty);
+    app2Totals.build().shouldBe(empty);
+    app2Totals.stage().shouldBe(empty);
+    app2Totals.release().anchor().shouldHave(attribute("href", ApplicationReportPage.url(app2, eval2.getScanId())));
+    app2Totals.release().anchorText().shouldHave(text("1min"));
+    app2Totals.operate().shouldBe(empty);
 
-    for (ComponentDetailsRow row : asList(app2Row, accordion2Row)) {
-      row.pie().shouldBe(visible);
-      row.shareOfRisk().shouldHave(text("36%"));
-      row.risk().shouldHave(text("5"));
-      row.source().shouldBe(empty);
-      row.build().shouldBe(empty);
-      row.stage().shouldBe(empty);
-      row.release().anchor().shouldHave(text("1min"), attribute("title", "View application report"),
-          attribute("href", ApplicationReportPage.url(app2, eval2.getScanId())));
-      row.operate().shouldBe(empty);
-    }
+    app2Row.accordionRow().shouldBe(visible).click();
+    ApplicationCardTable app2Table = app2Row.table().shouldBe(visible);
+
+    app2Table.threatIndicator().shouldHave(cssClass("nx-threat-indicator--severe"));
+    app2Table.threat().shouldHave(text("5"));
+    app2Table.policyName().shouldHave(text(policy2.getName()));
+    app2Table.pie().shouldBe(visible);
+    app2Table.shareOfRisk().shouldHave(text("36%"));
+    app2Table.risk().shouldHave(text("5"));
+    app2Table.source().shouldBe(empty);
+    app2Table.build().shouldBe(empty);
+    app2Table.stage().shouldBe(empty);
+    app2Table.release().anchor().shouldHave(attribute("href", ApplicationReportPage.url(app2, eval2.getScanId())));
+    app2Table.release().anchorText().shouldHave(text("1min"));
+    app2Table.operate().shouldBe(empty);
 
     eyesWatcher.eyesCheck("Accordions expanded");
-
-    // collapse accordions
-    app1Row.accordion().shouldBe(visible);
-    app1Row.twisty().click();
-    app1Row.accordion().shouldNotBe(visible);
-    app2Row.accordion().shouldBe(visible);
-    app2Row.twisty().click();
-    app2Row.accordion().shouldNotBe(visible);
-
-    dashboardComponentDetailsPage.breadCrumb().shouldHave(text("Dashboard/ Component Details"));
-    dashboardComponentDetailsPage.breadCrumbLink().shouldHave(text("Dashboard")).click();
-    DashboardPage.componentsView().results().shouldBe(visible);
   }
 }

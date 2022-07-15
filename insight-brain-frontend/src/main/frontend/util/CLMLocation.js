@@ -954,6 +954,13 @@ export const getCrowdConfigurationTestUrl = () => {
 export const getMoveApplicationUrl = (applicationId, organizationId) =>
   uriTemplate`/api/v2/applications/${applicationId}/move/organization/${organizationId}`;
 
+export const getComponentRiskDetailsUrl = (hash) => {
+  return uriTemplate`/rest/componentDetails/applications?hash=${hash}`;
+};
+
+export const getComponentNameUrl = (hash) => {
+  return uriTemplate`/rest/componentDetails/name?hash=${hash}`;
+};
 export function getPermissionsTestUrl(ownerType, ownerId) {
   return uriTemplate`/rest/user/permissions/${ownerType}/${ownerId}`;
 }
@@ -1113,12 +1120,9 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
         return baseUrl.get() + '/rest/dashboard/components/summary';
       },
 
-      getComponentDetailsUrl: function (hash) {
-        return baseUrl.get() + '/rest/componentDetails/applications?hash=' + hash;
-      },
-      getComponentNameUrl: function (hash) {
-        return baseUrl.get() + '/rest/componentDetails/name?hash=' + hash;
-      },
+      getComponentDetailsUrl: getComponentRiskDetailsUrl,
+
+      getComponentNameUrl,
 
       getNotificationUrl,
 

@@ -459,11 +459,6 @@ $dashboard-border: $dashboard-border-width solid #ccc;
   overflow-y: auto;
 }
 
-.component-total-risk {
-  grid-area: actions;
-  text-align: right;
-}
-
 // used by component details
 @media (max-width: 1249px) {
   table {

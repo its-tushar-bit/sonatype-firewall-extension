@@ -10,13 +10,13 @@ import storesModule from '../utilAngular/Stores';
 import ComponentModule from './ComponentController';
 import ComponentDisplayModule from '../ComponentDisplay/module';
 import template from './dashboard.view.html';
-import componentTemplate from './component.html';
 import dashboardResultsActionsModule from './results/dashboardResultsActions';
 import DashboardHeaderContainer from './results/DashboardHeaderContainer';
 
 import dashboardResultsContainer from './results/dashboardResultsContainer';
 import DashboardViolationsContainer from './results/violations/DashboardViolationsContainer';
 import DashboardComponentsContainer from './results/components/DashboardComponentsContainer';
+import ComponentRisk from './results/componentRisk/ComponentRisk';
 import DashboardApplicationsContainer from './results/applications/DashboardApplicationsContainer';
 
 var dashboardModule = angular
@@ -32,7 +32,8 @@ var dashboardModule = angular
   .component('dashboardHeader', iqReact2Angular(DashboardHeaderContainer, [], ['$ngRedux', '$state']))
   .component('violations', iqReact2Angular(DashboardViolationsContainer, [], ['$ngRedux']))
   .component('components', iqReact2Angular(DashboardComponentsContainer, [], ['$ngRedux']))
-  .component('applications', iqReact2Angular(DashboardApplicationsContainer, [], ['$ngRedux', '$state']));
+  .component('applications', iqReact2Angular(DashboardApplicationsContainer, [], ['$ngRedux', '$state']))
+  .component('component', iqReact2Angular(ComponentRisk, [], ['$ngRedux', '$state']));
 
 export default dashboardModule;
 
@@ -82,8 +83,7 @@ dashboardModule.config([
       })
       .state('dashboard.component', {
         url: '/component/{hash}',
-        controller: 'componentController',
-        template: componentTemplate,
+        component: 'component',
         data: {
           crumb: 'Component Details',
         },

@@ -15,7 +15,7 @@ export const formatDate = (date, format = STANDARD_DATE_TIME_FORMAT) => {
 };
 
 // Copied from our AngularCommon library
-export const formatTimeAgo = (date) => {
+export const formatTimeAgo = (date, isTruncated = false) => {
   if (!date) {
     return '';
   }
@@ -26,23 +26,26 @@ export const formatTimeAgo = (date) => {
 
   if (diff > 12 * 30 * 24 * 60 * 60 * 1000) {
     val = diff / (12 * 30 * 24 * 60 * 60 * 1000);
-    unit = 'year';
+    unit = isTruncated ? 'y' : 'year';
   } else if (diff > 30 * 24 * 60 * 60 * 1000) {
     val = diff / (30 * 24 * 60 * 60 * 1000);
-    unit = 'month';
+    unit = isTruncated ? 'mo' : 'month';
   } else if (diff > 24 * 60 * 60 * 1000) {
     val = diff / (24 * 60 * 60 * 1000);
-    unit = 'day';
+    unit = isTruncated ? 'd' : 'day';
   } else if (diff > 60 * 60 * 1000) {
     val = diff / (60 * 60 * 1000);
-    unit = 'hour';
+    unit = isTruncated ? 'h' : 'hour';
   } else if (diff > 60 * 1000) {
     val = diff / (60 * 1000);
-    unit = 'minute';
+    unit = isTruncated ? 'min' : 'minute';
   } else {
-    return 'seconds ago';
+    return isTruncated ? 's' : 'seconds ago';
   }
   val = Math.floor(val);
+  if (isTruncated) {
+    return `${val}${unit}`;
+  }
   if (val > 1) {
     unit += 's';
   }

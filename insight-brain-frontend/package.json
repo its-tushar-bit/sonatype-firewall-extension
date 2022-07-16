@@ -55,7 +55,7 @@
     "is-valid-hostname": "^1.0.0",
     "jquery": "^3.5.0",
     "jquery.browser": "^0.1.0",
-    "moment": "^2.29.2",
+    "moment": "^2.29.4",
     "moment-timezone": "^0.5.34",
     "ng-redux": "^4.4.3",
     "plottable": "^3.7.0",
@@ -128,7 +128,7 @@
   "resolutions": {
     "lodash": "^4.17.21",
     "immer": "^9.0.6",
-    "moment": "^2.29.2"
+    "moment": "^2.29.4"
   },
   "repository": {
     "type": "git",

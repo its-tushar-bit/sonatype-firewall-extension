@@ -12,10 +12,10 @@ make(
     javaVersion: 'Java 8',
     mavenVersion: 'Maven 3.6.x',
     mavenOptions: '-D skipTests -D skip-functional-test',
-    snapshotBuildAndTest: { Map<String, String> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->
+    snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->
       runAllTests(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
     },
-    releaseBuildAndTest: { Map<String, String> mavenCommon, String keystoreCredId, boolean useInstall4J ->
+    releaseBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean useInstall4J ->
       runAllTests(mavenCommon, keystoreCredId, false, useInstall4J)
     },
     runFeatureBranchPolicyEvaluations: true,
@@ -49,7 +49,7 @@ make(
     }
 )
 
-def configureBranchJob() {
+void configureBranchJob() {
   // Use the project name to determine the branch
   String projName = currentBuild.fullProjectName
   boolean applitoolsEnabledByDefault = (projName.toLowerCase().contains('master') || projName.endsWith('_ui'))
@@ -78,13 +78,13 @@ def configureBranchJob() {
   ])
 }
 
-def pushDockerImageIfDeployBranch() {
+void pushDockerImageIfDeployBranch() {
     //If the git repo branch name isn't main or the project name isn't snapshot, skip the image build and deploy.
     if (!isDeployBranch(env, 'main') || !currentBuild.fullProjectName.contains("snapshot")) {
         echo 'Skipping push of docker image for non-deploy branch or release'
         return
     }
-    def version = getMavenProjectVersion('.')
+    String version = getMavenProjectVersion('.')
     dir("nexus-iq-server") {
         withSonatypeDockerRegistry() {
             String shortImage = "iq/snapshot:${version.split("-")[0]}-${env.BUILD_NUMBER}"
@@ -104,23 +104,40 @@ def pushDockerImageIfDeployBranch() {
                 value: 'docker-all.repo.sonatype.com/iq/snapshot:latest')], propagate: false)
 }
 
-def runAllTests(Map<String, String> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {
+void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {
   buildAndTest(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
   // archive things for the parallel blocks which will copy
   // these artifacts to different agents for each parallel block
   runSafely 'zip --symlinks -q -r workspace.zip .'
   archiveArtifacts(artifacts: 'workspace.zip', fingerprint: false)
-  parallel(parallelTests())
+  parallel(getParallelTests())
 }
 
-Map<String, Closure> parallelTests() {
-  Map<String, Closure> blocks = [:]
+Map<String, Closure> getParallelTests() {
+  Map<String, Closure> testStages = [:]
+  testStages << createGebTests()
+  testStages << createFunctionalTests('Java Functional Tests A', '.*/[A-C].*Test.class')
+  testStages << createFunctionalTests('Java Functional Tests B', '.*/[D-H].*Test.class')
+  testStages << createFunctionalTests('Java Functional Tests C', '.*/[I-R].*Test.class')
+  testStages << createFunctionalTests('Java Functional Tests D', '.*/[S-Z].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - Java 8 A', 'Java 8', '.*/[A-H].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - Java 8 B', 'Java 8', '.*/[I-P].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - Java 8 C', 'Java 8', '.*/[Q-Z].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 A', 'OpenJDK 11', '.*/[A-H].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 B', 'OpenJDK 11', '.*/[I-P].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 C', 'OpenJDK 11', '.*/[Q-Z].*Test.class')
+  return testStages
+}
 
-  blocks << ['Geb Tests': {
-    node(InsightConstants.AGENT_LABEL){
-      stage("Geb Tests") {
+Map<String, Closure> createGebTests() {
+  return ['Geb Tests': {
+    node(InsightConstants.AGENT_LABEL) {
+      stage('Geb Tests') {
         try {
-          gebTests()
+          copyRepo()
+          String mavenOptions = "-Dgeb.env=ci -Drun-functional-tests=docker -Ddocker.registry=${sonatypeDockerRegistryId()}"
+          Map<String, ?> testConfig = testConfig(mavenOptions, 'insight-brain-functional-test/pom.xml')
+          mvn testConfig, 'verify'
         }
         finally {
           captureResultsAndCleanup()
@@ -128,92 +145,70 @@ Map<String, Closure> parallelTests() {
       }
     }
   }]
-
-  ['A': '.*/[A-C].*Test.class', 'B': '.*/[D-H].*Test.class', 'C': '.*/[I-R].*Test.class', 'D': '.*/[S-Z].*Test.class'].each { String label, String regex ->
-    def blockName = "Java Functional Tests ${label}"
-    blocks << ["${blockName}": {
-      node(InsightConstants.AGENT_LABEL){
-        stage(blockName) {
-          try {
-            withEnv(["APPLITOOLS_BATCH_ID=${env.GIT_COMMIT}"]) {
-              functionalTests('chrome', regex)
-            }
-          }
-          finally {
-            captureResultsAndCleanup()
-          }
-        }
-      }
-    }]
-  }
-
-  ['A': '.*/[A-H].*Test.class', 'B': '.*/[I-P].*Test.class', 'C': '.*/[Q-Z].*Test.class'].each { String label, String regex ->
-    ['Java 8','OpenJDK 11'].each {String jdk ->
-        def blockName = "Unit and Integration Tests - ${jdk} ${label}"
-        blocks << ["${blockName}": {
-          node(InsightConstants.AGENT_LABEL){
-            stage(blockName) {
-              try {
-                unitTests(regex, jdk)
-              }
-              finally {
-                if (jdk == 'Java 8' && label == 'A') {
-                  sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: !currentBuild.fullProjectName.contains
-                  ("master"))
-                }
-                captureResultsAndCleanup()
-              }
-            }
-          }
-        }]
-      }
-  }
-
-  return blocks
 }
 
-Map<String, String> testConfig(String mavenOptions, String pomFile = null, String javaVersion = 'Java 8') {
+Map<String, Closure> createFunctionalTests(String stageName, String regex) {
+  return ["${stageName}": {
+    node(InsightConstants.AGENT_LABEL) {
+      stage(stageName) {
+        try {
+          withEnv(["APPLITOOLS_BATCH_ID=${env.GIT_COMMIT}"]) {
+            copyRepo()
+            withCredentials([string(credentialsId: 'APPLITOOLS_KEY', variable: 'applitoolsKey')]) {
+              String mavenOptions = "'-Dit.test=%regex[${regex}]'"
+              mavenOptions += ' -Drun-functional-tests=docker'
+              mavenOptions += " -Dbrowser=chrome"
+              mavenOptions += " -DapplitoolsKey=${applitoolsKey}"
+              mavenOptions += " -DapplitoolsEnabled=${isEyesEnabled()}"
+              mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
+              Map<String, ?> testConfig = testConfig(mavenOptions, 'insight-brain-java-functional-test/pom.xml')
+              mvn testConfig, 'verify'
+            }
+          }
+        }
+        finally {
+          captureResultsAndCleanup()
+        }
+      }
+    }
+  }]
+}
+
+Map<String, Closure> createUnitTests(String stageName, String jdk, String regex) {
+  return ["${stageName}": {
+    node(InsightConstants.AGENT_LABEL){
+      stage(stageName) {
+        try {
+          copyRepo()
+          Map<String, ?> testConfig = testConfig(
+                "-Dtest=%regex[${regex}] -Dit.test=%regex[${regex}] -Dskip-functional-test " +
+                    "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage",
+                null, jdk)
+          mvn testConfig, 'install'
+        }
+        finally {
+          if (jdk == 'Java 8' && stageName == 'Unit & Integration Tests - Java 8 A') {
+            sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: !currentBuild.fullProjectName.contains("master"))
+          }
+          captureResultsAndCleanup()
+        }
+      }
+    }
+  }]
+}
+
+Map<String, ?> testConfig(String mavenOptions, String pomFile = null, String javaVersion = 'Java 8') {
   return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.6.x', useEventSpy: false,
       pomFile: pomFile, mavenOptions: mavenOptions)
 }
 
-def copyRepo() {
+void copyRepo() {
   copyArtifacts(projectName: currentBuild.fullProjectName, filter: 'workspace.zip', selector: specific(currentBuild.id),
       flatten: false)
   runSafely 'unzip -q -o workspace.zip'
 }
 
-def gebTests() {
-  copyRepo()
-  String mavenOptions = "-Dgeb.env=ci -Drun-functional-tests=docker -Ddocker.registry=${sonatypeDockerRegistryId()}"
-  Map<String, String> testConfig = testConfig(mavenOptions, 'insight-brain-functional-test/pom.xml')
-  mvn testConfig, 'verify'
-}
-
-def functionalTests(String browser, String testRegex) {
-  copyRepo()
-  withCredentials([string(credentialsId: 'APPLITOOLS_KEY', variable: 'applitoolsKey')]) {
-    String mavenOptions = "'-Dit.test=%regex[${testRegex}]'"
-    mavenOptions += ' -Drun-functional-tests=docker'
-    mavenOptions += " -Dbrowser=${browser}"
-    mavenOptions += " -DapplitoolsKey=${applitoolsKey}"
-    mavenOptions += " -DapplitoolsEnabled=${isEyesEnabled()}"
-    mavenOptions += " -Ddocker.registry=${sonatypeDockerRegistryId()}"
-    Map<String, String> testConfig = testConfig(mavenOptions, 'insight-brain-java-functional-test/pom.xml')
-    mvn testConfig, 'verify'
-  }
-}
-
-def unitTests(String testRegex, String javaVersion = 'Java 8') {
-  copyRepo()
-  Map<String, String> testConfig = testConfig(
-      "-Dtest=%regex[${testRegex}] -Dit.test=%regex[${testRegex}] -Dskip-functional-test " +
-          "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage",
-      null, javaVersion)
-  mvn testConfig, 'install'
-}
-
-def captureResultsAndCleanup() {
+void captureResultsAndCleanup() {
   archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/*.xml, **/*-output.txt')
   collectTestResults(['**/target/*-reports/*.xml'])
   deleteDir()

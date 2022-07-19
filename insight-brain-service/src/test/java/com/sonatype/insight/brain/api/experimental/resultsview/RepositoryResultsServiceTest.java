@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.repository.resultsview;
+package com.sonatype.insight.brain.api.experimental.resultsview;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,10 +21,10 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField.SortableField;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.repository.resultsview.RepositoryResultsDetailsRequestDto.MatchStateFilter;
-import com.sonatype.insight.brain.repository.resultsview.RepositoryResultsDetailsRequestDto.SearchFilter;
-import com.sonatype.insight.brain.repository.resultsview.RepositoryResultsDetailsRequestDto.SearchFilter.FilterableField;
-import com.sonatype.insight.brain.repository.resultsview.RepositoryResultsDetailsRequestDto.ViolationStateFilter;
+import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.MatchStateFilter;
+import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.SearchFilter;
+import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.SearchFilter.FilterableField;
+import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.ViolationStateFilter;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.repository.resultsview;
+package com.sonatype.insight.brain.api.experimental.resultsview;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,9 +22,9 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.repository.resultsview.RepositoryResultsDetailsRequestDto.MatchStateFilter;
-import com.sonatype.insight.brain.repository.resultsview.RepositoryResultsDetailsRequestDto.SearchFilter;
-import com.sonatype.insight.brain.repository.resultsview.RepositoryResultsDetailsRequestDto.ViolationStateFilter;
+import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.MatchStateFilter;
+import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.SearchFilter;
+import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.ViolationStateFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -35,7 +35,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.repository.resultsview.RepositoryResultsDetailsRequestDto.ViolationStateFilter.VIOLATION_STATE_ALL;
+import static com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.ViolationStateFilter.VIOLATION_STATE_ALL;
 
 @Named
 class RepositoryResultsService

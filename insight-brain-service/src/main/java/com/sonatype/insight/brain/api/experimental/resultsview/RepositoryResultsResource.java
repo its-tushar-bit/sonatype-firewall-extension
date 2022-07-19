@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.repository.resultsview;
+package com.sonatype.insight.brain.api.experimental.resultsview;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ import com.codahale.metrics.annotation.Timed;
 @Path(RepositoryResultsResource.RESOURCE_PATH)
 public class RepositoryResultsResource
 {
-  public static final String RESOURCE_PATH = "rest/repositories/{repositoryId}/results/details";
+  public static final String RESOURCE_PATH = "api/experimental/repositories/{repositoryId}/results/details";
 
   private final RepositoryResultsService repositoryResultsService;
 

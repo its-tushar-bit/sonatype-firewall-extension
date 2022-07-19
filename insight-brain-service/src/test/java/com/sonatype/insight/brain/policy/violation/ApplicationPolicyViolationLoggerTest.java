@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.test.LogOutput;
 
@@ -22,13 +23,18 @@ import ch.qos.logback.classic.Logger;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class ApplicationPolicyViolationLoggerTest
     extends AbstractComponentTest
 {
+  @Mock
+  private CurrentUser currentUser;
+
   @Rule
   public LogOutput logOutput = new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
@@ -46,12 +52,14 @@ public class ApplicationPolicyViolationLoggerTest
     application = tempEntity.newApplication(organization.getId());
     policy = tempEntity.newPolicy(application);
     policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId");
+
   }
 
   @Test
   public void testLog() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application);
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolationOne = createPolicyViolation();
     policyViolationLogger.add(policyViolationLogEvent, policyViolationOne);
@@ -62,15 +70,16 @@ public class ApplicationPolicyViolationLoggerTest
 
     List<PolicyViolationLogDTO> policyViolationLogDTOs = assertPolicyViolationLogDTOs(2);
     assertApplicationPolicyViolationData(policyViolationLogDTOs.get(0), policyViolationLogEvent,
-        policyViolationOne.getOpenTime(), policyViolationOne);
+        policyViolationOne.getOpenTime(), policyViolationOne, currentUser.getUsername());
     assertApplicationPolicyViolationData(policyViolationLogDTOs.get(1), policyViolationLogEvent,
-        policyViolationTwo.getOpenTime(), policyViolationTwo);
+        policyViolationTwo.getOpenTime(), policyViolationTwo, currentUser.getUsername());
   }
 
   @Test
   public void testLog_NoComponentIdentifier() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application);
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setComponentIdentifier(null);
@@ -79,13 +88,13 @@ public class ApplicationPolicyViolationLoggerTest
     policyViolationLogger.log();
 
     assertApplicationPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent,
-        policyViolation.getOpenTime(), policyViolation);
+        policyViolation.getOpenTime(), policyViolation, currentUser.getUsername());
   }
 
   @Test
   public void testLog_NoLogMessagesWithoutInfoEnabled() {
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application);
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);
     Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory
         .getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
     Level level = logger.getLevel();
@@ -105,7 +114,7 @@ public class ApplicationPolicyViolationLoggerTest
   @Test
   public void testLog_NoLogMessagesWithoutLicensedFeature() {
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(false, policyEvaluation.getTime(), application);
+        new ApplicationPolicyViolationLogger(false, policyEvaluation.getTime(), application, currentUser);
     policyViolationLogger.add(PolicyViolationLogEvent.CREATE, createPolicyViolation());
 
     policyViolationLogger.log();
@@ -115,8 +124,9 @@ public class ApplicationPolicyViolationLoggerTest
 
   @Test
   public void testLog_NoStagePolicyActionForCreateEventWithGrandfatheredViolation() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application);
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setGrandfatherTime(new Date());
@@ -125,13 +135,14 @@ public class ApplicationPolicyViolationLoggerTest
     policyViolationLogger.log();
 
     assertApplicationPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent,
-        policyViolation.getOpenTime(), policyViolation);
+        policyViolation.getOpenTime(), policyViolation, currentUser.getUsername());
   }
 
   @Test
   public void testLog_NoStagePolicyActionForCreateEventWithWaivedViolation() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application);
+        new ApplicationPolicyViolationLogger(true, policyEvaluation.getTime(), application, currentUser);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CREATE;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setWaiveTime(new Date());
@@ -140,14 +151,15 @@ public class ApplicationPolicyViolationLoggerTest
     policyViolationLogger.log();
 
     assertApplicationPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent,
-        policyViolation.getOpenTime(), policyViolation);
+        policyViolation.getOpenTime(), policyViolation, currentUser.getUsername());
   }
 
   @Test
   public void testLog_NoStagePolicyActionForFixEvent() throws Exception {
     Date fixTime = new Date();
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     ApplicationPolicyViolationLogger policyViolationLogger =
-        new ApplicationPolicyViolationLogger(true, fixTime, application);
+        new ApplicationPolicyViolationLogger(true, fixTime, application, currentUser);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.FIX;
     PolicyViolation policyViolation = createPolicyViolation();
     policyViolation.setFixTime(fixTime);
@@ -156,7 +168,7 @@ public class ApplicationPolicyViolationLoggerTest
     policyViolationLogger.log();
 
     assertApplicationPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent,
-        fixTime, policyViolation);
+        fixTime, policyViolation, currentUser.getUsername());
   }
 
   private PolicyViolation createPolicyViolation() {
@@ -170,9 +182,10 @@ public class ApplicationPolicyViolationLoggerTest
   private void assertApplicationPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
                                                     PolicyViolationLogEvent policyViolationLogEvent,
                                                     Date eventTime,
-                                                    PolicyViolation policyViolation) throws Exception
+                                                    PolicyViolation policyViolation,
+                                                    String userName) throws Exception
   {
     PolicyViolationLogDTOAssert.assertApplicationPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent,
-        organization, application, eventTime, policyViolation);
+        organization, application, eventTime, policyViolation, userName);
   }
 }

@@ -130,6 +130,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.GRANDFATHER_TIME;
@@ -143,6 +144,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ScanPolicyEvaluatorTest
     extends AbstractComponentTest
@@ -151,6 +153,9 @@ public class ScanPolicyEvaluatorTest
   public LogOutput policyViolationLoggerOutput =
       new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
   
+  @Mock
+  private CurrentUser currentUser;
+
   private Organization organization;
 
   private Application application;
@@ -1763,6 +1768,7 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_PolicyViolationLogger_CreateAndFixPolicyViolations() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = simulateReportIsAvailable("report");
     Policy policy = newSecurityPolicy();
@@ -1771,7 +1777,8 @@ public class ScanPolicyEvaluatorTest
     ScanPolicyEvaluatorResults results =
         scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI);
 
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
+        currentUser.getUsername());
     policyViolationLoggerOutput.clear();
 
     // Second evaluation, all policy violations are the same, none logged
@@ -1784,11 +1791,12 @@ public class ScanPolicyEvaluatorTest
     results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI);
 
     assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX, results.evaluation.getTime(),
-        new PolicyViolationDAO().getByApplicationId(application.getId()));
+        new PolicyViolationDAO().getByApplicationId(application.getId()), currentUser.getUsername());
   }
 
   @Test
   public void testEvaluate_PolicyViolationLogger_WaiveAndUnwaivePolicyViolations() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     // Create two policies that will cause policy violations and waive one policy.
     Policy securityPolicy = newSecurityPolicy();
     tempEntity.newWaiver(securityPolicy.getId(), application.getId());
@@ -1800,11 +1808,13 @@ public class ScanPolicyEvaluatorTest
     ScanPolicyEvaluatorResults results =
         scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI);
     assertThat(results.allViolations).hasSize(2);
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
+        currentUser.getUsername());
     List<PolicyViolation> waivedViolations =
         filterPolicyViolationsByPolicyId(results.allViolations, securityPolicy.getId());
     assertThat(waivedViolations).hasSize(1);
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, results.evaluation.getTime(), waivedViolations);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, results.evaluation.getTime(), waivedViolations,
+        currentUser.getUsername());
 
     policyViolationLoggerOutput.clear();
 
@@ -1819,7 +1829,8 @@ public class ScanPolicyEvaluatorTest
     List<PolicyViolation> newWaivedViolations =
         filterPolicyViolationsByPolicyId(results.allViolations, licensePolicy.getId());
     assertThat(newWaivedViolations).hasSize(1);
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, results.evaluation.getTime(), newWaivedViolations);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, results.evaluation.getTime(), newWaivedViolations,
+        currentUser.getUsername());
 
     policyViolationLoggerOutput.clear();
 
@@ -1832,7 +1843,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(results.allViolations).hasSize(2);
     assertThat(results.activeViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.UNWAIVE, results.evaluation.getTime(),
-        Collections.singletonList(results.activeViolations.get(0)));
+        Collections.singletonList(results.activeViolations.get(0)), currentUser.getUsername());
   }
 
   private List<PolicyViolation> filterPolicyViolationsByPolicyId(List<PolicyViolation> policyViolations,
@@ -1844,6 +1855,7 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_PolicyViolationLogger_GrandfatherPolicyViolations() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
     application.setPolicyViolationGrandfatheringEnabled(true);
@@ -1862,12 +1874,13 @@ public class ScanPolicyEvaluatorTest
         scanPolicyEvaluator.evaluate(application, scanId, new Stage(Stage.ID_BUILD), ScanTriggerType.CLI);
     assertThat(results.allViolations).hasSize(2);
     assertThat(results.activeViolations).hasSize(1);
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
+        currentUser.getUsername());
     List<PolicyViolation> grandfatheredViolations =
         filterPolicyViolationsByPolicyId(results.allViolations, securityPolicy.getId());
     assertThat(grandfatheredViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.GRANDFATHER, results.evaluation.getTime(),
-        grandfatheredViolations);
+        grandfatheredViolations, currentUser.getUsername());
   }
 
   @Test
@@ -1890,6 +1903,7 @@ public class ScanPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_PolicyViolationLogger_LogsPolicyConditionTriggersForAllConditionTypes() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Label label = tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID);
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(Organization.ROOT_ORGANIZATION_ID);
     tempEntity.newSecurityVulnerabilityOverride(application.getId(), "964cd74171f427720480", "sonatype",
@@ -1953,7 +1967,8 @@ public class ScanPolicyEvaluatorTest
               new Stage(Stage.ID_BUILD), ScanTriggerType.CLI);
 
       assertThat(results.allViolations).hasSize(conditions.size());
-      assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
+      assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
+          currentUser.getUsername());
     }
     finally {
       ConditionTypes.disableConditionType(ConditionTypes.HygieneRatingConditionType);
@@ -2025,6 +2040,7 @@ public class ScanPolicyEvaluatorTest
   public void testEvaluate_PolicyViolationLogger_LogsPolicyConditionTriggersForMultipleConstraintsConditions()
       throws Exception
   {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Condition ageCondition1 = new Condition(AgeInDaysConditionType.ID, "older than", "1");
     Condition ageCondition2 = new Condition(AgeInDaysConditionType.ID, "younger than", "999999");
     Constraint constraint1 = new Constraint(null, "constraintName1", LogicalOperator.AND);
@@ -2042,7 +2058,8 @@ public class ScanPolicyEvaluatorTest
             new Stage(Stage.ID_BUILD), ScanTriggerType.CLI);
 
     assertThat(results.allViolations).isNotEmpty();
-    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations);
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
+        currentUser.getUsername());
   }
 
   @Test
@@ -2343,13 +2360,14 @@ public class ScanPolicyEvaluatorTest
   private void assertPolicyViolationsLogged(
       PolicyViolationLogEvent policyViolationLogEvent,
       Date evaluationTime,
-      List<PolicyViolation> policyViolations) throws Exception
+      List<PolicyViolation> policyViolations,
+      String userName) throws Exception
   {
     List<PolicyViolationLogDTO> policyViolationLogDTOs =
         PolicyViolationLogDTOAssert.assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent,
             policyViolations.size());
     PolicyViolationLogDTOAssert.assertApplicationPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
-        organization, application, evaluationTime, policyViolations);
+        organization, application, evaluationTime, policyViolations, userName);
   }
 
   private List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(int expected) throws Exception {

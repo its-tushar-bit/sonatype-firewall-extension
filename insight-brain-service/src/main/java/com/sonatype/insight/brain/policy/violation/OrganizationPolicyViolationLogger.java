@@ -9,6 +9,7 @@ import java.util.Date;
 
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.security.CurrentUser;
 
 /**
  * @since 1.60
@@ -18,8 +19,13 @@ public class OrganizationPolicyViolationLogger
 {
   private Organization organization;
 
-  public OrganizationPolicyViolationLogger(boolean licensed, Date logTimestamp, Organization organization) {
-    super(licensed, logTimestamp);
+  public OrganizationPolicyViolationLogger(
+      boolean licensed,
+      Date logTimestamp,
+      Organization organization,
+      CurrentUser currentUser)
+  {
+    super(licensed, logTimestamp, currentUser);
     this.organization = organization;
   }
 

@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
@@ -55,6 +56,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 public class ApiComponentReleaseQuarantineServiceTest
     extends AbstractComponentTest
@@ -72,6 +74,9 @@ public class ApiComponentReleaseQuarantineServiceTest
 
   @Mock
   private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+
+  @Mock
+  private CurrentUser currentUser;
 
   @Inject
   private ApiComponentReleaseQuarantineService service;
@@ -93,6 +98,7 @@ public class ApiComponentReleaseQuarantineServiceTest
 
   @Test
   public void testReleaseQuarantineWithoutReEval() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
@@ -241,6 +247,7 @@ public class ApiComponentReleaseQuarantineServiceTest
 
   @Test
   public void testReleaseQuarantineWithoutReEval_NullComponentIdentifier() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
@@ -380,6 +387,6 @@ public class ApiComponentReleaseQuarantineServiceTest
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent, policyViolations.size());
     PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
-        repository, before, after, policyViolations);
+        repository, before, after, policyViolations, currentUser.getUsername());
   }
 }

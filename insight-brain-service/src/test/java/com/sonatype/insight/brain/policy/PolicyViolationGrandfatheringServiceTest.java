@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -38,10 +39,12 @@ import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.when;
 
 public class PolicyViolationGrandfatheringServiceTest
     extends AbstractComponentTest
@@ -56,8 +59,12 @@ public class PolicyViolationGrandfatheringServiceTest
   @Inject
   private TestProductLicense testProductLicense;
 
+  @Mock
+  private CurrentUser currentUser;
+
   @Test
   public void testRevokeGrandfathering() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Application app1 = tempEntity.newApplicationWithParent();
     Application app2 = tempEntity.newApplicationWithParent();
     Policy policyGrandfathered = tempEntity.newPolicy();
@@ -83,7 +90,7 @@ public class PolicyViolationGrandfatheringServiceTest
     assertThat(policyViolationDAO.getById(grandfatheredPolicyViolation2.getId()).isGrandfathered()).isTrue();
 
     assertPolicyViolationsLogged(PolicyViolationLogEvent.UNGRANDFATHER, app1, before, after,
-        Collections.singletonList(grandfatheredPolicyViolation1));
+        Collections.singletonList(grandfatheredPolicyViolation1), currentUser.getUsername());
   }
 
   @Test
@@ -160,7 +167,8 @@ public class PolicyViolationGrandfatheringServiceTest
 
       Date grandfatherTime = unfixedPolicyViolation1.getGrandfatherTime();
       assertPolicyViolationsLogged(PolicyViolationLogEvent.GRANDFATHER, app, grandfatherTime, grandfatherTime,
-          Arrays.asList(unfixedPolicyViolation1, waivedPolicyViolation1, unfixedPolicyViolation1PolicyDoesNotExist));
+          Arrays.asList(unfixedPolicyViolation1, waivedPolicyViolation1, unfixedPolicyViolation1PolicyDoesNotExist),
+          currentUser.getUsername());
     }
     else {
       assertThat(unfixedPolicyViolation1.isGrandfathered()).isFalse();
@@ -175,13 +183,14 @@ public class PolicyViolationGrandfatheringServiceTest
                                             Application app,
                                             Date before,
                                             Date after,
-                                            List<PolicyViolation> policyViolations) throws Exception
+                                            List<PolicyViolation> policyViolations,
+                                            String userName) throws Exception
   {
     Organization org = new OrganizationDAO().getById(app.getOrganizationId());
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent, policyViolations.size());
     PolicyViolationLogDTOAssert.assertApplicationPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
-        org, app, before, after, policyViolations);
+        org, app, before, after, policyViolations, userName);
   }
 
   @Test
@@ -198,6 +207,7 @@ public class PolicyViolationGrandfatheringServiceTest
 
   @Test
   public void testGrandfather_GrandfatheringEnabledForApp_AppCanOverrideGrandfathering() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Organization organization = tempEntity.newOrganization();
     organization.setPolicyViolationGrandfatheringEnabled(false);
     organization.setAllowPolicyViolationGrandfatheringOverride(true);
@@ -238,6 +248,7 @@ public class PolicyViolationGrandfatheringServiceTest
   public void testGrandfather_GrandfatheringDisabledForApp_EnabledForOrg_AppCannotOverrideGrandfathering()
       throws Exception
   {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Organization organization = tempEntity.newOrganization();
     organization.setPolicyViolationGrandfatheringEnabled(true);
     organization.setAllowPolicyViolationGrandfatheringOverride(false);
@@ -252,6 +263,7 @@ public class PolicyViolationGrandfatheringServiceTest
   public void testGrandfather_GrandfatheringEnabledForApp_EnabledForOrg_AppCannotOverrideGrandfathering()
       throws Exception
   {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Organization organization = tempEntity.newOrganization();
     organization.setPolicyViolationGrandfatheringEnabled(true);
     organization.setAllowPolicyViolationGrandfatheringOverride(false);

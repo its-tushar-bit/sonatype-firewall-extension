@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -25,6 +24,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.webhook.ManagementEvent.OwnerEvent;
@@ -34,6 +34,7 @@ import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
@@ -42,6 +43,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
 public class OrganizationServiceTest
     extends AbstractComponentTest
@@ -60,6 +62,9 @@ public class OrganizationServiceTest
 
   @Inject
   private PolicyViolationLoggerFactory policyViolationLoggerFactory;
+
+  @Mock
+  private CurrentUser currentUser;
 
   /**
    * There's a similar protection at the DAO layer but given the order of operations, the service layer needs to prevent
@@ -131,6 +136,7 @@ public class OrganizationServiceTest
 
   @Test
   public void testDeleteOrganization_PolicyViolationLogger_LogsClearEvent() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Organization organization = tempEntity.newOrganization();
 
     Date before = new Date();
@@ -141,7 +147,7 @@ public class OrganizationServiceTest
         .assertPolicyViolationLogDTOs(logOutput, 1);
     PolicyViolationLogDTOAssert
         .assertOrganizationPolicyViolationData(policyViolationLogDTOs.get(0), PolicyViolationLogEvent.CLEAR,
-            organization, before, after);
+            organization, before, after, currentUser.getUsername());
   }
 
   @Test

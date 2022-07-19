@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.slf4j.Logger;
@@ -33,26 +34,30 @@ public class PolicyViolationLoggerFactory
 
   private final ProductLicense productLicense;
 
+  private final CurrentUser currentUser;
+
   @Inject
-  public PolicyViolationLoggerFactory(ProductLicense productLicense) {
+  public PolicyViolationLoggerFactory(ProductLicense productLicense, final CurrentUser currentUser) {
     this.productLicense = productLicense;
+    this.currentUser = currentUser;
   }
 
   public OrganizationPolicyViolationLogger newLogger(Date logTimestamp, Organization organization) {
     return new OrganizationPolicyViolationLogger(
         productLicense.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS), logTimestamp,
-        organization);
+        organization, currentUser);
   }
 
   public ApplicationPolicyViolationLogger newLogger(Date logTimestamp, Application application) {
     return new ApplicationPolicyViolationLogger(
         productLicense.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS), logTimestamp,
-        application);
+        application, currentUser);
   }
 
   public RepositoryPolicyViolationLogger newLogger(Date logTimestamp, Repository repository) {
     return new RepositoryPolicyViolationLogger(
-        productLicense.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES), logTimestamp, repository);
+        productLicense.hasFeature(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES), logTimestamp, repository,
+        currentUser);
   }
 
   private void logPotentialMisconfiguration() {

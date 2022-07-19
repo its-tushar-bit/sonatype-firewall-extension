@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
+import com.sonatype.insight.brain.security.CurrentUser;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,6 +38,8 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
 
   private final boolean enabled;
 
+  private final CurrentUser currentUser;
+
   /**
    * This timestamp will be used for all events logged by this logger instance.
    */
@@ -44,11 +47,12 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
 
   private List<PolicyViolationData<T>> policyViolationData = new LinkedList<>();
 
-  protected AbstractPolicyViolationLogger(boolean licensed, Date logTimestamp) {
+  protected AbstractPolicyViolationLogger(boolean licensed, Date logTimestamp, CurrentUser currentUser) {
     enabled = licensed && POLICY_VIOLATION_LOGGER.isInfoEnabled();
     formattedLogTimestamp =
         ZonedDateTime.ofInstant(Instant.ofEpochMilli(logTimestamp.getTime()), ZoneId.systemDefault())
             .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    this.currentUser = currentUser;
   }
 
   public void add(PolicyViolationLogEvent policyViolationLogEvent, T policyViolation) {
@@ -80,6 +84,7 @@ public abstract class AbstractPolicyViolationLogger<T extends AbstractPolicyViol
     T policyViolation = policyViolationData.policyViolation;
 
     PolicyViolationLogDTO policyViolationLogDTO = new PolicyViolationLogDTO();
+    policyViolationLogDTO.userName = currentUser.getUsername();
     policyViolationLogDTO.eventType = policyViolationData.policyViolationLogEvent.name().toLowerCase(Locale.ROOT);
     policyViolationLogDTO.eventTimestamp = formattedLogTimestamp;
     if (policyViolation != null) {

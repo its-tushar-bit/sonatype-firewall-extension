@@ -7,9 +7,11 @@ package com.sonatype.insight.brain.policy.violation;
 
 import java.util.Date;
 
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.security.CurrentUser;
 
 /**
  * @since 1.60
@@ -19,9 +21,13 @@ public class RepositoryPolicyViolationLogger
 {
   private final Repository repository;
 
-  public RepositoryPolicyViolationLogger(boolean licensed, Date logTimestamp, Repository repository) {
-    super(licensed, logTimestamp);
-
+  public RepositoryPolicyViolationLogger(
+      boolean licensed,
+      Date logTimestamp,
+      Repository repository,
+      CurrentUser currentUser)
+  {
+    super(licensed, logTimestamp, currentUser);
     this.repository = repository;
   }
 
@@ -34,6 +40,10 @@ public class RepositoryPolicyViolationLogger
     if (!PolicyViolationLogEvent.CLEAR.equals(policyViolationData.policyViolationLogEvent)) {
       policyViolationLogDTO.stageTypeId = StageTypes.PROXY.getId();
     }
+    RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
+    policyViolationLogDTO.repositoryManagerId = repository.getRepositoryManagerId();
+    policyViolationLogDTO.repositoryManagerInstanceId =
+        repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId();
     policyViolationLogDTO.repositoryId = repository.getId();
     policyViolationLogDTO.repositoryPublicId = repository.getPublicId();
     return policyViolationLogDTO;

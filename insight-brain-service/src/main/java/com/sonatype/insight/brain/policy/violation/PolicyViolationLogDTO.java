@@ -36,6 +36,8 @@ public class PolicyViolationLogDTO
 
   public String stagePolicyAction;
 
+  public String userName;
+
   public String organizationId;
 
   public String organizationName;
@@ -49,6 +51,10 @@ public class PolicyViolationLogDTO
   public String repositoryId;
 
   public String repositoryPublicId;
+
+  public String repositoryManagerId;
+
+  public String repositoryManagerInstanceId;
 
   public ComponentIdentifier componentIdentifier;
 

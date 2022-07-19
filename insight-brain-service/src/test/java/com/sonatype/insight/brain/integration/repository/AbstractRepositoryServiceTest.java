@@ -13,7 +13,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.mail.Message;
 
@@ -75,6 +74,7 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.repository.RepositoryPolicyAlertEmailer;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
@@ -164,6 +164,9 @@ public abstract class AbstractRepositoryServiceTest
 
   @Mock
   private TelemetrySender telemetrySenderMock;
+
+  @Mock
+  private CurrentUser currentUser;
 
   @Override
   public void configure(Binder binder) {
@@ -1886,6 +1889,7 @@ public abstract class AbstractRepositoryServiceTest
 
   @Test
   public void testRemoveComponent_PolicyViolationLogger_LogsFixEventForEachDeletedViolation() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "path1");
     RepositoryPolicyViolation activeRepositoryPolicyViolation1 = tempEntity
@@ -1903,7 +1907,8 @@ public abstract class AbstractRepositoryServiceTest
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, 2);
     PolicyViolationLogDTOAssert
         .assertRepositoryPolicyViolationData(policyViolationLogDTOs, PolicyViolationLogEvent.FIX, repository, before,
-            after, Arrays.asList(activeRepositoryPolicyViolation1, activeRepositoryPolicyViolation2));
+            after, Arrays.asList(activeRepositoryPolicyViolation1, activeRepositoryPolicyViolation2),
+            currentUser.getUsername());
 
     verify(repositoryComponentTelemetryCreator)
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),

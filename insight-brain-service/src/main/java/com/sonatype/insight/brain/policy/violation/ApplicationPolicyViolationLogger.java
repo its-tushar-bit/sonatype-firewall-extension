@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.security.CurrentUser;
 
 /**
  * @since 1.60
@@ -22,8 +23,13 @@ public class ApplicationPolicyViolationLogger
 
   private Application application;
 
-  public ApplicationPolicyViolationLogger(boolean licensed, Date logTimestamp, Application application) {
-    super(licensed, logTimestamp);
+  public ApplicationPolicyViolationLogger(
+      boolean licensed,
+      Date logTimestamp,
+      Application application,
+      CurrentUser currentUser)
+  {
+    super(licensed, logTimestamp, currentUser);
 
     if (isEnabled()) {
       this.application = application;

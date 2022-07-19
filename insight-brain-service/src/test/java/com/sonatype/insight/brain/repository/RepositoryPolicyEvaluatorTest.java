@@ -64,6 +64,7 @@ import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
@@ -114,6 +115,9 @@ public class RepositoryPolicyEvaluatorTest
 
   @Mock
   private RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
+
+  @Mock
+  private CurrentUser currentUser;
 
   @Rule
   public LogOutput policyViolationLoggerOutput = new LogOutput(
@@ -206,11 +210,12 @@ public class RepositoryPolicyEvaluatorTest
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent, policyViolations.size());
     PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
-        repository, before, after, policyViolations);
+        repository, before, after, policyViolations, currentUser.getUsername());
   }
 
   @Test
   public void testEvaluate_PolicyViolationLogger_CreatePolicyViolations() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository();
 
     tempEntity.newPolicy(repository.getParentOwnerId());
@@ -264,6 +269,7 @@ public class RepositoryPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_PolicyViolationLogger_FixPolicyViolations() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository();
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
@@ -312,6 +318,7 @@ public class RepositoryPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_PolicyViolationLogger_WaiveAndUnwaivePolicyViolations() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository();
 
     Policy policy1 = tempEntity.newPolicy(repository.getParentOwnerId());
@@ -604,6 +611,7 @@ public class RepositoryPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_PolicyViolationLogger_metadata() throws Exception {
+    when(currentUser.getUsername()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository();
     createPolicyDataSourceFeature(repository);
 

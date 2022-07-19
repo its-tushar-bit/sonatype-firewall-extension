@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.test.LogOutput;
 
@@ -16,22 +17,29 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class OrganizationPolicyViolationLoggerTest
     extends AbstractComponentTest
 {
+  @Mock
+  private CurrentUser currentUser;
+
   @Rule
   public LogOutput logOutput = new LogOutput(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
 
   @Test
   public void testLog() throws Exception {
     Date time = new Date();
+    when(currentUser.getUsername()).thenReturn(USERNAME);
+
     Organization organization = tempEntity.newOrganization();
     OrganizationPolicyViolationLogger organizationPolicyViolationLogger = new OrganizationPolicyViolationLogger(true,
-        time, organization);
+        time, organization, currentUser);
     PolicyViolationLogEvent policyViolationLogEvent = PolicyViolationLogEvent.CLEAR;
     organizationPolicyViolationLogger.add(policyViolationLogEvent, null);
 
@@ -41,13 +49,13 @@ public class OrganizationPolicyViolationLoggerTest
         .assertPolicyViolationLogDTOs(logOutput, 1);
     PolicyViolationLogDTOAssert
         .assertOrganizationPolicyViolationData(policyViolationLogDTOs.get(0), policyViolationLogEvent, organization,
-            time, time);
+            time, time, currentUser.getUsername());
   }
 
   @Test
   public void testLog_NoLogMessagesWithoutInfoEnabled() {
     OrganizationPolicyViolationLogger organizationPolicyViolationLogger = new OrganizationPolicyViolationLogger(true,
-        new Date(), tempEntity.newOrganization());
+        new Date(), tempEntity.newOrganization(), currentUser);
     Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory
         .getLogger(AbstractPolicyViolationLogger.POLICY_VIOLATION_LOGGER_NAME);
     Level level = logger.getLevel();
@@ -67,7 +75,7 @@ public class OrganizationPolicyViolationLoggerTest
   @Test
   public void testLog_NoLogMessagesWithoutLicensedFeature() {
     OrganizationPolicyViolationLogger organizationPolicyViolationLogger = new OrganizationPolicyViolationLogger(false,
-        new Date(), tempEntity.newOrganization());
+        new Date(), tempEntity.newOrganization(), currentUser);
     organizationPolicyViolationLogger.add(PolicyViolationLogEvent.CLEAR, null);
 
     organizationPolicyViolationLogger.log();

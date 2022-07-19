@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
@@ -63,24 +64,28 @@ public class PolicyViolationLogDTOAssert
     return assertPolicyViolationLogDTOs(logOutput, null /* policyViolationLogEvent */, expected);
   }
 
-  public static void assertApplicationPolicyViolationData(List<PolicyViolationLogDTO> policyViolationLogDTOs,
-                                                          PolicyViolationLogEvent policyViolationLogEvent,
-                                                          Organization organization,
-                                                          Application application,
-                                                          Date evaluationTime,
-                                                          List<PolicyViolation> policyViolations) throws Exception
+  public static void assertApplicationPolicyViolationData(
+      List<PolicyViolationLogDTO> policyViolationLogDTOs,
+      PolicyViolationLogEvent policyViolationLogEvent,
+      Organization organization,
+      Application application,
+      Date evaluationTime,
+      List<PolicyViolation> policyViolations,
+      String userName) throws Exception
   {
     assertApplicationPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent, organization, application,
-        evaluationTime, evaluationTime, policyViolations);
+        evaluationTime, evaluationTime, policyViolations, userName);
   }
 
-  public static void assertApplicationPolicyViolationData(List<PolicyViolationLogDTO> policyViolationLogDTOs,
-                                                          PolicyViolationLogEvent policyViolationLogEvent,
-                                                          Organization organization,
-                                                          Application application,
-                                                          Date before,
-                                                          Date after,
-                                                          List<PolicyViolation> policyViolations)
+  public static void assertApplicationPolicyViolationData(
+      List<PolicyViolationLogDTO> policyViolationLogDTOs,
+      PolicyViolationLogEvent policyViolationLogEvent,
+      Organization organization,
+      Application application,
+      Date before,
+      Date after,
+      List<PolicyViolation> policyViolations,
+      String userName)
       throws Exception
   {
     for (PolicyViolation policyViolation : policyViolations) {
@@ -90,7 +95,7 @@ public class PolicyViolationLogDTOAssert
           .as("No matching policy violation log DTO found for policyViolationId=" + policyViolation.getId())
           .isNotNull();
       assertApplicationPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent, organization, application,
-          before, after, policyViolation);
+          before, after, policyViolation, userName);
     }
   }
 
@@ -98,10 +103,12 @@ public class PolicyViolationLogDTOAssert
                                                            PolicyViolationLogEvent policyViolationLogEvent,
                                                            Organization organization,
                                                            Date before,
-                                                           Date after)
+                                                           Date after,
+                                                           String userName)
   {
     assertEventData(policyViolationLogDTO, policyViolationLogEvent, before, after);
     assertOrganizationData(policyViolationLogDTO, organization);
+    assertUserData(policyViolationLogDTO, userName);
   }
 
   public static void assertApplicationPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
@@ -126,13 +133,15 @@ public class PolicyViolationLogDTOAssert
     assertRepositoryData(policyViolationLogDTO, repository);
   }
 
-  public static void assertApplicationPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
-                                                          PolicyViolationLogEvent policyViolationLogEvent,
-                                                          Organization organization,
-                                                          Application application,
-                                                          Date before,
-                                                          Date after,
-                                                          PolicyViolation policyViolation) throws Exception
+  public static void assertApplicationPolicyViolationData(
+      PolicyViolationLogDTO policyViolationLogDTO,
+      PolicyViolationLogEvent policyViolationLogEvent,
+      Organization organization,
+      Application application,
+      Date before,
+      Date after,
+      PolicyViolation policyViolation,
+      String userName) throws Exception
   {
     assertEventData(policyViolationLogDTO, policyViolationLogEvent, before, after);
     assertThat(policyViolationLogDTO.stageTypeId).isEqualTo(policyViolation.getStageTypeId());
@@ -142,17 +151,20 @@ public class PolicyViolationLogDTOAssert
     assertOrganizationData(policyViolationLogDTO, organization);
     assertApplicationData(policyViolationLogDTO, application);
     assertComponentData(policyViolationLogDTO, policyViolation.getComponentIdentifier(), policyViolation.getHash());
+    assertUserData(policyViolationLogDTO, userName);
   }
 
-  public static void assertApplicationPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
-                                                          PolicyViolationLogEvent policyViolationLogEvent,
-                                                          Organization organization,
-                                                          Application application,
-                                                          Date evaluationTime,
-                                                          PolicyViolation policyViolation) throws Exception
+  public static void assertApplicationPolicyViolationData(
+      PolicyViolationLogDTO policyViolationLogDTO,
+      PolicyViolationLogEvent policyViolationLogEvent,
+      Organization organization,
+      Application application,
+      Date evaluationTime,
+      PolicyViolation policyViolation,
+      String userName) throws Exception
   {
     assertApplicationPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent, organization, application,
-        evaluationTime, evaluationTime, policyViolation);
+        evaluationTime, evaluationTime, policyViolation, userName);
   }
 
   public static void assertRepositoryPolicyViolationData(PolicyViolationLogDTO policyViolationLogDTO,
@@ -160,7 +172,8 @@ public class PolicyViolationLogDTOAssert
                                                          Repository repository,
                                                          Date before,
                                                          Date after,
-                                                         RepositoryPolicyViolation policyViolation) throws Exception
+                                                         RepositoryPolicyViolation policyViolation,
+                                                         String userName) throws Exception
   {
     if (PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent)) {
       assertEventData(policyViolationLogDTO, policyViolationLogEvent, policyViolation.getTime());
@@ -174,6 +187,7 @@ public class PolicyViolationLogDTOAssert
     assertPolicyConditionTriggerData(policyViolationLogDTO, policyViolation);
     assertRepositoryData(policyViolationLogDTO, repository);
     assertComponentData(policyViolationLogDTO, policyViolation.getComponentIdentifier(), policyViolation.getHash());
+    assertUserData(policyViolationLogDTO, userName);
   }
 
   public static void assertRepositoryPolicyViolationData(List<PolicyViolationLogDTO> policyViolationLogDTOs,
@@ -181,7 +195,8 @@ public class PolicyViolationLogDTOAssert
                                                          Repository repository,
                                                          Date before,
                                                          Date after,
-                                                         List<RepositoryPolicyViolation> policyViolations)
+                                                         List<RepositoryPolicyViolation> policyViolations,
+                                                         String userName)
       throws Exception
   {
     for (RepositoryPolicyViolation policyViolation : policyViolations) {
@@ -191,7 +206,7 @@ public class PolicyViolationLogDTOAssert
           .as("No matching policy violation log DTO found for policyViolationId=" + policyViolation.getId())
           .isNotNull();
       assertRepositoryPolicyViolationData(policyViolationLogDTO, policyViolationLogEvent, repository, before, after,
-          policyViolation);
+          policyViolation, userName);
     }
   }
 
@@ -306,6 +321,14 @@ public class PolicyViolationLogDTOAssert
   private static void assertRepositoryData(PolicyViolationLogDTO policyViolationLogDTO, Repository repository) {
     assertThat(policyViolationLogDTO.repositoryId).isEqualTo(repository.getId());
     assertThat(policyViolationLogDTO.repositoryPublicId).isEqualTo(repository.getPublicId());
+    assertThat(policyViolationLogDTO.repositoryManagerId).isEqualTo(repository.getRepositoryManagerId());
+    RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
+    assertThat(policyViolationLogDTO.repositoryManagerInstanceId).isEqualTo(
+        repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId());
+  }
+
+  private static void assertUserData(PolicyViolationLogDTO policyViolationLogDTO, String userName) {
+    assertThat(policyViolationLogDTO.userName).isEqualTo(userName);
   }
 
   private static void assertComponentData(PolicyViolationLogDTO policyViolationLogDTO,

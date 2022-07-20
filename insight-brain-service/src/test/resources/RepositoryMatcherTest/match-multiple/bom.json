@@ -1,0 +1,92 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "x1.jar"
+      ],
+      "pathnames": [
+        "x1.jar"
+      ],
+      "aggregateFiles": [],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "635bacfc3ce81e2ae820",
+      "sha256": "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": 1633356270000,
+      "lastModifiedEntryTime": 1632940910000,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "cli",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "x1.jar"
+          }
+        ],
+        "name": "x1.jar"
+      }
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "x2.jar"
+      ],
+      "pathnames": [
+        "x2.jar"
+      ],
+      "aggregateFiles": [],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "635bacfc3ce81e2ae821",
+      "sha256": "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f942",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": 1633356270000,
+      "lastModifiedEntryTime": 1632940910000,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "cli",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "x2.jar"
+          }
+        ],
+        "name": "x2.jar"
+      }
+    }
+  ]
+}

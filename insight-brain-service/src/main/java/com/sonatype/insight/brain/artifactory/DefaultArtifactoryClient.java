@@ -8,7 +8,11 @@ package com.sonatype.insight.brain.artifactory;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.Response.Status.Family;
@@ -16,9 +20,12 @@ import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchError;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchErrors;
+import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResult;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchResults;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryClient;
+import com.sonatype.insight.brain.artifactory.client.ArtifactoryQueryLanguageUtils;
 import com.sonatype.insight.brain.artifactory.client.ChecksumType;
+import com.sonatype.insight.brain.report.RepositoryMatcher;
 import com.sonatype.insight.client.utils.Authentication;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
@@ -27,6 +34,9 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotAuthenticatedException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -35,10 +45,13 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +61,8 @@ public class DefaultArtifactoryClient
   private static final Logger log = LoggerFactory.getLogger(DefaultArtifactoryClient.class);
 
   public static final String CHECKSUM_SEARCH_PATH = "/api/search/checksum";
+
+  public static final String AQL_SEARCH_PATH = "/api/search/aql";
 
   public static final String TEST_SHA256 = "4909fb971d8373b5a1f5998fb788d6708a626c043a94b05378c54ce5760e4000";
 
@@ -103,14 +118,64 @@ public class DefaultArtifactoryClient
     return JsonUtils.parse(response.getEntity().getContent(), ArtifactoryChecksumSearchResults.class);
   }
 
+  @Override
+  public Map<String, ArtifactoryChecksumSearchResults> searchByChecksumsUsingAQL(
+      ChecksumType checksumType,
+      Set<String> checksums) throws IOException
+  {
+    if (CollectionUtils.isEmpty(checksums)) {
+      return Collections.emptyMap();
+    }
+    HttpPost request = new HttpPost(configuration.getServerUrl() + AQL_SEARCH_PATH);
+    request.setEntity(new StringEntity(ArtifactoryQueryLanguageUtils.createChecksumSearch(checksumType, checksums)));
+    HttpResponse response = httpClient.execute(request, httpClientContext);
+    int status = response.getStatusLine().getStatusCode();
+    if (status != 200) {
+      handleError(status, EntityUtils.toString(response.getEntity()));
+    }
+    return convertAQLResultsToArtifactoryChecksumSearchResults(checksumType, checksums,
+        new ObjectMapper().readTree(response.getEntity().getContent()));
+  }
+
+  private Map<String, ArtifactoryChecksumSearchResults> convertAQLResultsToArtifactoryChecksumSearchResults(
+      ChecksumType checksumType,
+      Set<String> checksums,
+      JsonNode responseJson)
+  {
+    Map<String, ArtifactoryChecksumSearchResults> results = new HashMap<>();
+    for (JsonNode result : responseJson.path("results")) {
+      String sha256 = result.path(checksumType.name().toLowerCase(Locale.ROOT)).asText();
+      if (!checksums.contains(sha256)) {
+        continue;
+      }
+      String repo = result.path(ArtifactoryQueryLanguageUtils.FIELD_REPO).asText();
+      String path = result.path(ArtifactoryQueryLanguageUtils.FIELD_PATH).asText();
+      String name = result.path(ArtifactoryQueryLanguageUtils.FIELD_NAME).asText();
+      if (StringUtils.isAnyBlank(sha256, repo, path, name)) {
+        continue;
+      }
+      ArtifactoryChecksumSearchResults artifactoryChecksumSearchResults =
+          results.computeIfAbsent(sha256, key -> new ArtifactoryChecksumSearchResults());
+      ArtifactoryChecksumSearchResult artifactoryChecksumSearchResult = new ArtifactoryChecksumSearchResult();
+      artifactoryChecksumSearchResult.uri =
+          configuration.getServerUrl() + RepositoryMatcher.API_STORAGE_PREFIX + repo + "/" + path + "/" + name;
+      artifactoryChecksumSearchResults.results.add(artifactoryChecksumSearchResult);
+    }
+    return results;
+  }
+
   private void handleError(HttpResponse response) throws IOException {
     ArtifactoryChecksumSearchErrors errors =
         JsonUtils.parse(response.getEntity().getContent(), ArtifactoryChecksumSearchErrors.class);
     ArtifactoryChecksumSearchError error = errors.errors.get(0);
-    if (error.status == 401) {
-      throw new NotAuthenticatedException(error.message);
+    handleError(error.status, error.message);
+  }
+
+  private void handleError(int status, String content) {
+    if (status == 401) {
+      throw new NotAuthenticatedException(content);
     }
-    throw new BadGatewayException(error.message);
+    throw new BadGatewayException(content);
   }
 
   @Override

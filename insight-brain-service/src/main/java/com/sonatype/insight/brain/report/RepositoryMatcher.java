@@ -82,7 +82,7 @@ public class RepositoryMatcher
 
   private static final Set<String> MATCHABLE_EXTENSIONS = ImmutableSet.of("jar");
 
-  private static final String ARTIFACTORY_API_STORAGE_PREFIX = "/artifactory/api/storage/";
+  public static final String API_STORAGE_PREFIX = "/api/storage/";
 
   public static final String CLI_SCAN_CLIENT = "cli";
 
@@ -483,11 +483,7 @@ public class RepositoryMatcher
         ArtifactoryClient artifactoryClient = artifactoryClientFactory.create()
             .forArtifactory(connection.getBaseUrl(), connection.getUsername(),
                 passwordHandler.decryptPassword(connection.getPassword()));
-        for (ObjectNode node : filteredNodes) {
-          if (!matchWithRepository(identifiedComponents, connection, artifactoryClient, node)) {
-            break; // avoid checksum search in case of any connection errors to repository
-          }
-        }
+        matchWithRepository(identifiedComponents, connection, artifactoryClient, filteredNodes);
       }
     }
     return identifiedComponents;
@@ -527,40 +523,60 @@ public class RepositoryMatcher
     return result;
   }
 
-  private boolean matchWithRepository(
+  private void matchWithRepository(
       final Map<ComponentIdentifier, ObjectNode> identifiedComponents,
       final ArtifactoryConnection rootConnection,
       final ArtifactoryClient artifactoryClient,
-      final ObjectNode node)
+      final Set<ObjectNode> nodes)
   {
-    String sha256 = node.get(FIELD_SHA256).asText();
-    ComponentIdentifier resolvedId = repositoryIdentifiedComponentCache.get(sha256);
-    if (resolvedId != null) {
-      identifiedComponents.put(resolvedId, node);
-      return true;
+    Map<String, ObjectNode> unresolvedNodesBySha256 = new HashMap<>();
+    for (ObjectNode node : nodes) {
+      String sha256 = node.get(FIELD_SHA256).asText();
+      ComponentIdentifier resolvedId = repositoryIdentifiedComponentCache.get(sha256);
+      if (resolvedId == null) {
+        unresolvedNodesBySha256.put(sha256, node);
+      }
+      else {
+        identifiedComponents.put(resolvedId, node);
+      }
     }
-    resolvedId = resolveComponentIdentifierFromArtifactory(rootConnection, artifactoryClient, sha256);
-    if (resolvedId != null) {
-      repositoryIdentifiedComponentCache.put(sha256, resolvedId);
-      identifiedComponents.put(resolvedId, node);
-      return true;
-    }
-    log.debug("no recognizable artifact found in repository for sha256={}", sha256);
-    return false;
+
+    Map<String, ComponentIdentifier> resolved =
+        resolveComponentIdentifierFromArtifactory(rootConnection, artifactoryClient, unresolvedNodesBySha256.keySet());
+
+    resolved.forEach((key, value) -> {
+      if (value != null) {
+        repositoryIdentifiedComponentCache.put(key, value);
+        identifiedComponents.put(value, unresolvedNodesBySha256.get(key));
+      }
+    });
   }
 
-  private static ComponentIdentifier resolveComponentIdentifierFromArtifactory(
+  private static Map<String, ComponentIdentifier> resolveComponentIdentifierFromArtifactory(
       ArtifactoryConnection rootConnection,
       ArtifactoryClient artifactoryClient,
-      String sha256)
+      Set<String> sha256s)
   {
+    Map<String, ComponentIdentifier> result = new HashMap<>();
     try {
-      return resolveComponentIdentifier(artifactoryClient.searchByChecksum(ChecksumType.SHA256, sha256));
+      if (StringUtils.isNotBlank(rootConnection.getUsername())) {
+        for (Entry<String, ArtifactoryChecksumSearchResults> entry : artifactoryClient.searchByChecksumsUsingAQL(
+            ChecksumType.SHA256, sha256s).entrySet()) {
+          result.put(entry.getKey(), resolveComponentIdentifier(entry.getValue()));
+        }
+      }
+      else {
+        for (String sha256 : sha256s) {
+          ArtifactoryChecksumSearchResults artifactoryChecksumSearchResults =
+              artifactoryClient.searchByChecksum(ChecksumType.SHA256, sha256);
+          result.put(sha256, resolveComponentIdentifier(artifactoryChecksumSearchResults));
+        }
+      }
     }
     catch (IOException e) {
       log.error("Checksum search error for repository connection uri {}", rootConnection.getBaseUrl(), e);
-      return null;
     }
+    return result;
   }
 
   private static ComponentIdentifier resolveComponentIdentifier(
@@ -582,10 +598,14 @@ public class RepositoryMatcher
     }
 
     try {
-      URI uri = new URI(uriString);
-      String[] pathParts = StringUtils.split(
-          StringUtils.removeStart(uri.getPath(), ARTIFACTORY_API_STORAGE_PREFIX), "/");
-      // We expect at least ARTIFACTORY_API_STORAGE_PREFIX + [repo]/[group]/[artifact]/[version]/[filename.extension]
+      String path = new URI(uriString).getPath();
+      int start = path.indexOf(API_STORAGE_PREFIX);
+      if (start == -1) {
+        return null;
+      }
+      path = path.substring(start + API_STORAGE_PREFIX.length());
+      String[] pathParts = StringUtils.split(path, "/");
+      // We expect at least [repo]/[group]/[artifact]/[version]/[filename.extension]
       if (pathParts.length >= 5) {
         String extension = resolveExtension(pathParts[pathParts.length - 1]);
         pathParts = ArrayUtils.removeAll(pathParts, 0, pathParts.length - 1); // remove repository and filename

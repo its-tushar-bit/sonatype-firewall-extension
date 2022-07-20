@@ -43,6 +43,7 @@ make(
     releaseRetentionPolicy: RetentionPolicy.TEN_BUILDS,
     onSuccess: {
         pushDockerImageIfDeployBranch()
+        saveGitCommitHashIfMainSnapshotBuild()
     },
     onUnstable: {
         pushDockerImageIfDeployBranch()
@@ -102,6 +103,19 @@ void pushDockerImageIfDeployBranch() {
               parameters: [string(
                 name: 'environment', value: 'Staging'), string(name:'imageUrl',
                 value: 'docker-all.repo.sonatype.com/iq/snapshot:latest')], propagate: false)
+}
+
+/*
+ * Archive as a text file the git commit hash which triggered this build.
+ *
+ * For main snapshot builds only, store the git commit hash.
+ */
+void saveGitCommitHashIfMainSnapshotBuild() {
+  if (isDeployBranch(env, 'main') && currentBuild.fullProjectName.contains('snapshot')) {
+    String filename = 'git_commit_hash.txt'
+    writeFile file: filename, text: env.GIT_COMMIT
+    archiveAdditionalArtifacts(filename)
+  }
 }
 
 void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J) {

@@ -39,13 +39,14 @@ export const selectAppliedCategories = createSelector(
   prop('appliedCategories')
 );
 
-export const selectSubmitApplyCategoriesLoading = createSelector(
-  selectAssignApplicationCategoriesSlice,
-  prop('submitLoading')
-);
 export const selectSubmitApplyCategoriesError = createSelector(
   selectAssignApplicationCategoriesSlice,
   prop('submitError')
+);
+
+export const selectAssignAppCategoriesSubmitMaskState = createSelector(
+  selectAssignApplicationCategoriesSlice,
+  prop('submitMaskState')
 );
 
 export const selectIsDirty = createSelector(selectAssignApplicationCategoriesSlice, prop('isDirty'));

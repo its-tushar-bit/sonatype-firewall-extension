@@ -5,8 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import com.sonatype.clm.testing.functional.elements.AssociationEditor;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
+import com.sonatype.clm.testing.functional.elements.IqAssociationEditor;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Owner;
 
@@ -19,7 +19,7 @@ public class ApplicationCategoryEditorPage
 {
   private static final String ROOT_ID = "#application-category-editor";
 
-  public static final Condition NO_CATEGORIES_DEFINED = Condition.text("No application categories defined.");
+  public static final Condition NO_CATEGORIES_DEFINED = Condition.text("There are no items configured");
 
   public static String urlToEdit(Owner owner) {
     return urlToEdit(owner.getPublicId());
@@ -33,12 +33,12 @@ public class ApplicationCategoryEditorPage
     return $(ROOT_ID);
   }
 
-  public static AssociationEditor associationEditor() {
-    return new AssociationEditor(ROOT_ID);
+  public static IqAssociationEditor associationEditor() {
+    return new IqAssociationEditor(ROOT_ID);
   }
 
   public static SelenideElement title() {
-    return $(".iq-tile h2");
+    return $("h1");
   }
 
   public static Condition titleText() {
@@ -46,7 +46,7 @@ public class ApplicationCategoryEditorPage
   }
 
   public static SelenideElement subtitle() {
-    return $("label[for=associated-categories]");
+    return $(".nx-legend > span");
   }
 
   public static Condition subtitleText(String ownerName) {
@@ -54,10 +54,10 @@ public class ApplicationCategoryEditorPage
   }
 
   public static SelenideElement updateButton() {
-    return root().$("button[type=submit]");
+    return root().$(".nx-form__submit-btn ");
   }
 
   public static ErrorBox errorBox() {
-    return new ErrorBox(ROOT_ID, ".iq-alert");
+    return new ErrorBox(ROOT_ID, ".nx-alert");
   }
 }

@@ -70,6 +70,7 @@ describe('owner.detail.tree.view.directive', function () {
 
       vm.isMonitoringSupported = true;
       vm.isGrandfatheringSupported = true;
+      vm.applicableCategories = [];
       $scope.vm = vm;
     }));
 

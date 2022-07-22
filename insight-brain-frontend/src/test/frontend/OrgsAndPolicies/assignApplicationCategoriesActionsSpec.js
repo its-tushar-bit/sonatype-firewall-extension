@@ -9,12 +9,14 @@ import { actions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSli
 import * as selectors from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getApplicableOrganizationCategories, getApplicationCategoriesUrl } from 'MainRoot/util/CLMLocation';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 describe('assignApplicationCategoriesActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let store;
 
   beforeEach(function () {
+    jasmine.clock().install();
     const state = {
       router: {
         currentParams: {
@@ -27,6 +29,11 @@ describe('assignApplicationCategoriesActions', () => {
     };
     store = SpecUtil.mockReduxStore(state);
   });
+
+  afterEach(function () {
+    jasmine.clock().uninstall();
+  });
+
   describe('loadApplicableCategories', () => {
     it('loads applicable categories successfully', (done) => {
       mockAxiosCalls({
@@ -42,22 +49,36 @@ describe('assignApplicationCategoriesActions', () => {
               },
             ],
           }),
+          [getApplicationCategoriesUrl('alpine-test')]: Promise.resolve({
+            data: [
+              {
+                id: '13dfce231ca24289bec319fddf4bef88',
+                organizationId: 'ROOT_ORGANIZATION_ID',
+                name: 'Internal',
+                description: 'Applications that are used only by your employees',
+                color: 'dark-green',
+              },
+            ],
+          }),
         },
       });
 
       store.dispatch(actions.loadApplicableCategories()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axios.get).toHaveBeenCalledTimes(2);
         expect(axios.get).toHaveBeenCalledWith('/api/v2/applicationCategories/application/alpine-test/applicable');
+        expect(axios.get).toHaveBeenCalledWith('/rest/appliedTag/application/alpine-test');
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
           'applicationCategories/assign/loadApplicableCategories/pending',
+          'applicationCategories/assign/loadAppliedCategories/pending',
+          'applicationCategories/assign/loadAppliedCategories/fulfilled',
           'applicationCategories/assign/loadApplicableCategories/fulfilled',
         ]);
 
-        expect(actions[1].payload).toEqual([
+        expect(actions[3].payload).toEqual([
           {
             id: '13dfce231ca24289bec319fddf4bef88',
             organizationId: 'ROOT_ORGANIZATION_ID',
@@ -79,17 +100,20 @@ describe('assignApplicationCategoriesActions', () => {
       });
 
       store.dispatch(actions.loadApplicableCategories()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(1);
+        expect(axios.get).toHaveBeenCalledTimes(2);
+        expect(axios.get).toHaveBeenCalledWith('/rest/appliedTag/application/alpine-test');
         expect(axios.get).toHaveBeenCalledWith('/api/v2/applicationCategories/application/alpine-test/applicable');
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
           'applicationCategories/assign/loadApplicableCategories/pending',
+          'applicationCategories/assign/loadAppliedCategories/pending',
+          'applicationCategories/assign/loadAppliedCategories/rejected',
           'applicationCategories/assign/loadApplicableCategories/rejected',
         ]);
-        expect(actions[1].payload).toBe('could not load tags');
+        expect(actions[3].payload).toBe('could not load tags');
 
         done();
       });
@@ -190,44 +214,52 @@ describe('assignApplicationCategoriesActions', () => {
             ],
           }),
         },
+        get: {
+          [getApplicationCategoriesUrl('alpine-test')]: Promise.resolve({
+            data: [
+              {
+                id: '13dfce231ca24289bec319fddf4bef88',
+                organizationId: 'ROOT_ORGANIZATION_ID',
+                name: 'Internal',
+                description: 'Applications that are used only by your employees',
+                color: 'dark-green',
+              },
+            ],
+          }),
+        },
       });
-      const onSaveAppliedCategoriesSpy = jasmine.createSpy('onSaveAppliedCategories');
 
-      store
-        .dispatch(actions.saveAppliedCategories({ onSaveAppliedCategories: onSaveAppliedCategoriesSpy }))
-        .then(() => {
-          expect(axios.put).toHaveBeenCalledTimes(1);
-          expect(axios.put).toHaveBeenCalledWith('/rest/appliedTag/application/alpine-test', [
-            {
-              id: '13dfce231ca24289bec319fddf4bef88',
-              organizationId: 'ROOT_ORGANIZATION_ID',
-              name: 'Internal',
-              description: 'Applications that are used only by your employees',
-              color: 'dark-green',
-            },
-          ]);
-          expect(onSaveAppliedCategoriesSpy).toHaveBeenCalledTimes(1);
+      store.dispatch(actions.saveAppliedCategories()).then(() => {
+        expect(axios.put).toHaveBeenCalledTimes(1);
+        expect(axios.put).toHaveBeenCalledWith('/rest/appliedTag/application/alpine-test', [
+          {
+            id: '13dfce231ca24289bec319fddf4bef88',
+            organizationId: 'ROOT_ORGANIZATION_ID',
+            name: 'Internal',
+            description: 'Applications that are used only by your employees',
+            color: 'dark-green',
+          },
+        ]);
 
-          const actions = store.getActions();
+        const actions = store.getActions();
 
-          expect(actions.length).toBe(2);
-          expect(actions).toHaveActionTypesInOrder([
-            'applicationCategories/assign/saveAppliedCategories/pending',
-            'applicationCategories/assign/saveAppliedCategories/fulfilled',
-          ]);
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'applicationCategories/assign/saveAppliedCategories/pending',
+          'applicationCategories/assign/saveAppliedCategories/fulfilled',
+        ]);
 
-          expect(actions[1].payload).toEqual([
-            {
-              id: '13dfce231ca24289bec319fddf4bef88',
-              organizationId: 'ROOT_ORGANIZATION_ID',
-              name: 'Internal',
-              description: 'Applications that are used only by your employees',
-              color: 'dark-green',
-            },
-          ]);
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-          done();
-        });
+        expect(actions.length).toBe(3);
+        expect(actions).toHaveActionTypesInOrder([
+          'applicationCategories/assign/saveAppliedCategories/pending',
+          'applicationCategories/assign/saveAppliedCategories/fulfilled',
+          'applicationCategories/assign/saveMaskTimerDone',
+        ]);
+
+        done();
+      });
     });
 
     it('dispatches rejected action if save request fails', (done) => {
@@ -245,33 +277,30 @@ describe('assignApplicationCategoriesActions', () => {
           [getApplicationCategoriesUrl('alpine-test')]: () => Promise.reject('could not save tags'),
         },
       });
-      const onSaveAppliedCategoriesSpy = jasmine.createSpy('onSaveAppliedCategories');
 
-      store
-        .dispatch(actions.saveAppliedCategories({ onSaveAppliedCategories: onSaveAppliedCategoriesSpy }))
-        .then(() => {
-          expect(axios.put).toHaveBeenCalledTimes(1);
-          expect(axios.put).toHaveBeenCalledWith('/rest/appliedTag/application/alpine-test', [
-            {
-              id: '13dfce231ca24289bec319fddf4bef88',
-              organizationId: 'ROOT_ORGANIZATION_ID',
-              name: 'Internal',
-              description: 'Applications that are used only by your employees',
-              color: 'dark-green',
-            },
-          ]);
+      store.dispatch(actions.saveAppliedCategories()).then(() => {
+        expect(axios.put).toHaveBeenCalledTimes(1);
+        expect(axios.put).toHaveBeenCalledWith('/rest/appliedTag/application/alpine-test', [
+          {
+            id: '13dfce231ca24289bec319fddf4bef88',
+            organizationId: 'ROOT_ORGANIZATION_ID',
+            name: 'Internal',
+            description: 'Applications that are used only by your employees',
+            color: 'dark-green',
+          },
+        ]);
 
-          const actions = store.getActions();
+        const actions = store.getActions();
 
-          expect(actions.length).toBe(2);
-          expect(actions).toHaveActionTypesInOrder([
-            'applicationCategories/assign/saveAppliedCategories/pending',
-            'applicationCategories/assign/saveAppliedCategories/rejected',
-          ]);
-          expect(actions[1].payload).toBe('could not save tags');
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder([
+          'applicationCategories/assign/saveAppliedCategories/pending',
+          'applicationCategories/assign/saveAppliedCategories/rejected',
+        ]);
+        expect(actions[1].payload).toBe('could not save tags');
 
-          done();
-        });
+        done();
+      });
     });
   });
 

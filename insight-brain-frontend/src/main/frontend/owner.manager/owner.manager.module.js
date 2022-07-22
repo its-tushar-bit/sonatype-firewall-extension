@@ -25,7 +25,6 @@ import AccessTile from './access/access.tile.directive';
 import LocalRoleService from './utility/local.role.service';
 import SameOwnerStateNavigationService from './utility/same.owner.state.navigation.service';
 import RoleMappingService from './access/role.mapping.service';
-import ApplicationCategoryEditorController from './category/application.category.editor.controller';
 import LicenseThreatGroupEditorController from './license.threat.group/license.threat.group.editor.controller';
 import LicenseThreatGroupTileController from './license.threat.group/license.threat.group.tile.controller';
 import OwnerDetailTreeViewController from './navigation/owner.detail.tree.view.controller';
@@ -73,7 +72,6 @@ import accessEditorTemplate from './access/access.editor.view.html';
 import summaryViewTemplate from './summary/owner.summary.view.html';
 import policyEditorTemplate from './policy/policy.editor.view.html';
 import ltgEditorTemplate from './license.threat.group/license.threat.group.editor.view.html';
-import appCategoryEditorTemplate from './category/application.category.editor.view.html';
 import SourceControlService from './source.control/source.control.service';
 import innerSourceRepositoryModule from './innersource.repository/module';
 import ContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/ContinuousMonitoringEditor';
@@ -89,6 +87,7 @@ import ProprietaryComponentConfigurationTile from 'MainRoot/OrgsAndPolicies/owne
 import SourceControlTile from 'MainRoot/OrgsAndPolicies/ownerSummary/SourceControlTile';
 import ApplicationCategoriesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ApplicationCategoriesTile';
 import ContinuousMonitoringSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ContinuousMonitoringSummaryTile';
+import AssignAppCategory from 'MainRoot/OrgsAndPolicies/assignAppCategory/AssignAppCategory';
 
 export default angular
   .module('owner.manager.module', [
@@ -116,7 +115,6 @@ export default angular
   .controller('access.editor.controller', AccessEditorController)
   .controller('AccessTileController', AccessTileController)
   .directive('accessTile', AccessTile)
-  .controller('application.category.editor.controller', ApplicationCategoryEditorController)
   .controller('license.threat.group.editor.controller', LicenseThreatGroupEditorController)
   .controller('LicenseThreatGroupTileController', LicenseThreatGroupTileController)
   .controller('OwnerDetailTreeViewController', OwnerDetailTreeViewController)
@@ -177,6 +175,7 @@ export default angular
     iqReact2Angular(ContinuousMonitoringSummaryTile, [], ['$ngRedux', '$state'])
   )
   .component('createEditApplicationCategory', iqReact2Angular(CreateEditApplicationCategory, [], ['$ngRedux']))
+  .component('assignAppCategory', iqReact2Angular(AssignAppCategory, [], ['$ngRedux']))
   .config([
     '$stateProvider',
     function ($stateProvider) {
@@ -447,13 +446,12 @@ export default angular
         .state('management.edit.application.category', {
           data: {
             title: 'Application Categories',
+            isDirty: ['orgsAndPolicies', 'applicationCategories', 'assign', 'isDirty'],
           },
           url: '/category',
           views: {
             '@management.edit': {
-              controller: 'application.category.editor.controller',
-              controllerAs: 'vm',
-              template: appCategoryEditorTemplate,
+              component: 'assignAppCategory',
             },
           },
         })

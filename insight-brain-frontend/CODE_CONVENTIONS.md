@@ -109,7 +109,7 @@ If you find yourself implementing a simple pattern that is or may be reusable, p
 
 The directory structure should resemble the component tree. The top level components (usually representing the page), should have their own directory under `src/main/frontend`. If components consist of other components, they should be placed in the directory representing their parent component and so on. Directories should be named using `camelCase`.
 
-In the example below, `HomePage.jsx` consists of `Header.jsx`, `Footer.jsx` and complex `Main.jsx`, which consists of other components. 
+In the example below, `HomePage.jsx` consists of `Header.jsx`, `Footer.jsx` and complex `Main.jsx`, which consists of other components.
 
 ```
 frontend

@@ -15,6 +15,7 @@ import { selectEntityId } from './orgsAndPoliciesSelectors';
 import { selectRouterSlice } from '../reduxUiRouter/routerSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { deriveEditRoute } from './utility/util';
+import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 
 const REDUCER_NAME = 'applicationCategories/assign';
 
@@ -27,8 +28,8 @@ export const initialState = {
   appliedCategories: [],
   originalAppliedCategories: [],
   isDirty: false,
-  submitLoading: false,
   submitError: null,
+  submitMaskState: null,
 };
 
 const loadApplicableCategoriesRequested = (state) => {
@@ -39,6 +40,7 @@ const loadApplicableCategoriesRequested = (state) => {
 const loadApplicableCategoriesFulfilled = (state, { payload }) => {
   state.loadingApplicableCategories = false;
   state.applicableCategories = payload;
+  state.isDirty = false;
 };
 
 const loadApplicableCategoriesFailed = (state, { payload }) => {
@@ -48,8 +50,9 @@ const loadApplicableCategoriesFailed = (state, { payload }) => {
 
 const loadApplicableCategories = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicableCategories`,
-  (_, { rejectWithValue, getState }) => {
+  (_, { rejectWithValue, getState, dispatch }) => {
     const entityId = selectEntityId(getState());
+    dispatch(loadAppliedCategories());
     return axios.get(getApplicableOrganizationCategories(entityId)).then(prop('data')).catch(rejectWithValue);
   }
 );
@@ -65,6 +68,7 @@ const loadAppliedCategoriesFulfilled = (state, { payload }) => {
   const appliedCategories = map(omit(['nameLowercaseNoWhitespace']), payload);
   state.appliedCategories = appliedCategories;
   state.originalAppliedCategories = appliedCategories;
+  state.isDirty = false;
 };
 
 const loadAppliedCategoriesFailed = (state, { payload }) => {
@@ -81,42 +85,44 @@ const loadAppliedCategories = createAsyncThunk(
 );
 
 const saveAppliedCategoriesRequested = (state) => {
-  state.submitLoading = true;
   state.submitError = null;
+  state.submitMaskState = false;
 };
 
 const saveAppliedCategoriesFulfilled = (state) => {
-  state.submitLoading = false;
   state.originalAppliedCategories = state.appliedCategories;
   state.isDirty = false;
+  state.submitMaskState = true;
 };
 
 const saveAppliedCategoriesFailed = (state, { payload }) => {
-  state.submitLoading = false;
   state.submitError = Messages.getHttpErrorMessage(payload);
+  state.submitMaskState = null;
 };
 
 const saveAppliedCategories = createAsyncThunk(
   `${REDUCER_NAME}/saveAppliedCategories`,
-  ({ onSaveAppliedCategories }, { rejectWithValue, getState }) => {
+  (_, { rejectWithValue, getState, dispatch }) => {
     const state = getState();
     const entityId = selectEntityId(state);
     const appliedCategories = selectAppliedCategories(state);
     return axios
       .put(getApplicationCategoriesUrl(entityId), appliedCategories)
-      .then((categories) => {
-        onSaveAppliedCategories();
-        return categories.data;
+      .then(({ data }) => {
+        dispatch(loadAppliedCategories);
+        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone);
+        return data;
       })
       .catch(rejectWithValue);
   }
 );
 
 const updateAppliedCategories = curryN(2, function updateAppliedCategories(state, { payload }) {
+  const newPayload = omit(['isApplied'])(payload);
   const newAppliedCategories = ifElse(
-    find(propEq('id', payload.id)),
-    without([payload]),
-    append(payload)
+    find(propEq('id', newPayload.id)),
+    without([newPayload]),
+    append(newPayload)
   )(state.appliedCategories);
   return computeIsDirty(propSet('appliedCategories', newAppliedCategories, state));
 });
@@ -141,6 +147,7 @@ const assignApplicationCategoriesSlice = createSlice({
   initialState,
   reducers: {
     updateAppliedCategories,
+    saveMaskTimerDone: propSet('submitMaskState', null),
   },
   extraReducers: {
     [loadApplicableCategories.pending]: loadApplicableCategoriesRequested,

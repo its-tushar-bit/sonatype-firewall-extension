@@ -34,7 +34,7 @@
            ui-sref=".category"
            ui-sref-active="selected"
            ng-class="{disabled: !vm.areAnyCategoriesDefined}"
-           data-tooltip="{{:: vm.areAnyCategoriesDefined ? '' : 'No application categories defined.'}}"
+           data-tooltip="{{vm.areAnyCategoriesDefined ? '' : 'No application categories defined.'}}"
            data-tooltip-placement="top"
            data-tooltip-append-to-body="true"
            ng-click="vm.areAnyCategoriesDefined || $event.preventDefault()">

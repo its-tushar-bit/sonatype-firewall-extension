@@ -146,25 +146,25 @@ describe('assignApplicationCategories reducer', () => {
   });
 
   describe('applicationCategories/assign/saveAppliedCategories/pending', () => {
-    it('sets submitLoading, resets submitError', () => {
+    it('sets submitMaskState, resets submitError', () => {
       const state = Object.freeze({
         otherState,
-        submitLoading: false,
+        submitMaskState: false,
         submitError: 'error',
       });
 
-      const { submitLoading, submitError, otherState: expectedOtherState } = reducer(state, {
+      const { submitMaskState, submitError, otherState: expectedOtherState } = reducer(state, {
         type: 'applicationCategories/assign/saveAppliedCategories/pending',
       });
 
-      expect(submitLoading).toBeTrue();
+      expect(submitMaskState).toBeFalse();
       expect(submitError).toBeNull();
       expect(expectedOtherState).toEqual(otherState);
     });
   });
 
   describe('applicationCategories/assign/saveAppliedCategories/fulfilled', () => {
-    it('resets submitLoading, sets originalAppliedCategories', () => {
+    it('resets submitMaskState, sets originalAppliedCategories', () => {
       const expectedCategories = [
         {
           id: '13dfce231ca24289bec319fddf4bef88',
@@ -177,17 +177,17 @@ describe('assignApplicationCategories reducer', () => {
 
       const state = Object.freeze({
         otherState,
-        submitLoading: true,
+        submitMaskState: true,
         appliedCategories: expectedCategories,
         originalAppliedCategories: [],
         isDirty: true,
       });
 
-      const { submitLoading, isDirty, originalAppliedCategories, otherState: expectedOtherState } = reducer(state, {
+      const { submitMaskState, isDirty, originalAppliedCategories, otherState: expectedOtherState } = reducer(state, {
         type: 'applicationCategories/assign/saveAppliedCategories/fulfilled',
       });
 
-      expect(submitLoading).toBeFalse();
+      expect(submitMaskState).toBeTrue();
       expect(isDirty).toBeFalse();
       expect(originalAppliedCategories).toEqual(expectedCategories);
       expect(expectedOtherState).toEqual(otherState);
@@ -195,15 +195,15 @@ describe('assignApplicationCategories reducer', () => {
   });
 
   describe('applicationCategories/assign/saveAppliedCategories/rejected', () => {
-    it('sets submitError,  resets submitLoading', () => {
-      const state = Object.freeze({ otherState, submitLoading: true, submitError: null });
+    it('sets submitError,  resets submitMaskState', () => {
+      const state = Object.freeze({ otherState, submitMaskState: true, submitError: null });
 
-      const { submitLoading, submitError, otherState: expectedOtherState } = reducer(state, {
+      const { submitMaskState, submitError, otherState: expectedOtherState } = reducer(state, {
         type: 'applicationCategories/assign/saveAppliedCategories/rejected',
         payload: 'error',
       });
 
-      expect(submitLoading).toBeFalse();
+      expect(submitMaskState).toBeNull();
       expect(submitError).toBe('error');
       expect(expectedOtherState).toEqual(otherState);
     });

@@ -123,6 +123,7 @@
 @use '../OrgsAndPolicies/componentLabels/createComponentLabel';
 @use '../OrgsAndPolicies/proprietaryComponentConfig/proprietaryComponentConfiguration';
 @use '../firewall/firewallComponentDetailsPage/firewallComponentDetailsPage';
+@use '../OrgsAndPolicies/assignAppCategory/assignAppCategory';
 @use '../dashboard/results/componentRisk/component-risk';
 @use '../dashboard/results/componentRisk/componentRiskItem/componentRiskItem';
 @use '../OrgsAndPolicies/ownerSummary/ownerSummary';

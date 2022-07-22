@@ -11,7 +11,7 @@ import {
   selectLoadingAppliedCategories,
   selectLoadAppliedCategoriesError,
   selectAppliedCategories,
-  selectSubmitApplyCategoriesLoading,
+  selectAssignAppCategoriesSubmitMaskState,
   selectSubmitApplyCategoriesError,
   selectIsDirty,
   selectCategories,
@@ -82,7 +82,7 @@ describe('assignApplicationCategoriesSelectors', () => {
               },
             ],
             isDirty: false,
-            submitLoading: false,
+            submitMaskState: null,
             submitError: 'some submit error',
           },
         },
@@ -146,13 +146,13 @@ describe('assignApplicationCategoriesSelectors', () => {
 
   describe('Submit', () => {
     describe('selectSubmitApplyCategoriesLoading', () => {
-      it('returns false when submit requets is not loading', () => {
-        expect(selectSubmitApplyCategoriesLoading(mockState)).toBeFalse();
+      it('returns false when submit request is not loading', () => {
+        expect(selectAssignAppCategoriesSubmitMaskState(mockState)).toBeNull();
       });
 
-      it('returns true when submit requets is loadin', () => {
-        mockState.orgsAndPolicies.applicationCategories.assign.submitLoading = true;
-        expect(selectSubmitApplyCategoriesLoading(mockState)).toBeTrue();
+      it('returns true when submit request is loading', () => {
+        mockState.orgsAndPolicies.applicationCategories.assign.submitMaskState = false;
+        expect(selectAssignAppCategoriesSubmitMaskState(mockState)).toBeFalse();
       });
     });
 

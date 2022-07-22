@@ -9,13 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.AssociationEditor.AssociationEditorElement;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.IqAssociationEditor;
 import com.sonatype.clm.testing.functional.pages.ApplicationCategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.utils.NxColor;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.tag.Tag;
 
@@ -81,21 +82,28 @@ public class ApplicationCategoryEditorTest
     eyesWatcher.eyesCheck();
 
     ApplicationCategoryEditorPage.title().shouldHave(ApplicationCategoryEditorPage.titleText());
-    ApplicationCategoryEditorPage.subtitle().shouldHave(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
+    ApplicationCategoryEditorPage.subtitle().text()
+            .equals(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
     ApplicationCategoryEditorPage.associationEditor().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(2);
     ApplicationCategoryEditorPage.associationEditor().shouldNotBe(MULTI_COLUMN);
     ApplicationCategoryEditorPage.updateButton().shouldHave(DISABLED);
 
-    AssociationEditorElement category1Item = ApplicationCategoryEditorPage.associationEditor().item(0);
+    IqAssociationEditor.AssociationEditorElement category1Item =
+            ApplicationCategoryEditorPage.associationEditor().item(0);
     category1Item.checkBox().shouldBe(visible).shouldNotBe(selected);
     category1Item.description().shouldBe(visible).shouldHave(text(category1.getName()));
-    category1Item.icon().shouldBe(visible).shouldHave(cssClass(category1.getColor().toValue()));
+    String nxColorClass = "nx-selectable-color--" +
+            NxColor.getNxColorFromColor(category1.getColor()).toString();
+    category1Item.icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
 
-    AssociationEditorElement category2Item = ApplicationCategoryEditorPage.associationEditor().item(1);
+    IqAssociationEditor.AssociationEditorElement category2Item =
+            ApplicationCategoryEditorPage.associationEditor().item(1);
     category2Item.checkBox().shouldBe(visible).shouldNotBe(selected);
     category2Item.description().shouldBe(visible).shouldHave(text(category2.getName()));
-    category2Item.icon().shouldBe(visible).shouldHave(cssClass(category2.getColor().toValue()));
+    nxColorClass = "nx-selectable-color--" +
+            NxColor.getNxColorFromColor(category2.getColor()).toString();
+    category2Item.icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
 
     // just pick one to click
     category1Item.checkBox().click();
@@ -135,22 +143,27 @@ public class ApplicationCategoryEditorTest
     Tag category6 = categories.get(5);
 
     ApplicationCategoryEditorPage.title().shouldHave(ApplicationCategoryEditorPage.titleText());
-    ApplicationCategoryEditorPage.subtitle().shouldHave(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
+    ApplicationCategoryEditorPage.subtitle().text()
+            .equals(ApplicationCategoryEditorPage.subtitleText(YE_OLE_APPLICATION));
     ApplicationCategoryEditorPage.associationEditor().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(10);
     ApplicationCategoryEditorPage.associationEditor().shouldBe(MULTI_COLUMN);
     ApplicationCategoryEditorPage.updateButton().shouldHave(DISABLED);
 
     for (int i = 0; i < 10; i++) {
-      AssociationEditorElement item = ApplicationCategoryEditorPage.associationEditor().item(i);
+      IqAssociationEditor.AssociationEditorElement item = ApplicationCategoryEditorPage.associationEditor().item(i);
       item.checkBox().shouldBe(visible).shouldNotBe(selected);
       item.description().shouldBe(visible).shouldHave(text(categories.get(i).getName()));
-      item.icon().shouldHave(cssClass(categories.get(i).getColor().toValue()));
+      String nxColorClass = "nx-selectable-color--" +
+              NxColor.getNxColorFromColor(categories.get(i).getColor()).toString();
+      item.icon().shouldHave(cssClass(nxColorClass));
     }
 
     // select the items in the first row
-    AssociationEditorElement category1Item = ApplicationCategoryEditorPage.associationEditor().item(0);
-    AssociationEditorElement category6Item = ApplicationCategoryEditorPage.associationEditor().item(5);
+    IqAssociationEditor.AssociationEditorElement category1Item =
+            ApplicationCategoryEditorPage.associationEditor().item(0);
+    IqAssociationEditor.AssociationEditorElement category6Item =
+            ApplicationCategoryEditorPage.associationEditor().item(5);
     category1Item.checkBox().shouldBe(visible).click();
     category6Item.checkBox().shouldBe(visible).click();
 
@@ -169,8 +182,10 @@ public class ApplicationCategoryEditorTest
 
     // make sure the remaining items aren't selected and haven't been applied
     for (int i = 1; i < 5; i++) {
-      AssociationEditorElement firstItem = ApplicationCategoryEditorPage.associationEditor().item(i);
-      AssociationEditorElement secondItem = ApplicationCategoryEditorPage.associationEditor().item(i + 5);
+      IqAssociationEditor.AssociationEditorElement firstItem =
+              ApplicationCategoryEditorPage.associationEditor().item(i);
+      IqAssociationEditor.AssociationEditorElement secondItem =
+              ApplicationCategoryEditorPage.associationEditor().item(i + 5);
       firstItem.checkBox().shouldNotBe(selected);
       secondItem.checkBox().shouldNotBe(selected);
     }

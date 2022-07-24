@@ -510,6 +510,9 @@ public class DefaultHdsClient
 
   private String getRequestId(HttpResponse response) {
     Header header = response.getFirstHeader("X-Amz-Cf-Id");
+    if (header == null) {
+      header = response.getFirstHeader("X-Amzn-Trace-Id");
+    }
     return header != null ? header.getValue() : null;
   }
 

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.experimental.resultsview;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +14,9 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.MatchStateFilter;
+import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.SearchFilter;
+import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.ViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails;
@@ -22,9 +24,6 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.MatchStateFilter;
-import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.SearchFilter;
-import com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.ViolationStateFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -34,8 +33,6 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.api.experimental.resultsview.RepositoryResultsDetailsRequestDto.ViolationStateFilter.VIOLATION_STATE_ALL;
 
 @Named
 class RepositoryResultsService
@@ -64,6 +61,10 @@ class RepositoryResultsService
 
     log.info("Getting repository results for {}:{} ({})", repository.getRepositoryManagerId(), repository.getPublicId(),
         repository.getId());
+
+    if (detailsRequest == null) {
+      throw new BadRequestException("Missing request parameters");
+    }
 
     RepositoryResultsDetailsFilter detailsFilter = validateAndInitializeDetailsFilter(detailsRequest);
 
@@ -98,39 +99,37 @@ class RepositoryResultsService
   }
 
   private String initializeMatchStateFilter(final List<MatchStateFilter> matchStateFilters) {
-    String result = "";
-    if (!CollectionUtils.isEmpty(matchStateFilters)) {
-      for (MatchStateFilter filter : matchStateFilters) {
-        switch (filter) {
-          case MATCH_STATE_ALL:
-            return result;
-          case MATCH_STATE_EXACT:
-            result = MatchState.EXACT.getId();
-            break;
-          case MATCH_STATE_UNKNOWN:
-            result = MatchState.UNKNOWN.getId();
-            break;
-          default:
-            throw new BadRequestException("Invalid match state filter");
-        }
-      }
+    if (CollectionUtils.isEmpty(matchStateFilters)) {
+      return "";
     }
 
-    return result;
+    if (matchStateFilters.contains(MatchStateFilter.MATCH_STATE_ALL)) {
+      return "";
+    }
+
+    if (matchStateFilters.size() == 2) {
+      // If size is 2, then the filters are MATCH_STATE_EXACT and MATCH_STATE_UNKNOWN,
+      // which is the same as MATCH_STATE_ALL
+      return "";
+    }
+
+    switch (matchStateFilters.get(0)) {
+      case MATCH_STATE_EXACT:
+        return MatchState.EXACT.getId();
+      case MATCH_STATE_UNKNOWN:
+        return MatchState.UNKNOWN.getId();
+      default:
+        throw new BadRequestException("Invalid match state filter");
+    }
   }
 
   private Set<String> initializeViolationStateFilters(final List<ViolationStateFilter> violationStateFilters) {
-    Set<String> result = new HashSet<>();
-    if (!CollectionUtils.isEmpty(violationStateFilters)) {
-      for (ViolationStateFilter filter : violationStateFilters) {
-        if (filter.equals(VIOLATION_STATE_ALL)) {
-          return ImmutableSet.of(filter.name());
-        }
-        result.add(filter.name());
-      }
+    if (CollectionUtils.isEmpty(violationStateFilters)
+        || violationStateFilters.contains(ViolationStateFilter.VIOLATION_STATE_ALL)) {
+      return ImmutableSet.of(ViolationStateFilter.VIOLATION_STATE_ALL.name());
     }
 
-    return result;
+    return violationStateFilters.stream().map(filter -> filter.name()).collect(Collectors.toSet());
   }
 
   private Map<String, String> initializeSearchFilterMap(final List<SearchFilter> searchFilters) {

@@ -321,7 +321,7 @@ public class RepositoryPolicyViolationDAO
       Set<Integer> sortPriorities = new HashSet<>();
       for (SortField sortField : sortFields) {
         if (sortPriorities.contains(sortField.sortPriority)) {
-          throw new BadRequestException("sort priority cannot be same for different fields");
+          throw new BadRequestException("sort priority cannot be the same for different fields");
         }
         if (sortField.asc) {
           result.add(getSortField(sortField.sortableField) + " NULLS LAST");

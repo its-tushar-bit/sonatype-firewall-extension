@@ -85,24 +85,34 @@ void pushDockerImageIfDeployBranch() {
         echo 'Skipping push of docker image for non-deploy branch or release'
         return
     }
+
     String version = getMavenProjectVersion('.')
+    String shortImage = "${version.split("-")[0]}-${env.BUILD_NUMBER}"
+    String containerName = "iq/snapshot"
+    echo "version:'${version}''"
+    echo "buildnum: ${env.BUILD_NUMBER}"
+
     dir("nexus-iq-server") {
         withSonatypeDockerRegistry() {
-            String shortImage = "iq/snapshot:${version.split("-")[0]}-${env.BUILD_NUMBER}"
-            sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${version} --tag ${shortImage} ."
-            String fullImage = "${sonatypeDockerRegistryId()}/${shortImage}"
-            String latest = "${sonatypeDockerRegistryId()}/iq/snapshot:latest"
-            runSafely "docker tag ${shortImage} ${fullImage}"
+            sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${version} --tag ${containerName}:${shortImage} ."
+            String fullImage = "${sonatypeDockerRegistryId()}/${containerName}:${shortImage}"
+            String latest = "${sonatypeDockerRegistryId()}/${containerName}:latest"
+            runSafely "docker tag ${containerName}:${shortImage} ${fullImage}"
             runSafely "docker push ${fullImage}"
             // Also tag as latest
-            runSafely "docker tag ${shortImage} ${latest}"
+            runSafely "docker tag ${containerName}:${shortImage} ${latest}"
             runSafely "docker push ${latest}"
         }
     }
+    build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging',
+              parameters: [string(
+                name: 'IQ_VERSION', value: shortImage), string(name:'CONTAINER_NAME',
+                value: containerName)], propagate: false)
+
     build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging',
               parameters: [string(
                 name: 'environment', value: 'Staging'), string(name:'imageUrl',
-                value: 'docker-all.repo.sonatype.com/iq/snapshot:latest')], propagate: false)
+                value: 'docker-all.repo.sonatype.com/${containerName}:latest')], propagate: false)
 }
 
 /*

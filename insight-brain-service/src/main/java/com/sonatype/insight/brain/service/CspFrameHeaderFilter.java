@@ -51,7 +51,7 @@ public class CspFrameHeaderFilter
     List<String> allowList = (List<String>) allowlistConfigurations.get(FRAME_ANCESTORS_ALLOWLIST);
     if (allowList != null && !allowList.isEmpty()) {
       httpServletResponse.addHeader("Content-Security-Policy",
-          "frame-ancestors 'self' " + String.join(" ", allowList) + ";");
+          "frame-ancestors " + String.join(" ", allowList) + ";");
     }
     chain.doFilter(request, response);
   }

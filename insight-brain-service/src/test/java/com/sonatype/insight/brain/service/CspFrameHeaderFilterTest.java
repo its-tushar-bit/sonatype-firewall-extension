@@ -70,6 +70,7 @@ public class CspFrameHeaderFilterTest
   @Test
   public void testDoFilterAddsCSFHeaderForSeveralURLs() throws Exception {
     List<String> result = new ArrayList<>();
+    result.add("'self'");
     result.add("some");
     result.add("newOne");
     when(
@@ -81,10 +82,25 @@ public class CspFrameHeaderFilterTest
 
   @Test
   public void testDoFilterAddsCSFHeaderForSingleURL() throws Exception {
+    List<String> result = new ArrayList<>();
+    result.add("'self'");
     when(
         apiConfigurationService.getConfigurationNoAuthz(Collections.singleton(ALLOWLIST))).thenReturn(
-        Collections.singletonMap(ALLOWLIST, Collections.singletonList("some")));
+        Collections.singletonMap(ALLOWLIST, result));
     serverHeaderFilter.doFilter(request, response, chain);
-    verify(response).addHeader("Content-Security-Policy", "frame-ancestors 'self' some;");
+    verify(response).addHeader("Content-Security-Policy", "frame-ancestors 'self';");
+  }
+
+  @Test
+  public void testDoFilterLeavesJustSingleSelfInAllowedList() throws Exception {
+    List<String> allowList = new ArrayList<>();
+    allowList.add("'self'");
+    allowList.add("some");
+    allowList.add("newOne");
+    when(
+        apiConfigurationService.getConfigurationNoAuthz(Collections.singleton(ALLOWLIST))).thenReturn(
+        Collections.singletonMap(ALLOWLIST, allowList));
+    serverHeaderFilter.doFilter(request, response, chain);
+    verify(response).addHeader("Content-Security-Policy", "frame-ancestors 'self' some newOne;");
   }
 }

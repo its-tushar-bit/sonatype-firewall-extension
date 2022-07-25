@@ -12,6 +12,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -91,9 +92,15 @@ public class ConfigurationUtils
 
   public static String frameAncestorsAllowlistToString(List<String> values) {
     if (values != null) {
-      List<String> nullFiltered = values.stream().filter(Objects::nonNull).collect(Collectors.toList());
+      List<String> nullFiltered =
+          values.stream().filter(Objects::nonNull)
+          .collect(Collectors.toList());
       if (!nullFiltered.isEmpty()) {
-        return JsonUtils.writeUnformatted(nullFiltered);
+        List<String> result =
+            Stream.concat(Stream.of("'self'"), nullFiltered.stream())
+                .distinct()
+                .collect(Collectors.toList());
+        return JsonUtils.writeUnformatted(result);
       }
     }
     return null;

@@ -262,13 +262,6 @@ public class RepositoryServiceTest extends AbstractComponentTest
   }
 
   @Test
-  public void testGetPolicyThreats_RepositoryDoesNotExist() {
-    assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> repositoryService.getPolicyThreats("RepositoryIdDoesNotExist", null))
-        .withMessage("Cannot find a repository with ID RepositoryIdDoesNotExist.");
-  }
-
-  @Test
   public void testGetReportSummary() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repo = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);

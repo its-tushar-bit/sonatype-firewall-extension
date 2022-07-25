@@ -126,32 +126,28 @@ public class RepositoryService
     }
   }
 
-  public RepositoryPolicyThreatDTO getPolicyThreats(final String repositoryId, final String pathname) {
-    Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
-    return getPolicyThreats(repository, pathname);
-  }
-
   private void auditComponentPath(final String pathname) {
     AuditData.get().setData("componentPathname", pathname);
   }
 
   @Authorize(permission = Permission.READ)
-  RepositoryPolicyThreatDTO getPolicyThreats(@AuthzContext(Key.REPOSITORY) final Repository repository,
-                                             final String pathname)
+  RepositoryPolicyThreatDTO getPolicyThreats(
+      @AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
+      final String pathname)
   {
     auditComponentPath(pathname);
-    RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),
-        pathname);
+    RepositoryComponent repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, pathname);
     if (repositoryComponent == null) {
       throw new NotFoundException("Cannot find a component with path " + pathname + " in repository with ID "
-          + repository.getId() + ".");
+          + repositoryId + ".");
     }
     AuditData.get()
         .setComponentIdentifier(repositoryComponent.getComponentIdentifier())
         .setComponentHash(repositoryComponent.getHash());
 
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathnameAndWaived(repository.getId(), repositoryComponent.getPathname(), false);
+        .getActiveByRepositoryIdAndPathnameAndWaived(repositoryId, repositoryComponent.getPathname(), false);
 
     List<RepositoryPolicyViolationDTO> activeRepositoryViolationDTOs = new ArrayList<>();
     for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {

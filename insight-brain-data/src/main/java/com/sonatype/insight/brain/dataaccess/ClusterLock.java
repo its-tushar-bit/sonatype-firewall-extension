@@ -63,6 +63,9 @@ public class ClusterLock
   static final String NEW_INSTANCE_POPULATION = "new-instance-population";
 
   // Visible for testing
+  static final String PDF_GENERATION_LOCK_PREFIX = "pdf-generation-";
+
+  // Visible for testing
   final String lockId;
 
   // Visible for testing
@@ -225,6 +228,18 @@ public class ClusterLock
   // Visible for testing
   public static String getLockIdForNewInstancePopulation() {
     return NEW_INSTANCE_POPULATION;
+  }
+
+  public static ClusterLock createForPdfGeneration(Application application, String scanId) {
+    return new ClusterLock(getLockIdForPdfGeneration(application, scanId));
+  }
+
+  public static void deleteForPdfGeneration(TransactionContext tx, Application application) {
+    deleteLocksByPrefix(tx, getLockIdForPdfGeneration(application, ""));
+  }
+
+  public static String getLockIdForPdfGeneration(Application application, String scanId) {
+    return PDF_GENERATION_LOCK_PREFIX + application.getId() + "-" + scanId;
   }
 
   private static void deleteFor(String lockId) {

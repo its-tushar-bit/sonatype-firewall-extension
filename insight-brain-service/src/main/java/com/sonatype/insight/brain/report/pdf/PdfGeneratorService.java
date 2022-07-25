@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -98,8 +99,16 @@ public class PdfGeneratorService
     pdfData.policyData = apiReportDataServiceV2.getPolicyViolationsDataNoAuth(app.getPublicId(), scanId);
     pdfData.rawData = apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true);
     augmentEmptyLicensesAsNotProvided(pdfData.rawData);
-    PdfGenerator.generate(pdfFile, pdfData);
+    try (ClusterLock clusterLock = ClusterLock.createForPdfGeneration(app, scanId)) {
+      clusterLock.lock();
+      generate(pdfFile, pdfData);
+    }
     return pdfFile;
+  }
+
+  // Visible for testing
+  void generate(File pdfFile, PdfData pdfData) throws IOException {
+    PdfGenerator.generate(pdfFile, pdfData);
   }
 
   // Visible for testing

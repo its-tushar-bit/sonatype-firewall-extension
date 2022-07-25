@@ -653,4 +653,42 @@ public class ClusterLockTest
 
     assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForNewInstancePopulation())).isFalse();
   }
+
+  @Test
+  public void testGetLockIdForPdfGeneration() {
+    Application application = new Application();
+    application.setId("appId");
+    String scanId = "scanId";
+    assertThat(ClusterLock.getLockIdForPdfGeneration(application, scanId))
+        .isEqualTo(ClusterLock.PDF_GENERATION_LOCK_PREFIX + application.getId() + "-" + scanId);
+  }
+
+  @Test
+  public void testCreateForPdfGeneration() {
+    Application application = new Application();
+    application.setId("appId");
+    String scanId = "scanId";
+    try (ClusterLock clusterLock = ClusterLock.createForPdfGeneration(application, scanId)) {
+      clusterLock.lock();
+
+      assertThat(clusterLock.lockId).isEqualTo(ClusterLock.getLockIdForPdfGeneration(application, scanId));
+    }
+  }
+
+  @Test
+  public void testDeleteForPdfGeneration() {
+    Application application = new Application();
+    application.setId("appId");
+    String scanId = "scanId";
+    ClusterLock.createForPdfGeneration(application, scanId);
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPdfGeneration(application, scanId))).isTrue();
+
+    try (TransactionContext tx = lockDAO.createTransactionContext()) {
+      tx.begin();
+      ClusterLock.deleteForPdfGeneration(tx, application);
+      tx.commit();
+    }
+
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPdfGeneration(application, scanId))).isFalse();
+  }
 }

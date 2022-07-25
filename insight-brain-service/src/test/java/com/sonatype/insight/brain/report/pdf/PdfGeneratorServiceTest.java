@@ -11,6 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
@@ -30,9 +32,13 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.http.client.utils.DateUtils;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
+import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 
 public class PdfGeneratorServiceTest
     extends AbstractComponentTest
@@ -219,5 +225,28 @@ public class PdfGeneratorServiceTest
     pdfGeneratorService.augmentEmptyLicensesAsNotProvided(data);
 
     assertThat(data).usingRecursiveComparison().isEqualTo(expected);
+  }
+
+  @Test
+  public void testDisallowConcurrentExecution() throws Exception {
+    Application application = tempEntity.newApplicationWithParent("appPublicId", "appName-星義义こ여", "orgName");
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
+    File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorServiceTest/report", tempDir), reportFile);
+    PdfGeneratorService spyPdfGeneratorService = spy(pdfGeneratorService);
+    Callable<Void> callable = () -> {
+      spyPdfGeneratorService.printReport(application.getPublicId(), scanId);
+      return null;
+    };
+    Consumer<Answer<Void>> answerConsumer = answer -> {
+      try {
+        doAnswer(answer).when(spyPdfGeneratorService).generate(any(), any());
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e.getMessage(), e);
+      }
+    };
+    testCallable_DisallowConcurrentExecution(callable, answerConsumer);
   }
 }

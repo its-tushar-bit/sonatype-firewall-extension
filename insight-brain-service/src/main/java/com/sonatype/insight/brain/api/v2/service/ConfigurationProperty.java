@@ -32,8 +32,8 @@ public class ConfigurationProperty
           (p, o) -> ConfigurationUtils.forceBaseUrlToString(
               ConfigurationUtils.getParameter(p, TransactionContext.class), o)),
       new ConfigurationProperty(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST, List.class,
-          (p, s) -> ConfigurationUtils.getStringToList(s),
-          (p, o) -> ConfigurationUtils.getListToString((List<String>) o)),
+          (p, s) -> ConfigurationUtils.stringToFrameAncestorsAllowlist(s),
+          (p, o) -> ConfigurationUtils.frameAncestorsAllowlistToString((List<String>) o)),
       new ConfigurationProperty(SystemConfigurationProperty.HDS_URL, String.class,
           (p, s) -> ConfigurationUtils.hdsUrl(ConfigurationUtils.getParameter(p, InsightConfig.class), s),
           (p, o) -> ConfigurationUtils.urlValueToString(o)),

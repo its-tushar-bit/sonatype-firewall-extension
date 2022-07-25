@@ -77,7 +77,7 @@ public class ConfigurationUtils
     return booleanValue == null ? null : Boolean.toString(booleanValue);
   }
 
-  public static List<String> getStringToList(String value) {
+  public static List<String> stringToFrameAncestorsAllowlist(String value) {
     if (value != null) {
       try {
         return JsonUtils.parse(value.getBytes(), List.class);
@@ -89,10 +89,12 @@ public class ConfigurationUtils
     return null;
   }
 
-  public static String getListToString(List<String> values) {
-    if (!values.isEmpty()) {
-      List<String> filteredValues = values.stream().filter(Objects::nonNull).collect(Collectors.toList());
-      return JsonUtils.writeUnformatted(filteredValues);
+  public static String frameAncestorsAllowlistToString(List<String> values) {
+    if (values != null) {
+      List<String> nullFiltered = values.stream().filter(Objects::nonNull).collect(Collectors.toList());
+      if (!nullFiltered.isEmpty()) {
+        return JsonUtils.writeUnformatted(nullFiltered);
+      }
     }
     return null;
   }

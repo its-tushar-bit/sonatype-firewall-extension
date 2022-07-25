@@ -86,28 +86,28 @@ public class ConfigurationUtilsTest
 
   @Test
   public void getStringToList_ReturnList() {
-    List<String> stringToList = ConfigurationUtils.getStringToList("[\"first\",\"second\"]");
+    List<String> stringToList = ConfigurationUtils.stringToFrameAncestorsAllowlist("[\"first\",\"second\"]");
     assertEquals(getAllowlist(), stringToList);
   }
 
   @Test
   public void getStringToList_ReturnNullIfConfigurationIsEmpty() {
-    assertNull(ConfigurationUtils.getStringToList(null));
+    assertNull(ConfigurationUtils.stringToFrameAncestorsAllowlist(null));
   }
 
   @Test(expected = RuntimeException.class)
   public void getStringToList_ThrowsException() {
-    ConfigurationUtils.getStringToList("invalid_value");
+    ConfigurationUtils.stringToFrameAncestorsAllowlist("invalid_value");
   }
 
   @Test
   public void getListToString_ReturnsNullIfListIsEmpty() {
-    assertNull(ConfigurationUtils.getListToString(Collections.emptyList()));
+    assertNull(ConfigurationUtils.frameAncestorsAllowlistToString(Collections.emptyList()));
   }
 
   @Test
   public void getListToString() {
-    String listToString = ConfigurationUtils.getListToString(getAllowlist());
+    String listToString = ConfigurationUtils.frameAncestorsAllowlistToString(getAllowlist());
     assertEquals("[\"first\",\"second\"]", listToString);
   }
 
@@ -115,8 +115,22 @@ public class ConfigurationUtilsTest
   public void getListToString_RemoveNullValues() {
     List<String> allowlist = getAllowlist();
     allowlist.add(null);
-    String listToString = ConfigurationUtils.getListToString(allowlist);
+    String listToString = ConfigurationUtils.frameAncestorsAllowlistToString(allowlist);
     assertEquals("[\"first\",\"second\"]", listToString);
+  }
+
+  @Test
+  public void getListToString_ReturnNullIfListContainsOnlyNulls() {
+    List<String> allowlist = new ArrayList<>();
+    allowlist.add(null);
+    allowlist.add(null);
+    String listToString = ConfigurationUtils.frameAncestorsAllowlistToString(allowlist);
+    assertNull(listToString);
+  }
+
+  @Test
+  public void getListToString_ReturnNullIfListIsNull() {
+    assertNull(ConfigurationUtils.frameAncestorsAllowlistToString(null));
   }
 
   private List<String> getAllowlist() {

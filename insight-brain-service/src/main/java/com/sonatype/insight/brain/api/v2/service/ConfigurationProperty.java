@@ -117,6 +117,10 @@ public class ConfigurationProperty
           Boolean.class,
           (p, s) -> Boolean.parseBoolean(s),
           (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED,
+          Boolean.class,
+          (p, s) -> ConfigurationUtils.schemaMigrationEnabled(s),
+          (p, o) -> Objects.toString(o, null)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

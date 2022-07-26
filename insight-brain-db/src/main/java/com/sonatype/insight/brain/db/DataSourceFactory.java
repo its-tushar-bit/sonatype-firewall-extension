@@ -74,7 +74,14 @@ public class DataSourceFactory
     return newDataSources.get(dataSource);
   }
 
+  public static boolean hasNewDataSource() {
+    return newDataSources.containsValue(true);
+  }
+
   public static void clear_ForTestsOnly() {
+    synchronized (newDataSources) {
+      newDataSources.clear();
+    }
     synchronized (dataSources) {
       dataSources.clear();
       DatamartProvider.clear_ForTestsOnly();

@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.model.HasStringId;
 
 /**
@@ -125,6 +126,8 @@ public class SystemConfigurationProperty
 
   public static final String MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING =
       "matcherConfiguration.disableConanNamespaceMatching";
+
+  public static final String SCHEMA_MIGRATION_ENABLED = DatabaseMigrator.SCHEMA_MIGRATION_ENABLED;
 
   @Id
   @Column(name = "system_configuration_property_id")

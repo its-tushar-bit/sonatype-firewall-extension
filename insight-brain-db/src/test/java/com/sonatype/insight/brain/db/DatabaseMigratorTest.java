@@ -19,7 +19,9 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 import com.google.common.io.Resources;
 import org.codehaus.plexus.util.FileUtils;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.springframework.jdbc.datasource.init.ScriptStatementFailedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +31,9 @@ import static org.mockito.Mockito.mock;
 public class DatabaseMigratorTest
     extends AbstractDatabaseTest
 {
+  @Rule
+  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
   @Test
   public void testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript() throws Exception {
     File databaseDir = tempDir.newFolder("db");
@@ -230,6 +235,121 @@ public class DatabaseMigratorTest
   @Test
   public void testMigrate_NewThirdPartyScansDatabase_PopulatesVersion() throws Exception {
     testMigrate_NewDatabase_PopulatesVersion(ThirdPartyScansProvider.ID, 1);
+  }
+
+  @Test
+  public void testMigrate_MigrationDisabled_ByEnvironmentVariable() throws Exception {
+    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+    File databaseDir = tempDir.newFolder();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/testMigrate_ByEnvironmentVariable");
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, DatabaseName.ods.name());
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
+
+    new DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource);
+
+    File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
+    assertThat(databaseVersionFile).exists();
+    assertThat(FileUtils.fileRead(databaseVersionFile)).isEqualTo("85");
+  }
+
+  @Test
+  public void testMigrate_ForceEnableMigration_OverridesEnvironmentVariable() throws Exception {
+    try {
+      DatabaseMigrator.setForceEnableMigration(true);
+      environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+      File databaseDir = tempDir.newFolder();
+      copyDatabase(databaseDir, getClass().getSimpleName() + "/testMigrate_ByEnvironmentVariable");
+      DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, DatabaseName.ods.name());
+      DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
+
+      new DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource);
+
+      File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
+      assertThat(databaseVersionFile).doesNotExist();
+      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStoreProvider.ID)).isEqualTo(
+          DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID));
+    }
+    finally {
+      DatabaseMigrator.setForceEnableMigration(false);
+    }
+  }
+
+  @Test
+  public void testMigrate_MigrationEnabled_ByEnvironmentVariable() throws Exception {
+    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "true");
+    File databaseDir = tempDir.newFolder();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/testMigrate_ByEnvironmentVariable");
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, DatabaseName.ods.name());
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
+
+    new DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource);
+
+    File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
+    assertThat(databaseVersionFile).doesNotExist();
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStoreProvider.ID)).isEqualTo(
+        DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID));
+  }
+
+  @Test
+  public void testMigrate_MigrationDisabled_BySystemConfigurationProperty() throws Exception {
+    File databaseDir = tempDir.newFolder();
+    copyDatabase(databaseDir,
+        getClass().getSimpleName() + "/testMigrate_MigrationDisabled_BySystemConfigurationProperty");
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, DatabaseName.ods.name());
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
+    OperationalDataStoreProvider.initWithoutMigration(databaseConfig);
+    assertThat(DatabaseUtil.systemConfigurationPropertyTableExists(dataSource)).isTrue();
+    assertThat(DatabaseUtil.getSchemaMigrationEnabledFromDatabase(dataSource)).isEqualTo("false");
+
+    new DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource);
+
+    File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
+    assertThat(databaseVersionFile).exists();
+    assertThat(FileUtils.fileRead(databaseVersionFile)).isEqualTo("110");
+  }
+
+  @Test
+  public void testMigrate_ForceEnableMigration_OverridesSystemConfigurationProperty() throws Exception {
+    try {
+      DatabaseMigrator.setForceEnableMigration(true);
+      File databaseDir = tempDir.newFolder();
+      copyDatabase(databaseDir,
+          getClass().getSimpleName() + "/testMigrate_MigrationDisabled_BySystemConfigurationProperty");
+      DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, DatabaseName.ods.name());
+      DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
+      OperationalDataStoreProvider.initWithoutMigration(databaseConfig);
+      assertThat(DatabaseUtil.systemConfigurationPropertyTableExists(dataSource)).isTrue();
+      assertThat(DatabaseUtil.getSchemaMigrationEnabledFromDatabase(dataSource)).isEqualTo("false");
+
+      new DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource);
+
+      File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
+      assertThat(databaseVersionFile).doesNotExist();
+      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStoreProvider.ID)).isEqualTo(
+          DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID));
+    }
+    finally {
+      DatabaseMigrator.setForceEnableMigration(false);
+    }
+  }
+
+  @Test
+  public void testMigrate_MigrationEnabled_BySystemConfigurationProperty() throws Exception {
+    File databaseDir = tempDir.newFolder();
+    copyDatabase(databaseDir,
+        getClass().getSimpleName() + "/testMigrate_MigrationEnabled_BySystemConfigurationProperty");
+    DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, DatabaseName.ods.name());
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
+    OperationalDataStoreProvider.initWithoutMigration(databaseConfig);
+    assertThat(DatabaseUtil.systemConfigurationPropertyTableExists(dataSource)).isTrue();
+    assertThat(DatabaseUtil.getSchemaMigrationEnabledFromDatabase(dataSource)).isEqualTo("true");
+
+    new DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource);
+
+    File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
+    assertThat(databaseVersionFile).doesNotExist();
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStoreProvider.ID)).isEqualTo(
+        DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID));
   }
 
   @Test

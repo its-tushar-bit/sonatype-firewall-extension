@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -164,5 +165,13 @@ public class ConfigurationUtils
       file = new File(insightConfig.getSonatypeWork(), path);
     }
     return file.getAbsolutePath();
+  }
+
+  public static boolean schemaMigrationEnabled(String schemaMigrationEnabledFromDatabase) {
+    Boolean migrationEnabled = DatabaseMigrator.isMigrationEnabledFromEnvironmentVariable();
+    if (migrationEnabled != null) {
+      return migrationEnabled;
+    }
+    return parseBooleanWithDefault(schemaMigrationEnabledFromDatabase, true);
   }
 }

@@ -138,6 +138,10 @@ public class OperationalDataStoreProvider
     return dataSource;
   }
 
+  public static DataSource getDataSourceWithoutInit() {
+    return dataSource;
+  }
+
   public static DatabaseConfig getDatabaseConfig() {
     return databaseConfig;
   }

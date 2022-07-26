@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntConsumer;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
@@ -35,7 +36,14 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 public class DatabaseMigrator
 {
+  public static final String SCHEMA_MIGRATION_ENABLED = "SCHEMA_MIGRATION_ENABLED";
+
+  // Visible for testing
+  public static final String NXIQ_SCHEMA_MIGRATION = "NXIQ_DATABASE_MIGRATION";
+
   private static final Logger log = LoggerFactory.getLogger(DatabaseMigrator.class);
+
+  private static final AtomicBoolean forceEnableMigration = new AtomicBoolean();
 
   public void migrate(DatabaseConfig databaseConfig, String databaseName, DataSource dataSource) {
     migrate(databaseConfig, databaseName, dataSource, null /* upgradeGuard */);
@@ -57,6 +65,10 @@ public class DatabaseMigrator
       if (new DataSourceFactory().isNewDataSource(dataSource)) {
         // This is a new database, nothing to migrate here.
         DatabaseUtil.updateDatabaseSchemaVersion(dataSource, databaseName, desiredVersion);
+        return;
+      }
+
+      if (!isMigrationEnabled()) {
         return;
       }
 
@@ -211,5 +223,44 @@ public class DatabaseMigrator
 
   private static Resource loadIncrementalScriptResource(String scriptName) {
     return new DefaultResourceLoader().getResource(scriptName);
+  }
+
+  public static void setForceEnableMigration(boolean forceEnableMigration) {
+    DatabaseMigrator.forceEnableMigration.set(forceEnableMigration);
+  }
+
+  public static boolean isMigrationEnabled() {
+    if (forceEnableMigration.get()) {
+      return true;
+    }
+    Boolean migrationEnabled = isMigrationEnabledFromEnvironmentVariable();
+    if (migrationEnabled != null) {
+      return migrationEnabled;
+    }
+    DataSource odsDataSource = OperationalDataStoreProvider.getDataSourceWithoutInit();
+    if (odsDataSource != null && DatabaseUtil.systemConfigurationPropertyTableExists(odsDataSource)) {
+      migrationEnabled = parseBoolean(DatabaseUtil.getSchemaMigrationEnabledFromDatabase(odsDataSource));
+    }
+    if (migrationEnabled != null) {
+      return migrationEnabled;
+    }
+    return true;
+  }
+
+  public static Boolean isMigrationEnabledFromEnvironmentVariable() {
+    return parseBoolean(System.getenv(NXIQ_SCHEMA_MIGRATION));
+  }
+
+  private static Boolean parseBoolean(String s) {
+    if (s == null) {
+      return null;
+    }
+    if (s.equalsIgnoreCase("true")) {
+      return true;
+    }
+    if (s.equalsIgnoreCase("false")) {
+      return false;
+    }
+    return null;
   }
 }

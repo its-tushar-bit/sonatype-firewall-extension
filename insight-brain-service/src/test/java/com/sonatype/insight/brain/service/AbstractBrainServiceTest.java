@@ -260,7 +260,8 @@ public abstract class AbstractBrainServiceTest
           SystemConfigurationProperty.DB_BACKUP_DIR,
           SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
           SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
-          SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING);
+          SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
+          SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED);
     }
     releaseScmPerpetualLock();
     new ProxyServerConfigurationDAO().delete();

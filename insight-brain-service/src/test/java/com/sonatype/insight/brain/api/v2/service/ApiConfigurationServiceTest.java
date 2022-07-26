@@ -14,6 +14,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -29,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Maps;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
@@ -46,6 +48,9 @@ import static org.mockito.Mockito.when;
 public class ApiConfigurationServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
   @Rule
   public LogOutput logOutput = new LogOutput(ConfigurationUtils.class);
 
@@ -424,6 +429,41 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING))).containsEntry(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, false);
+  }
+
+  @Test
+  public void testGetConfiguration_SchemaMigrationEnabled_NullDb_NullEnv() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
+        SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, true);
+  }
+
+  @Test
+  public void testGetConfiguration_SchemaMigrationEnabled_Db_NullEnv() {
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
+
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
+        SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
+  }
+
+  @Test
+  public void testGetConfiguration_SchemaMigrationEnabled_NullDb_Env() {
+    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
+        SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
+  }
+
+  @Test
+  public void testGetConfiguration_SchemaMigrationEnabled_Db_Env() {
+    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, true);
+
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
+        SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
   }
 
   @Test
@@ -1096,6 +1136,26 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING))).containsEntry(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, true);
+  }
+
+  @Test
+  public void testSetConfiguration_SchemaMigrationEnabled_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
+        SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, true);
+  }
+
+  @Test
+  public void testSetConfiguration_SchemaMigrationEnabled() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false));
+
+    assertThat(dao.get(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED)).isEqualTo("false");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
+        SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
   }
 
   private void assertMinAndMax(String name, int min, int max) {

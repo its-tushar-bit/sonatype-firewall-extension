@@ -9,6 +9,7 @@ import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
+import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatabaseUtil;
@@ -27,7 +28,7 @@ public final class DatabaseProvisionUtils
 
   public static void initializeDatabases(InsightConfig insightConfig, DatabaseConfigProvider databaseConfigProvider) {
     initializeDatabasesWithoutMigration(databaseConfigProvider);
-    migrateDatabases(insightConfig);
+    migrateDatabasesIfNeeded(insightConfig);
   }
 
   public static void initializeDatabasesWithoutMigration(InsightConfig insightConfig) {
@@ -48,7 +49,7 @@ public final class DatabaseProvisionUtils
     AggregationDataStoreProvider.initWithoutMigration(aggregationDatabaseConfig);
   }
 
-  public static void migrateDatabases(InsightConfig insightConfig) {
+  public static void migrateDatabasesIfNeeded(InsightConfig insightConfig) {
     boolean schemaVersionTableExists =
         DatabaseUtil.schemaVersionTableExists(OperationalDataStoreProvider.getDataSource(),
             OperationalDataStoreProvider.ID);
@@ -57,12 +58,13 @@ public final class DatabaseProvisionUtils
       schemaVersion = DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(),
           OperationalDataStoreProvider.ID);
     }
+    boolean isMigrationEnabledOrHasNewDataSource = isMigrationEnabledOrHasNewDataSource();
     // -1 indicates a new database which needs to be "migrated" to have its schema version inserted
     if (schemaVersionTableExists &&
         (schemaVersion == -1 || schemaVersion >= OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION)) {
       try (ClusterLock clusterLock = ClusterLock.createForSchemaMigration()) {
         clusterLock.lock();
-        if (isMigrationNeeded()) {
+        if (isMigrationEnabledOrHasNewDataSource && isMigrationNeeded()) {
           ClusterLock.createForSchemaMigrationInProgress();
           doMigrateDatabases(insightConfig);
           ClusterLock.deleteForSchemaMigrationInProgress();
@@ -70,8 +72,14 @@ public final class DatabaseProvisionUtils
       }
     }
     else {
-      doMigrateDatabases(insightConfig);
+      if (isMigrationEnabledOrHasNewDataSource) {
+        doMigrateDatabases(insightConfig);
+      }
     }
+  }
+
+  public static boolean isMigrationEnabledOrHasNewDataSource() {
+    return DatabaseMigrator.isMigrationEnabled() || DataSourceFactory.hasNewDataSource();
   }
 
   private static boolean isMigrationNeeded() {

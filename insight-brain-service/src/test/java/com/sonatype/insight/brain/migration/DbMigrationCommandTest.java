@@ -20,6 +20,7 @@ import java.util.function.IntConsumer;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.DatabaseConfigProvider;
@@ -41,9 +43,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
@@ -52,6 +54,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -59,6 +62,9 @@ import static org.mockito.Mockito.when;
 
 public class DbMigrationCommandTest
 {
+  @Rule
+  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -97,12 +103,12 @@ public class DbMigrationCommandTest
     DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand());
     when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
-    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = Mockito.mockStatic(DatabaseProvisionUtils.class,
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
         CALLS_REAL_METHODS)) {
       spyDbMigrationCommand.run(null, null, insightConfig);
 
       databaseUtils.verify(() -> DatabaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig));
-      databaseUtils.verify(() -> DatabaseProvisionUtils.migrateDatabases(insightConfig));
+      databaseUtils.verify(() -> DatabaseProvisionUtils.migrateDatabasesIfNeeded(insightConfig));
     }
   }
 
@@ -117,14 +123,14 @@ public class DbMigrationCommandTest
     doNothing().when(spyDbMigrationCommand).trySleep(anyInt());
     when(spyDbMigrationCommand.getCurrentTimeMillis()).thenReturn(currentTime);
 
-    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = Mockito.mockStatic(DatabaseProvisionUtils.class,
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
         CALLS_REAL_METHODS)) {
       assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
           () -> spyDbMigrationCommand.run(null, null, insightConfig));
 
       verify(spyDbMigrationCommand).trySleep(1);
       databaseUtils.verify(() -> DatabaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig));
-      databaseUtils.verify(() -> DatabaseProvisionUtils.migrateDatabases(insightConfig), never());
+      databaseUtils.verify(() -> DatabaseProvisionUtils.migrateDatabasesIfNeeded(insightConfig), never());
     }
   }
 
@@ -139,13 +145,13 @@ public class DbMigrationCommandTest
     doNothing().when(spyDbMigrationCommand).trySleep(anyInt());
     when(spyDbMigrationCommand.getCurrentTimeMillis()).thenReturn(currentTime).thenReturn(currentTime + 1);
 
-    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = Mockito.mockStatic(DatabaseProvisionUtils.class,
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
         CALLS_REAL_METHODS)) {
       spyDbMigrationCommand.run(null, null, insightConfig);
 
       verify(spyDbMigrationCommand).trySleep(1);
       databaseUtils.verify(() -> DatabaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig));
-      databaseUtils.verify(() -> DatabaseProvisionUtils.migrateDatabases(insightConfig));
+      databaseUtils.verify(() -> DatabaseProvisionUtils.migrateDatabasesIfNeeded(insightConfig));
     }
   }
 
@@ -160,12 +166,12 @@ public class DbMigrationCommandTest
     when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
     when(spyDbMigrationCommand.getCurrentTimeMillis()).thenReturn(currentTime);
 
-    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = Mockito.mockStatic(DatabaseProvisionUtils.class,
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
         CALLS_REAL_METHODS)) {
       spyDbMigrationCommand.run(null, null, insightConfig);
 
       databaseUtils.verify(() -> DatabaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig));
-      databaseUtils.verify(() -> DatabaseProvisionUtils.migrateDatabases(insightConfig));
+      databaseUtils.verify(() -> DatabaseProvisionUtils.migrateDatabasesIfNeeded(insightConfig));
     }
   }
 
@@ -176,12 +182,12 @@ public class DbMigrationCommandTest
     DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand());
     when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
-    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = Mockito.mockStatic(DatabaseProvisionUtils.class,
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
         CALLS_REAL_METHODS)) {
       spyDbMigrationCommand.run(null, null, insightConfig);
 
       databaseUtils.verify(() -> DatabaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig));
-      databaseUtils.verify(() -> DatabaseProvisionUtils.migrateDatabases(insightConfig));
+      databaseUtils.verify(() -> DatabaseProvisionUtils.migrateDatabasesIfNeeded(insightConfig));
     }
   }
 
@@ -194,7 +200,7 @@ public class DbMigrationCommandTest
     DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand());
     when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
-    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = Mockito.mockStatic(DatabaseProvisionUtils.class,
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
         CALLS_REAL_METHODS)) {
       spyDbMigrationCommand.run(null, null, insightConfig);
 
@@ -214,8 +220,8 @@ public class DbMigrationCommandTest
     DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand());
     when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
 
-    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = Mockito.mockStatic(DatabaseProvisionUtils.class,
-        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = Mockito.mockStatic(ClusterLock.class,
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
+        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class,
             CALLS_REAL_METHODS)) {
       spyDbMigrationCommand.run(null, null, insightConfig);
 
@@ -223,6 +229,237 @@ public class DbMigrationCommandTest
       clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress, never());
       databaseUtils.verify(() -> DatabaseProvisionUtils.doMigrateDatabases(insightConfig), never());
       clusterLock.verify(ClusterLock::deleteForSchemaMigrationInProgress, never());
+    }
+  }
+
+  @Test
+  public void testRun_IgnoresMigrationDisabled_ByEnvironmentVariable() {
+    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+    insightConfig.setConsentToUpgradeToVersion_1_45(true);
+    File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
+    databaseDir.mkdirs();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
+    DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand());
+    when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
+
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
+        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class,
+            CALLS_REAL_METHODS)) {
+      spyDbMigrationCommand.run(null, null, insightConfig);
+
+      databaseUtils.verify(() -> DatabaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig));
+      clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress, never());
+      databaseUtils.verify(() -> DatabaseProvisionUtils.doMigrateDatabases(insightConfig));
+      clusterLock.verify(ClusterLock::deleteForSchemaMigrationInProgress, never());
+    }
+  }
+
+  @Test
+  public void testRun_IgnoresMigrationDisabled_BySystemConfigurationProperty() {
+    insightConfig.setConsentToUpgradeToVersion_1_45(true);
+    File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
+    databaseDir.mkdirs();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
+    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION,
+        DatabaseName.ods, OperationalDataStoreProvider.ID, databaseConfig -> {
+          OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
+          return OperationalDataStoreProvider.getDataSource();
+        }, OperationalDataStoreProvider.getUpgradeGuard(true));
+    DatabaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig);
+    new SystemConfigurationPropertyDAO().set(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, "false");
+    DataSourceFactory.clear_ForTestsOnly();
+    DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand());
+    when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
+
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
+        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class,
+            CALLS_REAL_METHODS)) {
+      spyDbMigrationCommand.run(null, null, insightConfig);
+
+      databaseUtils.verify(() -> DatabaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig));
+      clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress);
+      databaseUtils.verify(() -> DatabaseProvisionUtils.doMigrateDatabases(insightConfig));
+      clusterLock.verify(ClusterLock::deleteForSchemaMigrationInProgress);
+    }
+  }
+
+  @Test
+  public void testInitializeDatabases_MigrationDisabled_ByEnvironmentVariable_WithoutTables() {
+    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+    insightConfig.setConsentToUpgradeToVersion_1_45(true);
+    File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
+    databaseDir.mkdirs();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
+
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
+        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class,
+            CALLS_REAL_METHODS)) {
+      DatabaseProvisionUtils.initializeDatabases(insightConfig, new DatabaseConfigProvider(insightConfig));
+
+      clusterLock.verify(ClusterLock::createForSchemaMigration, never());
+      clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress, never());
+      databaseUtils.verify(() -> DatabaseProvisionUtils.doMigrateDatabases(insightConfig), never());
+      clusterLock.verify(ClusterLock::deleteForSchemaMigrationInProgress, never());
+    }
+  }
+
+  @Test
+  public void testInitializeDatabases_MigrationEnabled_ByEnvironmentVariable_WithoutTables() {
+    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "true");
+    insightConfig.setConsentToUpgradeToVersion_1_45(true);
+    File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
+    databaseDir.mkdirs();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
+
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
+        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class,
+            CALLS_REAL_METHODS)) {
+      DatabaseProvisionUtils.initializeDatabases(insightConfig, new DatabaseConfigProvider(insightConfig));
+
+      clusterLock.verify(ClusterLock::createForSchemaMigration, never());
+      clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress, never());
+      databaseUtils.verify(() -> DatabaseProvisionUtils.doMigrateDatabases(insightConfig));
+      clusterLock.verify(ClusterLock::deleteForSchemaMigrationInProgress, never());
+    }
+  }
+
+  @Test
+  public void testInitializeDatabases_MigrationDisabled_ByEnvironmentVariable_WithTables() {
+    insightConfig.setConsentToUpgradeToVersion_1_45(true);
+    File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
+    databaseDir.mkdirs();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
+    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION,
+        DatabaseName.ods, OperationalDataStoreProvider.ID, databaseConfig -> {
+          OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
+          return OperationalDataStoreProvider.getDataSource();
+        }, OperationalDataStoreProvider.getUpgradeGuard(true));
+    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
+        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class,
+            CALLS_REAL_METHODS)) {
+      DatabaseProvisionUtils.initializeDatabases(insightConfig, new DatabaseConfigProvider(insightConfig));
+
+      clusterLock.verify(ClusterLock::createForSchemaMigration);
+      clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress, never());
+      databaseUtils.verify(() -> DatabaseProvisionUtils.doMigrateDatabases(insightConfig), never());
+      clusterLock.verify(ClusterLock::deleteForSchemaMigrationInProgress, never());
+    }
+  }
+
+  @Test
+  public void testInitializeDatabases_MigrationEnabled_ByEnvironmentVariable_WithTables() {
+    insightConfig.setConsentToUpgradeToVersion_1_45(true);
+    File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
+    databaseDir.mkdirs();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
+    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION,
+        DatabaseName.ods, OperationalDataStoreProvider.ID, databaseConfig -> {
+          OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
+          return OperationalDataStoreProvider.getDataSource();
+        }, OperationalDataStoreProvider.getUpgradeGuard(true));
+    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "true");
+
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
+        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class,
+            CALLS_REAL_METHODS)) {
+      DatabaseProvisionUtils.initializeDatabases(insightConfig, new DatabaseConfigProvider(insightConfig));
+
+      clusterLock.verify(ClusterLock::createForSchemaMigration);
+      clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress);
+      databaseUtils.verify(() -> DatabaseProvisionUtils.doMigrateDatabases(insightConfig));
+      clusterLock.verify(ClusterLock::deleteForSchemaMigrationInProgress);
+    }
+  }
+
+  @Test
+  public void testInitializeDatabases_MigrationDisabled_BySystemConfigurationProperty_WithTables() {
+    insightConfig.setConsentToUpgradeToVersion_1_45(true);
+    File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
+    databaseDir.mkdirs();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
+    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION,
+        DatabaseName.ods, OperationalDataStoreProvider.ID, databaseConfig -> {
+          OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
+          return OperationalDataStoreProvider.getDataSource();
+        }, OperationalDataStoreProvider.getUpgradeGuard(true));
+    DatabaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig);
+    new SystemConfigurationPropertyDAO().set(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, "false");
+    DataSourceFactory.clear_ForTestsOnly();
+
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
+        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class,
+            CALLS_REAL_METHODS)) {
+      DatabaseProvisionUtils.initializeDatabases(insightConfig, new DatabaseConfigProvider(insightConfig));
+
+      clusterLock.verify(ClusterLock::createForSchemaMigration);
+      clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress, never());
+      databaseUtils.verify(() -> DatabaseProvisionUtils.doMigrateDatabases(insightConfig), never());
+      clusterLock.verify(ClusterLock::deleteForSchemaMigrationInProgress, never());
+    }
+  }
+
+  @Test
+  public void testInitializeDatabases_MigrationEnabled_BySystemConfigurationProperty_WithTables() {
+    insightConfig.setConsentToUpgradeToVersion_1_45(true);
+    File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
+    databaseDir.mkdirs();
+    copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
+    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION,
+        DatabaseName.ods, OperationalDataStoreProvider.ID, databaseConfig -> {
+          OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
+          return OperationalDataStoreProvider.getDataSource();
+        }, OperationalDataStoreProvider.getUpgradeGuard(true));
+    DatabaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig);
+    new SystemConfigurationPropertyDAO().set(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, "true");
+    DataSourceFactory.clear_ForTestsOnly();
+
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
+        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class,
+            CALLS_REAL_METHODS)) {
+      DatabaseProvisionUtils.initializeDatabases(insightConfig, new DatabaseConfigProvider(insightConfig));
+
+      clusterLock.verify(ClusterLock::createForSchemaMigration);
+      clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress);
+      databaseUtils.verify(() -> DatabaseProvisionUtils.doMigrateDatabases(insightConfig));
+      clusterLock.verify(ClusterLock::deleteForSchemaMigrationInProgress);
+    }
+  }
+
+  @Test
+  public void testInitializeDatabases_MigrationDisabled_ByEnvironmentVariable_NewDataSource() {
+    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "false");
+    File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
+    databaseDir.mkdirs();
+
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
+        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class,
+            CALLS_REAL_METHODS)) {
+      DatabaseProvisionUtils.initializeDatabases(insightConfig, new DatabaseConfigProvider(insightConfig));
+
+      clusterLock.verify(ClusterLock::createForSchemaMigration);
+      clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress);
+      databaseUtils.verify(() -> DatabaseProvisionUtils.doMigrateDatabases(insightConfig));
+      clusterLock.verify(ClusterLock::deleteForSchemaMigrationInProgress);
+    }
+  }
+
+  @Test
+  public void testInitializeDatabases_MigrationEnabled_ByEnvironmentVariable_NewDataSource() {
+    environmentVariables.set(DatabaseMigrator.NXIQ_SCHEMA_MIGRATION, "true");
+    File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
+    databaseDir.mkdirs();
+
+    try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
+        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class,
+            CALLS_REAL_METHODS)) {
+      DatabaseProvisionUtils.initializeDatabases(insightConfig, new DatabaseConfigProvider(insightConfig));
+
+      clusterLock.verify(ClusterLock::createForSchemaMigration);
+      clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress);
+      databaseUtils.verify(() -> DatabaseProvisionUtils.doMigrateDatabases(insightConfig));
+      clusterLock.verify(ClusterLock::deleteForSchemaMigrationInProgress);
     }
   }
 

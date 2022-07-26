@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
@@ -30,11 +31,17 @@ public class DbMigrationCommand
 
   @Override
   protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig insightConfig) {
-    DatabaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig);
+    try {
+      DatabaseMigrator.setForceEnableMigration(true);
+      DatabaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig);
 
-    tryCheckLastCheckinTimeNotRecent(getAttemptsToWaitForLastCheckinToNotBeRecent());
+      tryCheckLastCheckinTimeNotRecent(getAttemptsToWaitForLastCheckinToNotBeRecent());
 
-    DatabaseProvisionUtils.migrateDatabases(insightConfig);
+      DatabaseProvisionUtils.migrateDatabasesIfNeeded(insightConfig);
+    }
+    finally {
+      DatabaseMigrator.setForceEnableMigration(false);
+    }
   }
 
   void tryCheckLastCheckinTimeNotRecent(int attemptsToWait) {

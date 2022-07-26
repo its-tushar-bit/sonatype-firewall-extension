@@ -22,6 +22,10 @@ public class DatabaseUtil
     return tableExists(dataSource, OperationalDataStoreProvider.ID, "qrtz_scheduler_state");
   }
 
+  public static boolean systemConfigurationPropertyTableExists(DataSource dataSource) {
+    return tableExists(dataSource, OperationalDataStoreProvider.ID, "system_configuration_property");
+  }
+
   public static boolean tableExists(DataSource dataSource, String databaseName, String tableName) {
     try (Connection connection = dataSource.getConnection();
          PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES " +
@@ -79,6 +83,22 @@ public class DatabaseUtil
              "SELECT MAX(last_checkin_time) FROM insight_brain_ods.QRTZ_SCHEDULER_STATE")) {
       if (resultSet.next()) {
         return resultSet.getLong(1);
+      }
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(e.getMessage(), e);
+    }
+    return null;
+  }
+
+  public static String getSchemaMigrationEnabledFromDatabase(DataSource dataSource) {
+    try (Connection connection = dataSource.getConnection();
+         Statement statement = connection.createStatement();
+         ResultSet resultSet = statement.executeQuery(
+             "SELECT value FROM insight_brain_ods.system_configuration_property WHERE name = '" +
+                 DatabaseMigrator.SCHEMA_MIGRATION_ENABLED + "'")) {
+      if (resultSet.next()) {
+        return resultSet.getString(1);
       }
     }
     catch (Exception e) {

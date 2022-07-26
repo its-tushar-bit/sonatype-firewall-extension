@@ -171,4 +171,45 @@ public class ExternalTelemetryServiceTest
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
     assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
   }
+
+  @Test
+  public void testSendTelemetry_JiraPluginUsageTelemetry() {
+    Map<String, String> telemetryValues = new HashMap<>();
+
+    telemetryValues.put("telemetry_purpose", "JIRA_PLUGIN_USAGE_METRICS");
+    telemetryValues.put("issue_count", "10");
+    telemetryValues.put("transitioned_issue_count", "3");
+    telemetryValues.put("client_id", "iq_for_jira");
+    telemetryValues.put("client_version", "1.7.0");
+    telemetryValues.put("client_runtime", "Java");
+    telemetryValues.put("client_runtime_version","1.8.0");
+    telemetryValues.put("client_os_name", "Linux");
+    telemetryValues.put("client_os_version", "5.14.0");
+    telemetryValues.put("client_other", "Jira Server 9.0.0");
+    telemetryValues.put("client_instance_id", "instance_id");
+
+    externalTelemetryService.sendTelemetry("user-agent", telemetryValues);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryDataArgumentCaptor.capture());
+
+    Map<String, Object> expectedAttributes = new HashMap<>();
+    expectedAttributes.put("jira_plugin_issue_count", 10);
+    expectedAttributes.put("jira_plugin_transitioned_issue_count", 3);
+    expectedAttributes.put("client_id", "iq_for_jira");
+    expectedAttributes.put("client_version", "1.7.0");
+    expectedAttributes.put("client_runtime", "Java");
+    expectedAttributes.put("client_runtime_version","1.8.0");
+    expectedAttributes.put("client_os_name", "Linux");
+    expectedAttributes.put("client_os_version", "5.14.0");
+    expectedAttributes.put("client_other", "Jira Server 9.0.0");
+    expectedAttributes.put("client_instance_id", "instance_id");
+
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+
+    assertThat(telemetryData).isNotNull();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.JIRA_PLUGIN_USAGE_METRICS);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
+    assertThat(telemetryData.getAttributes()).isEqualTo(expectedAttributes);
+  }
 }

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -57,6 +58,9 @@ public class ExternalTelemetryService
       case JIRA_PLUGIN_CONFIGURATION_METRICS:
         sendJiraPluginConfigurationTelemetry(telemetryValues);
         break;
+      case JIRA_PLUGIN_USAGE_METRICS:
+        sendJiraPluginUsageTelemetry(telemetryValues);
+        break;
       default:
         log.info("External telemetry endpoint called with an unsupported `telemetry_purpose`.");
         throw new BadRequestException("Telemetry purpose not supported.");
@@ -101,6 +105,23 @@ public class ExternalTelemetryService
         Integer.valueOf(telemetryValues.get("automatic_workflow_transition_count")));
     telemetryData.put("jira_plugin_total_project_count",
         Integer.valueOf(telemetryValues.get("total_project_count")));
+
+    telemetrySender.send(telemetryData);
+  }
+
+  private void sendJiraPluginUsageTelemetry(Map<String, String> telemetryValues) {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.JIRA_PLUGIN_USAGE_METRICS);
+
+    telemetryData.put("jira_plugin_issue_count",
+        Integer.valueOf(telemetryValues.get("issue_count")));
+    telemetryData.put("jira_plugin_transitioned_issue_count",
+        Integer.valueOf(telemetryValues.get("transitioned_issue_count")));
+
+    for (Entry<String, String> entry : telemetryValues.entrySet()) {
+      if (entry.getKey().startsWith("client_")) {
+        telemetryData.put(entry.getKey(), entry.getValue());
+      }
+    }
 
     telemetrySender.send(telemetryData);
   }

@@ -13,6 +13,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
@@ -39,7 +40,8 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ScannerTest extends InjectedTest
+public class ScannerTest
+    extends InjectedTest
 {
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();
@@ -274,5 +276,37 @@ public class ScannerTest extends InjectedTest
     assertThat(scanItems).hasSize(1);
     ScanItem scanItem = scanItems.get(0);
     assertThat(scanItem.getPath()).isEqualTo("aws.large.tfplan");
+  }
+
+  @Test
+  public void testScan_WithBuiltFromSourceDisabled_ExcludesSha256() throws Exception {
+    ScanResult scanResult = scanner.scan(new File("src/test/resources/ScannerTest/app01.zip"), "test-app.zip",
+        new File(tempDir.getRoot(), "not-yet-existent"), null);
+
+    assertThat(scanResult.getScanFile()).isFile();
+    Scan scan = scanReader.read(scanResult.getScanFile());
+    assertThat(scan).isNotNull();
+    assertThat(scan.getItems()).hasSize(1);
+    assertThat(scan.getItems().get(0).getSha256()).isNull();
+  }
+
+  @Test
+  public void testScan_WithBuiltFromSourceEnabled_IncludesSha256() throws Exception {
+    try {
+      SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
+
+      ScanResult scanResult = scanner.scan(new File("src/test/resources/ScannerTest/app01.zip"), "test-app.zip",
+          new File(tempDir.getRoot(), "not-yet-existent"), null);
+
+      assertThat(scanResult.getScanFile()).isFile();
+      Scan scan = scanReader.read(scanResult.getScanFile());
+      assertThat(scan).isNotNull();
+      assertThat(scan.getItems()).hasSize(1);
+      assertThat(scan.getItems().get(0).getSha256()).isEqualTo(
+          "d564e794805f7fe63e9cb9f51da36ace59a3ea42ecdc8a3a8e91fd5b840cb8b8");
+    }
+    finally {
+      SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(false);
+    }
   }
 }

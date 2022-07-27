@@ -13,11 +13,13 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -124,6 +126,33 @@ public class RepositoryResourceAuditTest
     assertRepositoryData(auditDTO, repository);
   }
 
+  @Test
+  public void testGetPolicyViolations() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "testPath");
+
+    policyViolationsRequest(repository.getId(), repositoryComponent.getPathname()).get();
+    assertComponentData(repository, repositoryComponent.getComponentIdentifier(), repositoryComponent.getHash(),
+        repositoryComponent.getPathname());
+  }
+
+  @Test
+  public void testGetPolicyViolations_ComponentDoesNotExist() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    policyViolationsRequest(repository.getId(), "non-existent/path").get();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, "not-found");
+    assertCustomData(auditDTO, "componentPathname", "non-existent/path");
+  }
+
+  @Test
+  public void testGetPolicyViolations_Unauthorized() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    policyViolationsRequest(repository.getId(), "a/path").with(unauthorizedUser()).get();
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, "unauthorized");
+    assertRepositoryData(auditDTO, repository);
+  }
+
   private HttpRequest repositoryRequest(String repositoryId) {
     return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH)
         .parameter(repositoryId);
@@ -141,6 +170,11 @@ public class RepositoryResourceAuditTest
 
   private HttpRequest unquarantineRequest(String repositoryId, String pathname) {
     return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.UNQUARANTINE_PATH)
+        .parameter(repositoryId, pathname);
+  }
+
+  private HttpRequest policyViolationsRequest(String repositoryId, String pathname) {
+    return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_VIOLATONS_PATH)
         .parameter(repositoryId, pathname);
   }
 
@@ -176,5 +210,18 @@ public class RepositoryResourceAuditTest
   private void assertUnquarantineData(AuditDTO auditDTO, String componentHash, String componentPathname) {
     assertCustomData(auditDTO, "componentHash", componentHash);
     assertCustomData(auditDTO, "componentPathname", componentPathname);
+  }
+
+  protected void assertComponentData(
+      Owner owner,
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      String pathname)
+  {
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, null);
+    assertOwnerData(auditDTO, owner);
+    assertCustomObject(auditDTO, "componentIdentifier", componentIdentifier);
+    assertCustomData(auditDTO, "componentHash", hash);
+    assertCustomData(auditDTO, "componentPathname", pathname);
   }
 }

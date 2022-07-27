@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.repository;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -46,6 +48,8 @@ public class RepositoryResource
   static final String EVALUATE_COMPONENT_PATH = EVALUATE_PATH + "/{hash}";
 
   static final String POLICY_EVALUATION_TIMESTAMPS_PATH = REPOSITORY_PATH + "/policyEvaluationTimestamps";
+
+  static final String POLICY_VIOLATONS_PATH = REPOSITORY_PATH + "/policyViolations/{pathname: .+}";
 
   private RepositoryService repositoryService;
 
@@ -124,5 +128,19 @@ public class RepositoryResource
       @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
   {
     return repositoryService.getPolicyEvaluationTimestamps(repositoryId, componentIdentifier);
+  }
+
+  /**
+   * @since 1.143
+   */
+  @GET
+  @Path(POLICY_VIOLATONS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
+  public List<RepositoryPolicyViolationDTO> getPolicyViolations(
+      @PathParam("repositoryId") String repositoryId,
+      @PathParam("pathname") String pathname)
+  {
+    return repositoryService.getPolicyViolations(repositoryId, pathname);
   }
 }

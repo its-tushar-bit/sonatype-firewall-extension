@@ -7,52 +7,48 @@ package com.sonatype.insight.brain.repository;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyConstraint;
 
 /**
- * @since 1.143
+ * @deprecated Use {@link RepositoryPolicyViolationDTO} instead
+ * 
+ * @since 1.18.0
  */
-public class RepositoryPolicyViolationDTO
+@Deprecated
+public class DeprecatedRepositoryPolicyViolationDTO
 {
-  public String policyViolationId;
-
   public String policyId;
 
   public String policyName;
 
   public int policyThreatLevel;
 
-  public PolicyThreatCategory policyThreatCategory;
-
   public List<PolicyConstraint> constraints;
 
+  public boolean blocksUnquarantine;
+
+  /**
+   * @since 1.53
+   */
   public String constraintFactsJson;
 
-  public String policyActionTypeId;
-
   // Needed for de-serialization
-  public RepositoryPolicyViolationDTO() {
+  public DeprecatedRepositoryPolicyViolationDTO() {
   }
 
-  public RepositoryPolicyViolationDTO(
-      String policyViolationId,
-      String policyId,
-      String policyName,
-      int policyThreatLevel,
-      PolicyThreatCategory policyThreatCategory,
-      List<PolicyThreats.PolicyConstraint> constraints,
-      String constraintFactsJson,
-      String policyActionTypeId)
+  public DeprecatedRepositoryPolicyViolationDTO(final String policyId,
+                                      final String policyName,
+                                      final int policyThreatLevel,
+                                      final boolean blocksUnquarantine,
+                                      final List<PolicyThreats.PolicyConstraint> constraints,
+                                      final String constraintFactsJson)
   {
-    this.policyViolationId = policyViolationId;
     this.policyId = policyId;
     this.policyName = policyName;
     this.policyThreatLevel = policyThreatLevel;
-    this.policyThreatCategory = policyThreatCategory;
     this.constraints = constraints;
+    this.blocksUnquarantine = blocksUnquarantine;
     this.constraintFactsJson = constraintFactsJson;
-    this.policyActionTypeId = policyActionTypeId;
   }
 }

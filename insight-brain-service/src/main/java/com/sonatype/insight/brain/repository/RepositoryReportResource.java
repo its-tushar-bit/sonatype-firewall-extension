@@ -87,8 +87,11 @@ public class RepositoryReportResource
   }
 
   /**
+   * @deprecated Use {@link RepositoryResource#getPolicyViolations(String, String)} instead
+   * 
    * @since 1.18.0
    */
+  @Deprecated
   @GET
   @Path(POLICY_THREAT_PATH)
   @Produces(MediaType.APPLICATION_JSON)

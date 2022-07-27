@@ -12,13 +12,13 @@ import java.util.List;
  */
 public class RepositoryPolicyThreatDTO
 {
-  public List<RepositoryPolicyViolationDTO> activePolicyViolations;
+  public List<DeprecatedRepositoryPolicyViolationDTO> activePolicyViolations;
 
   // Needed for de-serialization
   public RepositoryPolicyThreatDTO() {
   }
 
-  public RepositoryPolicyThreatDTO(final List<RepositoryPolicyViolationDTO> activePolicyViolations) {
+  public RepositoryPolicyThreatDTO(final List<DeprecatedRepositoryPolicyViolationDTO> activePolicyViolations) {
     this.activePolicyViolations = activePolicyViolations;
   }
 }

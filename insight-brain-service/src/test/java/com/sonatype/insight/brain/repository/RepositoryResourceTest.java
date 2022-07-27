@@ -12,12 +12,14 @@ import java.util.HashSet;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -131,5 +133,32 @@ public class RepositoryResourceTest
     assertThat(policyEvaluationTimestampsDTO.quarantineTime).isEqualTo(quarantineTime);
     assertThat(policyEvaluationTimestampsDTO.unquarantineTime).isEqualTo(unquarantineTime);
     assertThat(policyEvaluationTimestampsDTO.autoUnquarantined).isFalse();
+  }
+
+  @Test
+  public void testGetPolicyViolations() throws Exception {
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repo.getId(), "testPathname");
+    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repo.getId(), 8,
+        repositoryComponent.getPathname(), false /* isWaived */, Action.ID_FAIL, "testPolicyId", "testPolicyName",
+        repositoryComponent.getComponentIdentifier());
+
+    HttpResponse response =
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_VIOLATONS_PATH)
+            .parameter(repo.getId(), repositoryComponent.getPathname()).get();
+
+    assertResponseStatus(200, response);
+    RepositoryPolicyViolationDTO[] repositoryPolicyViolationDTOs =
+        response.getBody(RepositoryPolicyViolationDTO[].class);
+    assertThat(repositoryPolicyViolationDTOs).hasSize(1);
+    RepositoryPolicyViolationDTO repositoryPolicyViolationDTO = repositoryPolicyViolationDTOs[0];
+    assertThat(repositoryPolicyViolationDTO.policyViolationId).isEqualTo(repositoryPolicyViolation.getId());
+    assertThat(repositoryPolicyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
+    assertThat(repositoryPolicyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
+    assertThat(repositoryPolicyViolationDTO.policyThreatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
+    assertThat(repositoryPolicyViolationDTO.policyThreatCategory)
+        .isEqualTo(repositoryPolicyViolation.getThreatCategory());
+    assertThat(repositoryPolicyViolationDTO.constraintFactsJson)
+        .isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
+    assertThat(repositoryPolicyViolationDTO.policyActionTypeId).isEqualTo(repositoryPolicyViolation.getActionTypeId());
   }
 }

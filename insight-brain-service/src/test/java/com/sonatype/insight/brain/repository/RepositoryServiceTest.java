@@ -216,6 +216,10 @@ public class RepositoryServiceTest extends AbstractComponentTest
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @Deprecated
   @Test
   public void testGetPolicyThreats() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
@@ -239,7 +243,8 @@ public class RepositoryServiceTest extends AbstractComponentTest
         .getPolicyThreats(repository.getId(), pathname);
 
     assertThat(repositoryPolicyThreatDTO.activePolicyViolations).hasSize(1);
-    RepositoryPolicyViolationDTO repositoryViolationDTO = repositoryPolicyThreatDTO.activePolicyViolations.get(0);
+    DeprecatedRepositoryPolicyViolationDTO repositoryViolationDTO =
+        repositoryPolicyThreatDTO.activePolicyViolations.get(0);
     assertThat(repositoryViolationDTO.policyId).isEqualTo("policyId1");
     assertThat(repositoryViolationDTO.policyName).isEqualTo("policyName1");
     assertThat(repositoryViolationDTO.policyThreatLevel).isEqualTo(8);
@@ -252,11 +257,53 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(repositoryViolationDTO.blocksUnquarantine).isTrue();
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @SuppressWarnings("deprecation")
+  @Deprecated
   @Test
   public void testGetPolicyThreats_RepositoryComponentDoesNotExist() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> repositoryService.getPolicyThreats(repository.getId(), "pathDoesNotExist"))
+        .isThrownBy(() -> repositoryService.getPolicyThreats(repository.getId(), "pathDoesNotExist")).withMessage(
+            "Cannot find a component with path pathDoesNotExist in repository with ID " + repository.getId() + ".");
+  }
+
+  @Test
+  public void testGetPolicyViolations() {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    String pathname = "path1";
+    RepositoryComponent repositoryComponent1 = tempEntity.newRepositoryComponent(repository.getId(), pathname);
+    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(),
+        8, pathname, false /* isWaived */, Action.ID_FAIL, "policyId1", "policyName1",
+        repositoryComponent1.getComponentIdentifier());
+    RepositoryComponent repositoryComponent2 = tempEntity.newRepositoryComponent(repository.getId(), "path2");
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path2", false/* isWaived */, "policyId2",
+        "policyName2", repositoryComponent2.getComponentIdentifier());
+
+    List<RepositoryPolicyViolationDTO> repositoryPolicyViolationDTOs =
+        repositoryService.getPolicyViolations(repository.getId(), pathname);
+
+    assertThat(repositoryPolicyViolationDTOs).hasSize(1);
+    RepositoryPolicyViolationDTO repositoryPolicyViolationDTO =
+        repositoryPolicyViolationDTOs.get(0);
+    assertThat(repositoryPolicyViolationDTO.policyViolationId).isEqualTo(repositoryPolicyViolation.getId());
+    assertThat(repositoryPolicyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
+    assertThat(repositoryPolicyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
+    assertThat(repositoryPolicyViolationDTO.policyThreatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
+    assertThat(repositoryPolicyViolationDTO.policyThreatCategory)
+        .isEqualTo(repositoryPolicyViolation.getThreatCategory());
+    assertThat(repositoryPolicyViolationDTO.constraintFactsJson)
+        .isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
+    assertThat(repositoryPolicyViolationDTO.policyActionTypeId).isEqualTo(repositoryPolicyViolation.getActionTypeId());
+  }
+
+  @Test
+  public void testGetPolicyViolations_RepositoryComponentDoesNotExist() {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> repositoryService.getPolicyViolations(repository.getId(), "pathDoesNotExist"))
         .withMessage(
             "Cannot find a component with path pathDoesNotExist in repository with ID " + repository.getId() + ".");
   }

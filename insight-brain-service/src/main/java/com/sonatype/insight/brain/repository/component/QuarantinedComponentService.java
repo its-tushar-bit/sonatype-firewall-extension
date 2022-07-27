@@ -40,7 +40,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
 import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
-import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
+import com.sonatype.insight.brain.repository.DeprecatedRepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -250,10 +250,10 @@ public class QuarantinedComponentService
     return pathname;
   }
 
-  private RepositoryPolicyViolationDTO getRepositoryPolicyViolationDto(
+  private DeprecatedRepositoryPolicyViolationDTO getRepositoryPolicyViolationDto(
       RepositoryPolicyViolation policyViolation)
   {
-    final RepositoryPolicyViolationDTO policyViolationDto = new RepositoryPolicyViolationDTO();
+    final DeprecatedRepositoryPolicyViolationDTO policyViolationDto = new DeprecatedRepositoryPolicyViolationDTO();
 
     policyViolationDto.policyId = policyViolation.getPolicyId();
     policyViolationDto.policyName = policyViolation.getPolicyName();

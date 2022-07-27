@@ -55,6 +55,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.stream.Collectors.toList;
+
 @Named
 public class RepositoryService
 {
@@ -130,6 +132,10 @@ public class RepositoryService
     AuditData.get().setData("componentPathname", pathname);
   }
 
+  /**
+   * @deprecated Use {@link getPolicyViolations(String, String)} instead
+   */
+  @Deprecated
   @Authorize(permission = Permission.READ)
   RepositoryPolicyThreatDTO getPolicyThreats(
       @AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
@@ -149,14 +155,15 @@ public class RepositoryService
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndPathnameAndWaived(repositoryId, repositoryComponent.getPathname(), false);
 
-    List<RepositoryPolicyViolationDTO> activeRepositoryViolationDTOs = new ArrayList<>();
+    List<DeprecatedRepositoryPolicyViolationDTO> activeRepositoryViolationDTOs = new ArrayList<>();
     for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
       List<PolicyThreats.PolicyConstraint> constraints =
           PolicyThreatsAdapter.toPolicyThreatsPolicyConstraints(repositoryPolicyViolation.getConstraintFacts());
-      activeRepositoryViolationDTOs.add(new RepositoryPolicyViolationDTO(repositoryPolicyViolation.getPolicyId(),
-          repositoryPolicyViolation.getPolicyName(), repositoryPolicyViolation.getThreatLevel(),
-          Action.ID_FAIL.equals(repositoryPolicyViolation.getActionTypeId()), constraints,
-          repositoryPolicyViolation.getConstraintFactsJson()));
+      activeRepositoryViolationDTOs
+          .add(new DeprecatedRepositoryPolicyViolationDTO(repositoryPolicyViolation.getPolicyId(),
+              repositoryPolicyViolation.getPolicyName(), repositoryPolicyViolation.getThreatLevel(),
+              Action.ID_FAIL.equals(repositoryPolicyViolation.getActionTypeId()), constraints,
+              repositoryPolicyViolation.getConstraintFactsJson()));
     }
 
     return new RepositoryPolicyThreatDTO(activeRepositoryViolationDTOs);
@@ -434,5 +441,40 @@ public class RepositoryService
     policyEvaluationTimestampsDTO.autoUnquarantined = repositoryComponent.getAutoUnquarantined();
     
     return policyEvaluationTimestampsDTO;
+  }
+
+  @Authorize(permission = Permission.READ)
+  List<RepositoryPolicyViolationDTO> getPolicyViolations(
+      @AuthzContext(Key.REPOSITORY_ID) String repositoryId,
+      String pathname)
+  {
+    auditComponentPath(pathname);
+    RepositoryComponent repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, pathname);
+    if (repositoryComponent == null) {
+      throw new NotFoundException(
+          "Cannot find a component with path " + pathname + " in repository with ID " + repositoryId + ".");
+    }
+    AuditData.get().setComponentIdentifier(repositoryComponent.getComponentIdentifier())
+        .setComponentHash(repositoryComponent.getHash());
+
+    List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
+        .getActiveByRepositoryIdAndPathname(repositoryId, repositoryComponent.getPathname());
+
+    List<RepositoryPolicyViolationDTO> repositoryPolicyViolationDTOs =
+        repositoryPolicyViolations.stream().map(RepositoryService::toRepositoryPolicyViolationDTO).collect(toList());
+
+    return repositoryPolicyViolationDTOs;
+  }
+
+  private static RepositoryPolicyViolationDTO toRepositoryPolicyViolationDTO(
+      RepositoryPolicyViolation repositoryPolicyViolation)
+  {
+    List<PolicyThreats.PolicyConstraint> constraints =
+        PolicyThreatsAdapter.toPolicyThreatsPolicyConstraints(repositoryPolicyViolation.getConstraintFacts());
+    return new RepositoryPolicyViolationDTO(repositoryPolicyViolation.getId(), repositoryPolicyViolation.getPolicyId(),
+        repositoryPolicyViolation.getPolicyName(), repositoryPolicyViolation.getThreatLevel(),
+        repositoryPolicyViolation.getThreatCategory(), constraints, repositoryPolicyViolation.getConstraintFactsJson(),
+        repositoryPolicyViolation.getActionTypeId());
   }
 }

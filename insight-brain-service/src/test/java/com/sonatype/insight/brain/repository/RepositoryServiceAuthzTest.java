@@ -89,6 +89,10 @@ public class RepositoryServiceAuthzTest
     repositoryService.unquarantineComponent(repository.getId(), "path", null);
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @Deprecated
   @Test
   public void testGetPolicyThreats_Authorized() {
     Repository repo = createRepository();
@@ -99,6 +103,10 @@ public class RepositoryServiceAuthzTest
     repositoryService.getPolicyThreats(repo.getId(), path);
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @Deprecated
   @Test(expected = UnauthenticatedException.class)
   public void testGetPolicyThreats_Unauthenticated() {
     Repository repo = createRepository();
@@ -106,12 +114,41 @@ public class RepositoryServiceAuthzTest
     repositoryService.getPolicyThreats(repo.getId(), "path");
   }
 
+  /**
+   * @deprecated The tested method is deprecated
+   */
+  @Deprecated
   @Test(expected = UnauthorizedException.class)
   public void testGetPolicyThreats_Unauthorized() {
     Repository repo = createRepository();
 
     login();
     repositoryService.getPolicyThreats(repo.getId(), "path");
+  }
+
+  @Test
+  public void testGetPolicyViolations_Authorized() {
+    Repository repo = createRepository();
+    String path = "path";
+    tempEntity.newRepositoryComponent(repo.getId(), path, new Date(), null);
+
+    grantReadPermission(repo.getId());
+    repositoryService.getPolicyViolations(repo.getId(), path);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetPolicyViolations_Unauthenticated() {
+    Repository repo = createRepository();
+
+    repositoryService.getPolicyViolations(repo.getId(), "path");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetPolicyViolations_Unauthorized() {
+    Repository repo = createRepository();
+
+    login();
+    repositoryService.getPolicyViolations(repo.getId(), "path");
   }
 
   private Repository createRepository() {

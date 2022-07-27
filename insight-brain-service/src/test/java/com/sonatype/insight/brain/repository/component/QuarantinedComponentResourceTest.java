@@ -38,7 +38,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
-import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
+import com.sonatype.insight.brain.repository.DeprecatedRepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -421,7 +421,7 @@ public class QuarantinedComponentResourceTest
     assertThat(dto).isNotNull();
     assertThat(dto.activePolicyViolations).hasSize(1);
 
-    RepositoryPolicyViolationDTO policyViolationDTO = dto.activePolicyViolations.get(0);
+    DeprecatedRepositoryPolicyViolationDTO policyViolationDTO = dto.activePolicyViolations.get(0);
     assertThat(policyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
     assertThat(policyViolationDTO.policyThreatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
     assertThat(policyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
@@ -477,7 +477,7 @@ public class QuarantinedComponentResourceTest
     assertThat(dto).isNotNull();
     assertThat(dto.activePolicyViolations).hasSize(1);
 
-    RepositoryPolicyViolationDTO policyViolationDTO = dto.activePolicyViolations.get(0);
+    DeprecatedRepositoryPolicyViolationDTO policyViolationDTO = dto.activePolicyViolations.get(0);
     assertThat(policyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
     assertThat(policyViolationDTO.policyThreatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
     assertThat(policyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());

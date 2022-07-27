@@ -151,9 +151,12 @@ public class ApiRepositoryIdentifiedComponentService
       ComponentIdentifier componentIdentifier)
   {
     Map<String, String> parameters = new HashMap<>();
-    parameters.put(TASK_PARAM_HASH, hash);
-    parameters.put(TASK_PARAM_COMPONENT_IDENTIFIER,
-        componentIdentifier == null ? null : JsonUtils.writeUnformatted(componentIdentifier));
+    if (hash != null) {
+      parameters.put(TASK_PARAM_HASH, hash);
+    }
+    if (componentIdentifier != null) {
+      parameters.put(TASK_PARAM_COMPONENT_IDENTIFIER, JsonUtils.writeUnformatted(componentIdentifier));
+    }
     taskScheduler.scheduleOneTimeTaskForAllOtherNodes(getClass(), TASK_NAME, parameters);
   }
 

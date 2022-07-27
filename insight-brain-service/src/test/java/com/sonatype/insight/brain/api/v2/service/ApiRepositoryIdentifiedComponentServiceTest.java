@@ -306,9 +306,13 @@ public class ApiRepositoryIdentifiedComponentServiceTest
 
   private void verifyScheduledTask(String hash, ComponentIdentifier componentIdentifier) {
     Map<String, String> expectedParameters = new HashMap<>();
-    expectedParameters.put(ApiRepositoryIdentifiedComponentService.TASK_PARAM_HASH, hash);
-    expectedParameters.put(ApiRepositoryIdentifiedComponentService.TASK_PARAM_COMPONENT_IDENTIFIER,
-        componentIdentifier == null ? null : JsonUtils.writeUnformatted(componentIdentifier));
+    if (hash != null) {
+      expectedParameters.put(ApiRepositoryIdentifiedComponentService.TASK_PARAM_HASH, hash);
+    }
+    if (componentIdentifier != null) {
+      expectedParameters.put(ApiRepositoryIdentifiedComponentService.TASK_PARAM_COMPONENT_IDENTIFIER,
+          JsonUtils.writeUnformatted(componentIdentifier));
+    }
     verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(
         ApiRepositoryIdentifiedComponentService.class, ApiRepositoryIdentifiedComponentService.TASK_NAME,
         expectedParameters);

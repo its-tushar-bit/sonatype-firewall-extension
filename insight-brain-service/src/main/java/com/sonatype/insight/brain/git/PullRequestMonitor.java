@@ -18,7 +18,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -32,8 +31,8 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -42,7 +41,6 @@ import com.sonatype.nexus.git.utils.api.GitException;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.dropwizard.lifecycle.Managed;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,10 +50,10 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 /**
- * This class is the entry point for the Feature Branch Monitoring feature (part of Continuous Risk Profile).
- * It detects changes on feature branches that have associated pull requests, executes policy evaluations on the
- * changed feature branches. The updated pull request policy evaluations may trigger pull requests comment updates,
- * when policy violations are resolved or introduced.
+ * This class is the entry point for the Feature Branch Monitoring feature (part of Continuous Risk Profile). It detects
+ * changes on feature branches that have associated pull requests, executes policy evaluations on the changed feature
+ * branches. The updated pull request policy evaluations may trigger pull requests comment updates, when policy
+ * violations are resolved or introduced.
  *
  * @since 1.114
  */
@@ -63,7 +61,7 @@ import static java.util.stream.Collectors.toSet;
 @Singleton
 @DisallowConcurrentExecution
 public class PullRequestMonitor
-    implements Managed, Job
+    implements Managed, InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestMonitor.class);
 
@@ -72,6 +70,8 @@ public class PullRequestMonitor
   private static final int THREAD_POOL_SIZE = 1;
 
   private static final long LS_REMOTE_DELAY_MS = 1_000;
+
+  private static final String PULL_REQUEST_DETAILS_UPDATE_ERROR = "Error when updating pull request details";
 
   private final Configuration configuration;
 
@@ -151,21 +151,11 @@ public class PullRequestMonitor
 
   @Override
   public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+    execute(() -> {
       if (licenseChecker.isIqForScmSupported()) {
         updatePullRequestDetails();
       }
-    }
-    catch (Exception e) {
-      log.error("Error when updating pull request details: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    }, log, PULL_REQUEST_DETAILS_UPDATE_ERROR);
   }
 
   // Visible for tests
@@ -205,7 +195,7 @@ public class PullRequestMonitor
       implements Callable<Void>
   {
     private final String repositoryUrl;
-    
+
     private final List<SourceControlPullRequest> pullRequestsForRepository;
 
     PullRequestMonitorTask(String repositoryUrl, List<SourceControlPullRequest> pullRequestsForRepository) {

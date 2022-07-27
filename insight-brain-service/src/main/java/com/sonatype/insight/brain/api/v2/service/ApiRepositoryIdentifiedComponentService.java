@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -22,11 +21,11 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -36,7 +35,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class ApiRepositoryIdentifiedComponentService
-    implements Job
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(ApiRepositoryIdentifiedComponentService.class);
 

@@ -7,18 +7,16 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.time.Duration;
 import java.util.Date;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightJob;
 
 import io.dropwizard.lifecycle.Managed;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +25,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class PersistedPolicyEvaluationPollingResultCleaner
-    implements Managed, Job
+    implements Managed, InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(PersistedPolicyEvaluationPollingResultCleaner.class);
 
@@ -39,6 +37,8 @@ public class PersistedPolicyEvaluationPollingResultCleaner
 
   // Visible for testing
   static final Duration LIFESPAN = Duration.ofHours(2);
+
+  public static final String CLEANER_ERROR = "Policy evaluation polling result cleaner error";
 
   private final TaskScheduler taskScheduler;
 
@@ -71,19 +71,7 @@ public class PersistedPolicyEvaluationPollingResultCleaner
 
   @Override
   public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      deleteExpiredPolicyEvaluationPollingResults();
-    }
-    catch (Exception e) {
-      log.error("Policy evaluation polling result cleaner error: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    execute(this::deleteExpiredPolicyEvaluationPollingResults, log, CLEANER_ERROR);
   }
 
   private void deleteExpiredPolicyEvaluationPollingResults() {

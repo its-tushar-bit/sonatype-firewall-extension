@@ -13,7 +13,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -27,23 +26,21 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.utils.DateUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.lifecycle.Managed;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class is the entry point for the Default Branch Monitoring feature (part of Continuous Risk Profile).
- * It runs periodically to ensure that the default branch policy evaluations for all SCM enabled applications are not
- * stale.
- * The updated policy evaluations may trigger downstream processes like the creation of automated remediation pull
+ * This class is the entry point for the Default Branch Monitoring feature (part of Continuous Risk Profile). It runs
+ * periodically to ensure that the default branch policy evaluations for all SCM enabled applications are not stale. The
+ * updated policy evaluations may trigger downstream processes like the creation of automated remediation pull
  * requests.
  *
  * @since 1.118
@@ -52,11 +49,13 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class DefaultBranchMonitor
-    implements Managed, Job
+    implements Managed, InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultBranchMonitor.class);
 
   public static final String TASK_NAME = "DefaultBranchMonitor";
+
+  private static final String SOURCE_SCANS_UPDATE_ERROR = "Error when updating default branch source scans";
 
   private final TaskScheduler taskScheduler;
 
@@ -123,21 +122,11 @@ public class DefaultBranchMonitor
 
   @Override
   public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+    execute(() -> {
       if (licenseChecker.isIqForScmSupported()) {
         updateDefaultBranchScans();
       }
-    }
-    catch (Exception e) {
-      log.error("Error when updating default branch source scans: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    }, log, SOURCE_SCANS_UPDATE_ERROR);
   }
 
   // Visible for tests
@@ -185,8 +174,8 @@ public class DefaultBranchMonitor
   }
 
   /**
-   * The start time and interval form a continual series of date-times.  This method gets the next datetime that
-   * is closest to now.  If the interval start time is in the future we back it up one day. Then, in all cases, we
+   * The start time and interval form a continual series of date-times.  This method gets the next datetime that is
+   * closest to now.  If the interval start time is in the future we back it up one day. Then, in all cases, we
    * repeatedly bump the time forward one interval until we find the first series datetime that is in the future.
    */
   @VisibleForTesting
@@ -213,7 +202,7 @@ public class DefaultBranchMonitor
 
     return Date.from(effectiveStartDate.atZone(ZoneId.systemDefault()).toInstant());
   }
-  
+
   // Visible for testing
   int getRandomizedStartOffsetInMinutes() {
     return randomizedStartOffsetInMinutes;

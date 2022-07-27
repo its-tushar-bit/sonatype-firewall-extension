@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.time.Duration;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -72,11 +71,11 @@ public class ClusterTelemetryTaskTest
     }
 
     TelemetryPurpose[] expectedPurposes = { //
-        TelemetryPurpose.DATABASE, //
-        TelemetryPurpose.HIERARCHY_METRICS, //
-        TelemetryPurpose.POLICY_STATUS_OVERRIDE, //
-        TelemetryPurpose.REALM, //
-        TelemetryPurpose.ROLE_USAGE, //
+                                            TelemetryPurpose.DATABASE, //
+                                            TelemetryPurpose.HIERARCHY_METRICS, //
+                                            TelemetryPurpose.POLICY_STATUS_OVERRIDE, //
+                                            TelemetryPurpose.REALM, //
+                                            TelemetryPurpose.ROLE_USAGE, //
     };
     verify(telemetrySenderMock, times(expectedPurposes.length)).send(allTelemetryDataCaptor.capture());
     List<TelemetryData> allTelemetryData =

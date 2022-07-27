@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -54,7 +53,7 @@ public class DefaultBranchMonitorTest
 {
   @Inject
   private DefaultBranchMonitor defaultBranchMonitor;
-  
+
   @Inject
   private Configuration configuration;
 

@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -47,13 +46,12 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,9 +65,11 @@ import static java.util.stream.Collectors.toSet;
 @DisallowConcurrentExecution
 public class ReportPurger
     extends Task
-    implements Managed, Job
+    implements Managed, InsightJob
 {
   public static final String NAME = "ReportPurger";
+
+  private static final String PURGE_ERROR = "Report Purging error";
 
   private static class TrashBucket
   {
@@ -165,19 +165,7 @@ public class ReportPurger
 
   @Override
   public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      purgeReports();
-    }
-    catch (Exception e) {
-      log.error("Report Purging error: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    execute(this::purgeReports, log, PURGE_ERROR);
   }
 
   void purgeReports() {

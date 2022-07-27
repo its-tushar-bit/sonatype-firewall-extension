@@ -22,7 +22,6 @@ import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.inject.Inject;
 import javax.persistence.LockModeType;
 import javax.persistence.OptimisticLockException;
@@ -87,9 +86,11 @@ public class ReportPurgerTest
       Files.write(reportDir.resolve("report.pdf"), Collections.singletonList("report.pdf"));
       reportDir = reportDir.resolve(Report.CACHE_DIRECTORY_NAME);
       Files.createDirectories(reportDir);
-      for (String filename : new String[]{"index.html", "bom.json", Report.DATA_JSON_FILENAME, "licenses.json",
+      for (String filename : new String[]{
+          "index.html", "bom.json", Report.DATA_JSON_FILENAME, "licenses.json",
           "licensethreats.json", "partialmatched.json", "policyalerts.json", "policythreats.json", "security.json",
-          "summary.json"}) {
+          "summary.json"
+      }) {
         Files.write(reportDir.resolve(filename),
             Collections.singletonList(Report.CACHE_DIRECTORY_NAME + "/" + filename));
       }
@@ -239,13 +240,15 @@ public class ReportPurgerTest
     File trashFile = new File(trashDir, "app-" + app.getId() + "-report-" + reportId + ".zip");
     assertThat(trashFile).isFile();
     assertThat(trashDir.list()).containsExactly(trashFile.getName());
-    try (FileSystem zipFileSystem = FileSystems.newFileSystem(trashFile.toPath(), (ClassLoader)null)) {
-      String[] expectedZipEntries = {"report.zip", Report.CACHE_DIRECTORY_NAME + "/index.html",
+    try (FileSystem zipFileSystem = FileSystems.newFileSystem(trashFile.toPath(), (ClassLoader) null)) {
+      String[] expectedZipEntries = {
+          "report.zip", Report.CACHE_DIRECTORY_NAME + "/index.html",
           Report.CACHE_DIRECTORY_NAME + "/bom.json", Report.CACHE_DIRECTORY_NAME + "/" + Report.DATA_JSON_FILENAME,
           Report.CACHE_DIRECTORY_NAME + "/licenses.json", Report.CACHE_DIRECTORY_NAME + "/licensethreats.json",
           Report.CACHE_DIRECTORY_NAME + "/partialmatched.json", Report.CACHE_DIRECTORY_NAME + "/policyalerts.json",
           Report.CACHE_DIRECTORY_NAME + "/policythreats.json", Report.CACHE_DIRECTORY_NAME + "/security.json",
-          Report.CACHE_DIRECTORY_NAME + "/summary.json"};
+          Report.CACHE_DIRECTORY_NAME + "/summary.json"
+      };
       for (String zipEntry : expectedZipEntries) {
         Path zipEntryPath = zipFileSystem.getPath(app.getId(), reportId, zipEntry);
         assertThat(zipEntryPath).isRegularFile();

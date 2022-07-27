@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.IOException;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -20,16 +19,14 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +34,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class ApiSourceControlConfigurationService
-    implements Job
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(ApiSourceControlConfigurationService.class);
 
@@ -51,6 +48,8 @@ public class ApiSourceControlConfigurationService
 
   // Visible for testing
   static final String TASK_NAME = "SourceControlConfiguration";
+
+  private static final String CONFIG_APPLY_ERROR = "Error when applying source control config";
 
   private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
@@ -232,19 +231,7 @@ public class ApiSourceControlConfigurationService
   }
 
   @Override
-  public void execute(JobExecutionContext context) throws JobExecutionException {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      applySourceControlConfigurationToClients();
-    }
-    catch (Exception e) {
-      log.error("Error when applying source control config: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+  public void execute(JobExecutionContext context) {
+    execute(this::applySourceControlConfigurationToClients, log, CONFIG_APPLY_ERROR);
   }
 }

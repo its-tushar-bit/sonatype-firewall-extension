@@ -11,7 +11,6 @@ import java.nio.file.attribute.FileTime;
 import java.security.Permission;
 import java.time.LocalTime;
 import java.util.Date;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;

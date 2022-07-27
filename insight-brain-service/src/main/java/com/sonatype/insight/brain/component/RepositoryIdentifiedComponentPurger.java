@@ -11,19 +11,17 @@ import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightJob;
 
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +31,7 @@ import org.slf4j.LoggerFactory;
 @DisallowConcurrentExecution
 public class RepositoryIdentifiedComponentPurger
     extends Task
-    implements Managed, Job
+    implements Managed, InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryIdentifiedComponentPurger.class);
 
@@ -92,19 +90,7 @@ public class RepositoryIdentifiedComponentPurger
 
   @Override
   public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      purgeRepositoryIdentifiedComponents();
-    }
-    catch (Exception e) {
-      log.error("Error in {}.", DESCRIPTION, e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    execute(this::purgeRepositoryIdentifiedComponents, log, String.format("Error in %s", DESCRIPTION));
   }
 
   void purgeRepositoryIdentifiedComponents() {

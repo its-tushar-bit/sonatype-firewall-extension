@@ -9,7 +9,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -22,11 +21,10 @@ import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
@@ -36,7 +34,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class DefaultLicenseDataUpdater
-    extends LicenseDataUpdater implements Job
+    extends LicenseDataUpdater implements InsightJob
 {
   public static final String HDS_LICENSE_PATH = "rest/license";
 
@@ -44,6 +42,8 @@ public class DefaultLicenseDataUpdater
 
   // Visible for testing
   static final String TASK_NAME = "LoadLicenses";
+
+  private static final String LICENSE_LOAD_ERROR = "Error when loading licenses";
 
   private final HdsClient client;
 
@@ -122,19 +122,7 @@ public class DefaultLicenseDataUpdater
 
   @Override
   public void execute(JobExecutionContext context) throws JobExecutionException {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      doLoadLicenses();
-    }
-    catch (Exception e) {
-      log.error("Error when loading licenses: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    execute(this::doLoadLicenses, log, LICENSE_LOAD_ERROR);
   }
 
   // Visible for testing

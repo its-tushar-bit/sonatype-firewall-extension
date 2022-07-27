@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -26,13 +25,12 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import io.dropwizard.lifecycle.Managed;
 import org.joda.time.DateTimeConstants;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +39,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class ScanFileCleaner
-    implements Managed, Job
+    implements Managed, InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(ScanFileCleaner.class);
 
@@ -50,6 +48,8 @@ public class ScanFileCleaner
 
   // Visible for testing
   static final String MARKER_ID = "obsoletescanfiles-cleaned";
+
+  private static final String SCAN_FILE_CLEANER_ERROR = "Scan file cleaner error";
 
   private final InsightWork insightWork;
 
@@ -98,19 +98,7 @@ public class ScanFileCleaner
 
   @Override
   public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      deleteScanFiles();
-    }
-    catch (Exception e) {
-      log.error("Scan file cleaner error: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    execute(this::deleteScanFiles, log, SCAN_FILE_CLEANER_ERROR);
   }
 
   // Visible for tests

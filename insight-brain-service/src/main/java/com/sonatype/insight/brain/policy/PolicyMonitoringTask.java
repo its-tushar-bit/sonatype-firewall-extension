@@ -8,16 +8,14 @@ package com.sonatype.insight.brain.policy;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitor;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightJob;
 
 import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +27,7 @@ import org.slf4j.LoggerFactory;
 @DisallowConcurrentExecution
 public class PolicyMonitoringTask
     extends Task
-    implements Job
+    implements InsightJob
 {
   public static final String NAME = "PolicyMonitoringTask";
 
@@ -54,22 +52,7 @@ public class PolicyMonitoringTask
   @Override
   public void execute(JobExecutionContext context) {
     log.info("Automatic request to run Policy Monitor");
-
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      policyMonitor.run();
-    }
-    catch (Exception e) {
-      log.error("Policy monitoring error: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
-    finally {
-      log.info("Next Policy Monitor execution scheduled for {}", context.getNextFireTime());
-    }
+    execute(policyMonitor::run, log, "Policy monitoring error");
+    log.info("Next Policy Monitor execution scheduled for {}", context.getNextFireTime());
   }
 }

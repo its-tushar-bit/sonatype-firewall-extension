@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -41,12 +40,11 @@ import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
-
 import org.sonatype.licensing.LicensingException;
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -57,7 +55,6 @@ import org.sonatype.licensing.util.LicensingUtil;
 import com.google.common.io.ByteStreams;
 import de.schlichtherle.license.NoLicenseInstalledException;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +63,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class CLMLicenseManager
-    implements Job
+    implements InsightJob
 {
   public static final String PRODUCT_PRO_PLUS = "Pro+";
 
@@ -95,6 +92,8 @@ public class CLMLicenseManager
   // Visible for testing
   static final String TASK_NAME = "ProductLicenseLoad";
 
+  private static final String LICENSE_LOADING_ERROR = "Error when loading the product license";
+
   private final InsightConfig config;
 
   private final MigrationTrackerDAO migrationTrackerDAO;
@@ -114,7 +113,7 @@ public class CLMLicenseManager
   private static final Logger log = LoggerFactory.getLogger(CLMLicenseManager.class);
 
   private final List<ProductLicenseListener> listeners = new CopyOnWriteArrayList<>();
-  
+
   private final AuditRecorder auditRecorder;
 
   private final TaskScheduler taskScheduler;
@@ -298,8 +297,7 @@ public class CLMLicenseManager
   }
 
   /**
-   * A function to map from product names stored in the license to product names suitable for
-   * display to the end-user
+   * A function to map from product names stored in the license to product names suitable for display to the end-user
    */
   private static String getProductMarketingName(String internalName) {
     String marketingNameSuffix;
@@ -478,7 +476,7 @@ public class CLMLicenseManager
     Set<String> products = getProducts(key);
 
     Set<LicensedFeature> features = EnumSet.noneOf(LicensedFeature.class);
-    Set<StageType> stageTypes = new LinkedHashSet<>(); 
+    Set<StageType> stageTypes = new LinkedHashSet<>();
     if (products.contains(ProductLicenseDetails.PRODUCT_RISK)) {
       features.add(LicensedFeature.POLICY_MONITORING);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_APPLICATIONS);
@@ -709,18 +707,6 @@ public class CLMLicenseManager
 
   @Override
   public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      loadLicense();
-    }
-    catch (Exception e) {
-      log.error("Error when loading the product license: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    execute(this::loadLicense, log, LICENSE_LOADING_ERROR);
   }
 }

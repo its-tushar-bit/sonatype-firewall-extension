@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -19,14 +18,13 @@ import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang.StringUtils;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +32,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @DisallowConcurrentExecution
 public class ApiProxyServerConfigurationService
-    implements Job
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(ApiProxyServerConfigurationService.class);
 
@@ -44,6 +42,8 @@ public class ApiProxyServerConfigurationService
 
   // Visible for testing
   static final String TASK_NAME = "ProxyServerConfiguration";
+
+  private static final String CONFIG_APPLY_ERROR = "Error when applying proxy server config";
 
   private final ProxyServerConfigurationDAO proxyServerConfigurationDAO;
 
@@ -183,18 +183,6 @@ public class ApiProxyServerConfigurationService
 
   @Override
   public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      applyProxyServerConfigurationToClients();
-    }
-    catch (Exception e) {
-      log.error("Error when applying proxy server config: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    execute(this::applyProxyServerConfigurationToClients, log, CONFIG_APPLY_ERROR);
   }
 }

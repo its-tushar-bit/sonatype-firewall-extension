@@ -10,21 +10,19 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightJob;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.servlets.tasks.Task;
 import org.apache.commons.lang.time.DateUtils;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,13 +37,15 @@ import org.slf4j.LoggerFactory;
 @DisallowConcurrentExecution
 public class QuarantinedComponentAccessPurger
     extends Task
-    implements Managed, Job
+    implements Managed, InsightJob
 {
   public static final int DEFAULT_PURGE_WINDOW_IN_DAYS = 30;
 
   public static final String NAME = "QuarantinedComponentAccessPurger";
 
   private static final Logger log = LoggerFactory.getLogger(QuarantinedComponentAccessPurger.class);
+
+  private static final String PURGE_ERROR = "Quarantined component access entries purging error";
 
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 
@@ -84,19 +84,7 @@ public class QuarantinedComponentAccessPurger
 
   @Override
   public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      purgeObsoleteRecords();
-    }
-    catch (Exception e) {
-      log.error("Quarantined component access entries purging error: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    execute(this::purgeObsoleteRecords, log, PURGE_ERROR);
   }
 
   @VisibleForTesting

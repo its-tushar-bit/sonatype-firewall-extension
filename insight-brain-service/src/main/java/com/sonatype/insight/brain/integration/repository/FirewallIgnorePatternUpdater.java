@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import java.time.Duration;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -15,12 +14,11 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
 import io.dropwizard.lifecycle.Managed;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,13 +27,15 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class FirewallIgnorePatternUpdater
-    implements Managed, Job
+    implements Managed, InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(FirewallIgnorePatternUpdater.class);
 
   public static final String HDS_IGNORE_PATTERNS_PATH = "rest/component/details/firewall/ignorePatterns";
 
   static final String TASK_NAME = "FirewallIgnorePatternUpdater";
+
+  private static final String FIREWALL_IGNORE_PATTERNS_UPDATE_ERROR = "Error when updating firewall ignore patterns";
 
   private final FirewallIgnorePatternsDAO firewallIgnorePatternsDAO;
 
@@ -66,19 +66,7 @@ public class FirewallIgnorePatternUpdater
 
   @Override
   public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      updateFirewallIgnorePatterns();
-    }
-    catch (Exception e) {
-      log.error("Error when updating firewall ignore patterns: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    execute(this::updateFirewallIgnorePatterns, log, FIREWALL_IGNORE_PATTERNS_UPDATE_ERROR);
   }
 
   void updateFirewallIgnorePatterns() {

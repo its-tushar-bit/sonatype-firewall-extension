@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -21,8 +20,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -31,7 +30,6 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.util.CollectionUtils;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
@@ -41,7 +39,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class ApiConfigurationService
-    implements Job
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(ApiConfigurationService.class);
 
@@ -63,6 +61,8 @@ public class ApiConfigurationService
 
   // Visible for testing
   static final String TASK_PARAM_PROPERTIES = "properties";
+
+  private static final String CONFIG_APPLY_ERROR = "Error when applying config";
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
@@ -218,21 +218,11 @@ public class ApiConfigurationService
 
   @Override
   public void execute(JobExecutionContext context) throws JobExecutionException {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+    execute(() -> {
       if (context.getMergedJobDataMap().containsKey(TASK_PARAM_PROPERTIES)) {
         applyConfigurationToClients(StringUtils.split(context.getMergedJobDataMap().getString(TASK_PARAM_PROPERTIES),
             TASK_PARAM_PROPERTIES_DELIMITER));
       }
-    }
-    catch (Exception e) {
-      log.error("Error when applying config: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    }, log, CONFIG_APPLY_ERROR);
   }
 }

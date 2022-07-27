@@ -8,17 +8,15 @@ package com.sonatype.insight.brain.telemetry;
 import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightJob;
 
 import io.dropwizard.lifecycle.Managed;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,12 +25,14 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class ClusterTelemetryTask
-    implements Managed, Job
+    implements Managed, InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(ClusterTelemetryTask.class);
 
   // Visible for testing
   static final String NAME = "ClusterTelemetrySender";
+
+  private static final String TELEMETRY_SEND_ERROR = "Cluster telemetry task error";
 
   private final List<TelemetryCollector> clusterTelemetryCollectors;
 
@@ -69,20 +69,10 @@ public class ClusterTelemetryTask
 
   @Override
   public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+    execute(() -> {
       for (TelemetryCollector clusterTelemetryCollector : clusterTelemetryCollectors) {
         telemetrySender.send(clusterTelemetryCollector.collectAllData());
       }
-    }
-    catch (Exception e) {
-      log.debug("Cluster telemetry task error: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    }, log, TELEMETRY_SEND_ERROR);
   }
 }

@@ -14,11 +14,10 @@ import com.sonatype.clm.dto.model.component.ComponentCategoryList;
 import com.sonatype.insight.brain.dataaccess.AbstractComponentCategoryUpdater;
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
@@ -29,7 +28,7 @@ import org.slf4j.LoggerFactory;
 @DisallowConcurrentExecution
 public class ComponentCategoryUpdater
     extends AbstractComponentCategoryUpdater
-    implements Job
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentCategoryUpdater.class);
 
@@ -37,6 +36,8 @@ public class ComponentCategoryUpdater
 
   // Visible for testing
   static final String TASK_NAME = "LoadComponentCategories";
+
+  private static final String CATEGORY_LOAD_ERROR = "Error when loading component categories";
 
   private final HdsClient client;
 
@@ -86,19 +87,7 @@ public class ComponentCategoryUpdater
 
   @Override
   public void execute(JobExecutionContext context) throws JobExecutionException {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      doLoadComponentCategories();
-    }
-    catch (Exception e) {
-      log.error("Error when loading component categories: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    execute(this::doLoadComponentCategories, log, CATEGORY_LOAD_ERROR);
   }
 
   // Visible for testing

@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -18,6 +17,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.InsightJob;
 
 import io.dropwizard.lifecycle.Managed;
 import org.keycloak.adapters.saml.DefaultSamlDeployment;
@@ -38,7 +38,6 @@ import org.keycloak.saml.common.exceptions.ConfigurationException;
 import org.keycloak.saml.common.exceptions.ProcessingException;
 import org.keycloak.saml.processing.core.saml.v2.util.SAMLMetadataUtil;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +51,7 @@ import static java.util.stream.Collectors.toList;
 @Singleton
 @DisallowConcurrentExecution
 public class SamlDeploymentManager
-    implements Managed, Job
+    implements Managed, InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(SamlDeploymentManager.class);
 
@@ -65,6 +64,8 @@ public class SamlDeploymentManager
   // For example, if their clock is 1 second ahead of ours, we may receive the assertion before its "NotBefore" 
   // attribute allows. The allowed clock skew accounts for this possible divergence.
   static final int ALLOWED_CLOCK_SKEW_MILLISECONDS = 1000;
+
+  private static final String DEPLOYMENT_ERROR = "SAML deployment error";
 
   private final SamlMetadataTool samlMetadataTool;
 
@@ -233,18 +234,6 @@ public class SamlDeploymentManager
 
   @Override
   public void execute(JobExecutionContext context) {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      updateFromConfiguration();
-    }
-    catch (Exception e) {
-      log.error("SAML deployment error: {}", e.getMessage(), e);
-    }
-    catch (Throwable t) {
-      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
-      // at this point.
-      t.printStackTrace();
-      log.error(t.getMessage(), t);
-      System.exit(1);
-    }
+    execute(this::updateFromConfiguration, log, DEPLOYMENT_ERROR);
   }
 }

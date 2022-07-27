@@ -327,9 +327,6 @@ public class InsightConfig
   @JsonProperty
   private Integer maxApplicationsToQueryOnDashboard;
 
-  @JsonProperty
-  private String initialAdminPassword;
-
   /**
    * @since 1.136
    */
@@ -1000,12 +997,14 @@ public class InsightConfig
     this.maxApplicationsToQueryOnDashboard = maxApplicationsToQueryOnDashboard;
   }
 
-  public String getInitialAdminPassword() {
-    return initialAdminPassword;
-  }
-
-  public void setInitialAdminPassword(String initialAdminPassword) {
-    this.initialAdminPassword = initialAdminPassword;
+  /**
+   * @deprecated The initial admin password must now be set using an environment variable
+   * {@link com.sonatype.insight.brain.migration.AdminInitialPasswordMigrator#NXIQ_INITIAL_ADMIN_PASSWORD}
+   */
+  @Deprecated
+  public void setInitialAdminPassword(@SuppressWarnings("unused") String initialAdminPassword) {
+    log.warn("The support for initial admin password setting via config.yml was removed in Nexus IQ Server 142. "
+        + "Use the NXIQ_INITIAL_ADMIN_PASSWORD environment variable instead.");
   }
 
   public WebConfiguration getWebConfiguration() {

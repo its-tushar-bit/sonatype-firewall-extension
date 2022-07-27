@@ -208,7 +208,6 @@ public class InsightConfigTest
             "forceBaseUrl",
             "hdsUrl",
             "importReferencePoliciesFromHDS",
-            "initialAdminPassword",
             "jira",
             "licenseFile",
             "licenseLegalHdsRequestLimit",

@@ -147,11 +147,4 @@ public class InsightWork
   public File getTemporaryDirectory() {
     return new File(insightConfig.getSonatypeWork(), "temp");
   }
-
-  /**
-   * @since 1.133
-   */
-  public String getInitialAdminPassword() {
-    return insightConfig.getInitialAdminPassword();
-  }
 }

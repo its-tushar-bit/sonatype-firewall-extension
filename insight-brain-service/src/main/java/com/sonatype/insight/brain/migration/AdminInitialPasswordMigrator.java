@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.PasswordService;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.lang3.StringUtils;
@@ -22,8 +21,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Updates the default admin password in initial installation only if a custom admin password is present in
- * config.yml. The property is initialAdminPassword and a value from environmental variables can be referenced
- * by using ${ENVIRONMENTAL_VARIABLE_TO_REFERENCE} as well.
+ * `NXIQ_INITIAL_ADMIN_PASSWORD` environment variable.
  */
 @Named
 @Singleton
@@ -33,9 +31,10 @@ public class AdminInitialPasswordMigrator
 
   static final String ADMIN_PASSWORD_MIGRATOR_ID = "admin-initial-password";
 
-  private final MigrationTrackerDAO migrationTrackerDAO;
+  //visible for testing
+  public static final String NXIQ_INITIAL_ADMIN_PASSWORD = "NXIQ_INITIAL_ADMIN_PASSWORD";
 
-  private final InsightWork insightWork;
+  private final MigrationTrackerDAO migrationTrackerDAO;
 
   private final PasswordService passwordService;
 
@@ -44,12 +43,10 @@ public class AdminInitialPasswordMigrator
   @Inject
   public AdminInitialPasswordMigrator(
       final MigrationTrackerDAO migrationTrackerDAO,
-      final InsightWork insightWork,
       final PasswordService passwordService,
       final UserDAO userDAO)
   {
     this.migrationTrackerDAO = migrationTrackerDAO;
-    this.insightWork = insightWork;
     this.passwordService = passwordService;
     this.userDAO = userDAO;
   }
@@ -59,14 +56,14 @@ public class AdminInitialPasswordMigrator
       return;
     }
 
-    if (StringUtils.isEmpty(insightWork.getInitialAdminPassword())) {
+    if (StringUtils.isEmpty(getInitialAdminPassword())) {
       log.info("Using the default initial password for admin user.");
       migrationTrackerDAO.insertTracker(ADMIN_PASSWORD_MIGRATOR_ID);
       return;
     }
 
     User admin = userDAO.getById("ADMIN");
-    admin.setPassword(passwordService.hashPassword(insightWork.getInitialAdminPassword()));
+    admin.setPassword(passwordService.hashPassword(getInitialAdminPassword()));
     log.info("Using the custom password for the admin user.");
 
     try (TransactionContext transactionContext = userDAO.createTransactionContext()) {
@@ -76,5 +73,9 @@ public class AdminInitialPasswordMigrator
       transactionContext.commit();
       log.info("Successfully updated admin password with the custom password provided.");
     }
+  }
+
+  private String getInitialAdminPassword() {
+    return System.getenv(NXIQ_INITIAL_ADMIN_PASSWORD);
   }
 }

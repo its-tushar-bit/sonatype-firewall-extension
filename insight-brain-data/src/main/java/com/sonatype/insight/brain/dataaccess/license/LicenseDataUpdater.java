@@ -22,13 +22,17 @@ public abstract class LicenseDataUpdater
     LicenseDataUpdater.updater = updater;
   }
 
-  public static final synchronized void update() {
+  public static synchronized void update() {
     if (updater == null) {
       log.warn("Cannot update license data because there is no license updater.");
       return;
     }
 
     updater.doUpdate();
+    loadLicenses();
+  }
+
+  public static synchronized void loadLicenses() {
     new LicenseDAO().load();
     new MultiLicenseDAO().load();
   }

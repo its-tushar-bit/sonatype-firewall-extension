@@ -21,6 +21,10 @@ public abstract class AbstractComponentCategoryUpdater
     }
 
     updater.doUpdate();
+    loadComponentCategories();
+  }
+
+  public static synchronized void loadComponentCategories() {
     new ComponentCategoryDAO().load();
   }
 

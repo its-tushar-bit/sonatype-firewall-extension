@@ -89,7 +89,7 @@ void pushDockerImageIfDeployBranch() {
     String version = getMavenProjectVersion('.')
     String shortImage = "${version.split("-")[0]}-${env.BUILD_NUMBER}"
     String containerName = "iq/snapshot"
-    echo "version:'${version}''"
+    echo "version:'${version}'"
     echo "buildnum: ${env.BUILD_NUMBER}"
 
     dir("nexus-iq-server") {
@@ -112,7 +112,7 @@ void pushDockerImageIfDeployBranch() {
     build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging',
               parameters: [string(
                 name: 'environment', value: 'Staging'), string(name:'imageUrl',
-                value: 'docker-all.repo.sonatype.com/${containerName}:latest')], propagate: false)
+                value: "docker-all.repo.sonatype.com/${containerName}:latest")], propagate: false)
 }
 
 /*

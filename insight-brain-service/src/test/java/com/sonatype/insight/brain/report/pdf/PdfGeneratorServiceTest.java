@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.report.pdf;
 
 import java.io.File;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
@@ -15,6 +14,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -24,8 +24,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -77,9 +79,10 @@ public class PdfGeneratorServiceTest
 
     // Validate content type and check the actual content is really a PDF.
     File pdfFile = PdfGenerator.getPdfFile(insightWork.getReportFile(application.getId(), scanId));
-    assertThat(response.getHeaderString("Content-Disposition")).containsSubsequence("attachment; " +
-        "filename=\"" + URLEncoder.encode(application.getName(), "UTF-8") +
-        "-Build-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()), ".pdf\"");
+    String expectedFilename = application.getName() + "-" + StageTypes.BUILD.getName() + "-" +
+        new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()) + ".pdf";
+    assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
+        HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));
     assertThat(response.getMediaType()).hasToString("application/pdf;charset=UTF-8");
     assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
     assertThat(
@@ -106,9 +109,10 @@ public class PdfGeneratorServiceTest
     Response response = pdfGeneratorService.printReport(application.getPublicId(), scanId);
 
     // Validate content type and check the actual content is really a PDF.
-    assertThat(response.getHeaderString("Content-Disposition")).containsSubsequence("attachment; " +
-        "filename=\"" + application.getName() +
-        "-Build-" + new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()), ".pdf\"");
+    String expectedFilename = application.getName() + "-" + StageTypes.BUILD.getName() + "-" +
+        new SimpleDateFormat("yyyyMMdd-HHmmss").format(policyEvaluation.getTime()) + ".pdf";
+    assertThat(response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(
+        HttpHeaderUtils.buildContentDispositionHeaderValue(expectedFilename));
     assertThat(response.getMediaType()).hasToString("application/pdf;charset=UTF-8");
     assertThat(response.getHeaderString("Content-Length")).isEqualTo(Long.toString(pdfFile.length()));
     assertThat(

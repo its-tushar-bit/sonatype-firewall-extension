@@ -16,11 +16,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
-import com.sonatype.insight.client.utils.UrlUtils;
+import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -59,7 +60,8 @@ public class SupportResource
 
     final ResponseBuilder response = Response.ok();
     response.entity(supportZip);
-    response.header("Content-Disposition", "attachment; filename=" + UrlUtils.encodeUrlComponent(supportZip.getName()));
+    response.header(HttpHeaders.CONTENT_DISPOSITION,
+        HttpHeaderUtils.buildContentDispositionHeaderValue(supportZip.getName()));
     return response.build();
   }
 }

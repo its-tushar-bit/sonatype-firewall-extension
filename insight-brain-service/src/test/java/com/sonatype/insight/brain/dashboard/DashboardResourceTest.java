@@ -14,6 +14,8 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.ws.rs.core.HttpHeaders;
+
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -421,7 +423,7 @@ public class DashboardResourceTest
   private void assertResponseOkAndCsvHeadersSet(HttpResponse response, String fileNamePrefix) throws ParseException {
     assertResponseStatus(200, response);
     assertThat(response.getContentType()).isEqualTo("text/csv");
-    String dispositionHeader = response.getHeader("Content-Disposition");
+    String dispositionHeader = response.getHeader(HttpHeaders.CONTENT_DISPOSITION);
     String headerStart = "attachment; filename=\"" + fileNamePrefix + "-";
     assertThat(dispositionHeader).startsWith(headerStart);
     Matcher matcher = Pattern.compile(headerStart + "([0-9]{8}-[0-9]{6})" + "\\.csv").matcher(dispositionHeader);

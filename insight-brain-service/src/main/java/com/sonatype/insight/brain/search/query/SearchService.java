@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,6 +27,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
+import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.model.HasStringId;
@@ -272,8 +273,8 @@ public class SearchService
       ResponseBuilder responseBuilder = Response.ok(createAdvancedSearchCSV(searchResultItemsDTO))
           .type("application/csv; charset=UTF-8")
           .encoding("UTF-8")
-          .header("Content-Disposition",
-              "attachment; filename=\"" + URLEncoder.encode(EXPORT_FILE_NAME, "UTF-8") + "\"");
+          .header(HttpHeaders.CONTENT_DISPOSITION,
+              HttpHeaderUtils.buildContentDispositionHeaderValue(EXPORT_FILE_NAME));
       return responseBuilder.build();
     }
     catch (IOException e) {

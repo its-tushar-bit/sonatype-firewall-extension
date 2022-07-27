@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.organization.ApplicationHelper;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
+import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -161,14 +162,14 @@ public class ApiCycloneDxServiceV2
         BomJsonGenerator generator = BomGeneratorFactory.createJson(version, bom);
         return Response.ok(generator.toJsonString(), MediaType.APPLICATION_JSON)
             .header(HttpHeaders.CONTENT_DISPOSITION,
-                "Content-Disposition: attachment; filename=\"" + application.getPublicId() + '-' + scanId + ".json\"")
+                HttpHeaderUtils.buildContentDispositionHeaderValue(application.getPublicId() + '-' + scanId + ".json"))
             .build();
       }
       BomXmlGenerator generator = BomGeneratorFactory.createXml(version, bom);
       generator.generate();
       return Response.ok(generator.toXmlString(), MediaType.APPLICATION_XML)
           .header(HttpHeaders.CONTENT_DISPOSITION,
-              "Content-Disposition: attachment; filename=\"" + application.getPublicId() + '-' + scanId + ".xml\"")
+              HttpHeaderUtils.buildContentDispositionHeaderValue(application.getPublicId() + '-' + scanId + ".xml"))
           .build();
     }
     catch (IOException | ParserConfigurationException | GeneratorException e) {

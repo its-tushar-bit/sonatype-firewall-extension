@@ -76,10 +76,10 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
+import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 import com.sonatype.insight.brain.utils.JsonFileStore;
 import com.sonatype.insight.brain.utils.JsonStore;
 import com.sonatype.insight.brain.version.VersionService;
-import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -433,7 +433,7 @@ public class ReportResource
         }
       }
     });
-    response.header("Content-Disposition", "attachment; filename=" + UrlUtils.encodeUrlComponent(filename));
+    response.header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(filename));
     return response.build();
   }
 

@@ -23,6 +23,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import javax.mail.Message;
+import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
@@ -284,7 +285,7 @@ public class ReportResourceTest
 
     HttpResponse response = restRequest(app.getPublicId(), scanId).path("printReport").get();
     assertResponseStatus(200, response);
-    assertThat(response.getHeader("Content-Disposition"))
+    assertThat(response.getHeader(HttpHeaders.CONTENT_DISPOSITION))
         .containsSubsequence("attachment; filename=\"" + app.getName() + "-Build-", ".pdf\"");
 
     // validate content type and check the actual content is really a PDF
@@ -412,7 +413,7 @@ public class ReportResourceTest
     response = restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getContentType()).isEqualTo("application/zip");
-    assertThat(response.getHeader("Content-Disposition")).contains("filename=");
+    assertThat(response.getHeader(HttpHeaders.CONTENT_DISPOSITION)).contains("filename=");
     File temp = tempDir.newFile();
     Files.write(temp.toPath(), response.getBodyBytes());
     try (ZipFile zip = new ZipFile(temp)) {
@@ -500,7 +501,7 @@ public class ReportResourceTest
     response = restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getContentType()).isEqualTo("application/zip");
-    assertThat(response.getHeader("Content-Disposition")).contains("filename=");
+    assertThat(response.getHeader(HttpHeaders.CONTENT_DISPOSITION)).contains("filename=");
     File temp = tempDir.newFile();
     Files.write(temp.toPath(), response.getBodyBytes());
     try (ZipFile zip = new ZipFile(temp)) {
@@ -589,7 +590,7 @@ public class ReportResourceTest
     response = restRequest(app.getPublicId(), scanId).path(ReportResource.DOWNLOAD_BUNDLE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getContentType()).isEqualTo("application/zip");
-    assertThat(response.getHeader("Content-Disposition")).contains("filename=");
+    assertThat(response.getHeader(HttpHeaders.CONTENT_DISPOSITION)).contains("filename=");
     File temp = tempDir.newFile();
     Files.write(temp.toPath(), response.getBodyBytes());
     try (ZipFile zip = new ZipFile(temp)) {

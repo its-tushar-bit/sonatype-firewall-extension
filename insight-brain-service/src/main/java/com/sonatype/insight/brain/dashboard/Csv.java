@@ -15,8 +15,11 @@ import java.util.Collection;
 import java.util.Date;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
+
+import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 
 /**
  * Dashboard-specific CSV utility class
@@ -47,7 +50,7 @@ final class Csv
 
     final String timestamp = new SimpleDateFormat("yyyyMMdd-HHmmss").format(now);
     final String filename = fileNamePrefix + "-" + timestamp + ".csv";
-    response.header("Content-Disposition", "attachment; filename=\"" + filename + '"');
+    response.header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(filename));
 
     return response.entity(new StreamingOutput()
     {

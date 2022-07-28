@@ -11,6 +11,8 @@ import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.commons.lang3.StringUtils;
+
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @Named
@@ -18,6 +20,10 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class DefaultBaseUrl
     implements BaseUrl
 {
+  private static final String[] UNSAFE_CHARACTERS = new String[]{"{", "}"};
+
+  private static final String[] ESCAPED_CHARACTERS = new String[]{"%7B", "%7D"};
+
   public static final String ERR_MSG_BASE_URL_NOT_CONFIGURED = "The server base URL (baseUrl) is not configured. "
       + "More information at https://links.sonatype.com/products/clm/docs/base-url";
 
@@ -93,6 +99,8 @@ public class DefaultBaseUrl
 
   @Override
   public UriBuilder redirect() {
-    return UriBuilder.fromUri(get()).replaceQuery(getHttpRequest().getQueryString());
+    String queryString = getHttpRequest().getQueryString();
+    String escapedQueryString = StringUtils.replaceEach(queryString, UNSAFE_CHARACTERS, ESCAPED_CHARACTERS);
+    return UriBuilder.fromUri(get()).replaceQuery(escapedQueryString);
   }
 }

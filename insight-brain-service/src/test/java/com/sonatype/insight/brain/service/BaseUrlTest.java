@@ -104,6 +104,15 @@ public class BaseUrlTest
   }
 
   @Test
+  public void testRedirect_EscapeCurlyBraces() {
+    baseUrl.capture(httpRequest);
+
+    mockHttpRequest("http://clm.sonatype.com:8080", "", "/", "key={%22hash%22:%22fe6e7a32c1228884b969%22}");
+    assertThat(baseUrl.redirect().path("dst").build().toString()).isEqualTo(
+        "http://clm.sonatype.com:8080/dst?key=%7B%22hash%22%3A%22fe6e7a32c1228884b969%22%7D");
+  }
+
+  @Test
   public void testGetConfigured_BaseUrlConfigured() {
     String configuredBaseUrl = "http://testBaseUrl:8070/";
     setBaseUrl(configuredBaseUrl);

@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
@@ -44,6 +45,10 @@ public class PolicyResourceAuthzTest
     grantReadPermission(org.getId());
 
     testAuthzGet(restRequest().parameter(OwnerType.ORGANIZATION, org.getId()));
+
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    testAuthzGet(restRequest().parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID));
   }
 
   @Test
@@ -57,6 +62,10 @@ public class PolicyResourceAuthzTest
     grantReadPermission(org.getId());
 
     testAuthzGet(request.parameter(OwnerType.ORGANIZATION, org.getId()));
+
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    testAuthzGet(request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID));
   }
 
   @Test
@@ -68,6 +77,11 @@ public class PolicyResourceAuthzTest
     grantWritePermission(org.getId());
 
     testAuthzPost(restRequest().body(newPolicy()).parameter(OwnerType.ORGANIZATION, org.getId()));
+
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    testAuthzPost(restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID));
   }
 
   @Test
@@ -81,6 +95,12 @@ public class PolicyResourceAuthzTest
 
     policy = tempEntity.newPolicy(org);
     testAuthzPut(restRequest().body(policy).parameter(OwnerType.ORGANIZATION, org.getId()));
+
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    testAuthzPut(restRequest().body(policy).parameter(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID));
   }
 
   @Test
@@ -96,6 +116,12 @@ public class PolicyResourceAuthzTest
 
     policy = tempEntity.newPolicy(org);
     testAuthzDelete(request.parameter(OwnerType.ORGANIZATION, org.getId(), policy.getId()));
+
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    testAuthzDelete(
+        request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, policy.getId()));
   }
 
   @Test
@@ -115,6 +141,14 @@ public class PolicyResourceAuthzTest
     policy.setPolicyActionsOverrideAllowed(true);
     new PolicyDAO().update(policy);
     testAuthzPut(request.parameter(OwnerType.ORGANIZATION, org.getId(), policy.getId()));
+
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    policy.setPolicyActionsOverrideAllowed(true);
+    new PolicyDAO().update(policy);
+    testAuthzPut(
+        request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, policy.getId()));
   }
 
   @Test
@@ -130,5 +164,11 @@ public class PolicyResourceAuthzTest
 
     policy = tempEntity.newPolicy(org);
     testAuthzDelete(request.parameter(OwnerType.ORGANIZATION, org.getId(), policy.getId()));
+
+    grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    policy = tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    testAuthzDelete(
+        request.parameter(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID, policy.getId()));
   }
 }

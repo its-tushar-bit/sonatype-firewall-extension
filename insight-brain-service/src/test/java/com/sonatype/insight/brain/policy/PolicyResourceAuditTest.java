@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 
@@ -310,6 +311,17 @@ public class PolicyResourceAuditTest
   }
 
   @Test
+  public void testAddPolicy_RepositoryContainer() throws Exception {
+    Policy policy = aComplexPolicy();
+
+    policyResourceRequest(RepositoryContainer.SINGLETON).body(policy).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
+    assertRepositoryContainerData(auditDTO);
+    assertPolicyData(auditDTO, policy, false);
+  }
+
+  @Test
   public void testAddPolicy_Unauthorized() throws Exception {
     Policy policy = policy();
     policyResourceRequest(organization).with(unauthorizedUser()).body(policy).post();
@@ -342,6 +354,20 @@ public class PolicyResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
     assertOrganizationData(auditDTO, organization);
+    assertPolicyData(auditDTO, policy, false);
+  }
+
+  @Test
+  public void testUpdatePolicy_RepositoryContainer() throws Exception {
+    String existingPolicyId =
+        tempEntity.newPolicy(RepositoryContainer.REPOSITORY_CONTAINER_ID, tempEntity.uuid()).getId();
+    Policy policy = aComplexPolicy();
+    policy.setId(existingPolicyId);
+
+    policyResourceRequest(RepositoryContainer.SINGLETON).body(policy).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_POLICY, null);
+    assertRepositoryContainerData(auditDTO);
     assertPolicyData(auditDTO, policy, false);
   }
 
@@ -381,6 +407,19 @@ public class PolicyResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_POLICY, null);
     assertOrganizationData(auditDTO, organization);
+    assertPolicyData(auditDTO, policy, true);
+  }
+
+  @Test
+  public void testDeletePolicy_RepositoryContainer() throws Exception {
+    Policy policy = aComplexPolicy();
+    policy.setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    tempEntity.newPolicy(policy);
+
+    policyResourceRequest(RepositoryContainer.SINGLETON).path(policy.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_POLICY, null);
+    assertRepositoryContainerData(auditDTO);
     assertPolicyData(auditDTO, policy, true);
   }
 

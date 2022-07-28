@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyResource.ApplicablePolicies;
 import com.sonatype.insight.brain.policy.PolicyResource.PoliciesByOwner;
@@ -70,6 +71,11 @@ public class PolicyResourceTest
     String orgId = tempEntity.newOrganization("test").getId();
 
     testCRUD(OwnerType.ORGANIZATION, orgId);
+  }
+
+  @Test
+  public void testCRUD_RepositoryContainerLevel() throws Exception {
+    testCRUD(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID);
   }
 
   @Test

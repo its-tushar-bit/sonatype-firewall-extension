@@ -69,7 +69,8 @@ import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 @Path(PolicyResource.RESOURCE_PATH)
 public class PolicyResource
 {
-  public static final String RESOURCE_PATH = "rest/policy/{ownerType: application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH =
+      "rest/policy/{ownerType: application|organization|repository_container}/{ownerId}";
 
   private static final Logger log = LoggerFactory.getLogger(PolicyResource.class);
 

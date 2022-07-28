@@ -41,7 +41,7 @@ describe('RecommendedVersionsList', () => {
   it('calls handleCompare on Compare button click', () => {
     const versionChanges = [
       {
-        id: 'next-no-violation-version-link',
+        id: 'next-no-violation-version',
         text: 'Next version with no policy violation',
         type: 'next-no-violations',
         version: '2.4.10',
@@ -77,7 +77,7 @@ describe('RecommendedVersionsList', () => {
   it('with two component list if remediation array is sent', () => {
     const versionChanges = [
       {
-        id: 'next-no-violation-version-link',
+        id: 'next-no-violation-version',
         text: 'Next version with no policy violation',
         type: 'next-no-violations',
         version: '2.4.10',

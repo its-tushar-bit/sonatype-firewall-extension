@@ -92,7 +92,7 @@ describe('recommendedVersionUtils', () => {
 
     it('first element is a new version', () => {
       const element = result[0];
-      expect(element.id).toBe('next-no-violation-version-link');
+      expect(element.id).toBe('next-no-violation-version');
       expect(element.text).toBe('Next version with no policy violation');
       expect(element.type).toBe('next-no-violations');
       expect(element.version).toBe('2.4.10');

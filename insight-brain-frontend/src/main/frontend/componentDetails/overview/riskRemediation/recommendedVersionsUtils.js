@@ -16,7 +16,7 @@ const createSuggestedRemediationWithRecommendedVersion = (item, remediationVersi
   switch (item.type) {
     case NEXT_NO_VIOLATIONS:
       return {
-        id: 'next-no-violation-version-link',
+        id: 'next-no-violation-version',
         text: 'Next version with no policy violation',
         type: NEXT_NO_VIOLATIONS,
         linkId: 'select-no-violation',
@@ -25,7 +25,7 @@ const createSuggestedRemediationWithRecommendedVersion = (item, remediationVersi
       };
     case NEXT_NON_FAILING:
       return {
-        id: 'next-no-fail-version-link',
+        id: 'next-no-fail-version',
         text: `Next version with no ${capitalize(stageId)} failure`,
         type: NEXT_NON_FAILING,
         linkId: 'select-no-fail',
@@ -34,7 +34,7 @@ const createSuggestedRemediationWithRecommendedVersion = (item, remediationVersi
       };
     case NEXT_NON_FAILING_DEPENDENCIES:
       return {
-        id: 'next-no-fail-dependencies-version-link',
+        id: 'next-no-fail-dependencies-version',
         text: `Next version with no ${capitalize(stageId)} failure for this component and its dependencies`,
         type: NEXT_NON_FAILING_DEPENDENCIES,
         linkId: 'select-no-fail-dependencies',
@@ -43,7 +43,7 @@ const createSuggestedRemediationWithRecommendedVersion = (item, remediationVersi
       };
     case NEXT_NO_VIOLATIONS_DEPENDENCIES:
       return {
-        id: 'next-no-violation-dependencies-version-link',
+        id: 'next-no-violation-dependencies-version',
         text: 'Next version with no policy violations for this component and its dependencies',
         type: NEXT_NO_VIOLATIONS_DEPENDENCIES,
         linkId: 'select-no-violation-dependencies',

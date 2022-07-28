@@ -11,8 +11,16 @@
 
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
     <file>${com.sonatype.insight.scan.outDir}/scan-${com.sonatype.insight.scan.startTime}.log</file>
-    <encoder>
-      <pattern>[%level] %m%n</pattern>
+    <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+      <layout class="com.sonatype.insight.scan.cli.logger.MaskingPatternLayout">
+        <!-- Please ensure you use a valid regex expression, CLI won't work on runtime if you use an invalid
+         regex expression. -->
+        <!-- To properly mask sensitive data, ensure you have a regex with one group, the group is the one
+         that will be masked -->
+        <maskPattern>Authorization: (.*)</maskPattern>
+        <maskPattern>Proxy-Authorization: (.*)</maskPattern>
+        <pattern>[%level] %m%n</pattern>
+      </layout>
     </encoder>
     <filter class="com.sonatype.insight.scan.cli.MarkerFilter">
       <marker>PATHS</marker>
@@ -24,8 +32,16 @@
   </appender>
 
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>[%level] %m%n</pattern>
+    <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+      <layout class="com.sonatype.insight.scan.cli.logger.MaskingPatternLayout">
+        <!-- Please ensure you use a valid regex expression, CLI won't work on runtime if you use an invalid
+         regex expression. -->
+        <!-- To properly mask sensitive data, ensure you have a regex with one group, the group is the one
+         that will be masked -->
+        <maskPattern>Authorization: (.*)</maskPattern>
+        <maskPattern>Proxy-Authorization: (.*)</maskPattern>
+        <pattern>[%level] %m%n</pattern>
+      </layout>
     </encoder>
   </appender>
 

@@ -220,6 +220,8 @@ public class InsightBrainService
 
     DatabaseProvisionUtils.initializeDatabases(configuration, getDatabaseConfigProvider(configuration));
 
+    validateMinimumSchemaVersion();
+
     super.run(configuration, environment);
 
     bootApplicationLifecycle();
@@ -250,6 +252,15 @@ public class InsightBrainService
     // Log to stdout first because the standard logging may not be operational at this point.
     System.out.println(message);
     log.info(message);
+  }
+
+  private void validateMinimumSchemaVersion() {
+    // Force exit if schema version table does not exist or if migration was needed but didn't happen.
+    if (!DatabaseProvisionUtils.isInMemoryDatabase() &&
+        (!DatabaseProvisionUtils.isSchemaVersionTableExists() || DatabaseProvisionUtils.isMigrationNeeded())) {
+      log.error("Database migration is needed. Please migrate the database before starting the application!");
+      System.exit(1);
+    }
   }
 
   private static boolean validateTempDir() {

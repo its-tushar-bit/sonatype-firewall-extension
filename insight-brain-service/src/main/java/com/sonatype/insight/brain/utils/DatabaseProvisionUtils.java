@@ -50,10 +50,8 @@ public final class DatabaseProvisionUtils
   }
 
   public static void migrateDatabasesIfNeeded(InsightConfig insightConfig) {
-    boolean schemaVersionTableExists =
-        DatabaseUtil.schemaVersionTableExists(OperationalDataStoreProvider.getDataSource(),
-            OperationalDataStoreProvider.ID);
     int schemaVersion = -2;
+    boolean schemaVersionTableExists = isSchemaVersionTableExists();
     if (schemaVersionTableExists) {
       schemaVersion = DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(),
           OperationalDataStoreProvider.ID);
@@ -78,11 +76,20 @@ public final class DatabaseProvisionUtils
     }
   }
 
+  public static boolean isInMemoryDatabase() {
+    return OperationalDataStoreProvider.isDatabaseInMemory();
+  }
+
+  public static boolean isSchemaVersionTableExists() {
+    return DatabaseUtil.schemaVersionTableExists(OperationalDataStoreProvider.getDataSource(),
+        OperationalDataStoreProvider.ID);
+  }
+
   public static boolean isMigrationEnabledOrHasNewDataSource() {
     return DatabaseMigrator.isMigrationEnabled() || DataSourceFactory.hasNewDataSource();
   }
 
-  private static boolean isMigrationNeeded() {
+  public static boolean isMigrationNeeded() {
     return isMigrationNeeded(OperationalDataStoreProvider.getDataSource(), OperationalDataStoreProvider.ID)
         || isMigrationNeeded(DatamartProvider.getDataSource(), DatamartProvider.ID)
         || isMigrationNeeded(ThirdPartyScansProvider.getDataSource(), ThirdPartyScansProvider.ID)

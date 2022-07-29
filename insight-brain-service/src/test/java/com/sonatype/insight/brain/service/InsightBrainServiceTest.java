@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.telemetry.SourceControlRateLimitTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetryContainerRequestFilter;
 import com.sonatype.insight.brain.telemetry.TelemetryScheduler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.mock.hds.HttpResponseProcessor;
@@ -65,8 +66,13 @@ import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.server.AbstractServerFactory;
 import io.dropwizard.server.DefaultServerFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ExpectedSystemExit;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -84,10 +90,28 @@ public class InsightBrainServiceTest
       TelemetryPurpose.HIERARCHY_METRICS, TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE,
       TelemetryPurpose.CONFIGURATION_PROPERTIES, TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS,
       TelemetryPurpose.SOURCE_CONTROL_RATE_LIMITS, TelemetryPurpose.ROLE_USAGE, TelemetryPurpose.RUNTIME_ENVIRONMENT,
-      TelemetryPurpose.REPOSITORY_CONFIGURATION};
+      TelemetryPurpose.REPOSITORY_CONFIGURATION
+  };
 
   @Rule
   public LogOutput logOutput = new LogOutput(InsightBrainService.class);
+
+  @Rule
+  public final ExpectedSystemExit expectedExit = ExpectedSystemExit.none();
+
+  private MockedStatic<DatabaseProvisionUtils> mockedDBUtil;
+
+  @Before
+  public void before() {
+    mockedDBUtil = Mockito.mockStatic(DatabaseProvisionUtils.class);
+    // noinspection ResultOfMethodCallIgnored
+    mockedDBUtil.when(DatabaseProvisionUtils::isInMemoryDatabase).thenReturn(true);
+  }
+
+  @After
+  public void after() {
+    mockedDBUtil.close();
+  }
 
   @Test
   @ManualServerInit
@@ -335,6 +359,7 @@ public class InsightBrainServiceTest
     // Manually initialize server with custom configurator to ensure it gets restarted if already running
     initServer(config -> {
     });
+
     assertThat(logOutput).atInfoLevel()
         .contains("Initializing Nexus IQ Server 1 release " + new VersionService().getLogDisplayVersion());
   }
@@ -346,6 +371,63 @@ public class InsightBrainServiceTest
     // Manually initialize server with custom configurator to ensure it gets restarted if already running
     initServer(config -> {
     });
+  }
+
+  @Test
+  @ManualServerInit
+  public void testDesiredSchemaVersionMet() throws Exception {
+    // noinspection ResultOfMethodCallIgnored
+    mockedDBUtil.when(DatabaseProvisionUtils::isInMemoryDatabase).thenReturn(false);
+    mockedDBUtil.when(DatabaseProvisionUtils::isSchemaVersionTableExists).thenReturn(true);
+    mockedDBUtil.when(DatabaseProvisionUtils::isMigrationNeeded).thenReturn(false);
+
+    initServer(config -> {
+    });
+
+    assertThat(logOutput).doesNotContain("Database migration is needed.");
+  }
+
+  @Test
+  @ManualServerInit
+  public void testDesiredSchemaVersionUnmet() throws Exception {
+    // noinspection ResultOfMethodCallIgnored
+    mockedDBUtil.when(DatabaseProvisionUtils::isInMemoryDatabase).thenReturn(false);
+    mockedDBUtil.when(DatabaseProvisionUtils::isSchemaVersionTableExists).thenReturn(true);
+    mockedDBUtil.when(DatabaseProvisionUtils::isMigrationNeeded).thenReturn(true);
+
+    expectedExit.expectSystemExitWithStatus(1);
+
+    try {
+      initServer(config -> {
+      });
+    }
+    catch (IllegalStateException e) {
+      // do nothing
+    }
+
+    assertThat(logOutput).atErrorLevel()
+        .contains("Database migration is needed. Please migrate the database before starting the application!");
+  }
+
+  @Test
+  @ManualServerInit
+  public void testDesiredSchemaVersionNoSchema() throws Exception {
+    // noinspection ResultOfMethodCallIgnored
+    mockedDBUtil.when(DatabaseProvisionUtils::isInMemoryDatabase).thenReturn(false);
+    mockedDBUtil.when(DatabaseProvisionUtils::isSchemaVersionTableExists).thenReturn(false);
+
+    expectedExit.expectSystemExitWithStatus(1);
+
+    try {
+      initServer(config -> {
+      });
+    }
+    catch (IllegalStateException e) {
+      // do nothing
+    }
+
+    assertThat(logOutput).atErrorLevel()
+        .contains("Database migration is needed. Please migrate the database before starting the application!");
   }
 
   @Test

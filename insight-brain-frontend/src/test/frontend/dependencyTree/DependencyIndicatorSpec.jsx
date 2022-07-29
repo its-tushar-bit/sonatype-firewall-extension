@@ -29,6 +29,8 @@ describe('DependencyIndicator ', () => {
     });
 
     it(`renders a tooltip for dependency type: '${type}'`, async () => {
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent({ type });
       fireEvent.mouseOver(screen.getByText(label));
       const tooltip = await screen.findByRole('tooltip');
@@ -43,6 +45,8 @@ describe('DependencyIndicator ', () => {
     });
 
     it(`renders a tooltip for dependency type: '${type}' with a custom tooltip message`, async () => {
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent({ type, tooltip: 'Custom tooltip message' });
       fireEvent.mouseOver(screen.getByText(label));
       const tooltip = await screen.findByRole('tooltip');

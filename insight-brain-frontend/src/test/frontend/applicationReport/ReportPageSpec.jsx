@@ -170,8 +170,9 @@ describe('Report Page component', () => {
     expect(backToAllReports).toBeVisible();
   });
 
-  it('renders a ReportTitle', () => {
+  it('renders a ReportTitle', async () => {
     applicationReportSelectors.selectDisplayedComponentList.and.returnValue([]);
+    SpecUtil.requestIdleCallbackInvokeImmediate();
     renderComponent();
 
     const header = screen.getByRole('heading', { name: 'App Name Title' });
@@ -189,7 +190,7 @@ describe('Report Page component', () => {
     expect(screen.getByRole('link', { name: 'View SBOM' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'View raw data' })).toBeVisible();
 
-    const viewVulnerabilitiesLink = screen.getByRole('link', {
+    const viewVulnerabilitiesLink = await screen.findByRole('link', {
       name: 'Reevaluate the report in order to enable Vulnerabilities view',
     });
     expect(viewVulnerabilitiesLink).toBeVisible();
@@ -234,14 +235,15 @@ describe('Report Page component', () => {
     expect(grandfatheredCountText).toBeVisible();
   });
 
-  it('renders ReportContent with 3 actions', () => {
+  it('renders ReportContent with 3 actions', async () => {
+    SpecUtil.requestIdleCallbackInvokeImmediate();
     renderComponent();
 
     const aggregateByComponentToggleTooltip =
       'By default the Application Report aggregates violations by component. ' +
       'To see all violations not Aggregated by Component, please switch the toggle off.';
 
-    const aggregateByComponentToggle = screen.getByRole('switch', { name: aggregateByComponentToggleTooltip });
+    const aggregateByComponentToggle = await screen.findByRole('switch', { name: aggregateByComponentToggleTooltip });
     const viewDependencyTreeButton = screen.getByRole('button', { name: 'View Dependency Tree' });
     const filterButton = screen.getByRole('button', { name: 'Filter' });
 
@@ -262,33 +264,34 @@ describe('Report Page component', () => {
     expect(screen.getByRole('button', { name: 'Component unsorted' })).toBeVisible();
   });
 
-  it('renders ReportContent with information', () => {
+  it('renders ReportContent with information', async () => {
+    SpecUtil.requestIdleCallbackInvokeImmediate();
     renderComponent();
 
     const componentRaws = screen.getAllByRole('row');
     expect(componentRaws.length).toBeGreaterThanOrEqual(6);
 
-    expect(screen.getByRole('img', { name: 'Critical' })).toBeVisible();
+    expect(await screen.findByLabelText('Critical')).toBeVisible();
     expect(screen.getByText(`${displayedEntries[0].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[0].policyName}` })).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[0].derivedComponentName}` })).toBeVisible();
 
-    expect(screen.getByRole('img', { name: 'Severe' })).toBeVisible();
+    expect(await screen.findByLabelText('Severe')).toBeVisible();
     expect(screen.getByText(`${displayedEntries[1].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[1].policyName}` })).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[1].derivedComponentName}` })).toBeVisible();
 
-    expect(screen.getByRole('img', { name: 'Moderate' })).toBeVisible();
+    expect(await screen.findByLabelText('Moderate')).toBeVisible();
     expect(screen.getByText(`${displayedEntries[2].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[2].policyName}` })).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[2].derivedComponentName}` })).toBeVisible();
 
-    expect(screen.getByRole('img', { name: 'Low' })).toBeVisible();
+    expect(await screen.findByLabelText('Low')).toBeVisible();
     expect(screen.getByText(`${displayedEntries[3].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[3].policyName}` })).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[3].derivedComponentName}` })).toBeVisible();
 
-    expect(screen.getByRole('img', { name: 'None' })).toBeVisible();
+    expect(await screen.findByLabelText('None')).toBeVisible();
     expect(screen.getByText(`${displayedEntries[4].policyThreatLevel}`)).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[4].policyName}` })).toBeVisible();
     expect(screen.getByRole('cell', { name: `${displayedEntries[4].derivedComponentName}` })).toBeVisible();

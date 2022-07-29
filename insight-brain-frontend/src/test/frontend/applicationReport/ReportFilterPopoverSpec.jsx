@@ -47,6 +47,7 @@ describe('ReportFilterPopover', () => {
 
   it('renders tooltip when policy types filter is disabled', async () => {
     applicationReportSelectors.selectIsPolicyTypeFilterEnabled.and.returnValue(false);
+    SpecUtil.requestIdleCallbackInvokeImmediate();
     renderComponent();
     fireEvent.mouseOver(screen.getByRole('button', { name: /policy types/i, exact: false }));
     const tooltip = await screen.findByRole('tooltip');

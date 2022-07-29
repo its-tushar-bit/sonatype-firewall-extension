@@ -58,7 +58,7 @@ describe('DependencyTree', () => {
     expect(nonClickableTreeItem.closest('a')).toBeNull();
   });
 
-  it('renders threat indicator', () => {
+  it('renders threat indicator', async () => {
     const tree = [
       {
         displayName: 'org.apache.commons : commons-lang3 : 3.3.2',
@@ -86,11 +86,13 @@ describe('DependencyTree', () => {
         policyThreatLevel: 1,
       },
     ];
+    SpecUtil.requestIdleCallbackInvokeImmediate();
+
     renderComponent({ items: tree });
 
-    expect(screen.getAllByRole('img')[0]).toHaveClassName('nx-threat-indicator--low');
-    expect(screen.getAllByRole('img')[1]).toHaveClassName('nx-threat-indicator--critical');
-    expect(screen.getAllByRole('img')[2]).toHaveClassName('nx-threat-indicator--severe');
+    expect(await screen.findByLabelText('Low')).toBeVisible();
+    expect(await screen.findByLabelText('Critical')).toBeVisible();
+    expect(await screen.findByLabelText('Severe')).toBeVisible();
   });
 
   it('renders an InnerSource icon', () => {

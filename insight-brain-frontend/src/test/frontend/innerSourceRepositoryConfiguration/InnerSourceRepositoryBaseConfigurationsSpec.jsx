@@ -202,6 +202,8 @@ describe('InnerSourceRepositoryBaseConfigurations', function () {
 
     it('disables the update button if there is a validation error', async () => {
       spySelectValidationErrors.and.returnValue('someValidationError');
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent();
       const updateButton = screen.getByText('Update');
       expect(updateButton).toBeVisible();
@@ -310,7 +312,10 @@ describe('InnerSourceRepositoryBaseConfigurations', function () {
       ]);
       spySelectAllowChange.and.returnValue(true);
       spySelectFormState.and.returnValue({ enabled: true });
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent();
+
       const addButton = screen.getByText('Add a Repository').closest('button');
       expect(addButton).toBeVisible();
       expect(addButton).toHaveClassName('disabled');
@@ -325,7 +330,10 @@ describe('InnerSourceRepositoryBaseConfigurations', function () {
       ]);
       spySelectAllowChange.and.returnValue(true);
       spySelectFormState.and.returnValue({ enabled: true });
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent();
+
       const editButton = screen
         .getAllByRole('button')
         .find((b) => b.getAttribute('class').includes('nx-btn--icon-only'));
@@ -341,7 +349,10 @@ describe('InnerSourceRepositoryBaseConfigurations', function () {
         { repositoryConnectionId: 'someRepositoryConnectionId', baseUrl: 'someBaseUrl', format: 'someFormat' },
       ]);
       spySelectFormState.and.returnValue({ enabled: true });
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent();
+
       const addButton = screen.getByText('Add a Repository').closest('button');
       expect(addButton).toBeVisible();
       expect(addButton).toHaveClassName('disabled');
@@ -355,7 +366,10 @@ describe('InnerSourceRepositoryBaseConfigurations', function () {
         { repositoryConnectionId: 'someRepositoryConnectionId', baseUrl: 'someBaseUrl', format: 'someFormat' },
       ]);
       spySelectFormState.and.returnValue({ enabled: true });
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent();
+
       const editButton = screen
         .getAllByRole('button')
         .find((b) => b.getAttribute('class').includes('nx-btn--icon-only'));
@@ -369,6 +383,8 @@ describe('InnerSourceRepositoryBaseConfigurations', function () {
 
   describe('saving', function () {
     it('disables the update button if no changes have been made', async () => {
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent();
       const updateButton = screen.getByText('Update');
       expect(updateButton).toBeVisible();

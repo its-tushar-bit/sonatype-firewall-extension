@@ -80,7 +80,9 @@ describe('ReportTitle', () => {
     expect(screen.getByRole('button', { name: 'Options' })).toBeVisible();
   });
 
-  it('options dropdown render 5 links', () => {
+  it('options dropdown render 5 links', async () => {
+    SpecUtil.requestIdleCallbackInvokeImmediate();
+
     renderComponent();
     const options = screen.getByRole('button', { name: 'Options' });
     expect(options).toBeInTheDocument();
@@ -91,7 +93,7 @@ describe('ReportTitle', () => {
     expect(screen.getByRole('link', { name: 'View SBOM' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'View raw data' })).toBeVisible();
 
-    const viewVulnerabilitiesLink = screen.getByRole('link', {
+    const viewVulnerabilitiesLink = await screen.findByRole('link', {
       name: 'Reevaluate the report in order to enable Vulnerabilities view',
     });
     expect(viewVulnerabilitiesLink).toBeVisible();
@@ -101,13 +103,15 @@ describe('ReportTitle', () => {
   });
 
   it('renders a disabled view vulnerabilities link if report version is less than 5', async () => {
+    SpecUtil.requestIdleCallbackInvokeImmediate();
+
     renderComponent();
     const options = screen.getByRole('button', { name: 'Options' });
     expect(options).toBeVisible();
 
     fireEvent.click(options);
 
-    const vulnerabilities = screen.getByRole('link', {
+    const vulnerabilities = await screen.findByRole('link', {
       name: 'Reevaluate the report in order to enable Vulnerabilities view',
     });
     expect(vulnerabilities).toHaveClassName('disabled');
@@ -133,17 +137,19 @@ describe('ReportTitle', () => {
     expect(vulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
   });
 
-  it('renders a disabled view vulnerabilities link if report version is lower than 5', () => {
+  it('renders a disabled view vulnerabilities link if report version is lower than 5 ', async () => {
     selectSelectedReportSpy.and.returnValue({
       reportVersion: 4,
     });
+    SpecUtil.requestIdleCallbackInvokeImmediate();
+
     renderComponent();
     const options = screen.getByText('Options');
     expect(options).toBeVisible();
 
     fireEvent.click(options);
 
-    const vulnerabilitiesLink = screen.getByRole('link', {
+    const vulnerabilitiesLink = await screen.findByRole('link', {
       name: 'Reevaluate the report in order to enable Vulnerabilities view',
     });
     expect(vulnerabilitiesLink).toHaveClassName('disabled');

@@ -169,7 +169,13 @@ describe('SidebarNavViolationList', function () {
         },
       ];
 
-      spyOn(window, 'setTimeout').and.callThrough();
+      // setTimeout will be called for NxThreatIndicator's NxTooltip in updateBatcher.ts
+      // grab all flags and check that the setTimeout invoked in the useEffect isn't called.
+      const flags = [];
+      spyOn(window, 'setTimeout').and.callFake((...params) => {
+        const [, , flag] = params;
+        flags.push(flag);
+      });
 
       const props = {
         ...minimalProps,
@@ -177,7 +183,8 @@ describe('SidebarNavViolationList', function () {
         scrollToSelection: false,
       };
       mount(<SidebarNavViolationList {...props} />, { attachTo: container });
-      expect(window.setTimeout).not.toHaveBeenCalled();
+
+      expect(flags).not.toContain('sidebar-nav');
     });
   });
 });

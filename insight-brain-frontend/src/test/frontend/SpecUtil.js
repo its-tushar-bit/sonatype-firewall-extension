@@ -309,6 +309,14 @@ window.SpecUtil = {
       }
     };
   },
+  // Removes the delay rendering of NxTooltip.
+  // see react-shared-components/components/NxTooltip/updateBatcher.js for details on requestIdleCallback usage
+  requestIdleCallbackInvokeImmediate: () =>
+    spyOn(window, 'requestIdleCallback').and.callFake((cb) => {
+      setTimeout(() => {
+        cb();
+      }, 0);
+    }),
 };
 
 // custom equality tester for Sets

@@ -289,6 +289,8 @@ describe('ReportTableRow component', function () {
         isOnlyInnerSourceTransitiveDependency: true,
       },
     };
+    SpecUtil.requestIdleCallbackInvokeImmediate();
+
     renderComponent(props);
     const indicator = screen.getByText('IS');
 

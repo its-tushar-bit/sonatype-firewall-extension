@@ -31,7 +31,7 @@ describe('ThreatDropdownSelector', () => {
 
     const button = screen.getByRole('button');
 
-    expect(button).toHaveTextContent('Critical 10 - Critical');
+    expect(button).toHaveTextContent('10 - Critical');
   });
 
   it('fires onSelectThreatLevel and hides dropdown', () => {

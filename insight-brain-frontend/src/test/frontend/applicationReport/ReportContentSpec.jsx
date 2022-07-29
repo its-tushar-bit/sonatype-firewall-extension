@@ -38,6 +38,8 @@ describe('ReportContent component', function () {
   });
 
   it('renders aggregate by component toggle tooltip', async function () {
+    SpecUtil.requestIdleCallbackInvokeImmediate();
+
     renderComponent();
     const aggregateByComponentToggle = screen.getByLabelText('Aggregate by component');
 
@@ -151,8 +153,10 @@ describe('ReportContent component', function () {
     applicationReportSelectors.selectDependencyTreeIsAvailable.and.returnValue(false);
     const tooltipText = 'some random tooltip text';
     applicationReportSelectors.selectDependencyTreeUnavailableMessage.and.returnValue(tooltipText);
+    SpecUtil.requestIdleCallbackInvokeImmediate();
+
     renderComponent();
-    const button = screen.getByRole('button', { name: tooltipText });
+    const button = await screen.findByRole('button', { name: tooltipText });
 
     expect(button).toHaveTextContent(/view dependency tree/i);
     expect(button).toBeVisible();

@@ -486,35 +486,40 @@ describe('ReportsPage', () => {
 
     describe('Renders a sort direction based on the given appliedSort prop', () => {
       const APP_SORT_FIELDS = ['name', '-name'];
-      const ORG_SORT_FIELDS = ['organizationName', '-organizationName'];
-
       APP_SORT_FIELDS.forEach((field, index) => {
         const calledField = index === 0 ? APP_SORT_FIELDS[1] : APP_SORT_FIELDS[0];
         const sortDir = field === APP_SORT_FIELDS[0] ? 'Application ascending' : 'Application descending';
-        it(`should sort with ${calledField} field`, () => {
+        it(`should sort with ${calledField} field`, async () => {
           selectAppliedSortReportsSpy.and.returnValue(field);
+          SpecUtil.requestIdleCallbackInvokeImmediate();
           renderComponent();
 
-          const sortAppButton = screen.queryByText('Application');
-          const sortOrgButton = screen.queryByText('Organization');
+          const sortAppButton = await screen.findByTitle(sortDir);
+          expect(sortAppButton).toBeVisible();
+          expect(screen.getByText('Application')).toBeVisible();
 
-          expect(sortAppButton.parentElement.title).toBe(sortDir);
-          expect(sortOrgButton.parentElement.title).toBe('Organization unsorted');
+          const sortOrgButton = await screen.findByTitle('Organization unsorted');
+          expect(sortOrgButton).toBeVisible();
+          expect(screen.getByText('Organization')).toBeVisible();
         });
       });
 
+      const ORG_SORT_FIELDS = ['organizationName', '-organizationName'];
       ORG_SORT_FIELDS.forEach((field, index) => {
         const calledField = index === 0 ? ORG_SORT_FIELDS[1] : ORG_SORT_FIELDS[0];
         const sortDir = field === ORG_SORT_FIELDS[0] ? 'Organization ascending' : 'Organization descending';
-        it(`should sort with ${calledField} field`, () => {
+        it(`should sort with ${calledField} field`, async () => {
           selectAppliedSortReportsSpy.and.returnValue(field);
+          SpecUtil.requestIdleCallbackInvokeImmediate();
           renderComponent();
 
-          const sortOrgButton = screen.queryByText('Organization');
-          const sortAppButton = screen.queryByText('Application');
+          const sortAppButton = await screen.findByTitle(sortDir);
+          expect(sortAppButton).toBeVisible();
+          expect(screen.getByText('Application')).toBeVisible();
 
-          expect(sortOrgButton.parentElement.title).toBe(sortDir);
-          expect(sortAppButton.parentElement.title).toBe('Application unsorted');
+          const sortOrgButton = await screen.findByTitle('Application unsorted');
+          expect(sortOrgButton).toBeVisible();
+          expect(screen.getByText('Organization')).toBeVisible();
         });
       });
     });

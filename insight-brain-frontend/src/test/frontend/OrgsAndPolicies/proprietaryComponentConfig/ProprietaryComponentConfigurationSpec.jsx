@@ -217,7 +217,9 @@ describe('ProprietaryComponentConfiguration', () => {
     expect(saveProprietaryConfigSpy).toHaveBeenCalled();
   });
 
-  it('can trigger save proprietary on delete matcher', () => {
+  it('can trigger save proprietary on delete matcher', async () => {
+    SpecUtil.requestIdleCallbackInvokeImmediate();
+
     renderComponent();
 
     const updateButton = screen.getByText('Update');
@@ -226,7 +228,7 @@ describe('ProprietaryComponentConfiguration', () => {
     const initialRegex = screen.queryAllByText('initialRegex');
     expect(initialRegex.length).toBe(1);
 
-    const deleteButton = screen.getAllByTitle('Delete')[1];
+    const deleteButton = (await screen.findAllByTitle('Delete'))[1];
     expect(deleteButton).toBeVisible();
 
     fireEvent.click(deleteButton);

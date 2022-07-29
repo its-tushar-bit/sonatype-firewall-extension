@@ -185,6 +185,8 @@ describe('ArtifactoryRepositoryBaseConfigurations', function () {
 
     it('disables the update button if there is a validation error', async () => {
       spySelectValidationErrors.and.returnValue('someValidationError');
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent();
       const updateButton = screen.getByText('Update');
       expect(updateButton).toBeVisible();
@@ -291,7 +293,10 @@ describe('ArtifactoryRepositoryBaseConfigurations', function () {
       });
       spySelectAllowChange.and.returnValue(true);
       spySelectFormState.and.returnValue({ enabled: true });
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent();
+
       const addButton = screen.getByText('Add a Repository').closest('button');
       expect(addButton).toBeVisible();
       expect(addButton).toHaveClassName('disabled');
@@ -304,7 +309,10 @@ describe('ArtifactoryRepositoryBaseConfigurations', function () {
       spySelectArtifactoryConnection.and.returnValue({});
       spySelectAllowChange.and.returnValue(true);
       spySelectFormState.and.returnValue({ enabled: true });
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent();
+
       const addButton = screen.getByText('Add a Repository').closest('button');
       expect(addButton).toBeVisible();
       expect(addButton).toHaveClassName('disabled');
@@ -333,7 +341,9 @@ describe('ArtifactoryRepositoryBaseConfigurations', function () {
       spySelectArtifactoryConnection.and.returnValue({});
       spySelectAllowChange.and.returnValue(true);
       spySelectFormState.and.returnValue({ enabled: true });
+      SpecUtil.requestIdleCallbackInvokeImmediate();
       renderComponent();
+
       const editButton = screen
         .getAllByRole('button')
         .find((b) => b.getAttribute('class').includes('nx-btn--icon-only'));
@@ -347,7 +357,10 @@ describe('ArtifactoryRepositoryBaseConfigurations', function () {
     it('disables adding artifactory connection if changes are not allowed', async () => {
       spySelectArtifactoryConnection.and.returnValue({});
       spySelectFormState.and.returnValue({ enabled: true });
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent();
+
       const addButton = screen.getByText('Add a Repository').closest('button');
       expect(addButton).toBeVisible();
       expect(addButton).toHaveClassName('disabled');
@@ -359,7 +372,10 @@ describe('ArtifactoryRepositoryBaseConfigurations', function () {
     it('disables editing artifactory connection if changes are not allowed', async () => {
       spySelectArtifactoryConnection.and.returnValue({});
       spySelectFormState.and.returnValue({ enabled: true });
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent();
+
       const editButton = screen
         .getAllByRole('button')
         .find((b) => b.getAttribute('class').includes('nx-btn--icon-only'));
@@ -373,11 +389,12 @@ describe('ArtifactoryRepositoryBaseConfigurations', function () {
 
   describe('saving', function () {
     it('disables the update button if no changes have been made', async () => {
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+
       renderComponent();
       const updateButton = screen.getByText('Update');
       expect(updateButton).toBeVisible();
       expect(updateButton).toHaveClassName('disabled');
-
       fireEvent.mouseOver(updateButton);
       const tooltip = await screen.findByRole('tooltip');
       expect(within(tooltip).getByText('No changes have been made.')).toBeInTheDocument();

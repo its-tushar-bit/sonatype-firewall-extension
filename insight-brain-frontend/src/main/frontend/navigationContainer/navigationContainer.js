@@ -12,6 +12,7 @@ import {
   selectIsFirewallSupportedForNavigationContainer,
   selectIsDashboardSupported,
   selectIsReportListSupported,
+  selectIsApiPageSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 /* global clmServerVersion */
@@ -28,6 +29,7 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   vm.isLicensed = isLicensed;
   vm.isFirewallSupported = false;
   vm.isAdvancedLegalPackSupported = false;
+  vm.isApiPageEnabled = false;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
 
@@ -83,6 +85,7 @@ function mapStateToThis(state) {
     isAdvancedLegalPackSupported: selectIsAdvancedLegalPackSupported(state),
     isDashboardSupported: selectIsDashboardSupported(state),
     isReportListSupported: selectIsReportListSupported(state),
+    isApiPageEnabled: selectIsApiPageSupported(state),
   };
 }
 

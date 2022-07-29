@@ -968,6 +968,8 @@ export function getPermissionsTestUrl(ownerType, ownerId) {
 export const getGrandfatheringUrl = (ownerType, ownerId) =>
   uriTemplate`/rest/policyViolationGrandfathering/${ownerType}/${ownerId}`;
 
+export const getEndpointsUrl = (apiType) => uriTemplate`/api/v2/endpoints/${apiType}`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

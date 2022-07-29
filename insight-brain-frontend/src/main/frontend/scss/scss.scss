@@ -130,6 +130,7 @@
 @use '../OrgsAndPolicies/ownerSummary/labelsTile/labelsTile';
 @use '../OrgsAndPolicies/сontinuousMonitoringEditor/continuousMonitoringEditor';
 @use '../firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';
+@use '../api/apiPage';
 
 // CIP
 @use '../version-graph/icons' as version-graph-icons;

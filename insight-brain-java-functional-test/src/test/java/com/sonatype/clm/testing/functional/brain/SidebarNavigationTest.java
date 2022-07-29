@@ -7,8 +7,16 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
-import com.sonatype.clm.testing.functional.pages.*;
+import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
+import com.sonatype.clm.testing.functional.pages.ApiPage;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.FirewallPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
+import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
@@ -21,6 +29,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -208,5 +217,35 @@ public class SidebarNavigationTest
   public void testLegalNavigation_toLegalDashboard() throws Exception {
     SidebarNavigation.legalNavigationButton().shouldBe(visible).click();
     waitUntilUrl(BaseUrl.resolvePageUrl("/legal/dashboard"));
+  }
+
+  @Test
+  public void testApiNavigationButton_HiddenByDefault() {
+    SidebarNavigation.apiNavigationButton().shouldNot(exist);
+  }
+
+  @Test
+  public void testApiNavigationButton_FeatureAvailableAdmin() {
+    SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
+    refresh();
+    SidebarNavigation.apiNavigationButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testApiNavigationButton_FeatureAvailableNonAdmin() {
+    SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
+    User user = tempEntity.newUser();
+    refreshOrOpen(DashboardPage.url());
+    logout();
+    login(user.getUsername(), user.getPassword());
+    SidebarNavigation.apiNavigationButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testNavigation_ToApi() {
+    SystemConfigurationPropertyFeature.API_PAGE.setEnabled(true);
+    refresh();
+    SidebarNavigation.apiNavigationButton().click();
+    waitUntilUrl(ApiPage.url());
   }
 }

@@ -599,7 +599,10 @@
       <artifactId>atlassian-crowd-rest-client</artifactId>
       <version>1.4</version>
     </dependency>
-
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-jaxrs2</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

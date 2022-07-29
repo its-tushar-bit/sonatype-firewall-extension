@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { faArrowToLeft, faBars } from '@fortawesome/pro-regular-svg-icons';
+import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
 import {
   faChartArea,
   faFileChartLine,
@@ -137,6 +137,19 @@ describe('IqSidebarNav', function () {
       expect(getShallowComponent().find(NxGlobalSidebarNavigation)).not.toExist();
       expect(getShallowComponent({ isLoggedIn: false }).find(NxGlobalSidebarNavigation)).not.toExist();
       expect(getShallowComponent({ isLoggedIn: true }).find(NxGlobalSidebarNavigation)).toExist();
+    });
+
+    it('renders an NxGlobalSidebarNavigationLink for the api page if allowed', function () {
+      expect(getShallowComponent({}).find('#api-navigation-button')).not.toExist();
+      expect(getShallowComponent({ isLoggedIn: true }).find('#api-navigation-button')).not.toExist();
+      expect(getShallowComponent({ isApiPageEnabled: true }).find('#api-navigation-button')).not.toExist();
+      const component = getShallowComponent({ isLoggedIn: true, isApiPageEnabled: true });
+      const navLink = component.find('#api-navigation-button');
+      expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
+      expect(navLink).toHaveProp('icon', faStars);
+      expect(navLink).toHaveProp('text', 'API');
+      expect(navLink).toHaveProp('href', 'href-api');
+      expect(navLink).toHaveProp('isSelected', false);
     });
 
     it('renders an NxGlobalSidebarNavigationLink for the dashboard if allowed', function () {
@@ -282,7 +295,13 @@ describe('IqSidebarNav', function () {
           isAdvancedSearchEnabled: true,
           isFirewallEnabled: true,
           isLegalEnabled: true,
+          isApiPageEnabled: true,
         });
+      });
+
+      it('renders API link as selected when state matches', function () {
+        includesSpy.and.callFake((state) => state === 'api');
+        expect(renderAllLinks().find('#api-navigation-button')).toHaveProp('isSelected', true);
       });
 
       it('renders Dashboard link as selected when state matches', function () {

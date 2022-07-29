@@ -54,6 +54,7 @@ export default angular
         'isAdvancedSearchEnabled',
         'isFirewallEnabled',
         'isLegalEnabled',
+        'isApiPageEnabled',
       ],
       ['$state']
     )

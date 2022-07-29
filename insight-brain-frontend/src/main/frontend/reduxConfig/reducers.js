@@ -80,6 +80,7 @@ import reportsSlice from 'MainRoot/report/react/reportsSlice';
 import productFeaturesSlice from 'MainRoot/productFeatures/productFeaturesSlice';
 import originalSourcesFormReducer from 'MainRoot/legal/originalSources/originalSourcesFormReducer';
 import atlassianCrowdConfigurationSlice from '../configuration/crowd/atlassianCrowdConfigurationSlice';
+import apiPageSlice from 'MainRoot/api/apiPageSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -158,4 +159,5 @@ export default combineReducers({
   reports: reportsSlice,
   productFeatures: productFeaturesSlice,
   atlassianCrowdConfiguration: atlassianCrowdConfigurationSlice,
+  apiPage: apiPageSlice,
 });

@@ -61,6 +61,7 @@
     <httpcomponents.version>4.5.13</httpcomponents.version>
     <nexus-scm-client.version>1.48.4-01</nexus-scm-client.version>
     <nexus-dependency-management.version>1.23.2-01</nexus-dependency-management.version>
+    <swagger.version>2.2.2</swagger.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
 
     <!--
@@ -1190,6 +1191,11 @@
         <groupId>net.sourceforge.htmlunit</groupId>
         <artifactId>neko-htmlunit</artifactId>
         <version>2.61.0</version>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger.core.v3</groupId>
+        <artifactId>swagger-jaxrs2</artifactId>
+        <version>${swagger.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

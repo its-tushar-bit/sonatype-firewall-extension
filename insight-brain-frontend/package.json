@@ -41,6 +41,7 @@
     "bootstrap-sass": "^2.3.2",
     "bootstrap-toggle": "^2.2.0",
     "bootstrap2-umd": "^2.3.2",
+    "buffer": "^6.0.3",
     "classnames": "^2.2.6",
     "classybrew": "^0.0.3",
     "components-font-awesome": "^4.3.0",
@@ -69,7 +70,8 @@
     "redux": "^3.7.2",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.2.0",
-    "sjcl": "^1.0.7"
+    "sjcl": "^1.0.7",
+    "swagger-ui-react": "^4.13.0"
   },
   "devDependencies": {
     "@babel/core": "^7.15.0",

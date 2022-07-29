@@ -106,6 +106,7 @@ public class ApiConfigFeaturesService
     PR_COMMENTING(SystemConfigurationProperty.PR_COMMENTING, true),
     PR_LINE_COMMENTING(SystemConfigurationProperty.PR_LINE_COMMENTING, true),
     ENABLE_UNAUTHENTICATED_PAGES(SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES, true),
+    API_PAGE(SystemConfigurationProperty.API_PAGE, false),
 
     /**
      * @deprecated Use {@link SourceControl#getSourceControlEvaluationsEnabled() instead}

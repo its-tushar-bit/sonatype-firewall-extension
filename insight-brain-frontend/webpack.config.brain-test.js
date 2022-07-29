@@ -22,6 +22,9 @@ const config = {
       CLM_BUILD_TIMESTAMP: 0,
       CLM_SERVER_VERSION: '1',
     }),
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+    }),
   ],
   resolve: {
     extensions: ['.js', '.jsx'],

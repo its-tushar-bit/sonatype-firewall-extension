@@ -129,6 +129,8 @@ public class SystemConfigurationProperty
 
   public static final String SCHEMA_MIGRATION_ENABLED = DatabaseMigrator.SCHEMA_MIGRATION_ENABLED;
 
+  public static final String API_PAGE = "API_PAGE";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

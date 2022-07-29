@@ -131,4 +131,6 @@ public class PublicApiPaths
 
   public static final String REPOSITORY_IDENTIFIED_COMPONENT_PATH_V2 =
       API_VERSION_PATH_V2 + "repositoryIdentifiedComponent";
+
+  public static final String ENDPOINTS_RESOURCE_PATH = API_VERSION_PATH_V2 + "endpoints/{apiType: public|experimental}";
 }

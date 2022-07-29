@@ -892,4 +892,12 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getPolicyEvaluationTimestampUrl('repositoryId', 'componentIdentifier')).toEqual(expectedUrl);
     });
   });
+
+  describe('getEndpointsUrl', () => {
+    it('returns url for endpoints with the given api type parameter', () => {
+      const expectedUrl = '/api/v2/endpoints/api-type';
+
+      expect(clmLocation.getEndpointsUrl('api-type')).toEqual(expectedUrl);
+    });
+  });
 });

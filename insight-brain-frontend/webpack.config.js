@@ -81,6 +81,9 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = fa
         })),
       }),
       new webpack.DefinePlugin(buildConstants),
+      new webpack.ProvidePlugin({
+        Buffer: ['buffer', 'Buffer'],
+      }),
       new StyleLintPlugin({ syntax: 'scss' }),
       new EslintPlugin({
         emitWarning: !production,

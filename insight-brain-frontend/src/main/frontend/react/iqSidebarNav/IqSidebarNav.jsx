@@ -11,7 +11,7 @@ import {
   NxGlobalSidebarNavigationLink,
   useToggle,
 } from '@sonatype/react-shared-components';
-import { faArrowToLeft, faBars } from '@fortawesome/pro-regular-svg-icons';
+import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
 import {
   faChartArea,
   faFileChartLine,
@@ -44,10 +44,12 @@ function IqSidebarNav(props) {
     isAdvancedSearchEnabled,
     isFirewallEnabled,
     isLegalEnabled,
+    isApiPageEnabled,
   } = props;
 
   const logo = getProductLogo(productEdition);
 
+  const apiHref = uiRouterState.href('api');
   const dashboardHref = uiRouterState.href('dashboard.overview.violations');
   const orgsPoliciesHref = uiRouterState.href('management.view');
   const reportsHref = uiRouterState.href('violations');
@@ -90,7 +92,6 @@ function IqSidebarNav(props) {
               href={dashboardHref}
             />
           )}
-
           {isLicensed && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('management')}
@@ -154,6 +155,15 @@ function IqSidebarNav(props) {
               href={legalHref}
             />
           )}
+          {isApiPageEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected('api')}
+              id="api-navigation-button"
+              icon={faStars}
+              text="API"
+              href={apiHref}
+            />
+          )}
         </NxGlobalSidebarNavigation>
       )}
       {productEdition && releaseVersion && (
@@ -175,5 +185,6 @@ IqSidebarNav.propTypes = {
   isAdvancedSearchEnabled: PropTypes.bool,
   isFirewallEnabled: PropTypes.bool,
   isLegalEnabled: PropTypes.bool,
+  isApiPageEnabled: PropTypes.bool,
 };
 export default IqSidebarNav;

@@ -30,6 +30,7 @@ import quarantinedComponentReportModule from './quarantinedComponentReport/modul
 import SystemNoticeContainer from './systemNotice/SystemNoticeContainer';
 import innerSourceRepositoryConfigurationModule from './innerSourceRepositoryConfiguration/module';
 import artifactoryRepositoryConfigurationModule from './artifactoryRepositoryConfiguration/module';
+import apiModule from './api/module';
 
 export default angular
   .module('managementApp', [
@@ -57,6 +58,7 @@ export default angular
     innerSourceRepositoryConfigurationModule.name,
     artifactoryRepositoryConfigurationModule.name,
     atlassianCrowdConfigurationModule.name,
+    apiModule.name,
   ])
   .component('advancedSearch', iqReact2Angular(AdvancedSearchContainer, [], ['$ngRedux', '$state']))
   .component('systemNotice', iqReact2Angular(SystemNoticeContainer, [], ['$ngRedux']))

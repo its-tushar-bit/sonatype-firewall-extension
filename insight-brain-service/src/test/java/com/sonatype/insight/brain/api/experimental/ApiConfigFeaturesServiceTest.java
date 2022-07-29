@@ -585,4 +585,43 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(() -> service.disableFeature(INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS))
         .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
   }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_ApiPage() {
+    assertThat(service.getSystemConfigurationPropertyFeature("api-page")).isEqualTo(
+        SystemConfigurationPropertyFeature.API_PAGE);
+    assertThat(service.getSystemConfigurationPropertyFeature("API-PAGE")).isEqualTo(
+        SystemConfigurationPropertyFeature.API_PAGE);
+    assertThat(service.getSystemConfigurationPropertyFeature("Api-Page")).isEqualTo(
+        SystemConfigurationPropertyFeature.API_PAGE);
+    assertThatThrownBy(() -> service.getSystemConfigurationPropertyFeature("apiPage")).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature not supported: apiPage");
+  }
+
+  @Test
+  public void testEnableFeature_ApiPage() {
+    service.enableFeature(SystemConfigurationProperty.API_PAGE);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.API_PAGE).getValue()).isEqualTo(
+        "true");
+  }
+
+  @Test
+  public void testEnableFeature_ApiPage_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.API_PAGE);
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.API_PAGE)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_ApiPage() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationPropertyFeature.API_PAGE.getPropertyName(), "true");
+    service.disableFeature(SystemConfigurationProperty.API_PAGE);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.API_PAGE)).isNull();
+  }
+
+  @Test
+  public void testDisableFeature_ApiPage_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.API_PAGE)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
 }

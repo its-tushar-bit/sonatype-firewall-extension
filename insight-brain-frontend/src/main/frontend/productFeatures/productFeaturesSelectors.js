@@ -57,3 +57,4 @@ export const selectIsAllowExternalHyperlinksSupported = createSelector(
   selectProductFeatures,
   prop('allow-external-hyperlinks')
 );
+export const selectIsApiPageSupported = createSelector(selectProductFeatures, prop('api-page'));

@@ -80,4 +80,8 @@ public class SidebarNavigation
   public static MainHeaderNavigationButton legalNavigationButton() {
     return new MainHeaderNavigationButton("#advanced-legal-navigation-button");
   }
+
+  public static MainHeaderNavigationButton apiNavigationButton() {
+    return new MainHeaderNavigationButton("#api-navigation-button");
+  }
 }

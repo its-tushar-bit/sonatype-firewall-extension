@@ -66,6 +66,9 @@ public class ClusterLock
   static final String PDF_GENERATION_LOCK_PREFIX = "pdf-generation-";
 
   // Visible for testing
+  static final String INACTIVE_REPOSITORY_VIOLATION_CLEANER = "inactive-repository-violation-cleaner";
+
+  // Visible for testing
   final String lockId;
 
   // Visible for testing
@@ -240,6 +243,20 @@ public class ClusterLock
 
   public static String getLockIdForPdfGeneration(Application application, String scanId) {
     return PDF_GENERATION_LOCK_PREFIX + application.getId() + "-" + scanId;
+  }
+
+  public static ClusterLock createForInactiveRepositoryViolationCleaner() {
+    return new ClusterLock(getLockIdForInactiveRepositoryViolationCleaner());
+  }
+
+  // Visible for testing
+  public static void deleteForInactiveRepositoryViolationCleaner() {
+    deleteFor(getLockIdForInactiveRepositoryViolationCleaner());
+  }
+
+  // Visible for testing
+  public static String getLockIdForInactiveRepositoryViolationCleaner() {
+    return INACTIVE_REPOSITORY_VIOLATION_CLEANER;
   }
 
   private static void deleteFor(String lockId) {

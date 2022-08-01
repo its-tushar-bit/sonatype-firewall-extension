@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
@@ -18,11 +20,15 @@ import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.repository.InactiveRepositoryViolationCleaner.InactiveRepositoryViolationCleanerWorker;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
+import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 
 public class InactiveRepositoryViolationCleanerTest
     extends AbstractComponentTest
@@ -64,6 +70,25 @@ public class InactiveRepositoryViolationCleanerTest
 
     assertThat(inactiveRepositoryViolationCleaner.workerThread).isNull();
     assertThat(repositoryPolicyViolationDAO.getById(inactiveViolation.getId())).isNotNull();
+  }
+
+  @Test
+  public void testRun_DisallowConcurrentExecution() throws Exception {
+    InactiveRepositoryViolationCleanerWorker spyInactiveRepositoryViolationCleanerWorker =
+        spy(inactiveRepositoryViolationCleaner.new InactiveRepositoryViolationCleanerWorker());
+    Callable<Void> callable = () -> {
+      spyInactiveRepositoryViolationCleanerWorker.run();
+      return null;
+    };
+    Consumer<Answer<Void>> answerConsumer = answer -> {
+      try {
+        doAnswer(answer).when(spyInactiveRepositoryViolationCleanerWorker).doDeleteInactiveRepositoryPolicyViolations();
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e.getMessage(), e);
+      }
+    };
+    testCallable_DisallowConcurrentExecution(callable, answerConsumer);
   }
 
   private RepositoryPolicyViolation newInactiveViolation(Repository repository) throws SQLException {

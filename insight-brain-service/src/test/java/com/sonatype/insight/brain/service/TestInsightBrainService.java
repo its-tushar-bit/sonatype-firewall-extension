@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
+import com.sonatype.insight.brain.git.PullRequestCommentPurger;
 import com.sonatype.insight.brain.git.PullRequestMonitor;
 import com.sonatype.insight.brain.git.PullRequestPollingScheduler;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventOrchestrator;
@@ -330,6 +331,7 @@ public class TestInsightBrainService
     getInstance(PullRequestMonitor.class).disableForTesting = true;
     getInstance(DefaultBranchMonitor.class).disableForTesting = true;
     getInstance(SourceControlEventOrchestrator.class).disableForTesting = true;
+    getInstance(PullRequestCommentPurger.class).disableForTesting = true;
   }
 
   @Override

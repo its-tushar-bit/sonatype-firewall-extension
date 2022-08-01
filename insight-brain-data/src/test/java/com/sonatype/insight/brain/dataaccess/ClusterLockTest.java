@@ -691,4 +691,29 @@ public class ClusterLockTest
 
     assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForPdfGeneration(application, scanId))).isFalse();
   }
+
+  @Test
+  public void testGetLockIdForInactiveRepositoryViolationCleaner() {
+    assertThat(ClusterLock.getLockIdForInactiveRepositoryViolationCleaner())
+        .isEqualTo(ClusterLock.INACTIVE_REPOSITORY_VIOLATION_CLEANER);
+  }
+
+  @Test
+  public void testCreateForInactiveRepositoryViolationCleaner() {
+    try (ClusterLock clusterLock = ClusterLock.createForInactiveRepositoryViolationCleaner()) {
+      clusterLock.lock();
+
+      assertThat(clusterLock.lockId).isEqualTo(ClusterLock.getLockIdForInactiveRepositoryViolationCleaner());
+    }
+  }
+
+  @Test
+  public void testDeleteForInactiveRepositoryViolationCleaner() {
+    ClusterLock.createForInactiveRepositoryViolationCleaner();
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForInactiveRepositoryViolationCleaner())).isTrue();
+
+    ClusterLock.deleteForInactiveRepositoryViolationCleaner();
+
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForInactiveRepositoryViolationCleaner())).isFalse();
+  }
 }

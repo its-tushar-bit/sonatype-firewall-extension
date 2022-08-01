@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
@@ -13,7 +14,6 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -21,11 +21,22 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
+import com.google.inject.Binder;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.quartz.JobBuilder;
+import org.quartz.JobExecutionContext;
+import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class PullRequestCommentPurgerTest
     extends AbstractComponentTest
@@ -37,15 +48,32 @@ public class PullRequestCommentPurgerTest
   private SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO;
 
   @Inject
-  private SourceControlEventDAO sourceControlEventDAO;
+  private SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
   @Inject
-  private SourceControlConfigurationDAO sourceControlConfigurationDAO;
+  private PullRequestCommentPurger pullRequestCommentPurger;
+
+  @Mock
+  private TaskScheduler mockTaskScheduler;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
+    super.configure(binder);
+  }
+
+  @Test
+  public void testStart() {
+    pullRequestCommentPurger.start();
+
+    verify(mockTaskScheduler).scheduleDailyTask(PullRequestCommentPurger.class, PullRequestCommentPurger.TASK_NAME,
+        LocalTime.of(2, 0));
+  }
 
   @Test
   public void testPurgeObsoleteRecords_purgePullRequestComments() {
     // given:
-    PullRequestCommentPurger pullRequestCommentPurger = getTestablePullRequestCommentPurger(null, null);
+    setSourceControlConfiguration(null, null);
 
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation sourcePolicyEvaluation = tempEntity.newPolicyEvaluation(
@@ -83,7 +111,7 @@ public class PullRequestCommentPurgerTest
   @Test
   public void testPurgeObsoleteRecords_purgeDefaultBranchCommitHistory() {
     // given:
-    PullRequestCommentPurger pullRequestCommentPurger = getTestablePullRequestCommentPurger(null, null);
+    setSourceControlConfiguration(null, null);
 
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(
@@ -125,7 +153,7 @@ public class PullRequestCommentPurgerTest
   @Test
   public void testPurgeObsoleteRecords_purgeWindowOverride() {
     // given:
-    PullRequestCommentPurger pullRequestCommentPurger = getTestablePullRequestCommentPurger(30, 5);
+    setSourceControlConfiguration(30, 5);
 
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(
@@ -164,7 +192,28 @@ public class PullRequestCommentPurgerTest
     assertThat(defaultBranchCommitHistory).hasSize(1);
   }
 
-  private PullRequestCommentPurger getTestablePullRequestCommentPurger(
+  @Test
+  public void testDisallowConcurrentExecution() {
+    assertThat(
+        JobBuilder.newJob(PullRequestCommentPurger.class).build().isConcurrentExectionDisallowed()).isTrue();
+  }
+
+  @Test
+  public void testExecute() throws Exception {
+    PullRequestCommentPurger spyPullRequestCommentPurger = spy(pullRequestCommentPurger);
+    doAnswer(invocationOnMock -> {
+      assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
+      return null;
+    }).when(spyPullRequestCommentPurger).purgeObsoleteRecords();
+
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
+      spyPullRequestCommentPurger.execute(mock(JobExecutionContext.class));
+    }
+
+    verify(spyPullRequestCommentPurger).purgeObsoleteRecords();
+  }
+
+  private void setSourceControlConfiguration(
       final Integer purgeWindowInDays,
       final Integer shortPurgeWindowInDays)
   {
@@ -172,7 +221,5 @@ public class PullRequestCommentPurgerTest
     sourceControlConfiguration.setPrCommentPurgeWindow(purgeWindowInDays);
     sourceControlConfiguration.setPrEventPurgeWindow(shortPurgeWindowInDays);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
-    return new PullRequestCommentPurger(sourceControlPullRequestCommentDAO, sourceControlDefaultBranchCommitHistoryDAO,
-        sourceControlEventDAO, sourceControlConfigurationDAO);
   }
 }

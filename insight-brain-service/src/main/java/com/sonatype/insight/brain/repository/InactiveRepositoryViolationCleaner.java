@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.MigrationTracker;
@@ -69,7 +70,8 @@ public class InactiveRepositoryViolationCleaner
     // noop
   }
 
-  private class InactiveRepositoryViolationCleanerWorker
+  // Visible for testing
+  class InactiveRepositoryViolationCleanerWorker
       extends Thread
   {
     InactiveRepositoryViolationCleanerWorker() {
@@ -82,25 +84,14 @@ public class InactiveRepositoryViolationCleaner
     public void run() {
       log.info("Starting deletion of inactive repository policy violations.");
 
-      try {
-        long start = System.currentTimeMillis();
-        int inactiveViolationCount = 0;
-        while (true) {
-          // Get a batch of inactive policy violations and delete them.
-          List<String> inactivePolicyViolationIds = getInactivePolicyViolationIds();
-
-          if (inactivePolicyViolationIds.size() > 0) {
-            inactiveViolationCount += deleteInactivePolicyViolations(inactivePolicyViolationIds);
-            log.trace("Deleted {} inactive repository policy violations.", inactiveViolationCount);
-            // Allow other threads to access the database.
-            Thread.sleep(50);
-          }
-          else {
-            log.info("Finished deletion of {} inactive repository policy violations in {} ms.", inactiveViolationCount,
-                System.currentTimeMillis() - start);
-            migrationTrackerDAO.insert(new MigrationTracker(MIGRATION_ID));
-            return;
-          }
+      try (ClusterLock clusterLock = ClusterLock.createForInactiveRepositoryViolationCleaner()) {
+        if (clusterLock.tryLock()) {
+          log.info("Starting deletion of inactive repository policy violations.");
+          doDeleteInactiveRepositoryPolicyViolations();
+        }
+        else {
+          log.info("Skipping, deletion of inactive repository policy violations is already in progress.");
+          clusterLock.unlock();
         }
       }
       catch (Exception e) {
@@ -112,6 +103,29 @@ public class InactiveRepositoryViolationCleaner
         t.printStackTrace();
         log.error(t.getMessage(), t);
         System.exit(2);
+      }
+    }
+
+    // Visible for testing
+    void doDeleteInactiveRepositoryPolicyViolations() throws SQLException, InterruptedException {
+      long start = System.currentTimeMillis();
+      int inactiveViolationCount = 0;
+      while (true) {
+        // Get a batch of inactive policy violations and delete them.
+        List<String> inactivePolicyViolationIds = getInactivePolicyViolationIds();
+
+        if (inactivePolicyViolationIds.size() > 0) {
+          inactiveViolationCount += deleteInactivePolicyViolations(inactivePolicyViolationIds);
+          log.trace("Deleted {} inactive repository policy violations.", inactiveViolationCount);
+          // Allow other threads to access the database.
+          Thread.sleep(50);
+        }
+        else {
+          log.info("Finished deletion of {} inactive repository policy violations in {} ms.", inactiveViolationCount,
+              System.currentTimeMillis() - start);
+          migrationTrackerDAO.insert(new MigrationTracker(MIGRATION_ID));
+          return;
+        }
       }
     }
 

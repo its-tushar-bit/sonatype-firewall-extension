@@ -15,26 +15,36 @@ import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.InsightJob;
 
 import io.dropwizard.lifecycle.Managed;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // Motivation and related discussion: CLM-14021
+
 /**
- * Deletes all repository components (together with related policy violations, policy violation waivers
- * and labels) that should have been ignored either by Repository Manager/Insight Brain Server.
+ * Deletes all repository components (together with related policy violations, policy violation waivers and labels) that
+ * should have been ignored either by Repository Manager/Insight Brain Server.
  *
  * @since 1.80
  */
 @Named
 @Singleton
+@DisallowConcurrentExecution
 public class IgnoredRepositoryComponentCleaner
-    implements Managed
+    implements Managed, InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(IgnoredRepositoryComponentCleaner.class);
 
   static final String MIGRATION_ID = "ignored-repository-components";
+
+  // Visible for testing
+  static final String TASK_NAME = "IgnoredRepositoryComponentCleaner";
 
   private final RepositoryComponentDeleteService repositoryComponentDeleteService;
 
@@ -42,15 +52,19 @@ public class IgnoredRepositoryComponentCleaner
 
   private final MigrationTrackerDAO migrationTrackerDAO;
 
+  private final TaskScheduler taskScheduler;
+
   @Inject
   public IgnoredRepositoryComponentCleaner(
       RepositoryComponentDeleteService repositoryComponentDeleteService,
       RepositoryDAO repositoryDAO,
-      MigrationTrackerDAO migrationTrackerDAO)
+      MigrationTrackerDAO migrationTrackerDAO,
+      TaskScheduler taskScheduler)
   {
     this.repositoryComponentDeleteService = repositoryComponentDeleteService;
     this.repositoryDAO = repositoryDAO;
     this.migrationTrackerDAO = migrationTrackerDAO;
+    this.taskScheduler = taskScheduler;
   }
 
   @Override
@@ -59,23 +73,28 @@ public class IgnoredRepositoryComponentCleaner
       log.debug("Ignored repository components already deleted.");
       return;
     }
-
-    long start = System.currentTimeMillis();
-    log.debug("Deleting ignored repository components...");
-    try {
-      List<Repository> repositories = repositoryDAO.getAll();
-      repositories.forEach(repositoryComponentDeleteService::deleteUnknownIgnoredComponents);
-      migrationTrackerDAO.insert(new MigrationTracker(MIGRATION_ID));
-      log.info("Deleted ignored repository components for {} repositories in {} ms.", repositories.size(),
-          System.currentTimeMillis() - start);
-    }
-    catch (RuntimeException e) {
-      log.error("Failed to delete ignored repository components, will retry upon next server start", e);
-    }
+    taskScheduler.triggerTaskNow(TASK_NAME, null);
   }
 
   @Override
   public void stop() {
     // noop
+  }
+
+  @Override
+  public void execute(JobExecutionContext context) throws JobExecutionException {
+    execute(this::doDeleteIgnoredRepositoryComponents, log,
+        "Failed to delete ignored repository components, will retry upon next server start");
+  }
+
+  // Visible for testing
+  void doDeleteIgnoredRepositoryComponents() {
+    long start = System.currentTimeMillis();
+    log.debug("Deleting ignored repository components...");
+    List<Repository> repositories = repositoryDAO.getAll();
+    repositories.forEach(repositoryComponentDeleteService::deleteUnknownIgnoredComponents);
+    migrationTrackerDAO.insert(new MigrationTracker(MIGRATION_ID));
+    log.info("Deleted ignored repository components for {} repositories in {} ms.", repositories.size(),
+        System.currentTimeMillis() - start);
   }
 }

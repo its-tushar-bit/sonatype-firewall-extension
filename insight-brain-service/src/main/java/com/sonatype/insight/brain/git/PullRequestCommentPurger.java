@@ -10,10 +10,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -24,11 +20,14 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultB
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
-import com.sonatype.insight.brain.security.SystemRunnable;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.InsightJob;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.dropwizard.lifecycle.Managed;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +36,9 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @Singleton
+@DisallowConcurrentExecution
 public class PullRequestCommentPurger
-    implements Managed
+    implements Managed, InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestCommentPurger.class);
 
@@ -49,6 +49,9 @@ public class PullRequestCommentPurger
 
   private static final int DEFAULT_EVENT_PURGE_WINDOW_IN_DAYS = 14;
 
+  // Visible for testing
+  static final String TASK_NAME = "PullRequestCommentPurger";
+
   private final SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO;
 
   private final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO;
@@ -57,53 +60,48 @@ public class PullRequestCommentPurger
 
   private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
-  private ScheduledExecutorService executor;
+  private final TaskScheduler taskScheduler;
+
+  public boolean disableForTesting;
 
   @Inject
   public PullRequestCommentPurger(
       final SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO,
       final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO,
       final SourceControlEventDAO sourceControlEventDAO,
-      final SourceControlConfigurationDAO sourceControlConfigurationDAO)
+      final SourceControlConfigurationDAO sourceControlConfigurationDAO,
+      final TaskScheduler taskScheduler)
   {
     this.sourceControlPullRequestCommentDAO = sourceControlPullRequestCommentDAO;
     this.sourceControlDefaultBranchCommitHistoryDAO = sourceControlDefaultBranchCommitHistoryDAO;
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
-  }
-
-  private ScheduledExecutorService newExecutor() {
-    ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat(getClass().getSimpleName() + "-%d")
-        .setDaemon(true).setPriority(Thread.MIN_PRIORITY).build();
-    return new ScheduledThreadPoolExecutor(1, threadFactory);
+    this.taskScheduler = taskScheduler;
   }
 
   @Override
   public void start() {
-    executor = newExecutor();
-    Duration period = Duration.ofDays(1);
-    Duration initialDelay = Duration.between(LocalTime.now(), LocalTime.of(2, 0));
+    if (disableForTesting) {
+      return;
+    }
+    LocalTime startTime = LocalTime.of(2, 0);
+    taskScheduler.scheduleDailyTask(getClass(), TASK_NAME, startTime);
+    Duration initialDelay = Duration.between(LocalTime.now(), startTime);
     while (initialDelay.isNegative()) {
       initialDelay = initialDelay.plusDays(1);
     }
-    Runnable purgeTask = new SystemRunnable(() -> {
-      try {
-        purgeObsoleteRecords();
-      }
-      catch (RuntimeException e) {
-        log.warn("Failed to purge obsolete pull request comments", e);
-      }
-    });
-    executor.scheduleAtFixedRate(purgeTask, initialDelay.toMillis(), period.toMillis(), TimeUnit.MILLISECONDS);
     log.debug("Scheduled periodic purging of obsolete pull request comments for {}",
         LocalDateTime.now().plus(initialDelay));
   }
 
   @Override
+  public void execute(JobExecutionContext context) throws JobExecutionException {
+    execute(this::purgeObsoleteRecords, log, "Failed to purge obsolete pull request comments");
+  }
+
+  @Override
   public void stop() {
-    if (executor != null) {
-      executor.shutdown();
-      executor = null;
+    if (!disableForTesting && taskScheduler.unscheduleTask(TASK_NAME)) {
       log.debug("Stopped periodic purging of obsolete pull request comments");
     }
   }

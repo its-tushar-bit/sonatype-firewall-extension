@@ -52,7 +52,7 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
 import static com.sonatype.insight.brain.hds.TelemetryId.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME;
-import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.sanitizeUrl;
+import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.maskCredentialsFromUrl;
 
 /**
  * @since 1.35
@@ -287,7 +287,7 @@ class DbData
     sourceControls.forEach(sourceControl -> {
       maskValueIfPresent(sourceControl.getToken(), sourceControl::setToken);
       if (!StringUtils.isBlank(sourceControl.getRepositoryUrl())) {
-        sourceControl.setRepositoryUrl(sanitizeUrl(sourceControl.getRepositoryUrl()));
+        sourceControl.setRepositoryUrl(maskCredentialsFromUrl(sourceControl.getRepositoryUrl()));
       }
     });
     return wrapEntry("sourceControl", sourceControls);

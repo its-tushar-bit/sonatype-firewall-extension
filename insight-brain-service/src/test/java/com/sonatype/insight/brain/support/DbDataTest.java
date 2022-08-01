@@ -110,6 +110,20 @@ public class DbDataTest
   }
 
   @Test
+  public void testGetSourceControl_repositoryUrlDoesNotContainCredentials() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, null, BITBUCKET, true, true, "master", new Date());
+    tempEntity.newSourceControl(application.getId(), "https://example.com/scm/project/repo.git",
+        "admin", "admin", null, true, true, "base_branch", new Date());
+
+    @SuppressWarnings({"unchecked"})
+    List<SourceControl> sourceControls = (List<SourceControl>) dbData.getSourceControl().getValue();
+
+    assertThat(sourceControls).extracting(SourceControl::getRepositoryUrl).filteredOn(Objects::nonNull)
+        .containsOnly("https://example.com/scm/project/repo.git");  //.git is preserved as well
+  }
+
+  @Test
   public void testGetSourceControl_repositoryUrlContainsCredentials() {
     //given: a stored url with embedded credentials
     Application application = tempEntity.newApplicationWithParent();
@@ -123,7 +137,7 @@ public class DbDataTest
     
     //then: embedded credentials are stripped from the value included in support information
     assertThat(sourceControls).extracting(SourceControl::getRepositoryUrl).filteredOn(Objects::nonNull)
-        .containsOnly("https://example.com/scm/project/repo");
+        .containsOnly("https://****:****@example.com/scm/project/repo");
   }
 
   @Test
@@ -140,7 +154,7 @@ public class DbDataTest
 
     //then: embedded username is stripped from the value included in support information
     assertThat(sourceControls).extracting(SourceControl::getRepositoryUrl).filteredOn(Objects::nonNull)
-        .containsOnly("https://example.com/scm/project/repo");
+        .containsOnly("https://****:****@example.com/scm/project/repo");
   }
 
   @Test

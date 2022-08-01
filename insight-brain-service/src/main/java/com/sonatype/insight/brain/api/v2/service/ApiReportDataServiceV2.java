@@ -413,6 +413,8 @@ public class ApiReportDataServiceV2
       component.proprietary = comp.isProprietary();
       setPathnames(comp, component);
       component.displayName = comp.getDisplayName();
+      component.identificationSource =
+          comp.getIdentificationSource() == null ? null : comp.getIdentificationSource().getName();
       if (!MatchState.UNKNOWN.equals(comp.getMatchState())) {
         component.securityData = securityDataAdapter.convertToDTO(comp);
         component.licenseData = licenseDataAdapter.convertToDTOV2(comp);

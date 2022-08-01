@@ -302,10 +302,15 @@ public class ApiCycloneDxServiceV2
     bomComponent.setModified(MatchState.SIMILAR.getId().equals(reportComponent.matchState));
     if (version.compareTo(Version.VERSION_12) > 0 && reportComponent.hash != null) {
       // Properties are only supported for xml/json schema version 1.3+
-      Property property = new Property();
-      property.setName(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
-      property.setValue(reportComponent.hash);
-      bomComponent.addProperty(property);
+      Property sonatypeTruncatedSHA1 = new Property();
+      sonatypeTruncatedSHA1.setName(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
+      sonatypeTruncatedSHA1.setValue(reportComponent.hash);
+      bomComponent.addProperty(sonatypeTruncatedSHA1);
+
+      Property identificationSource = new Property();
+      identificationSource.setName(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME);
+      identificationSource.setValue(reportComponent.identificationSource);
+      bomComponent.addProperty(identificationSource);
     }
 
     return bomComponent;

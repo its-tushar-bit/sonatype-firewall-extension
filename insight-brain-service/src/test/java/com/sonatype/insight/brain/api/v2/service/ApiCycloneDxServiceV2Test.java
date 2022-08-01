@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -218,6 +219,7 @@ public class ApiCycloneDxServiceV2Test
             .build()).contains(component);
 
     assertThat(parser.validate(bytes, version)).isEmpty();
+    assertSonatypeIdentificationSource(bom, version);
   }
 
   private void assertMetadata(Bom bom, Application application, String scanId, Version version) {
@@ -234,6 +236,24 @@ public class ApiCycloneDxServiceV2Test
       assertThat(metadata).isNotNull();
       assertThat(metadata.getTimestamp()).isEqualToIgnoringMillis(policyEvaluation.getTime());
     }
+  }
+
+  private void assertSonatypeIdentificationSource(Bom bom, Version version) {
+    if (version.getVersion() > 1.2) {
+      bom.getComponents().forEach(component -> {
+        assertThat(component.getProperties().size()).isEqualTo(2);
+        Property property = new Property();
+        property.setName("Identification Source");
+        property.setValue("Sonatype");
+        assertThat(component.getProperties()).contains(property);
+      });
+    }
+    else {
+      bom.getComponents().forEach(component -> {
+        assertThat(component.getProperties()).isNull();
+      });
+    }
+
   }
 
   private String toUuid(final String scanId) {
@@ -275,6 +295,11 @@ public class ApiCycloneDxServiceV2Test
       property.setName(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
       property.setValue(hashStr);
       component.addProperty(property);
+
+      Property identificationSource = new Property();
+      identificationSource.setName(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME);
+      identificationSource.setValue(IdentificationSource.SONATYPE.getName());
+      component.addProperty(identificationSource);
     }
 
     LicenseChoice licenseChoice = new LicenseChoice();

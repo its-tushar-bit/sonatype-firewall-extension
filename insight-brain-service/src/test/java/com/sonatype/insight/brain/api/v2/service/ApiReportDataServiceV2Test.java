@@ -214,6 +214,7 @@ public class ApiReportDataServiceV2Test
     assertThat(component.pathnames).containsExactlyInAnyOrder(
         "com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.google.code.gson:gson:jar:2.8.1");
     assertThat(component.displayName).isEqualTo("com.google.code.gson : gson : 2.8.1");
+    assertThat(component.identificationSource).isEqualTo("Sonatype");
     assertThat(component.dependencyData.directDependency).isFalse();
     assertThat(component.dependencyData.innerSource).isFalse();
     assertThat(component.dependencyData.parentComponentPurls)
@@ -232,6 +233,7 @@ public class ApiReportDataServiceV2Test
     assertThat(component.displayName).isEqualTo("sample-application.zip");
     assertThat(component.licenseData).isNull();
     assertThat(component.securityData).isNull();
+    assertThat(component.identificationSource).isEqualTo("Sonatype");
     assertThat(component.dependencyData.directDependency).isFalse();
     assertThat(component.dependencyData.innerSource).isFalse();
     assertThat(component.dependencyData.innerSourceData).isNull();

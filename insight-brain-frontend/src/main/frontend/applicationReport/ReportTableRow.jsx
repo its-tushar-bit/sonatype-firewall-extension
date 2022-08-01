@@ -87,27 +87,25 @@ export default function ReportTableRow({ onClick, component }) {
         <span>{component.policyName}</span>
       </NxTableCell>
       <NxTableCell className="iq-app-report__component-name-cell">
-        <div className="nx-truncate-ellipsis">
-          {isAggregated && component.innerSource && (
-            <span className="iq-transitive-violations-count iq-text-indicator iq-pull-right">
-              {getTransitiveViolationsCount()}
-            </span>
-          )}
-          {component.waived && (
-            <span className="iq-text-indicator iq-text-indicator--waived iq-pull-right">
-              <span>Waived</span>
-              <NxFontAwesomeIcon icon={faCheck} />
-            </span>
-          )}
-          {component.grandfathered && (
-            <span className="iq-text-indicator iq-text-indicator--grandfathered iq-pull-right">
-              <span>Grandfathered</span>
-              <NxFontAwesomeIcon icon={faHistory} />
-            </span>
-          )}
-          <DependencyIndicators component={component} />
-          <ComponentDisplay component={component} />
-        </div>
+        {isAggregated && component.innerSource && (
+          <span className="iq-transitive-violations-count iq-text-indicator iq-pull-right">
+            {getTransitiveViolationsCount()}
+          </span>
+        )}
+        {component.waived && (
+          <span className="iq-text-indicator iq-text-indicator--waived iq-pull-right">
+            <span>Waived</span>
+            <NxFontAwesomeIcon icon={faCheck} />
+          </span>
+        )}
+        {component.grandfathered && (
+          <span className="iq-text-indicator iq-text-indicator--grandfathered iq-pull-right">
+            <span>Grandfathered</span>
+            <NxFontAwesomeIcon icon={faHistory} />
+          </span>
+        )}
+        <DependencyIndicators component={component} />
+        <ComponentDisplay component={component} />
       </NxTableCell>
       <NxTableCell chevron />
     </NxTableRow>

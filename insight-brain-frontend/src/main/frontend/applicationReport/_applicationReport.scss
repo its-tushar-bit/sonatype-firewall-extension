@@ -334,6 +334,11 @@ tbody .iq-cell--application-report-component-display {
   width: 90px;
 }
 
+.iq-app-report__component-name-cell,
+.iq-app-report__policy-name-cell {
+  @include nx-text-helpers.truncate-ellipsis;
+}
+
 .iq-app-report__policy-name-cell {
   width: 225px;
 }

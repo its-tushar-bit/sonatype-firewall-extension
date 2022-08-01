@@ -18,16 +18,21 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.PolicyTypeFilter;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.ViolationStateFilter;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.NxDropdown;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
-import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
+import com.sonatype.clm.testing.functional.elements.NxDropdown;
 import com.sonatype.clm.testing.functional.elements.NxTooltip;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
-import com.sonatype.clm.testing.functional.pages.*;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportContainerPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReportHeaders;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQGrandfatheringIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ResultRow;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitiesPage;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.utils.InputUtils;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -376,6 +381,29 @@ public class ApplicationReportTest
     reportPage.resultRows().shouldHaveSize(2);
     reportPage.resultRow(1).waivedIndicator().shouldNotBe(visible);
     reportPage.resultRow(1).grandfatheredIndicator().shouldBe(visible);
+  }
+
+  @Test
+  public void testEllipsisInPolicyName() {
+    reportPage.headers().policyNameFilterInput().setValue("License-Threat");
+    reportPage.getColFromResultRow(1, 2).shouldHave(cssValue("text-overflow", "ellipsis"));
+
+    // We need to ensure by visual tests that the ellipsis is shown, there is no way
+    // to see if the ellipsis is applied by looking to the HTML, attributes or innerText,
+    // the text look the same with or without ellipsis to selenium/selenide accessors.
+    eyesWatcher.eyesCheck("Showing ellipsis in overflown policy names.");
+  }
+
+  @Test
+  public void testEllipsisInComponentName() {
+    reportPage.headers().componentNameFilterInput()
+        .setValue("org.springframework.security : spring-security-config : 3.2.4.RELEASE");
+    reportPage.getColFromResultRow(1, 3).shouldHave(cssValue("text-overflow", "ellipsis"));
+
+    // We need to ensure by visual tests that the ellipsis is shown, there is no way
+    // to see if the ellipsis is applied by looking to the HTML, attributes or innerText,
+    // the text look the same with or without ellipsis to selenium/selenide accessors.
+    eyesWatcher.eyesCheck("Showing ellipsis in overflown component names");
   }
 
   @Test

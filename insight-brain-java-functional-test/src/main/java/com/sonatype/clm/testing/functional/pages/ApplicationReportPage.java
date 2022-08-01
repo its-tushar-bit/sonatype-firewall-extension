@@ -6,7 +6,11 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.*;
+import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
+import com.sonatype.clm.testing.functional.elements.NxDropdown;
+import com.sonatype.clm.testing.functional.elements.NxSortingHeader;
+import com.sonatype.clm.testing.functional.elements.NxToggle;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
@@ -96,6 +100,10 @@ public class ApplicationReportPage
 
   public ResultRow resultRow(int i) {
     return new ResultRow(childSelector(ROW_SELECTOR, nthChild(i)));
+  }
+
+  public SelenideElement getColFromResultRow(int row, int col) {
+    return child(ROW_SELECTOR + ":nth-child(" + row + ") .nx-cell:nth-child(" + col + ")");
   }
 
   public ResultRow lastResultRow() {

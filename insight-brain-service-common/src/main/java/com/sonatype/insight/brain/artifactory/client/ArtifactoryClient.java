@@ -21,5 +21,7 @@ public interface ArtifactoryClient
   Map<String, ArtifactoryChecksumSearchResults> searchByChecksumsUsingAQL(
       ChecksumType checksumType, Set<String> checksums) throws IOException;
 
-  StatusType getServerStatus() throws IOException;
+  StatusType getServerStatusViaQueryParam() throws IOException;
+
+  StatusType getServerStatusViaAQL() throws IOException;
 }

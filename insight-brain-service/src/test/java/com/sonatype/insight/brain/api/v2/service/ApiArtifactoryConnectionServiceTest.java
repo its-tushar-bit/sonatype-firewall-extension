@@ -697,33 +697,56 @@ public class ApiArtifactoryConnectionServiceTest
   }
 
   @Test
-  public void testTestArtifactoryConnection_Success() throws Exception {
+  public void testTestArtifactoryConnection_Anonymous_Success() throws Exception {
     setupMocks();
-    when(client.getServerStatus()).thenReturn(Status.OK);
-    testTestArtifactoryConnection(Status.OK);
+    when(client.getServerStatusViaQueryParam()).thenReturn(Status.OK);
+    testTestArtifactoryConnection(Status.OK, true);
   }
 
   @Test
-  public void testTestArtifactoryConnection_Unauthorized() throws Exception {
+  public void testTestArtifactoryConnection_Anonymous_Unauthorized() throws Exception {
     setupMocks();
-    when(client.getServerStatus()).thenReturn(Status.UNAUTHORIZED);
-    testTestArtifactoryConnection(Status.UNAUTHORIZED);
+    when(client.getServerStatusViaQueryParam()).thenReturn(Status.UNAUTHORIZED);
+    testTestArtifactoryConnection(Status.UNAUTHORIZED, true);
   }
 
   @Test
-  public void testTestArtifactoryConnection_Exception() throws Exception {
+  public void testTestArtifactoryConnection_Anonymous_Exception() throws Exception {
     setupMocks();
-    when(client.getServerStatus()).thenThrow(new IOException("error"));
-    testTestArtifactoryConnection(Status.BAD_GATEWAY);
+    when(client.getServerStatusViaQueryParam()).thenThrow(new IOException("error"));
+    testTestArtifactoryConnection(Status.BAD_GATEWAY, true);
   }
 
-  private void testTestArtifactoryConnection(Status status) {
+  @Test
+  public void testTestArtifactoryConnection_NonAnonymous_Success() throws Exception {
+    setupMocks();
+    when(client.getServerStatusViaAQL()).thenReturn(Status.OK);
+    testTestArtifactoryConnection(Status.OK, false);
+  }
+
+  @Test
+  public void testTestArtifactoryConnection_NonAnonymous_Unauthorized() throws Exception {
+    setupMocks();
+    when(client.getServerStatusViaAQL()).thenReturn(Status.UNAUTHORIZED);
+    testTestArtifactoryConnection(Status.UNAUTHORIZED, false);
+  }
+
+  @Test
+  public void testTestArtifactoryConnection_NonAnonymous_Exception() throws Exception {
+    setupMocks();
+    when(client.getServerStatusViaAQL()).thenThrow(new IOException("error"));
+    testTestArtifactoryConnection(Status.BAD_GATEWAY, false);
+  }
+
+  private void testTestArtifactoryConnection(Status status, boolean anonymous) {
     String appId = tempEntity.newApplicationWithParent().getId();
 
     ApiArtifactoryConnectionDTO dto = new ApiArtifactoryConnectionDTO();
     dto.baseUrl = "baseUrl";
-    dto.username = "user";
-    dto.password = "pass";
+    if (!anonymous) {
+      dto.username = "user";
+      dto.password = "pass";
+    }
     StatusType response = artifactoryConnectionService.testArtifactoryConnection(OwnerType.APPLICATION, appId, dto);
 
     assertThat(response).isEqualTo(status);
@@ -993,12 +1016,23 @@ public class ApiArtifactoryConnectionServiceTest
   }
 
   @Test
-  public void testTestArtifactoryConnection_ByArtifactoryId() throws Exception {
+  public void testTestArtifactoryConnection_ByArtifactoryId_ViaQueryParam() throws Exception {
     setupMocks();
-    when(client.getServerStatus()).thenThrow(new IOException("error"));
+    when(client.getServerStatusViaQueryParam()).thenThrow(new IOException("error"));
+    testTestArtifactoryConnection_ByArtifactoryId(true);
+  }
+
+  @Test
+  public void testTestArtifactoryConnection_ByArtifactoryId_ViaAQL() throws Exception {
+    setupMocks();
+    when(client.getServerStatusViaAQL()).thenThrow(new IOException("error"));
+    testTestArtifactoryConnection_ByArtifactoryId(false);
+  }
+
+  private void testTestArtifactoryConnection_ByArtifactoryId(boolean anonymous) {
     String appId = tempEntity.newApplicationWithParent().getId();
     ArtifactoryConnection artifactoryConnection = tempEntity.newArtifactoryConnection(
-        appId, "url1", "user1", "pass1".toCharArray());
+        appId, "url1", anonymous ? null : "user1", anonymous ? null : "pass1".toCharArray());
     artifactoryConnection.setPassword(passwordHandler.encryptPassword(artifactoryConnection.getPassword()));
     dao.update(artifactoryConnection);
 

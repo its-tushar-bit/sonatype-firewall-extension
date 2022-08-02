@@ -37,6 +37,7 @@ import org.junit.Test;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -112,52 +113,102 @@ public class DefaultArtifactoryClientTest
   }
 
   @Test
-  public void testGetServerStatus() throws Exception {
+  public void testGetServerStatus_ViaQueryParam() throws Exception {
     ArtifactoryClient artifactoryClient =
         artifactoryClientFactory.create().forArtifactory(artifactoryMockServer.getUrl(), null, null);
     artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256, DefaultArtifactoryClient.TEST_SHA256,
         new ArtifactoryChecksumSearchResults());
 
-    StatusType status = artifactoryClient.getServerStatus();
+    StatusType status = artifactoryClient.getServerStatusViaQueryParam();
 
     assertThat(status).isEqualTo(Status.fromStatusCode(200));
   }
 
   @Test
-  public void testGetServerStatus_WithCredentials() throws Exception {
+  public void testGetServerStatus_ViaAQL() throws Exception {
     String username = "admin";
     char[] password = "admin123".toCharArray();
     ArtifactoryClient artifactoryClient =
         artifactoryClientFactory.create().forArtifactory(artifactoryMockServer.getUrl(), username, password);
-    artifactoryMockServer.mockSearchChecksum(username, password, ChecksumType.SHA256,
-        DefaultArtifactoryClient.TEST_SHA256, new ArtifactoryChecksumSearchResults());
+    artifactoryMockServer.mockSearchByChecksumsUsingAQL(
+        username,
+        password,
+        ChecksumType.SHA256,
+        Collections.singleton(DefaultArtifactoryClient.TEST_SHA256)
+    );
 
-    StatusType status = artifactoryClient.getServerStatus();
+    StatusType status = artifactoryClient.getServerStatusViaAQL();
 
     assertThat(status).isEqualTo(Status.fromStatusCode(200));
   }
 
   @Test
   public void testGetServerStatus_Error() throws Exception {
-    ArtifactoryClient artifactoryClient =
-        artifactoryClientFactory.create().forArtifactory(artifactoryMockServer.getUrl(), null, null);
-    artifactoryMockServer.mockSearchChecksumError(ChecksumType.SHA256, DefaultArtifactoryClient.TEST_SHA256, 500);
+    ArtifactoryClient artifactoryClient = artifactoryClientFactory.create()
+        .forArtifactory(artifactoryMockServer.getUrl(), null, null);
+    testGetServerStatus_Error_ViaQueryParam(artifactoryClient);
 
-    StatusType status = artifactoryClient.getServerStatus();
+    artifactoryClient = artifactoryClientFactory.create()
+        .forArtifactory(artifactoryMockServer.getUrl(), "admin", "admin123".toCharArray());
+    testGetServerStatus_Error_ViaAQL(artifactoryClient);
+  }
+
+  private void testGetServerStatus_Error_ViaQueryParam(ArtifactoryClient artifactoryClient) throws Exception {
+    artifactoryMockServer.mockSearchChecksumError(ChecksumType.SHA256, DefaultArtifactoryClient.TEST_SHA256, 500);
+    StatusType status = artifactoryClient.getServerStatusViaQueryParam();
+
+    assertThat(status).isEqualTo(Status.fromStatusCode(500));
+  }
+
+  private void testGetServerStatus_Error_ViaAQL(ArtifactoryClient artifactoryClient) throws Exception {
+    artifactoryMockServer.mockSearchByChecksumsUsingAQLError(
+        "admin",
+        "admin123".toCharArray(),
+        ChecksumType.SHA256,
+        Collections.singleton(DefaultArtifactoryClient.TEST_SHA256),
+        500,
+        "");
+    StatusType status = artifactoryClient.getServerStatusViaAQL();
 
     assertThat(status).isEqualTo(Status.fromStatusCode(500));
   }
 
   @Test
   public void testGetServerStatus_MissingHeader() throws Exception {
-    ArtifactoryClient artifactoryClient =
-        artifactoryClientFactory.create().forArtifactory(artifactoryMockServer.getUrl(), null, null);
+    ArtifactoryClient artifactoryClient = artifactoryClientFactory.create()
+        .forArtifactory(artifactoryMockServer.getUrl(), null, null);
+    testGetServerStatus_MissingHeader_ViaQueryParam(artifactoryClient);
+
+    artifactoryClient = artifactoryClientFactory.create()
+        .forArtifactory(artifactoryMockServer.getUrl(), "admin", "admin123".toCharArray());
+    testGetServerStatus_MissingHeader_ViaAQL(artifactoryClient);
+  }
+
+  private void testGetServerStatus_MissingHeader_ViaQueryParam(ArtifactoryClient artifactoryClient) throws Exception {
     artifactoryMockServer.getWireMockServer().stubFor(get(urlPathMatching(
         artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))).withQueryParam(
             ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), equalTo(DefaultArtifactoryClient.TEST_SHA256))
         .willReturn(aResponse().withStatus(200)));
 
-    StatusType status = artifactoryClient.getServerStatus();
+    StatusType status = artifactoryClient.getServerStatusViaQueryParam();
+
+    assertThat(status).isNotNull();
+    assertThat(status.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+    assertThat(status.getFamily()).isEqualTo(Status.BAD_REQUEST.getFamily());
+    assertThat(status.getReasonPhrase()).isEqualTo("Bad Request. Not a valid Artifactory server.");
+  }
+
+  private void testGetServerStatus_MissingHeader_ViaAQL(ArtifactoryClient artifactoryClient) throws Exception {
+    artifactoryMockServer.getWireMockServer().stubFor(post(urlPathMatching(
+        artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.AQL_SEARCH_PATH)))
+        .withBasicAuth("admin", String.valueOf("admin123".toCharArray()))
+        .withRequestBody(
+            equalTo(
+                ArtifactoryQueryLanguageUtils.createChecksumSearch(
+                    ChecksumType.SHA256,
+                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256))))
+        .willReturn(aResponse().withStatus(200)));
+    StatusType status = artifactoryClient.getServerStatusViaAQL();
 
     assertThat(status).isNotNull();
     assertThat(status.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
@@ -167,14 +218,44 @@ public class DefaultArtifactoryClientTest
 
   @Test
   public void testGetServerStatus_MissingHeaderValue() throws Exception {
-    ArtifactoryClient artifactoryClient =
-        artifactoryClientFactory.create().forArtifactory(artifactoryMockServer.getUrl(), null, null);
+    ArtifactoryClient artifactoryClient = artifactoryClientFactory.create()
+        .forArtifactory(artifactoryMockServer.getUrl(), null, null);
+    testGetServerStatus_MissingHeaderValue_ViaQueryParam(artifactoryClient);
+
+    artifactoryClient = artifactoryClientFactory.create()
+        .forArtifactory(artifactoryMockServer.getUrl(), "admin", "admin123".toCharArray());
+    testGetServerStatus_MissingHeaderValue_ViaAQL(artifactoryClient);
+
+  }
+
+  private void testGetServerStatus_MissingHeaderValue_ViaQueryParam(ArtifactoryClient artifactoryClient)
+      throws Exception
+  {
     artifactoryMockServer.getWireMockServer().stubFor(get(urlPathMatching(
         artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))).withQueryParam(
             ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), equalTo(DefaultArtifactoryClient.TEST_SHA256))
         .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME, "").withStatus(200)));
 
-    StatusType status = artifactoryClient.getServerStatus();
+    StatusType status = artifactoryClient.getServerStatusViaQueryParam();
+
+    assertThat(status).isNotNull();
+    assertThat(status.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+    assertThat(status.getFamily()).isEqualTo(Status.BAD_REQUEST.getFamily());
+    assertThat(status.getReasonPhrase()).isEqualTo("Bad Request. Not a valid Artifactory server.");
+  }
+
+  private void testGetServerStatus_MissingHeaderValue_ViaAQL(ArtifactoryClient artifactoryClient) throws Exception {
+    artifactoryMockServer.getWireMockServer().stubFor(post(urlPathMatching(
+        artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.AQL_SEARCH_PATH)))
+        .withBasicAuth("admin", String.valueOf("admin123".toCharArray()))
+        .withRequestBody(
+            equalTo(
+                ArtifactoryQueryLanguageUtils.createChecksumSearch(
+                    ChecksumType.SHA256,
+                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256))))
+        .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME, "").withStatus(200)));
+
+    StatusType status = artifactoryClient.getServerStatusViaAQL();
 
     assertThat(status).isNotNull();
     assertThat(status.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());

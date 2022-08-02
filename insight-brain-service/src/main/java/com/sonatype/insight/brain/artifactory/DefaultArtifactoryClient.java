@@ -179,10 +179,21 @@ public class DefaultArtifactoryClient
   }
 
   @Override
-  public StatusType getServerStatus() throws IOException {
+  public StatusType getServerStatusViaQueryParam() throws IOException {
     HttpGet request = new HttpGet(this.configuration.getServerUrl() + CHECKSUM_SEARCH_PATH +
         UrlUtils.appendQueryParams(ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), TEST_SHA256));
-    HttpResponse response = httpClient.execute(request, httpClientContext);
+    return getStatusType(httpClient.execute(request, httpClientContext));
+  }
+
+  @Override
+  public StatusType getServerStatusViaAQL() throws IOException {
+    HttpPost request = new HttpPost(configuration.getServerUrl() + AQL_SEARCH_PATH);
+    request.setEntity(new StringEntity(ArtifactoryQueryLanguageUtils
+        .createChecksumSearch(ChecksumType.SHA256, Collections.singleton(TEST_SHA256))));
+    return getStatusType(httpClient.execute(request, httpClientContext));
+  }
+
+  private StatusType getStatusType(final HttpResponse response) {
     Header serverHeader = response.getFirstHeader(ARTIFACTORY_ID_HEADER_NAME);
     String server = serverHeader == null ? null : serverHeader.getValue();
     if (StringUtils.isBlank(server)) {

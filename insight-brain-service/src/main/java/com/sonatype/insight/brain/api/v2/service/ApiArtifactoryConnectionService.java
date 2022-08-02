@@ -350,7 +350,12 @@ public class ApiArtifactoryConnectionService
     AuditData.get().setData(ARTIFACTORY_URL_AUDIT_KEY, baseUrl);
     ArtifactoryClient client = artifactoryClientFactory.create().forArtifactory(baseUrl, username, password);
     try {
-      return client.getServerStatus();
+      if (username != null) {
+        return client.getServerStatusViaAQL();
+      }
+      else {
+        return client.getServerStatusViaQueryParam();
+      }
     }
     catch (IOException e) {
       log.debug(String.format("artifactory connection test failed for artifactory URL: %s", baseUrl), e);

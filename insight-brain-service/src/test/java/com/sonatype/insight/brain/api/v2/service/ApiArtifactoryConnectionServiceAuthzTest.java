@@ -214,7 +214,7 @@ public class ApiArtifactoryConnectionServiceAuthzTest
   public void testTestArtifactoryConnection_Authorized() throws Exception {
     grantReadPermission(app.getId());
     setupMocks();
-    when(client.getServerStatus()).thenReturn(Status.OK);
+    when(client.getServerStatusViaAQL()).thenReturn(Status.OK);
 
     ApiArtifactoryConnectionDTO dto = new ApiArtifactoryConnectionDTO();
     dto.baseUrl = "baseUrl";

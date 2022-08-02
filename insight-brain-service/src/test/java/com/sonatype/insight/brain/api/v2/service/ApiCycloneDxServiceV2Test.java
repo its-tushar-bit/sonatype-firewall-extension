@@ -24,9 +24,10 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.util.SbomUtils;
 
-import org.apache.shiro.util.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.codehaus.plexus.util.FileUtils;
 import org.cyclonedx.BomParserFactory;
@@ -153,8 +154,9 @@ public class ApiCycloneDxServiceV2Test
     assertMetadata(bom, application, scanId, Version.VERSION_11);
     assertThat(bom.getExternalReferences()).hasSize(1);
 
-    Component component = createComponent(Version.VERSION_11, null, "lodash", "4.17.19", "pkg:npm/lodash@4.17.19",
-        "d60a2eb7c051d8d933df", "MIT", "Not-Supported");
+    Component component =
+        createComponent(Version.VERSION_11, "pkg:npm/lodash@4.17.19", "d60a2eb7c051d8d933df", "exact", "MIT",
+            "Not-Supported");
 
     assertThat(bom.getComponents()).contains(component);
   }
@@ -205,21 +207,18 @@ public class ApiCycloneDxServiceV2Test
 
     assertThat(bom.getExternalReferences()).hasSize(1);
 
-    Component component = createComponent(version, null, "jQuery", "3.4.1", "pkg:nuget/jQuery@3.4.1",
-        "5408e54a94044d1f1f21", "CC0-1.0", "CDDL-1.1", "MIT");
-    component.addComponent(createComponent(version, null, "jQuery", "3.2.1", "pkg:nuget/jQuery@3.2.1",
-        "0babbbd2c221d24484f5", true, "CC0-1.0", "CDDL-1.1", "MIT"));
-
-    component.addComponent(createComponent(version, null, "knockout.validation", "2.0.0-Pre",
-        "pkg:a-name/knockout.validation@2.0.0-Pre", "7c9933a349f37d5f3131", "MPL-1.1", "LGPL-2.1", "Apache-1.1",
-        "Apache-1.0", "LGPL-3.0", "Apache-2.0"));
+    Component component1 = createComponent(version, "pkg:nuget/jQuery@3.4.1", "5408e54a94044d1f1f21", "exact",
+        "CC0-1.0", "CDDL-1.1", "MIT");
+    Component component2 = createComponent(version, "pkg:nuget/jQuery@3.2.1", "0babbbd2c221d24484f5", "similar",
+        true, "CC0-1.0", "CDDL-1.1", "MIT");
+    Component component3 = createComponent(version, "pkg:a-name/knockout.validation@2.0.0-Pre", "7c9933a349f37d5f3131",
+        "exact","MPL-1.1", "LGPL-2.1", "Apache-1.1", "Apache-1.0", "LGPL-3.0", "Apache-2.0");
 
     assertThat(bom.getComponents()).usingRecursiveFieldByFieldElementComparator(
         RecursiveComparisonConfiguration.builder().withIgnoreCollectionOrder(true).withIgnoreAllExpectedNullFields(true)
-            .build()).contains(component);
+            .build()).contains(component1, component2, component3);
 
     assertThat(parser.validate(bytes, version)).isEmpty();
-    assertSonatypeIdentificationSource(bom, version);
   }
 
   private void assertMetadata(Bom bom, Application application, String scanId, Version version) {
@@ -238,57 +237,39 @@ public class ApiCycloneDxServiceV2Test
     }
   }
 
-  private void assertSonatypeIdentificationSource(Bom bom, Version version) {
-    if (version.getVersion() > 1.2) {
-      bom.getComponents().forEach(component -> {
-        assertThat(component.getProperties().size()).isEqualTo(2);
-        Property property = new Property();
-        property.setName("Identification Source");
-        property.setValue("Sonatype");
-        assertThat(component.getProperties()).contains(property);
-      });
-    }
-    else {
-      bom.getComponents().forEach(component -> {
-        assertThat(component.getProperties()).isNull();
-      });
-    }
-
-  }
-
   private String toUuid(final String scanId) {
     return "urn:uuid:" + scanId.replaceAll("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5");
   }
 
   private Component createComponent(
       Version bomVersion,
-      String namespace,
-      String name,
-      String version,
       String packageUrl,
       String hashStr,
+      String matchState,
       String... licenses)
   {
-    return createComponent(bomVersion, namespace, name, version, packageUrl, hashStr, false, licenses);
+    return createComponent(bomVersion, packageUrl, hashStr, matchState, false, licenses);
   }
 
   private Component createComponent(
       Version bomVersion,
-      String namespace,
-      String name,
-      String version,
       String packageUrl,
       String hashStr,
+      String matchState,
       boolean modified,
       String... licenses)
   {
     Component component = new Component();
     component.setType(Component.Type.LIBRARY);
-    component.setGroup(namespace);
-    component.setName(name);
-    component.setVersion(version);
+
+    PackageUrlIdentifier purl = new PackageUrlIdentifier(packageUrl);
+
+    component.setGroup(purl.getNamespace());
+    component.setName(purl.getName());
+    component.setVersion(purl.getVersion());
     component.setPurl(packageUrl);
     component.setModified(modified);
+    component.setBomRef(packageUrl);
 
     if (bomVersion.compareTo(Version.VERSION_12) > 0 && hashStr != null) {
       Property property = new Property();
@@ -300,6 +281,11 @@ public class ApiCycloneDxServiceV2Test
       identificationSource.setName(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME);
       identificationSource.setValue(IdentificationSource.SONATYPE.getName());
       component.addProperty(identificationSource);
+
+      Property matchStateProperty = new Property();
+      matchStateProperty.setName("Match State");
+      matchStateProperty.setValue(matchState);
+      component.addProperty(matchStateProperty);
     }
 
     LicenseChoice licenseChoice = new LicenseChoice();

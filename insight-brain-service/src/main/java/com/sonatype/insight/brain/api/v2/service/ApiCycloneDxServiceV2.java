@@ -7,14 +7,8 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -74,13 +68,13 @@ public class ApiCycloneDxServiceV2
 {
   private static final Logger log = LoggerFactory.getLogger(ApiCycloneDxServiceV2.class);
 
-  private ApiReportDataServiceV2 apiReportDataServiceV2;
+  private final ApiReportDataServiceV2 apiReportDataServiceV2;
 
-  private ApplicationHelper applicationHelper;
+  private final ApplicationHelper applicationHelper;
 
-  private BaseUrl baseUrl;
+  private final BaseUrl baseUrl;
 
-  private PolicyEvaluationDAO policyEvaluationDAO;
+  private final PolicyEvaluationDAO policyEvaluationDAO;
 
   @Inject
   public ApiCycloneDxServiceV2(
@@ -154,9 +148,7 @@ public class ApiCycloneDxServiceV2
       }
       bom.addExternalReference(createExternalReference(url, "IQ Report", ExternalReference.Type.BOM));
 
-      createBomComponents(version,
-          data.components.stream().filter(c -> !MatchState.UNKNOWN.getId().equals(c.matchState))
-              .collect(Collectors.toList())).forEach(bom::addComponent);
+      createBomComponents(version, data.components, bom);
 
       if (MediaType.APPLICATION_JSON.equals(acceptType)) {
         BomJsonGenerator generator = BomGeneratorFactory.createJson(version, bom);
@@ -184,58 +176,21 @@ public class ApiCycloneDxServiceV2
     return scanId;
   }
 
-  private static List<Component> createBomComponents(Version version, List<ApiReportComponentDTOV2> reportComponents) {
-    Map<String, ApiReportComponentDTOV2> pathToComponent = new HashMap<>();
-
-    reportComponents
-        .forEach(component -> component.pathnames.forEach(path -> pathToComponent.put(path, component)));
-
-    LinkedHashMap<ApiReportComponentDTOV2, Set<ApiReportComponentDTOV2>> childToParents =
-        calculateParents(pathToComponent);
-
-    Map<ApiReportComponentDTOV2, Component> converted = new HashMap<>();
-
-    reportComponents.forEach(component -> converted.put(component, createComponent(version, component)));
-
-    childToParents.forEach((child, parents) ->
-        parents.stream().filter(Objects::nonNull)
-            .forEach(parent -> converted.get(parent).addComponent(converted.get(child))
-            ));
-
-    return childToParents.entrySet().stream().filter(e -> e.getValue().contains(null))
-        .map(e -> converted.get(e.getKey())).collect(Collectors.toList());
-  }
-
-  private static LinkedHashMap<ApiReportComponentDTOV2, Set<ApiReportComponentDTOV2>> calculateParents(
-      Map<String, ApiReportComponentDTOV2> pathToComponent)
+  private static List<String> createBomComponents(
+      final Version version,
+      final List<ApiReportComponentDTOV2> reportComponents,
+      final Bom bom)
   {
-    LinkedHashMap<ApiReportComponentDTOV2, Set<ApiReportComponentDTOV2>> childToParent = new LinkedHashMap<>();
-    // we sort the list so parents are processed first
-    pathToComponent.keySet().stream().sorted().forEach(path -> {
-      if (path == null) {
-        return;
-      }
-
-      LinkedList<String> pathSegments = new LinkedList<>(Arrays.asList(path.split("/")));
-
-      while (!pathSegments.isEmpty()) {
-        pathSegments.removeLast();
-
-        String parentCandidate = String.join("/", pathSegments);
-        if (pathToComponent.containsKey(parentCandidate)) {
-          ApiReportComponentDTOV2 parent = pathToComponent.get(parentCandidate);
-          ApiReportComponentDTOV2 child = pathToComponent.get(path);
-
-          if (parent != child) {
-            childToParent.computeIfAbsent(child, c -> new HashSet<>()).add(parent);
-            return;
-          }
+    List<String> components = new ArrayList<>();
+    for (ApiReportComponentDTOV2 reportComponent : reportComponents) {
+      if (!MatchState.UNKNOWN.getId().equals(reportComponent.matchState)) {
+        Component component = createComponent(version, reportComponent, components);
+        if (component != null) {
+          bom.addComponent(component);
         }
       }
-      // no parent
-      childToParent.computeIfAbsent(pathToComponent.get(path), c -> new HashSet<>()).add(null);
-    });
-    return childToParent;
+    }
+    return components;
   }
 
   private static ExternalReference createExternalReference(String url, String name, ExternalReference.Type type) {
@@ -265,24 +220,46 @@ public class ApiCycloneDxServiceV2
     return license;
   }
 
-  private static Component createComponent(Version version, ApiReportComponentDTOV2 reportComponent) {
-    Component bomComponent = new Component();
-
-    bomComponent.setType(Type.LIBRARY);
-
-    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(
-        reportComponent.componentIdentifier.toComponentIdentifier());
+  private static Component createComponent(
+      final Version version,
+      final ApiReportComponentDTOV2 reportComponent,
+      final List<String> components)
+  {
     try {
+      Component bomComponent = new Component();
+      bomComponent.setType(Type.LIBRARY);
+
+      PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(
+          reportComponent.componentIdentifier.toComponentIdentifier());
+
       PackageURL packageUrl = new PackageURL(purl.getPackageUrl());
       bomComponent.setPurl(packageUrl);
       bomComponent.setGroup(packageUrl.getNamespace());
       bomComponent.setName(packageUrl.getName());
       bomComponent.setVersion(packageUrl.getVersion());
+
+      bomComponent.setBomRef(purl.getPackageUrl());
+      components.add(purl.getPackageUrl());
+
+      bomComponent.setModified(MatchState.SIMILAR.getId().equals(reportComponent.matchState));
+      setProperties(version, reportComponent, bomComponent);
+      setLicenseInformation(reportComponent, bomComponent);
+
+      return bomComponent;
     }
     catch (MalformedPackageURLException e) {
       log.debug("Failed to create PackageURL for {}", reportComponent.packageUrl, e);
     }
+    catch (Exception e) {
+      log.warn("There was an error creating SBoM component", e);
+    }
+    return null;
+  }
 
+  private static void setLicenseInformation(
+      final ApiReportComponentDTOV2 reportComponent,
+      final Component bomComponent)
+  {
     if (reportComponent.licenseData != null) {
       Set<License> licenses = new HashSet<>();
       if (reportComponent.licenseData.overriddenLicenses != null
@@ -299,20 +276,27 @@ public class ApiCycloneDxServiceV2
       bomComponent.setLicenseChoice(new LicenseChoice());
       bomComponent.getLicenseChoice().setLicenses(new ArrayList<>(licenses));
     }
-    bomComponent.setModified(MatchState.SIMILAR.getId().equals(reportComponent.matchState));
-    if (version.compareTo(Version.VERSION_12) > 0 && reportComponent.hash != null) {
-      // Properties are only supported for xml/json schema version 1.3+
-      Property sonatypeTruncatedSHA1 = new Property();
-      sonatypeTruncatedSHA1.setName(SbomUtils.SONATYPE_HASH_PROPERTY_NAME);
-      sonatypeTruncatedSHA1.setValue(reportComponent.hash);
-      bomComponent.addProperty(sonatypeTruncatedSHA1);
+  }
 
-      Property identificationSource = new Property();
-      identificationSource.setName(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME);
-      identificationSource.setValue(reportComponent.identificationSource);
-      bomComponent.addProperty(identificationSource);
+  private static void setProperties(
+      final Version version,
+      final ApiReportComponentDTOV2 reportComponent,
+      final Component bomComponent)
+  {
+    // Properties are only supported for xml/json schema version 1.3+
+    if (version.compareTo(Version.VERSION_12) > 0) {
+      if (reportComponent.hash != null) {
+        addProperty(SbomUtils.SONATYPE_HASH_PROPERTY_NAME, reportComponent.hash, bomComponent);
+      }
+      addProperty("Match State", reportComponent.matchState, bomComponent);
+      addProperty(SbomUtils.IDENTIFICATION_SOURCE_PROPERTY_NAME, reportComponent.identificationSource, bomComponent);
     }
+  }
 
-    return bomComponent;
+  private static void addProperty(final String name, final String value, final Component component) {
+    Property property = new Property();
+    property.setName(name);
+    property.setValue(value);
+    component.addProperty(property);
   }
 }

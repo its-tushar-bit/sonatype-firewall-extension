@@ -274,7 +274,7 @@ public class ApiCycloneDxResourceV2Test
     Parser parser = BomParserFactory.createParser(bytes);
     Bom bom = parser.parse(bytes);
     assertThat(bom.getSpecVersion()).isEqualTo(version.getVersionString());
-    assertThat(bom.getComponents()).hasSize(1);
+    assertThat(bom.getComponents()).hasSize(3);
     assertThat(response.getHeader(HttpHeaders.CONTENT_TYPE)).isEqualTo(contentType);
   }
 

@@ -165,7 +165,7 @@ public class CLMLicenseManager
           throw hdsException;
         }
       }
-      populateLicenseCache(licenseKey, licenseDetails);
+      populateLicenseCache(licenseKey, licenseDetails, true);
     }
     catch (RuntimeException e) {
       if (e.getCause() instanceof NoLicenseInstalledException) {
@@ -174,7 +174,7 @@ public class CLMLicenseManager
       else {
         log.error("Unable to load license details, a valid license needs to be installed", e);
       }
-      clearLicenseCache();
+      clearLicenseCache(true);
       return;
     }
     if (!config.isDatabaseEmbedded() && !migrationTrackerDAO.isTrackerPresent(MIGRATION_TRACKER_EXTERNAL_DB)) {
@@ -184,6 +184,25 @@ public class CLMLicenseManager
                 + ", please reconfigure IQ Server to use the embedded database.");
       }
       recordSupportForExternalDatabase();
+    }
+  }
+
+  //visible for testing
+  void updateLicenseCacheFromDatabase() {
+    try {
+      SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
+      if (licenseDetails == null) {
+        clearLicenseCache(false);
+      }
+      else {
+        ProductLicenseKey licenseKey = licenseManager.getLicenseDetails();
+        //not verifying signature intentionally. This is expected to be used only to update the cache
+        // from the database which is already verified.
+        populateLicenseCache(licenseKey, licenseDetails, false);
+      }
+    }
+    catch (RuntimeException e) {
+      log.error("Unable to update product license cache from the database", e);
     }
   }
 
@@ -226,12 +245,11 @@ public class CLMLicenseManager
     }
     licenseManager.installLicense(new ByteArrayInputStream(licenseData));
     productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
-    populateLicenseCache(licenseKey, licenseDetails);
+    populateLicenseCache(licenseKey, licenseDetails, true);
     log.info("License installed successfully");
     if (!config.isDatabaseEmbedded() && !migrationTrackerDAO.isTrackerPresent(MIGRATION_TRACKER_EXTERNAL_DB)) {
       recordSupportForExternalDatabase();
     }
-    loadProductLicenseOnAllOtherClusterNodes();
   }
 
   private SignedProductLicenseDetailsDTO queryLicenseDetailsFromHds(byte[] licenseData, String licenseFingerprint) {
@@ -283,9 +301,8 @@ public class CLMLicenseManager
 
   public synchronized void uninstallLicense() {
     licenseManager.uninstallLicense();
-    clearLicenseCache();
+    clearLicenseCache(true);
     log.info("License uninstalled successfully");
-    loadProductLicenseOnAllOtherClusterNodes();
   }
 
   void auditLicense(String filename) {
@@ -457,7 +474,11 @@ public class CLMLicenseManager
     }
   }
 
-  private void populateLicenseCache(ProductLicenseKey key, SignedProductLicenseDetailsDTO licenseDetails) {
+  private void populateLicenseCache(
+      ProductLicenseKey key,
+      SignedProductLicenseDetailsDTO licenseDetails,
+      boolean triggerOnOtherNodes)
+  {
     validateFeatures(key);
 
     String licenseFingerprint = licenseFingerprinter.calculate(key);
@@ -598,6 +619,9 @@ public class CLMLicenseManager
       }
     }
 
+    if (triggerOnOtherNodes) {
+      loadProductLicenseOnAllOtherClusterNodes();
+    }
     productLicense.set(key, licenseFingerprint, products, features, stageTypes, licensingModel, applicationCount,
         maxUsers, maxFirewallUsers);
     notifyListeners();
@@ -660,7 +684,10 @@ public class CLMLicenseManager
     }
   }
 
-  private void clearLicenseCache() {
+  private void clearLicenseCache(boolean triggerOnOtherNodes) {
+    if (triggerOnOtherNodes) {
+      loadProductLicenseOnAllOtherClusterNodes();
+    }
     productLicense.clear();
     notifyListeners();
   }
@@ -707,6 +734,6 @@ public class CLMLicenseManager
 
   @Override
   public void execute(JobExecutionContext context) {
-    execute(this::loadLicense, log, LICENSE_LOADING_ERROR);
+    execute(this::updateLicenseCacheFromDatabase, log, LICENSE_LOADING_ERROR);
   }
 }

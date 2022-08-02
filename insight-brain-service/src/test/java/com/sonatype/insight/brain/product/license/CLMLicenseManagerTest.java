@@ -53,6 +53,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class CLMLicenseManagerTest
@@ -505,11 +506,52 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testUpdateLicenseCacheFromDatabase() throws Exception {
+    CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
+
+    //before
+    assertThat(productLicense.getMaxApplications()).isEqualTo(100);
+
+    //set database license
+    SignedProductLicenseDetailsDTO licenseDetails = new SignedProductLicenseDetailsDTO();
+    licenseDetails.features = new TreeSet<>();
+    licenseDetails.stageIds = new TreeSet<>();
+    licenseDetails.maxApplications = 12345;
+    productLicenseSigner.sign(licenseDetails, licenseFingerprinter.calculate());
+    productLicenseDetailsCache.setProductLicenseDetails(licenseDetails);
+
+    clmLicenseManagerSpy.updateLicenseCacheFromDatabase();
+
+    //after
+    assertThat(productLicense.getMaxApplications()).isEqualTo(12345);
+    verify(clmLicenseManagerSpy, never()).loadLicense();
+    verify(clmLicenseManagerSpy, never()).loadProductLicenseOnAllOtherClusterNodes();
+  }
+
+  @Test
+  public void testUpdateLicenseCacheFromDatabase_ClearsCacheNoDatabaseRecord() throws Exception {
+    CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
+
+    //before
+    assertThat(productLicense.isValid()).isTrue();
+    assertThat(productLicense.getMaxApplications()).isEqualTo(100);
+
+    productLicenseDetailsCache.saveJson(null);
+    clmLicenseManagerSpy.updateLicenseCacheFromDatabase();
+
+    //after
+    assertThat(productLicense.isValid()).isFalse();
+    assertThat(productLicense.getMaxApplications()).isZero();
+    verify(clmLicenseManagerSpy, never()).loadProductLicenseOnAllOtherClusterNodes();
+  }
+
+  @Test
   public void testLoadLicense() {
+    CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
     mockHdsProductLicenseDetails(withFeatures(LicensedFeature.CI_INTEGRATION, LicensedFeature.DASHBOARD)
         .andThen(withStages(StageTypes.BUILD, StageTypes.RELEASE).andThen(withMaxApplications(12345))));
 
-    clmLicenseManager.loadLicense();
+    clmLicenseManagerSpy.loadLicense();
 
     assertThat(productLicense.isValid());
     SignedProductLicenseDetailsDTO licenseDetails = productLicenseDetailsCache.getProductLicenseDetails();
@@ -518,6 +560,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.DASHBOARD.name());
     assertThat(licenseDetails.stageIds).contains(StageTypes.BUILD.getId(), StageTypes.RELEASE.getId());
     assertThat(licenseDetails.maxApplications).isEqualTo(12345);
+    verify(clmLicenseManagerSpy, times(1)).loadProductLicenseOnAllOtherClusterNodes();
   }
 
   @Test
@@ -1336,13 +1379,13 @@ public class CLMLicenseManagerTest
     doAnswer(invocationOnMock -> {
       assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
       return null;
-    }).when(clmLicenseManagerSpy).loadLicense();
+    }).when(clmLicenseManagerSpy).updateLicenseCacheFromDatabase();
 
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
       clmLicenseManagerSpy.execute(mock(JobExecutionContext.class));
     }
 
-    verify(clmLicenseManagerSpy).loadLicense();
+    verify(clmLicenseManagerSpy).updateLicenseCacheFromDatabase();
   }
 
   @Test

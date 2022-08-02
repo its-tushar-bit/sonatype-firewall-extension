@@ -73,7 +73,7 @@ public class IgnoredRepositoryComponentCleaner
       log.debug("Ignored repository components already deleted.");
       return;
     }
-    taskScheduler.triggerTaskNow(TASK_NAME, null);
+    taskScheduler.scheduleOneTimeTask(getClass(), TASK_NAME);
   }
 
   @Override

@@ -156,6 +156,17 @@ public class TaskScheduler
     scheduleTask(job, trigger);
   }
 
+  public void scheduleOneTimeTask(Class<? extends Job> jobClass, String name) {
+    JobDetail job = newJob(jobClass)
+        .withIdentity(name)
+        .build();
+    Trigger trigger = TriggerBuilder.newTrigger()
+        .withIdentity(job.getKey().getName(), job.getKey().getGroup())
+        .startNow()
+        .build();
+    scheduleTask(job, trigger);
+  }
+
   public void scheduleOneTimeTask(Class<? extends Job> jobClass, String name, LocalTime localTime) {
     JobDetail job = newJob(jobClass) //
         .withIdentity(name) //

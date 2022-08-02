@@ -122,7 +122,7 @@ void pushDockerImageIfDeployBranch() {
  */
 void saveGitCommitHashIfMainSnapshotBuild() {
   if (isDeployBranch(env, 'main') && currentBuild.fullProjectName.contains('snapshot')) {
-    String filename = 'git_commit_hash.txt'
+    String filename = 'target/dist/git_commit_hash.txt'
     writeFile file: filename, text: env.GIT_COMMIT
     archiveAdditionalArtifacts(filename)
   }

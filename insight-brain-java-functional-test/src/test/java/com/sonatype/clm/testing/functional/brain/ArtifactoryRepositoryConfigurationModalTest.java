@@ -5,12 +5,17 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.util.Collections;
+
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryBaseConfigurationsPage;
 import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryBaseConfigurationsPage.ArtifactoryConnectionRow;
 import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryConfigurationModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.artifactory.DefaultArtifactoryClient;
+import com.sonatype.insight.brain.artifactory.client.ArtifactoryQueryLanguageUtils;
+import com.sonatype.insight.brain.artifactory.client.ChecksumType;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.model.Organization;
@@ -29,6 +34,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.artifactory.ArtifactoryMockServerRule.ARTIFACTORY_ID_HEADER_MOCK_VALUE;
@@ -281,9 +287,17 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     ArtifactoryRepositoryConfigurationModal modal = new ArtifactoryRepositoryConfigurationModal();
 
-    artifactoryMockSever.stubFor(get(urlPathMatching(CHECKSUM_SEARCH_PATH)).willReturn(
-        aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
-            .withStatus(200)));
+    artifactoryMockSever.stubFor(post(urlPathMatching(DefaultArtifactoryClient.AQL_SEARCH_PATH))
+        .withBasicAuth(artifactoryConnection.getUsername(),
+            String.valueOf(passwordHandler.decryptPassword(artifactoryConnection.getPassword())))
+        .withRequestBody(
+            equalTo(
+                ArtifactoryQueryLanguageUtils.createChecksumSearch(
+                    ChecksumType.SHA256,
+                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256))))
+        .willReturn(
+            aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
+                .withStatus(200)));
 
     modal.test().click();
 
@@ -308,9 +322,17 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     artifactoryConnectionRow.edit().click();
 
-    artifactoryMockSever.stubFor(get(urlPathMatching(CHECKSUM_SEARCH_PATH)).willReturn(
-        aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
-            .withStatus(404)));
+    artifactoryMockSever.stubFor(post(urlPathMatching(DefaultArtifactoryClient.AQL_SEARCH_PATH))
+        .withBasicAuth(artifactoryConnection.getUsername(),
+            String.valueOf(passwordHandler.decryptPassword(artifactoryConnection.getPassword())))
+        .withRequestBody(
+            equalTo(
+                ArtifactoryQueryLanguageUtils.createChecksumSearch(
+                    ChecksumType.SHA256,
+                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256))))
+        .willReturn(
+            aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
+                .withStatus(404)));
 
     modal.test().click();
 
@@ -333,9 +355,17 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     artifactoryConnectionRow.edit().click();
 
-    artifactoryMockSever.stubFor(get(urlPathMatching(CHECKSUM_SEARCH_PATH)).willReturn(
-        aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
-            .withStatus(200)));
+    artifactoryMockSever.stubFor(post(urlPathMatching(DefaultArtifactoryClient.AQL_SEARCH_PATH))
+        .withBasicAuth(artifactoryConnection.getUsername(),
+            String.valueOf(passwordHandler.decryptPassword(artifactoryConnection.getPassword())))
+        .withRequestBody(
+            equalTo(
+                ArtifactoryQueryLanguageUtils.createChecksumSearch(
+                    ChecksumType.SHA256,
+                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256))))
+        .willReturn(
+            aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
+                .withStatus(200)));
 
     ArtifactoryRepositoryConfigurationModal modal = new ArtifactoryRepositoryConfigurationModal();
 
@@ -362,7 +392,15 @@ public class ArtifactoryRepositoryConfigurationModalTest
 
     artifactoryConnectionRow.edit().click();
 
-    artifactoryMockSever.stubFor(get(urlPathMatching(CHECKSUM_SEARCH_PATH)).willReturn(
+    artifactoryMockSever.stubFor(post(urlPathMatching(DefaultArtifactoryClient.AQL_SEARCH_PATH))
+        .withBasicAuth(artifactoryConnection.getUsername(),
+            String.valueOf(passwordHandler.decryptPassword(artifactoryConnection.getPassword())))
+        .withRequestBody(
+            equalTo(
+                ArtifactoryQueryLanguageUtils.createChecksumSearch(
+                    ChecksumType.SHA256,
+                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256))))
+        .willReturn(
         aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
             .withStatus(404)));
 

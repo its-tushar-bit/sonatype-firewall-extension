@@ -1,0 +1,250 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "library",
+      "coordinates" : {
+        "name" : "test",
+        "version" : "2.0"
+      }
+    },
+    "packageUrl" : "pkg:library/test@2.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:library/test@2.0" ],
+    "pathnames" : [ "dependency:/sbom-bom.xml/pkg:library\\test@2.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "05eb8a0c64d7bae7a2e5",
+    "relativePopularity" : null,
+    "createTime" : 1658416978879,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "sbom",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "thirdPartyApi",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null,
+    "sha256" : "44ba611acde81de4319b2c4412d3379c74527bf4f433d78f89b213e08f7e6419",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "name",
+        "value" : "test"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "version",
+        "value" : "2.0"
+      } ],
+      "name" : "test : 2.0"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "test",
+        "extension" : "jar",
+        "groupId" : "test",
+        "version" : "4.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/test/test@4.0?type=jar",
+    "groupId" : "test",
+    "artifactId" : "test",
+    "version" : "4.0",
+    "filenames" : [ "pkg:maven/test/test@4.0?type=jar" ],
+    "pathnames" : [ "dependency:/sbom-bom.xml/pkg:maven\\test\\test@4.0?type=jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "f31a5221fc5d29efb78f",
+    "relativePopularity" : null,
+    "createTime" : 1658416978879,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "sbom",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "thirdPartyApi",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null,
+    "sha256" : "44ba611acde81de4319b2c4412d3379c74527bf4f433d78f89b213e08f7e6411",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "test"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "test"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "4.0"
+      } ],
+      "name" : "test"
+    }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ ],
+    "pathnames" : [ ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "e243e267a91d2f4036ad",
+    "sha256" : "44ba611acde81de4319b2c4412d3379c74527bf4f433d78f89b213e08f7e6416",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "thirdPartyApi",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "value" : "(Anonymized Path) SHA1: "
+      }, {
+        "field" : "Hash",
+        "value" : "e243e267a91d2f4036ad"
+      } ],
+      "name" : "(Anonymized Path) SHA1: e243e267a91d2f4036ad"
+    }
+  },
+    {
+      "componentIdentifier" : null,
+      "groupId" : null,
+      "artifactId" : null,
+      "version" : null,
+      "filenames" : [ ],
+      "pathnames" : [ ],
+      "aggregateFiles" : [ ],
+      "matchState" : "unknown",
+      "scanError" : false,
+      "proprietary" : false,
+      "hash" : "e243e267a91d2f4036aa",
+      "sha256" : "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941",
+      "relativePopularity" : null,
+      "createTime" : null,
+      "lastModifiedTime" : null,
+      "lastModifiedEntryTime" : null,
+      "website" : null,
+      "identificationSource" : null,
+      "componentCategories" : [ ],
+      "hygieneRating" : null,
+      "analyzerFeatures" : {
+        "analysisSource" : "THIRD_PARTY",
+        "analysisType" : "COORDINATE",
+        "scanClient" : "thirdPartyApi",
+        "hasLicense" : false,
+        "hasIdentity" : false,
+        "hasSecurity" : false,
+        "manifestContentType" : "SBOM"
+      },
+      "integrityRating" : null,
+      "displayName" : {
+        "parts" : [ {
+          "value" : "(Anonymized Path) SHA1: "
+        }, {
+          "field" : "Hash",
+          "value" : "e243e267a91d2f4036aa"
+        } ],
+        "name" : "(Anonymized Path) SHA1: e243e267a91d2f4036aa"
+      }
+    },
+    {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "test",
+        "extension" : "jar",
+        "groupId" : "test",
+        "version" : "3.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/test/test@3.0?type=jar",
+    "groupId" : "test",
+    "artifactId" : "test",
+    "version" : "3.0",
+    "filenames" : [ "pkg:maven/test/test@3.0?type=jar:9188560f22e0b73070d2" ],
+    "pathnames" : [ "dependency:/sbom-bom.xml/pkg:maven\\test\\test@3.0?type=jar:9188560f22e0b73070d2" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b077007d8c2b56317f17",
+    "relativePopularity" : null,
+    "createTime" : 1658416978879,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "sbom",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "thirdPartyApi",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : null,
+    "sha256" : "44ba611acde81de4319b2c4412d3379c74527bf4f433d78f89b213e08f7e6410",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "test"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "test"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "3.0"
+      } ],
+      "name" : "test"
+    }
+  } ],
+  "dependencyDataIncluded" : true
+}

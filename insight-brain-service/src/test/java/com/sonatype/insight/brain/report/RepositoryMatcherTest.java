@@ -230,6 +230,63 @@ public class RepositoryMatcherTest
   }
 
   @Test
+  public void testIdentify_Sbom() throws Exception {
+    SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
+
+    ComponentIdentifier id1 =
+        ComponentIdentifier.createMavenCoordinates("g.org", "a", "1.1-SNAPSHOT", null, "jar");
+
+    ArtifactoryChecksumSearchResults mockResult = new ArtifactoryChecksumSearchResults(); //empty result
+    artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256,
+        "44ba611acde81de4319b2c4412d3379c74527bf4f433d78f89b213e08f7e6419", mockResult);
+    artifactoryMockServer.mockSearchChecksum(ChecksumType.SHA256,
+        "44ba611acde81de4319b2c4412d3379c74527bf4f433d78f89b213e08f7e6416", mockResult);
+    mockArtifactoryResponse();
+
+    List<ComponentEvaluationData> mockResultHds = new ArrayList<>();
+
+    ComponentEvaluationData exact = new ComponentEvaluationData();
+    exact.hash = "05431145264b6ae31a85";
+    exact.componentIdentifier = id1;
+    exact.matchState = "exact";
+    exact.declaredLicenses = Collections.singleton(new License("Not-Declared", "Not Declared"));
+    exact.observedLicenses = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
+    exact.securityVulnerabilities = Collections.emptyList();
+    exact.componentCategories = Collections.singletonList(new ComponentCategory(63, "Data Transport"));
+    exact.relativePopularity = 100;
+    exact.catalogDate = 1135095471000L;
+    mockResultHds.add(exact);
+
+    when(mockDefaultApiComponentDetailsServiceV2.getComponentDetailsListFromHds(anyList(),
+        eq(AbstractApiComponentDetailsServiceV2.PURPOSE_EVALUATION))).thenReturn(mockResultHds);
+
+    ObjectNode bomJson = (ObjectNode) readJsonFile("sbom/bom.json");
+    ObjectNode securityJson = (ObjectNode) readJsonFile("sbom/security.json");
+    ObjectNode licenseJson = (ObjectNode) readJsonFile("sbom/licenses.json");
+    ObjectNode summaryJson = (ObjectNode) readJsonFile("sbom/summary.json");
+    ObjectNode dataJson = (ObjectNode) readJsonFile("sbom/data.json");
+
+    Set<ComponentIdentifier> identified =
+        matcher.match(application, bomJson, dataJson, summaryJson, licenseJson, securityJson);
+    assertThat(identified).hasSize(1);
+
+    artifactoryMockServer.getWireMockServer().verify(3, anyRequestedFor(
+        urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+
+    ObjectNode expectedBomJson = (ObjectNode) readJsonFile("sbom/outcome/bom.json");
+    ObjectNode expectedSecurityJson = (ObjectNode) readJsonFile("sbom/outcome/security.json");
+    ObjectNode expectedLicenseJson = (ObjectNode) readJsonFile("sbom/outcome/licenses.json");
+    ObjectNode expectedSummaryJson = (ObjectNode) readJsonFile("sbom/outcome/summary.json");
+    ObjectNode expectedDataJson = (ObjectNode) readJsonFile("sbom/outcome/data.json");
+
+    assertThat(bomJson).isEqualTo(expectedBomJson);
+    assertThat(securityJson).isEqualTo(expectedSecurityJson);
+    assertThat(licenseJson).isEqualTo(expectedLicenseJson);
+    assertThat(summaryJson).isEqualTo(expectedSummaryJson);
+    assertThat(dataJson).isEqualTo(expectedDataJson);
+  }
+
+  @Test
   public void testIdentify_FilterCorrectMatchState() throws Exception {
     ComponentIdentifier id1 =
         ComponentIdentifier.createMavenCoordinates("g.org", "a", "1.1-SNAPSHOT", null, "jar");
@@ -574,10 +631,9 @@ public class RepositoryMatcherTest
 
   @Test
   public void testResolveComponentIdentifierFromUri_InvalidUri_MissingExtension() {
-    ComponentIdentifier expectedId = ComponentIdentifier.createMavenCoordinates("g.org", "a", "1.1-SNAPSHOT", null, "");
     ComponentIdentifier identifier = RepositoryMatcher.resolveComponentIdentifierFromUri(
         "http://localhost/artifactory/api/storage/reponame/g/org/a/1.1-SNAPSHOT/a-1/");
-    assertThat(identifier).isEqualTo(expectedId);
+    assertThat(identifier).isNull();
   }
 
   @Test

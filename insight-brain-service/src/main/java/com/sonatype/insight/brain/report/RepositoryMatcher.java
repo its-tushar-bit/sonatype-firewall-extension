@@ -483,10 +483,24 @@ public class RepositoryMatcher
         ArtifactoryClient artifactoryClient = artifactoryClientFactory.create()
             .forArtifactory(connection.getBaseUrl(), connection.getUsername(),
                 passwordHandler.decryptPassword(connection.getPassword()));
-        matchWithRepository(identifiedComponents, connection, artifactoryClient, filteredNodes);
+
+        Set<String> nodesToRemove =
+            matchWithRepository(identifiedComponents, connection, artifactoryClient, filteredNodes);
+
+        //Remove nodes that only have sha256 (not coordinates) and were not matched by BFS
+        removeUnknownComponentsWithSha256(bomJson, nodesToRemove);
       }
     }
     return identifiedComponents;
+  }
+
+  private void removeUnknownComponentsWithSha256(final JsonNode bomJson, Set<String> nodesToRemove) {
+    Iterator<JsonNode> iterator = bomJson.get(FIELD_AA_DATA).elements();
+    while (iterator.hasNext()) {
+      if (nodesToRemove.contains(iterator.next().path("sha256").asText())) {
+        iterator.remove();
+      }
+    }
   }
 
   private ArtifactoryConnection getArtifactoryConnection(String applicationId) {
@@ -523,7 +537,7 @@ public class RepositoryMatcher
     return result;
   }
 
-  private void matchWithRepository(
+  private Set<String> matchWithRepository(
       final Map<ComponentIdentifier, ObjectNode> identifiedComponents,
       final ArtifactoryConnection rootConnection,
       final ArtifactoryClient artifactoryClient,
@@ -548,8 +562,18 @@ public class RepositoryMatcher
       if (value != null) {
         repositoryIdentifiedComponentCache.put(key, value);
         identifiedComponents.put(value, unresolvedNodesBySha256.get(key));
+        unresolvedNodesBySha256.remove(key);
       }
     });
+
+    Set<String> sha256ToRemove = new HashSet<>();
+    for (Entry<String, ObjectNode> unmatchedComponent : unresolvedNodesBySha256.entrySet()) {
+      ObjectNode node = unmatchedComponent.getValue();
+      if (isSbomComponentWithoutCoordinates(node)) {
+        sha256ToRemove.add(unmatchedComponent.getKey());
+      }
+    }
+    return sha256ToRemove;
   }
 
   private static Map<String, ComponentIdentifier> resolveComponentIdentifierFromArtifactory(
@@ -613,7 +637,14 @@ public class RepositoryMatcher
         String name = resolvePathPart(pathParts[pathParts.length - 2]);
         String namespace = resolvePathPart(StringUtils.join(
             ArrayUtils.removeAll(pathParts, pathParts.length - 1, pathParts.length - 2), "."));
-        return ComponentIdentifier.createMavenCoordinates(namespace, name, version, null, extension);
+
+        if (isValidExtension(extension)) {
+          return ComponentIdentifier.createMavenCoordinates(namespace, name, version, null, extension);
+        }
+        else {
+          log.debug("The path {} from Artifactory has an unsupported extension", path);
+          return null;
+        }
       }
     }
     catch (URISyntaxException e) {
@@ -644,9 +675,9 @@ public class RepositoryMatcher
     for (JsonNode bomJsonNode : aaData) {
       ObjectNode bomObjectNode = (ObjectNode) bomJsonNode;
       if (hasSha256(bomObjectNode) &&
-          hasMatchableStatus(bomObjectNode) &&
-          isOfMatchableFileType(bomObjectNode) &&
-          notProprietary(bomObjectNode)) {
+          notProprietary(bomObjectNode) &&
+          (hasMatchableStatus(bomObjectNode) &&
+              isOfMatchableFileType(bomObjectNode) || isSbomComponentWithoutSupportedCoordinates(bomObjectNode))) {
         filteredNodes.add(bomObjectNode);
       }
     }
@@ -655,6 +686,49 @@ public class RepositoryMatcher
 
   private static boolean hasSha256(final ObjectNode bomObjectNode) {
     return bomObjectNode.hasNonNull(FIELD_SHA256);
+  }
+
+  private static boolean isSbomComponentWithoutCoordinates(final ObjectNode node) {
+    if (!isSbomComponent(node)) {
+      return false;
+    }
+    return getCoordinates(node) == null;
+  }
+
+  private static boolean isSbomComponentWithoutSupportedCoordinates(final ObjectNode node) {
+    if (!isSbomComponent(node)) {
+      return false;
+    }
+    ComponentIdentifier componentIdentifier = getCoordinates(node);
+    return componentIdentifier == null ||
+        !ComponentIdentifier.getSupportedFormats().contains(componentIdentifier.getFormat());
+  }
+
+  private static boolean isSbomComponent(final ObjectNode bomObjectNode) {
+    try {
+      AnalyzerFeatures analyzerFeatures =
+          JsonUtils.asPojo(bomObjectNode.get(FIELD_ANALYZER_FEATURES), AnalyzerFeatures.class);
+      if (analyzerFeatures != null) {
+        return analyzerFeatures.getAnalysisSource() == AnalysisSource.THIRD_PARTY &&
+            "SBOM".equals(analyzerFeatures.getManifestContentType());
+      }
+    }
+    catch (Exception e) {
+      log.warn("Error getting metadata for component");
+    }
+    return false;
+  }
+
+  private static ComponentIdentifier getCoordinates(final ObjectNode bomObjectNode) {
+    JsonNode purl = bomObjectNode.get("packageUrl");
+    if (purl != null && !purl.isNull()) {
+      return ComponentIdentifierAdapter.toComponentIdentifier(purl.asText());
+    }
+    JsonNode ci = bomObjectNode.get("componentIdentifier");
+    if (ci != null && !ci.isNull()) {
+      return ComponentIdentifierAdapter.getComponentIdentifier(ci);
+    }
+    return null;
   }
 
   private static boolean notProprietary(final ObjectNode bomObjectNode) {
@@ -678,6 +752,11 @@ public class RepositoryMatcher
       }
     }
     return false;
+  }
+
+  private static boolean isValidExtension(String componentExtension) {
+    String extension = StringUtils.lowerCase(componentExtension, Locale.ROOT);
+    return extension != null && MATCHABLE_EXTENSIONS.contains(extension);
   }
 
   private static boolean hasMatchableStatus(final ObjectNode bomObjectNode) {

@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -60,6 +61,7 @@ import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.ExtensibleType;
 import org.cyclonedx.model.Extension;
+import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
@@ -358,6 +360,14 @@ public class SbomResultHandler
     String namespace = packageUrlIdentifier.getNamespace();
     if (StringUtils.isNotBlank(namespace)) {
       component.setGroup(namespace);
+    }
+
+    // Process sha-256 only when BFS is enabled
+    if (SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled()) {
+      Hash sha256 = SbomUtils.getSha256(sourceComponent);
+      if (sha256 != null) {
+        component.addHash(sha256);
+      }
     }
 
     return Pair.of(componentIdentifier, component);

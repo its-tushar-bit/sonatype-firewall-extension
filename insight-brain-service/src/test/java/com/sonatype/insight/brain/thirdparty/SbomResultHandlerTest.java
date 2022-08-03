@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -266,7 +267,7 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 1, true);
+    assertFilteredSbomFile(filteredContent, 1, true, false);
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId())).isEmpty();
   }
 
@@ -770,6 +771,16 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_withSha256() throws Exception {
+    SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
+    String sbomContent = getSbomXmlFile("sbom-simple-v1_4.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-v1_4.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertFilteredSbomFile(filteredContent, 1, false, true);
+  }
+
+  @Test
   public void testHandleAndFilterContents_v1_4_json() throws Exception {
     String sbomContent = getSbomJsonFile("sbom-simple-v1-4.json");
     ThirdPartyScanContent content = new ThirdPartyScanContent("sbom-v1_4.json", null, null, null, sbomContent);
@@ -1147,7 +1158,7 @@ public class SbomResultHandlerTest
         new ThirdPartyScanContent("scan-with-sbom-no-name-and-version-no-purl.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 1, true);
+    assertFilteredSbomFile(filteredContent, 1, true, false);
   }
 
   @Test
@@ -1157,7 +1168,7 @@ public class SbomResultHandlerTest
         new ThirdPartyScanContent("scan-with-sbom-no-name-no-purl.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    assertFilteredSbomFile(filteredContent, 2, true);
+    assertFilteredSbomFile(filteredContent, 2, true, false);
   }
 
   @Test
@@ -1291,10 +1302,14 @@ public class SbomResultHandlerTest
   }
 
   private Bom assertFilteredSbomFile(final String content, final int expectedComponentCount) throws Exception {
-    return assertFilteredSbomFile(content, expectedComponentCount, false);
+    return assertFilteredSbomFile(content, expectedComponentCount, false, false);
   }
 
-  private Bom assertFilteredSbomFile(final String content, final int expectedComponentCount, final boolean optional)
+  private Bom assertFilteredSbomFile(
+      final String content,
+      final int expectedComponentCount,
+      final boolean optional,
+      final boolean hasHashes)
       throws Exception
   {
     assertThat(content).isNotNull();
@@ -1315,7 +1330,12 @@ public class SbomResultHandlerTest
       assertThat(component.getCopyright()).isNull();
       assertThat(component.getEvidence()).isNull();
       assertThat(component.getPedigree()).isNull();
-      assertThat(component.getHashes()).isNull();
+      if (hasHashes) {
+        assertThat(component.getHashes()).isNotNull();
+      }
+      else {
+        assertThat(component.getHashes()).isNull();
+      }
       assertThat(component.getExternalReferences()).isNull();
       assertThat(component.getSwid()).isNull();
       assertThat(component.getExtensibleTypes()).isNull();

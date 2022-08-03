@@ -4,8 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import PropTypes from 'prop-types';
 import { NxTable } from '@sonatype/react-shared-components';
 import PolicyViolationsTableRow from './PolicyViolationsTableRow';
+import PolicyViolationPropType from '../QuarantinedComponentReport';
 
 export default function PolicyViolationsTable({ violations }) {
   return (
@@ -20,10 +22,14 @@ export default function PolicyViolationsTable({ violations }) {
         </NxTable.Row>
       </NxTable.Head>
       <NxTable.Body emptyMessage="No policy violations">
-        {violations.activePolicyViolations.map((violation, index) => (
+        {violations.map((violation, index) => (
           <PolicyViolationsTableRow key={index} violation={violation} />
         ))}
       </NxTable.Body>
     </NxTable>
   );
 }
+
+PolicyViolationsTable.propTypes = {
+  violations: PropTypes.arrayOf(PropTypes.shape({ ...PolicyViolationPropType })),
+};

@@ -8,17 +8,22 @@ package com.sonatype.insight.brain.repository;
 import java.util.List;
 
 /**
+ * @deprecated Use {@link RepositoryPolicyViolationDTO} instead
+ * 
  * @since 1.18.0
  */
-public class RepositoryPolicyThreatDTO
+@Deprecated
+public class DeprecatedRepositoryPolicyThreatDTO
 {
   public List<DeprecatedRepositoryPolicyViolationDTO> activePolicyViolations;
 
   // Needed for de-serialization
-  public RepositoryPolicyThreatDTO() {
+  public DeprecatedRepositoryPolicyThreatDTO() {
   }
 
-  public RepositoryPolicyThreatDTO(final List<DeprecatedRepositoryPolicyViolationDTO> activePolicyViolations) {
+  public DeprecatedRepositoryPolicyThreatDTO(
+      final List<DeprecatedRepositoryPolicyViolationDTO> activePolicyViolations)
+  {
     this.activePolicyViolations = activePolicyViolations;
   }
 }

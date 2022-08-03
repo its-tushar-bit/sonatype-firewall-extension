@@ -239,7 +239,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     tempEntity.newRepositoryComponent(repository.getId(), pathname, new Date(), null);
     tempEntity.newRepositoryComponent(repository.getId(), "path4", new Date(), null);
 
-    RepositoryPolicyThreatDTO repositoryPolicyThreatDTO = repositoryService
+    DeprecatedRepositoryPolicyThreatDTO repositoryPolicyThreatDTO = repositoryService
         .getPolicyThreats(repository.getId(), pathname);
 
     assertThat(repositoryPolicyThreatDTO.activePolicyViolations).hasSize(1);

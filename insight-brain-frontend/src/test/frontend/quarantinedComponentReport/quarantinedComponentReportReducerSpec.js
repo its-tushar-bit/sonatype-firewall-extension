@@ -19,7 +19,7 @@ describe('quarantinedComponentReportReducer', function () {
         cataloguedDate: '',
         componentVersion: '',
       },
-      violations: { activePolicyViolations: [] },
+      violations: [],
     }),
   });
 
@@ -138,7 +138,7 @@ describe('quarantinedComponentReportReducer', function () {
   describe('LOAD_POLICY_VIOLATIONS_REQUESTED action', function () {
     let minimumState = {
       viewState: {
-        violations: { activePolicyViolations: [] },
+        violations: [],
       },
     };
 
@@ -156,7 +156,7 @@ describe('quarantinedComponentReportReducer', function () {
   describe('LOAD_POLICY_VIOLATIONS_FULFILLED action', function () {
     let minimumState = {
       viewState: {
-        violations: { activePolicyViolations: [] },
+        violations: [],
       },
     };
 
@@ -188,7 +188,7 @@ describe('quarantinedComponentReportReducer', function () {
     let minimumState = {
       viewState: {
         violationsLoadError: null,
-        violations: { activePolicyViolations: [] },
+        violations: [],
       },
     };
 

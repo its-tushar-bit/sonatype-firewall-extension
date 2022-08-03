@@ -28,7 +28,7 @@ const initialState = Object.freeze({
       cataloguedDate: '',
       componentVersion: '',
     },
-    violations: { activePolicyViolations: [] },
+    violations: [],
   }),
 });
 
@@ -80,7 +80,7 @@ const loadPolicyViolationsFulfilled = (payload, state) => {
     ...state,
     viewState: {
       ...state.viewState,
-      violations: { ...payload },
+      violations: payload,
       violationsLoading: false,
       violationsLoadError: null,
     },
@@ -92,7 +92,7 @@ const loadPolicyViolationsFailed = (payload, state) => {
     ...state,
     viewState: {
       ...state.viewState,
-      violations: { ...state.viewState.violations },
+      violations: [...state.viewState.violations],
       violationsLoading: false,
       violationsLoadError: payload,
     },

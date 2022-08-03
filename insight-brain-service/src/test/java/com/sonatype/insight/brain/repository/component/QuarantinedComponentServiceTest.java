@@ -24,8 +24,7 @@ import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
-import com.sonatype.insight.brain.repository.DeprecatedRepositoryPolicyViolationDTO;
+import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -39,8 +38,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_ANONYMOUS_ACCESS_ENABLED;
-import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_OBFUSCATED_COMPONENT_HASH;
 import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_GENERATE_TIME;
+import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_OBFUSCATED_COMPONENT_HASH;
 import static com.sonatype.insight.brain.repository.component.QuarantinedComponentService.QUARANTINED_COMPONENT_REPORT_OBFUSCATED_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -234,18 +233,16 @@ public class QuarantinedComponentServiceTest
         .thenReturn(quarantinedComponentAccess);
 
     // when
-    RepositoryPolicyThreatDTO dto =
+    List<RepositoryPolicyViolationDTO> repositoryPolicyViolationDTOs =
         quarantinedComponentService.getQuarantinedComponentPolicyViolations("token");
 
     // then
-    assertThat(dto).isNotNull();
-    assertThat(dto.activePolicyViolations).hasSize(2);
+    assertThat(repositoryPolicyViolationDTOs).hasSize(2);
 
-    DeprecatedRepositoryPolicyViolationDTO policyViolationDTO = dto.activePolicyViolations.get(0);
+    RepositoryPolicyViolationDTO policyViolationDTO = repositoryPolicyViolationDTOs.get(0);
     assertThat(policyViolationDTO.policyId).isEqualTo(violation2.getPolicyId());
     assertThat(policyViolationDTO.policyThreatLevel).isEqualTo(violation2.getThreatLevel());
     assertThat(policyViolationDTO.policyName).isEqualTo(violation2.getPolicyName());
-    assertThat(policyViolationDTO.blocksUnquarantine).isEqualTo(true);
     assertThat(policyViolationDTO.constraints.get(0).constraintId).isEqualTo(constraintFact.getConstraintId());
     assertThat(policyViolationDTO.constraints.get(0).constraintName).isEqualTo(constraintFact.getConstraintName());
     assertThat(policyViolationDTO.constraints.get(0).conditions.get(0).conditionReason).isEqualTo(

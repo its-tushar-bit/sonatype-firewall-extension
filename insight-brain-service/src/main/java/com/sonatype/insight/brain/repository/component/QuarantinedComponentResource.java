@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.repository.component;
 
 import java.io.IOException;
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +26,7 @@ import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
-import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
+import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -81,7 +83,7 @@ public class QuarantinedComponentResource
   @GET
   @Path(QUARANTINED_COMPONENT_POLICY_VIOLATIONS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public RepositoryPolicyThreatDTO getQuarantinedComponentPolicyViolations(@PathParam("token") String token) {
+  public List<RepositoryPolicyViolationDTO> getQuarantinedComponentPolicyViolations(@PathParam("token") String token) {
     return quarantinedComponentService.getQuarantinedComponentPolicyViolations(token);
   }
 

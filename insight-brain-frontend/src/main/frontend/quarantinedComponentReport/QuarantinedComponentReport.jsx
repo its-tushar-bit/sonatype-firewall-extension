@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import * as PropTypes from 'prop-types';
+import PropTypes from 'prop-types';
 import LoadWrapper from 'MainRoot/react/LoadWrapper';
 import { NxWarningAlert, NxInfoAlert } from '@sonatype/react-shared-components';
 import { formatDate } from 'MainRoot/util/dateUtils';
@@ -98,14 +98,33 @@ export default function QuarantinedComponentReport(props) {
   );
 }
 
+export const ConditionPropType = {
+  conditionType: PropTypes.string.isRequired,
+  conditionSummary: PropTypes.string.isRequired,
+  conditionReason: PropTypes.string.isRequired,
+  conditionTriggerReference: PropTypes.string,
+};
+
+export const ConstraintPropType = {
+  constraintId: PropTypes.string.isRequired,
+  constraintName: PropTypes.string.isRequired,
+  constraintOperator: PropTypes.string.isRequired,
+  conditions: PropTypes.arrayOf(PropTypes.shape(ConditionPropType)),
+};
+
+export const PolicyViolationPropType = {
+  policyId: PropTypes.string.isRequired,
+  policyName: PropTypes.string.isRequired,
+  policyThreatLevel: PropTypes.number.isRequired,
+  constraints: PropTypes.arrayOf(PropTypes.shape(ConstraintPropType)),
+};
+
 QuarantinedComponentReport.propTypes = {
   token: PropTypes.string.isRequired,
   loadQuarantineReportData: PropTypes.func.isRequired,
   loadError: PropTypes.object,
   componentOverview: PropTypes.object,
-  violations: PropTypes.shape({
-    activePolicyViolations: PropTypes.array.isRequired,
-  }).isRequired,
+  violations: PropTypes.arrayOf(PropTypes.shape({ ...PolicyViolationPropType })),
   violationsLoading: PropTypes.bool,
   violationsLoadError: PropTypes.object,
 };

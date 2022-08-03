@@ -133,11 +133,13 @@ public class RepositoryService
   }
 
   /**
-   * @deprecated Use {@link getPolicyViolations(String, String)} instead
+   * @deprecated Use {@link getPolicyViolations(String, String)} instead.
+   *             To be removed when the Repository Results View migration to React is
+   *             completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
    */
   @Deprecated
   @Authorize(permission = Permission.READ)
-  RepositoryPolicyThreatDTO getPolicyThreats(
+  DeprecatedRepositoryPolicyThreatDTO getPolicyThreats(
       @AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
       final String pathname)
   {
@@ -166,7 +168,7 @@ public class RepositoryService
               repositoryPolicyViolation.getConstraintFactsJson()));
     }
 
-    return new RepositoryPolicyThreatDTO(activeRepositoryViolationDTOs);
+    return new DeprecatedRepositoryPolicyThreatDTO(activeRepositoryViolationDTOs);
   }
 
   public RepositoryReportSummary getReportSummary(String repositoryId) {
@@ -309,7 +311,12 @@ public class RepositoryService
 
   /**
    * Sort by threatLevel DESC, pathname ASC.
+   * 
+   * @deprecated The related API endpoint is deprecated.
+   *             To be removed when the Repository Results View migration to
+   *             React is completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
    */
+  @Deprecated
   static final Comparator<RepositoryReportDetail> THREAT_LEVEL_DESC_PATHNAME_ASC = (detail1, detail2) -> {
     // sort ThreatLevel Descending
     final int cmpThreatLevel = detail2.getThreatLevel() - detail1.getThreatLevel();
@@ -467,7 +474,7 @@ public class RepositoryService
     return repositoryPolicyViolationDTOs;
   }
 
-  private static RepositoryPolicyViolationDTO toRepositoryPolicyViolationDTO(
+  public static RepositoryPolicyViolationDTO toRepositoryPolicyViolationDTO(
       RepositoryPolicyViolation repositoryPolicyViolation)
   {
     List<PolicyThreats.PolicyConstraint> constraints =

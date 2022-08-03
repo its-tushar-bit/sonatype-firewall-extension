@@ -38,9 +38,8 @@ import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.evaluator.PolicyThreatsAdapter;
-import com.sonatype.insight.brain.repository.RepositoryPolicyThreatDTO;
-import com.sonatype.insight.brain.repository.DeprecatedRepositoryPolicyViolationDTO;
+import com.sonatype.insight.brain.repository.RepositoryPolicyViolationDTO;
+import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -148,7 +147,7 @@ public class QuarantinedComponentService
     return quarantinedComponentOverviewDto;
   }
 
-  public RepositoryPolicyThreatDTO getQuarantinedComponentPolicyViolations(final String token) {
+  public List<RepositoryPolicyViolationDTO> getQuarantinedComponentPolicyViolations(final String token) {
     final String repositoryComponentId =
         quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(token).getRepositoryComponentId();
     final RepositoryComponent repositoryComponent = repositoryComponentDAO.getById(repositoryComponentId);
@@ -157,12 +156,11 @@ public class QuarantinedComponentService
 
     final List<RepositoryPolicyViolation> policyViolations = getQuarantinedPolicyViolations(repositoryComponent);
 
-    final RepositoryPolicyThreatDTO repositoryPolicyThreatDTO = new RepositoryPolicyThreatDTO();
-    repositoryPolicyThreatDTO.activePolicyViolations =
+    List<RepositoryPolicyViolationDTO> repositoryPolicyViolationDTOs =
         policyViolations.stream().sorted(Comparator.comparingInt(RepositoryPolicyViolation::getThreatLevel).reversed())
-            .map(this::getRepositoryPolicyViolationDto).collect(Collectors.toList());
+            .map(RepositoryService::toRepositoryPolicyViolationDTO).collect(Collectors.toList());
 
-    return repositoryPolicyThreatDTO;
+    return repositoryPolicyViolationDTOs;
   }
 
   public ComponentVersionInfoDTO getQuarantineComponentVersionRemediation(final String token) {
@@ -248,22 +246,6 @@ public class QuarantinedComponentService
       return StringUtils.join(Arrays.copyOf(arr, arr.length - 2), PATHNAME_SEPARATOR) + PATHNAME_SEPARATOR;
     }
     return pathname;
-  }
-
-  private DeprecatedRepositoryPolicyViolationDTO getRepositoryPolicyViolationDto(
-      RepositoryPolicyViolation policyViolation)
-  {
-    final DeprecatedRepositoryPolicyViolationDTO policyViolationDto = new DeprecatedRepositoryPolicyViolationDTO();
-
-    policyViolationDto.policyId = policyViolation.getPolicyId();
-    policyViolationDto.policyName = policyViolation.getPolicyName();
-    policyViolationDto.policyThreatLevel = policyViolation.getThreatLevel();
-    policyViolationDto.constraints =
-        PolicyThreatsAdapter.toPolicyThreatsPolicyConstraints(policyViolation.getConstraintFacts());
-    policyViolationDto.blocksUnquarantine = Action.ID_FAIL.equals(policyViolation.getActionTypeId());
-    policyViolationDto.constraintFactsJson = policyViolation.getConstraintFactsJson();
-
-    return policyViolationDto;
   }
 
   private String getComponentDisplayName(RepositoryComponent repositoryComponent) {

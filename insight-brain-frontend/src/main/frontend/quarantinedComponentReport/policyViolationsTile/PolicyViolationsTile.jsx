@@ -4,8 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useEffect } from 'react';
+import React from 'react';
+import * as PropTypes from 'prop-types';
 import PolicyViolationsTable from './PolicyViolationsTable';
+import PolicyViolationPropType from '../QuarantinedComponentReport';
 
 export default function PolicyViolationsTile({ violations }) {
   return (
@@ -19,3 +21,7 @@ export default function PolicyViolationsTile({ violations }) {
     </section>
   );
 }
+
+PolicyViolationsTile.propTypes = {
+  violations: PropTypes.arrayOf(PropTypes.shape({ ...PolicyViolationPropType })),
+};

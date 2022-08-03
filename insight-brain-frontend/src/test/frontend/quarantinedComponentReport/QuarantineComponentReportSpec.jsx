@@ -29,7 +29,7 @@ describe('QuarantineComponentReport', () => {
       componentOverviewLoading: false,
       componentDisplayName: componentDisplayName,
     },
-    violations: { activePolicyViolations: [] },
+    violations: [],
     violationsLoading: false,
     violationsLoadError: null,
   };

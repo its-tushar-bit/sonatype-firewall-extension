@@ -87,7 +87,9 @@ public class RepositoryReportResource
   }
 
   /**
-   * @deprecated Use {@link RepositoryResource#getPolicyViolations(String, String)} instead
+   * @deprecated Use {@link RepositoryResource#getPolicyViolations(String, String)} instead.
+   *             To be removed when the Repository Results View migration to React is
+   *             completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
    * 
    * @since 1.18.0
    */
@@ -96,8 +98,9 @@ public class RepositoryReportResource
   @Path(POLICY_THREAT_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
-  public RepositoryPolicyThreatDTO getPolicyThreats(@PathParam("repositoryId") final String repositoryId,
-                                                    @PathParam("pathname") final String pathname)
+  public DeprecatedRepositoryPolicyThreatDTO getPolicyThreats(
+      @PathParam("repositoryId") final String repositoryId,
+      @PathParam("pathname") final String pathname)
   {
     return repositoryService.getPolicyThreats(repositoryId, pathname);
   }

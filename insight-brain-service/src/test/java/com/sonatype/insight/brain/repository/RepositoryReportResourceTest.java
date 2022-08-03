@@ -128,6 +128,11 @@ public class RepositoryReportResourceTest
     assertThat(policyEvaluationDetail).isNotNull();
   }
 
+  /**
+   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
+   *             completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
+   */
+  @Deprecated
   @Test
   public void testGetPolicyThreats() throws Exception {
     Repository repository = tempEntity.newRepository();
@@ -137,7 +142,8 @@ public class RepositoryReportResourceTest
 
     HttpResponse response = restPolicyThreatRequest(repository.getId(), repositoryComponent.getPathname()).get();
     assertResponseStatus(200, response);
-    RepositoryPolicyThreatDTO repositoryPolicyThreatDTO = response.getBody(RepositoryPolicyThreatDTO.class);
+    DeprecatedRepositoryPolicyThreatDTO repositoryPolicyThreatDTO =
+        response.getBody(DeprecatedRepositoryPolicyThreatDTO.class);
     assertThat(repositoryPolicyThreatDTO.activePolicyViolations).hasSize(1);
   }
 

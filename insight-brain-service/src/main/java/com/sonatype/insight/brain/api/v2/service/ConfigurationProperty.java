@@ -121,7 +121,10 @@ public class ConfigurationProperty
           Boolean.class,
           (p, s) -> ConfigurationUtils.schemaMigrationEnabled(s),
           (p, o) -> Objects.toString(o, null)),
-      };
+      new ConfigurationProperty(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES, Integer.class,
+          (p, s) -> NumberUtils.toInt(s, 30),
+          (p, o) -> ConfigurationUtils.sessionTimeoutToString(o))
+  };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(
       Collectors.toMap(ConfigurationProperty::getName, Function.identity()));

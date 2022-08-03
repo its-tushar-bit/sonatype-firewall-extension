@@ -131,6 +131,8 @@ public class SystemConfigurationProperty
 
   public static final String API_PAGE = "API_PAGE";
 
+  public static final String SESSION_TIMEOUT_MINUTES = "sessionTimeout";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

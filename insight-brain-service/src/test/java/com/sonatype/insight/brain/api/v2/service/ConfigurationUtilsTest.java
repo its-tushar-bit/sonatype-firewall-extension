@@ -18,6 +18,7 @@ import com.sonatype.insight.test.LogOutput;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -28,6 +29,9 @@ public class ConfigurationUtilsTest
 {
   @Rule
   public LogOutput logOutput = new LogOutput(ConfigurationUtils.class);
+
+  @Rule
+  public ExpectedException expectedEx = ExpectedException.none();
 
   @Test
   public void testUrlValueToString_Null() {
@@ -164,7 +168,7 @@ public class ConfigurationUtilsTest
   @Test
   public void testUserAgentSuffix_NoControlCharactersToBlockHeaderInjection() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> ConfigurationUtils.userAgentSuffix("\nInjected-Header: Value"))
+      () -> ConfigurationUtils.userAgentSuffix("\nInjected-Header: Value"))
         .withMessageContaining(ConfigurationUtils.INVALID_USER_AGENT_SUFFIX_ERROR_MSG);
   }
 
@@ -172,5 +176,31 @@ public class ConfigurationUtilsTest
   public void testUserAgentSuffix() {
     String validUserAgentSuffix = "Valid User Agent Suffix (Custom/1.0, Bla)";
     assertThat(ConfigurationUtils.userAgentSuffix(validUserAgentSuffix)).isEqualTo(validUserAgentSuffix);
+  }
+
+  @Test
+  public void testSessionTimeoutToStringWithMinorAcceptableValue() {
+    String result = ConfigurationUtils.sessionTimeoutToString(3);
+    assertEquals("3", result);
+  }
+
+  @Test
+  public void testSessionTimeoutToStringWithMajorAcceptableValue() {
+    String result = ConfigurationUtils.sessionTimeoutToString(120);
+    assertEquals("120", result);
+  }
+
+  @Test
+  public void testSessionTimeoutToString_WithLowValue() {
+    expectedEx.expect(RuntimeException.class);
+    expectedEx.expectMessage("Timeout configuration should be in range from 3 to 120 minutes.");
+    ConfigurationUtils.sessionTimeoutToString(2);
+  }
+
+  @Test
+  public void testSessionTimeoutToString_WithHighValue() {
+    expectedEx.expect(RuntimeException.class);
+    expectedEx.expectMessage("Timeout configuration should be in range from 3 to 120 minutes.");
+    ConfigurationUtils.sessionTimeoutToString(122);
   }
 }

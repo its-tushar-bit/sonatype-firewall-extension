@@ -22,6 +22,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,5 +174,13 @@ public class ConfigurationUtils
       return migrationEnabled;
     }
     return parseBooleanWithDefault(schemaMigrationEnabledFromDatabase, true);
+  }
+
+  public static String sessionTimeoutToString(Object timeout) {
+    int minutes = (int) timeout;
+    if (minutes < 3 || minutes > 120) {
+      throw new RuntimeException("Timeout configuration should be in range from 3 to 120 minutes.");
+    }
+    return ObjectUtils.toString(minutes, null);
   }
 }

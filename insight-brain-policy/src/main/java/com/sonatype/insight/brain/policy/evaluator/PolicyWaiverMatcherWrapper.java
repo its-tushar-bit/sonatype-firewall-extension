@@ -69,6 +69,10 @@ public class PolicyWaiverMatcherWrapper
       return false;
     }
 
+    if (componentFact.getComponentIdentifier() == null) {
+      return false;
+    }
+
     ComponentIdentifier componentFactAllVersionsIdentifier =
         componentFact.getComponentIdentifier().createAlternativeVersion("*");
     // The stored version in the waiver should already be the wildcard version so no need to create

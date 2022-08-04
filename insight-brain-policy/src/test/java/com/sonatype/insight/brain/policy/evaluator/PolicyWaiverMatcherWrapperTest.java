@@ -172,6 +172,20 @@ public class PolicyWaiverMatcherWrapperTest
   }
 
   @Test
+  public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS_UnknownComponent() {
+    String hash = "hash";
+    String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@*?type=jar";
+    PolicyWaiver policyWaiver =
+        new PolicyWaiverBuilder().setHash(hash).setComponentMatchStrategy(ALL_VERSIONS)
+            .setAssociatedPackagedUrl(associatedPackagedUrlAllVersions).build();
+
+    ComponentFact componentFact = new ComponentFact(null, "otherHash");
+    PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
+
+    assertThat(policyWaiverMatcherWrapper.matchesComponent(componentFact)).isFalse();
+  }
+
+  @Test
   public void testMatcherWrapper_MatchesConstraintFactsJson() {
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper =
         new PolicyWaiverMatcherWrapper(new PolicyWaiverBuilder().build());

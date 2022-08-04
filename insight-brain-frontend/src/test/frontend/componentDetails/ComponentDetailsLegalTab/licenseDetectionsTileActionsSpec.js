@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
 import { omit } from 'ramda';
 
 import {
@@ -21,10 +20,13 @@ import {
 import * as licenseDetectionTileSelectors from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSelectors';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 
 describe('componentDetailsLicenseDetectionsTileActions', () => {
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-  let store, state;
+  let store, state, mock;
+  beforeAll(() => {
+    mock = axiosMockAdapter();
+  });
 
   beforeEach(function () {
     state = {
@@ -169,45 +171,35 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         ],
       };
 
-    it('immediately dispatches a componentDetailsLicenseDetectionsTile/load/pending action and appropriate requests', () => {
-      mockAxiosCalls({
-        get: {
-          [licenseUrl]: Promise.resolve({}),
-          [componentMultiLicensesUrl]: Promise.resolve({}),
-          [licensesOverrideUrl]: Promise.resolve({}),
-        },
-      });
+    beforeEach(() => {
+      mock.onGet(licenseUrl).reply(200, {});
+      mock.onGet(componentMultiLicensesUrl).reply(200, {});
+      mock.onGet(licensesOverrideUrl).reply(200, {});
+    });
 
-      store.dispatch(load());
+    it('immediately dispatches a componentDetailsLicenseDetectionsTile/load/pending action and appropriate requests', (done) => {
+      store.dispatch(load()).then(() => {
+        expect(mock.history.get.length).toBe(3);
+        expect(mock.history.get[0].url).toBe('/rest/license?filterSynthetic=true');
+        expect(mock.history.get[1].url).toBe(
+          '/rest/ci/componentDetails/application/appPublicId/multiLicenses?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D&identificationSource=identificationSource&scanId=currentScanId'
+        );
+        expect(mock.history.get[2].url).toBe(
+          '/rest/licenseOverride/application/appPublicId?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D'
+        );
+        done();
+      });
 
       const actions = store.getActions();
       expect(actions).toHaveAction({
         type: 'componentDetailsLicenseDetectionsTile/load/pending',
       });
-      expect(axios.get).toHaveBeenCalledTimes(3);
-      expect(axios.get).toHaveBeenCalledWith('/rest/license?filterSynthetic=true');
-      expect(axios.get).toHaveBeenCalledWith(
-        '/rest/ci/componentDetails/application/appPublicId/multiLicenses?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D&identificationSource=identificationSource&scanId=currentScanId'
-      );
-      expect(axios.get).toHaveBeenCalledWith(
-        '/rest/licenseOverride/application/appPublicId?componentIdentifier=%7B%22format%22%3A%22format%22%2C%22coordinates%22%3A%22coordinates%22%7D'
-      );
     });
 
     it('dispatches a componentDetailsLicenseDetectionsTile/load/fulfilled action after successful requests', (done) => {
-      mockAxiosCalls({
-        get: {
-          [licenseUrl]: Promise.resolve({
-            data: licenses,
-          }),
-          [componentMultiLicensesUrl]: Promise.resolve({
-            data: componentLicenses,
-          }),
-          [licensesOverrideUrl]: Promise.resolve({
-            data: licensesOverride,
-          }),
-        },
-      });
+      mock.onGet(licenseUrl).reply(200, licenses);
+      mock.onGet(componentMultiLicensesUrl).reply(200, componentLicenses);
+      mock.onGet(licensesOverrideUrl).reply(200, licensesOverride);
 
       const expectedPendingAction = {
         type: 'componentDetailsLicenseDetectionsTile/load/pending',
@@ -244,14 +236,11 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
     });
 
     describe('dispatches a componentDetailsLicenseDetectionsTile/load/rejected action after an error occurs in any of the requests', () => {
+      // Note in all three tests below we don't need to mock all three requests,
+      // we override only the request in question and the rest remain with default mocking behavior
       it('licenseUrl fails', (done) => {
-        mockAxiosCalls({
-          get: {
-            [licenseUrl]: () => Promise.reject('errorMessage'),
-            [componentMultiLicensesUrl]: Promise.resolve({}),
-            [licensesOverrideUrl]: Promise.resolve({}),
-          },
-        });
+        // To mock response with the error message in the body use function returning rejected promise
+        mock.onGet(licenseUrl).reply(() => Promise.reject('errorMessage'));
 
         const expectedPendingAction = {
           type: 'componentDetailsLicenseDetectionsTile/load/pending',
@@ -270,13 +259,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
       });
 
       it('componentMultiLicensesUrl fails', (done) => {
-        mockAxiosCalls({
-          get: {
-            [licenseUrl]: Promise.resolve({}),
-            [componentMultiLicensesUrl]: () => Promise.reject('errorMessage'),
-            [licensesOverrideUrl]: Promise.resolve({}),
-          },
-        });
+        mock.onGet(componentMultiLicensesUrl).reply(() => Promise.reject('errorMessage'));
 
         const expectedPendingAction = {
           type: 'componentDetailsLicenseDetectionsTile/load/pending',
@@ -295,13 +278,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
       });
 
       it('licensesOverrideUrl fails', (done) => {
-        mockAxiosCalls({
-          get: {
-            [licenseUrl]: Promise.resolve({}),
-            [componentMultiLicensesUrl]: Promise.resolve({}),
-            [licensesOverrideUrl]: () => Promise.reject('errorMessage'),
-          },
-        });
+        mock.onGet(licensesOverrideUrl).reply(() => Promise.reject('errorMessage'));
 
         const expectedPendingAction = {
           type: 'componentDetailsLicenseDetectionsTile/load/pending',
@@ -347,24 +324,31 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
 
     it('sends a post request to the BaseLicenseOverrideUrl with a payload using default licenseIds', (done) => {
       spyOn(licenseDetectionTileSelectors, 'selectEditLicensesForm').and.returnValue(editLicenseForm);
-      mockAxiosCalls({
-        post: {
-          [getBaseLicenseOverrideUrl(ownerType, ownerId)]: Promise.resolve(),
-        },
-      });
+
+      // example of matching request data with asymmetric matcher
+      mock
+        .onPost(getBaseLicenseOverrideUrl(ownerType, ownerId), {
+          asymmetricMatch: function (actual) {
+            return actual.licenseIds.length === 0;
+          },
+        })
+        .reply(200);
 
       store.dispatch(saveEditLicensesForm()).then(() => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-        expect(axios.post).toHaveBeenCalledTimes(1);
-        expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/ownerType/ownerId', {
-          id: null,
-          licenseIds: [],
-          componentIdentifier: Object({ format: 'some format' }),
-          status: 'status',
-          comment: 'some comment',
-          ownerId: 'ownerId',
-        });
+        expect(mock.history.post.length).toBe(1);
+        expect(mock.history.post[0].url).toBe('/rest/licenseOverride/ownerType/ownerId');
+        expect(mock.history.post[0].data).toEqual(
+          JSON.stringify({
+            id: null,
+            licenseIds: [],
+            componentIdentifier: Object({ format: 'some format' }),
+            status: 'status',
+            comment: 'some comment',
+            ownerId: 'ownerId',
+          })
+        );
 
         const actions = store.getActions();
         expect(actions.length).toBe(5);
@@ -382,24 +366,24 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
           ...editLicenseForm,
           status: testStatus,
         });
-        mockAxiosCalls({
-          post: {
-            [getBaseLicenseOverrideUrl(ownerType, ownerId)]: Promise.resolve(),
-          },
-        });
+
+        mock.onPost(getBaseLicenseOverrideUrl(ownerType, ownerId)).reply(200);
 
         store.dispatch(saveEditLicensesForm()).then(() => {
           jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-          expect(axios.post).toHaveBeenCalledTimes(1);
-          expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/ownerType/ownerId', {
-            id: null,
-            licenseIds: ['apache 2.0'],
-            componentIdentifier: Object({ format: 'some format' }),
-            status: testStatus,
-            comment: 'some comment',
-            ownerId: 'ownerId',
-          });
+          expect(mock.history.post.length).toBe(1);
+          expect(mock.history.post[0].url).toBe('/rest/licenseOverride/ownerType/ownerId');
+          expect(mock.history.post[0].data).toEqual(
+            JSON.stringify({
+              id: null,
+              licenseIds: ['apache 2.0'],
+              componentIdentifier: Object({ format: 'some format' }),
+              status: testStatus,
+              comment: 'some comment',
+              ownerId: 'ownerId',
+            })
+          );
 
           const actions = store.getActions();
           expect(actions.length).toBe(5);
@@ -435,16 +419,13 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
 
     it('does not send a delete request to the DeleteLicenseOverrideUrl', (done) => {
       spyOn(licenseDetectionTileSelectors, 'selectEditLicensesForm').and.returnValue(editLicenseForm);
-      mockAxiosCalls({
-        del: {
-          [getDeleteLicenseOverrideUrl(ownerType, ownerId, licenseOverrideId)]: Promise.resolve(),
-        },
-      });
+
+      mock.onDelete(getDeleteLicenseOverrideUrl(ownerType, ownerId, licenseOverrideId)).reply(200);
 
       store.dispatch(deleteLicenseOverride()).then(() => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-        expect(axios.delete).toHaveBeenCalledTimes(0);
+        expect(mock.history.delete.length).toBe(0);
 
         const actions = store.getActions();
         expect(actions.length).toBe(5);
@@ -461,17 +442,14 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         ...editLicenseForm,
         scope: { ...editLicenseForm.scope, licenseOverride: { id: licenseOverrideId } },
       });
-      mockAxiosCalls({
-        del: {
-          [getDeleteLicenseOverrideUrl(ownerType, ownerId, licenseOverrideId)]: Promise.resolve(),
-        },
-      });
+
+      mock.onDelete(getDeleteLicenseOverrideUrl(ownerType, ownerId, licenseOverrideId)).reply(200);
 
       store.dispatch(deleteLicenseOverride()).then(() => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-        expect(axios.delete).toHaveBeenCalledTimes(1);
-        expect(axios.delete).toHaveBeenCalledWith('/rest/licenseOverride/ownerType/ownerId/licenseOverrideId');
+        expect(mock.history.delete.length).toBe(1);
+        expect(mock.history.delete[0].url).toBe('/rest/licenseOverride/ownerType/ownerId/licenseOverrideId');
 
         const actions = store.getActions();
         expect(actions.length).toBe(5);
@@ -500,11 +478,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
     });
 
     it('retrieves from backend features and found that Advance Legal Pack feature is enabled', (done) => {
-      mockAxiosCalls({
-        get: {
-          [getProductFeaturesUrl()]: () => Promise.resolve({ data: ['advanced-legal-pack'] }),
-        },
-      });
+      mock.onGet(getProductFeaturesUrl()).reply(200, ['advanced-legal-pack']);
 
       store.dispatch(fetchAdvanceLegalPackFeatures()).then(() => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -520,11 +494,7 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
     });
 
     it('retrieves from backend features and found that Advance Legal Pack feature is NOT enabled', (done) => {
-      mockAxiosCalls({
-        get: {
-          [getProductFeaturesUrl()]: () => Promise.resolve({ data: [] }),
-        },
-      });
+      mock.onGet(getProductFeaturesUrl()).reply(200, []);
 
       store.dispatch(fetchAdvanceLegalPackFeatures()).then(() => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);

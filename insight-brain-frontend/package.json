@@ -82,6 +82,7 @@
     "angular-highlightjs": "^0.7.1",
     "angular-marked": "^1.2.2",
     "angular-mocks": "~1.6.10",
+    "axios-mock-adapter": "^1.20.0",
     "babel-loader": "^8.2.2",
     "copy-modules-webpack-plugin": "^2.2.1",
     "copy-webpack-plugin": "^9.0.1",

@@ -4,23 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import { times } from 'ramda';
+import { render, screen, fireEvent, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import ReportsPage from 'MainRoot/report/react/ReportsPage';
 import * as reportsSelectors from 'MainRoot/report/react/reportsSelectors';
 import { actions as reportsActions, RESULTS_PER_PAGE } from 'MainRoot/report/react/reportsSlice';
-import axios from 'axios';
 import { getActionStageUrl, getApplicationSummariesUrl, getApplicationSummaryUrl } from 'MainRoot/util/CLMLocation';
-
-function generateArrayOfNumbers(start = 0, end = 1) {
-  return Array.apply(0, Array(end)).map((_, b) => b + start);
-}
 
 describe('ReportsPage', () => {
   let renderComponent,
     loadStagesAndReportsSpy,
     loadMoreSpy,
     reportsSlice,
-    mockAxiosCalls,
+    mock,
     sortReportsSpy,
     filterReportsSpy,
     selectHasMoreReportsSpy,
@@ -207,9 +203,11 @@ describe('ReportsPage', () => {
     loadingPublicIds: new Set(),
   };
 
-  beforeEach(() => {
-    mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  beforeAll(() => {
+    mock = axiosMockAdapter();
+  });
 
+  beforeEach(() => {
     selectReportsLoadErrorSpy = spyOn(reportsSelectors, 'selectReportsLoadError').and.callThrough();
     selectHasMoreReportsSpy = spyOn(reportsSelectors, 'selectHasMoreReports').and.callThrough();
     selectIsLoadingSpy = spyOn(reportsSelectors, 'selectReportsLoading').and.callThrough();
@@ -227,39 +225,30 @@ describe('ReportsPage', () => {
     sortReportsSpy = spyOn(reportsActions, 'sortReports').and.callThrough();
     filterReportsSpy = spyOn(reportsActions, 'filterReports').and.callThrough();
 
-    mockAxiosCalls({
-      get: {
-        ...generateArrayOfNumbers(1, 20)
-          .map((pages) => ({
-            key: getApplicationSummariesUrl('', 'APP_NAME_ASC', pages, RESULTS_PER_PAGE),
-            value: Promise.resolve({ data: reportsSlice.applicationsInformationList }),
-          }))
-          .reduce((p, c) => ({ ...p, [c.key]: c.value }), {}),
-        [getActionStageUrl()]: Promise.resolve({ data: reportsSlice.stages }),
-        [getApplicationSummaryUrl('CDPAPPGO')]: Promise.resolve({
-          data: {
-            publicId: 'CDPAPPGO',
-            contact: {
-              displayName: 'Admin user',
-            },
-          },
-        }),
-        [getApplicationSummaryUrl('TestAppId2')]: Promise.resolve({
-          data: {
-            publicId: 'TestAppId2',
-            contact: {
-              displayName: 'Other User with a very very very very very very very very very long name',
-            },
-          },
-        }),
-        [getApplicationSummaryUrl('TestAppId3')]: Promise.resolve({
-          data: {
-            publicId: 'TestAppId3',
-            contact: {
-              error: 'User not found',
-            },
-          },
-        }),
+    times((n) => {
+      const pages = n + 1;
+      mock
+        .onGet(getApplicationSummariesUrl('', 'APP_NAME_ASC', pages, RESULTS_PER_PAGE))
+        .reply(200, reportsSlice.applicationsInformationList);
+    }, 20);
+
+    mock.onGet(getActionStageUrl()).reply(200, reportsSlice.stages);
+    mock.onGet(getApplicationSummaryUrl('CDPAPPGO')).reply(200, {
+      publicId: 'CDPAPPGO',
+      contact: {
+        displayName: 'Admin user',
+      },
+    });
+    mock.onGet(getApplicationSummaryUrl('TestAppId2')).reply(200, {
+      publicId: 'TestAppId2',
+      contact: {
+        displayName: 'Other User with a very very very very very very very very very long name',
+      },
+    });
+    mock.onGet(getApplicationSummaryUrl('TestAppId3')).reply(200, {
+      publicId: 'TestAppId3',
+      contact: {
+        error: 'User not found',
       },
     });
 

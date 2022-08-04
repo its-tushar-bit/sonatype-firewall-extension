@@ -10,6 +10,8 @@ import { Provider } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import reducers from '../../main/frontend/reduxConfig/reducers';
 import JasmineDOM from '@testing-library/jasmine-dom';
+import MockAdapter from 'axios-mock-adapter';
+import axios from 'axios';
 
 window.CLM = {
   path: '../brain/',
@@ -223,6 +225,8 @@ window.SpecUtil = {
   },
 
   /**
+   * Deprecated! Please use axiosMockAdapter()!
+   *
    * Returns a function that can be used to mock axios calls to the different http verbs.
    *
    * The returned function takes in an object of the form { httpVerb: callDefinitions },
@@ -250,6 +254,7 @@ window.SpecUtil = {
    *    });
    * @param  axios
    * @returns Function
+   * @deprecated - use axiosMockAdapter()
    */
   axiosMockerGenerator: function (axios) {
     return function (responses) {
@@ -368,3 +373,30 @@ function render(
 export * from '@testing-library/react';
 // override render method
 export { render };
+
+let mock;
+
+/**
+ * call this from beforeAll()
+ *
+ * Example:
+ *
+ * import { axiosMockAdapter } from 'TestRoot/SpecUtil';
+ * let mock;
+ * beforeAll(() => {
+ *   mock = axiosMockAdapter();
+ * });
+ */
+export function axiosMockAdapter() {
+  mock = new MockAdapter(axios);
+  return mock;
+}
+
+afterEach(() => {
+  mock && mock.reset();
+});
+
+afterAll(() => {
+  mock && mock.restore();
+  mock = null;
+});

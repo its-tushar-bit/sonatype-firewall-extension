@@ -72,7 +72,7 @@ export const attachAxiosInterceptors = (
 
   // iq interceptor
   axios.interceptors.response.use(function (response) {
-    const { date: dateString } = response.headers;
+    const dateString = response.headers?.date;
     const serverDate = dateString ? new Date(dateString) : undefined;
 
     if (serverDate) {

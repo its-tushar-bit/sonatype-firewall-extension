@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -87,7 +86,6 @@ import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityIdConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
@@ -1925,8 +1923,6 @@ public class ScanPolicyEvaluatorTest
         ">=", "7");
     Condition securityVulnerabilityStatusCondition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
         "ACKNOWLEDGED");
-    Condition securityVulnerabilityidCondition =
-        new Condition(SecurityVulnerabilityIdConditionType.ID, "is", "sonatype-2007-0004");
     Condition packageUrlCondition = new Condition(PackageUrlConditionType.ID, "matches", "pkg:maven/*/*@*");
     Condition componentCategoryCondition = new Condition(ComponentCategoryConditionType.ID, "is not", "113");
     Condition hygieneCondition = new Condition(HygieneRatingConditionType.ID, "is not", "1");
@@ -1942,8 +1938,8 @@ public class ScanPolicyEvaluatorTest
     List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
         licenseThreatGroupLevelCondition, matchStateCondition, proprietaryCondition, relativePopularityCondition,
-        securityVulnerabilitySeverityCondition, securityVulnerabilityStatusCondition, securityVulnerabilityidCondition,
-        packageUrlCondition, componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
+        securityVulnerabilitySeverityCondition, securityVulnerabilityStatusCondition, packageUrlCondition,
+        componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
         componentFormatCondition, vulnerabilityCategoryCondition, integrityCondition,
         securityVulnerabilitySourceCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);

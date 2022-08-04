@@ -335,7 +335,7 @@ tbody .iq-cell--application-report-component-display {
 }
 
 .iq-app-report__component-name-cell,
-.iq-app-report__policy-name-cell {
+.iq-app-report__policy-name-text {
   @include nx-text-helpers.truncate-ellipsis;
 }
 

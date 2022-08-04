@@ -6,7 +6,13 @@
 import React, { Fragment } from 'react';
 import { useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
-import { NxFontAwesomeIcon, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
+import {
+  NxFontAwesomeIcon,
+  NxOverflowTooltip,
+  NxTableCell,
+  NxTableRow,
+  NxThreatIndicator,
+} from '@sonatype/react-shared-components';
 import { faCheck, faHistory } from '@fortawesome/pro-solid-svg-icons';
 
 import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
@@ -84,7 +90,9 @@ export default function ReportTableRow({ onClick, component }) {
         <span className="nx-threat-number">{component.policyThreatLevel}</span>
       </NxTableCell>
       <NxTableCell className="iq-app-report__policy-name-cell">
-        <span>{component.policyName}</span>
+        <NxOverflowTooltip>
+          <div className="iq-app-report__policy-name-text">{component.policyName}</div>
+        </NxOverflowTooltip>
       </NxTableCell>
       <NxTableCell className="iq-app-report__component-name-cell">
         {isAggregated && component.innerSource && (

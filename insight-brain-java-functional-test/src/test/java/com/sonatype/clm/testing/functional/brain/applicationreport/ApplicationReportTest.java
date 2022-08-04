@@ -59,6 +59,7 @@ import com.sonatype.insight.model.HasStringId;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -386,7 +387,10 @@ public class ApplicationReportTest
   @Test
   public void testEllipsisInPolicyName() {
     reportPage.headers().policyNameFilterInput().setValue("License-Threat");
-    reportPage.getColFromResultRow(1, 2).shouldHave(cssValue("text-overflow", "ellipsis"));
+    SelenideElement policyName = reportPage.getColFromResultRow(1, 2);
+    policyName.lastChild().shouldHave(cssValue("text-overflow", "ellipsis"));
+    policyName.hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("License-Threat Not Assigned"));
 
     // We need to ensure by visual tests that the ellipsis is shown, there is no way
     // to see if the ellipsis is applied by looking to the HTML, attributes or innerText,

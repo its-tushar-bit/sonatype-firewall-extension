@@ -258,7 +258,8 @@ public class InsightBrainService
     // Force exit if schema version table does not exist or if migration was needed but didn't happen.
     if (!DatabaseProvisionUtils.isInMemoryDatabase() &&
         (!DatabaseProvisionUtils.isSchemaVersionTableExists() || DatabaseProvisionUtils.isMigrationNeeded())) {
-      log.error("Database migration is needed. Please migrate the database before starting the application!");
+      log.error("\n\n\t\t\t***** Database migration is required. " +
+          "Please migrate the database before starting the application! *****\n");
       System.exit(1);
     }
   }

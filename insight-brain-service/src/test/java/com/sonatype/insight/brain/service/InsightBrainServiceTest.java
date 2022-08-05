@@ -384,7 +384,7 @@ public class InsightBrainServiceTest
     initServer(config -> {
     });
 
-    assertThat(logOutput).doesNotContain("Database migration is needed.");
+    assertThat(logOutput).doesNotContain("Database migration is required.");
   }
 
   @Test
@@ -406,7 +406,8 @@ public class InsightBrainServiceTest
     }
 
     assertThat(logOutput).atErrorLevel()
-        .contains("Database migration is needed. Please migrate the database before starting the application!");
+        .contains("\n\n\t\t\t***** Database migration is required. " +
+            "Please migrate the database before starting the application! *****\n");
   }
 
   @Test
@@ -427,7 +428,8 @@ public class InsightBrainServiceTest
     }
 
     assertThat(logOutput).atErrorLevel()
-        .contains("Database migration is needed. Please migrate the database before starting the application!");
+        .contains("\n\n\t\t\t***** Database migration is required. " +
+            "Please migrate the database before starting the application! *****\n");
   }
 
   @Test

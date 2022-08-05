@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -32,6 +33,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(value = PublicApiPaths.CONFIG_RESOURCE_PATH_V2)
+@UnlicensedPath
 public class DefaultApiConfigurationResource
     implements ApiConfigurationResource
 {

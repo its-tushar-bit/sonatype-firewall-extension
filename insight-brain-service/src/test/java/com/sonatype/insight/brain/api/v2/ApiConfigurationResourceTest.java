@@ -31,7 +31,17 @@ public class ApiConfigurationResourceTest
   }
 
   @Test
-  public void testGetConfiguration() throws Exception {
+  public void testGetConfiguration_Licensed() throws Exception {
+    testGetConfiguration();
+  }
+
+  @Test
+  public void testGetConfiguration_Unlicensed() throws Exception {
+    uninstallLicense();
+    testGetConfiguration();
+  }
+
+  private void testGetConfiguration() throws Exception {
     dao.set(SystemConfigurationProperty.BASE_URL, "http://baseUrl/");
     dao.set(SystemConfigurationProperty.FORCE_BASE_URL, String.valueOf(Boolean.TRUE));
 
@@ -53,7 +63,17 @@ public class ApiConfigurationResourceTest
   }
 
   @Test
-  public void testSetConfiguration() throws Exception {
+  public void testSetConfiguration_Licensed() throws Exception {
+    testSetConfiguration();
+  }
+
+  @Test
+  public void testSetConfiguration_Unlicensed() throws Exception {
+    uninstallLicense();
+    testSetConfiguration();
+  }
+
+  private void testSetConfiguration() throws Exception {
     Map<String, Object> properties = new HashMap<>();
     properties.put(SystemConfigurationProperty.BASE_URL, "http://baseUrl/");
     properties.put(SystemConfigurationProperty.FORCE_BASE_URL, true);
@@ -76,7 +96,17 @@ public class ApiConfigurationResourceTest
   }
 
   @Test
-  public void testDeleteConfiguration() throws Exception {
+  public void testDeleteConfiguration_Licensed() throws Exception {
+    testDeleteConfiguration();
+  }
+
+  @Test
+  public void testDeleteConfiguration_Unlicensed() throws Exception {
+    uninstallLicense();
+    testDeleteConfiguration();
+  }
+
+  private void testDeleteConfiguration() throws Exception {
     dao.set(SystemConfigurationProperty.BASE_URL, "http://baseUrl/");
     dao.set(SystemConfigurationProperty.FORCE_BASE_URL, String.valueOf(Boolean.TRUE));
 

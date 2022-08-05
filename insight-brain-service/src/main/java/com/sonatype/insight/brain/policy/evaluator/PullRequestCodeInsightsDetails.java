@@ -12,11 +12,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.nexus.iq.location.dto.LocationDiscoveryResult;
 import com.sonatype.nexus.iq.location.dto.RankedSourceLocation;
@@ -68,6 +72,8 @@ public class PullRequestCodeInsightsDetails
   private final List<PolicyViolation> clearedPolicyViolations;
 
   private final LocationDiscoveryResult locationDiscoveryResult;
+
+  private final PolicyDAO policyDAO = new PolicyDAO();
 
   public PullRequestCodeInsightsDetails(
       final String repositoryUrl,
@@ -143,8 +149,18 @@ public class PullRequestCodeInsightsDetails
   }
 
   public BitbucketCodeInsightReportOutcome getReportOutcome() {
-    return policyViolationDiff.getAppeared()
-        .isEmpty() ? BitbucketCodeInsightReportOutcome.PASS : BitbucketCodeInsightReportOutcome.FAIL;
+    List<PolicyViolation> policyViolations = policyViolationDiff.getAppeared();
+    for (PolicyViolation policyViolation : policyViolations) {
+      Policy policy = policyDAO.getById(policyViolation.getPolicyId());
+      List<Action> actions = policy.toActions(featureBranchEvaluation.getStageTypeId(), false, null);
+      for (Action action : actions) {
+        if (action.getActionTypeId().equals(FailActionType.ID)) {
+          return BitbucketCodeInsightReportOutcome.FAIL;
+        }
+      }
+    }
+
+    return BitbucketCodeInsightReportOutcome.PASS;
   }
 
   public URI getReportUri() {

@@ -151,6 +151,7 @@ public class PullRequestCodeInsightsDetailsTest
   public void testPullRequestCodeInsights_addedOnly() throws Exception {
     //setup test data
     setupTestData();
+    createTestData_Policies(true);
 
     ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.190", "", "jar");
     RankedSourceLocation sourceLocation1 = new RankedSourceLocation("/pom.xml", 19, 1);
@@ -188,6 +189,26 @@ public class PullRequestCodeInsightsDetailsTest
   }
 
   @Test
+  public void testPullRequestCodeInsights_addedOnly_OutcomePass() throws Exception {
+    //setup test data
+    setupTestData();
+    createTestData_Policies(false);
+
+    ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.190", "", "jar");
+    RankedSourceLocation sourceLocation1 = new RankedSourceLocation("/pom.xml", 19, 1);
+    RankedSourceLocation sourceLocation2 = new RankedSourceLocation("/pom.xml", 30, 2);
+    locationDiscoveryResult.getLocationMap().put(ci, Arrays.asList(sourceLocation1, sourceLocation2));
+
+    //when
+    PullRequestCodeInsightsDetails details = new PullRequestCodeInsightsDetails(
+        bitbucketGitRepositoryInfo.normalizedRepositoryUrl, app, componentDetails, featureBranchPolicyEvaluation, diff,
+        lookup(DefaultBaseUrl.class).getConfigured(), locationDiscoveryResult);
+
+    // Pass because the policies do not have FAIL action for RELEASE stage
+    assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
+  }
+
+  @Test
   public void testPullRequestCodeInsights_clearedOnly() throws Exception {
     //setup test data (reversed)
     setupTestData("/PullRequestCodeInsightsDetailsTest/to-report", "/PullRequestCodeInsightsDetailsTest/from-report");
@@ -209,6 +230,7 @@ public class PullRequestCodeInsightsDetailsTest
   @Test
   public void testPullRequestCodeInsights_addedAndCleared() throws Exception {
     setupTestData();
+    createTestData_Policies(true);
 
     // create cleared policy violation that does not exist in the bom file
     PolicyViolation existingViolation = diff.getAppeared().get(0);
@@ -275,6 +297,7 @@ public class PullRequestCodeInsightsDetailsTest
   public void testPullRequestCodeInsights_singlePolicyViolationPlurality() throws IOException, URISyntaxException {
     //setup test data
     setupTestData();
+    createTestData_Policies(true);
 
     final PolicyViolation first = diff.getAppeared().get(0);
     diff.getAppeared().clear();
@@ -445,6 +468,14 @@ public class PullRequestCodeInsightsDetailsTest
 
     Mockito.lenient().when(pullRequestLocationDiscoveryService.doLocationDiscovery(anyList(),
         any(GitRepositoryInfo.class), anyString(), anyString())).thenReturn(locationDiscoveryResult);
+  }
+
+  private void createTestData_Policies(boolean failInRelease) {
+    // add policies - these are the ids in test data we have
+    List<String> policyIds = Arrays.asList("041a17c5f04944178eb8cdfa0880d81b", "05f79154757d4fcfa3d1f7b0b539b7fb",
+        "2aadd95bd58345e69723815413dd4a97", "f48231a74eb943c1ad866d60e4073099", "703d23823ddb40f9a3207011f315e37c");
+
+    tempEntity.createSamplePolicyData(policyIds, failInRelease);
   }
 
   private Map<String, Object> expectedReportData(

@@ -246,6 +246,7 @@ import org.codehaus.plexus.util.StringUtils;
 import org.joda.time.LocalDate;
 import org.junit.rules.ExternalResource;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.*;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.LICENSE;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.OTHER;
@@ -3659,5 +3660,20 @@ public class TemporaryEntity
     config.setPullRequestMonitoringIntervalSeconds(pullRequestMonitoringIntervalSeconds);
     sourceControlConfigurationDAO.insert(config);
     return config;
+  }
+
+  public void createSamplePolicyData(List<String> policyIds, boolean addFailActionForReleaseStage) {
+    Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+
+    for (String policyId : policyIds) {
+      Policy policy = new Policy(policyId, "policy-" + policyId.substring(0, 5));
+      policy.addConstraint(constraint);
+      policy.setOwnerId(ROOT_ORGANIZATION_ID);
+      if (addFailActionForReleaseStage) {
+        policy.setAction("release", Action.ID_FAIL);
+      }
+      newPolicy(policy);
+    }
   }
 }

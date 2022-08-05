@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.git;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -143,6 +145,8 @@ public class BitbucketCodeInsightsServiceTest
 
   @Test
   public void testCodeInsightFeatureFlag() throws IOException {
+    createTestData_Policies();
+
     // verify when disabled that the feature is not interacted with
     SystemConfigurationPropertyFeature.CODE_INSIGHTS.setEnabled(false);
     service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, componentDetails,
@@ -158,6 +162,8 @@ public class BitbucketCodeInsightsServiceTest
 
   @Test
   public void testCodeInsightFlow() throws IOException {
+    createTestData_Policies();
+
     service.invokeAction(gitClientFactory, gitRepositoryInfo, policyViolationDiff, componentDetails,
         featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
 
@@ -191,5 +197,13 @@ public class BitbucketCodeInsightsServiceTest
         featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, BRANCH, locationDiscoveryResult);
 
     verifyNoInteractions(bitbucketApiClient);
+  }
+
+  private void createTestData_Policies() {
+    // add policies - these are the ids in test data we have
+    List<String> policyIds = Arrays.asList("041a17c5f04944178eb8cdfa0880d81b", "05f79154757d4fcfa3d1f7b0b539b7fb",
+        "2aadd95bd58345e69723815413dd4a97", "f48231a74eb943c1ad866d60e4073099", "703d23823ddb40f9a3207011f315e37c");
+
+    tempEntity.createSamplePolicyData(policyIds, true);
   }
 }

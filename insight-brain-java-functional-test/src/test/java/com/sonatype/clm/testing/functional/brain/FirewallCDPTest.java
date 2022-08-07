@@ -299,7 +299,7 @@ public class FirewallCDPTest
   @Test
   public void testTitle() {
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.url(component));
+    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
     waitUntilSpinnersGone();
     firewallCDPPage.title().should(exist).shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
   }
@@ -307,7 +307,7 @@ public class FirewallCDPTest
   @Test
   public void testFormatTag() {
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.url(component));
+    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
     waitUntilSpinnersGone();
     firewallCDPPage.formatTag().should(exist).shouldHave(text("Maven"));
   }
@@ -315,7 +315,7 @@ public class FirewallCDPTest
   @Test
   public void testTabs() {
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.url(component));
+    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
     waitUntilSpinnersGone();
     ElementsCollection tabs = firewallCDPPage.tabs();
     tabs.shouldHaveSize(5);
@@ -348,7 +348,7 @@ public class FirewallCDPTest
   public void testRiskRemediationTile_VersionGraphExplorer() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.url(component));
+    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
     RiskRemediationTile riskRemediation = firewallCDPPage.getRiskRemediationTile();
@@ -366,7 +366,7 @@ public class FirewallCDPTest
   public void testRiskRemediationTile_RecommendedVersions_NoRecommendation() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.url(component));
+    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
     RiskRemediationTile riskRemediation = firewallCDPPage.getRiskRemediationTile();
@@ -390,7 +390,7 @@ public class FirewallCDPTest
   public void testCompareVersionsTable() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.url(component));
+    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
     RiskRemediationTile riskRemediation = firewallCDPPage.getRiskRemediationTile();
@@ -463,7 +463,7 @@ public class FirewallCDPTest
       String unquarantineTimeString,
       String unquarantineType)
   {
-    refreshOrOpen(FirewallCDPPage.url(component));
+    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
     waitUntilSpinnersGone();
     firewallCDPPage.getNextVersionInVersionExplorer().click();
     waitUntilSpinnersGone();
@@ -571,22 +571,22 @@ public class FirewallCDPTest
   public void testRiskRemediationTile() {
     createSecurityPolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.url(component));
+    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
     testCompareButtons(0);
 
-    refreshOrOpen(FirewallCDPPage.url(component));
+    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
     testCompareButtons(1);
 
-    refreshOrOpen(FirewallCDPPage.url(component));
+    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
     testCompareButtons(2);
 
-    refreshOrOpen(FirewallCDPPage.url(component));
+    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
     testCompareButtons(3);
@@ -596,7 +596,7 @@ public class FirewallCDPTest
   public void testComponentOverviewTile() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.url(component));
+    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
     firewallCDPPage.getComponentOverviewTile().shouldBe(visible);
@@ -630,7 +630,7 @@ public class FirewallCDPTest
   public void testComponentFirewallPolicyViolationsClickTab() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.url(component));
+    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
     waitUntilSpinnersGone();
     ElementsCollection tabs = firewallCDPPage.tabs();
     tabs.shouldHaveSize(5);

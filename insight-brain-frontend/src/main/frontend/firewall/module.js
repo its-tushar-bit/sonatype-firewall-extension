@@ -46,7 +46,7 @@ function routes($stateProvider) {
     })
     .state('firewall.componentDetailPage', {
       url:
-        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?proprietary&identificationSource&scanId',
+        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?proprietary&identificationSource&pathname',
       component: 'firewallComponentDetailsPage',
       data: {
         title: 'Firewall Component Details',

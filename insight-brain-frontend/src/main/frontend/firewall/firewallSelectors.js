@@ -18,8 +18,8 @@ export const selectFirewallCDPRouteParams = createSelector(
     'matchState',
     'proprietary',
     'identificationSource',
-    'scanId',
     'tabId',
+    'pathname',
   ])
 );
 export const currentFirewallCDPComponentVersion = createSelector(

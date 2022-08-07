@@ -33,9 +33,9 @@ describe('firewallSelectors', () => {
         matchState: 'exact',
         proprietary: 'false',
         identificationSource: 'sonatype',
-        scanId: '123',
         tabId: 'overview',
         notValidProperty: 'notValidProperty',
+        pathname: 'pathname',
       },
     },
   };
@@ -48,7 +48,7 @@ describe('firewallSelectors', () => {
     expect(selectFirewallCDP(minState)).toEqual(minState.firewall.cdp);
   });
 
-  it('gets repository component proprties from router.currentParams state', () => {
+  it('gets repository component properties from router.currentParams state', () => {
     expect(Object.keys(selectFirewallCDPRouteParams(minState))).toEqual([
       'repositoryId',
       'componentIdentifier',
@@ -56,8 +56,8 @@ describe('firewallSelectors', () => {
       'matchState',
       'proprietary',
       'identificationSource',
-      'scanId',
       'tabId',
+      'pathname',
     ]);
   });
 

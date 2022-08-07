@@ -11,8 +11,8 @@ import java.nio.charset.StandardCharsets;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
+import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 
@@ -28,23 +28,36 @@ public class FirewallCDPPage
 
   public static final String FIREWALL_CDP_TITLE = "#component-details-title";
 
+  private static final String NO_TAB_ID = "";
+
+  private static final String VIOLATIONS_TAB_ID = "violations";
+
   public FirewallCDPPage() {
     super(ROOT);
   }
 
-  public static String url(RepositoryComponent component) {
+  private static String getBaseUrl(RepositoryComponent component, String tabId) {
     ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
     try {
       String componentIdentifierJSONString =
           URLEncoder.encode(toJson(componentIdentifier), String.valueOf(StandardCharsets.UTF_8));
       String url =
           "/firewall/repository/" + component.getRepositoryId() + "/component/" + componentIdentifierJSONString + "/" +
-              component.getHash() + "/" + component.getMatchStateId() + "?proprietary=false";
+              component.getHash() + "/" + component.getMatchStateId() + (tabId.isEmpty() ? NO_TAB_ID : "/" + tabId) +
+              "?proprietary=false&pathname=" + component.getPathname();
       return BaseUrl.resolvePageUrl(url);
     }
     catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static String defaultUrl(RepositoryComponent component) {
+    return getBaseUrl(component, NO_TAB_ID);
+  }
+
+  public static String urlViolationsTab(RepositoryComponent component) {
+    return getBaseUrl(component, VIOLATIONS_TAB_ID);
   }
 
   public SelenideElement title() {
@@ -89,21 +102,6 @@ public class FirewallCDPPage
 
   public SelenideElement getComponentCoordinatesPopOverCloseBtn() {
     return child("#iq-component-coordinates-popover-close-btn");
-  }
-
-  public static String urlViolationsTab(RepositoryComponent component) {
-    ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
-    try {
-      String componentIdentifierJSONString =
-          URLEncoder.encode(toJson(componentIdentifier), String.valueOf(StandardCharsets.UTF_8));
-      String url =
-          "/firewall/repository/" + component.getRepositoryId() + "/component/" + componentIdentifierJSONString + "/" +
-              component.getHash() + "/" + component.getMatchStateId() + "/violations" + "?proprietary=false";
-      return BaseUrl.resolvePageUrl(url);
-    }
-    catch (UnsupportedEncodingException e) {
-      return null;
-    }
   }
 
   public SelenideElement getPolicyViolationsComponent() {

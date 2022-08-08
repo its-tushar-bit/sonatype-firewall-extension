@@ -23,12 +23,6 @@ function extractFromPom(nodeName) {
   return node.firstChild.nodeValue;
 }
 
-const NODE_SASS_FILES = [
-  path.resolve(path.join(__dirname, 'src/main/frontend/lib/bootstrap.scss')),
-  path.resolve(path.join(__dirname, 'src/main/frontend/version-graph/bootstrap-css-index.scss')),
-  path.resolve(path.join(__dirname, 'src/main/frontend/cip/cip-bootstrap.scss')),
-];
-
 /**
  * Create a webpack config for the given paths and options
  * @param entryPath path to the javascript entry file for this config, relative to src/main/frontend
@@ -184,29 +178,8 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals, es5 = fa
             },
           },
         },
-        // We upgraded to dart-sass but it is incompatible with boostrap.
-        // This extra rule was added to compile those boostrap scss files with node-sass.
         {
           test: /\.s?css$/,
-          include: NODE_SASS_FILES,
-          use: [
-            { loader: MiniCssExtractPlugin.loader },
-            { loader: 'css-loader' },
-            {
-              loader: 'resolve-url-loader',
-            },
-            {
-              loader: 'sass-loader',
-              options: {
-                implementation: require('node-sass'),
-                sourceMap: true,
-              },
-            },
-          ],
-        },
-        {
-          test: /\.s?css$/,
-          exclude: NODE_SASS_FILES,
           use: [
             { loader: MiniCssExtractPlugin.loader },
             { loader: 'css-loader' },

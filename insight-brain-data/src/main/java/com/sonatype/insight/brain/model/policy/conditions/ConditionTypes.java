@@ -79,6 +79,9 @@ public class ConditionTypes
 
   public static final SecurityVulnerabilityCategoryConditionType SecurityVulnerabilityCategoryConditionType =
       new SecurityVulnerabilityCategoryConditionType();
+  
+  public static final SecurityVulnerabilityCweConditionType SecurityVulnerabilityCweConditionType =
+      new SecurityVulnerabilityCweConditionType();
 
   public static final IacControlConditionType IacControlConditionType = new IacControlConditionType();
 
@@ -104,6 +107,7 @@ public class ConditionTypes
     add(SecurityVulnerabilitySeverityConditionType);
     add(SecurityVulnerabilityStatusConditionType);
     add(SecurityVulnerabilityCategoryConditionType);
+    add(SecurityVulnerabilityCweConditionType);
     add(SecurityVulnerabilitySourceConditionType);
     add(DataSourceConditionType);
     add(DependencyTypeConditionType);

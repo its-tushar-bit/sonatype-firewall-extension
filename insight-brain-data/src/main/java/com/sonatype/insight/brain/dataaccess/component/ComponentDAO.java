@@ -434,6 +434,13 @@ public class ComponentDAO
           final JsonNode securityVulnerabilityJson = securityJsonArray.get(i);
           final String hash = securityVulnerabilityJson.get("hash").asText();
           final String source = securityVulnerabilityJson.get("source").asText();
+          final String cwe;
+          if (securityVulnerabilityJson.get("cwe") != null) {
+            cwe = securityVulnerabilityJson.get("cwe").asText();
+          }
+          else {
+            cwe = null;
+          }
           final String reference = securityVulnerabilityJson.get("reference").asText();
           final Float severity = JsonUtils.getNullableFloat(securityVulnerabilityJson.get("score"));
           final String statusString = JsonUtils.getNullableString(securityVulnerabilityJson.get("status"));
@@ -448,6 +455,7 @@ public class ComponentDAO
           if (component != null) {
             SecurityVulnerability securityVulnerability = new SecurityVulnerability();
             securityVulnerability.setSource(source);
+            securityVulnerability.setCwe(cwe);
             securityVulnerability.setRefId(reference);
             securityVulnerability.setSeverity(severity);
             securityVulnerability.setStatus(status);

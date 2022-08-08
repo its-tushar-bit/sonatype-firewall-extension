@@ -24,7 +24,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
 
   @Test
   public void testGetJavascript() throws Exception {
-    getHdsServer().respondWith("some javascript").atUri(PendoCache.HDS_PENDO_JS_PATH);
+    getHdsServer().respondWith("some javascript").atUri(PendoCache.PENDO_JS_FILENAME);
 
     HttpResponse response = restRequest()
         .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
@@ -36,7 +36,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
 
   @Test
   public void testGetJavascript_error() throws Exception {
-    getHdsServer().respondWith("some error message").andStatus(404).atUri(PendoCache.HDS_PENDO_JS_PATH);
+    getHdsServer().respondWith("some error message").andStatus(404).atUri(PendoCache.PENDO_JS_FILENAME);
 
     HttpResponse response = restRequest()
         .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();

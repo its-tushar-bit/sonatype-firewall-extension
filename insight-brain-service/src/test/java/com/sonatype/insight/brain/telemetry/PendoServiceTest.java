@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +22,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PendoService.PendoConfig;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
 
 import com.google.common.hash.Hashing;
@@ -73,7 +73,8 @@ public class PendoServiceTest
   public void testGetConfig() throws Exception {
     CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
     segmentInfo.segmentAttributes = Collections.singletonMap("foo", "bar");
-    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
+    when(hdsClient.get(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
+        new ByteArrayInputStream(JsonUtils.generate(segmentInfo)));
     when(productLicense.getContactCompany()).thenReturn(null);
 
     PendoConfig config = pendoService.getConfig();
@@ -86,7 +87,8 @@ public class PendoServiceTest
   @Test
   public void testGetConfig_disabled() throws Exception {
     CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(true);
-    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
+    when(hdsClient.get(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
+        new ByteArrayInputStream(JsonUtils.generate(segmentInfo)));
 
     PendoConfig config = pendoService.getConfig();
     assertThat(config.account).isEmpty();
@@ -99,7 +101,8 @@ public class PendoServiceTest
 
     CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
     segmentInfo.segmentAttributes = Collections.singletonMap("foo", "bar");
-    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
+    when(hdsClient.get(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
+        new ByteArrayInputStream(JsonUtils.generate(segmentInfo)));
 
     PendoConfig config = pendoService.getConfig();
     assertThat(config.account).containsEntry("id", telemetryId.getId()).containsEntry("foo", "bar")
@@ -109,9 +112,8 @@ public class PendoServiceTest
   }
 
   @Test
-  public void testGetConfig_error() throws Exception {
-    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH))
-        .thenThrow(new NotFoundException("failed"));
+  public void testGetConfig_error() {
+    when(hdsClient.get(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenThrow(new NotFoundException("failed"));
 
     PendoConfig config = pendoService.getConfig();
 
@@ -134,7 +136,8 @@ public class PendoServiceTest
     when(productLicense.getContactCompany()).thenReturn("Company A");
     CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
     segmentInfo.segmentAttributes = Collections.singletonMap("iq_accountId", "UNKNOWN-62ec3ededa4a5d9e453f990cac348a");
-    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
+    when(hdsClient.get(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
+        new ByteArrayInputStream(JsonUtils.generate(segmentInfo)));
 
     String hashedCompanyName =
         Hashing.sha256().hashString(productLicense.getContactCompany(), StandardCharsets.UTF_8).toString();
@@ -147,19 +150,20 @@ public class PendoServiceTest
   public void testGetConfig_TelemetryId_LicenseWithSalesforceId() throws Exception {
     CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
     segmentInfo.segmentAttributes = Collections.singletonMap("iq_accountId", "sfAccountIdTest");
-    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH)).thenReturn(segmentInfo);
+    when(hdsClient.get(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
+        new ByteArrayInputStream(JsonUtils.generate(segmentInfo)));
 
     PendoConfig config = pendoService.getConfig();
     assertThat(config.account).containsEntry("id", "sfAccountIdTest");
   }
 
   @Test
-  public void testGetJavascript() throws Exception {
-    when(hdsClient.get(InputStream.class, PendoCache.HDS_PENDO_JS_PATH))
+  public void testGetJavascript() {
+    when(hdsClient.get(InputStream.class, PendoCache.PENDO_JS_FILENAME))
         .thenReturn(new ByteArrayInputStream("test".getBytes()));
 
-    File javascript = pendoService.getJavascript();
-    assertThat(javascript).isFile().hasContent("test");
+    byte[] javascript = pendoService.getJavascript();
+    assertThat(new String(javascript, StandardCharsets.UTF_8)).isEqualTo("test");
   }
 
   @Test

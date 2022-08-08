@@ -26,6 +26,9 @@ public class InsightWorkTest
   @Inject
   private InsightWork work;
 
+  @Inject
+  private InsightConfig insightConfig;
+
   @Test
   public void testGetScanDir() {
     File file = work.getScanDir(VALID_ID);
@@ -184,5 +187,10 @@ public class InsightWorkTest
   public void testGetTemporaryDirectory() {
     File file = work.getTemporaryDirectory();
     assertThat(file).isNotNull();
+  }
+
+  @Test
+  public void testGetCacheDir() {
+    assertThat(work.getCacheDir()).isEqualTo(new File(insightConfig.getClusterDirectory(), "cache"));
   }
 }

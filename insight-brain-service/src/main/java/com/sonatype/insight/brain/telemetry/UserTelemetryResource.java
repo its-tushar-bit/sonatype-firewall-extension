@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.io.File;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -52,7 +50,7 @@ public class UserTelemetryResource
   @Path(JAVASCRIPT_PATH)
   @Produces("application/javascript")
   public Response getJavascript() {
-    File js = pendoService.getJavascript();
+    byte[] js = pendoService.getJavascript();
     if (js != null) {
       return Response.ok(js).build();
     }

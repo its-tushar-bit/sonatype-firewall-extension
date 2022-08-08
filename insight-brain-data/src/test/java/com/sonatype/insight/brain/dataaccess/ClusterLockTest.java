@@ -716,4 +716,31 @@ public class ClusterLockTest
 
     assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForInactiveRepositoryViolationCleaner())).isFalse();
   }
+
+  @Test
+  public void testGetLockIdForFilename() {
+    String filename = "test";
+    assertThat(ClusterLock.getLockIdForFilename(filename)).isEqualTo(ClusterLock.FILENAME_LOCK_PREFIX + filename);
+  }
+
+  @Test
+  public void testCreateForFilename() {
+    String filename = "test";
+    try (ClusterLock clusterLock = ClusterLock.createForFilename(filename)) {
+      clusterLock.lock();
+
+      assertThat(clusterLock.lockId).isEqualTo(ClusterLock.getLockIdForFilename(filename));
+    }
+  }
+
+  @Test
+  public void testDeleteForFilename() {
+    String filename = "test";
+    ClusterLock.createForFilename(filename);
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForFilename(filename))).isTrue();
+
+    ClusterLock.deleteForFilename(filename);
+
+    assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForFilename(filename))).isFalse();
+  }
 }

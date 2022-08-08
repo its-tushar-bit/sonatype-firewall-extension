@@ -25,7 +25,7 @@ public class UserTelemetryResourceAuthzTest
 
   @Test
   public void testGetJavascript() throws Exception {
-    getHdsServer().respondWith("function foo() {}").atUri(PendoCache.HDS_PENDO_JS_PATH);
+    getHdsServer().respondWith("function foo() {}").atUri(PendoCache.PENDO_JS_FILENAME);
     HttpResponse response = restRequest()
         .path(UserTelemetryResource.RESOURCE_PATH, UserTelemetryResource.JAVASCRIPT_PATH).get();
     assertResponseStatus(200, response);

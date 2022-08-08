@@ -69,6 +69,9 @@ public class ClusterLock
   static final String INACTIVE_REPOSITORY_VIOLATION_CLEANER = "inactive-repository-violation-cleaner";
 
   // Visible for testing
+  static final String FILENAME_LOCK_PREFIX = "filename-";
+
+  // Visible for testing
   final String lockId;
 
   // Visible for testing
@@ -257,6 +260,18 @@ public class ClusterLock
   // Visible for testing
   public static String getLockIdForInactiveRepositoryViolationCleaner() {
     return INACTIVE_REPOSITORY_VIOLATION_CLEANER;
+  }
+
+  public static ClusterLock createForFilename(String filename) {
+    return new ClusterLock(getLockIdForFilename(filename));
+  }
+
+  public static void deleteForFilename(String filename) {
+    deleteFor(getLockIdForFilename(filename));
+  }
+
+  public static String getLockIdForFilename(String filename) {
+    return FILENAME_LOCK_PREFIX + filename;
   }
 
   private static void deleteFor(String lockId) {

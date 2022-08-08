@@ -6,22 +6,24 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,41 +36,80 @@ import org.slf4j.LoggerFactory;
 public class PendoCache
     implements ProductLicenseListener
 {
-  public static final String HDS_PENDO_JS_PATH = "user-telemetry.js";
-
-  private static final String CUSTOMER_TELEMETRY_KEY = "segment";
-
   private static final Logger log = LoggerFactory.getLogger(PendoCache.class);
 
-  private final LoadingCache<String, File> jsCache;
+  // Visible for testing
+  public static final String PENDO_JS_FILENAME = "user-telemetry.js";
 
-  private final LoadingCache<String, CustomerTelemetryProperties> propertiesCache;
+  // Visible for testing
+  public static final String PENDO_CUSTOMER_TELEMETRY_FILENAME = "segment";
+
+  private static final Map<String, String> FILENAME_TO_HDS_PATH = ImmutableMap.of(
+      PENDO_JS_FILENAME, PENDO_JS_FILENAME,
+      PENDO_CUSTOMER_TELEMETRY_FILENAME, TelemetrySender.RESOURCE_PATH
+  );
+
+  private final HdsClient hdsClient;
+
+  private final InsightWork insightWork;
 
   @Inject
-  public PendoCache(HdsClient hdsClient) {
-    propertiesCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.DAYS)
-        .build(new CustomerTelemetryPropertiesCacheLoader(hdsClient));
-
-    jsCache = CacheBuilder.newBuilder().removalListener(n -> FileUtils.deleteQuietly((File) n.getValue()))
-        .expireAfterWrite(1, TimeUnit.DAYS).build(new JsCacheLoader(hdsClient));
+  public PendoCache(HdsClient hdsClient, InsightWork insightWork) {
+    this.hdsClient = hdsClient;
+    this.insightWork = insightWork;
   }
 
-  public File getJs() {
+  // Visible for testing
+  byte[] loadFile(String filename) throws IOException {
+    try (ClusterLock clusterLock = ClusterLock.createForFilename(filename)) {
+      clusterLock.lock();
+      return doLoadFile(filename);
+    }
+  }
+
+  // Visible for testing
+  byte[] doLoadFile(String filename) throws IOException {
+    File file = new File(insightWork.getCacheDir(), filename);
+    if (fileNeedsUpdating(file)) {
+      try (InputStream in = hdsClient.get(InputStream.class, PendoCache.FILENAME_TO_HDS_PATH.get(file.getName()))) {
+        FileUtils.copyToFile(in, file);
+        log.debug("Updated {}.", file.getName());
+      }
+    }
+    log.debug("Loaded {}.", file.getName());
+    return Files.readAllBytes(file.toPath());
+  }
+
+  private boolean fileNeedsUpdating(File file) {
+    return !file.exists() || getCurrentTimeMillis() - getLastModifiedTime(file) >= Duration.ofDays(1).toMillis();
+  }
+
+  // Visible for testing
+  long getCurrentTimeMillis() {
+    return System.currentTimeMillis();
+  }
+
+  // Visible for testing
+  long getLastModifiedTime(File file) {
+    return file.lastModified();
+  }
+
+  public byte[] getJs() {
     try {
       CustomerTelemetryProperties customerTelemetryProperties = getCustomerTelemetryProperties();
       if (customerTelemetryProperties.disabled == null || !customerTelemetryProperties.disabled) {
-        return jsCache.get(HDS_PENDO_JS_PATH);
+        return loadFile(PENDO_JS_FILENAME);
       }
     }
     catch (Exception e) {
-      log.debug("Failed to download {}.", HDS_PENDO_JS_PATH, e);
+      log.debug("Failed to retrieve {}.", PENDO_JS_FILENAME, e);
     }
     return null;
   }
 
   public CustomerTelemetryProperties getCustomerTelemetryProperties() {
     try {
-      return propertiesCache.get(CUSTOMER_TELEMETRY_KEY);
+      return JsonUtils.parse(loadFile(PENDO_CUSTOMER_TELEMETRY_FILENAME), CustomerTelemetryProperties.class);
     }
     catch (Exception e) {
       log.debug("Failed to retrieve telemetry segment properties.", e);
@@ -82,47 +123,27 @@ public class PendoCache
     invalidate();
   }
 
-  @VisibleForTesting
+  // Visible for testing
   public void invalidate() {
-    jsCache.invalidateAll();
-    propertiesCache.invalidateAll();
+    for (String filename : FILENAME_TO_HDS_PATH.keySet()) {
+      deleteFileIfExists(filename);
+    }
   }
 
-  private static class JsCacheLoader extends CacheLoader<String, File>
-  {
-    private HdsClient hdsClient;
-
-    JsCacheLoader(HdsClient hdsClient) {
-      this.hdsClient = hdsClient;
-    }
-
-    @Override
-    public File load(String key) throws Exception {
-      log.debug("Retrieving {} from HDS", key);
-      try (InputStream in = hdsClient.get(InputStream.class, key)) {
-        File javascript = Files.createTempFile("iq-cache", "js").toFile();
-        javascript.deleteOnExit();
-
-        FileUtils.copyToFile(in, javascript);
-
-        return javascript;
+  // Visible for testing
+  void deleteFileIfExists(String filename) {
+    File file = new File(insightWork.getCacheDir(), filename);
+    if (file.exists()) {
+      try (ClusterLock clusterLock = ClusterLock.createForFilename(filename)) {
+        clusterLock.lock();
+        doDeleteFile(file);
       }
     }
   }
 
-  private static class CustomerTelemetryPropertiesCacheLoader extends CacheLoader<String, CustomerTelemetryProperties>
-  {
-    private HdsClient hdsClient;
-
-    CustomerTelemetryPropertiesCacheLoader(HdsClient hdsClient) {
-      this.hdsClient = hdsClient;
-    }
-
-    @Override
-    public CustomerTelemetryProperties load(String key) throws Exception {
-      PendoCache.log.debug("Retrieving customer telemetry properties from HDS");
-
-      return hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH);
-    }
+  // Visible for testing
+  void doDeleteFile(File file) {
+    FileUtils.deleteQuietly(file);
+    log.debug("Deleted {}.", file.getName());
   }
 }

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -108,7 +107,7 @@ public class PendoService
     }
   }
 
-  public File getJavascript() {
+  public byte[] getJavascript() {
     return pendoCache.getJs();
   }
 

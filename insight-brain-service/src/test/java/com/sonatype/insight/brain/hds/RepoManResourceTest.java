@@ -88,7 +88,7 @@ public class RepoManResourceTest
   @Test
   public void testProxyTelemetry_JavaScript() throws Exception {
     getCLMServer().getInstance(PendoCache.class).invalidate();
-    getHdsServer().respondWith("some javascript").atUri(PendoCache.HDS_PENDO_JS_PATH);
+    getHdsServer().respondWith("some javascript").atUri(PendoCache.PENDO_JS_FILENAME);
 
     HttpResponse response = restRequest().path(RepoManResource.RESOURCE_PATH)
         .path(UserTelemetryResource.RESOURCE_SUBPATH).path(UserTelemetryResource.JAVASCRIPT_PATH).get();

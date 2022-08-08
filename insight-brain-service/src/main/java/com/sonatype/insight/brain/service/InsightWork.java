@@ -39,6 +39,10 @@ public class InsightWork
     return insightConfig.getSonatypeWork();
   }
 
+  public File getCacheDir() {
+    return new File(insightConfig.getClusterDirectory(), "cache");
+  }
+
   public File getScanDir(final String appId) {
     IdValidationUtils.validate(appId);
     return new File(insightConfig.getClusterDirectory(), "scan/" + appId);

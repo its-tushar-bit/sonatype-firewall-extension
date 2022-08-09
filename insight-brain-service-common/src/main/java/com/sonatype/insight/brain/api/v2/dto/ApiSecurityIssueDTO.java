@@ -28,4 +28,16 @@ public class ApiSecurityIssueDTO
    * @since 1.13.0
    */
   public String threatCategory;
+
+  /**
+   * @since 1.43.0
+   */
+  @JsonInclude(Include.NON_NULL)
+  public String cwe;
+
+  @JsonInclude(Include.NON_NULL)
+  public String cvssVector;
+
+  @JsonInclude(Include.NON_NULL)
+  public String cvssVectorSource;
 }

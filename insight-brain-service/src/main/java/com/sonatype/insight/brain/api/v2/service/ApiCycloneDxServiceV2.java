@@ -7,8 +7,11 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,6 +26,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -44,7 +48,9 @@ import com.sonatype.insight.util.SbomUtils;
 
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
-import org.apache.shiro.util.CollectionUtils;
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.BomGeneratorFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.exception.GeneratorException;
@@ -58,6 +64,12 @@ import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
+import org.cyclonedx.model.vulnerability.Vulnerability;
+import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
+import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
+import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
+import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
+import org.cyclonedx.model.vulnerability.Vulnerability.Source;
 import org.cyclonedx.util.LicenseResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +79,10 @@ import org.slf4j.LoggerFactory;
 public class ApiCycloneDxServiceV2
 {
   private static final Logger log = LoggerFactory.getLogger(ApiCycloneDxServiceV2.class);
+
+  public static final String NVD = "NVD";
+
+  public static final String CVE = "cve";
 
   private final ApiReportDataServiceV2 apiReportDataServiceV2;
 
@@ -148,7 +164,12 @@ public class ApiCycloneDxServiceV2
       }
       bom.addExternalReference(createExternalReference(url, "IQ Report", ExternalReference.Type.BOM));
 
-      createBomComponents(version, data.components, bom);
+      List<String> components = createBomComponents(version, data.components, bom);
+
+      //New vulnerability information is available from SBoM 1.4
+      if (CollectionUtils.isNotEmpty(bom.getComponents()) &&  version.getVersion() >= 1.4) {
+        bom.setVulnerabilities(getVulnerabilityInformation(data.components, components));
+      }
 
       if (MediaType.APPLICATION_JSON.equals(acceptType)) {
         BomJsonGenerator generator = BomGeneratorFactory.createJson(version, bom);
@@ -166,6 +187,137 @@ public class ApiCycloneDxServiceV2
     }
     catch (IOException | ParserConfigurationException | GeneratorException e) {
       throw new InternalServerException("An error occurred generating report", e);
+    }
+  }
+
+  //Visible for testing
+  List<Vulnerability> getVulnerabilityInformation(
+      final List<ApiReportComponentDTOV2> componentInfo,
+      final List<String> componentPurls)
+  {
+    Map<String, Vulnerability> vulnerabilities = new HashMap<>();
+    for (ApiReportComponentDTOV2 component : componentInfo) {
+      if (component.securityData != null &&
+          !MatchState.UNKNOWN.getId().equals(component.matchState) &&
+          CollectionUtils.isNotEmpty(component.securityData.securityIssues)) {
+
+        String purl = component.packageUrl;
+        if (componentPurls.contains(purl)) {
+          Affect affect = new Affect();
+          affect.setRef(purl);
+
+          for (ApiSecurityIssueDTO securityIssue : component.securityData.securityIssues) {
+            if (!vulnerabilities.containsKey(securityIssue.reference)) {
+              createVulnerabilityForSecurityIssue(securityIssue, affect, purl, vulnerabilities);
+            }
+            else {
+              vulnerabilities.get(securityIssue.reference).getAffects().add(affect);
+            }
+          }
+        }
+        else {
+          log.debug("Vulnerability with purl {} does not have a matching component", purl);
+        }
+      }
+    }
+    return new ArrayList<>(vulnerabilities.values());
+  }
+
+  private void createVulnerabilityForSecurityIssue(
+      ApiSecurityIssueDTO securityIssue,
+      Affect affect,
+      String purl,
+      Map<String, Vulnerability> vulnerabilities)
+  {
+    try {
+      Vulnerability vulnerability = new Vulnerability();
+      vulnerability.setAffects(Lists.newArrayList(affect));
+      vulnerability.setId(securityIssue.reference);
+
+      Rating rating = new Rating();
+      rating.setScore(Double.valueOf(securityIssue.severity.toString()));
+      rating.setVector(securityIssue.cvssVector);
+
+      Source source = new Source();
+      if (CVE.equals(securityIssue.source)) {
+        source.setName(NVD);
+      }
+      else {
+        source.setName(securityIssue.source.toUpperCase(Locale.ROOT));
+      }
+      source.setUrl(securityIssue.url);
+      vulnerability.setSource(source);
+
+      setMethod(securityIssue, rating);
+      setSeverity(securityIssue, rating);
+
+      Source sourceVuln = new Source();
+      sourceVuln.setName(source.getName());
+      rating.setSource(sourceVuln);
+      vulnerability.addRating(rating);
+
+      if (StringUtils.isNotBlank(securityIssue.cwe)) {
+        String[] cwes = securityIssue.cwe.split(",");
+        for (String cwe : cwes) {
+          vulnerability.addCwe(Integer.parseInt(cwe));
+        }
+      }
+      vulnerabilities.put(vulnerability.getId(), vulnerability);
+    }
+    catch (Exception e) {
+      log.error("Error creating SBoM Vulnerability for component {} with refId", purl, securityIssue.reference, e);
+    }
+  }
+
+  private void setSeverity(final ApiSecurityIssueDTO securityIssue, final Rating rating) {
+    if (StringUtils.isNotBlank(securityIssue.threatCategory)) {
+      String severityValue = securityIssue.threatCategory.toLowerCase(Locale.ROOT);
+      Severity severity = Severity.fromString(severityValue);
+      if (severity != null) {
+        rating.setSeverity(severity);
+      }
+      else {
+        switch (severityValue) {
+          case "critical":
+            rating.setSeverity(Severity.CRITICAL);
+            break;
+          case "severe":
+            rating.setSeverity(Severity.HIGH);
+            break;
+          case "moderate":
+            rating.setSeverity(Severity.MEDIUM);
+            break;
+          default:
+            rating.setSeverity(Severity.UNKNOWN);
+        }
+      }
+    }
+    else {
+      rating.setSeverity(Severity.UNKNOWN);
+    }
+  }
+
+  private void setMethod(final ApiSecurityIssueDTO securityIssue, final Rating rating) {
+    if (StringUtils.isNotBlank(securityIssue.cvssVectorSource)) {
+      Method method = Method.fromString(securityIssue.cvssVectorSource);
+      if (method != null) {
+        rating.setMethod(method);
+      }
+      else {
+        switch (securityIssue.cvssVectorSource.toLowerCase(Locale.ROOT)) {
+          case "cve_cvss_2":
+            rating.setMethod(Method.CVSSV2);
+            break;
+          case "cve_cvss_3":
+            rating.setMethod(Method.CVSSV3);
+            break;
+          case "cve_cvss_31":
+            rating.setMethod(Method.CVSSV31);
+            break;
+          default:
+            rating.setMethod(Method.OTHER);
+        }
+      }
     }
   }
 
@@ -229,8 +381,14 @@ public class ApiCycloneDxServiceV2
       Component bomComponent = new Component();
       bomComponent.setType(Type.LIBRARY);
 
-      PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(
-          reportComponent.componentIdentifier.toComponentIdentifier());
+      PackageUrlIdentifier purl;
+      if (StringUtils.isNotBlank(reportComponent.packageUrl)) {
+        purl = new PackageUrlIdentifier(reportComponent.packageUrl);
+      }
+      else {
+        purl =
+            PackageUrlIdentifier.fromComponentIdentifier(reportComponent.componentIdentifier.toComponentIdentifier());
+      }
 
       PackageURL packageUrl = new PackageURL(purl.getPackageUrl());
       bomComponent.setPurl(packageUrl);

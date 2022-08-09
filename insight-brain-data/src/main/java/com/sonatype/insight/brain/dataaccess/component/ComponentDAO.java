@@ -450,6 +450,11 @@ public class ComponentDAO
           final List<String> vulnerabilityCategories =
               JsonUtils.getStringListFromArray(securityVulnerabilityJson.get("vulnerabilityCategories"));
           final List<String> aliases = JsonUtils.getStringListFromArray(securityVulnerabilityJson.get("aliases"));
+          final String cweString = JsonUtils.getNullableString(securityVulnerabilityJson.get("cwe"));
+          final String cvssVectorString =
+              JsonUtils.getNullableString(securityVulnerabilityJson.get("cvssVectorString"));
+          final String cvssVectorSource =
+              JsonUtils.getNullableString(securityVulnerabilityJson.get("cvssVectorSource"));
 
           Component component = componentsByHash.get(hash);
           if (component != null) {
@@ -460,6 +465,9 @@ public class ComponentDAO
             securityVulnerability.setSeverity(severity);
             securityVulnerability.setStatus(status);
             securityVulnerability.setUrl(urlString);
+            securityVulnerability.setCwe(cweString);
+            securityVulnerability.setVector(cvssVectorString);
+            securityVulnerability.setVectorSource(cvssVectorSource);
             if (vulnerabilityCategories != null) {
               for (String categoryStr : vulnerabilityCategories) {
                 SecurityVulnerabilityCategory category = SecurityVulnerabilityCategory.getById(categoryStr);

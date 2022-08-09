@@ -41,6 +41,9 @@ public class ApiSecurityDataAdapter
       sv.status = vuln.getStatus().getName();
       sv.url = getSecurityUrl(vuln.getUrl(), vuln.getSource(), vuln.getRefId());
       sv.threatCategory = SecurityThreatLevel.getBySeverity(vuln.getSeverity()).getName();
+      sv.cwe = vuln.getCwe();
+      sv.cvssVectorSource = vuln.getVectorSource();
+      sv.cvssVector = vuln.getVector();
       securityData.securityIssues.add(sv);
     }
 

@@ -8,15 +8,22 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiSecurityDataDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -38,6 +45,12 @@ import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
+import org.cyclonedx.model.vulnerability.Vulnerability;
+import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
+import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
+import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Method;
+import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
+import org.cyclonedx.model.vulnerability.Vulnerability.Source;
 import org.cyclonedx.parsers.Parser;
 import org.cyclonedx.util.LicenseResolver;
 import org.junit.Before;
@@ -45,6 +58,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class ApiCycloneDxServiceV2Test
     extends AbstractComponentTest
@@ -97,32 +111,32 @@ public class ApiCycloneDxServiceV2Test
 
   @Test
   public void testGetByScanId_xml() throws Exception {
-    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_11);
+    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_11, false);
   }
 
   @Test
   public void testGetByScanId_xml_12() throws Exception {
-    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_12);
+    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_12, false);
   }
 
   @Test
   public void testGetByScanId_xml_13() throws Exception {
-    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_13);
+    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_13, false);
   }
 
   @Test
   public void testGetByScanId_xml_14() throws Exception {
-    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_14);
+    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_14, true);
   }
 
   @Test
   public void testGetByScanId_json_12() throws Exception {
-    testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_12);
+    testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_12, false);
   }
 
   @Test
   public void testGetByScanId_json_13() throws Exception {
-    testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_13);
+    testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_13, false);
   }
 
   @Test
@@ -133,13 +147,13 @@ public class ApiCycloneDxServiceV2Test
 
   @Test
   public void testGetByScanId_json_14() throws Exception {
-    testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_14);
+    testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_14, true);
   }
 
-  private void testGetByScanId(String contentType, Version version) throws Exception {
+  private void testGetByScanId(String contentType, Version version, boolean hasVulnerabilities) throws Exception {
     createReportAndPolicyEvaluation();
     Response response = service.getByScanId(application.getId(), scanId, contentType, version);
-    assertBom(response, version);
+    assertBom(response, version, hasVulnerabilities);
   }
 
   @Test
@@ -193,14 +207,15 @@ public class ApiCycloneDxServiceV2Test
   public void testGetLatest(String contentType, Version version) throws Exception {
     createReportAndPolicyEvaluation();
     Response response = service.getLatest(application.getId(), BuildStageType.ID, contentType, version);
-    assertBom(response, version);
+    assertBom(response, version, false);
   }
 
-  private void assertBom(Response response, Version version) throws Exception {
+  private void assertBom(Response response, Version version, boolean hasVulnerabilities) throws Exception {
     byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
     Parser parser = BomParserFactory.createParser(bytes);
     Bom bom = parser.parse(bytes);
 
+    assertThat(parser.validate(bytes, version)).isEmpty();
     assertThat(bom.getSpecVersion()).isEqualTo(version.getVersionString());
     assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
     assertMetadata(bom, application, scanId, version);
@@ -218,7 +233,64 @@ public class ApiCycloneDxServiceV2Test
         RecursiveComparisonConfiguration.builder().withIgnoreCollectionOrder(true).withIgnoreAllExpectedNullFields(true)
             .build()).contains(component1, component2, component3);
 
-    assertThat(parser.validate(bytes, version)).isEmpty();
+    if (hasVulnerabilities) {
+      Vulnerability vulnerability = new Vulnerability();
+
+      List<Affect> affects = new ArrayList<>();
+      Affect affect = new Affect();
+      affect.setRef(component1.getPurl());
+      affects.add(affect);
+      vulnerability.setAffects(affects);
+      vulnerability.setId("sonatype-2019-0115");
+
+      Rating rating = new Rating();
+      rating.setScore(9.8);
+      rating.setSeverity(Severity.CRITICAL);
+      rating.setVector("CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H");
+      rating.setMethod(Method.OTHER);
+
+      Source source = new Source();
+      source.setUrl("http://localhost:8070/ui/links/vln/sonatype-2019-0115");
+      source.setName("SONATYPE");
+      vulnerability.setSource(source);
+
+      Source sourceVuln = new Source();
+      sourceVuln.setName(source.getName());
+      rating.setSource(sourceVuln);
+
+      vulnerability.addRating(rating);
+      vulnerability.addCwe(20);
+
+      Vulnerability vulnerability2 = new Vulnerability();
+
+      affects = new ArrayList<>();
+      affect = new Affect();
+      affect.setRef(component2.getPurl());
+      affects.add(affect);
+      vulnerability2.setAffects(affects);
+      vulnerability2.setId("sonatype-2019-0116");
+
+      source = new Source();
+      source.setUrl("http://localhost:8070/ui/links/vln/sonatype-2019-0116");
+      source.setName("SONATYPE");
+      vulnerability2.setSource(source);
+
+      rating = new Rating();
+      rating.setScore(9.8);
+      rating.setSeverity(Severity.CRITICAL);
+      rating.setVector("CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H");
+      rating.setMethod(Method.OTHER);
+      rating.setSource(sourceVuln);
+
+      vulnerability2.addRating(rating);
+      vulnerability2.addCwe(20);
+
+      assertThat(bom.getVulnerabilities()).usingRecursiveFieldByFieldElementComparator()
+          .containsExactlyInAnyOrder(vulnerability, vulnerability2);
+    }
+    else {
+      assertThat(bom.getVulnerabilities()).isNull();
+    }
   }
 
   private void assertMetadata(Bom bom, Application application, String scanId, Version version) {
@@ -306,6 +378,253 @@ public class ApiCycloneDxServiceV2Test
       licenseChoice.addLicense(license);
     }
     component.setLicenseChoice(licenseChoice);
+    return component;
+  }
+
+  @Test
+  public void test_getVulnerabilityInformation() {
+    List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
+    List<String> matchingComponents = new ArrayList<>();
+
+    ApiReportComponentDTOV2 component =
+        createComponentReport("pkg:generic/test@2", "cve", 9.8f, "10", "CVSSv3", "www.test.com", "critical",
+            "CVE-2022-1234");
+    matchingComponents.add(component.packageUrl);
+    componentReport.add(component);
+
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+
+    Vulnerability vulnerability = new Vulnerability();
+    vulnerability.setId("CVE-2022-1234");
+    Affect affect = new Affect();
+    affect.setRef(component.packageUrl);
+    Source sourceVuln = new Source();
+    sourceVuln.setName("NVD");
+    sourceVuln.setUrl("www.test.com");
+    vulnerability.setSource(sourceVuln);
+
+    Source source = new Source();
+    source.setName("NVD");
+
+    Rating rating = new Rating();
+    rating.setScore(9.8);
+    rating.setMethod(Method.CVSSV3);
+    rating.setSource(source);
+    rating.setVector("vector");
+    rating.setSeverity(Severity.CRITICAL);
+
+    vulnerability.addRating(rating);
+    vulnerability.setAffects(Collections.singletonList(affect));
+
+    assertThat(vulnerabilities)
+        .usingRecursiveFieldByFieldElementComparator(
+            RecursiveComparisonConfiguration.builder().withIgnoreCollectionOrder(true)
+                .withIgnoreAllExpectedNullFields(true).build())
+        .contains(vulnerability);
+  }
+
+  @Test
+  public void test_getVulnerabilityInformation_invalidInfo() {
+    List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
+    List<String> matchingComponents = new ArrayList<>();
+
+    ApiReportComponentDTOV2 unknownComponent = new ApiReportComponentDTOV2();
+    unknownComponent.matchState = MatchState.UNKNOWN.getId();
+    componentReport.add(unknownComponent);
+
+    ApiReportComponentDTOV2 noSecurityDataComponent = new ApiReportComponentDTOV2();
+    componentReport.add(noSecurityDataComponent);
+
+    ApiReportComponentDTOV2 invalidSecurityIssues = new ApiReportComponentDTOV2();
+    invalidSecurityIssues.securityData = new ApiSecurityDataDTO();
+    componentReport.add(invalidSecurityIssues);
+
+    ApiReportComponentDTOV2 notMatchingComponent = new ApiReportComponentDTOV2();
+    notMatchingComponent.packageUrl = "pkg:generic/test@1";
+    componentReport.add(notMatchingComponent);
+
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+    assertThat(vulnerabilities).isEmpty();
+  }
+
+  @Test
+  public void test_getVulnerabilityInformation_source() {
+    List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
+    List<String> matchingComponents = new ArrayList<>();
+
+    ApiReportComponentDTOV2 cveAsSource =
+        createComponentReport("pkg:generic/test@2", "cve", 9.8f, "10", "CVSSv3", "www.test.com", "critical",
+            "CVE-2022-1234");
+    matchingComponents.add(cveAsSource.packageUrl);
+    componentReport.add(cveAsSource);
+
+    ApiReportComponentDTOV2 sonatypeAsSource =
+        createComponentReport("pkg:generic/test@3", "sonatype", 1.0f, "10", "CVSSv3", "www.test1.com", "critical",
+            "CVE-2022-1235");
+    matchingComponents.add(sonatypeAsSource.packageUrl);
+    componentReport.add(sonatypeAsSource);
+
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+
+    assertThat(vulnerabilities).hasSize(2).extracting("source").extracting("name", "url")
+        .containsExactlyInAnyOrder(tuple("NVD", "www.test.com"), tuple("SONATYPE", "www.test1.com"));
+
+    assertThat(vulnerabilities).hasSize(2).extracting("ratings")
+        .flatExtracting(list -> (List<Rating>) list)
+        .extracting("source").extracting("name", "url")
+        .containsExactlyInAnyOrder(tuple("NVD", null), tuple("SONATYPE", null));
+  }
+
+  @Test
+  public void test_getVulnerabilityInformation_method() {
+    List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
+    List<String> matchingComponents = new ArrayList<>();
+
+    ApiReportComponentDTOV2 cdxMethod =
+        createComponentReport("pkg:generic/test@5", "cve", 9.8f, "10", "CVSSv3", "www.test.com", "critical",
+            "CVE-2022-1234");
+    matchingComponents.add(cdxMethod.packageUrl);
+    componentReport.add(cdxMethod);
+
+    ApiReportComponentDTOV2 sonatypeMethod =
+        createComponentReport("pkg:generic/test@6", "cve", 9.8f, "10", "sonatype_cve_cvss_2", "www.test.com",
+            "critical", "CVE-2022-1235");
+    matchingComponents.add(sonatypeMethod.packageUrl);
+    componentReport.add(sonatypeMethod);
+
+    ApiReportComponentDTOV2 otherMethod =
+        createComponentReport("pkg:generic/test@7", "cve", 9.8f, "10", "cve_cvss_31", "www.test.com", "critical",
+            "CVE-2022-1236");
+    matchingComponents.add(otherMethod.packageUrl);
+    componentReport.add(otherMethod);
+
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+
+    assertThat(vulnerabilities).hasSize(3).extracting("ratings")
+        .flatExtracting(list -> (List<Rating>) list)
+        .extracting("method")
+        .containsExactlyInAnyOrder(Method.CVSSV3, Method.OTHER, Method.CVSSV31);
+  }
+
+  @Test
+  public void test_getVulnerabilityInformation_cwe() {
+    List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
+    List<String> matchingComponents = new ArrayList<>();
+
+    ApiReportComponentDTOV2 singleCwe =
+        createComponentReport("pkg:generic/test@5", "cve", 9.8f, "120", "sonatype_cve_cvss_2", "www.test.com",
+            "critical", "CVE-2022-1234");
+    matchingComponents.add(singleCwe.packageUrl);
+    componentReport.add(singleCwe);
+
+    ApiReportComponentDTOV2 multipleCwes =
+        createComponentReport("pkg:generic/test@6", "cve", 9.8f, "110,220", "sonatype_cve_cvss_2", "www.test.com",
+            "critical", "CVE-2022-1235");
+    matchingComponents.add(multipleCwes.packageUrl);
+    componentReport.add(multipleCwes);
+
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+
+    assertThat(vulnerabilities).hasSize(2).extracting("cwes").flatExtracting(list -> (List<Integer>) list)
+        .containsExactlyInAnyOrder(220, 110, 120);
+  }
+
+  @Test
+  public void test_getVulnerabilityInformation_severity() {
+    List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
+    List<String> matchingComponents = new ArrayList<>();
+
+    ApiReportComponentDTOV2 severityCritical =
+        createComponentReport("pkg:generic/test@5", "cve", 9.8f, "120", "CVSSv3", "www.test.com",
+            "Critical", "CVE-2022-1234");
+    matchingComponents.add(severityCritical.packageUrl);
+    componentReport.add(severityCritical);
+
+    ApiReportComponentDTOV2 severityModerate =
+        createComponentReport("pkg:generic/test@6", "cve", 9.8f, "120", "sonatype_cve_cvss_2", "www.test.com",
+            "Moderate", "CVE-2022-1235");
+    matchingComponents.add(severityModerate.packageUrl);
+    componentReport.add(severityModerate);
+
+    ApiReportComponentDTOV2 severityUnknown =
+        createComponentReport("pkg:generic/test@9", "cve", 9.8f, "120", "sonatype_cve_cvss_2", "www.test.com",
+            null, "CVE-2022-1236");
+    matchingComponents.add(severityUnknown.packageUrl);
+    componentReport.add(severityUnknown);
+
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+
+    assertThat(vulnerabilities).hasSize(3).extracting("ratings")
+        .flatExtracting(list -> (List<Rating>) list)
+        .extracting("severity")
+        .containsExactlyInAnyOrder(Severity.MEDIUM, Severity.CRITICAL, Severity.UNKNOWN);
+  }
+
+  @Test
+  public void test_getVulnerabilityInformation_multipleAffects() {
+    List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
+    List<String> matchingComponents = new ArrayList<>();
+
+    ApiReportComponentDTOV2 vuln1 =
+        createComponentReport("pkg:generic/test@5", "cve", 9.8f, "120", "CVSSv3", "www.test.com",
+            "Critical", "CVE-2022-1234");
+    matchingComponents.add(vuln1.packageUrl);
+    componentReport.add(vuln1);
+
+    ApiReportComponentDTOV2 vuln2 =
+        createComponentReport("pkg:generic/test@6", "cve", 9.8f, "120", "CVSSv3", "www.test.com",
+            "Critical", "CVE-2022-1234");
+    matchingComponents.add(vuln2.packageUrl);
+    componentReport.add(vuln2);
+
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+
+    assertThat(vulnerabilities).hasSize(1).extracting("affects")
+        .flatExtracting(list -> (List<Rating>) list)
+        .extracting("ref")
+        .containsExactlyInAnyOrder(vuln1.packageUrl, vuln2.packageUrl);
+  }
+
+  @Test
+  public void test_getVulnerabilityInformation_error_noScore() {
+    List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
+    List<String> matchingComponents = new ArrayList<>();
+
+    ApiReportComponentDTOV2 noScore =
+        createComponentReport("pkg:generic/test@5", "cve", null, "120", "CVSSv3", "www.test.com",
+            "Critical", "CVE-2022-1234");
+    matchingComponents.add(noScore.packageUrl);
+    componentReport.add(noScore);
+
+    assertThat(service.getVulnerabilityInformation(componentReport, matchingComponents)).isEmpty();
+  }
+
+  private ApiReportComponentDTOV2 createComponentReport(
+      String purl,
+      String source,
+      Float severity,
+      String cwe,
+      String vectorSource,
+      String url,
+      String category,
+      String reference)
+  {
+    ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
+    component.packageUrl = purl;
+    ApiSecurityDataDTO securityData = new ApiSecurityDataDTO();
+    ApiSecurityIssueDTO issue = new ApiSecurityIssueDTO();
+    issue.source = source;
+    issue.severity = severity;
+    issue.cwe = cwe;
+    issue.cvssVector = "vector";
+    issue.cvssVectorSource = vectorSource;
+    issue.url = url;
+    issue.threatCategory = category;
+    issue.reference = reference;
+    issue.status = "Open";
+
+    securityData.securityIssues.add(issue);
+    component.securityData = securityData;
     return component;
   }
 }

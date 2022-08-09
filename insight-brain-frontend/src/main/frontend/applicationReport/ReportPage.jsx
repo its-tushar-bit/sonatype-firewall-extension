@@ -3,18 +3,28 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect, Fragment } from 'react';
+import React, { useEffect, useState, Fragment } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { pick } from 'ramda';
-import { NxLoadWrapper, NxStatefulSubmitMask, NxWarningAlert } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxErrorAlert,
+  NxFooter,
+  NxLoadWrapper,
+  NxModal,
+  NxStatefulSubmitMask,
+  NxWarningAlert,
+} from '@sonatype/react-shared-components';
 import ReportStatusBar from './ReportStatusBar';
 import ReportContent from './ReportContent';
 import ReportFilterPopover from './ReportFilterPopover';
 import ReportTitle from './ReportTitle';
+import UnscannedComponentsTable from './unscannedComponentsTable/UnscannedComponentsTable';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import {
   selectApplicationReportSlice,
   selectDependencyTreeIsOldReport,
+  selectHasUnscannedComponents,
   selectIsPolicyTypeFilterEnabled,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -25,8 +35,11 @@ export default function ReportPage() {
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
   const isPolicyTypeFilterEnabled = useSelector(selectIsPolicyTypeFilterEnabled);
   const isOldReportWithNoDependencyInfo = useSelector(selectDependencyTreeIsOldReport);
+  const hasUnscannedComponents = useSelector(selectHasUnscannedComponents);
 
   const { loadError, reevaluateMaskState } = pick(['loadError', 'reevaluateMaskState'], applicationReport);
+  const [showUnscannedComponentsModal, setShowUnscannedComponentsModal] = useState(false);
+  const modalCloseHandler = () => setShowUnscannedComponentsModal(false);
 
   const { publicId, scanId, unknownjs, embeddable, policyViolationId } = routerCurrentParams;
   const loading =
@@ -61,6 +74,35 @@ export default function ReportPage() {
         <MenuBarBackButton text="All Reports" stateName={'violations'} />
         <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
           <ReportFilterPopover />
+          {hasUnscannedComponents && (
+            <NxErrorAlert id="application-report-unscannable-components-error">
+              <span>You have unscannable components in this build</span>
+              <div className="nx-btn-bar">
+                <NxButton variant="error" onClick={() => setShowUnscannedComponentsModal(true)}>
+                  View
+                </NxButton>
+              </div>
+            </NxErrorAlert>
+          )}
+          {showUnscannedComponentsModal && (
+            <NxModal
+              onCancel={modalCloseHandler}
+              aria-labelledby="unscanned-modal-header-text"
+              id="unscanned-components-modal"
+            >
+              <NxModal.Header>
+                <h2 className="nx-h2">Unscannable Components</h2>
+              </NxModal.Header>
+              <NxModal.Content tabIndex={0}>
+                <UnscannedComponentsTable />
+              </NxModal.Content>
+              <NxFooter>
+                <div className="nx-btn-bar">
+                  <NxButton onClick={modalCloseHandler}>Close</NxButton>
+                </div>
+              </NxFooter>
+            </NxModal>
+          )}
           <ReportTitle />
           {!isPolicyTypeFilterEnabled && (
             <NxWarningAlert id="application-report-policy-type-filter-warning">

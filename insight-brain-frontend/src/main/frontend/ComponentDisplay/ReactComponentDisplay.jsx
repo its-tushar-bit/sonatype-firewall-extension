@@ -28,7 +28,9 @@ export default function ComponentDisplay({ component, truncate, matcherStrategy 
 
   return (
     <NxOverflowTooltip>
-      <div className={divClass}>{React.createElement(textTag, undefined, componentName)}</div>
+      <div className={divClass}>
+        {React.createElement(textTag, { className: 'iq-component-display-text' }, componentName)}
+      </div>
     </NxOverflowTooltip>
   );
 }

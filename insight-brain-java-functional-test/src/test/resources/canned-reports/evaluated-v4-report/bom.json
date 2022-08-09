@@ -1453,5 +1453,21 @@
     "lastModifiedTime" : 1413149600000,
     "lastModifiedEntryTime" : null,
     "website" : null
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "webgoat-server-8.2.2.jar" ],
+    "pathnames" : [ "webgoat-server-8.2.2.jar" ],
+    "matchState" : "unknown",
+    "scanError" : true,
+    "proprietary" : false,
+    "hash" : "789g090acf0290fkowe8",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1413149600000,
+    "lastModifiedEntryTime" : null,
+    "website" : null
   } ]
 }

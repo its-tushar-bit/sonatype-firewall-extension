@@ -803,6 +803,33 @@ public class ApplicationReportTest
   }
 
   @Test
+  public void testUnscannedComponentsModal() throws IOException {
+    // Setup
+    final String SCAN_ID2 = "e16caf35769f4b3186a7e3476d34c2798";
+    Application app2 = tempEntity.newApplicationWithParent();
+    URL zippedReport = ReportHelper.zipReport("/canned-reports/evaluated-v4-report", tempDir);
+    InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+    File reportDestination = work.getReportFile(app2.getId(), SCAN_ID2);
+    FileUtils.copyURLToFile(zippedReport, reportDestination);
+    tempEntity.newPolicyEvaluation(app2.getId(), Stage.ID_BUILD, SCAN_ID2);
+    refreshOrOpen(ApplicationReportPage.url(app2, SCAN_ID2));
+
+    reportPage.shouldBe(visible);
+    reportPage.viewUnscannedComponentsButton().shouldBe(visible);
+
+    eyesWatcher.eyesCheck();
+
+    reportPage.viewUnscannedComponentsButton().click();
+    reportPage.unscannedComponentsModal().shouldBe(visible);
+    reportPage.closeUnscannedComponentsModalButton().shouldBe(visible);
+
+    eyesWatcher.eyesCheck();
+
+    reportPage.closeUnscannedComponentsModalButton().click();
+    reportPage.unscannedComponentsModal().shouldNotBe(visible);
+  }
+
+  @Test
   public void testBackNavigation() {
     // Test fully reopened page
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));

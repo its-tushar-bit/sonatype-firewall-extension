@@ -23,6 +23,7 @@ import {
   isNil,
   isEmpty,
   toLower,
+  filter,
 } from 'ramda';
 import {
   LOAD_COMMON_DATA_FAILED,
@@ -110,6 +111,8 @@ const initState = Object.freeze({
   rawDataNumericFilters: Object.freeze({}),
 
   selectedReport: null,
+  unscannedComponents: [],
+  reportHasUnscannedComponents: false,
   selectedComponentIndex: null,
   selectedRootAncestor: null,
   policyTypeFilterEnabled: true,
@@ -333,6 +336,17 @@ function setSelectedReport(state, report) {
     isInnerSourceEnabled: report.isInnerSourceEnabled,
   });
 
+  // check for unscanned components
+  const { allEntries } = report,
+    unscannedComponents = filter(propEq('scanError', true), allEntries);
+  if (unscannedComponents.length > 0) {
+    return {
+      ...newState,
+      reportHasUnscannedComponents: true,
+      unscannedComponents: unscannedComponents,
+    };
+  }
+
   // if there is selected component, update selectedComponentIndex
   if (state.selectedReport && state.selectedComponentIndex != null) {
     const selectedComponent = state.selectedReport.displayedEntries[state.selectedComponentIndex];
@@ -407,18 +421,19 @@ function updateRawDataDisplayedEntries(state) {
  */
 function updateDisplayedEntries(state) {
   let { selectedReport, sortFields, aggregate, exactValueFilters, substringFilters } = state;
+
   if (selectedReport) {
     const { allEntries } = selectedReport,
       filterAndSortEntries = pipe(
         filterReportEntries(exactValueFilters, substringFilters, null),
-        sortItemsByFields(sortFields)
+        sortItemsByFields(sortFields),
+        reject(propEq('scanError', true))
       ),
       processAggregatedEntries = pipe(aggregateReportEntries, filterAndSortEntries),
       aggregatedEntries = processAggregatedEntries(allEntries),
       newDisplayedEntries = aggregate ? aggregatedEntries : filterAndSortEntries(allEntries),
       // create `aggregatedEntries` prop to be used for navigation
       stateWithAggregatedEntries = set(lensPath(['selectedReport', 'aggregatedEntries']), aggregatedEntries, state);
-
     return set(lensPath(['selectedReport', 'displayedEntries']), newDisplayedEntries, stateWithAggregatedEntries);
   } else {
     return state;

@@ -83,6 +83,18 @@ application-report-vulnerabilities {
   }
 }
 
+#application-report-unscannable-components-error {
+  .nx-alert__content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nx-btn-bar {
+    margin: 0;
+  }
+}
+
 #application-report-policy-type-filter-warning {
   margin-top: 0;
 }
@@ -341,4 +353,10 @@ tbody .iq-cell--application-report-component-display {
 
 .iq-app-report__policy-name-cell {
   width: 225px;
+}
+
+#iq-unscanned-components-table {
+  .iq-component-display-text {
+    font-style: normal;
+  }
 }

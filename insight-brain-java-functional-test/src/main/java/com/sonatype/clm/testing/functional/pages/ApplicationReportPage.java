@@ -135,6 +135,18 @@ public class ApplicationReportPage
     return new AppReportHeaders();
   }
 
+  public SelenideElement viewUnscannedComponentsButton() {
+    return child("#application-report-unscannable-components-error .nx-btn--error");
+  }
+
+  public SelenideElement unscannedComponentsModal() {
+    return child("#unscanned-components-modal");
+  }
+
+  public SelenideElement closeUnscannedComponentsModalButton() {
+    return child("#unscanned-components-modal .nx-btn--secondary");
+  }
+
   public static class ResultRow
       extends BasicElement<ResultRow>
   {

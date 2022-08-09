@@ -34,6 +34,8 @@ describe('applicationReportReducer', function () {
       expect(newState.reevaluating).toBe(false);
       expect(newState.reevaluationError).toBe(null);
       expect(newState.selectedReport).toBe(null);
+      expect(newState.unscannedComponents).toEqual([]);
+      expect(newState.reportHasUnscannedComponents).toBe(false);
       expect(newState.aggregate).toBe(true);
       expect(newState.sortFields).toEqual(['-policyThreatLevel', 'policyName', 'derivedComponentName']);
       expect(newState.exactValueFilters).toEqual({});
@@ -135,6 +137,8 @@ describe('applicationReportReducer', function () {
         rawDataSubstringFilters: {},
         rawDataNumericFilters: {},
         selectedReport: null,
+        unscannedComponents: [],
+        reportHasUnscannedComponents: false,
         selectedComponentIndex: null,
         selectedRootAncestor: null,
         policyTypeFilterEnabled: true,
@@ -812,6 +816,20 @@ describe('applicationReportReducer', function () {
       });
       expect(newState.policyTypeFilterEnabled).toBe(false);
       expect(newState.other).toBe(otherObject);
+    });
+
+    it('sets reportHasUnscannedComponents to true if any selectedReport entries have scanError: true', function () {
+      const state = Object.freeze({
+        reportHasUnscannedComponents: false,
+      });
+      const newState = reduce(state, {
+        type: 'LOAD_REPORT_FULFILLED',
+        payload: {
+          allEntries: [{ scanError: false }, { scanError: true }, { scanError: false }],
+          metadata: { reportTitle: 'test unscanned components' },
+        },
+      });
+      expect(newState.reportHasUnscannedComponents).toBe(true);
     });
 
     describe('dependency tree', () => {

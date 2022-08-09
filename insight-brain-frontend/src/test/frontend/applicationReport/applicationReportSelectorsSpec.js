@@ -10,6 +10,7 @@ import {
   selectAggregatedComponentsList,
   selectSelectedComponentInAggregatedList,
   selectSelectedComponentIndexInAggregatedList,
+  selectHasUnscannedComponents,
   selectLoadError,
   selectIsLoading,
   selectReportParameters,
@@ -84,6 +85,7 @@ describe('applicationReportSelectors', () => {
           },
         ],
       },
+      reportHasUnscannedComponents: false,
       loadError: false,
       pendingLoads: new Set(['test']),
     },
@@ -254,6 +256,13 @@ describe('applicationReportSelectors', () => {
       const expected = -1;
       const actual = selectSelectedComponentIndexInAggregatedList(state);
       expect(actual).toEqual(expected);
+    });
+  });
+
+  describe('selectHasUnscannedComponents', () => {
+    it('selects reportHasUnscannedComponents from the state', () => {
+      const actual = selectHasUnscannedComponents(mockState);
+      expect(actual).toEqual(false);
     });
   });
 

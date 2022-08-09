@@ -131,6 +131,7 @@ describe('Report Page component', () => {
     spyOn(applicationReportSelectors, 'selectIsPolicyTypeFilterEnabled').and.returnValue(true);
     spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').and.returnValue('');
     spyOn(applicationReportSelectors, 'selectDependencyTreeIsOldReport').and.returnValue(false);
+    spyOn(applicationReportSelectors, 'selectHasUnscannedComponents').and.returnValue(false);
 
     loadReportIfNeededSpy = spyOn(applicationReportActions, 'loadReportIfNeeded').and.callThrough();
     spyOn(applicationReportActions, 'toggleAggregateReportEntries');
@@ -333,5 +334,31 @@ describe('Report Page component', () => {
     expect(
       screen.getByText('This report was generated with an older version of IQ. Please re-scan the application.')
     ).toBeVisible();
+  });
+
+  describe('when unscannable components exist in the report', () => {
+    it('renders an error alert if the report contains unscannable components', () => {
+      applicationReportSelectors.selectHasUnscannedComponents.and.returnValue(true);
+      renderComponent();
+      expect(screen.getByText('You have unscannable components in this build')).toBeVisible();
+    });
+
+    it('displays a modal when the alert\'s "View" button is clicked and closes when the Close button is clicked', () => {
+      applicationReportSelectors.selectHasUnscannedComponents.and.returnValue(true);
+      renderComponent();
+
+      const viewButton = screen.getByRole('button', { name: 'View' });
+
+      expect(viewButton).toBeVisible();
+      fireEvent.click(viewButton);
+
+      expect(screen.getByText('Unscannable Components')).toBeVisible();
+
+      const closeButton = screen.getByRole('button', { name: 'Close' });
+      expect(closeButton).toBeVisible();
+      fireEvent.click(closeButton);
+
+      expect(screen.queryByText('Unscannable Components')).toBeNull();
+    });
   });
 });

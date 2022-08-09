@@ -37,6 +37,11 @@ export const selectSelectedComponentIndexInAggregatedList = createSelector(
   selectAggregatedComponentsList,
   (component, list = []) => list.indexOf(component)
 );
+export const selectHasUnscannedComponents = createSelector(
+  selectApplicationReportSlice,
+  prop('reportHasUnscannedComponents')
+);
+export const selectUnscannedComponents = createSelector(selectApplicationReportSlice, prop('unscannedComponents'));
 export const selectLoadError = createSelector(selectApplicationReportSlice, prop('loadError'));
 export const selectIsLoading = createSelector(selectApplicationReportSlice, ({ pendingLoads }) => !!pendingLoads.size);
 

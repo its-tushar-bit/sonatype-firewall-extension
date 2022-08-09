@@ -9,9 +9,8 @@ import { NxLoadError, NxLoadWrapper } from '@sonatype/react-shared-components';
 
 import ComponentDetailsTabs from 'MainRoot/componentDetails/ComponentDetailsTabs';
 import * as ComponentDetailsTabsFile from 'MainRoot/componentDetails/ComponentDetailsTabs';
-import FirewallComponentDetailsPage, {
-  tabsConfiguration,
-} from 'MainRoot/firewall/firewallComponentDetailsPage/FirewallComponentDetailsPage';
+import { tabsConfiguration } from 'MainRoot/firewall/firewallComponentDetailsPage/FirewallComponentDetailsPage';
+import FirewallComponentDetailsPage from 'MainRoot/firewall/firewallComponentDetailsPage/FirewallComponentDetailsPage';
 
 const assertTabs = (component, activeTabId) => {
   let tabs;

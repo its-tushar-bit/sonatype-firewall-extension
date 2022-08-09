@@ -17,7 +17,6 @@ import { NxLoadWrapper } from '@sonatype/react-shared-components';
 import { createTabConfiguration } from '../../componentDetails/componentDetailsUtils';
 import FirewallOverview from './overview/FirewallOverview';
 import FirewallPolicyViolations from './policyViolations/FirewallPolicyViolations';
-import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 export const tabsConfiguration = [
   createTabConfiguration('overview', 'Overview', <FirewallOverview />),
@@ -28,14 +27,11 @@ export const tabsConfiguration = [
 ];
 
 export default function FirewallComponentDetailPage(props) {
-  const { loadComponentDetails, CDPResponseState, onCDPTabChange, routeParams, previousPage } = props;
+  const { loadComponentDetails, CDPResponseState, onCDPTabChange, routeParams } = props;
   const { tabId } = routeParams;
   const { componentDetails, isLoadingComponentDetails, componentDetailsError } = CDPResponseState;
   const componentCoordinates =
     componentDetails?.displayName?.parts?.reduce((prev, part) => prev + part.value, '') || '';
-  const backButtonText =
-    previousPage === 'firewall.firewallPage' ? 'Back to Firewall Dashboard' : 'Back to Repository results';
-  const stateName = previousPage === 'firewall.firewallPage' ? 'firewall.firewallPage' : 'repository-report';
 
   useEffect(() => {
     loadComponentDetails(routeParams);
@@ -50,7 +46,6 @@ export default function FirewallComponentDetailPage(props) {
 
   return (
     <main id="firewall-component-details-page" className="nx-viewport-sized nx-page-main">
-      <MenuBarBackButton text={backButtonText} stateName={stateName} />
       <div className="nx-viewport-sized__scrollable nx-scrollable firewall-component-details-page__container">
         <NxLoadWrapper
           loading={isLoadingComponentDetails}
@@ -84,7 +79,6 @@ export default function FirewallComponentDetailPage(props) {
 
 FirewallComponentDetailPage.propTypes = {
   loadComponentDetails: PropTypes.func,
-  previousPage: PropTypes.string,
   onCDPTabChange: PropTypes.func.isRequired,
   routeParams: PropTypes.shape({
     repositoryId: PropTypes.string.isRequired,

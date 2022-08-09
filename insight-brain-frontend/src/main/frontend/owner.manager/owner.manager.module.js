@@ -88,6 +88,7 @@ import SourceControlTile from 'MainRoot/OrgsAndPolicies/ownerSummary/SourceContr
 import ApplicationCategoriesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ApplicationCategoriesTile';
 import ContinuousMonitoringSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ContinuousMonitoringSummaryTile';
 import AssignAppCategory from 'MainRoot/OrgsAndPolicies/assignAppCategory/AssignAppCategory';
+import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
 
 export default angular
   .module('owner.manager.module', [
@@ -174,6 +175,7 @@ export default angular
     'continuousMonitoringSummaryTile',
     iqReact2Angular(ContinuousMonitoringSummaryTile, [], ['$ngRedux', '$state'])
   )
+  .component('deleteOwnerModal', iqReact2Angular(DeleteOwnerModal, [], ['$ngRedux']))
   .component('createEditApplicationCategory', iqReact2Angular(CreateEditApplicationCategory, [], ['$ngRedux']))
   .component('assignAppCategory', iqReact2Angular(AssignAppCategory, [], ['$ngRedux']))
   .config([

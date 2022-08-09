@@ -145,7 +145,6 @@ describe('owner.tree.view.directive.spec.js', function () {
         scope = _$rootScope_.$new();
         var ownerTreeView = angular.element('<div owner-tree-view></div>');
         spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
-
         _$compile_(ownerTreeView)(scope);
         scope.$digest();
 
@@ -421,16 +420,6 @@ describe('owner.tree.view.directive.spec.js', function () {
         expect(scope.vm.organizations[2].isExpanded).toBe(true);
       });
 
-      it('handles removed organization', function () {
-        scope.$broadcast('owner.deleted', ownerList.organizations[1], 'organization');
-        scope.$digest();
-
-        expect(scope.vm.organizations).toBeDefined();
-        expect(scope.vm.organizations.length).toBe(1);
-
-        expect(scope.vm.organizations[0].id).toBe(ownerList.organizations[0].id);
-      });
-
       it('handles changes to organization', function () {
         scope.$broadcast(
           EventNameConstant.OWNER_UPDATED,
@@ -466,18 +455,6 @@ describe('owner.tree.view.directive.spec.js', function () {
         expect(scope.vm.organizations[1].applications[1].publicId).toBe(newApplication.publicId);
         expect(scope.vm.organizations[1].applications[1].name).toBe(newApplication.name);
         expect(scope.vm.organizations[1].applications[1].isVisible).toBe(true);
-      });
-
-      it('handles removed application', function () {
-        scope.$broadcast('owner.deleted', ownerList.organizations[0].applications[1], 'application');
-        scope.$digest();
-
-        expect(scope.vm.organizations).toBeDefined();
-        expect(scope.vm.organizations.length).toBe(2);
-
-        expect(scope.vm.organizations[0].applications).toBeDefined();
-        expect(scope.vm.organizations[0].applications.length).toBe(6);
-        expect(scope.vm.organizations[0].applications[0].id).toBe(ownerList.organizations[0].applications[0].id);
       });
 
       it('handles changes to application', function () {

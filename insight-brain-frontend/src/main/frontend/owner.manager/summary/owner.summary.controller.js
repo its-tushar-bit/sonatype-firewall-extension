@@ -6,7 +6,7 @@
 import { propEq, find } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 
-import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
+import { actions as deleteOwnerActions } from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/deleteOwnerSlice';
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
@@ -17,7 +17,6 @@ import {
   selectIsArtifactoryRepositorySupported,
   selectIsEvaluateApplicationAvailable,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectDeleteModal } from 'MainRoot/OrgsAndPolicies/ownerEditorSelectors';
 import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import { selectRepositoryUrl, selectScmProviderIcon } from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
 import { selectSelectedOwner, selectPoliciesByOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
@@ -31,14 +30,12 @@ import {
 export default function OwnerSummaryController(
   $state,
   $scope,
-  $rootScope,
   $q,
   $http,
   $window,
   OwnerEditor,
   CLMLocations,
   CLMContextLocations,
-  DeleteModalService,
   SelectApplicationContactService,
   EvaluateApplicationModalService,
   ImportPolicyModalService,
@@ -68,7 +65,6 @@ export default function OwnerSummaryController(
   vm.getShortTypeName = getShortTypeName;
   vm.getResourceTypeName = getResourceTypeName;
   vm.openReport = openReport;
-  vm.goToParentView = goToParentView;
   vm.selectContact = selectContact;
   vm.changeApplicationId = changeApplicationId;
   vm.hasPermissionToChangeAppId = undefined;
@@ -87,11 +83,10 @@ export default function OwnerSummaryController(
     setSelectedOwnerContact: rootActions.setSelectedOwnerContact,
     loadApplications: applicationsActions.loadApplications,
     loadOrganizations: organizationsActions.loadOrganizations,
-    removeOwner: ownerEditorActions.removeOwner,
-    resetDeleteModalState: ownerEditorActions.resetDeleteModalState,
     loadApplicablePoliciesByOwner: rootActions.loadApplicablePoliciesByOwner,
     setLoading: ownerSummaryActions.setLoading,
     setLoadError: ownerSummaryActions.setLoadError,
+    openDeleteModal: deleteOwnerActions.openModal,
   })(vm);
 
   vm.doLoad();
@@ -200,19 +195,7 @@ export default function OwnerSummaryController(
   }
 
   function deleteOwner() {
-    const warningMessage = `You are about to permanently remove ${vm.owner.name}. This action cannot be undone.`;
-    vm.resetDeleteModalState();
-
-    DeleteModalService.deleteRedux(
-      `Delete ${vm.getResourceTypeName()}`,
-      warningMessage,
-      'Deleting',
-      () => vm.removeOwner({ ownerToDelete: vm.owner, isApp: vm.isApp }),
-      selectDeleteModal
-    ).then(function () {
-      $rootScope.$broadcast('owner.deleted', vm.owner, type);
-      vm.goToParentView();
-    });
+    vm.openDeleteModal();
   }
 
   function revokeGrandfathering() {
@@ -244,18 +227,6 @@ export default function OwnerSummaryController(
         }),
         '_blank'
       );
-    }
-  }
-
-  function goToParentView() {
-    if (!vm.isApp) {
-      $state.go('management.view.organization', {
-        organizationId: vm.owner.parentOrganizationId,
-      });
-    } else {
-      $state.go('management.view.organization', {
-        organizationId: vm.owner.organizationId,
-      });
     }
   }
 
@@ -299,14 +270,12 @@ const mapStateToThis = (state) => ({
 OwnerSummaryController.$inject = [
   '$state',
   '$scope',
-  '$rootScope',
   '$q',
   '$http',
   '$window',
   'OwnerEditorService',
   'CLMLocations',
   'CLMContextLocations',
-  'DeleteModalService',
   'SelectApplicationContactService',
   'evaluate.application.modal.service',
   'import.policy.modal.service',

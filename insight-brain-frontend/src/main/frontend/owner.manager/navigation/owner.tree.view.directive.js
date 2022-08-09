@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { selectIsSourceControlSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectDeleteOwnerSlice } from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/deleteOwnerSelectors';
 import template from './owner.tree.view.directive.html';
 
 function OwnerTreeViewController(
@@ -75,15 +76,10 @@ function OwnerTreeViewController(
     }
   });
 
-  $scope.$on('owner.deleted', function (e, owner, ownerType) {
-    if (ownerType === ownerConstant.APPLICATION_TYPE) {
-      seekApplication(owner, function (application, organization, index) {
-        organization.applications.splice(index, 1);
-      });
-    } else {
-      seekOrganizationById(owner.id, function (organization, index) {
-        vm.organizations.splice(index, 1);
-      });
+  $scope.$watch('vm.submitDeleteMaskState', (currentValue, oldValue) => {
+    // triggers doLoad func only when modal closes, i.e. mask going from true to null
+    if (!currentValue && oldValue) {
+      vm.doLoad();
     }
   });
 
@@ -316,6 +312,7 @@ function OwnerTreeViewController(
   function mapStateToThis(state) {
     return {
       isSourceControlSupported: selectIsSourceControlSupported(state),
+      submitDeleteMaskState: selectDeleteOwnerSlice(state).submitMaskState,
     };
   }
 }

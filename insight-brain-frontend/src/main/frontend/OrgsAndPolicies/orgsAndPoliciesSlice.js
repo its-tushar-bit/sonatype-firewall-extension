@@ -15,7 +15,7 @@ import applicationsSlice from './applicationsSlice';
 import organizationsSlice from './organizationsSlice';
 import stagesSlice from './stagesSlice';
 import policySlice from './policySlice';
-import ownerEditorSlice from './ownerEditorSlice';
+import deleteOwnerSlice from './deleteOwnerModal/deleteOwnerSlice';
 import sourceControlSlice from './sourceControlSlice';
 import ownerSummarySlice from './ownerSummarySlice';
 import ownerDetailTreeSlice from './ownerDetailTreeSlice';
@@ -35,7 +35,9 @@ export default combineReducers({
   organizations: organizationsSlice,
   stages: stagesSlice,
   policy: policySlice,
-  ownerEditor: ownerEditorSlice,
+  ownerEditor: combineReducers({
+    deleteOwner: deleteOwnerSlice,
+  }),
   sourceControl: sourceControlSlice,
   ownerSummary: ownerSummarySlice,
   ownerDetailTree: ownerDetailTreeSlice,

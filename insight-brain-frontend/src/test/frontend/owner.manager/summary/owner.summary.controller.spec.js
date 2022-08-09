@@ -11,7 +11,6 @@ import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
-import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 
@@ -119,7 +118,6 @@ describe('owner.summary.controller', function () {
         payload: {},
       });
       setSelectedOwnerContactSpy = spyOn(rootActions, 'setSelectedOwnerContact');
-      spyOn(ownerEditorActions, 'resetDeleteModalState').and.callThrough();
       setLoadingActionSpy = spyOn(ownerSummaryActions, 'setLoading');
       setLoadErrorActionSpy = spyOn(ownerSummaryActions, 'setLoadError');
 
@@ -358,38 +356,6 @@ describe('owner.summary.controller', function () {
         expect(setLoadErrorActionSpy.calls.allArgs()).toEqual([[null], ['Error']]);
       } else {
         expect(setLoadErrorActionSpy).toHaveBeenCalledOnceWith(null);
-      }
-    });
-
-    it('Delete Owner goes to parent view', function () {
-      vm = getVm();
-
-      resolveGetGrandfathering(false);
-      resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(mockApplicationSummary);
-      resolveCompositeSourceControl();
-      scope.$digest();
-
-      if (isApp) {
-        $httpBackend.flush();
-      }
-      resolveApplicationWritePermission(true);
-
-      if (isApp) {
-        owner.organizationId = owner.id;
-      } else {
-        owner.parentOrganizationId = owner.id;
-      }
-
-      spyOn(mockState, 'go');
-      vm.deleteOwner();
-      deleteOwnerDefer.resolve();
-      $timeout.flush();
-
-      expect(mockState.go).toHaveBeenCalledWith('management.view.organization', { organizationId: owner.id });
-
-      if (isApp) {
-        delete owner.organizationId;
       }
     });
 

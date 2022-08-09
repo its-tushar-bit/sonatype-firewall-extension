@@ -17,7 +17,7 @@ import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.ArtifactoryRepositoryTile;
-import com.sonatype.clm.testing.functional.elements.DeleteModal;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn;
@@ -769,10 +769,11 @@ public abstract class AbstractSummaryViewTest
     ActionDropDown.actionButton().click();
     ActionDropDown.deleteOwnerButton().shouldBe(visible).click();
 
-    DeleteModal.root().shouldBe(visible);
-    DeleteModal.cancelButton().click();
+    NxDeleteModal deleteModal = new NxDeleteModal("#owner-delete-modal");
+    deleteModal.shouldBe(visible);
+    deleteModal.closeButton().click();
 
-    DeleteModal.root().shouldBe(hidden);
+    deleteModal.shouldBe(hidden);
 
     currentOwner = new OwnerDAO().getById(currentOwner.getId());
 
@@ -782,14 +783,14 @@ public abstract class AbstractSummaryViewTest
     ActionDropDown.actionButton().click();
     ActionDropDown.deleteOwnerButton().shouldBe(visible).shouldHave(text(ownerName)).click();
 
-    DeleteModal.root().shouldBe(visible);
-    DeleteModal.header().shouldHave(DeleteModal.headerText(currentOwner.getType().toString()));
-    DeleteModal.body().shouldHave(DeleteModal.bodyText(ownerName));
+    deleteModal.shouldBe(visible);
+    deleteModal.header().shouldHave(text(currentOwner.getType().toString()));
+    deleteModal.alertContent().shouldHave(text(ownerName));
 
-    DeleteModal.root().shouldBe(visible);
-    DeleteModal.continueButton().click();
+    deleteModal.shouldBe(visible);
+    deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldBe(hidden);
+    deleteModal.shouldBe(hidden);
 
     currentOwner = new OwnerDAO().getById(currentOwner.getId());
 

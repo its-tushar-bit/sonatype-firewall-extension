@@ -7,11 +7,13 @@ import { connect } from 'react-redux';
 import FirewallComponentDetailPage from './FirewallComponentDetailsPage';
 import { selectFirewallCDPRouteParams, selectFirewallCDP } from '../firewallSelectors';
 import { loadComponentDetails, onCDPTabChange } from '../firewallActions';
+import { selectPreviousRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 function mapStateToProps(state) {
   return {
     CDPResponseState: selectFirewallCDP(state),
     routeParams: selectFirewallCDPRouteParams(state),
+    previousPage: selectPreviousRouteName(state),
   };
 }
 

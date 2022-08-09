@@ -82,7 +82,7 @@ export default function DashboardApplicationsTable(props) {
               sortDir={sortDir('totalApplicationRisk.criticalRisk')}
               isSortable
             >
-              <NxThreatIndicator threatLevelCategory="critical"></NxThreatIndicator>
+              <NxThreatIndicator threatLevelCategory="critical" presentational></NxThreatIndicator>
               <span>Critical</span>
             </NxTableCell>
             <NxTableCell
@@ -91,7 +91,7 @@ export default function DashboardApplicationsTable(props) {
               sortDir={sortDir('totalApplicationRisk.severeRisk')}
               isSortable
             >
-              <NxThreatIndicator threatLevelCategory="severe"></NxThreatIndicator>
+              <NxThreatIndicator threatLevelCategory="severe" presentational></NxThreatIndicator>
               <span>Severe</span>
             </NxTableCell>
             <NxTableCell
@@ -100,7 +100,7 @@ export default function DashboardApplicationsTable(props) {
               sortDir={sortDir('totalApplicationRisk.moderateRisk')}
               isSortable
             >
-              <NxThreatIndicator threatLevelCategory="moderate"></NxThreatIndicator>
+              <NxThreatIndicator threatLevelCategory="moderate" presentational></NxThreatIndicator>
               <span>Moderate</span>
             </NxTableCell>
             <NxTableCell
@@ -109,7 +109,7 @@ export default function DashboardApplicationsTable(props) {
               sortDir={sortDir('totalApplicationRisk.lowRisk')}
               isSortable
             >
-              <NxThreatIndicator threatLevelCategory="low"></NxThreatIndicator>
+              <NxThreatIndicator threatLevelCategory="low" presentational></NxThreatIndicator>
               <span>Low</span>
             </NxTableCell>
           </NxTableRow>

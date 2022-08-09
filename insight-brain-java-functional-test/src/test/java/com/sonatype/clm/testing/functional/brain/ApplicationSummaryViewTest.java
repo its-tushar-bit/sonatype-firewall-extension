@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNo
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.utils.NxColor;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -211,6 +212,8 @@ public class ApplicationSummaryViewTest
     ActionDropDown.actionButton().click();
     ActionDropDown.reportLinks().shouldHaveSize(policyEvaluationsSize);
 
+    eyesWatcher.eyesCheck("Summary report links");
+
     for (int i = 0; i < policyEvaluationsSize; i++) {
       ActionDropDown.reportLink(i).shouldBe(visible).shouldNotBe(CLM.DISABLED)
           .shouldHave(ActionDropDown.reportLinkText(stages.get(i).getName()));
@@ -238,6 +241,9 @@ public class ApplicationSummaryViewTest
     ltgTile.newButton().shouldBe(hidden);
 
     ltgTile.ltgLists().shouldHaveSize(hierarchySize);
+
+    ScrollUtil.scrollIntoView(ltgTile.header());
+    eyesWatcher.eyesCheck("Application License Threat Group Tile with no local threats");
 
     for (int i = 0; i < hierarchySize; i++) {
       ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
@@ -278,6 +284,8 @@ public class ApplicationSummaryViewTest
 
     appliedCategoryList.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
     appliedCategoryList.elements().shouldBe(empty);
+
+    eyesWatcher.eyesCheck("Application Category Tile when there is no defined categories");
   }
 
   private void testApplicationCategoryTile_Empty() {
@@ -291,6 +299,8 @@ public class ApplicationSummaryViewTest
 
     appliedCategoryList.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneAssignedText());
     appliedCategoryList.elements().shouldBe(empty);
+
+    eyesWatcher.eyesCheck("Application Category Tile with no category assigned");
   }
 
   private void testApplicationCategoryTile_WithAppliedCategory(Tag category) {
@@ -314,6 +324,8 @@ public class ApplicationSummaryViewTest
     appliedCategoryList.element(0).description().shouldBe(visible).shouldHave(text(category.getDescription()));
     appliedCategoryList.element(0).icon().shouldBe(visible).shouldHave(cssClass(nxColorClass));
     appliedCategoryList.element(0).chevron().shouldBe(hidden);
+
+    eyesWatcher.eyesCheck("Application Category Tile with applied category");
   }
 
   @Override
@@ -339,6 +351,8 @@ public class ApplicationSummaryViewTest
     ActionDropDown.actionButton().click();
     ActionDropDown.moveApplication().shouldBe(visible).shouldHave(text("Move " + application.getName())).click();
     moveAppModal.shouldBe(visible);
+
+    eyesWatcher.eyesCheck("Move application modal");
   }
 
   @Test
@@ -351,6 +365,8 @@ public class ApplicationSummaryViewTest
     changeApplicationIdDialog.currentId().shouldHave(text(application.getPublicId()));
     changeApplicationIdDialog.newId().shouldBe(Condition.empty).shouldHave(CLM.PRISTINE);
     changeApplicationIdDialog.changeButton().shouldBe(disabled);
+
+    eyesWatcher.eyesCheck("Change application dialog");
 
     // current id is not a valid input
     changeApplicationIdDialog.newId().val(application.getPublicId());
@@ -538,6 +554,8 @@ public class ApplicationSummaryViewTest
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("Repository URL needed"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text("Inherit access token (GitHub)"));
 
+    eyesWatcher.eyesCheck("Application Source Control configured without URL");
+
     rootSourceControl.setToken("TESK_TOKEN");
     sourceControlDAO.update(rootSourceControl);
     refresh();
@@ -555,6 +573,8 @@ public class ApplicationSummaryViewTest
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
         .format("Inherit access token from %s (GitHub)", rootOrganization.getName())));
 
+    eyesWatcher.eyesCheck("Source Control configured without URL. Inherit token from Organization");
+
     tempEntity.newSourceControl(application.getId(), "http://github.com/aaa/bbb", "TEST_TOKEN", null);
     refresh();
 
@@ -570,6 +590,8 @@ public class ApplicationSummaryViewTest
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("http://github.com/aaa/bbb"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
         .format("Provides default access token for %s (GitHub)", application.getName())));
+
+    eyesWatcher.eyesCheck("Source Control configured with URL and token on application");
   }
 
   @Test
@@ -592,6 +614,7 @@ public class ApplicationSummaryViewTest
     tile.itemText().shouldNotBe(visible);
     tile.itemSubText().shouldNotBe(visible);
 
+    eyesWatcher.eyesCheck("Source control no license");
   }
 
   @Test

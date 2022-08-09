@@ -63,6 +63,8 @@ public class ApplicationPolicyEditorTest
     OwnerDetailTreeView.backLink().shouldBe(visible).click();
     organizationNode.application(0).shouldBe(visible).click();
     OwnerSummaryPage.policyTile().localPolicy("policyName2").shouldBe(visible);
+
+    eyesWatcher.eyesCheck("Policy name changed");
   }
 
   @Test

@@ -17,6 +17,10 @@ public abstract class OwnerTile
     super(selectors);
   }
 
+  public SelenideElement header() {
+    return child(".iq-tile-header__title");
+  }
+
   public SelenideElement subHeader() {
     return child(".iq-tile-header__subtitle");
   }

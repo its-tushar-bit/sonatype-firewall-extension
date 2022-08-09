@@ -149,8 +149,13 @@ public abstract class AbstractSummaryViewTest
   @Test
   public void testTile_default() {
     testLabelTile_no_labels();
+    eyesWatcher.eyesCheck(String.format("empty label tile for %s %s", currentOwner.getType(), currentOwner.getName()));
     testAccessTile_no_local_access();
+    eyesWatcher.eyesCheck(String.format("empty access tile with inherited data for %s %s", currentOwner.getType(),
+        currentOwner.getName()));
     testPolicyTile_no_policies();
+    eyesWatcher.eyesCheck(String.format("empty policy tile with inherited data for %s %s", currentOwner.getType(),
+        currentOwner.getName()));
   }
 
   @Test
@@ -167,6 +172,9 @@ public abstract class AbstractSummaryViewTest
     rows.shouldHaveSize(1);
     rows.get(0).shouldBe(text("No InnerSource repository connections are configured"));
     innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
+
+    eyesWatcher.eyesCheck(String.format("InnerSource repository tile not configured for %s %s", currentOwner.getType(),
+        currentOwner.getName()));
   }
 
   @Test
@@ -182,6 +190,9 @@ public abstract class AbstractSummaryViewTest
     rows.shouldHaveSize(1);
     rows.get(0).shouldBe(text("InnerSource repository connections are disabled"));
     innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
+
+    eyesWatcher.eyesCheck(String.format("InnerSource repository tile disabled for %s %s", currentOwner.getType(),
+        currentOwner.getName()));
   }
 
   @Test
@@ -205,6 +216,10 @@ public abstract class AbstractSummaryViewTest
       rows.get(0).shouldBe(text(repositoryConnection1.getBaseUrl() + "\n" + repositoryConnection1.getFormat()));
       rows.get(1).shouldBe(text(repositoryConnection2.getBaseUrl() + "\n" + repositoryConnection2.getFormat()));
       innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
+
+      eyesWatcher.eyesCheck(
+          String.format("InnerSource repository tile local configured for %s %s", currentOwner.getType(),
+              currentOwner.getName()));
     }
     finally {
       setCurrentOwnerRepositoryConnectionStatus(currentOwner, null);
@@ -249,6 +264,10 @@ public abstract class AbstractSummaryViewTest
       rows.get(0).shouldBe(text(repositoryConnection1.getBaseUrl() + "\n" + repositoryConnection1.getFormat()));
       rows.get(1).shouldBe(text(repositoryConnection2.getBaseUrl() + "\n" + repositoryConnection2.getFormat()));
       innerSourceRepositoryTile.editButton().shouldHave(text("Edit"));
+
+      eyesWatcher.eyesCheck(
+          String.format("InnerSource repository tile configured inherit for %s %s", currentOwner.getType(),
+              currentOwner.getName()));
     }
     finally {
       parentOwner.setAllowRepositoryConnectionOverride(true);
@@ -265,6 +284,9 @@ public abstract class AbstractSummaryViewTest
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldNot(exist);
     OwnerSummaryPage.innerSourceRepositoryTile().shouldNot(exist);
+
+    eyesWatcher.eyesCheck(String.format("InnerSource repository tile feature disabled %s %s", currentOwner.getType(),
+        currentOwner.getName()));
   }
 
   @Test
@@ -282,6 +304,9 @@ public abstract class AbstractSummaryViewTest
     rows.shouldHaveSize(1);
     rows.get(0).shouldBe(text("No Artifactory repository connection is configured"));
     artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
+
+    eyesWatcher.eyesCheck(String.format("Artifactory repository tile not configured for %s %s", currentOwner.getType(),
+        currentOwner.getName()));
   }
 
   @Test
@@ -298,6 +323,9 @@ public abstract class AbstractSummaryViewTest
     rows.shouldHaveSize(1);
     rows.get(0).shouldBe(text("Artifactory repository connection is disabled"));
     artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
+
+    eyesWatcher.eyesCheck(String.format("Artifactory repository tile disabled for %s %s", currentOwner.getType(),
+        currentOwner.getName()));
   }
 
   @Test
@@ -319,6 +347,10 @@ public abstract class AbstractSummaryViewTest
       rows.shouldHaveSize(1);
       rows.get(0).shouldBe(text(artifactoryConnection.getBaseUrl()));
       artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
+
+      eyesWatcher.eyesCheck(
+          String.format("Artifactory repository tile configured local for %s %s", currentOwner.getType(),
+              currentOwner.getName()));
     }
     finally {
       setCurrentOwnerArtifactoryConnectionStatus(currentOwner, null);
@@ -361,6 +393,10 @@ public abstract class AbstractSummaryViewTest
       rows.shouldHaveSize(1);
       rows.get(0).shouldBe(text(artifactoryConnection.getBaseUrl()));
       artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
+
+      eyesWatcher.eyesCheck(
+          String.format("Artifactory repository tile configured inherit for %s %s", currentOwner.getType(),
+              currentOwner.getName()));
     }
     finally {
       parentOwner.setAllowRepositoryConnectionOverride(true);
@@ -377,6 +413,10 @@ public abstract class AbstractSummaryViewTest
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldNot(exist);
     OwnerSummaryPage.artifactoryRepositoryTile().shouldNot(exist);
+
+    eyesWatcher.eyesCheck(
+        String.format("Artifactory repository tile feature disabled for %s %s", currentOwner.getType(),
+            currentOwner.getName()));
   }
 
   public void testLabelTile_no_labels() {
@@ -476,10 +516,18 @@ public abstract class AbstractSummaryViewTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     SidebarNavigation.closeNavigationSidebar();
     testLabelTile_Local(localLabels);
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck(
+        String.format("label tile with local data for %s %s", currentOwner.getType(), currentOwner.getName()));
     testLTGTile_Local(locaLTGs);
+    eyesWatcher.eyesCheck(
+        String.format("license threat group tile with local data for %s %s", currentOwner.getType(),
+            currentOwner.getName()));
     testAccessTile_Local(testUser);
+    eyesWatcher.eyesCheck(
+        String.format("access tile with local data for %s %s", currentOwner.getType(), currentOwner.getName()));
     testPolicyTile_Local(localPolicies);
+    eyesWatcher.eyesCheck(
+        String.format("policy tile with local data for %s %s", currentOwner.getType(), currentOwner.getName()));
   }
 
   private void testLabelTile_Local(List<Label> localLabels) {
@@ -704,9 +752,18 @@ public abstract class AbstractSummaryViewTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     SidebarNavigation.closeNavigationSidebar();
     testLabelTile_Inherited(inheritedLabels, parentOwners);
+    eyesWatcher.eyesCheck(
+        String.format("label tile with inherited data for %s %s", currentOwner.getType(), currentOwner.getName()));
     testLTGTile_Inherited(inheritedLTGs, parentOwners);
+    eyesWatcher.eyesCheck(
+        String.format("license threat group tile with inherited data for %s %s", currentOwner.getType(),
+            currentOwner.getName()));
     testAccessTile_Inherited(testUser, parentOwners);
+    eyesWatcher.eyesCheck(
+        String.format("access tile with inherited data for %s %s", currentOwner.getType(), currentOwner.getName()));
     testPolicyTile_Inherited(inheritedPolicies, parentOwners);
+    eyesWatcher.eyesCheck(
+        String.format("policy tile with inherited data for %s %s", currentOwner.getType(), currentOwner.getName()));
   }
 
   private void testLabelTile_Inherited(List<List<Label>> inheritedLabels, List<Owner> parentOwners) {
@@ -980,6 +1037,9 @@ public abstract class AbstractSummaryViewTest
     OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
 
     assertPolicyTile_Foundation(policy, false);
+
+    eyesWatcher.eyesCheck(
+        String.format("Policy tile foundation firewall for %s %s", currentOwner.getType(), currentOwner.getName()));
   }
 
   @Test

@@ -107,7 +107,8 @@ public class ApplicationPolicyEditorActionsOverrideTest
     ScrollUtil.scrollIntoView(actionsTable.title());
 
     assertThat(actionsTable.paragraph().text())
-      .isEqualTo("Action overrides have been enabled for this policy. Modifying actions will only affect this level.");
+        .isEqualTo(
+            "Action overrides have been enabled for this policy. Modifying actions will only affect this level.");
 
     actionsTable.quarantineWarningMessage().shouldNotBe(visible);
 
@@ -115,6 +116,8 @@ public class ApplicationPolicyEditorActionsOverrideTest
     actionsTable.inheritParentActions().shouldBe(selected);
 
     testActionsState(actionsTable, disabled);
+
+    eyesWatcher.eyesCheck("Inherit policy actions");
 
     actionsTable.overrideParentActions().click();
     actionsTable.overrideParentActions().shouldBe(selected);
@@ -148,12 +151,14 @@ public class ApplicationPolicyEditorActionsOverrideTest
     PolicyEditorPage.savePolicy();
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
+    ScrollUtil.scrollIntoView(actionsTable.title());
+
     policy = policyDAO.getById(policy.getId());
 
     Map<String, String> actions = policy.getActions();
     assertThat(actions)
-      .containsEntry(Stage.ID_BUILD, Action.ID_WARN)
-      .containsEntry(Stage.ID_DEVELOP, Action.ID_WARN);
+        .containsEntry(Stage.ID_BUILD, Action.ID_WARN)
+        .containsEntry(Stage.ID_DEVELOP, Action.ID_WARN);
 
     assertThat(actions.get(Stage.ID_PROXY)).isNull();
     assertThat(actions.get(Stage.ID_OPERATE)).isNull();
@@ -172,7 +177,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
     assertThat(actions.get(Stage.ID_STAGE_RELEASE)).isNull();
     assertThat(actions.get(Stage.ID_RELEASE)).isNull();
 
-    eyesWatcher.eyesCheck("policy action override is enabled");
+    eyesWatcher.eyesCheck("override policy actions");
   }
 
   @Test

@@ -99,6 +99,8 @@ public class OrganizationSummaryViewTest
 
     ltgTile.ltgLists().shouldHaveSize(hierarchySize);
 
+    eyesWatcher.eyesCheck("Organization License Threat Group Tile with no local threats");
+
     for (int i = 0; i < hierarchySize; i++) {
       ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
 
@@ -142,6 +144,9 @@ public class OrganizationSummaryViewTest
 
     // Give a maximum of 2 seconds for the file to be loaded
     ImportPolicyModal.importButton().waitUntil(enabled, 2000).click();
+
+    eyesWatcher.eyesCheck("Import policy modal");
+
     // verify mask and wait for it to go away
     FormMask.seeAndWaitForDismissal();
 
@@ -157,6 +162,8 @@ public class OrganizationSummaryViewTest
     NxList.NxListItem actualLabel = list.element(0);
     actualLabel.name().shouldBe(visible).shouldHave(text("Test Label"));
 
+    eyesWatcher.eyesCheck("labels tile after policy import");
+
     // scroll to the ltgs
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
@@ -165,6 +172,8 @@ public class OrganizationSummaryViewTest
     threatGroupTileSimpleList.emptyDescriptor().shouldNot(exist);
     threatGroupTileSimpleList.elements().shouldHaveSize(1);
     threatGroupTileSimpleList.element(0).name().shouldBe(visible).shouldHave(text("Test LTG"));
+
+    eyesWatcher.eyesCheck("license threat group tile after policy import");
 
     // scroll to the policy tile
     OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
@@ -177,12 +186,16 @@ public class OrganizationSummaryViewTest
     policyElement.name().shouldBe(visible).shouldHave(text("Test"));
     policyElement.proxy().shouldBe(visible).shouldHave(text("warn"));
 
+    eyesWatcher.eyesCheck("policy tile after policy import");
+
     // scroll to the application categories tile
     OwnerSummaryPage.summaryTile().appCategoriesButton().shouldBe(visible).click();
     CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
     NxList categoryList = categoryTile.categoryList(0);
     categoryList.elements().shouldBe(empty);
     categoryList.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
+
+    eyesWatcher.eyesCheck("application categories tile after policy import");
   }
 
   private void testApplicationCategoryTile_Empty() {
@@ -198,6 +211,8 @@ public class OrganizationSummaryViewTest
 
     subsectionHeader.shouldBe(visible).shouldHave(text("Local"));
     list.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
+
+    eyesWatcher.eyesCheck("Organization's Category Tile when there is no defined categories");
   }
 
   private void testApplicationCategoryTile_WithApplicableCategories() {
@@ -223,6 +238,8 @@ public class OrganizationSummaryViewTest
     assertThat(ownerTags).hasSameSizeAs(owners);
     categoryTile.categoryLists().shouldHaveSize(hierarchySize);
 
+    eyesWatcher.eyesCheck("Organization's Category Tile with applied category");
+
     for (int i = 0; i < hierarchySize; i++) {
       NxList list = categoryTile.categoryList(i);
 
@@ -231,7 +248,7 @@ public class OrganizationSummaryViewTest
       }
       else {
         categoryTile.categoryListSubheader(1).shouldBe(visible)
-                .shouldHave(CategoryTile.inheritedText(owners.get(i).getName()));
+            .shouldHave(CategoryTile.inheritedText(owners.get(i).getName()));
       }
 
       list.elements().shouldHaveSize(ownerTags.get(i).size());
@@ -435,6 +452,8 @@ public class OrganizationSummaryViewTest
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text("Inherit access token"));
 
+    eyesWatcher.eyesCheck("Source Control configured without URL");
+
     rootSourceControl.setToken("TESK_TOKEN");
     sourceControlDAO.update(rootSourceControl);
     refresh();
@@ -451,6 +470,8 @@ public class OrganizationSummaryViewTest
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
         .format("Inherit access token from %s", rootOrganization.getName())));
+
+    eyesWatcher.eyesCheck("Source Control configured without URL. Inherit token from root organization");
 
     tempEntity.newSourceControl(organization.getId(), null, "TEST_TOKEN", null);
     refresh();

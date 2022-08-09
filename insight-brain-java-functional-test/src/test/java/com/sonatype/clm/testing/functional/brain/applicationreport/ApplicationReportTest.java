@@ -806,7 +806,9 @@ public class ApplicationReportTest
   public void testUnscannedComponentsModal() throws IOException {
     // Setup
     final String SCAN_ID2 = "e16caf35769f4b3186a7e3476d34c2798";
-    Application app2 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent(
+        "UnscannedComponentsAppReportTest", "UnscannedComponentsAppReportTest"
+    );
     URL zippedReport = ReportHelper.zipReport("/canned-reports/evaluated-v4-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     File reportDestination = work.getReportFile(app2.getId(), SCAN_ID2);

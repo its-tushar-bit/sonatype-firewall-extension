@@ -56,14 +56,8 @@ import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.exception.GeneratorException;
 import org.cyclonedx.generators.json.BomJsonGenerator;
 import org.cyclonedx.generators.xml.BomXmlGenerator;
-import org.cyclonedx.model.Bom;
-import org.cyclonedx.model.Component;
+import org.cyclonedx.model.*;
 import org.cyclonedx.model.Component.Type;
-import org.cyclonedx.model.ExternalReference;
-import org.cyclonedx.model.License;
-import org.cyclonedx.model.LicenseChoice;
-import org.cyclonedx.model.Metadata;
-import org.cyclonedx.model.Property;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
@@ -402,6 +396,7 @@ public class ApiCycloneDxServiceV2
       bomComponent.setModified(MatchState.SIMILAR.getId().equals(reportComponent.matchState));
       setProperties(version, reportComponent, bomComponent);
       setLicenseInformation(reportComponent, bomComponent);
+      setSha256(reportComponent, bomComponent);
 
       return bomComponent;
     }
@@ -412,6 +407,16 @@ public class ApiCycloneDxServiceV2
       log.warn("There was an error creating SBoM component", e);
     }
     return null;
+  }
+
+  private static void setSha256(
+      final ApiReportComponentDTOV2 reportComponent,
+      final Component bomComponent)
+  {
+    if (StringUtils.isNotBlank(reportComponent.sha256)) {
+      Hash hash = new Hash(Hash.Algorithm.SHA_256, reportComponent.sha256);
+      bomComponent.addHash(hash);
+    }
   }
 
   private static void setLicenseInformation(

@@ -402,6 +402,7 @@ public class ApiReportDataServiceV2
     for (Component comp : components) {
       ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
       component.hash = comp.getHash();
+      component.sha256 = comp.getSha256();
       component.componentIdentifier = ApiComponentIdentifierDTOV2
           .fromComponentIdentifier(comp.getComponentIdentifier());
       component.packageUrl = PackageUrlIdentifier.toPackageUrl(comp.getComponentIdentifier());

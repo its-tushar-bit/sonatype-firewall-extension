@@ -17,6 +17,9 @@ public class ApiComponentDTOV2
 
   public String hash;
 
+  @JsonInclude(Include.NON_NULL)
+  public String sha256;
+
   public ApiComponentIdentifierDTOV2 componentIdentifier;
 
   @JsonInclude(Include.NON_NULL)

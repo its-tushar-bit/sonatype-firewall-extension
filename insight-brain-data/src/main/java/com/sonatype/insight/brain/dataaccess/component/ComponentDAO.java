@@ -242,9 +242,11 @@ public class ComponentDAO
           final IdentificationSource identificationSource = IdentificationSource.getOrMake(identificationSourceString);
           final boolean proprietary = componentJson.get("proprietary").booleanValue();
           String hash = JsonUtils.getNullableString(componentJson.get("hash"));
+          String sha256 = JsonUtils.getNullableString(componentJson.get("sha256"));
 
           Component component = new Component();
           component.setHash(hash);
+          component.setSha256(sha256);
           component.setMatchState(matchState);
           component.setProprietary(proprietary);
           component.setIdentificationSource(identificationSource);

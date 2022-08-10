@@ -39,12 +39,7 @@ import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguratio
 import org.codehaus.plexus.util.FileUtils;
 import org.cyclonedx.BomParserFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
-import org.cyclonedx.model.Bom;
-import org.cyclonedx.model.Component;
-import org.cyclonedx.model.License;
-import org.cyclonedx.model.LicenseChoice;
-import org.cyclonedx.model.Metadata;
-import org.cyclonedx.model.Property;
+import org.cyclonedx.model.*;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
@@ -222,7 +217,8 @@ public class ApiCycloneDxServiceV2Test
 
     assertThat(bom.getExternalReferences()).hasSize(1);
 
-    Component component1 = createComponent(version, "pkg:nuget/jQuery@3.4.1", "5408e54a94044d1f1f21", "exact",
+    Component component1 = createComponent("2fa0ab71b154da29ac134097bc6bbacd90987dd4c4005516159e6494d1d52ea2",
+            version, "pkg:nuget/jQuery@3.4.1", "5408e54a94044d1f1f21", "exact",
         "CC0-1.0", "CDDL-1.1", "MIT");
     Component component2 = createComponent(version, "pkg:nuget/jQuery@3.2.1", "0babbbd2c221d24484f5", "similar",
         true, "CC0-1.0", "CDDL-1.1", "MIT");
@@ -321,6 +317,20 @@ public class ApiCycloneDxServiceV2Test
       String... licenses)
   {
     return createComponent(bomVersion, packageUrl, hashStr, matchState, false, licenses);
+  }
+
+  private Component createComponent(
+          String sha256,
+          Version bomVersion,
+          String packageUrl,
+          String hashStr,
+          String matchState,
+          String... licenses)
+  {
+    Component component =  createComponent(bomVersion, packageUrl, hashStr, matchState, false, licenses);
+    Hash hash = new Hash(Hash.Algorithm.SHA_256, sha256);
+    component.addHash(hash);
+    return component;
   }
 
   private Component createComponent(

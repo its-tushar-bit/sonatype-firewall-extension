@@ -186,6 +186,59 @@ public class PolicyWaiverMatcherWrapperTest
   }
 
   @Test
+  public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS_missingRequiredCoordinates() {
+    String hash = "hash";
+    String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@*?type=jar";
+    PolicyWaiver policyWaiver =
+        new PolicyWaiverBuilder().setHash(hash).setComponentMatchStrategy(ALL_VERSIONS)
+            .setAssociatedPackagedUrl(associatedPackagedUrlAllVersions).build();
+
+    ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>() {{
+        this.put("artifactId", "artifact");
+        this.put("groupId", "group");
+        this.put("version", "1.0");
+        this.put("classifier", "");
+      }});
+    ComponentFact componentFact = new ComponentFact(componentIdentifier, "otherHash");
+    PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
+
+    assertThatNoException().isThrownBy(() -> policyWaiverMatcherWrapper.matchesComponent(componentFact));
+  }
+
+  @Test
+  public void testMatcherWrapper_CompareWhenMissingRequiredCoordinates() {
+    ComponentIdentifier componentIdentifierSame =
+        new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>() {{
+            this.put("artifactId", "artifact");
+            this.put("groupId", "group");
+            this.put("version", "*");
+          }});
+
+    ComponentIdentifier componentIdentifierOther =
+        new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>() {{
+            this.put("artifactId", "otherArtifact");
+            this.put("groupId", "group");
+            this.put("version", "*");
+          }});
+
+    String hash = "hash";
+    String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@*?type=jar&classifier=";
+
+    PolicyWaiver policyWaiver =
+        new PolicyWaiverBuilder().setHash(hash).setComponentMatchStrategy(ALL_VERSIONS)
+            .setAssociatedPackagedUrl(associatedPackagedUrlAllVersions).build();
+
+    PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
+
+    assertThat(policyWaiverMatcherWrapper
+        .compareWhenMissingRequiredCoordinates(policyWaiver
+            .getComponentIdentifier(), componentIdentifierSame)).isTrue();
+    assertThat(policyWaiverMatcherWrapper
+        .compareWhenMissingRequiredCoordinates(policyWaiver
+            .getComponentIdentifier(), componentIdentifierOther)).isFalse();
+  }
+
+  @Test
   public void testMatcherWrapper_MatchesConstraintFactsJson() {
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper =
         new PolicyWaiverMatcherWrapper(new PolicyWaiverBuilder().build());

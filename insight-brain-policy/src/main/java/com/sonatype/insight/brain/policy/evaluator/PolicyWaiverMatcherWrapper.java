@@ -8,11 +8,16 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.140
@@ -21,6 +26,8 @@ public class PolicyWaiverMatcherWrapper
 {
   // Exposed to the same package for testing purposes
   final PolicyWaiver policyWaiver;
+
+  private static final Logger log = LoggerFactory.getLogger(PolicyWaiverMatcherWrapper.class);
 
   public PolicyWaiverMatcherWrapper(PolicyWaiver waiver) {
     this.policyWaiver = waiver;
@@ -64,12 +71,14 @@ public class PolicyWaiverMatcherWrapper
     return policyWaiver.getHash().equals(componentFact.getHash());
   }
 
-  private boolean matchesAllVersionsOfComponent(ComponentFact componentFact) {
-    if (policyWaiver.getComponentIdentifier() == null) {
-      return false;
-    }
+  private boolean isDifferentFormat(ComponentIdentifier compIdentif, ComponentIdentifier waiverIdentif) {
+    return ! waiverIdentif.getFormat().equals(compIdentif.getFormat());
+  }
 
-    if (componentFact.getComponentIdentifier() == null) {
+  private boolean matchesAllVersionsOfComponent(ComponentFact componentFact) {
+    if (policyWaiver.getComponentIdentifier() == null ||
+        componentFact.getComponentIdentifier() == null ||
+        isDifferentFormat(componentFact.getComponentIdentifier(), policyWaiver.getComponentIdentifier())) {
       return false;
     }
 
@@ -79,9 +88,26 @@ public class PolicyWaiverMatcherWrapper
     // an alternative version
     ComponentIdentifier waiverAllVersionsIdentifier = policyWaiver.getComponentIdentifier();
 
-    componentFactAllVersionsIdentifier.ensureComplete();
+    // FIXME This code block was introduced in CLM-22177 and it is dependant on the resolution of CLM-22252
+    // FIXME After CLM-22252 task is done remove the try catch block and leave only the ensureComplete call
+    try {
+      componentFactAllVersionsIdentifier.ensureComplete();
+    }
+    catch (InvalidComponentIdentifierException e) {
+      log.warn("Failed to ensureComplete for purl {} with the following error: ",
+          PackageUrlIdentifier.toPackageUrl(componentFactAllVersionsIdentifier), e);
+      return compareWhenMissingRequiredCoordinates(waiverAllVersionsIdentifier, componentFactAllVersionsIdentifier);
+    }
 
     return waiverAllVersionsIdentifier.compareTo(componentFactAllVersionsIdentifier) == 0;
+  }
+
+  boolean compareWhenMissingRequiredCoordinates(
+      ComponentIdentifier waiverIdentifier,
+      ComponentIdentifier componentIdentifier)
+  {
+    return componentIdentifier.getCoordinates().entrySet().stream()
+        .allMatch(compCoord -> compCoord.getValue().equals(waiverIdentifier.get(compCoord.getKey())));
   }
 
   public boolean matchesConstraintFactsJson(String constraintFactsJson) {

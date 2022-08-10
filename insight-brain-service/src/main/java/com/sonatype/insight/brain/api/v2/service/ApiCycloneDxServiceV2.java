@@ -265,7 +265,7 @@ public class ApiCycloneDxServiceV2
       vulnerabilities.put(vulnerability.getId(), vulnerability);
     }
     catch (Exception e) {
-      log.error("Error creating SBoM Vulnerability for component {} with refId", purl, securityIssue.reference, e);
+      log.error("Error creating SBoM Vulnerability for component {} with refId {}", purl, securityIssue.reference, e);
     }
   }
 

@@ -727,8 +727,9 @@ public abstract class AbstractSummaryViewTest
       parentOwners.add(owner);
 
       if (owner.getId() != null) {
-        labels.add(tempEntity.newLabel(owner.getId(), owner.getId() + " Label 1", Color.dark_purple));
-        labels.add(tempEntity.newLabel(owner.getId(), owner.getId() + " Label 2", "With Subtitle", Color.dark_blue));
+        labels.add(tempEntity.newLabel(owner.getId(), "Inherited " + owner.getName() + " Label 1", Color.dark_purple));
+        labels.add(tempEntity.newLabel(owner.getId(), "Inherited " + owner.getName() + " Label 2", "With Subtitle",
+            Color.dark_blue));
 
         inheritedLabels.add(labels);
 

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
@@ -37,6 +38,15 @@ public class ConditionValueTypeResourceTest
     String orgId = tempEntity.newOrganization("test").getId();
 
     final HttpResponse response = restRequest(OwnerType.ORGANIZATION, orgId).get();
+    assertResponseStatus(200, response);
+    final Object[] conditionValueTypes = response.getBody(Object[].class);
+    assertThat(conditionValueTypes).isNotEmpty();
+  }
+
+  @Test
+  public void testGetConditionValueTypes_RepositoryContainer() throws Exception {
+    HttpResponse response =
+        restRequest(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID).get();
     assertResponseStatus(200, response);
     final Object[] conditionValueTypes = response.getBody(Object[].class);
     assertThat(conditionValueTypes).isNotEmpty();

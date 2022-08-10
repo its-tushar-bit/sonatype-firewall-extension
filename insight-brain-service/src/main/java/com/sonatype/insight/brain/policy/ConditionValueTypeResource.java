@@ -28,7 +28,8 @@ import org.slf4j.LoggerFactory;
 @Path(ConditionValueTypeResource.RESOURCE_PATH)
 public class ConditionValueTypeResource
 {
-  public static final String RESOURCE_PATH = "rest/conditionValueType/{ownerType: application|organization}/{ownerId}";
+  public static final String RESOURCE_PATH =
+      "rest/conditionValueType/{ownerType: application|organization|repository_container}/{ownerId}";
 
   private static final Logger log = LoggerFactory.getLogger(ConditionValueTypeResource.class);
 

@@ -18,10 +18,13 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
@@ -137,9 +140,10 @@ public class RepositoryResourceTest
 
   @Test
   public void testGetPolicyViolations() throws Exception {
+    Policy policy = tempEntity.newPolicy(RepositoryContainer.SINGLETON);
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repo.getId(), "testPathname");
     RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repo.getId(), 8,
-        repositoryComponent.getPathname(), false /* isWaived */, Action.ID_FAIL, "testPolicyId", "testPolicyName",
+        repositoryComponent.getPathname(), false /* isWaived */, Action.ID_FAIL, policy.getId(), policy.getName(),
         repositoryComponent.getComponentIdentifier());
 
     HttpResponse response =
@@ -154,11 +158,15 @@ public class RepositoryResourceTest
     assertThat(repositoryPolicyViolationDTO.policyViolationId).isEqualTo(repositoryPolicyViolation.getId());
     assertThat(repositoryPolicyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
     assertThat(repositoryPolicyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
+    assertThat(repositoryPolicyViolationDTO.policyOwner.ownerId).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(repositoryPolicyViolationDTO.policyOwner.ownerName).isEqualTo(RepositoryContainer.SINGLETON.getName());
+    assertThat(repositoryPolicyViolationDTO.policyOwner.ownerType).isEqualTo(OwnerType.REPOSITORY_CONTAINER.toString());
     assertThat(repositoryPolicyViolationDTO.policyThreatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
     assertThat(repositoryPolicyViolationDTO.policyThreatCategory)
         .isEqualTo(repositoryPolicyViolation.getThreatCategory());
     assertThat(repositoryPolicyViolationDTO.constraintFactsJson)
         .isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
     assertThat(repositoryPolicyViolationDTO.policyActionTypeId).isEqualTo(repositoryPolicyViolation.getActionTypeId());
+    assertThat(repositoryPolicyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
   }
 }

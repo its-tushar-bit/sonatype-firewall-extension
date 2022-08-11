@@ -36,12 +36,14 @@ import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
 import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
@@ -273,10 +275,11 @@ public class RepositoryServiceTest extends AbstractComponentTest
   @Test
   public void testGetPolicyViolations() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    Policy policy = tempEntity.newPolicy(RepositoryContainer.SINGLETON);
     String pathname = "path1";
     RepositoryComponent repositoryComponent1 = tempEntity.newRepositoryComponent(repository.getId(), pathname);
     RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(),
-        8, pathname, false /* isWaived */, Action.ID_FAIL, "policyId1", "policyName1",
+        8, pathname, false /* isWaived */, Action.ID_FAIL, policy.getId(), policy.getName(),
         repositoryComponent1.getComponentIdentifier());
     RepositoryComponent repositoryComponent2 = tempEntity.newRepositoryComponent(repository.getId(), "path2");
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path2", false/* isWaived */, "policyId2",
@@ -291,12 +294,48 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(repositoryPolicyViolationDTO.policyViolationId).isEqualTo(repositoryPolicyViolation.getId());
     assertThat(repositoryPolicyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
     assertThat(repositoryPolicyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
+    assertThat(repositoryPolicyViolationDTO.policyOwner.ownerId).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(repositoryPolicyViolationDTO.policyOwner.ownerName).isEqualTo(RepositoryContainer.SINGLETON.getName());
+    assertThat(repositoryPolicyViolationDTO.policyOwner.ownerType).isEqualTo(OwnerType.REPOSITORY_CONTAINER.toString());
     assertThat(repositoryPolicyViolationDTO.policyThreatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
     assertThat(repositoryPolicyViolationDTO.policyThreatCategory)
         .isEqualTo(repositoryPolicyViolation.getThreatCategory());
     assertThat(repositoryPolicyViolationDTO.constraintFactsJson)
         .isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
     assertThat(repositoryPolicyViolationDTO.policyActionTypeId).isEqualTo(repositoryPolicyViolation.getActionTypeId());
+    assertThat(repositoryPolicyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
+  }
+
+  @Test
+  public void testGetPolicyViolations_PolicyDoesNotExist() {
+    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+    String pathname = "path1";
+    RepositoryComponent repositoryComponent1 = tempEntity.newRepositoryComponent(repository.getId(), pathname);
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, pathname, false /* isWaived */, Action.ID_FAIL,
+            "policyId1", "policyName1", repositoryComponent1.getComponentIdentifier());
+    RepositoryComponent repositoryComponent2 = tempEntity.newRepositoryComponent(repository.getId(), "path2");
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path2", false/* isWaived */, "policyId2",
+        "policyName2", repositoryComponent2.getComponentIdentifier());
+
+    List<RepositoryPolicyViolationDTO> repositoryPolicyViolationDTOs =
+        repositoryService.getPolicyViolations(repository.getId(), pathname);
+
+    assertThat(repositoryPolicyViolationDTOs).hasSize(1);
+    RepositoryPolicyViolationDTO repositoryPolicyViolationDTO = repositoryPolicyViolationDTOs.get(0);
+    assertThat(repositoryPolicyViolationDTO.policyViolationId).isEqualTo(repositoryPolicyViolation.getId());
+    assertThat(repositoryPolicyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
+    assertThat(repositoryPolicyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
+    assertThat(repositoryPolicyViolationDTO.policyOwner.ownerId).isNull();
+    assertThat(repositoryPolicyViolationDTO.policyOwner.ownerName).isNull();
+    assertThat(repositoryPolicyViolationDTO.policyOwner.ownerType).isNull();
+    assertThat(repositoryPolicyViolationDTO.policyThreatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
+    assertThat(repositoryPolicyViolationDTO.policyThreatCategory)
+        .isEqualTo(repositoryPolicyViolation.getThreatCategory());
+    assertThat(repositoryPolicyViolationDTO.constraintFactsJson)
+        .isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
+    assertThat(repositoryPolicyViolationDTO.policyActionTypeId).isEqualTo(repositoryPolicyViolation.getActionTypeId());
+    assertThat(repositoryPolicyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
   }
 
   @Test

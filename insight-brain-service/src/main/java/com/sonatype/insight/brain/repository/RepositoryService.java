@@ -27,6 +27,8 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -34,6 +36,8 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
 import com.sonatype.insight.brain.dto.repository.RepositoryDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -71,6 +75,10 @@ public class RepositoryService
   private static final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
   private static final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+
+  private static final PolicyDAO policyDAO = new PolicyDAO();
+
+  private static final OwnerDAO ownerDAO = new OwnerDAO();
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
@@ -479,9 +487,11 @@ public class RepositoryService
   {
     List<PolicyThreats.PolicyConstraint> constraints =
         PolicyThreatsAdapter.toPolicyThreatsPolicyConstraints(repositoryPolicyViolation.getConstraintFacts());
+    Policy policy = policyDAO.getById(repositoryPolicyViolation.getPolicyId());
+    Owner policyOwner = policy == null ? null : ownerDAO.getById(policy.getOwnerId());
     return new RepositoryPolicyViolationDTO(repositoryPolicyViolation.getId(), repositoryPolicyViolation.getPolicyId(),
-        repositoryPolicyViolation.getPolicyName(), repositoryPolicyViolation.getThreatLevel(),
+        repositoryPolicyViolation.getPolicyName(), policyOwner, repositoryPolicyViolation.getThreatLevel(),
         repositoryPolicyViolation.getThreatCategory(), constraints, repositoryPolicyViolation.getConstraintFactsJson(),
-        repositoryPolicyViolation.getActionTypeId());
+        repositoryPolicyViolation.getActionTypeId(), repositoryPolicyViolation.getTime());
   }
 }

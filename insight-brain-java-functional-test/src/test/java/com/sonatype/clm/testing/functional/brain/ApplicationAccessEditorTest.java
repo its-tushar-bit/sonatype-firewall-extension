@@ -8,8 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
-import com.sonatype.clm.testing.functional.elements.Dropdown;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
@@ -26,10 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationAccessEditorTest
@@ -74,28 +70,30 @@ public class ApplicationAccessEditorTest
     refresh(); // reload because UI data is cached
     goFromSummaryToAddRole();
 
-    // select a role
-    Dropdown roleDropdown = AccessEditorPage.roleDropdown().shouldBe(visible);
-    roleDropdown.selectedItem().click();
+    AccessEditorPage accessEditorPage = new AccessEditorPage();
+    AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
 
-    SelenideElement roleEntry = roleDropdown.listItem(2).shouldBe(visible);
+    // select a role
+    NxFormSelect roleSelect = addMembersForm.roleSelect().shouldBe(visible);
+    roleSelect.click();
+
+    SelenideElement roleEntry = roleSelect.listItem(2).shouldBe(visible);
     final String roleName = roleEntry.getText();
     roleEntry.click();
 
-    SelenideElement addGroupButton = AccessEditorPage.addGroupButton();
-    addGroupButton.shouldBe(visible, disabled);
+    SelenideElement addGroupButton = addMembersForm.addGroupButton();
+    addGroupButton.shouldBe(visible);
+    addGroupButton.shouldHave(cssClass("disabled"));
 
-    AccessEditorPage.addGroupBox().shouldBe(visible).val("FooBar");
+    addMembersForm.addGroupBox().shouldBe(visible).val("FooBar");
     addGroupButton.shouldBe(enabled).click();
 
-    DoubleColumnPicker picker = AccessEditorPage.picker();
-    picker.availableItems().shouldHave(texts("FooBar"));
-    picker.checkAllLeft().click();
-    picker.pickCheckedItemsButton().click();
+    addMembersForm.addedItems().shouldHaveSize(1);
+    addMembersForm.addedItems().shouldHave(texts("FooBar"));
 
-    AccessEditorPage.saveButton().scrollIntoView(true).shouldNotBe(CLM.DISABLED).click();
+    addMembersForm.saveButton().scrollIntoView(true).shouldNotBe(CLM.DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    AccessEditorPage.addGroupBox().shouldBe(visible, value(""));
+    addMembersForm.addGroupBox().shouldBe(visible, value(""));
 
     List<MembershipMapping> mappings = getMembershipMappings(currentOwner.getId(), roleName);
     assertThat(mappings).hasSize(1);

@@ -5,27 +5,33 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
-import com.sonatype.clm.testing.functional.elements.Dropdown;
+import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Selenide.$;
 
 public class AccessEditorPage
+    extends BasicElement<AccessEditorPage>
 {
-  public static final Condition NEW_TITLE_TEXT = text("Add a Role");
+  private static final String ROOT_SELECTOR = "#create-edit-access-page";
 
-  public static final Condition DROPDOWN_DEFAULT_TEXT = text("-- Select Role --");
+  public AccessEditorPage() {
+    super(ROOT_SELECTOR);
+  }
 
-  public static final Condition CONFIRM_REMOVAL_HEADER_TEXT = text("Remove Role");
+  public static final Condition NEW_TITLE_TEXT = text("New Role");
 
-  public static final String ACCESS_EDITOR_ID = "#access-editor";
+  public static final Condition DROPDOWN_DEFAULT_TEXT = text("Select Role");
+
+  public static final Condition CONFIRM_REMOVAL_HEADER_TEXT = text("Delete Role");
 
   public static final String DISABLED_GROUP_SEARCH_WARNING =
       "One or more LDAP servers have group search disabled, which will affect your results";
@@ -49,56 +55,72 @@ public class AccessEditorPage
     return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}/access", ownerType, ownerId);
   }
 
-  public static SelenideElement title() {
-    return $(ACCESS_EDITOR_ID + " h2");
+  public SelenideElement title() {
+    return child(".nx-page-title");
   }
 
-  public static Dropdown roleDropdown() {
-    return new Dropdown(ACCESS_EDITOR_ID, "dropdown-selector");
+  public AddMembersForm addMembersForm() {
+    return new AddMembersForm(
+        childSelector("#access-add-members-form"));
   }
 
-  public static DoubleColumnPicker picker() {
-    return new DoubleColumnPicker();
-  }
+  public class AddMembersForm extends BasicElement<AddMembersForm>
+  {
+    private AddMembersForm(String selector) {
+      super(selector);
+    }
 
-  public static SelenideElement saveButton() {
-    return $("#save-access-role-button");
-  }
+    public NxFormSelect roleSelect() {
+      return new NxFormSelect(childSelector("select.nx-form-select"));
+    }
 
-  public static SelenideElement removeRoleButton() {
-    return $("#remove-role-button");
-  }
+    public SelenideElement addGroupBox() {
+      return child(".nx-form-row .nx-text-input__input");
+    }
 
-  public static SelenideElement addGroupBox() {
-    return $(".test-add-group-input");
-  }
+    public SelenideElement addGroupButton() {
+      return child("#add-associate-group-btn");
+    }
 
-  public static SelenideElement addGroupButton() {
-    return $(".test-add-group-button");
-  }
+    public SelenideElement searchBox() {
+      return child(".nx-search-dropdown .nx-text-input__input");
+    }
 
-  public static SelenideElement searchBox() {
-    return $(".test-search-input");
-  }
+    public ElementsCollection searchResults() {
+      return children(".nx-search-dropdown__menu .nx-dropdown-button");
+    }
 
-  public static SelenideElement searchButton() {
-    return $(".test-search-button");
-  }
+    public ElementsCollection addedItems() {
+      return children(".nx-transfer-list__item");
+    }
 
-  public static SelenideElement disabledGroupSearchWarning() {
-    return $(".test-group-search-warning");
-  }
+    public SelenideElement deleteRoleButton() {
+      return child("#delete-role-button");
+    }
 
-  public static Condition confirmRemovalThroughUpdateText(String roleName, OwnerType ownerType) {
-    return text("You are about to remove the " + roleName + " role from " +
-        (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? "all repositories" :
-            "this " + ownerType) +
-        ". Next time, consider using the \"Remove Role\" button; it will save you some clicks!");
-  }
+    public SelenideElement saveButton() {
+      return child(".nx-form__submit-btn");
+    }
 
-  public static Condition confirmRemovalText(String roleName, OwnerType ownerType) {
-    return text("You are about to remove the " + roleName + " role from " +
-        (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? "all repositories" :
-            "this " + ownerType) + ".");
+    public NxDeleteModal getDeleteModal() {
+      return new NxDeleteModal("#role-config-delete-modal");
+    }
+
+    public SelenideElement disabledGroupSearchWarning() {
+      return child("#ldap-servers-alert");
+    }
+
+    public String confirmRemovalThroughUpdateText(String roleName, OwnerType ownerType) {
+      return "You are about to remove the " + roleName + " role from " +
+          (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? "all repositories" :
+              "this " + ownerType) +
+          ". Next time, consider using the \"Delete\" button; it will save you some clicks!";
+    }
+
+    public String confirmRemovalText(String roleName, OwnerType ownerType) {
+      return "You are about to remove the " + roleName + " role from " +
+          (OwnerType.REPOSITORY_CONTAINER.equals(ownerType) ? "all repositories" :
+              "this " + ownerType) + ".";
+    }
   }
 }

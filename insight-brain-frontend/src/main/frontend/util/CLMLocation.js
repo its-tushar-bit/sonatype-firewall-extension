@@ -655,6 +655,30 @@ export function getRoleMappingUrl(roleId) {
   return uriTemplate`/rest/membershipMapping/global/global/role/${roleId}`;
 }
 
+export function getAccessPageRolesUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/membershipMapping/${ownerType}/${ownerId}`;
+}
+
+export function getRepositoryRoleMappingUrl() {
+  return uriTemplate`/rest/membershipMapping/repository_container`;
+}
+
+export function getUsersRepositoryRoleMappingUrl(query) {
+  return uriTemplate`/rest/user/repository_container/query?q=${query}`;
+}
+
+export function getUsersRoleMappingUrl(ownerType, ownerId, query) {
+  return uriTemplate`/rest/user/${ownerType}/${ownerId}/query?q=${query}`;
+}
+
+export function getCreateOrDeleteAccessUrl(ownerType, ownerId, roleId) {
+  return uriTemplate`/rest/membershipMapping/${ownerType}/${ownerId}/role/${roleId}`;
+}
+
+export function getCreateOrDeleteAccessRepositoryUrl(roleId) {
+  return uriTemplate`/rest/membershipMapping/repository_container/role/${roleId}`;
+}
+
 export function getSuccessMetricsReportsUrl() {
   return uriTemplate`/rest/successMetrics/report`;
 }

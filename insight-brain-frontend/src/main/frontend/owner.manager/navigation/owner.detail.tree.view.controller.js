@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { isEmpty, propEq, find } from 'ramda';
+import { isEmpty, propEq, find, any, complement, isNil } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { selectSiblings as selectPolicySiblings } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
@@ -11,6 +11,8 @@ import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { actions as ownerDetailTreeActions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
 import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSelectors';
 import { selectLabelsSiblings } from 'MainRoot/OrgsAndPolicies/labelsSelectors';
+import { selectRolesSiblings } from 'MainRoot/OrgsAndPolicies/access/accessSelectors';
+
 import {
   selectIsMonitoringSupported,
   selectIsGrandfatheringSupported,
@@ -114,21 +116,18 @@ export default function OwnerDetailTreeViewController(
       });
   }
 
+  $scope.$watchGroup(['vm.labels', 'vm.access', 'vm.categories'], function (watched) {
+    if (any(complement(isNil), watched)) {
+      vm.doLoad();
+    }
+  });
+
   $scope.$on('resource.data.modified', vm.doLoad);
-  $scope.$watch('vm.labels', (labels) => {
-    if (labels) {
-      vm.doLoad();
-    }
-  });
-  $scope.$watch('vm.categories', (categories) => {
-    if (categories) {
-      vm.doLoad();
-    }
-  });
 }
 
 export const mapStateToThis = (state) => ({
   labels: selectLabelsSiblings(state),
+  access: selectRolesSiblings(state),
   categories: selectApplicationCategoriesSiblings(state),
   policies: selectPolicySiblings(state),
   isMonitoringSupported: selectIsMonitoringSupported(state),

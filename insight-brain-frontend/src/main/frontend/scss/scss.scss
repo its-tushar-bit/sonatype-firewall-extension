@@ -120,6 +120,7 @@
 @use '../artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurations';
 @use '../configuration/administrators/administrators';
 @use '../OrgsAndPolicies/componentLabels/createComponentLabel';
+@use '../OrgsAndPolicies/access/accessPage';
 @use '../OrgsAndPolicies/proprietaryComponentConfig/proprietaryComponentConfiguration';
 @use '../firewall/firewallComponentDetailsPage/firewallComponentDetailsPage';
 @use '../OrgsAndPolicies/assignAppCategory/assignAppCategory';

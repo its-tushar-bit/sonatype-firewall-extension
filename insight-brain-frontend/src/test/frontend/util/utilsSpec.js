@@ -9,7 +9,7 @@ import {
   formatMembersForTransferList,
   removeFormatGroupUsers,
   sortByDisplayName,
-} from 'MainRoot/configuration/administrators/utils';
+} from 'MainRoot/util/formatGroupUsers';
 
 describe('administrators utils', () => {
   const dataWithId = [

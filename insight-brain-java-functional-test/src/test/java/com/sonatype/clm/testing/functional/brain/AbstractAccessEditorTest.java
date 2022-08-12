@@ -8,24 +8,15 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.DeleteModal;
-import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
-import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker.Item;
-import com.sonatype.clm.testing.functional.elements.Dropdown;
-import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.elements.*;
 import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.utils.DoubleColumnPickerTestHelper;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
-import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
@@ -34,15 +25,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
-import static com.codeborne.selenide.Condition.empty;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.clm.testing.functional.elements.CLM.PRISTINE;
 import static com.sonatype.clm.testing.functional.pages.AccessEditorPage.DISABLED_GROUP_SEARCH_WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -86,39 +71,53 @@ public abstract class AbstractAccessEditorTest
   @Test
   public void testAddRole() {
     goFromSummaryToAddRole();
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 2);
     OwnerDetailTreeView.accessGroup().items().shouldHaveSize(3);
 
-    Dropdown roleDropdown = AccessEditorPage.roleDropdown();
-    roleDropdown.selectedItem().shouldHave(AccessEditorPage.DROPDOWN_DEFAULT_TEXT).click();
+    AccessEditorPage accessEditorPage = new AccessEditorPage();
+    AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
+
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 1, accessEditorPage);
+
+    NxFormSelect roleDropdown = addMembersForm.roleSelect();
+    roleDropdown.shouldHave(AccessEditorPage.DROPDOWN_DEFAULT_TEXT).click();
     eyesWatcher.eyesCheck();
     String roleName = roleDropdown.listItem(2).text();
     assertThat(getMembershipMappings(currentOwner.getId(), roleName)).isEmpty();
     roleDropdown.listItem(2).click();
-    AccessEditorPage.saveButton().shouldHave(DISABLED);
-    AccessEditorPage.searchButton().shouldHave(DISABLED);
-    AccessEditorPage.searchBox().val("*");
-    AccessEditorPage.searchButton().shouldBe(enabled).click();
+    addMembersForm.saveButton().shouldHave(cssClass("disabled"));
+    addMembersForm.searchBox().setValue("*").click();
 
-    DoubleColumnPicker picker = AccessEditorPage.picker();
-    picker.availableItems().shouldHaveSize(4);
+    addMembersForm.searchResults().shouldHaveSize(4);
+    addMembersForm.searchResults()
+            .shouldHave(texts("Admin BuiltIn", "John Doe", "John Doe", "Authenticated Users (Group)"));
 
-    Item availableItem = picker.availableItem(0);
-    availableItem.label().shouldHave(text("Admin Builtin")).hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("IQ Server admin@localhost"));
-    AccessEditorPage.title().hover(); // hide the tooltip
-    Tooltip.get().shouldNot(exist);
-    picker.availableItem(1).label().shouldHave(text(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME));
+    addMembersForm.searchResults().get(0).shouldHave(text("Admin BuiltIn"));
+    addMembersForm.searchResults().get(0).click();
+    addMembersForm.addedItems().shouldHaveSize(1);
 
-    picker.checkAllLeft().click();
-    AccessEditorPage.saveButton().shouldHave(DISABLED);
-    picker.pickCheckedItemsButton().click();
-    AccessEditorPage.saveButton().shouldNotHave(DISABLED).click();
+    addMembersForm.searchBox().setValue("*").click();
+    addMembersForm.searchResults().get(0).click();
+    addMembersForm.addedItems().shouldHaveSize(2);
+
+    addMembersForm.searchBox().setValue("*").click();
+    addMembersForm.searchResults().get(0).click();
+    addMembersForm.addedItems().shouldHaveSize(3);
+
+    addMembersForm.searchBox().setValue("*").click();
+    addMembersForm.searchResults().get(0).shouldHave(text("Authenticated Users (Group)"));
+    addMembersForm.searchResults().get(0).click();
+
+    addMembersForm.addedItems().shouldHaveSize(4);
+    addMembersForm.addedItems()
+            .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "John Doe", "John Doe"));
+
+    addMembersForm.saveButton().shouldNotHave(cssClass("disabled")).click();
     FormMask.seeAndWaitForDismissal();
+
     OwnerDetailTreeView.accessGroup().items().shouldHaveSize(4);
     OwnerDetailTreeView.accessGroup().item(3).shouldHave(text(roleName));
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 3);
-    assertThatRoleNotAvailableInDropdown(roleName);
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 2, accessEditorPage);
+    assertThatRoleNotAvailableInDropdown(roleName, addMembersForm);
     List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), roleName);
     tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
     assertThat(membershipMappings).hasSize(4);
@@ -130,35 +129,33 @@ public abstract class AbstractAccessEditorTest
     goFromSummaryToEditRole(role);
 
     OwnerDetailTreeView.accessGroup().item(1).shouldBe(CLM.SELECTED);
-    AccessEditorPage.title().shouldHave(text(role.getName()));
 
-    DoubleColumnPicker picker = AccessEditorPage.picker();
-    assertCommonInitialStateIsCorrect(picker);
-    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(picker, 0, 2, false);
-    AccessEditorPage.removeRoleButton().shouldBe(visible);
+    AccessEditorPage accessEditorPage = new AccessEditorPage();
+    AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
+    accessEditorPage.title().shouldHave(text(role.getName()));
+    assertCommonInitialStateIsCorrect(accessEditorPage);
 
-    AccessEditorPage.searchBox().val("*");
-    AccessEditorPage.searchButton().shouldBe(enabled).click();
+    addMembersForm.searchBox().setValue("*").click();
+    addMembersForm.searchResults().shouldHaveSize(2);
 
-    picker.availableItems().shouldHaveSize(2);
-    Item availableItem = picker.availableItem(0);
-    availableItem.label().shouldHave(text("Admin Builtin")).hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("IQ Server admin@localhost"));
-    AccessEditorPage.title().hover(); // hide the tooltip
-    Tooltip.get().shouldNot(exist);
-    picker.availableItem(1).label().shouldHave(text(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME));
-    picker.checkAllLeft().click();
-    picker.pickCheckedItemsButton().shouldBe(enabled).click();
-    picker.pickedItems().shouldHaveSize(4);
-    // shouldn't submit on enter. Assert by checking that 'save' button is still enabled
-    AccessEditorPage.searchBox().pressEnter();
+    addMembersForm.searchResults().get(0).shouldHave(text("Admin BuiltIn"));
+    addMembersForm.searchResults().get(1).shouldHave(text("Authenticated Users (Group)"));
+
+    addMembersForm.searchResults().get(0).click();
+    addMembersForm.addedItems().shouldHaveSize(3);
+
+    addMembersForm.searchBox().setValue("*").click();
+    addMembersForm.searchResults().get(0).click();
+
+    addMembersForm.addedItems().shouldHaveSize(4);
+    addMembersForm.addedItems()
+            .shouldHave(texts("Admin BuiltIn", "Authenticated Users (Group)", "John Doe", "John Doe"));
+
+    addMembersForm.saveButton().shouldNotHave(cssClass("disabled")).click();
     FormMask.seeAndWaitForDismissal();
-    AccessEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    FormMask.seeAndWaitForDismissal();
-    assertCommonInitialStateIsCorrect(picker);
+    assertCommonInitialStateIsCorrect(accessEditorPage);
     List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), role.getName());
     tempEntity.register(membershipMappings.toArray(new MembershipMapping[membershipMappings.size()]));
-    picker.pickedItems().shouldHaveSize(4);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).hasSize(4);
   }
 
@@ -167,24 +164,24 @@ public abstract class AbstractAccessEditorTest
     Role role = APPLICATION_ROLES.get(2);
     refreshOrOpen(AccessEditorPage.urlToEdit(currentOwner, role.getId()));
 
-    DoubleColumnPicker picker = AccessEditorPage.picker();
-    picker.pickedItems().shouldHaveSize(1);
+    AccessEditorPage accessEditorPage = new AccessEditorPage();
+    AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
+    addMembersForm.addedItems().shouldHaveSize(1);
 
-    AccessEditorPage.title().hover(); // hide the tooltip
     OwnerDetailTreeView.accessGroup().entryItems().shouldHave(sizeGreaterThan(0));
     int initialNumAddedRoles = OwnerDetailTreeView.accessGroup().entryItems().size();
 
-    picker.checkAllRight().click();
-    picker.unpickCheckedItemsButton().click();
-    AccessEditorPage.saveButton().shouldNotHave(DISABLED).click();
-    DeleteModal.body().shouldBe(visible).shouldHave(
-        AccessEditorPage.confirmRemovalThroughUpdateText(role.getName(), currentOwner.getType()));
-    DeleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
-    DeleteModal.continueButton().click();
+    addMembersForm.addedItems().get(0).click();
+    addMembersForm.saveButton().shouldNotHave(cssClass("disabled")).click();
+    NxDeleteModal deleteModal = addMembersForm.getDeleteModal();
+    deleteModal.alertContent().shouldBe(visible).shouldHave(
+            text(addMembersForm.confirmRemovalThroughUpdateText(role.getName(), currentOwner.getType())));
+    deleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
+    deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.body().shouldBe(hidden);
+    deleteModal.shouldBe(hidden);
     OwnerDetailTreeView.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 1);
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 2, accessEditorPage);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).isEmpty();
   }
 
@@ -192,18 +189,25 @@ public abstract class AbstractAccessEditorTest
   public void testRemove() {
     Role role = APPLICATION_ROLES.get(2);
     refreshOrOpen(AccessEditorPage.urlToEdit(currentOwner, role.getId()));
-    AccessEditorPage.title().shouldBe(visible).hover(); // hide the tooltip
+
+    AccessEditorPage accessEditorPage = new AccessEditorPage();
+    AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
+
+    accessEditorPage.title().shouldBe(visible);
     OwnerDetailTreeView.accessGroup().entryItems().shouldHave(sizeGreaterThan(0));
     int initialNumAddedRoles = OwnerDetailTreeView.accessGroup().entryItems().size();
-    AccessEditorPage.removeRoleButton().click();
-    DeleteModal.body().shouldBe(visible)
-        .shouldHave(AccessEditorPage.confirmRemovalText(role.getName(), currentOwner.getType()));
-    DeleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
-    DeleteModal.continueButton().click();
+
+    addMembersForm.deleteRoleButton().click();
+    NxDeleteModal deleteModal = addMembersForm.getDeleteModal();
+    deleteModal.shouldBe(visible);
+    deleteModal.alertContent()
+            .shouldHave(text(addMembersForm.confirmRemovalText(role.getName(), currentOwner.getType())));
+    deleteModal.header().shouldHave(AccessEditorPage.CONFIRM_REMOVAL_HEADER_TEXT);
+    deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.body().shouldBe(hidden);
+    deleteModal.shouldBe(hidden);
     OwnerDetailTreeView.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
-    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 1);
+    assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 2, accessEditorPage);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).isEmpty();
   }
 
@@ -229,8 +233,12 @@ public abstract class AbstractAccessEditorTest
     refresh(); // reload because UI data is cached
     goFromSummaryToAddRole();
 
-    AccessEditorPage.searchBox().shouldBe(visible);
-    AccessEditorPage.disabledGroupSearchWarning().shouldBe(visible).shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
+    AccessEditorPage accessEditorPage = new AccessEditorPage();
+    AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
+    addMembersForm.searchBox().shouldBe(visible);
+
+    addMembersForm.disabledGroupSearchWarning().shouldBe(visible)
+      .shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
     eyesWatcher.eyesCheck();
 
     // enable group search for one
@@ -238,36 +246,39 @@ public abstract class AbstractAccessEditorTest
     new LdapUserMappingDAO().update(ldapUserMapping1);
     refresh();
 
-    AccessEditorPage.disabledGroupSearchWarning().shouldBe(visible).shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
+    addMembersForm.disabledGroupSearchWarning().shouldBe(visible)
+      .shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
 
     // ... and then the other one, too
     ldapUserMapping2.setDynamicGroupSearchEnabled(true);
     new LdapUserMappingDAO().update(ldapUserMapping2);
     refresh();
 
-    AccessEditorPage.disabledGroupSearchWarning().shouldNot(exist);
+    addMembersForm.disabledGroupSearchWarning().shouldNot(exist);
   }
 
-  private void assertThatRoleNotAvailableInDropdown(final String roleName) {
-    AccessEditorPage.roleDropdown().selectedItem().click();
-    List<String> roleNames = AccessEditorPage.roleDropdown().listItems().texts();
+  private void assertThatRoleNotAvailableInDropdown(
+          final String roleName, AccessEditorPage.AddMembersForm addMembersForm)
+  {
+    addMembersForm.roleSelect().click();
+    List<String> roleNames = addMembersForm.roleSelect().listItems().texts();
     assertThat(roleNames).doesNotContain(roleName);
   }
 
-  private void assertAddRoleInitialStateIsCorrect(int numAvailableRoles) {
+  private void assertAddRoleInitialStateIsCorrect(
+          int numAvailableRoles, AccessEditorPage accessEditorPage)
+  {
     OwnerDetailTreeView.accessGroup().item(0).shouldBe(CLM.SELECTED);
-    AccessEditorPage.title().shouldHave(AccessEditorPage.NEW_TITLE_TEXT);
-    AccessEditorPage.roleDropdown().listItems().shouldHaveSize(numAvailableRoles);
-    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(AccessEditorPage.picker(), 0, false);
-    AccessEditorPage.removeRoleButton().shouldBe(hidden);
-    assertCommonInitialStateIsCorrect(AccessEditorPage.picker());
+    accessEditorPage.title().shouldHave(AccessEditorPage.NEW_TITLE_TEXT);
+    accessEditorPage.addMembersForm().roleSelect().listItems().shouldHaveSize(numAvailableRoles);
+    accessEditorPage.addMembersForm().deleteRoleButton().shouldBe(hidden);
+    assertCommonInitialStateIsCorrect(accessEditorPage);
   }
 
-  private void assertCommonInitialStateIsCorrect(DoubleColumnPicker picker) {
-    AccessEditorPage.searchBox().shouldHave(value("")).shouldHave(PRISTINE);
-    AccessEditorPage.searchButton().shouldHave(DISABLED);
-    picker.availableItemList().shouldBe(empty);
-    AccessEditorPage.saveButton().shouldHave(DISABLED);
+  private void assertCommonInitialStateIsCorrect(AccessEditorPage accessEditorPage) {
+    accessEditorPage.addMembersForm().searchBox().shouldHave(value(""));
+    accessEditorPage.addMembersForm().searchResults().shouldHaveSize(0);
+    accessEditorPage.addMembersForm().saveButton().shouldHave(DISABLED);
   }
 
   protected List<MembershipMapping> getMembershipMappings(final String ownerId, final String roleName) {

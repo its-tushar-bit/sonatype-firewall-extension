@@ -18,7 +18,11 @@ import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 import { selectAddedUsers, selectRoleToEdit } from './administratorsSelectors';
-import { formatMembersForSaving, formatMembersForTransferList, removeFormatGroupUsers } from './utils';
+import {
+  formatMembersForSaving,
+  formatMembersForTransferList,
+  removeFormatGroupUsers,
+} from 'MainRoot/util/formatGroupUsers';
 
 const REDUCER_NAME = 'administratorsConfig';
 

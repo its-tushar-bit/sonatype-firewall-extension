@@ -20,6 +20,7 @@ import sourceControlSlice from './sourceControlSlice';
 import ownerSummarySlice from './ownerSummarySlice';
 import ownerDetailTreeSlice from './ownerDetailTreeSlice';
 import policyViolationGrandfatheringSlice from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
+import accessSlice from './access/accessSlice';
 
 export default combineReducers({
   root: rootSlice,
@@ -27,6 +28,7 @@ export default combineReducers({
     createEdit: createEditApplicationCategoriesSlice,
     assign: assignApplicationCategoriesSlice,
   }),
+  access: accessSlice,
   labels: labelsSlice,
   policyMonitoring: policyMonitoring,
   proprietary: proprietarySlice,

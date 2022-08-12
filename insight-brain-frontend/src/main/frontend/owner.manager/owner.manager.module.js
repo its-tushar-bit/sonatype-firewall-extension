@@ -19,7 +19,6 @@ import ownerPolicyList from './summary/ownerPolicyList/ownerPolicyList';
 
 import licenseThreatGroupModule from '../policy/LicenseThreatGroupsController';
 import roleMembershipModule from '../role.membership/role.membership.module';
-import AccessEditorController from './access/access.editor.controller';
 import AccessTileController from './access/access.tile.controller';
 import AccessTile from './access/access.tile.directive';
 import LocalRoleService from './utility/local.role.service';
@@ -68,7 +67,6 @@ import retentionModule from './retention/module';
 import sourceControlModule from './source.control/module';
 import viewTemplate from './state/owner.manager.view.html';
 import repoSummaryTemplate from './repositories/repositories.summary.view.html';
-import accessEditorTemplate from './access/access.editor.view.html';
 import summaryViewTemplate from './summary/owner.summary.view.html';
 import policyEditorTemplate from './policy/policy.editor.view.html';
 import ltgEditorTemplate from './license.threat.group/license.threat.group.editor.view.html';
@@ -84,6 +82,7 @@ import OwnerSummaryTilesContainerController from './summary/owner.summary.tiles.
 import PolicyGrandfatheringTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PolicyGrandfatheringTile';
 import PoliciesHeaderTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PoliciesHeaderTile';
 import ProprietaryComponentConfigurationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ProprietaryComponentConfigurationTile';
+import AccessPage from 'MainRoot/OrgsAndPolicies/access/AccessPage';
 import SourceControlTile from 'MainRoot/OrgsAndPolicies/ownerSummary/SourceControlTile';
 import ApplicationCategoriesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ApplicationCategoriesTile';
 import ContinuousMonitoringSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ContinuousMonitoringSummaryTile';
@@ -113,7 +112,6 @@ export default angular
     artifactoryRepositoryModule.name,
   ])
   .component('ownerPolicyList', ownerPolicyList)
-  .controller('access.editor.controller', AccessEditorController)
   .controller('AccessTileController', AccessTileController)
   .directive('accessTile', AccessTile)
   .controller('license.threat.group.editor.controller', LicenseThreatGroupEditorController)
@@ -167,6 +165,7 @@ export default angular
   )
   .component('continuousMonitoring', iqReact2Angular(ContinuousMonitoringEditor, [], ['$ngRedux']))
   .component('createComponentLabel', iqReact2Angular(CreateComponentLabel, [], ['$ngRedux', '$state']))
+  .component('accessPage', iqReact2Angular(AccessPage, [], ['$ngRedux', '$state']))
   .component('sourceControlTile', iqReact2Angular(SourceControlTile, [], ['$ngRedux', '$state']))
   .component('labelsTile', iqReact2Angular(LabelsTile, [], ['$ngRedux', '$state']))
   .component('applicationCategoriesTile', iqReact2Angular(ApplicationCategoriesTile, [], ['$ngRedux', '$state']))
@@ -240,21 +239,23 @@ export default angular
         })
         .state('management.edit.repositories.add-access', {
           url: '/access',
+          data: {
+            isDirty: ['orgsAndPolicies', 'access', 'isDirty'],
+          },
           views: {
             '@management.edit': {
-              controller: 'access.editor.controller',
-              controllerAs: 'vm',
-              template: accessEditorTemplate,
+              component: 'accessPage',
             },
           },
         })
         .state('management.edit.repositories.edit-access', {
           url: '/access/{roleId}',
+          data: {
+            isDirty: ['orgsAndPolicies', 'access', 'isDirty'],
+          },
           views: {
             '@management.edit': {
-              controller: 'access.editor.controller',
-              controllerAs: 'vm',
-              template: accessEditorTemplate,
+              component: 'accessPage',
             },
           },
         });
@@ -336,12 +337,11 @@ export default angular
             url: '/access',
             data: {
               title: ownerType.name + ' Access',
+              isDirty: ['orgsAndPolicies', 'access', 'isDirty'],
             },
             views: {
               '@management.edit': {
-                controller: 'access.editor.controller',
-                controllerAs: 'vm',
-                template: accessEditorTemplate,
+                component: 'accessPage',
               },
             },
           })
@@ -349,12 +349,11 @@ export default angular
             url: '/access/{roleId}',
             data: {
               title: ownerType.name + ' Access',
+              isDirty: ['orgsAndPolicies', 'access', 'isDirty'],
             },
             views: {
               '@management.edit': {
-                controller: 'access.editor.controller',
-                controllerAs: 'vm',
-                template: accessEditorTemplate,
+                component: 'accessPage',
               },
             },
           })

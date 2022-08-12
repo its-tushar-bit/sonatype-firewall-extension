@@ -7,7 +7,7 @@ import { prop, propEq, propOr, find, reject, includes, compose } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { formatGroupUsers, sortByDisplayName } from './utils';
+import { formatGroupUsers, sortByDisplayName } from 'MainRoot/util/formatGroupUsers';
 
 export const selectAdministratorsSlice = prop('administratorsConfig');
 

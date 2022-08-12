@@ -42,7 +42,7 @@ import {
   selectFetchUsersPartialError,
 } from '../administratorsSelectors';
 import { actions } from '../administratorsSlice';
-import { removeFormatGroupUsers } from '../utils';
+import { removeFormatGroupUsers } from 'MainRoot/util/formatGroupUsers';
 import { allPass, compose, filter, map, not, propEq } from 'ramda';
 import classNames from 'classnames';
 

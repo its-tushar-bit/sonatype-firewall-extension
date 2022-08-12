@@ -1,6 +1,9 @@
 # Directory for data files.
 sonatypeWork: ${SONATYPE_WORK:-./sonatype-work/clm-server}
 
+# Shared directory for management data of a IQ cluster
+clusterDirectory: ${CLUSTER_DIRECTORY:-./sonatype-work/clm-cluster}
+
 # HTTP Strict Transport Security (HSTS) is supported using dropwizard-web configuration
 # HSTS headers are enabled by default, uncomment web: section below and set enabled: false to disable
 # Refer to https://github.com/dropwizard/dropwizard-web#supports for detailed configuration guide

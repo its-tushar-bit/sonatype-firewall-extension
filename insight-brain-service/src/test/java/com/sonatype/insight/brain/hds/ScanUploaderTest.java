@@ -123,9 +123,11 @@ public class ScanUploaderTest
     Application app = tempEntity.newApplicationWithParent("test-app-id");
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan id");
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Map<String, String>> queryParamsCaptor = ArgumentCaptor.forClass(Map.class);
 
     when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
-        any(File.class), anyMap(), any(String[].class)))//
+        any(File.class), queryParamsCaptor.capture(), any(String[].class)))//
             .thenThrow(new BadGatewayException("oops"));
 
     assertThatThrownBy(() -> scanUploader.upload(tempDir.newFile(), app, Duration.ZERO, null, null))
@@ -133,6 +135,12 @@ public class ScanUploaderTest
     verify(hdsClient, times(ScanUploader.BAD_GATEWAY_ATTEMPT_LIMIT))
         .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class), any(File.class),
             anyMap(), any(String[].class));
+
+    assertThat(queryParamsCaptor.getAllValues()).hasSize(ScanUploader.BAD_GATEWAY_ATTEMPT_LIMIT);
+    for (int i = 1; i < ScanUploader.BAD_GATEWAY_ATTEMPT_LIMIT; i++) {
+      assertThat(queryParamsCaptor.getAllValues().get(i)).as("retry " + i).containsEntry("retryCount",
+          Integer.toString(i));
+    }
   }
 
   @Test
@@ -150,8 +158,23 @@ public class ScanUploaderTest
 
     scanUploader.upload(tempDir.newFile(), app, null, null);
 
-    verify(hdsClient, times(1))
-        .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class), any(File.class),
-            eq(matcherConfigs), any(String[].class));
+    assertThat(metadataArgs.getValue()).containsAllEntriesOf(matcherConfigs);
+  }
+
+  @Test
+  public void testUpload_SendUploadIdToHds() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scanId");
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Map<String, String>> queryParamsCaptor = ArgumentCaptor.forClass(Map.class);
+
+    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
+        any(File.class), queryParamsCaptor.capture(), any(String[].class))) //
+            .thenReturn(receipt);
+
+    scanUploader.upload(tempDir.newFile(), app, null, null);
+
+    assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
   }
 }

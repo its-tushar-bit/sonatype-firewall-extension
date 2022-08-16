@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -72,10 +73,17 @@ public class ScanUploader
 
     ScanReceipt receipt = null;
     int retryCount = 0;
+    String uploadId = UUID.randomUUID().toString().replace("-", "");
 
     while (receipt == null) {
       try {
         Map<String, String> uploadMetadata = new HashMap<>();
+
+        // enable HDS to reason about retries
+        uploadMetadata.put("uploadId", uploadId);
+        if (retryCount > 0) {
+          uploadMetadata.put("retryCount", Integer.toString(retryCount));
+        }
 
         // Third party scan uploads which have no stage and our own scan
         // uploads which do have a stage both use this function.

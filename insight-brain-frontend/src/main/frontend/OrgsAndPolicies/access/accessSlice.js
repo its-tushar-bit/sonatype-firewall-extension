@@ -115,9 +115,9 @@ const loadRolesFulfilled = (state, { payload }) => {
       return;
     }
   }
-
-  state.availableRoles = groupRolesByMembership(payload.data.membersByRole)?.withoutLocalMembers;
-  state.siblings = groupRolesByMembership(payload.data.membersByRole)?.withLocalMembers;
+  const { withoutLocalMembers = [], withLocalMembers = [] } = groupRolesByMembership(payload.data.membersByRole);
+  state.availableRoles = withoutLocalMembers;
+  state.siblings = withLocalMembers;
 };
 
 const loadRolesFailed = (state, { payload }) => {

@@ -57,6 +57,8 @@ public class ApiConfigFeaturesService
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
+  public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
+
   /**
    * This enumeration contains features that can be enabled/disabled by the {@link ApiConfigFeaturesResource}.
    * <br/><br/> Each enum value has these properties:
@@ -105,7 +107,14 @@ public class ApiConfigFeaturesService
     INNER_SOURCE_REPOSITORY_INTEGRATION(SystemConfigurationProperty.INNER_SOURCE_REPOSITORY_INTEGRATION, true),
     PR_COMMENTING(SystemConfigurationProperty.PR_COMMENTING, true),
     PR_LINE_COMMENTING(SystemConfigurationProperty.PR_LINE_COMMENTING, true),
-    ENABLE_UNAUTHENTICATED_PAGES(SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES, true),
+    ENABLE_UNAUTHENTICATED_PAGES(SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES, true)
+    {
+      @Override
+      public boolean isEnabled() {
+        String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR);
+        return valueInEnvVar == null ? super.isEnabled() : Boolean.parseBoolean(valueInEnvVar);
+      }
+    },
     API_PAGE(SystemConfigurationProperty.API_PAGE, false),
 
     /**

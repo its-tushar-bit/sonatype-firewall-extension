@@ -15,7 +15,9 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.*;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.*;
@@ -30,6 +32,9 @@ public class ApiConfigFeaturesServiceTest
 
   @Inject
   private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  @Rule
+  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
   @After
   public void after() {
@@ -533,6 +538,25 @@ public class ApiConfigFeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(ENABLE_UNAUTHENTICATED_PAGES, "false");
     service.enableFeature(ENABLE_UNAUTHENTICATED_PAGES);
     assertThat(systemConfigurationPropertyDAO.getByName(ENABLE_UNAUTHENTICATED_PAGES)).isNull();
+  }
+
+  @Test
+  public void testFeature_EnableUnauthenticatedPages_EnvironmentalVariableOverridesWithFalse() {
+    environmentVariables.set(ApiConfigFeaturesService.NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR, "false");
+    // null in db indicating it is enabled since enabled by default
+    assertThat(systemConfigurationPropertyDAO.getByName(ENABLE_UNAUTHENTICATED_PAGES)).isNull();
+    // env variable overrides and returns false
+    assertThat(SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testFeature_EnableUnauthenticatedPages_EnvironmentalVariableOverridesWithTrue() {
+    environmentVariables.set(ApiConfigFeaturesService.NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR, "true");
+    // false in db:
+    SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES.setEnabled(false);
+    assertThat(systemConfigurationPropertyDAO.getByName(ENABLE_UNAUTHENTICATED_PAGES).getValue()).isEqualTo("false");
+    // env variable overrides and returns true
+    assertThat(SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES.isEnabled()).isTrue();
   }
 
   @Test

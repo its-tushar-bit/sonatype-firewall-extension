@@ -17,6 +17,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.ClusterLock.LockType;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -62,7 +63,7 @@ public class PendoCache
   // Visible for testing
   byte[] loadFile(String filename) throws IOException {
     try (ClusterLock clusterLock = ClusterLock.createForFilename(filename)) {
-      clusterLock.lock();
+      clusterLock.lock(LockType.SHARED);
       return doLoadFile(filename);
     }
   }

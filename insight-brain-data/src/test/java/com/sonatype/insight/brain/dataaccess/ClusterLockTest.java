@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.sonatype.insight.brain.dataaccess.ClusterLock.LockType;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
@@ -25,6 +26,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.awaitility.Awaitility.await;
 
 public class ClusterLockTest
 {
@@ -742,5 +744,386 @@ public class ClusterLockTest
     ClusterLock.deleteForFilename(filename);
 
     assertThat(ClusterLock.lockExists(ClusterLock.getLockIdForFilename(filename))).isFalse();
+  }
+
+  private static class ClusterLockThread
+      extends Thread
+  {
+    private final String lockId;
+
+    private final LockType lockType;
+
+    private final boolean waitForLock;
+
+    private final CountDownLatch endLatch = new CountDownLatch(1);
+
+    private volatile boolean acquired;
+
+    private volatile Exception exception;
+
+    public ClusterLockThread(String lockId, LockType lockType, boolean waitForLock) {
+      this.lockId = lockId;
+      this.lockType = lockType;
+      this.waitForLock = waitForLock;
+    }
+
+    @Override
+    public void run() {
+      try (ClusterLock clusterLock = new ClusterLock(lockId)) {
+        if (waitForLock) {
+          clusterLock.lock(lockType);
+          acquired = true;
+        }
+        else {
+          acquired = clusterLock.tryLock(lockType);
+        }
+        endLatch.await(10, TimeUnit.SECONDS);
+      }
+      catch (Exception e) {
+        exception = e;
+      }
+    }
+
+    public void allowClose() {
+      endLatch.countDown();
+    }
+  }
+
+  @Test
+  public void testLock_AllowsConcurrentShared_H2() {
+    testLock_AllowsConcurrentShared();
+  }
+
+  @Test
+  public void testLock_AllowsConcurrentShared_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testLock_AllowsConcurrentShared();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testLock_AllowsConcurrentShared() {
+    String lockId = "test-lock";
+    ClusterLockThread shared1 = new ClusterLockThread(lockId, LockType.SHARED, true);
+    ClusterLockThread shared2 = new ClusterLockThread(lockId, LockType.SHARED, true);
+
+    shared1.start();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> shared1.acquired);
+    shared2.start();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> shared2.acquired);
+
+    shared1.allowClose();
+    shared2.allowClose();
+    assertThat(shared1.exception).isNull();
+    assertThat(shared2.exception).isNull();
+  }
+
+  @Test
+  public void testLock_SharedDoesNotAllowExclusive_H2() {
+    testLock_SharedDoesNotAllowExclusive();
+  }
+
+  @Test
+  public void testLock_SharedDoesNotAllowExclusive_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testLock_SharedDoesNotAllowExclusive();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testLock_SharedDoesNotAllowExclusive() {
+    String lockId = "test-lock";
+    ClusterLockThread shared = new ClusterLockThread(lockId, LockType.SHARED, true);
+    ClusterLockThread exclusive = new ClusterLockThread(lockId, LockType.EXCLUSIVE, true);
+
+    shared.start();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> shared.acquired);
+    exclusive.start();
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
+    shared.allowClose();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> exclusive.acquired);
+
+    exclusive.allowClose();
+    assertThat(shared.exception).isNull();
+    assertThat(exclusive.exception).isNull();
+  }
+
+  @Test
+  public void testLock_ExclusiveDoesNotAllowShared_H2() {
+    testLock_ExclusiveDoesNotAllowShared();
+  }
+
+  @Test
+  public void testLock_ExclusiveDoesNotAllowShared_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testLock_ExclusiveDoesNotAllowShared();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testLock_ExclusiveDoesNotAllowShared() {
+    String lockId = "test-lock";
+    ClusterLockThread exclusive = new ClusterLockThread(lockId, LockType.EXCLUSIVE, true);
+    ClusterLockThread shared = new ClusterLockThread(lockId, LockType.SHARED, true);
+
+    exclusive.start();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> exclusive.acquired);
+    shared.start();
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !shared.acquired);
+    exclusive.allowClose();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> shared.acquired);
+
+    shared.allowClose();
+    assertThat(exclusive.exception).isNull();
+    assertThat(shared.exception).isNull();
+  }
+
+  @Test
+  public void testLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed_H2() {
+    testLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed();
+  }
+
+  @Test
+  public void testLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed() {
+    String lockId = "test-lock";
+    ClusterLockThread shared1 = new ClusterLockThread(lockId, LockType.SHARED, true);
+    ClusterLockThread shared2 = new ClusterLockThread(lockId, LockType.SHARED, true);
+    ClusterLockThread exclusive = new ClusterLockThread(lockId, LockType.EXCLUSIVE, true);
+
+    shared1.start();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> shared1.acquired);
+    shared2.start();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> shared2.acquired);
+    exclusive.start();
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
+    shared1.allowClose();
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
+    shared2.allowClose();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> exclusive.acquired);
+
+    exclusive.allowClose();
+    assertThat(shared1.exception).isNull();
+    assertThat(shared2.exception).isNull();
+    assertThat(exclusive.exception).isNull();
+  }
+
+  @Test
+  public void testLock_FIFO_H2() {
+    testLock_FIFO(true);
+  }
+
+  @Test
+  public void testLock_FIFO_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testLock_FIFO(false);
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testLock_FIFO(boolean expectFIFO) {
+    String lockId = "test-lock";
+    ClusterLockThread shared1 = new ClusterLockThread(lockId, LockType.SHARED, true);
+    ClusterLockThread exclusive = new ClusterLockThread(lockId, LockType.EXCLUSIVE, true);
+    ClusterLockThread shared2 = new ClusterLockThread(lockId, LockType.SHARED, true);
+
+    if (expectFIFO) {
+      shared1.start();
+      await().atMost(2, TimeUnit.SECONDS).until(() -> shared1.acquired);
+      exclusive.start();
+      await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
+      shared2.start();
+      await().pollDelay(2, TimeUnit.SECONDS).until(() -> !shared2.acquired);
+      shared1.allowClose();
+      await().atMost(2, TimeUnit.SECONDS).until(() -> exclusive.acquired);
+      await().pollDelay(2, TimeUnit.SECONDS).until(() -> !shared2.acquired);
+      exclusive.allowClose();
+      await().atMost(2, TimeUnit.SECONDS).until(() -> shared2.acquired);
+      shared2.allowClose();
+    }
+    else {
+      shared1.start();
+      await().atMost(2, TimeUnit.SECONDS).until(() -> shared1.acquired);
+      exclusive.start();
+      await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
+      shared2.start();
+      await().atMost(2, TimeUnit.SECONDS).until(() -> shared2.acquired);
+      shared1.allowClose();
+      await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
+      shared2.allowClose();
+      await().atMost(2, TimeUnit.SECONDS).until(() -> exclusive.acquired);
+      exclusive.allowClose();
+    }
+
+    assertThat(shared1.exception).isNull();
+    assertThat(exclusive.exception).isNull();
+    assertThat(shared2.exception).isNull();
+  }
+
+  @Test
+  public void testTryLock_AllowsConcurrentShared_H2() {
+    testTryLock_AllowsConcurrentShared();
+  }
+
+  @Test
+  public void testTryLock_AllowsConcurrentShared_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testTryLock_AllowsConcurrentShared();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testTryLock_AllowsConcurrentShared() {
+    String lockId = "test-lock";
+    ClusterLockThread shared1 = new ClusterLockThread(lockId, LockType.SHARED, false);
+    ClusterLockThread shared2 = new ClusterLockThread(lockId, LockType.SHARED, false);
+
+    shared1.start();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> shared1.acquired);
+    shared2.start();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> shared2.acquired);
+
+    shared1.allowClose();
+    shared2.allowClose();
+    assertThat(shared1.exception).isNull();
+    assertThat(shared2.exception).isNull();
+  }
+
+  @Test
+  public void testTryLock_SharedDoesNotAllowExclusive_H2() {
+    testTryLock_SharedDoesNotAllowExclusive();
+  }
+
+  @Test
+  public void testTryLock_SharedDoesNotAllowExclusive_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testTryLock_SharedDoesNotAllowExclusive();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testTryLock_SharedDoesNotAllowExclusive() {
+    String lockId = "test-lock";
+    ClusterLockThread shared = new ClusterLockThread(lockId, LockType.SHARED, false);
+    ClusterLockThread exclusive = new ClusterLockThread(lockId, LockType.EXCLUSIVE, false);
+
+    shared.start();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> shared.acquired);
+    exclusive.start();
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
+    shared.allowClose();
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
+
+    exclusive.allowClose();
+    assertThat(shared.exception).isNull();
+    assertThat(exclusive.exception).isNull();
+  }
+
+  @Test
+  public void testTryLock_ExclusiveDoesNotAllowShared_H2() {
+    testTryLock_ExclusiveDoesNotAllowShared();
+  }
+
+  @Test
+  public void testTryLock_ExclusiveDoesNotAllowShared_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testTryLock_ExclusiveDoesNotAllowShared();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testTryLock_ExclusiveDoesNotAllowShared() {
+    String lockId = "test-lock";
+    ClusterLockThread exclusive = new ClusterLockThread(lockId, LockType.EXCLUSIVE, false);
+    ClusterLockThread shared = new ClusterLockThread(lockId, LockType.SHARED, false);
+
+    exclusive.start();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> exclusive.acquired);
+    shared.start();
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !shared.acquired);
+    exclusive.allowClose();
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !shared.acquired);
+
+    shared.allowClose();
+    assertThat(exclusive.exception).isNull();
+    assertThat(shared.exception).isNull();
+  }
+
+  @Test
+  public void testTryLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed_H2() {
+    testTryLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed();
+  }
+
+  @Test
+  public void testTryLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testTryLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed();
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testTryLock_AllowsConcurrentSharedWhilstExclusiveIsNotAllowed() {
+    String lockId = "test-lock";
+    ClusterLockThread shared1 = new ClusterLockThread(lockId, LockType.SHARED, false);
+    ClusterLockThread shared2 = new ClusterLockThread(lockId, LockType.SHARED, false);
+    ClusterLockThread exclusive = new ClusterLockThread(lockId, LockType.EXCLUSIVE, false);
+
+    shared1.start();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> shared1.acquired);
+    shared2.start();
+    await().atMost(2, TimeUnit.SECONDS).until(() -> shared2.acquired);
+    exclusive.start();
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
+    shared1.allowClose();
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
+    shared2.allowClose();
+    await().pollDelay(2, TimeUnit.SECONDS).until(() -> !exclusive.acquired);
+
+    exclusive.allowClose();
+    assertThat(shared1.exception).isNull();
+    assertThat(shared2.exception).isNull();
+    assertThat(exclusive.exception).isNull();
   }
 }

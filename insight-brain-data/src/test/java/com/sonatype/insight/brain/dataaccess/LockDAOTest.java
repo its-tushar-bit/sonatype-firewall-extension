@@ -7,6 +7,11 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
+import javax.persistence.LockModeType;
+import javax.persistence.RollbackException;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -19,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class LockDAOTest
 {
@@ -29,6 +35,12 @@ public class LockDAOTest
   {
     final String lockId;
 
+    final LockModeType lockModeType;
+
+    final boolean waitForLock;
+
+    final AtomicBoolean acquired = new AtomicBoolean();
+
     final CountDownLatch beginLatch = new CountDownLatch(1);
 
     final CountDownLatch acquireLatch = new CountDownLatch(1);
@@ -37,8 +49,18 @@ public class LockDAOTest
 
     final CountDownLatch commitLatch = new CountDownLatch(1);
 
+    final CountDownLatch endLatch = new CountDownLatch(1);
+
+    final AtomicReference<Exception> exceptionAtomicReference = new AtomicReference<>();
+
     public LockThread(String lockId, boolean waitBeforeCommit) {
+      this(lockId, LockModeType.PESSIMISTIC_WRITE, true, waitBeforeCommit);
+    }
+
+    public LockThread(String lockId, LockModeType lockModeType, boolean waitForLock, boolean waitBeforeCommit) {
       this.lockId = lockId;
+      this.lockModeType = lockModeType;
+      this.waitForLock = waitForLock;
       if (!waitBeforeCommit) {
         preCommitLatch.countDown();
       }
@@ -55,14 +77,23 @@ public class LockDAOTest
       try (TransactionContext tx = dao.createTransactionContext()) {
         tx.begin();
         beginLatch.countDown();
-        dao.acquireLock(tx, lockId);
+        if (waitForLock) {
+          dao.acquireLock(tx, lockId, lockModeType);
+          acquired.set(true);
+        }
+        else {
+          acquired.set(dao.tryAcquireLock(tx, lockId, lockModeType));
+        }
         acquireLatch.countDown();
         preCommitLatch.await(10, TimeUnit.SECONDS);
         tx.commit();
         commitLatch.countDown();
       }
       catch (Exception e) {
-        e.printStackTrace();
+        exceptionAtomicReference.set(e);
+      }
+      finally {
+        endLatch.countDown();
       }
     }
   }
@@ -99,8 +130,8 @@ public class LockDAOTest
     dao.createLock(lockId);
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
-      dao.acquireLock(tx, lockId);
-      dao.acquireLock(tx, lockId);
+      dao.acquireLock(tx, lockId, LockModeType.PESSIMISTIC_WRITE);
+      dao.acquireLock(tx, lockId, LockModeType.PESSIMISTIC_WRITE);
       tx.commit();
     }
   }
@@ -124,7 +155,7 @@ public class LockDAOTest
     LockThread other;
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
-      dao.acquireLock(tx, lockId);
+      dao.acquireLock(tx, lockId, LockModeType.PESSIMISTIC_WRITE);
       other = new LockThread(lockId, false).startAndWaitUntilBegin();
       assertThat(other.commitLatch.await(3, TimeUnit.SECONDS)).isFalse();
       tx.commit();
@@ -151,7 +182,7 @@ public class LockDAOTest
     LockThread other;
     try (TransactionContext tx = dao.createTransactionContext()) {
       tx.begin();
-      dao.tryAcquireLock(tx, lockId);
+      dao.tryAcquireLock(tx, lockId, LockModeType.PESSIMISTIC_WRITE);
       other = new LockThread(lockId, false).startAndWaitUntilBegin();
       assertThat(other.commitLatch.await(3, TimeUnit.SECONDS)).isFalse();
       tx.commit();
@@ -169,7 +200,7 @@ public class LockDAOTest
       dao.createLock(lockId2);
       try (TransactionContext tx = dao.createTransactionContext()) {
         tx.begin();
-        dao.acquireLock(tx, lockId1);
+        dao.acquireLock(tx, lockId1, LockModeType.PESSIMISTIC_WRITE);
         LockThread other = new LockThread(lockId2, false).startAndWaitUntilBegin();
         assertThat(other.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
         tx.commit();
@@ -187,7 +218,7 @@ public class LockDAOTest
       dao.createLock(lockId2);
       try (TransactionContext tx = dao.createTransactionContext()) {
         tx.begin();
-        dao.tryAcquireLock(tx, lockId1);
+        dao.tryAcquireLock(tx, lockId1, LockModeType.PESSIMISTIC_WRITE);
         LockThread other = new LockThread(lockId2, false).startAndWaitUntilBegin();
         assertThat(other.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
         tx.commit();
@@ -205,13 +236,13 @@ public class LockDAOTest
       try (TransactionContext tx = dao.createTransactionContext()) {
         tx.begin();
         assertThat(other.acquireLatch.await(3, TimeUnit.SECONDS)).isTrue();
-        assertThat(dao.tryAcquireLock(tx, lockId)).isFalse();
+        assertThat(dao.tryAcquireLock(tx, lockId, LockModeType.PESSIMISTIC_WRITE)).isFalse();
       }
       other.preCommitLatch.countDown();
       try (TransactionContext tx = dao.createTransactionContext()) {
         tx.begin();
         assertThat(other.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
-        assertThat(dao.tryAcquireLock(tx, lockId)).isTrue();
+        assertThat(dao.tryAcquireLock(tx, lockId, LockModeType.PESSIMISTIC_WRITE)).isTrue();
       }
     }
   }
@@ -260,13 +291,225 @@ public class LockDAOTest
 
   @Test
   public void testDeleteByPrefix_Postgres() {
-    DataSourceFactory.clear_ForTestsOnly();
     try (PostgresServer postgres = new PostgresServer()) {
       OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
       testDeleteByPrefix();
     }
-    finally {
-      DataSourceFactory.clear_ForTestsOnly();
+  }
+  
+  @Test
+  public void testAcquireLock_Read_H2() {
+    init(null);
+    String lockId = "test-lock";
+    dao.createLock(lockId);
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
+          () -> dao.acquireLock(tx, lockId, LockModeType.PESSIMISTIC_READ))
+          .withMessage("Embedded database only supports acquiring an exclusive lock.");
+      tx.commit();
+    }
+  }
+
+  @Test
+  public void testAcquireLock_AllowsConcurrentReads_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      String lockId = "test-lock";
+      dao = new LockDAO();
+      dao.createLock(lockId);
+      LockThread read1 = new LockThread(lockId, LockModeType.PESSIMISTIC_READ, true, true);
+      LockThread read2 = new LockThread(lockId, LockModeType.PESSIMISTIC_READ, true, false);
+
+      read1.startAndWaitUntilBegin();
+      assertThat(read1.acquireLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+      read2.startAndWaitUntilBegin();
+      assertThat(read2.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+      read1.preCommitLatch.countDown();
+      assertThat(read1.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+    }
+  }
+
+  @Test
+  public void testAcquireLock_ReadDoesNotAllowWrite_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      String lockId = "test-lock";
+      dao = new LockDAO();
+      dao.createLock(lockId);
+      LockThread read = new LockThread(lockId, LockModeType.PESSIMISTIC_READ, true, true);
+      LockThread write = new LockThread(lockId, LockModeType.PESSIMISTIC_WRITE, true, false);
+
+      read.startAndWaitUntilBegin();
+      assertThat(read.acquireLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+      write.startAndWaitUntilBegin();
+      assertThat(write.acquireLatch.await(3, TimeUnit.SECONDS)).isFalse();
+
+      read.preCommitLatch.countDown();
+      assertThat(read.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+      assertThat(write.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+    }
+  }
+
+  @Test
+  public void testAcquireLock_WriteDoesNotAllowRead_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      String lockId = "test-lock";
+      dao = new LockDAO();
+      dao.createLock(lockId);
+      LockThread write = new LockThread(lockId, LockModeType.PESSIMISTIC_WRITE, true, true);
+      LockThread read = new LockThread(lockId, LockModeType.PESSIMISTIC_READ, true, false);
+
+      write.startAndWaitUntilBegin();
+      assertThat(write.acquireLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+      read.startAndWaitUntilBegin();
+      assertThat(read.acquireLatch.await(3, TimeUnit.SECONDS)).isFalse();
+
+      write.preCommitLatch.countDown();
+      assertThat(write.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+      assertThat(read.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+    }
+  }
+
+  @Test
+  public void testAcquireLock_AllowsConcurrentReadsWhilstWriteIsNotAllowed_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      String lockId = "test-lock";
+      dao = new LockDAO();
+      dao.createLock(lockId);
+      LockThread read1 = new LockThread(lockId, LockModeType.PESSIMISTIC_READ, true, true);
+      LockThread read2 = new LockThread(lockId, LockModeType.PESSIMISTIC_READ, true, false);
+      LockThread write = new LockThread(lockId, LockModeType.PESSIMISTIC_WRITE, true, false);
+
+      read1.startAndWaitUntilBegin();
+      assertThat(read1.acquireLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+      write.startAndWaitUntilBegin();
+      assertThat(write.acquireLatch.await(3, TimeUnit.SECONDS)).isFalse();
+
+      read2.startAndWaitUntilBegin();
+      assertThat(read2.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+      assertThat(write.acquireLatch.await(3, TimeUnit.SECONDS)).isFalse();
+
+      read1.preCommitLatch.countDown();
+      assertThat(read1.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+      assertThat(write.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+    }
+  }
+  
+  @Test
+  public void testTryAcquireLock_Read_H2() {
+    init(null);
+    String lockId = "test-lock";
+    dao.createLock(lockId);
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
+          () -> dao.tryAcquireLock(tx, lockId, LockModeType.PESSIMISTIC_READ))
+          .withMessage("Embedded database only supports acquiring an exclusive lock.");
+      tx.commit();
+    }
+  }
+
+  @Test
+  public void testTryAcquireLock_AllowsConcurrentReads_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      String lockId = "test-lock";
+      dao = new LockDAO();
+      dao.createLock(lockId);
+      LockThread read1 = new LockThread(lockId, LockModeType.PESSIMISTIC_READ, false, true);
+      LockThread read2 = new LockThread(lockId, LockModeType.PESSIMISTIC_READ, false, false);
+
+      read1.startAndWaitUntilBegin();
+      assertThat(read1.acquireLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+      read2.startAndWaitUntilBegin();
+      assertThat(read2.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+      read1.preCommitLatch.countDown();
+      assertThat(read1.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+    }
+  }
+
+  @Test
+  public void testTryAcquireLock_ReadDoesNotAllowWrite_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      String lockId = "test-lock";
+      dao = new LockDAO();
+      dao.createLock(lockId);
+      LockThread read = new LockThread(lockId, LockModeType.PESSIMISTIC_READ, false, true);
+      LockThread write = new LockThread(lockId, LockModeType.PESSIMISTIC_WRITE, false, false);
+
+      read.startAndWaitUntilBegin();
+      assertThat(read.acquireLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+      write.startAndWaitUntilBegin();
+      assertThat(write.endLatch.await(3, TimeUnit.SECONDS)).isTrue();
+      assertThat(write.acquired).isFalse();
+      assertThat(write.exceptionAtomicReference.get()).isInstanceOf(RollbackException.class);
+
+      read.preCommitLatch.countDown();
+      assertThat(read.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+    }
+  }
+
+  @Test
+  public void testTryAcquireLock_WriteDoesNotAllowRead_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      String lockId = "test-lock";
+      dao = new LockDAO();
+      dao.createLock(lockId);
+      LockThread write = new LockThread(lockId, LockModeType.PESSIMISTIC_WRITE, false, true);
+      LockThread read = new LockThread(lockId, LockModeType.PESSIMISTIC_READ, false, false);
+
+      write.startAndWaitUntilBegin();
+      assertThat(write.acquireLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+      read.startAndWaitUntilBegin();
+      assertThat(read.endLatch.await(3, TimeUnit.SECONDS)).isTrue();
+      assertThat(read.acquired).isFalse();
+      assertThat(read.exceptionAtomicReference.get()).isInstanceOf(RollbackException.class);
+
+      write.preCommitLatch.countDown();
+      assertThat(write.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+    }
+  }
+  
+  @Test
+  public void testTryAcquireLock_AllowsConcurrentReadsWhilstWriteIsNotAllowed_Postgres() throws Exception {
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      String lockId = "test-lock";
+      dao = new LockDAO();
+      dao.createLock(lockId);
+      LockThread read1 = new LockThread(lockId, LockModeType.PESSIMISTIC_READ, false, true);
+      LockThread read2 = new LockThread(lockId, LockModeType.PESSIMISTIC_READ, false, false);
+      LockThread write = new LockThread(lockId, LockModeType.PESSIMISTIC_WRITE, false, true);
+
+      read1.startAndWaitUntilBegin();
+      assertThat(read1.acquireLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+      write.startAndWaitUntilBegin();
+      assertThat(write.acquireLatch.await(3, TimeUnit.SECONDS)).isTrue();
+      assertThat(write.acquired).isFalse();
+
+      read2.startAndWaitUntilBegin();
+      assertThat(read2.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+      read1.preCommitLatch.countDown();
+      write.preCommitLatch.countDown();
+      assertThat(read1.commitLatch.await(3, TimeUnit.SECONDS)).isTrue();
+      assertThat(write.endLatch.await(3, TimeUnit.SECONDS)).isTrue();
     }
   }
 

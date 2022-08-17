@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.ClusterLock.LockType;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -100,10 +101,22 @@ public class PdfGeneratorService
     pdfData.rawData = apiReportDataServiceV2.getDataNoAuth(app.getPublicId(), scanId, true);
     augmentEmptyLicensesAsNotProvided(pdfData.rawData);
     try (ClusterLock clusterLock = ClusterLock.createForPdfGeneration(app, scanId)) {
+      clusterLock.lock(LockType.SHARED);
+      if (isGenerated(pdfFile)) {
+        return pdfFile;
+      }
+    }
+    // The pdf file has not been generated so try to generate it
+    try (ClusterLock clusterLock = ClusterLock.createForPdfGeneration(app, scanId)) {
       clusterLock.lock();
       generate(pdfFile, pdfData);
     }
     return pdfFile;
+  }
+  
+  // Visible for testing
+  boolean isGenerated(File file) {
+    return file.exists() && file.length() > 0;
   }
 
   // Visible for testing

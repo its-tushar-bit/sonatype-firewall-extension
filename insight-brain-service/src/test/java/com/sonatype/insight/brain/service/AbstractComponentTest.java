@@ -254,6 +254,21 @@ public class AbstractComponentTest
   public void testCallable_DisallowConcurrentExecution(Callable<Void> callable, Consumer<Answer<Void>> answerConsumer)
       throws Exception
   {
+    testCallable_ConcurrentExecution(callable, answerConsumer, false);
+  }
+
+  public void testCallable_AllowConcurrentExecution(Callable<Void> callable, Consumer<Answer<Void>> answerConsumer)
+      throws Exception
+  {
+    testCallable_ConcurrentExecution(callable, answerConsumer, true);
+  }
+
+  public void testCallable_ConcurrentExecution(
+      Callable<Void> callable,
+      Consumer<Answer<Void>> answerConsumer,
+      boolean isAllowed)
+      throws Exception
+  {
     CountDownLatch started = new CountDownLatch(2);
     CountDownLatch block = new CountDownLatch(1);
 
@@ -295,7 +310,12 @@ public class AbstractComponentTest
     await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(started.getCount()).isEqualTo(1));
 
     threadTwo.start();
-    await().pollDelay(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(started.getCount()).isEqualTo(1));
+    if (isAllowed) {
+      await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(started.getCount()).isEqualTo(0));
+    }
+    else {
+      await().pollDelay(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(started.getCount()).isEqualTo(1));
+    }
 
     block.countDown();
 

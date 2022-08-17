@@ -44,36 +44,47 @@ public class LockDAO
     }
   }
 
-  public Lock acquireLock(TransactionContext tx, String lockId) {
-    Query<Lock> query = createQuery("SELECT entity FROM Lock entity WHERE entity.id = ?1", lockId)
-        .setLockModeType(LockModeType.PESSIMISTIC_WRITE);
-    Lock lock = query.get(tx);
-    if (lock == null) {
-      throw generateEntityNotFoundException(lockId);
-    }
-    return lock;
+  public void acquireLock(TransactionContext tx, String lockId, LockModeType lockModeType) {
+    acquireLock(tx, lockId, lockModeType, true);
   }
 
-  public boolean tryAcquireLock(TransactionContext tx, String lockId) {
+  public boolean tryAcquireLock(TransactionContext tx, String lockId, LockModeType lockModeType) {
+    return acquireLock(tx, lockId, lockModeType, false);
+  }
+
+  public boolean acquireLock(TransactionContext tx, String lockId, LockModeType lockModeType, boolean waitForLock) {
+    if (isDatabaseEmbedded() && LockModeType.PESSIMISTIC_WRITE != lockModeType) {
+      throw new UnsupportedOperationException("Embedded database only supports acquiring an exclusive lock.");
+    }
     // NOTE: This query does by design not match/lock any row (and hence not block).
     // But it crucially forces JPA to start a JDBC transaction for the native query to participate in.
-    createQuery("SELECT entity FROM Lock entity WHERE entity.id IS NULL")
-        .setLockModeType(LockModeType.PESSIMISTIC_WRITE).get(tx);
+    createQuery("SELECT entity FROM Lock entity WHERE entity.id IS NULL").setLockModeType(lockModeType).get(tx);
     try {
+      String lockType;
+      switch (lockModeType) {
+        case PESSIMISTIC_WRITE: {
+          lockType = "UPDATE";
+          break;
+        }
+        case PESSIMISTIC_READ: {
+          lockType = "SHARE";
+          break;
+        }
+        default: {
+          throw new IllegalStateException(String.format("Unknown lock mode type: %s.", lockModeType));
+        }
+      }
       tx.createNativeQuery("SELECT * FROM " + OperationalDataStoreProvider.ID + ".lock" +
-          " WHERE lock_id = ?1 FOR UPDATE NOWAIT").setParameter(1, lockId).getSingleResult();
+              " WHERE lock_id = ?1 FOR " + lockType + (waitForLock ? "" : " NOWAIT")).setParameter(1, lockId)
+          .getSingleResult();
     }
     catch (NoResultException e) {
-      throw generateEntityNotFoundException(lockId);
+      throw new EntityNotFoundException("Could not acquire lock " + lockId);
     }
     catch (OptimisticLockException e) {
       return false;
     }
     return true;
-  }
-
-  private EntityNotFoundException generateEntityNotFoundException(String lockId) {
-    return new EntityNotFoundException("Could not acquire lock " + lockId);
   }
 
   public void deleteLock(TransactionContext tx, String lockId) {

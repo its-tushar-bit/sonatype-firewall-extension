@@ -232,7 +232,7 @@ public class PdfGeneratorServiceTest
   }
 
   @Test
-  public void testDisallowConcurrentExecution() throws Exception {
+  public void testDisallowConcurrentExecution_IfPdfDoesNotExist() throws Exception {
     Application application = tempEntity.newApplicationWithParent("appPublicId", "appName-星義义こ여", "orgName");
     String scanId = "scanId";
     tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
@@ -252,5 +252,31 @@ public class PdfGeneratorServiceTest
       }
     };
     testCallable_DisallowConcurrentExecution(callable, answerConsumer);
+  }
+
+  @Test
+  public void testAllowConcurrentExecution_IfPdfDoesExist() throws Exception {
+    Application application = tempEntity.newApplicationWithParent("appPublicId", "appName-星義义こ여", "orgName");
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
+    File reportFile = insightWork.getReportFile(application.getId(), scanId);
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/PdfGeneratorServiceTest/report", tempDir), reportFile);
+    PdfGeneratorService spyPdfGeneratorService = spy(pdfGeneratorService);
+    Callable<Void> callable = () -> {
+      spyPdfGeneratorService.printReport(application.getPublicId(), scanId);
+      return null;
+    };
+    Consumer<Answer<Void>> answerConsumer = answer -> {
+      try {
+        doAnswer(invocation -> {
+          answer.answer(invocation);
+          return true;
+        }).when(spyPdfGeneratorService).isGenerated(any());
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e.getMessage(), e);
+      }
+    };
+    testCallable_AllowConcurrentExecution(callable, answerConsumer);
   }
 }

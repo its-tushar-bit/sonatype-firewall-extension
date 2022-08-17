@@ -253,7 +253,7 @@ public class PendoCacheTest
   }
 
   @Test
-  public void testLoadFile_DisallowConcurrentExecution() throws Exception {
+  public void testLoadFile_AllowConcurrentExecution() throws Exception {
     PendoCache spyPendoCache = spy(pendoCache);
     Callable<Void> callable = () -> {
       spyPendoCache.loadFile(PendoCache.PENDO_JS_FILENAME);
@@ -267,6 +267,6 @@ public class PendoCacheTest
         throw new RuntimeException(e.getMessage(), e);
       }
     };
-    testCallable_DisallowConcurrentExecution(callable, answerConsumer);
+    testCallable_AllowConcurrentExecution(callable, answerConsumer);
   }
 }

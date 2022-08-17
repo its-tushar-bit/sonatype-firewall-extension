@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Semaphore;
 
+import javax.persistence.LockModeType;
+
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -77,9 +79,36 @@ public class ClusterLock
   // Visible for testing
   final Semaphore lock;
 
+  private volatile LockType lockType;
+
+  private volatile boolean waitForLock;
+
   private volatile boolean acquired;
 
   private volatile TransactionContext tx;
+
+  public enum LockType
+  {
+    SHARED(1, LockModeType.PESSIMISTIC_READ),
+    EXCLUSIVE(Integer.MAX_VALUE, LockModeType.PESSIMISTIC_WRITE);
+
+    private final int permits;
+
+    private final LockModeType lockModeType;
+
+    LockType(int permits, LockModeType lockModeType) {
+      this.permits = permits;
+      this.lockModeType = lockModeType;
+    }
+
+    private int getPermits() {
+      return permits;
+    }
+
+    private LockModeType getLockModeType() {
+      return lockModeType;
+    }
+  }
 
   public ClusterLock(String lockId) {
     this.lockId = lockId;
@@ -284,14 +313,22 @@ public class ClusterLock
   }
 
   public void lock() {
+    lock(LockType.EXCLUSIVE);
+  }
+
+  public void lock(LockType lockType) {
     if (!acquired) {
-      lock(true);
+      lock(lockType, true);
     }
   }
 
   public boolean tryLock() {
+    return tryLock(LockType.EXCLUSIVE);
+  }
+
+  public boolean tryLock(LockType lockType) {
     if (!acquired) {
-      lock(false);
+      lock(lockType, false);
     }
     return acquired;
   }
@@ -303,7 +340,7 @@ public class ClusterLock
 
   private Semaphore createLock(String lockId) {
     if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
-      return LOCKS_BY_ID.computeIfAbsent(lockId, key -> new Semaphore(1));
+      return LOCKS_BY_ID.computeIfAbsent(lockId, key -> new Semaphore(Integer.MAX_VALUE, true));
     }
     else {
       new LockDAO().createLock(lockId);
@@ -311,43 +348,47 @@ public class ClusterLock
     }
   }
 
-  private void lock(boolean waitForLock) {
+  private void lock(LockType lockType, boolean waitForLock) {
+    this.lockType = lockType;
+    this.waitForLock = waitForLock;
     if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
-      acquired = acquire(lock, waitForLock);
+      acquired = acquireH2();
       // Locking prevents removal/replacement, but check that it wasn't removed/replaced before locking
       if (LOCKS_BY_ID.get(lockId) != lock) {
-        lock.release();
+        if (acquired) {
+          lock.release(this.lockType.getPermits());
+        }
         acquired = false;
         throw new RuntimeException("Could not acquire lock " + lockId);
       }
     }
     else {
-      acquired = acquire(waitForLock);
+      acquired = acquire();
     }
   }
 
-  private boolean acquire(Semaphore lock, boolean waitForLock) {
+  private boolean acquireH2() {
     if (waitForLock) {
-      lock.acquireUninterruptibly();
+      lock.acquireUninterruptibly(lockType.getPermits());
       return true;
     }
     else {
-      return lock.tryAcquire();
+      return lock.tryAcquire(lockType.getPermits());
     }
   }
 
-  private boolean acquire(boolean waitForLock) {
+  private boolean acquire() {
     TransactionContext tempTx =
         new TransactionContext(OperationalDataStoreProvider.getEntityManagerFactoryForLocks().createEntityManager());
     tempTx.begin();
     try {
       if (waitForLock) {
-        new LockDAO().acquireLock(tempTx, lockId);
+        new LockDAO().acquireLock(tempTx, lockId, lockType.getLockModeType());
         tx = tempTx;
         return true;
       }
       else {
-        if (new LockDAO().tryAcquireLock(tempTx, lockId)) {
+        if (new LockDAO().tryAcquireLock(tempTx, lockId, lockType.getLockModeType())) {
           tx = tempTx;
           return true;
         }
@@ -369,8 +410,8 @@ public class ClusterLock
 
   public void unlock() {
     if (OperationalDataStoreProvider.isDatabaseEmbedded()) {
-      if (acquired && lock != null && lock.availablePermits() < 1) {
-        lock.release();
+      if (acquired && lock != null && (long) lock.availablePermits() + lockType.getPermits() <= Integer.MAX_VALUE) {
+        lock.release(lockType.getPermits());
         acquired = false;
       }
     }
@@ -396,7 +437,7 @@ public class ClusterLock
     Semaphore lock = LOCKS_BY_ID.get(lockId);
     if (lock != null) {
       try (ClusterLock clusterLock = new ClusterLock(lockId)) {
-        clusterLock.lock(true);
+        clusterLock.lock(LockType.EXCLUSIVE, true);
         LOCKS_BY_ID.remove(lockId);
       }
     }

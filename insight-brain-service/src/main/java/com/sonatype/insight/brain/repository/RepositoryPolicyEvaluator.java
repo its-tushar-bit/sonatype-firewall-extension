@@ -357,7 +357,6 @@ public class RepositoryPolicyEvaluator
         repositoryComponent.setId(repositoryComponentId);
         repositoryComponentDAO.update(tx, repositoryComponent);
       }
-      sendRepositoryComponentTelemetry(policyResults, repositoryComponent, repository, isNotificationsToBeSent);
     }
     else {
       repositoryComponent.setHash(component.getHash());
@@ -375,6 +374,7 @@ public class RepositoryPolicyEvaluator
 
       repositoryComponentDAO.update(tx, repositoryComponent);
     }
+    sendRepositoryComponentTelemetry(policyResults, repositoryComponent, repository, isNotificationsToBeSent);
     return repositoryComponent;
   }
 
@@ -412,15 +412,13 @@ public class RepositoryPolicyEvaluator
       final Repository repository,
       final boolean isNotificationsToBeSent)
   {
-    if (policyResults.getActiveAlerts() != null && !policyResults.getActiveAlerts().isEmpty()) {
-      List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-          .getActiveByRepositoryIdAndPathname(repository.getId(), repositoryComponent.getPathname());
-      repositoryComponentTelemetryCreator
-          .sendRepositoryComponentTelemetry(repositoryComponent, repositoryPolicyViolations,
-              repository.getRepositoryManagerId(), repositoryComponent.isQuarantined() ?
-                  RepositoryComponentTelemetryEventType.QUARANTINE : RepositoryComponentTelemetryEventType.AUDIT,
-              isNotificationsToBeSent ? policyResults.getActiveNotifications() : Collections.emptyList());
-    }
+    List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
+        .getActiveByRepositoryIdAndPathname(repository.getId(), repositoryComponent.getPathname());
+    repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(repositoryComponent,
+        repositoryPolicyViolations, repository.getRepositoryManagerId(),
+        repositoryComponent.isQuarantined() ? RepositoryComponentTelemetryEventType.QUARANTINE
+            : RepositoryComponentTelemetryEventType.AUDIT,
+        isNotificationsToBeSent ? policyResults.getActiveNotifications() : Collections.emptyList());
   }
 
   private void persistPolicyViolations(

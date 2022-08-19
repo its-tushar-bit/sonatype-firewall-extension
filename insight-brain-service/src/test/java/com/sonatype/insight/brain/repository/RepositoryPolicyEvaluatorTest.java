@@ -29,6 +29,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -261,7 +262,7 @@ public class RepositoryPolicyEvaluatorTest
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before2, after2, newPolicyViolations);
     assertRepositoryComponent(repository, 2);
 
-    verify(repositoryComponentTelemetryCreator, times(2))
+    verify(repositoryComponentTelemetryCreator, times(4))
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
             RepositoryComponentTelemetryEventType.AUDIT), eq(Collections.emptyList()));
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
@@ -310,7 +311,7 @@ public class RepositoryPolicyEvaluatorTest
     assertPolicyViolationsLogged(PolicyViolationLogEvent.FIX, repository, before2, after2, policyViolations);
     assertRepositoryComponent(repository, 2);
 
-    verify(repositoryComponentTelemetryCreator, times(2))
+    verify(repositoryComponentTelemetryCreator, times(4))
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
             RepositoryComponentTelemetryEventType.AUDIT), eq(Collections.emptyList()));
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
@@ -844,5 +845,46 @@ public class RepositoryPolicyEvaluatorTest
     assertThat(repositoryComponents.get(0).isQuarantined()).isEqualTo(false);
     assertThat(repositoryComponents.get(0).getQuarantineTime()).isBetween(before1, after1, true, true);
     assertThat(repositoryComponents.get(0).getUnquarantineTime()).isBetween(before2, after2, true, true);
+  }
+
+  @Test
+  public void testEvaluate_ExistingComponent() throws Exception {
+    Repository repository = tempEntity.newRepository();
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1",
+        "v1", "c1", "e1");
+    Date createTime = new Date();
+    RepositoryComponent repositoryComponent = new RepositoryComponent(repository.getId(), "path1", createTime, "h1",
+        componentIdentifier, MatchState.EXACT.getId(), IdentificationSource.SONATYPE.getId(), createTime);
+
+    new RepositoryComponentDAO().insert(repositoryComponent);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = RepositoryComponentEvaluationDataRequestList.NEW_COMPONENT;
+
+    // Prepare request and mock the HDS request
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
+        new RepositoryComponentEvaluationDataRequest("maven2", "path1", "h1");
+
+    ComponentEvaluationData componentEvaluationData = createComponentEvaluationData(
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), "h1",
+        MatchState.EXACT, 0, null, null, createSecurityVulnerabilities(), 1);
+
+    componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
+    hdsResult.components.add(componentEvaluationData);
+
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
+
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true, null);
+
+    verify(repositoryComponentTelemetryCreator, times(1))
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), any(),
+            (List) MockitoHamcrest.argThat(hasSize(0)));
+
+    List<RepositoryComponent> repositoryComponents = new RepositoryComponentDAO().getByRepositoryId(repository.getId());
+
+    assertThat(repositoryComponents).hasSize(1);
   }
 }

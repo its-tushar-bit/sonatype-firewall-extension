@@ -42,7 +42,7 @@ public class ScanResourceAuditTest
   @Test
   public void testUploadBinary() throws Exception {
     mockReport(RestHandler.SCAN_ID, RESOURCE_PATH);
-    HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, RESOURCE_PATH).post();
+    HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, "file").post();
     assertResponseStatus(200, response);
 
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), null, app.getId(),
@@ -51,7 +51,7 @@ public class ScanResourceAuditTest
 
   @Test
   public void testUploadBinary_ReportNotFound() throws Exception {
-    HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, RESOURCE_PATH).post();
+    HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, "file").post();
     assertResponseStatus(200, response);
 
     assertEvaluationAuditLog("not-found", app.getId(), app.getPublicId(), app.getName(), Stage.ID_BUILD,

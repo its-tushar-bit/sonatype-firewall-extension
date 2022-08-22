@@ -133,18 +133,17 @@ class ScanService
 
   File saveBinary(InputStream is, String filename) throws IOException {
     try (InputStream in = is) {
-      String ext = getFileExtension(filename);
-      File file = Files.createTempFile("clm-", ext).toFile();
-      log.debug("Saving binary to {}", file);
+      File file = new File(Files.createTempDirectory(null).toFile(), filename);
+      log.debug("Saving file to {}", file);
       try {
         Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
       }
       catch (RuntimeException | IOException e) {
         try {
-          fileCleaner.delete(file);
+          fileCleaner.delete(file.getParentFile());
         }
         catch (FileDeletionException fde) {
-          log.error("Could not delete binary file: {}", file, fde);
+          log.error("Could not delete file folder: {}", file.getParentFile(), fde);
         }
         throw e;
       }

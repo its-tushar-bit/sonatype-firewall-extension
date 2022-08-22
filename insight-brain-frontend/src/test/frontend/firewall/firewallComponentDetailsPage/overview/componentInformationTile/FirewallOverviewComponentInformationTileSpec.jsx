@@ -11,13 +11,13 @@ import * as firewallSelectors from 'MainRoot/firewall/firewallSelectors';
 import * as firewallActions from 'MainRoot/firewall/firewallActions';
 
 describe('FirewallOverviewComponentInformationTile', () => {
-  let originalSelectFirewallCDP = firewallSelectors.selectFirewallCDP,
+  let originalSelectFirewallComponentDetailsPage = firewallSelectors.selectFirewallComponentDetailsPage,
     minState;
 
   beforeEach(function () {
     minState = {
       firewall: {
-        cdp: {
+        componentDetailsPage: {
           isLoadingComponentDetails: false,
           componentDetails: {
             matchState: 'exact',
@@ -74,20 +74,22 @@ describe('FirewallOverviewComponentInformationTile', () => {
   });
 
   it('renders a FirewallOverviewComponentInformation', async () => {
-    spyOn(firewallSelectors, 'selectFirewallCDP').and.returnValue(originalSelectFirewallCDP(minState));
+    spyOn(firewallSelectors, 'selectFirewallComponentDetailsPage').and.returnValue(
+      originalSelectFirewallComponentDetailsPage(minState)
+    );
     render(<FirewallOverviewComponentInformationTile.default />);
 
     expect(screen.getByText('Component Information')).toBeVisible();
   });
 
   it('renders a spiner when contents are not ready', async () => {
-    spyOn(firewallSelectors, 'selectFirewallCDP').and.returnValue(
-      originalSelectFirewallCDP({
+    spyOn(firewallSelectors, 'selectFirewallComponentDetailsPage').and.returnValue(
+      originalSelectFirewallComponentDetailsPage({
         ...minState,
         firewall: {
           ...minState.firewall,
-          cdp: {
-            ...minState.firewall.cdp,
+          componentDetailsPage: {
+            ...minState.firewall.componentDetailsPage,
             isLoadingComponentDetails: true,
           },
         },
@@ -99,13 +101,13 @@ describe('FirewallOverviewComponentInformationTile', () => {
   });
 
   it('renders an error message when there was a load error', async () => {
-    spyOn(firewallSelectors, 'selectFirewallCDP').and.returnValue(
-      originalSelectFirewallCDP({
+    spyOn(firewallSelectors, 'selectFirewallComponentDetailsPage').and.returnValue(
+      originalSelectFirewallComponentDetailsPage({
         ...minState,
         firewall: {
           ...minState.firewall,
-          cdp: {
-            ...minState.firewall.cdp,
+          componentDetailsPage: {
+            ...minState.firewall.componentDetailsPage,
             componentDetailsError: 'Custom Error',
           },
         },

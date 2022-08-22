@@ -8,7 +8,7 @@ import * as firewallPolicyViolationsSelectors from 'MainRoot/firewall/firewallCo
 describe('firewallPolicyViolationsSelectors', () => {
   const minState = {
     firewall: {
-      cdp: {
+      componentDetailsPage: {
         componentDetails: {
           policyAlerts: [
             {
@@ -83,13 +83,13 @@ describe('firewallPolicyViolationsSelectors', () => {
 
   it('selectPolicyAlerts', () => {
     expect(Object.keys(firewallPolicyViolationsSelectors.selectPolicyAlerts(minState))).toEqual([
-      ...Object.keys(minState.firewall.cdp.componentDetails.policyAlerts),
+      ...Object.keys(minState.firewall.componentDetailsPage.componentDetails.policyAlerts),
     ]);
   });
 
   it('selectPolicyViolations', () => {
     expect(Object.keys(firewallPolicyViolationsSelectors.selectPolicyViolations(minState))).toEqual([
-      ...Object.keys(minState.firewall.cdp.componentDetails.policyAlerts.map((trigger) => trigger)),
+      ...Object.keys(minState.firewall.componentDetailsPage.componentDetails.policyAlerts.map((trigger) => trigger)),
     ]);
   });
 });

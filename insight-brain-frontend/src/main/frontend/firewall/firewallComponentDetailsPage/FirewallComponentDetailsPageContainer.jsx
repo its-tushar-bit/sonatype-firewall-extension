@@ -4,20 +4,23 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import FirewallComponentDetailPage from './FirewallComponentDetailsPage';
-import { selectFirewallCDPRouteParams, selectFirewallCDP } from '../firewallSelectors';
-import { loadComponentDetails, onCDPTabChange } from '../firewallActions';
+import FirewallComponentDetailsPage from './FirewallComponentDetailsPage';
+import {
+  selectFirewallComponentDetailsPageRouteParams,
+  selectFirewallComponentDetailsPage,
+} from '../firewallSelectors';
+import { loadComponentDetails, onComponentDetailsPageTabChange } from '../firewallActions';
 
 function mapStateToProps(state) {
   return {
-    CDPResponseState: selectFirewallCDP(state),
-    routeParams: selectFirewallCDPRouteParams(state),
+    componentDetailsPageResponseState: selectFirewallComponentDetailsPage(state),
+    routeParams: selectFirewallComponentDetailsPageRouteParams(state),
   };
 }
 
 const mapDispatchToProps = {
   loadComponentDetails,
-  onCDPTabChange,
+  onComponentDetailsPageTabChange: onComponentDetailsPageTabChange,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(FirewallComponentDetailPage);
+export default connect(mapStateToProps, mapDispatchToProps)(FirewallComponentDetailsPage);

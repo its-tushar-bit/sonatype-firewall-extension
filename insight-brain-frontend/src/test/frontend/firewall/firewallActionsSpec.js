@@ -66,7 +66,7 @@ import {
   loadComponentDetailsRequested,
   loadComponentDetailsFulfilled,
   loadComponentDetailsFailed,
-  onCDPTabChange,
+  onComponentDetailsPageTabChange,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
   getFirewallConfigurationUrl,
@@ -1054,7 +1054,7 @@ describe('firewallActions', function () {
     it('dispatches an action to indicate the request is being solved but not completed yet', () => {
       const customState = {
         firewall: Object.freeze({
-          cdp: Object.freeze({
+          componentDetailsPage: Object.freeze({
             isLoadingComponentDetails: false,
             componentDetails: null,
             componentDetailsError: null,
@@ -1076,7 +1076,7 @@ describe('firewallActions', function () {
     it('dispatches an action to indicate the request was solved successfully', () => {
       const customState = {
         firewall: Object.freeze({
-          cdp: Object.freeze({
+          componentDetailsPage: Object.freeze({
             isLoadingComponentDetails: true,
             componentDetails: null,
             componentDetailsError: null,
@@ -1099,7 +1099,7 @@ describe('firewallActions', function () {
     it('dispatches an action to indicate the request failed', () => {
       const customState = {
         firewall: Object.freeze({
-          cdp: Object.freeze({
+          componentDetailsPage: Object.freeze({
             isLoadingComponentDetails: true,
             componentDetails: null,
             componentDetailsError: null,
@@ -1118,13 +1118,13 @@ describe('firewallActions', function () {
     });
   });
 
-  describe('onCDPTabChange', () => {
+  describe('onComponentDetailsPageTabChange', () => {
     it('calls stateGo with the appropriate parameters', () => {
-      store.dispatch(onCDPTabChange('labels'));
+      store.dispatch(onComponentDetailsPageTabChange('labels'));
       expect(store.getActions()).toHaveAction({
         type: '@@reduxUiRouter/stateGo',
         payload: {
-          to: 'firewall.componentDetailPage.labels',
+          to: 'firewall.componentDetailsPage.labels',
           options: undefined,
           params: undefined,
         },

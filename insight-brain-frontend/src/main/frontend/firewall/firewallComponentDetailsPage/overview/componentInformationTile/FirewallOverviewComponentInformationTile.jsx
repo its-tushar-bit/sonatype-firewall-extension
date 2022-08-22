@@ -8,11 +8,13 @@ import { NxLoadWrapper } from '@sonatype/react-shared-components';
 import { useSelector } from 'react-redux';
 
 import FirewallOverviewComponentInformation from './FirewallOverviewComponentInformation';
-import { selectFirewallCDP } from 'MainRoot/firewall/firewallSelectors';
+import { selectFirewallComponentDetailsPage } from 'MainRoot/firewall/firewallSelectors';
 import { loadComponentDetails } from 'MainRoot/firewall/firewallActions';
 
 export default function FirewallOverviewComponentInformationTile() {
-  const { isLoadingComponentDetails, componentDetailsError, componentDetails } = useSelector(selectFirewallCDP);
+  const { isLoadingComponentDetails, componentDetailsError, componentDetails } = useSelector(
+    selectFirewallComponentDetailsPage
+  );
 
   return (
     <NxLoadWrapper

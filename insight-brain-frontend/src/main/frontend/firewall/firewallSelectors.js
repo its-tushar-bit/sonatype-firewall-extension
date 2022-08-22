@@ -8,8 +8,8 @@ import { createSelector } from '@reduxjs/toolkit';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const selectFirewall = prop('firewall');
-export const selectFirewallCDP = createSelector(selectFirewall, prop('cdp'));
-export const selectFirewallCDPRouteParams = createSelector(
+export const selectFirewallComponentDetailsPage = createSelector(selectFirewall, prop('componentDetailsPage'));
+export const selectFirewallComponentDetailsPageRouteParams = createSelector(
   selectRouterCurrentParams,
   pickAll([
     'repositoryId',
@@ -22,7 +22,7 @@ export const selectFirewallCDPRouteParams = createSelector(
     'pathname',
   ])
 );
-export const currentFirewallCDPComponentVersion = createSelector(
-  selectFirewallCDP,
-  (cdp) => cdp.componentDetails.componentIdentifier.coordinates.version
+export const currentFirewallComponentDetailsPageComponentVersion = createSelector(
+  selectFirewallComponentDetailsPage,
+  (componentDetailsPage) => componentDetailsPage.componentDetails.componentIdentifier.coordinates.version
 );

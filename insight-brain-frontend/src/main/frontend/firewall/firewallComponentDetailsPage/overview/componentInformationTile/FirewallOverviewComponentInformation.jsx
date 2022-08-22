@@ -10,12 +10,12 @@ import { capitalize } from 'MainRoot/util/jsUtil';
 
 import { NxButton, NxTextLink, NxWarningAlert, useToggle, NxTile, NxReadOnly } from '@sonatype/react-shared-components';
 import ComponentCoordinatesPopover from 'MainRoot/componentDetails/overview/ComponentCoordinatesPopover/ComponentCoordinatesPopover';
-import { selectFirewallCDP } from 'MainRoot/firewall/firewallSelectors';
+import { selectFirewallComponentDetailsPage } from 'MainRoot/firewall/firewallSelectors';
 import { actions } from 'MainRoot/componentDetails/overview/overviewSlice';
 import { useSelector, useDispatch } from 'react-redux';
 
 export default function FirewallOverviewComponentInformation() {
-  const { versionExplorerData, componentDetails } = useSelector(selectFirewallCDP);
+  const { versionExplorerData, componentDetails } = useSelector(selectFirewallComponentDetailsPage);
   const dispatch = useDispatch();
   const {
     componentIdentifier,

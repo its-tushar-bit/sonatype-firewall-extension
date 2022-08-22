@@ -26,10 +26,15 @@ export const tabsConfiguration = [
   createTabConfiguration('labels', 'Labels'),
 ];
 
-export default function FirewallComponentDetailPage(props) {
-  const { loadComponentDetails, CDPResponseState, onCDPTabChange, routeParams } = props;
+export default function FirewallComponentDetailsPage(props) {
+  const {
+    loadComponentDetails,
+    componentDetailsPageResponseState,
+    onComponentDetailsPageTabChange,
+    routeParams,
+  } = props;
   const { tabId } = routeParams;
-  const { componentDetails, isLoadingComponentDetails, componentDetailsError } = CDPResponseState;
+  const { componentDetails, isLoadingComponentDetails, componentDetailsError } = componentDetailsPageResponseState;
   const componentCoordinates =
     componentDetails?.displayName?.parts?.reduce((prev, part) => prev + part.value, '') || '';
 
@@ -41,7 +46,7 @@ export default function FirewallComponentDetailPage(props) {
     if (tabIdToMoveTo === tabId) {
       return;
     }
-    onCDPTabChange(tabIdToMoveTo);
+    onComponentDetailsPageTabChange(tabIdToMoveTo);
   };
 
   return (
@@ -77,9 +82,9 @@ export default function FirewallComponentDetailPage(props) {
   );
 }
 
-FirewallComponentDetailPage.propTypes = {
+FirewallComponentDetailsPage.propTypes = {
   loadComponentDetails: PropTypes.func,
-  onCDPTabChange: PropTypes.func.isRequired,
+  onComponentDetailsPageTabChange: PropTypes.func.isRequired,
   routeParams: PropTypes.shape({
     repositoryId: PropTypes.string.isRequired,
     componentHash: PropTypes.string.isRequired,
@@ -90,7 +95,7 @@ FirewallComponentDetailPage.propTypes = {
     tabId: PropTypes.string.isRequired,
     componentIdentifier: PropTypes.string.isRequired,
   }).isRequired,
-  CDPResponseState: PropTypes.shape({
+  componentDetailsPageResponseState: PropTypes.shape({
     componentDetails: PropTypes.object,
     isLoadingComponentDetails: PropTypes.bool.isRequired,
     componentDetailsError: PropTypes.string,

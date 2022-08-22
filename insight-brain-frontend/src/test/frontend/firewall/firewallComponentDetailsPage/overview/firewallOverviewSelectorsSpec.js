@@ -8,7 +8,7 @@ import * as firewallOverviewSelectors from 'MainRoot/firewall/firewallComponentD
 describe('firewallOverviewSelectors', () => {
   const minState = {
     firewall: {
-      cdp: {
+      componentDetailsPage: {
         isLoadingComponentDetails: false,
         componentDetails: {
           hash: '7a3c2521ae0c6f53e044',
@@ -246,7 +246,7 @@ describe('firewallOverviewSelectors', () => {
 
   it('selectSelectedComponent', () => {
     expect(Object.keys(firewallOverviewSelectors.selectSelectedComponent(minState))).toEqual([
-      ...Object.keys(minState.firewall.cdp.componentDetails),
+      ...Object.keys(minState.firewall.componentDetailsPage.componentDetails),
       'routeParams',
       'scanId',
       'ownerId',

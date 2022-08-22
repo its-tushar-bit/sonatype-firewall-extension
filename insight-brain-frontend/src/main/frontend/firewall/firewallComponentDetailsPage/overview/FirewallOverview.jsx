@@ -5,7 +5,7 @@
  */
 import React, { Fragment } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { currentFirewallCDPComponentVersion } from 'MainRoot/firewall/firewallSelectors';
+import { currentFirewallComponentDetailsPageComponentVersion } from 'MainRoot/firewall/firewallSelectors';
 import {
   selectSelectedVersionData,
   selectCurrentVersionComparisonData,
@@ -14,15 +14,15 @@ import {
 } from 'MainRoot/componentDetails/overview/overviewSelectors';
 import { actions } from 'MainRoot/componentDetails/overview/overviewSlice';
 import FirewallOverviewComponentInformationTile from './componentInformationTile/FirewallOverviewComponentInformationTile';
-import { selectFirewallCDP } from '../../firewallSelectors';
+import { selectFirewallComponentDetailsPage } from '../../firewallSelectors';
 import { RiskRemediation } from 'MainRoot/componentDetails/overview/riskRemediation/RiskRemediation';
 
 export default function FirewallOverview() {
-  const { componentDetails } = useSelector(selectFirewallCDP);
+  const { componentDetails } = useSelector(selectFirewallComponentDetailsPage);
   const matchState = componentDetails?.matchState;
   const isUnknown = !matchState || matchState === 'unknown';
   const versionExplorerData = useSelector(selectVersionExplorerData);
-  const currentVersion = useSelector(currentFirewallCDPComponentVersion);
+  const currentVersion = useSelector(currentFirewallComponentDetailsPageComponentVersion);
   const currentVersionComparisonData = useSelector(selectCurrentVersionComparisonData);
   const selectedVersionComparisonData = useSelector(selectSelectedVersionComparisonData);
   const dispatch = useDispatch();

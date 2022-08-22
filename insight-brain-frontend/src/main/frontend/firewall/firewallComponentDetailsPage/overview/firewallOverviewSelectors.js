@@ -7,14 +7,14 @@ import { createSelector } from '@reduxjs/toolkit';
 import { selectRouterCurrentParams } from '../../../reduxUiRouter/routerSelectors';
 import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
 import { selectSelectedVersionDetailsByVersionId } from 'MainRoot/componentDetails/overview/overviewSelectors';
-import { selectFirewallCDP } from '../../firewallSelectors';
+import { selectFirewallComponentDetailsPage } from '../../firewallSelectors';
 
 export const selectSelectedComponent = createSelector(
   selectRouterCurrentParams,
-  selectFirewallCDP,
-  (routeParams, firewallCDP) => {
+  selectFirewallComponentDetailsPage,
+  (routeParams, firewallComponentDetailsPage) => {
     return {
-      ...firewallCDP.componentDetails,
+      ...firewallComponentDetailsPage.componentDetails,
       routeParams: routeParams.proprietary === 'true' ? true : false,
       scanId: routeParams.scanId,
       ownerId: routeParams.repositoryId,

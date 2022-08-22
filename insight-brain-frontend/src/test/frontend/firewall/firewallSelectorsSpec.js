@@ -5,15 +5,15 @@
  */
 import {
   selectFirewall,
-  selectFirewallCDP,
-  selectFirewallCDPRouteParams,
-  currentFirewallCDPComponentVersion,
+  selectFirewallComponentDetailsPage,
+  selectFirewallComponentDetailsPageRouteParams,
+  currentFirewallComponentDetailsPageComponentVersion,
 } from 'MainRoot/firewall/firewallSelectors';
 
 describe('firewallSelectors', () => {
   const minState = {
     firewall: {
-      cdp: {
+      componentDetailsPage: {
         componentDetails: {
           componentIdentifier: {
             coordinates: {
@@ -44,12 +44,12 @@ describe('firewallSelectors', () => {
     expect(selectFirewall(minState)).toEqual(minState.firewall);
   });
 
-  it('gets firewall cdp state', () => {
-    expect(selectFirewallCDP(minState)).toEqual(minState.firewall.cdp);
+  it('gets firewall componentDetailsPage state', () => {
+    expect(selectFirewallComponentDetailsPage(minState)).toEqual(minState.firewall.componentDetailsPage);
   });
 
   it('gets repository component properties from router.currentParams state', () => {
-    expect(Object.keys(selectFirewallCDPRouteParams(minState))).toEqual([
+    expect(Object.keys(selectFirewallComponentDetailsPageRouteParams(minState))).toEqual([
       'repositoryId',
       'componentIdentifier',
       'componentHash',
@@ -61,7 +61,7 @@ describe('firewallSelectors', () => {
     ]);
   });
 
-  it('gets current repository component version from firewall.cdp state', () => {
-    expect(currentFirewallCDPComponentVersion(minState)).toEqual(1.6);
+  it('gets current repository component version from firewall.componentDetailsPage state', () => {
+    expect(currentFirewallComponentDetailsPageComponentVersion(minState)).toEqual(1.6);
   });
 });

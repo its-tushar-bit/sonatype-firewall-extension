@@ -51,7 +51,7 @@ const initialState = Object.freeze({
     selectedComponentIndex: null,
     displayedEntries: [],
   }),
-  cdp: Object.freeze({
+  componentDetailsPage: Object.freeze({
     isLoadingComponentDetails: false,
     componentDetails: null,
     componentDetailsError: null,
@@ -471,8 +471,8 @@ function cipModalShow(_, state) {
 function loadComponentDetailsRequested(_, state) {
   return {
     ...state,
-    cdp: {
-      ...state.cdp,
+    componentDetailsPage: {
+      ...state.componentDetailsPage,
       isLoadingComponentDetails: true,
     },
   };
@@ -481,10 +481,10 @@ function loadComponentDetailsRequested(_, state) {
 function loadComponentDetailsFulfilled(payload, state) {
   return {
     ...state,
-    cdp: {
-      ...state.cdp,
+    componentDetailsPage: {
+      ...state.componentDetailsPage,
       isLoadingComponentDetails: false,
-      componentDetails: { ...state.cdp.componentDetails, ...payload },
+      componentDetails: { ...state.componentDetailsPage.componentDetails, ...payload },
       componentDetailsError: null,
     },
   };
@@ -493,8 +493,8 @@ function loadComponentDetailsFulfilled(payload, state) {
 function loadComponentDetailsFailed(payload, state) {
   return {
     ...state,
-    cdp: {
-      ...state.cdp,
+    componentDetailsPage: {
+      ...state.componentDetailsPage,
       isLoadingComponentDetails: false,
       componentDetailsError: payload,
     },

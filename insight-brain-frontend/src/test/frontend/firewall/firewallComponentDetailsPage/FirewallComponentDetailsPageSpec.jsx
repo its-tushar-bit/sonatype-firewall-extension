@@ -25,9 +25,9 @@ const assertTabs = (component, activeTabId) => {
 describe('FirewallComponentDetailsPage', function () {
   let minimalProps, getShallowComponent, getMountedComponent, loadComponentDetailsSpy, onTabChangeSpy;
 
-  const setCustomCDPResponseStateParamsOnMinimalProps = (key, value) => ({
+  const setCustomComponentDetailsPageResponseStateParamsOnMinimalProps = (key, value) => ({
     ...minimalProps,
-    CDPResponseState: { ...minimalProps.CDPResponseState, [key]: value },
+    componentDetailsPageResponseState: { ...minimalProps.componentDetailsPageResponseState, [key]: value },
   });
 
   beforeEach(function () {
@@ -38,7 +38,7 @@ describe('FirewallComponentDetailsPage', function () {
 
     minimalProps = {
       loadComponentDetails: loadComponentDetailsSpy,
-      onCDPTabChange: onTabChangeSpy,
+      onComponentDetailsPageTabChange: onTabChangeSpy,
       routeParams: {
         repositoryId: 'repositoryId',
         componentHash: 'componentHash',
@@ -46,7 +46,7 @@ describe('FirewallComponentDetailsPage', function () {
         proprietary: 'false',
         tabId: 'overview',
       },
-      CDPResponseState: {
+      componentDetailsPageResponseState: {
         componentDetails: {},
         isLoadingComponentDetails: false,
         componentDetailsError: null,
@@ -63,11 +63,13 @@ describe('FirewallComponentDetailsPage', function () {
 
   it('renders the tabs at all times', () => {
     let component = getMountedComponent(
-      setCustomCDPResponseStateParamsOnMinimalProps('isLoadingComponentDetails', false)
+      setCustomComponentDetailsPageResponseStateParamsOnMinimalProps('isLoadingComponentDetails', false)
     );
     assertTabs(component, minimalProps.routeParams.tabId);
 
-    component = getMountedComponent(setCustomCDPResponseStateParamsOnMinimalProps('isLoadingComponentDetails', true));
+    component = getMountedComponent(
+      setCustomComponentDetailsPageResponseStateParamsOnMinimalProps('isLoadingComponentDetails', true)
+    );
     assertTabs(component, minimalProps.routeParams.tabId);
   });
 
@@ -75,7 +77,10 @@ describe('FirewallComponentDetailsPage', function () {
     // mount component loading to avoid having to supply a `componentDetailsProp`.
     let component = getMountedComponent({
       ...minimalProps,
-      CDPResponseState: { ...minimalProps.CDPResponseState, isLoadingComponentDetails: false },
+      componentDetailsPageResponseState: {
+        ...minimalProps.componentDetailsPageResponseState,
+        isLoadingComponentDetails: false,
+      },
     });
     expect(loadComponentDetailsSpy).toHaveBeenCalledTimes(1);
 
@@ -101,16 +106,16 @@ describe('FirewallComponentDetailsPage', function () {
       changeFn = getOnTabChangeProp(component);
 
       changeFn('violations');
-      expect(minimalProps.onCDPTabChange).toHaveBeenCalledWith('violations');
+      expect(minimalProps.onComponentDetailsPageTabChange).toHaveBeenCalledWith('violations');
 
       changeFn('security');
-      expect(minimalProps.onCDPTabChange).toHaveBeenCalledWith('security');
+      expect(minimalProps.onComponentDetailsPageTabChange).toHaveBeenCalledWith('security');
 
       changeFn('legal');
-      expect(minimalProps.onCDPTabChange).toHaveBeenCalledWith('legal');
+      expect(minimalProps.onComponentDetailsPageTabChange).toHaveBeenCalledWith('legal');
 
       changeFn('labels');
-      expect(minimalProps.onCDPTabChange).toHaveBeenCalledWith('labels');
+      expect(minimalProps.onComponentDetailsPageTabChange).toHaveBeenCalledWith('labels');
 
       // Starting on another tab to be able to check the listener on the default 0 tab
       component = getMountedComponent({
@@ -120,7 +125,7 @@ describe('FirewallComponentDetailsPage', function () {
       changeFn = getOnTabChangeProp(component);
 
       changeFn('overview');
-      expect(minimalProps.onCDPTabChange).toHaveBeenCalledWith('overview');
+      expect(minimalProps.onComponentDetailsPageTabChange).toHaveBeenCalledWith('overview');
     });
 
     it('does not call onTabChange when clicking on the same tab twice', function () {
@@ -133,14 +138,14 @@ describe('FirewallComponentDetailsPage', function () {
       changeFn = getOnTabChangeProp(component);
 
       changeFn('overview');
-      expect(minimalProps.onCDPTabChange).not.toHaveBeenCalled();
+      expect(minimalProps.onComponentDetailsPageTabChange).not.toHaveBeenCalled();
     });
   });
 
   describe('when there is an error loading the report', () => {
     it('renders a NxLoadError component', () => {
       const el = getShallowComponent(
-        setCustomCDPResponseStateParamsOnMinimalProps('componentDetailsError', 'Mock message')
+        setCustomComponentDetailsPageResponseStateParamsOnMinimalProps('componentDetailsError', 'Mock message')
       );
       const loadWrapper = el.find(NxLoadWrapper);
       const error = loadWrapper.dive().find(NxLoadError);
@@ -151,7 +156,7 @@ describe('FirewallComponentDetailsPage', function () {
 
     it('calls loadComponentDetails when the user clicks the retry button', () => {
       const el = getShallowComponent(
-        setCustomCDPResponseStateParamsOnMinimalProps('componentDetailsError', 'Mock message')
+        setCustomComponentDetailsPageResponseStateParamsOnMinimalProps('componentDetailsError', 'Mock message')
       );
       const loadWrapper = el.find(NxLoadWrapper);
       const error = loadWrapper.dive().find(NxLoadError);
@@ -162,7 +167,7 @@ describe('FirewallComponentDetailsPage', function () {
 
     it('renders the tabs', () => {
       const el = getShallowComponent(
-        setCustomCDPResponseStateParamsOnMinimalProps('componentDetailsError', 'Mock message')
+        setCustomComponentDetailsPageResponseStateParamsOnMinimalProps('componentDetailsError', 'Mock message')
       );
       assertTabs(el, minimalProps.routeParams.tabId);
     });
@@ -171,7 +176,7 @@ describe('FirewallComponentDetailsPage', function () {
   describe('when the page is loading ', () => {
     it('renders a NxLoadWrapper component', () => {
       const el = getShallowComponent(
-        setCustomCDPResponseStateParamsOnMinimalProps('isLoadingComponentDetails', true)
+        setCustomComponentDetailsPageResponseStateParamsOnMinimalProps('isLoadingComponentDetails', true)
       ).find(NxLoadWrapper);
       expect(el).toExist();
     });

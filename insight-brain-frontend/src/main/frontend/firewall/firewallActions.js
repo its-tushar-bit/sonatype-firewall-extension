@@ -422,8 +422,8 @@ export function selectComponent(componentIndex) {
   };
 }
 
-export function onCDPTabChange(tabId) {
+export function onComponentDetailsPageTabChange(tabId) {
   return (dispatch) => {
-    return dispatch(stateGo(`firewall.componentDetailPage.${tabId}`));
+    return dispatch(stateGo(`firewall.componentDetailsPage.${tabId}`));
   };
 }

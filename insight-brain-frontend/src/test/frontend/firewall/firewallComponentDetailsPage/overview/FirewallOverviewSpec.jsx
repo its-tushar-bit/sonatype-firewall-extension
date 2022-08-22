@@ -12,21 +12,22 @@ import * as FirewallOverviewComponentInformationTile from 'MainRoot/firewall/fir
 import * as firewallSelectors from 'MainRoot/firewall/firewallSelectors';
 
 describe('FirewallOverview', () => {
-  let originalSelectFirewallCDP = firewallSelectors.selectFirewallCDP,
-    originalCurrentFirewallCDPComponentVersion = firewallSelectors.currentFirewallCDPComponentVersion,
+  let originalSelectFirewallComponentDetailsPage = firewallSelectors.selectFirewallComponentDetailsPage,
+    originalCurrentFirewallComponentDetailsPageComponentVersion =
+      firewallSelectors.currentFirewallComponentDetailsPageComponentVersion,
     minState;
 
   beforeEach(function () {
     spyOn(FirewallOverviewComponentInformationTile, 'default').and.callFake(() => (
       <div>FirewallOverviewComponentInformationTile</div>
     ));
-    spyOn(firewallSelectors, 'currentFirewallCDPComponentVersion').and.callFake(() => {
-      return originalCurrentFirewallCDPComponentVersion(minState);
+    spyOn(firewallSelectors, 'currentFirewallComponentDetailsPageComponentVersion').and.callFake(() => {
+      return originalCurrentFirewallComponentDetailsPageComponentVersion(minState);
     });
 
     minState = {
       firewall: {
-        cdp: {
+        componentDetailsPage: {
           isLoadingComponentDetails: false,
           componentDetails: {
             matchState: 'exact',
@@ -82,23 +83,23 @@ describe('FirewallOverview', () => {
   });
 
   it('renders the RiskRemediation if component is known', () => {
-    spyOn(firewallSelectors, 'selectFirewallCDP').and.callFake(() => {
-      return originalSelectFirewallCDP(minState);
+    spyOn(firewallSelectors, 'selectFirewallComponentDetailsPage').and.callFake(() => {
+      return originalSelectFirewallComponentDetailsPage(minState);
     });
     render(<FirewallOverview />);
     expect(screen.getByText('Risk Remediation')).toBeVisible();
   });
 
   it('does not render the RiskRemediation if component is unknown', () => {
-    spyOn(firewallSelectors, 'selectFirewallCDP').and.callFake(() => {
-      return originalSelectFirewallCDP({
+    spyOn(firewallSelectors, 'selectFirewallComponentDetailsPage').and.callFake(() => {
+      return originalSelectFirewallComponentDetailsPage({
         ...minState,
         firewall: {
           ...minState.firewall,
-          cdp: {
-            ...minState.firewall.cdp,
+          componentDetailsPage: {
+            ...minState.firewall.componentDetailsPage,
             componentDetails: {
-              ...minState.firewall.cdp.componentDetails,
+              ...minState.firewall.componentDetailsPage.componentDetails,
               matchState: 'unknown',
             },
           },

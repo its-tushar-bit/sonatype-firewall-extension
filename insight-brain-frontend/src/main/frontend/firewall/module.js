@@ -44,7 +44,7 @@ function routes($stateProvider) {
         title: 'Auto Release Quarantine',
       },
     })
-    .state('firewall.componentDetailPage', {
+    .state('firewall.componentDetailsPage', {
       url:
         '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?proprietary&identificationSource&pathname',
       component: 'firewallComponentDetailsPage',
@@ -55,31 +55,31 @@ function routes($stateProvider) {
         tabId: 'overview',
       },
     })
-    .state('firewall.componentDetailPage.overview', {
+    .state('firewall.componentDetailsPage.overview', {
       url: '/overview',
       params: {
         tabId: 'overview',
       },
     })
-    .state('firewall.componentDetailPage.violations', {
+    .state('firewall.componentDetailsPage.violations', {
       url: '/violations',
       params: {
         tabId: 'violations',
       },
     })
-    .state('firewall.componentDetailPage.security', {
+    .state('firewall.componentDetailsPage.security', {
       url: '/security',
       params: {
         tabId: 'security',
       },
     })
-    .state('firewall.componentDetailPage.legal', {
+    .state('firewall.componentDetailsPage.legal', {
       url: '/legal',
       params: {
         tabId: 'legal',
       },
     })
-    .state('firewall.componentDetailPage.labels', {
+    .state('firewall.componentDetailsPage.labels', {
       url: '/labels',
       params: {
         tabId: 'labels',

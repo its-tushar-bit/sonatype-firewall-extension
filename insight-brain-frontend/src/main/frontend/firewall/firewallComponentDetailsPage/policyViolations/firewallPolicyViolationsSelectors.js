@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
-import { selectFirewallCDP } from '../../firewallSelectors';
+import { selectFirewallComponentDetailsPage } from '../../firewallSelectors';
 
 export const selectPolicyAlerts = createSelector(
-  selectFirewallCDP,
+  selectFirewallComponentDetailsPage,
   (violations) => violations.componentDetails.policyAlerts
 );
 

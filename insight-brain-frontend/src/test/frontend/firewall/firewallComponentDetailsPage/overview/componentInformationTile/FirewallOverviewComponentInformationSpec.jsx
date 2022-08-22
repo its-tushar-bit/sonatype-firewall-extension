@@ -11,12 +11,12 @@ import * as firewallSelectors from 'MainRoot/firewall/firewallSelectors';
 
 describe('FirewallOverviewComponentInformation', () => {
   let minState;
-  let originalSelectFirewallCDP = firewallSelectors.selectFirewallCDP;
+  let originalSelectFirewallComponentDetailsPage = firewallSelectors.selectFirewallComponentDetailsPage;
 
   beforeEach(function () {
     minState = {
       firewall: {
-        cdp: {
+        componentDetailsPage: {
           isLoadingComponentDetails: false,
           componentDetails: {
             matchState: 'exact',
@@ -68,7 +68,9 @@ describe('FirewallOverviewComponentInformation', () => {
   });
 
   it('renders a FirewallOverviewComponentInformation with "View Coordinates" button enabled of known components', async () => {
-    spyOn(firewallSelectors, 'selectFirewallCDP').and.returnValue(originalSelectFirewallCDP(minState));
+    spyOn(firewallSelectors, 'selectFirewallComponentDetailsPage').and.returnValue(
+      originalSelectFirewallComponentDetailsPage(minState)
+    );
     render(<FirewallOverviewComponentInformation />);
     await waitFor(() => screen.getByText('Component Information'));
     expect(screen.getByText('Match State')).toBeVisible();
@@ -83,15 +85,15 @@ describe('FirewallOverviewComponentInformation', () => {
   });
 
   it('renders a FirewallOverviewComponentInformation with "View Coordinates" button not present for unkwnon components', async () => {
-    spyOn(firewallSelectors, 'selectFirewallCDP').and.returnValue(
-      originalSelectFirewallCDP({
+    spyOn(firewallSelectors, 'selectFirewallComponentDetailsPage').and.returnValue(
+      originalSelectFirewallComponentDetailsPage({
         ...minState,
         firewall: {
           ...minState.firewall,
-          cdp: {
-            ...minState.firewall.cdp,
+          componentDetailsPage: {
+            ...minState.firewall.componentDetailsPage,
             componentDetails: {
-              ...minState.firewall.cdp.componentDetails,
+              ...minState.firewall.componentDetailsPage.componentDetails,
               matchState: 'unknown',
             },
           },

@@ -57,6 +57,7 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.lqa.LqaFormat;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.test.LogOutput;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -92,6 +93,9 @@ import static org.mockito.Mockito.when;
 public class RepositoryMatcherTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(RepositoryMatcher.class);
+
   @Rule
   public ArtifactoryMockServerRule artifactoryMockServer = new ArtifactoryMockServerRule();
 
@@ -192,6 +196,7 @@ public class RepositoryMatcherTest
       repositoryMatcher.verify(
           () -> RepositoryMatcher.updateJsonFiles(eq(application), eq(bomJson), eq(dataJson), eq(summaryJson),
               eq(licensesJson), eq(securityJson), any(), any()));
+      assertThat(logOutput).atDebugLevel().contains("Artifactory search for 1 checksum(s) resulted in 1 match(es).");
     }
   }
 
@@ -227,6 +232,7 @@ public class RepositoryMatcherTest
     assertThat(sha256Matches).hasSize(1).containsOnlyKeys(identifier);
     artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
         urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    assertThat(logOutput).atDebugLevel().contains("Artifactory search for 1 checksum(s) resulted in 1 match(es).");
   }
 
   @Test
@@ -301,6 +307,7 @@ public class RepositoryMatcherTest
         readJsonFile("match-state/bom.json"));
 
     assertThat(sha256Matches).hasSize(2).containsOnlyKeys(id1, id2);
+    assertThat(logOutput).atDebugLevel().contains("Artifactory search for 2 checksum(s) resulted in 2 match(es).");
   }
 
   @Test
@@ -506,6 +513,13 @@ public class RepositoryMatcherTest
         readJsonFile("match-sha256/bom.json"));
 
     assertThat(sha256Matches).hasSize(1);
+    assertThat(logOutput).atDebugLevel().contains("Artifactory search for 1 checksum(s) resulted in 1 match(es).");
+  }
+
+  @Test
+  public void testIdentify_ArtifactoryConfig_No_Results() throws Exception {
+    matcher.identify(application.getId(), readJsonFile("match-sha256/bom.json"));
+    assertThat(logOutput).atDebugLevel().contains("Artifactory search for 1 checksum(s) resulted in no matches.");
   }
 
   @Test
@@ -595,6 +609,7 @@ public class RepositoryMatcherTest
             urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.AQL_SEARCH_PATH))));
     assertStored(date, sha256a, componentIdentifier1);
     assertStored(date, sha256b, componentIdentifier2);
+    assertThat(logOutput).atDebugLevel().contains("Artifactory search for 2 checksum(s) resulted in 2 match(es).");
   }
 
   private void assertStored(Date dateBeforeCached, String sha256, ComponentIdentifier componentIdentifier) {

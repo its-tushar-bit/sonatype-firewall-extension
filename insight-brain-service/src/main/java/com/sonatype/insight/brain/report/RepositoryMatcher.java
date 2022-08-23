@@ -539,7 +539,7 @@ public class RepositoryMatcher
 
   private Set<String> matchWithRepository(
       final Map<ComponentIdentifier, ObjectNode> identifiedComponents,
-      final ArtifactoryConnection rootConnection,
+      final ArtifactoryConnection artifactoryConnection,
       final ArtifactoryClient artifactoryClient,
       final Set<ObjectNode> nodes)
   {
@@ -556,7 +556,8 @@ public class RepositoryMatcher
     }
 
     Map<String, ComponentIdentifier> resolved =
-        resolveComponentIdentifierFromArtifactory(rootConnection, artifactoryClient, unresolvedNodesBySha256.keySet());
+        resolveComponentIdentifierFromArtifactory(
+            artifactoryConnection, artifactoryClient, unresolvedNodesBySha256.keySet());
 
     resolved.forEach((key, value) -> {
       if (value != null) {
@@ -577,13 +578,13 @@ public class RepositoryMatcher
   }
 
   private static Map<String, ComponentIdentifier> resolveComponentIdentifierFromArtifactory(
-      ArtifactoryConnection rootConnection,
+      ArtifactoryConnection artifactoryConnection,
       ArtifactoryClient artifactoryClient,
       Set<String> sha256s)
   {
     Map<String, ComponentIdentifier> result = new HashMap<>();
     try {
-      if (StringUtils.isNotBlank(rootConnection.getUsername())) {
+      if (StringUtils.isNotBlank(artifactoryConnection.getUsername())) {
         for (Entry<String, ArtifactoryChecksumSearchResults> entry : artifactoryClient.searchByChecksumsUsingAQL(
             ChecksumType.SHA256, sha256s).entrySet()) {
           result.put(entry.getKey(), resolveComponentIdentifier(entry.getValue()));
@@ -598,8 +599,16 @@ public class RepositoryMatcher
       }
     }
     catch (IOException e) {
-      log.error("Checksum search error for repository connection uri {}", rootConnection.getBaseUrl(), e);
+      log.error("Checksum search error for repository connection uri {}", artifactoryConnection.getBaseUrl(), e);
     }
+
+    if (result.size() > 0) {
+      log.debug("Artifactory search for {} checksum(s) resulted in {} match(es).", sha256s.size(), result.size());
+    }
+    else {
+      log.debug("Artifactory search for {} checksum(s) resulted in no matches.", sha256s.size());
+    }
+
     return result;
   }
 

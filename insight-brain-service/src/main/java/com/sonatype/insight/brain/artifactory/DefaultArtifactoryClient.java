@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.artifactory;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
@@ -37,6 +38,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -87,6 +89,7 @@ public class DefaultArtifactoryClient
     }
     URI uri;
     try {
+      log.debug("Artifactory URL: {}", configuration.getServerUrl());
       uri = new URI(configuration.getServerUrl());
     }
     catch (URISyntaxException e) {
@@ -112,6 +115,7 @@ public class DefaultArtifactoryClient
     HttpGet request = new HttpGet(this.configuration.getServerUrl() + CHECKSUM_SEARCH_PATH +
         UrlUtils.appendQueryParams(checksumType.name().toLowerCase(Locale.ROOT), checksum));
     HttpResponse response = httpClient.execute(request, httpClientContext);
+    log.debug("Artifactory checksum search response status: {}", response.getStatusLine());
     if (response.getStatusLine().getStatusCode() != 200) {
       handleError(response);
     }
@@ -124,11 +128,13 @@ public class DefaultArtifactoryClient
       Set<String> checksums) throws IOException
   {
     if (CollectionUtils.isEmpty(checksums)) {
+      log.debug("No checksums provided for AQL call, returning empty result.");
       return Collections.emptyMap();
     }
     HttpPost request = new HttpPost(configuration.getServerUrl() + AQL_SEARCH_PATH);
     request.setEntity(new StringEntity(ArtifactoryQueryLanguageUtils.createChecksumSearch(checksumType, checksums)));
     HttpResponse response = httpClient.execute(request, httpClientContext);
+    log.debug("Artifactory AQL checksums search response status: {}", response.getStatusLine());
     int status = response.getStatusLine().getStatusCode();
     if (status != 200) {
       handleError(status, EntityUtils.toString(response.getEntity()));
@@ -165,8 +171,9 @@ public class DefaultArtifactoryClient
   }
 
   private void handleError(HttpResponse response) throws IOException {
-    ArtifactoryChecksumSearchErrors errors =
-        JsonUtils.parse(response.getEntity().getContent(), ArtifactoryChecksumSearchErrors.class);
+    String errorContent = IOUtils.toString(response.getEntity().getContent(), StandardCharsets.UTF_8);
+    log.error("Artifactory error raw response: {}", errorContent);
+    ArtifactoryChecksumSearchErrors errors = JsonUtils.parse(errorContent, ArtifactoryChecksumSearchErrors.class);
     ArtifactoryChecksumSearchError error = errors.errors.get(0);
     handleError(error.status, error.message);
   }
@@ -196,6 +203,7 @@ public class DefaultArtifactoryClient
   private StatusType getStatusType(final HttpResponse response) {
     Header serverHeader = response.getFirstHeader(ARTIFACTORY_ID_HEADER_NAME);
     String server = serverHeader == null ? null : serverHeader.getValue();
+    log.debug("Artifactory server header {}, status {}", server, response.getStatusLine());
     if (StringUtils.isBlank(server)) {
       return new StatusType() {
         @Override

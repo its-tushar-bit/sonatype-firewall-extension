@@ -12,8 +12,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
-import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -34,7 +32,6 @@ public class ExternalTelemetryService
     this.telemetrySender = telemetryValues;
   }
 
-  @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void sendTelemetry(String userAgent, Map<String, String> telemetryValues) {
     String purpose = telemetryValues.get("telemetry_purpose");
     if (purpose == null) {

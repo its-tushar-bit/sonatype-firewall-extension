@@ -16,6 +16,8 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class DefaultExternalTelemetryResourceTest
     extends AbstractResourceTest
 {
@@ -34,6 +36,13 @@ public class DefaultExternalTelemetryResourceTest
         .post();
 
     assertResponseStatus(HttpStatus.NO_CONTENT_204, httpResponse);
+  }
+
+  @Test
+  public void testPostExternalTelemetry_NotAuthenticated() throws Exception {
+    HttpResponse httpResponse = restRequest().anon().post();
+    assertResponseStatus(HttpStatus.UNAUTHORIZED_401, httpResponse);
+    assertThat(httpResponse.getBodyText()).isEqualTo("Missing credentials.");
   }
 
   @Override

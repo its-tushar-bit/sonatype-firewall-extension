@@ -7,7 +7,7 @@ import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
 import VulnerabilitiesTableRow from './VulnerabilitiesTableRow';
-import { vulnerabilitiyPropTypes } from './VulnerabilitiesTableRow';
+import { vulnerabilityPropTypes } from './VulnerabilitiesTableRow';
 
 const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, toggleVulnerabilityPopoverWithEffects }) => {
   useEffect(() => {
@@ -45,7 +45,7 @@ const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, toggleVuln
 export const vulnerabilitiesPropTypes = {
   error: PropTypes.string,
   loading: PropTypes.bool,
-  data: PropTypes.arrayOf(vulnerabilitiyPropTypes),
+  data: PropTypes.arrayOf(vulnerabilityPropTypes),
 };
 VulnerabilitiesTable.propTypes = {
   loadVulnerabilities: PropTypes.func.isRequired,

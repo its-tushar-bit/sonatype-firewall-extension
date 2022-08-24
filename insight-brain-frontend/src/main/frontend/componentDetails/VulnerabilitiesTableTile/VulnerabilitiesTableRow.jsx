@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 
 const VulnerabilitiesTableRow = ({ vulnerability, toggleVulnerabilityPopoverWithEffects }) => {
+  const renderAliases = (aliases) => (!aliases ? '' : aliases.map((a) => <div key={a}>{a}</div>));
   return (
     <NxTableRow
       className="iq-vulnerabilities-row"
@@ -19,7 +20,8 @@ const VulnerabilitiesTableRow = ({ vulnerability, toggleVulnerabilityPopoverWith
         <span>{Math.floor(vulnerability.severity)}</span>
       </NxTableCell>
       <NxTableCell>
-        <span>{vulnerability.refId}</span>
+        <div>{vulnerability.refId}</div>
+        {!vulnerability?.aliases?.isEmpty && renderAliases(vulnerability.aliases)}
       </NxTableCell>
       <NxTableCell>
         <span>{vulnerability.status}</span>
@@ -29,14 +31,15 @@ const VulnerabilitiesTableRow = ({ vulnerability, toggleVulnerabilityPopoverWith
   );
 };
 
-export const vulnerabilitiyPropTypes = PropTypes.shape({
+export const vulnerabilityPropTypes = PropTypes.shape({
   refId: PropTypes.string.isRequired,
   severity: PropTypes.number.isRequired,
   status: PropTypes.string.isRequired,
+  aliases: PropTypes.arrayOf(PropTypes.string),
 });
 
 VulnerabilitiesTableRow.propTypes = {
-  vulnerability: vulnerabilitiyPropTypes,
+  vulnerability: vulnerabilityPropTypes,
   toggleVulnerabilityPopoverWithEffects: PropTypes.func.isRequired,
 };
 

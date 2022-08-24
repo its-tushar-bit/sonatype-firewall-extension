@@ -40,7 +40,7 @@ describe('VulnerabilitiesTableRow', () => {
         rowCells = component.find(NxTableCell),
         codeCell = rowCells.at(1);
 
-      expect(codeCell.find('span')).toHaveText('1');
+      expect(codeCell.find('div')).toHaveText('1');
     });
 
     it('renders the status cell', () => {
@@ -65,6 +65,22 @@ describe('VulnerabilitiesTableRow', () => {
       rows.at(0).simulate('click');
 
       expect(toggleVulnerabilityPopoverWithEffectsMock).toHaveBeenCalledWith('1');
+    });
+
+    it('renders aliases along with the refId ', () => {
+      const expectedAliases = ['ALIAS1', 'ALIAS2'];
+      getShallow = enzymeUtils.getShallowComponent(VulnerabilitiesTableRow, {
+        ...minimalProps,
+        vulnerability: {
+          ...minimalProps.vulnerability,
+          aliases: expectedAliases,
+        },
+      });
+      const component = getShallow(),
+        rowCells = component.find(NxTableCell),
+        problemCodeCell = rowCells.at(1);
+      expect(problemCodeCell.find('div').at(1)).toHaveText(expectedAliases[0]);
+      expect(problemCodeCell.find('div').at(2)).toHaveText(expectedAliases[1]);
     });
   });
 });

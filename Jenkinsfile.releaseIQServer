@@ -10,7 +10,8 @@ properties(
     parameters (
       [
         booleanParam(name: 'hotfix', defaultValue: 'false', description: 'Check if this IQ Release is intended to be a hotfix e.g. urgent release to fix a severe bug. (Used for internal metrics only.)'),
-        string (name: 'releaseVersion', defaultValue: '',description: 'The version number for the product, like "1.118.0-01"')
+        string (name: 'releaseVersion', defaultValue: '',description: 'The version number for the product, like "1.118.0-01"'),
+        run(name:'snapshotBuild', filter: 'SUCCESSFUL', projectName: 'insight/insight-brain/master-snapshot', description: 'The snapshot build to release from.')
       ]
     )
   ]
@@ -36,7 +37,8 @@ pipeline {
       steps {
         build(job: 'insight/insight-brain/release',
             parameters: [ booleanParam(name: 'hotfix', value: params.hotfix),
-                          string(name: 'version', value: params.releaseVersion)])
+                          string(name: 'version', value: params.releaseVersion),
+                          run(name: 'snapshotBuild', runId: "${params.snapshotBuild_NAME}#${params.snapshotBuild_NUMBER}")])
       }
     }
     stage('Release Jira Version - IQ') {

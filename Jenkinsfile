@@ -15,9 +15,10 @@ make(
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->
       runAllTests(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
     },
-    releaseBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean useInstall4J ->
-      runAllTests(mavenCommon, keystoreCredId, false, useInstall4J)
+    releaseBuild: { Map<String, ?> mavenCommon, String keystoreCredentialsId, boolean useInstall4J ->
+      buildAndSkipTests(mavenConfig, keystoreCredentialsId, false, useInstall4J)
     },
+    releaseFromCommit: true,
     runFeatureBranchPolicyEvaluations: true,
     iqPolicyEvaluation: { stage ->
         nexusPolicyEvaluation iqStage: stage, iqApplication: 'insight-brain',
@@ -47,6 +48,9 @@ make(
     },
     onUnstable: {
         pushDockerImageIfDeployBranch()
+    },
+    getGitCommitHash: { String snapshotBuildNumber ->
+      return readBuildArtifact('insight/insight-brain/master-snapshot', snapshotBuildNumber, 'artifacts/git_commit_hash.txt')
     }
 )
 
@@ -70,7 +74,8 @@ void configureBranchJob() {
         stringParam(name: 'version', description: 'The version to release'),
         stringParam(name: 'nextVersion',
             description: 'The next SNAPSHOT version to use after the release. Optional as will be automatically be ' +
-                'calculated if left blank.')
+                'calculated if left blank.'),
+        run(name:'snapshotBuild', filter: 'SUCCESSFUL', projectName: 'insight/insight-brain/master-snapshot', description: 'The snapshot build to release from.')
     ]
   }
   properties([

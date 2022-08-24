@@ -1,0 +1,82 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.support;
+
+import java.time.LocalTime;
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
+import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.json.store.JsonUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class SourceControlConfigurationInfoTest
+    extends AbstractComponentTest
+{
+  @Inject
+  private SourceControlConfigurationInfo sourceControlConfigurationInfo;
+
+  @Inject
+  private SourceControlConfigurationDAO sourceControlConfigurationDAO;
+
+  @Test
+  public void testGetSourceControlConfigurationInfo() throws Exception {
+    SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
+
+    sourceControlConfiguration.setCloneDirectory("some-clone-directory");
+    sourceControlConfiguration.setGitImplementation(GitImplementation.NATIVE);
+    sourceControlConfiguration.setGitExecutable("/usr/bin/git");
+    sourceControlConfiguration.setPrCommentPurgeWindow(1);
+    sourceControlConfiguration.setPrEventPurgeWindow(2);
+    sourceControlConfiguration.setGitTimeoutSeconds(8);
+    sourceControlConfiguration.setCommitUsername("some-commit-username");
+    sourceControlConfiguration.setCommitEmail("some-commit-email@d");
+    sourceControlConfiguration.setUseUsernameInRepositoryCloneUrl(true);
+    sourceControlConfiguration.setDefaultBranchMonitoringStartTime(LocalTime.of(2, 22));
+    sourceControlConfiguration.setDefaultBranchMonitoringIntervalHours(4);
+    sourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(0);
+    sourceControlConfigurationDAO.set(sourceControlConfiguration);
+
+    JsonNode configNode = JsonUtils.parse(sourceControlConfigurationInfo.getSourceControlConfigurationInfo());
+
+    assertThat(configNode.get("cloneDirectory").asText()).isEqualTo("some-clone-directory");
+    assertThat(configNode.get("gitImplementation").asText()).isEqualTo(GitImplementation.NATIVE.toString());
+    assertThat(configNode.get("gitExecutable").asText()).isEqualTo("/usr/bin/git");
+    assertThat(configNode.get("prCommentPurgeWindow").asInt()).isEqualTo(1);
+    assertThat(configNode.get("prEventPurgeWindow").asInt()).isEqualTo(2);
+    assertThat(configNode.get("gitTimeoutSeconds").asInt()).isEqualTo(8);
+    assertThat(configNode.get("commitUsername").asText()).isEqualTo("some-commit-username");
+    assertThat(configNode.get("commitEmail").asText()).isEqualTo("some-commit-email@d");
+    assertThat(configNode.get("useUsernameInRepositoryCloneUrl").asBoolean()).isEqualTo(true);
+    assertThat(configNode.get("defaultBranchMonitoringStartTime").asText()).isEqualTo("2:22");
+    assertThat(configNode.get("defaultBranchMonitoringIntervalHours").asInt()).isEqualTo(4);
+    assertThat(configNode.get("pullRequestMonitoringIntervalSeconds").asInt()).isEqualTo(0);
+  }
+
+  @Test
+  public void testGetSourceControlConfigurationInfo_noConfig() throws Exception {
+    JsonNode configNode = JsonUtils.parse(sourceControlConfigurationInfo.getSourceControlConfigurationInfo());
+
+    assertThat(configNode.get("cloneDirectory").asText()).isEqualTo("null");
+    assertThat(configNode.get("gitImplementation").asText()).isEqualTo("null");
+    assertThat(configNode.get("gitExecutable").asText()).isEqualTo("null");
+    assertThat(configNode.get("prCommentPurgeWindow").asText()).isEqualTo("null");
+    assertThat(configNode.get("prEventPurgeWindow").asText()).isEqualTo("null");
+    assertThat(configNode.get("gitTimeoutSeconds").asText()).isEqualTo("null");
+    assertThat(configNode.get("commitUsername").asText()).isEqualTo("null");
+    assertThat(configNode.get("commitEmail").asText()).isEqualTo("null");
+    assertThat(configNode.get("useUsernameInRepositoryCloneUrl").asText()).isEqualTo("null");
+    assertThat(configNode.get("defaultBranchMonitoringStartTime").asText()).isEqualTo("null");
+    assertThat(configNode.get("defaultBranchMonitoringIntervalHours").asText()).isEqualTo("null");
+    assertThat(configNode.get("pullRequestMonitoringIntervalSeconds").asText()).isEqualTo("null");
+  }
+}

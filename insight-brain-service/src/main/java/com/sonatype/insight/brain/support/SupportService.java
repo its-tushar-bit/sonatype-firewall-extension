@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -89,6 +88,10 @@ class SupportService
 
   private final SystemInfo systemInfo;
 
+  private final ConfigurationInfo configurationInfo;
+
+  private final SourceControlConfigurationInfo sourceControlConfigurationInfo;
+
   @Inject
   public SupportService(final InsightConfig config,
                         final Configuration configuration,
@@ -96,7 +99,9 @@ class SupportService
                         final LdapService ldapService,
                         final JmxInfo jmxInfo,
                         final DbData dbData,
-                        final SystemInfo systemInfo)
+                        final SystemInfo systemInfo,
+                        final ConfigurationInfo configurationInfo,
+                        final SourceControlConfigurationInfo sourceControlConfigurationInfo)
   {
     this.config = config;
     this.configuration = configuration;
@@ -105,6 +110,8 @@ class SupportService
     this.jmxInfo = jmxInfo;
     this.dbData = dbData;
     this.systemInfo = systemInfo;
+    this.configurationInfo = configurationInfo;
+    this.sourceControlConfigurationInfo = sourceControlConfigurationInfo;
   }
 
   File getWorkDir() {
@@ -308,6 +315,13 @@ class SupportService
         "dbFileInfo",
         SupportFileType.INFO,
         true);
+
+    addFileIfExists(filesToZip,
+        writeTextToFile(configurationInfo.getConfigurationInfo(), new File(workDir, "config.json")),
+        "config", SupportFileType.CONFIG, true);
+
+    addFileIfExists(filesToZip, writeTextToFile(sourceControlConfigurationInfo.getSourceControlConfigurationInfo(),
+        new File(workDir, "scm.json")), "scm", SupportFileType.CONFIG, true);
 
     addDbData(filesToZip, workDir, dbData.getMigrationTracker());
     addDbData(filesToZip, workDir, dbData.getSystemConfiguration());

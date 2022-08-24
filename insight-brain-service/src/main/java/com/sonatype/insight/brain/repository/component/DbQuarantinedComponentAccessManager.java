@@ -27,7 +27,8 @@ import org.apache.commons.lang.time.DateUtils;
 public class DbQuarantinedComponentAccessManager
     implements QuarantinedComponentAccessManager
 {
-  private static final int EXPIRATION_TIME_IN_HOURS = 12;
+  // Visible for tests
+  static final int EXPIRATION_TIME_IN_HOURS = 12;
 
   private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO;
 

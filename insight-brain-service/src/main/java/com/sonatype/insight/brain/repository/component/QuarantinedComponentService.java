@@ -51,8 +51,6 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Named
 public class QuarantinedComponentService
@@ -72,8 +70,6 @@ public class QuarantinedComponentService
   private final TelemetrySender telemetrySender;
 
   private static final String PATHNAME_SEPARATOR = "/";
-
-  private static final Logger log = LoggerFactory.getLogger(QuarantinedComponentService.class);
 
   static final String QUARANTINED_COMPONENT_REPORT_OBFUSCATED_COMPONENT_HASH =
       "quarantined_component_report_obfuscated_component_hash";
@@ -131,8 +127,10 @@ public class QuarantinedComponentService
 
     final QuarantinedComponentOverviewDto quarantinedComponentOverviewDto = new QuarantinedComponentOverviewDto();
     quarantinedComponentOverviewDto.componentDisplayName = getComponentDisplayName(repositoryComponent);
-    quarantinedComponentOverviewDto.componentVersion =
-        repositoryComponent.getComponentIdentifier().get(ComponentIdentifier.VERSION);
+    if (repositoryComponent.getComponentIdentifier() != null) {
+      quarantinedComponentOverviewDto.componentVersion =
+          repositoryComponent.getComponentIdentifier().get(ComponentIdentifier.VERSION);
+    }
     quarantinedComponentOverviewDto.isQuarantined = repositoryComponent.isQuarantined();
     quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount =
         getQuarantinedPolicyViolationsCount(repositoryComponent);
@@ -175,7 +173,7 @@ public class QuarantinedComponentService
         repositoryComponent.getIdentificationSourceId(), null, null);
   }
 
-  NamedComponentDetails getComponentVersionDetails(
+  NamedComponentDetails getQuarantinedComponentVersionDetails(
       final String token,
       final HttpServletRequest httpRequest,
       final String version) throws IOException
@@ -251,9 +249,7 @@ public class QuarantinedComponentService
   private String getComponentDisplayName(RepositoryComponent repositoryComponent) {
     ComponentIdentifier componentIdentifier = repositoryComponent.getComponentIdentifier();
     if (componentIdentifier == null) {
-      log.error("Component Identifier for the quarantined component with repository component id {} is null",
-          repositoryComponent.getId());
-      throw new BadRequestException("The component identifier for the requested component does not exist.");
+      return repositoryComponent.getPathname();
     }
     return ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();
   }

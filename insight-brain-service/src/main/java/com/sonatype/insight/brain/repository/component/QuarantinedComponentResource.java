@@ -102,7 +102,7 @@ public class QuarantinedComponentResource
       @QueryParam("version") String version)
       throws IOException
   {
-    return quarantinedComponentService.getComponentVersionDetails(token, httpRequest, version);
+    return quarantinedComponentService.getQuarantinedComponentVersionDetails(token, httpRequest, version);
   }
 
   @GET

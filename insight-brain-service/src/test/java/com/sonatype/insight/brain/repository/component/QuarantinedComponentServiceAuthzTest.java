@@ -153,28 +153,28 @@ public class QuarantinedComponentServiceAuthzTest
   }
 
   @Test
-  public void testGetComponentVersionDetails_AnonymousEnabled() throws Exception {
-    quarantinedComponentService.getComponentVersionDetails(token, null /* httpRequest */, "testVersion");
+  public void testGetQuarantinedComponentVersionDetails_AnonymousEnabled() throws Exception {
+    quarantinedComponentService.getQuarantinedComponentVersionDetails(token, null /* httpRequest */, "testVersion");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetComponentVersionDetails_AnonymousDisabled_Unauthenticated() throws Exception {
+  public void testGetQuarantinedComponentVersionDetails_AnonymousDisabled_Unauthenticated() throws Exception {
     new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
-    quarantinedComponentService.getComponentVersionDetails(token, null /* httpRequest */, "testVersion");
+    quarantinedComponentService.getQuarantinedComponentVersionDetails(token, null /* httpRequest */, "testVersion");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetComponentVersionDetails_AnonymousDisabled_Unauthorized() throws Exception {
+  public void testGetQuarantinedComponentVersionDetails_AnonymousDisabled_Unauthorized() throws Exception {
     new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
     login();
-    quarantinedComponentService.getComponentVersionDetails(token, null /* httpRequest */, "testVersion");
+    quarantinedComponentService.getQuarantinedComponentVersionDetails(token, null /* httpRequest */, "testVersion");
   }
 
   @Test
-  public void testGetComponentVersionDetails_AnonymousDisabled_Authorized() throws Exception {
+  public void testGetQuarantinedComponentVersionDetails_AnonymousDisabled_Authorized() throws Exception {
     new QuarantinedComponentAccessDAO().setAnonymousAccess(false);
     grantReadPermission(repository.getId());
-    quarantinedComponentService.getComponentVersionDetails(token, null /* httpRequest */, "testVersion");
+    quarantinedComponentService.getQuarantinedComponentVersionDetails(token, null /* httpRequest */, "testVersion");
   }
 
   @Test

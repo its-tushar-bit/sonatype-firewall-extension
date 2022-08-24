@@ -23,7 +23,7 @@ import org.apache.commons.lang.time.DateUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class DbQuarantinedComponentAccessManagerTest
     extends AbstractComponentTest
@@ -37,10 +37,12 @@ public class DbQuarantinedComponentAccessManagerTest
   @Test
   public void testCreateToken() {
     // Setup
-    final Repository repository = tempEntity.newRepository("repo");
+    final Repository repository = tempEntity.newRepository();
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
 
+    Date before = new Date();
     final String token = quarantinedComponentAccessManager.createToken(repositoryComponent);
+    Date after = new Date();
 
     assertThat(token).isNotNull().isNotEmpty();
 
@@ -48,14 +50,15 @@ public class DbQuarantinedComponentAccessManagerTest
     final String decodedInput = new String(decodedBytes);
 
     final QuarantinedComponentAccess quarantinedComponentAccess = quarantinedComponentAccessDAO.getById(decodedInput);
-    assertThat(quarantinedComponentAccess).isNotNull();
+    assertThat(quarantinedComponentAccess.getRepositoryId()).isEqualTo(repository.getId());
     assertThat(quarantinedComponentAccess.getRepositoryComponentId()).isEqualTo(repositoryComponent.getId());
+    assertThat(quarantinedComponentAccess.getGenerateTime()).isAfterOrEqualTo(before).isBeforeOrEqualTo(after);
   }
 
   @Test
   public void testGetQuarantinedComponentAccessFromToken() {
     // Setup
-    final Repository repository = tempEntity.newRepository("repo");
+    final Repository repository = tempEntity.newRepository();
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
         tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
@@ -64,28 +67,27 @@ public class DbQuarantinedComponentAccessManagerTest
 
     QuarantinedComponentAccess result =
         quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken);
-    assertThat(result).isNotNull();
-    assertThat(result.getRepositoryComponentId()).isEqualTo(repositoryComponent.getId());
-  }
-
-  @Test(expected = BadRequestException.class)
-  public void testGetQuarantinedComponentAccessFromToken_featureNotEnabled() {
-    quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token");
+    assertThat(result.getId()).isEqualTo(quarantinedComponentAccess.getId());
+    assertThat(result.getRepositoryId()).isEqualTo(quarantinedComponentAccess.getRepositoryId());
+    assertThat(result.getRepositoryComponentId()).isEqualTo(quarantinedComponentAccess.getRepositoryComponentId());
+    assertThat(quarantinedComponentAccess.getGenerateTime()).isEqualTo(quarantinedComponentAccess.getGenerateTime());
   }
 
   @Test
-  public void testGetRepositoryComponentIdFromToken_tokenDoesNotExist() {
+  public void testGetQuarantinedComponentAccessFromToken_tokenDoesNotExist() {
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString("fakeToken".getBytes(StandardCharsets.UTF_8));
 
-    assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken));
+    assertThatThrownBy(() -> {
+      quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken);
+    }).isInstanceOf(NotFoundException.class).hasMessage(
+        "The quarantined component view for the blocked component you are trying to view could not be found.");
   }
 
   @Test
   public void testGetQuarantinedComponentAccessFromToken_tokenExpired() {
     // Setup
-    final Repository repository = tempEntity.newRepository("repo");
+    final Repository repository = tempEntity.newRepository();
     final RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId());
     final QuarantinedComponentAccess quarantinedComponentAccess =
         tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId(),
@@ -93,13 +95,26 @@ public class DbQuarantinedComponentAccessManagerTest
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
-    assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken));
+    assertThatThrownBy(() -> {
+      quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken);
+    }).isInstanceOf(NotFoundException.class).hasMessageStartingWith("This report expired on ")
+        .hasMessageEndingWith("You may generate a new report by requesting the blocked component again.");
   }
 
   @Test
   public void testGetQuarantinedComponentAccessFromToken_invalidToken() {
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token"));
+    // The token is not base64 encoded
+    assertThatThrownBy(() -> {
+      quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token");
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("The quarantined component view cannot be retrieved because the URL contains invalid characters.");
+  }
+
+  @Test
+  public void testGetTokenExpiryTime() {
+    Date date = new Date();
+
+    assertThat(quarantinedComponentAccessManager.getTokenExpiryTime(date))
+        .isEqualTo(new Date(date.getTime() + DbQuarantinedComponentAccessManager.EXPIRATION_TIME_IN_HOURS * 3600000));
   }
 }

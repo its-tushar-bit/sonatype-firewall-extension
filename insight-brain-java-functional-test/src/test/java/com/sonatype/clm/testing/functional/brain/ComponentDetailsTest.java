@@ -771,7 +771,7 @@ public class ComponentDetailsTest
     vulnerabilitiesTable.shouldBe(visible);
 
     vulnerabilitiesTable.getHeaderRow().findAll(By.tagName("th"))
-        .shouldHave(exactTexts("CVSS", "Problem Code", "Status", ""));
+        .shouldHave(exactTexts("CVSS", "ISSUES", "STATUS", ""));
 
     vulnerabilitiesTable.getRows().shouldHaveSize(3);
     ElementsCollection rowCells = vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"));

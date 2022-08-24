@@ -41,8 +41,8 @@ describe('VulnerabilitiesTable', () => {
 
     expect(headers.length).toEqual(4);
     expect(headers.at(0)).toHaveProp('children', 'CVSS');
-    expect(headers.at(1)).toHaveProp('children', 'Problem Code');
-    expect(headers.at(2)).toHaveProp('children', 'Status');
+    expect(headers.at(1)).toHaveProp('children', 'ISSUES');
+    expect(headers.at(2)).toHaveProp('children', 'STATUS');
     expect(headers.at(3)).not.toHaveProp('children');
   });
 

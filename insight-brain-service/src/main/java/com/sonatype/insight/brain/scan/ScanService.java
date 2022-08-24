@@ -151,13 +151,6 @@ class ScanService
     }
   }
 
-  private static String getFileExtension(String filename) {
-    // NOTE: We don't want to error on the side of too few characters (gz vs tar.gz)
-    int index = filename.indexOf('.');
-    String ext = (index < 0) ? "" : filename.substring(index);
-    return ext;
-  }
-
   private ScanTask newScanTask(
       String appPublicId,
       File binFile,

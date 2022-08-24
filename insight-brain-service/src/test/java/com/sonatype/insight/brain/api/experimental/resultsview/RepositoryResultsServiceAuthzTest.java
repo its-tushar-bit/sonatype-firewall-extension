@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.experimental.resultsview;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -21,13 +20,10 @@ public class RepositoryResultsServiceAuthzTest
   @Inject
   private RepositoryResultsService repositoryResultsService;
 
-  private Repository repository;
-
   private RepositoryResultsDetailsRequestDto detailsRequest;
 
   @Before
   public void setup() {
-    repository = tempEntity.newRepository();
     detailsRequest = new RepositoryResultsDetailsRequestDto();
     detailsRequest.page = 1;
     detailsRequest.pageSize = 50;

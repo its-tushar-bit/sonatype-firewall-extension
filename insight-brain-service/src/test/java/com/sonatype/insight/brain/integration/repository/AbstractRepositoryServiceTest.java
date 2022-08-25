@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.mail.Message;
 
@@ -1647,14 +1648,14 @@ public abstract class AbstractRepositoryServiceTest
   void mockHdsRequestForMetadata(ComponentEvaluationDataList hdsResult) {
     doReturn(hdsResult).when(quarantineHdsClient).get( //
         eq(ComponentEvaluationDataList.class), //
-        eq(AbstractRepositoryService.HDS_COMPONENT_DETAILS_ALL_VERSIONS_PATH), //
+        eq(AbstractRepositoryService.HDS_COMPONENT_METADATA_PATH), //
         anyString(), //
         anyMap());
   }
 
   void mockHdsRequestForMetadataWithoutUserAgent(ComponentEvaluationDataList hdsResult) {
     doReturn(hdsResult).when(quarantineHdsClient).get(eq(ComponentEvaluationDataList.class),
-        eq(AbstractRepositoryService.HDS_COMPONENT_DETAILS_ALL_VERSIONS_PATH), isNull(), anyMap());
+        eq(AbstractRepositoryService.HDS_COMPONENT_METADATA_PATH), isNull(), anyMap());
   }
 
   protected ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier,
@@ -1676,6 +1677,24 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationData.catalogDate = (long) index;
     componentEvaluationData.securityVulnerabilities = securityVulnerabilities;
     componentEvaluationData.relativePopularity = relativePopularity;
+
+    return componentEvaluationData;
+  }
+
+  protected ComponentEvaluationData createComponentEvaluationData(
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      MatchState matchState,
+      int index,
+      String filename,
+      Set<License> declaredLicenses,
+      Set<License> observedLicenses,
+      List<SecurityVulnerability> securityVulnerabilities,
+      Integer relativePopularity)
+  {
+    ComponentEvaluationData componentEvaluationData = createComponentEvaluationData(componentIdentifier, hash,
+        matchState, index, declaredLicenses, observedLicenses, securityVulnerabilities, relativePopularity);
+    componentEvaluationData.filename = filename;
 
     return componentEvaluationData;
   }
@@ -2297,7 +2316,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_FormatIsNpm() throws Exception {
+  public void testEvaluateComponentMetadata_FormatIsNpmOrPypi() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
@@ -2310,7 +2329,7 @@ public abstract class AbstractRepositoryServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> getRepositoryService().evaluateComponentMetadata(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
             componentEvaluationDataRequestList, null))
-        .withMessage("The repository format must be npm.");
+        .withMessage("The repository format must be npm or pypi.");
     verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
   }
 
@@ -2335,8 +2354,9 @@ public abstract class AbstractRepositoryServiceTest
       String version = "testVersion" + i;
       String hash = "testHash" + i;
       ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates(packageId, version);
+      String filename = packageId + "-" + version + ".tgz";
       componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("npm",
-          "/" + packageId + "/-/" + packageId + "-" + version + ".tgz", hash));
+          "/" + packageId + "/-/" + filename, hash));
       List<SecurityVulnerability> securityVulnerabilities = null;
       // Add security vulnerabilities only to the first version/component,
       // so only the first one should be quarantined.
@@ -2344,7 +2364,7 @@ public abstract class AbstractRepositoryServiceTest
         securityVulnerabilities = createSecurityVulnerabilities();
       }
       hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT,
-          i /* index */, null, null, securityVulnerabilities, 0 /* popularity */));
+          i /* index */, filename, null, null, securityVulnerabilities, 0 /* popularity */));
     }
     mockHdsRequestForMetadata(hdsResult);
 
@@ -2393,8 +2413,9 @@ public abstract class AbstractRepositoryServiceTest
       String version = "testVersion" + i;
       String hash = "testHash" + i;
       ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates(packageId, version);
+      String filename = "testPackageId-" + version + ".tgz";
       componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("npm",
-          "/" + packageId + "/-/testPackageId-" + version + ".tgz", hash));
+          "/" + packageId + "/-/" + filename, hash));
       List<SecurityVulnerability> securityVulnerabilities = null;
       // Add security vulnerabilities only to the first version/component,
       // so only the first one should be quarantined.
@@ -2402,7 +2423,7 @@ public abstract class AbstractRepositoryServiceTest
         securityVulnerabilities = createSecurityVulnerabilities();
       }
       hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, i /* index */,
-          null, null, securityVulnerabilities, 0 /* popularity */));
+          filename, null, null, securityVulnerabilities, 0 /* popularity */));
     }
     mockHdsRequestForMetadata(hdsResult);
 
@@ -2455,13 +2476,14 @@ public abstract class AbstractRepositoryServiceTest
     String packageId = "testPackageId";
     String version = "testVersion";
     String hash = "testHash";
+    String filename = packageId + "-" + version + ".tgz";
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates(packageId, version);
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("npm",
-        "/" + packageId + "/-/" + packageId + "-" + version + ".tgz", hash));
+        "/" + packageId + "/-/" + filename, hash));
     componentEvaluationDataRequestList.components.add(new RepositoryComponentEvaluationDataRequest("npm",
         "/" + packageId + "/-/" + packageId + "-UnknownVersion.tgz", hash));
     hdsResult.components.add(createComponentEvaluationData(componentIdentifier, hash, MatchState.EXACT, 0 /* index */,
-        null, null, null, 0 /* popularity */));
+        filename, null, null, null, 0 /* popularity */));
     mockHdsRequestForMetadata(hdsResult);
 
     // Call the service

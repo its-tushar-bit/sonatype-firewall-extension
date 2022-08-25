@@ -147,9 +147,22 @@ public class RepositoryResource
   }
 
   /**
-   * Evaluates policies on versions of the same component.
-   * The specified componentEvaluationDataRequestList must contain only versions of the same component
-   * Only the npm format is supported.
+   * Evaluates policies on variants of the same component.
+   * The specified componentEvaluationDataRequestList must contain only variants of the same component
+   * Only the npm and pypi formats are supported.
+   * 
+   * It is very important for performance to minimize the number of round trips between:
+   * - IQ and HDS
+   * - IQ and the IQ ODS db
+   * - HDS and HDS dm db
+   * 
+   * How it works:
+   * - NXRM sends a list of hash+pathname pairs (all for the same component name) to IQ for policy evaluation.
+   * - IQ picks up one hash+pathname pair and sends it to HDS.
+   * - HDS finds the component identifier and name for the hash+pathname pair,
+   * retrieves all variants for the component name and all the data associated with the variants (licenses, SVs, etc).
+   * - IQ matches the data from HDS to the data from NXRM by hash+filename, runs policy evaluation for all variants,
+   * determines which components would be quarantined and returns the results to NXRM.
    * 
    * @since 1.133
    */

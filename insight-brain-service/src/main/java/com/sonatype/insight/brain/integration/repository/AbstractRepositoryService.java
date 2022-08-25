@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -75,7 +76,7 @@ public abstract class AbstractRepositoryService
 {
   private static final Logger log = LoggerFactory.getLogger(AbstractRepositoryService.class);
 
-  static final String HDS_COMPONENT_DETAILS_ALL_VERSIONS_PATH = "rest/component/details/firewall/allVersions";
+  static final String HDS_COMPONENT_METADATA_PATH = "rest/component/details/firewall/allVersions";
 
   private static final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
@@ -278,9 +279,22 @@ public abstract class AbstractRepositoryService
   }
 
   /**
-   * Evaluates policies on versions of the same component.
-   * The specified componentEvaluationDataRequestList must contain only versions of the same component
-   * Only the npm format is supported.
+   * Evaluates policies on variants of the same component.
+   * The specified componentEvaluationDataRequestList must contain only variants of the same component
+   * Only the npm and pypi formats are supported.
+   * 
+   * It is very important for performance to minimize the number of round trips between:
+   * - IQ and HDS
+   * - IQ and the IQ ODS db
+   * - HDS and HDS dm db
+   * 
+   * How it works:
+   * - NXRM sends a list of hash+pathname pairs (all for the same component name) to IQ for policy evaluation.
+   * - IQ picks up one hash+pathname pair and sends it to HDS.
+   * - HDS finds the component identifier and name for the hash+pathname pair,
+   * retrieves all variants for the component name and all the data associated with the variants (licenses, SVs, etc).
+   * - IQ matches the data from HDS to the data from NXRM by hash+filename, runs policy evaluation for all variants,
+   * determines which components would be quarantined and returns the results to NXRM.
    * 
    * @since 1.133
    */
@@ -302,9 +316,22 @@ public abstract class AbstractRepositoryService
   }
 
   /**
-   * Evaluates policies on versions of the same component.
-   * The specified componentEvaluationDataRequestList must contain only versions of the same component
-   * Only the npm format is supported.
+   * Evaluates policies on variants of the same component.
+   * The specified componentEvaluationDataRequestList must contain only variants of the same component
+   * Only the npm and pypi formats are supported.
+   * 
+   * It is very important for performance to minimize the number of round trips between:
+   * - IQ and HDS
+   * - IQ and the IQ ODS db
+   * - HDS and HDS dm db
+   * 
+   * How it works:
+   * - NXRM sends a list of hash+pathname pairs (all for the same component name) to IQ for policy evaluation.
+   * - IQ picks up one hash+pathname pair and sends it to HDS.
+   * - HDS finds the component identifier and name for the hash+pathname pair,
+   * retrieves all variants for the component name and all the data associated with the variants (licenses, SVs, etc).
+   * - IQ matches the data from HDS to the data from NXRM by hash+filename, runs policy evaluation for all variants,
+   * determines which components would be quarantined and returns the results to NXRM.
    * 
    * @since 1.133
    */
@@ -327,8 +354,9 @@ public abstract class AbstractRepositoryService
 
     String format = componentEvaluationDataRequestList.components.get(0).format;
     normalizeComponents(componentEvaluationDataRequestList);
-    if (!ComponentIdentifier.FORMAT_NPM.equals(format)) {
-      throw new BadRequestException("The repository format must be " + ComponentIdentifier.FORMAT_NPM + ".");
+    if (!ComponentIdentifier.FORMAT_NPM.equals(format) && !ComponentIdentifier.FORMAT_PYPI.equals(format)) {
+      throw new BadRequestException("The repository format must be " + ComponentIdentifier.FORMAT_NPM + " or "
+          + ComponentIdentifier.FORMAT_PYPI + ".");
     }
 
     if (StringUtils.isBlank(repository.getFormat())) {
@@ -336,12 +364,17 @@ public abstract class AbstractRepositoryService
       repositoryDAO.update(repository);
     }
 
-    // HDS will return data for all versions for the pathname, so it doesn't matter which pathname we send to HDS.
+    // HDS will return data for all versions/variants for the pathname,
+    // so it doesn't matter which pathname we send to HDS.
     String pathname = componentEvaluationDataRequestList.components.get(0).pathname;
+    String hash = componentEvaluationDataRequestList.components.get(0).hash;
     ComponentEvaluationDataList componentDetailsFromHds =
-        getComponentDetailsAllVersionsFromHds(repository.getFormat(), pathname, clientUserAgent);
-    componentDetailsFromHds =
-        matchHdsComponentDetailsToRequestListByPathname(componentDetailsFromHds, componentEvaluationDataRequestList);
+        getComponentMetadataFromHds(repository.getFormat(), pathname, hash, clientUserAgent);
+    //for (ComponentEvaluationData c : componentDetailsFromHds.components) {
+    //  System.err.println("From HDS: " + c.componentIdentifier + ", " + c.hash + ", " + c.filename);
+    //}
+    componentDetailsFromHds = matchHdsComponentDetailsToRequestListByHashAndFilename(componentDetailsFromHds,
+        componentEvaluationDataRequestList);
     RepositoryComponentEvaluationDataList result =
         repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, componentDetailsFromHds,
             true /* withQuarantine */, false /* persistEvaluationResults */, false /* forMonitoring */);
@@ -367,37 +400,22 @@ public abstract class AbstractRepositoryService
 
     return result;
   }
-
-  private static String toNpmPath(ComponentIdentifier componentIdentifier) {
-    String npmPath;
-
-    String packageId = componentIdentifier.get(ComponentIdentifier.NPM_PACKAGE_ID);
-    int slashAt = packageId.indexOf('/');
-    if (slashAt <= 0) {
-      npmPath = packageId + "/-/" + packageId;
-    }
-    else {
-      npmPath = packageId + "/-/" + packageId.substring(slashAt + 1);
-    }
-    npmPath = npmPath + "-" + componentIdentifier.get(ComponentIdentifier.VERSION) + ".tgz";
-    return npmPath;
-  }
   
-  private ComponentEvaluationDataList matchHdsComponentDetailsToRequestListByPathname(
+  private ComponentEvaluationDataList matchHdsComponentDetailsToRequestListByHashAndFilename(
       ComponentEvaluationDataList componentDetailsFromHdsList,
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
   {
     ComponentEvaluationDataList result = new ComponentEvaluationDataList();
-    Map<String, ComponentEvaluationData> componentDetailsFromHdsByPathname =
+    Map<String, ComponentEvaluationData> componentDetailsFromHdsByHashAndFilename =
         componentDetailsFromHdsList.components.stream()
-            .collect(toMap(componentEvaluationData -> toNpmPath(componentEvaluationData.componentIdentifier),
-                Function.identity()));
+            .collect(toMap(componentEvaluationData -> toHashFilenameKey(componentEvaluationData), Function.identity()));
     
     for (int requestIndex = 0; requestIndex < componentEvaluationDataRequestList.components.size(); requestIndex++) {
       RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest =
           componentEvaluationDataRequestList.components.get(requestIndex);
+      String filename = Paths.get(componentEvaluationDataRequest.pathname).getFileName().toString();
       ComponentEvaluationData componentDetailsFromHds =
-          componentDetailsFromHdsByPathname.get(componentEvaluationDataRequest.pathname);
+          componentDetailsFromHdsByHashAndFilename.get(componentEvaluationDataRequest.hash + "|" + filename);
       if (componentDetailsFromHds == null) {
         // There are no HDS details for this pathname.
         // Add an entry for the unknown component, so it will be included in the policy evaluation.
@@ -417,9 +435,14 @@ public abstract class AbstractRepositoryService
     return result;
   }
 
-  private ComponentEvaluationDataList getComponentDetailsAllVersionsFromHds(
+  private static String toHashFilenameKey(ComponentEvaluationData componentEvaluationData) {
+    return componentEvaluationData.hash + "|" + componentEvaluationData.filename;
+  }
+
+  private ComponentEvaluationDataList getComponentMetadataFromHds(
       String format,
       String pathname,
+      String hash,
       String clientUserAgent)
   {
     long start = System.currentTimeMillis();
@@ -427,8 +450,9 @@ public abstract class AbstractRepositoryService
     Map<String, String> queryParams = new HashMap<>();
     queryParams.put("format", format);
     queryParams.put("pathname", pathname);
+    queryParams.put("hash", hash);
     ComponentEvaluationDataList result = quarantineHdsClient.get(ComponentEvaluationDataList.class,
-        HDS_COMPONENT_DETAILS_ALL_VERSIONS_PATH, clientUserAgent, queryParams);
+        HDS_COMPONENT_METADATA_PATH, clientUserAgent, queryParams);
 
     log.debug("Got component details (all versions) from HDS for {} components in {} ms.", result.components.size(),
         System.currentTimeMillis() - start);

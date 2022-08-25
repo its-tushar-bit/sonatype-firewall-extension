@@ -40,7 +40,6 @@ describe('owner.summary.controller', function () {
       mockDeleteService,
       isContextAuthorizedDefer,
       mockPermissionService,
-      mockChangeApplicationIdService,
       mockGrandfatherModalService,
       mockRevokeGrandfatheringModalService,
       loadOrganizationActionSpy,
@@ -99,7 +98,6 @@ describe('owner.summary.controller', function () {
       mockPermissionService = {
         isContextAuthorized: jasmine.createSpy().and.returnValue(isContextAuthorizedDefer.promise),
       };
-      mockChangeApplicationIdService = jasmine.createSpyObj('mockChangeApplicationIdService', ['open']);
       mockApplicationSummary = applicationResourceMockData.getApplicationSummaryUrl();
 
       spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
@@ -141,7 +139,6 @@ describe('owner.summary.controller', function () {
           $window: mockWindow,
           DeleteModalService: mockDeleteService,
           PermissionService: mockPermissionService,
-          'change.application.id.service': mockChangeApplicationIdService,
           RevokeGrandfatheringModalService: mockRevokeGrandfatheringModalService,
           GrandfatherModalService: mockGrandfatherModalService,
           'evaluate.application.modal.service': mockEvaluateAppModalService,
@@ -360,46 +357,6 @@ describe('owner.summary.controller', function () {
     });
 
     if (isApp) {
-      describe('changeApplicationId', function () {
-        beforeEach(() => (vm = getVm()));
-
-        it('calls ChangeApplicationIdService.open when hasPermissionToChangeAppId is true', function () {
-          resolveGetGrandfathering(false);
-          resolveStageTypeStore(MockData.getDashboardStageData());
-          resolveApplicationSummary(mockApplicationSummary);
-          resolveCompositeSourceControl();
-          scope.$digest();
-
-          $httpBackend.flush();
-          resolveApplicationWritePermission(true);
-          $timeout.flush();
-
-          expect(mockChangeApplicationIdService.open).not.toHaveBeenCalled();
-
-          vm.changeApplicationId();
-
-          expect(mockChangeApplicationIdService.open).toHaveBeenCalledWith(owner, [owner]);
-        });
-
-        it('does not call ChangeApplicationIdService.open when hasPermissionToChangeAppId is false', function () {
-          resolveGetGrandfathering(false);
-          resolveStageTypeStore(MockData.getDashboardStageData());
-          resolveApplicationSummary(mockApplicationSummary);
-          resolveCompositeSourceControl();
-          scope.$digest();
-
-          $httpBackend.flush();
-          resolveApplicationWritePermission(false);
-          $timeout.flush();
-
-          expect(mockChangeApplicationIdService.open).not.toHaveBeenCalled();
-
-          vm.changeApplicationId();
-
-          expect(mockChangeApplicationIdService.open).not.toHaveBeenCalled();
-        });
-      });
-
       describe('grandfather()', function () {
         beforeEach(() => (vm = getVm()));
         it('Does not open modal when grandfathering is not enabled and is NOT supported', function () {

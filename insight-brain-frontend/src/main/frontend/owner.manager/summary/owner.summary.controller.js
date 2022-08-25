@@ -9,6 +9,7 @@ import { unwrapResult } from '@reduxjs/toolkit';
 import { actions as deleteOwnerActions } from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/deleteOwnerSlice';
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
+import { actions as changeApplicationIdActions } from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import {
@@ -42,7 +43,6 @@ export default function OwnerSummaryController(
   ownerConstant,
   MoveApplicationModal,
   EventNameConstant,
-  ChangeApplicationIdService,
   PermissionService,
   RevokeGrandfatheringModalService,
   GrandfatherModalService,
@@ -87,6 +87,7 @@ export default function OwnerSummaryController(
     setLoading: ownerSummaryActions.setLoading,
     setLoadError: ownerSummaryActions.setLoadError,
     openDeleteModal: deleteOwnerActions.openModal,
+    openChangeApplicationIdModal: changeApplicationIdActions.openModal,
   })(vm);
 
   vm.doLoad();
@@ -190,7 +191,7 @@ export default function OwnerSummaryController(
 
   function changeApplicationId() {
     if (vm.hasPermissionToChangeAppId) {
-      ChangeApplicationIdService.open(vm.owner, siblings);
+      vm.openChangeApplicationIdModal();
     }
   }
 
@@ -282,7 +283,6 @@ OwnerSummaryController.$inject = [
   'owner.constant',
   'move.application.modal.service',
   'event.name.constant',
-  'change.application.id.service',
   'PermissionService',
   'RevokeGrandfatheringModalService',
   'GrandfatherModalService',

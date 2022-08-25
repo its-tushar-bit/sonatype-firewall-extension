@@ -9,31 +9,37 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Selenide.$;
-
 public class ChangeApplicationIdDialog
     extends BasicElement<ChangeApplicationIdDialog>
 {
-  private static final String FOOTER_SELECTOR = ".iq-modal-footer";
+  private static final String FOOTER_SELECTOR = ".nx-footer";
 
   public ChangeApplicationIdDialog() {
     super("#change-application-id-modal");
   }
 
   public SelenideElement body() {
-    return child(".iq-modal-content");
+    return child(".nx-modal-content");
   }
 
   public SelenideElement currentId() {
-    return $("#editor-current-id");
+    return child(".nx-read-only > .nx-read-only__data");
+  }
+
+  public SelenideElement newIdDiv() {
+    return child("#editor-new-id .nx-text-input");
   }
 
   public SelenideElement newId() {
-    return $("#editor-new-id");
+    return child("#editor-new-id .nx-text-input .nx-text-input__input");
+  }
+
+  public SelenideElement newIdInvalidMessage() {
+    return child("#editor-new-id > .nx-text-input > .nx-text-input__invalid-message");
   }
 
   public SelenideElement changeButton() {
-    return child(FOOTER_SELECTOR, ".iq-btn.iq-btn--primary");
+    return child(FOOTER_SELECTOR, ".nx-btn.nx-btn--primary");
   }
 }
 

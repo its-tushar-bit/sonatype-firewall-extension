@@ -43,7 +43,6 @@ import PolicyEditorConstraintsDirective from './policy/policy.editor.constraints
 import MonitoredStageService from './utility/monitored.stage.service';
 import PolicyEditorNotificationsController from './policy/policy.editor.notifications.controller';
 import ConfigurationTileController from './repositories/repositories.configuration.tile.controller';
-import ChangeApplicationIdController from './summary/change.application.id.controller';
 import OwnerEditorController from './summary/owner.editor.controller';
 import OwnerEditorService from './summary/owner.editor.service';
 import OwnerImageDirective from './summary/owner.image.directive';
@@ -54,7 +53,6 @@ import RevokeGrandfatheringModalService from './utility/services/revokeGrandfath
 import GrandfatherModalService from './utility/services/grandfatherModalService';
 import ImportPolicyModalService from './utility/services/import.policy.modal.service';
 import SelectApplicationContactController from './summary/select.application.contact.controller';
-import ChangeApplicationIdService from './summary/change.application.id.service';
 import EvaluateApplicationModalController from './utility/services/evaluate.application.modal.controller';
 import RevokeGrandfatheringModalController from './utility/services/revokeGrandfatheringModalController';
 import GrandfatherModalController from './utility/services/grandfatherModalController';
@@ -88,6 +86,7 @@ import ApplicationCategoriesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/App
 import ContinuousMonitoringSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ContinuousMonitoringSummaryTile';
 import AssignAppCategory from 'MainRoot/OrgsAndPolicies/assignAppCategory/AssignAppCategory';
 import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
+import ChangeApplicationIdModal from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/ChangeApplicationIdModal';
 
 export default angular
   .module('owner.manager.module', [
@@ -136,7 +135,6 @@ export default angular
   .service('notification.webhook.service', NotificationWebhookService)
   .controller('policy.editor.notifications.controller', PolicyEditorNotificationsController)
   .controller('repositories.configuration.tile.controller', ConfigurationTileController)
-  .controller('change.application.id.controller', ChangeApplicationIdController)
   .controller('owner.editor.controller', OwnerEditorController)
   .service('OwnerEditorService', OwnerEditorService)
   .directive('ownerImage', OwnerImageDirective)
@@ -148,7 +146,6 @@ export default angular
   .service('GrandfatherModalService', GrandfatherModalService)
   .service('import.policy.modal.service', ImportPolicyModalService)
   .controller('select.application.contact.controller', SelectApplicationContactController)
-  .service('change.application.id.service', ChangeApplicationIdService)
   .controller('evaluate.application.modal.controller', EvaluateApplicationModalController)
   .controller('RevokeGrandfatheringModalController', RevokeGrandfatheringModalController)
   .controller('GrandfatherModalController', GrandfatherModalController)
@@ -175,6 +172,7 @@ export default angular
     iqReact2Angular(ContinuousMonitoringSummaryTile, [], ['$ngRedux', '$state'])
   )
   .component('deleteOwnerModal', iqReact2Angular(DeleteOwnerModal, [], ['$ngRedux']))
+  .component('changeApplicationIdModal', iqReact2Angular(ChangeApplicationIdModal, [], ['$ngRedux']))
   .component('createEditApplicationCategory', iqReact2Angular(CreateEditApplicationCategory, [], ['$ngRedux']))
   .component('assignAppCategory', iqReact2Angular(AssignAppCategory, [], ['$ngRedux']))
   .config([

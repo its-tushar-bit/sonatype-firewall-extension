@@ -5,6 +5,7 @@
  */
 import { selectIsSourceControlSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectDeleteOwnerSlice } from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/deleteOwnerSelectors';
+import { selectChangeApplicationIdSlice } from '../../OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSelectors';
 import template from './owner.tree.view.directive.html';
 
 function OwnerTreeViewController(
@@ -77,7 +78,14 @@ function OwnerTreeViewController(
   });
 
   $scope.$watch('vm.submitDeleteMaskState', (currentValue, oldValue) => {
-    // triggers doLoad func only when modal closes, i.e. mask going from true to null
+    // triggers doLoad func only when delete app or org modal closes, i.e. mask going from true to null
+    if (!currentValue && oldValue) {
+      vm.doLoad();
+    }
+  });
+
+  $scope.$watch('vm.submitChangeAppIdMaskState', (currentValue, oldValue) => {
+    // triggers doLoad func only when change app id modal closes, i.e. mask going from true to null
     if (!currentValue && oldValue) {
       vm.doLoad();
     }
@@ -313,6 +321,7 @@ function OwnerTreeViewController(
     return {
       isSourceControlSupported: selectIsSourceControlSupported(state),
       submitDeleteMaskState: selectDeleteOwnerSlice(state).submitMaskState,
+      submitChangeAppIdMaskState: selectChangeApplicationIdSlice(state).submitMaskState,
     };
   }
 }

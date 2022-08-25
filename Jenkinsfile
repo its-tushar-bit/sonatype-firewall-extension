@@ -97,10 +97,11 @@ void pushDockerImageIfDeployBranch() {
     echo "iqVersion:'${iqVersion}'"
     echo "buildnum: ${env.BUILD_NUMBER}"
 
+    String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
+
     dir("nexus-iq-server") {
         withSonatypeDockerRegistry() {
             sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${iqVersion} --tag ${imageName}:${imageVersion} ."
-            String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
             String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
             runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"
             runSafely "docker push ${fullImage}"

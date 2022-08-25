@@ -59,7 +59,7 @@ pipeline {
           job: 'insight/insight-brain/deploy',
           parameters: [
             string(name: 'environment', value: 'Staging'),
-            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")
+            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, params.snapshotBuild_NUMBER)}")
           ]
         )
       }
@@ -70,7 +70,7 @@ pipeline {
           job: 'insight/insight-brain/deploy',
           parameters: [
             string(name: 'environment', value: 'Production'),
-            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")
+            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, params.snapshotBuild_NUMBER)}")
           ]
         )
       }
@@ -108,7 +108,7 @@ pipeline {
       steps {
         build(
             job: 'insight/insight-brain/docker/docker-nexus-iq-server',
-            parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")]
+            parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, params.snapshotBuild_NUMBER)}")]
         )
       }
     }
@@ -117,7 +117,7 @@ pipeline {
         build(
             job: 'integrations/cloud/nexus-iq-ha-reference',
             parameters: [
-                run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}")
+                run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, params.snapshotBuild_NUMBER)}")
             ]
         )
       }

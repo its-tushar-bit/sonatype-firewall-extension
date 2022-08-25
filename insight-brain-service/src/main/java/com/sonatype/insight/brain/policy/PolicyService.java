@@ -8,13 +8,12 @@ package com.sonatype.insight.brain.policy;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 @Named
@@ -23,7 +22,7 @@ public class PolicyService
 {
   private final PolicyDAO policyDAO = new PolicyDAO();
 
-  public void removeOverrides(@AuthzContext(Key.INTERNAL_ID) String internalOwnerId, TransactionContext tx) {
+  public void removeOverrides(String internalOwnerId, TransactionContext tx) {
     List<Policy> collect = policyDAO.getAll(tx).stream()
         .filter(policy -> policy.getPolicyActionsOverrides() != null
             && policy.getPolicyActionsOverrides().containsKey(internalOwnerId))
@@ -34,10 +33,7 @@ public class PolicyService
     }
   }
 
-  public void removeOverrides(TransactionContext tx,
-                              @AuthzContext(Key.INTERNAL_ID) String internalOwnerId,
-                              String applicationId)
-  {
+  public void removeOverrides(TransactionContext tx, String internalOwnerId, String applicationId) {
     policyDAO.getByOwnerId(tx, internalOwnerId).stream()
         .filter(policy -> policy.getPolicyActionsOverrides() != null
             && policy.getPolicyActionsOverrides().containsKey(applicationId))
@@ -47,7 +43,7 @@ public class PolicyService
         });
   }
 
-  public Policy removeOverride(@AuthzContext(Key.INTERNAL_ID) String internalOwnerId, String policyId) {
+  public Policy removeOverride(String internalOwnerId, String policyId) {
     Policy policy = policyDAO.getByIdNotNull(policyId);
     Map<String, Map<String, String>> overrides = policy.getPolicyActionsOverrides();
 

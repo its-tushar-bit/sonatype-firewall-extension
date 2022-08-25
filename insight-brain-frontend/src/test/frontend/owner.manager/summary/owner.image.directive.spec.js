@@ -37,17 +37,4 @@ describe('owner.image.directive.spec.js', function () {
     expect(CLMContextLocations.getOwnerImageUrl).toHaveBeenCalledWith(ownerImageScope.owner);
     expect(ownerImageScope.ownerUrl).not.toEqual(previousUrl);
   });
-
-  it('Refreshes image after owner update event', inject([
-    'event.name.constant',
-    function (EventNameConstant) {
-      var previousUrl = ownerImageScope.ownerUrl;
-
-      scope.$broadcast(EventNameConstant.OWNER_UPDATED, scope.owner);
-      scope.$digest();
-
-      expect(ownerImageScope.ownerUrl).not.toEqual(previousUrl);
-      expect(ownerImageScope.ownerUrl).toMatch(/^.*\?timestamp=.*/);
-    },
-  ]));
 });

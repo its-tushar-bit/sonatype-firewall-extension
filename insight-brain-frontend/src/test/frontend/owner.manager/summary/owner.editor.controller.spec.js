@@ -8,7 +8,7 @@ import OwnerUtils from '../owner.utils';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 
 describe('owner.editor.controller', function () {
-  var controllerScope, vm, originalFormData, form, setSelectedOwnerSpy;
+  var controllerScope, vm, form, setSelectedOwnerSpy;
 
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
@@ -19,17 +19,14 @@ describe('owner.editor.controller', function () {
     })
   );
 
-  beforeEach(inject(function ($window) {
-    originalFormData = $window.FormData;
-    $window.FormData = angular.noop;
+  beforeEach(inject(function () {
     form = angular.element('<form id="custom-icon-form"></form>');
     angular.element('body').append(form);
     setSelectedOwnerSpy = spyOn(rootActions, 'setSelectedOwner');
   }));
 
-  afterEach(inject(function ($window) {
+  afterEach(inject(function () {
     controllerScope.$destroy();
-    $window.FormData = originalFormData;
     form.remove();
   }));
 

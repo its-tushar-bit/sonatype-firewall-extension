@@ -157,35 +157,27 @@ export default function OwnerEditorController(
             vm.ownerEditor.name.$setPristine();
             vm.originalDirtyOwner = result;
 
-            if (vm.icon.type === '') {
-              // default icon
-              return result;
-            } else if ($window.FormData) {
-              var formData = new FormData(form[0]);
-              deferred = $q.defer();
+            var formData = new FormData(form[0]);
+            deferred = $q.defer();
 
-              $http
-                .post(iconUploadUrl, formData)
-                .then(
-                  function () {
-                    deferred.resolve(result);
-                  },
-                  function (error) {
-                    if (isNew || nameChanged === true) {
-                      // only show warning for new and mixed state
-                      vm.iconWarning = messages.getHttpErrorMessage(error);
-                    }
-                    deferred.reject(error);
+            $http
+              .post(iconUploadUrl, formData)
+              .then(
+                function () {
+                  deferred.resolve(result);
+                },
+                function (error) {
+                  if (isNew || nameChanged === true) {
+                    // only show warning for new and mixed state
+                    vm.iconWarning = messages.getHttpErrorMessage(error);
                   }
-                )
-                .finally(function () {
-                  deferred = null;
-                });
-            } else {
-              deferred = $q.defer();
-              form[0].action = iconUploadUrl;
-              form.submit();
-            }
+                  deferred.reject(error);
+                }
+              )
+              .finally(function () {
+                deferred = null;
+              });
+
             return deferred.promise;
           })
       )

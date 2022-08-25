@@ -253,6 +253,80 @@ public class CreateOwnerTest
   }
 
   @Test
+  public void testEditApplication_resetToDefaultIcon() throws Exception {
+    // create application with default icon
+    OwnerTreeView.organizationElements().shouldHaveSize(1);
+    OrganizationNode orgNode = OwnerTreeView.organization(0);
+    orgNode.treeViewElement().click();
+    orgNode.newApplicationButton().shouldBe(visible, enabled).click();
+
+    // fill form
+    OwnerEditorDialog.name().val(NAME);
+    OwnerEditorDialog.publicId().val(APP_PUBLIC_ID);
+
+    // submit the form
+    OwnerEditorDialog.saveButton().shouldBe(enabled).click();
+    OwnerEditorDialog.root().should(disappear);
+
+    // validate system is updated
+    Application app = appDAO.getByPublicId(APP_PUBLIC_ID);
+    assertThat(app).isNotNull();
+    assertThat(app.getPublicId()).isEqualTo(APP_PUBLIC_ID);
+    assertThat(app.getOrganizationId()).isEqualTo(parentOrg.getId());
+    assertThat(app.getName()).isEqualTo(NAME);
+
+    // validate saved application info and grab reference to default image
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
+    assertImage(OwnerSummaryPage.summaryTile().headerIcon());
+    String summaryTileHeaderIconSrc = OwnerSummaryPage.summaryTile().headerIcon().attr("src");
+    BufferedImage originalDefaultImage = fetchImage(summaryTileHeaderIconSrc);
+
+    // Edit icon to be a robot
+    ActionDropDown.actionButton().click();
+    ActionDropDown.editOwner().shouldHave(text("App")).click();
+    OwnerEditorDialog.title().shouldHave(text("Application"));
+
+    // select a robot image
+    OwnerEditorDialog.robotIcon().click();
+    OwnerEditorDialog.RobotIconSelector.button().click();
+
+    // validate image is displayed
+    assertImage(OwnerEditorDialog.RobotIconSelector.icon());
+    String userSelectedImageSrc = OwnerEditorDialog.RobotIconSelector.icon().attr("src");
+    BufferedImage userSelectedImage = fetchImage(userSelectedImageSrc);
+
+    // save the form with updated image
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().should(disappear);
+
+    // validate the selected image is displayed
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
+    assertImage(OwnerSummaryPage.summaryTile().headerIcon());
+    summaryTileHeaderIconSrc = OwnerSummaryPage.summaryTile().headerIcon().attr("src");
+    BufferedImage displayedRobotImage = fetchImage(summaryTileHeaderIconSrc);
+
+    // validate image saved is the same as image that was selected and displayed
+    BufferedImage persistedImage = readImage(OwnerType.APPLICATION, app.getId());
+    assertImageEquals(userSelectedImage, persistedImage);
+    assertImageEquals(displayedRobotImage, persistedImage);
+
+    // resetting icon back to default
+    ActionDropDown.actionButton().click();
+    ActionDropDown.editOwner().shouldHave(text("App")).click();
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().should(disappear);
+
+    // validate the selected image is displayed
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
+    assertImage(OwnerSummaryPage.summaryTile().headerIcon());
+    summaryTileHeaderIconSrc = OwnerSummaryPage.summaryTile().headerIcon().attr("src");
+    BufferedImage imageAfterResettingToDefault = fetchImage(summaryTileHeaderIconSrc);
+
+    // validate image saved is the default image
+    assertImageEquals(originalDefaultImage, imageAfterResettingToDefault);
+  }
+
+  @Test
   public void testCreateAndEditOrganization_withRobotIcon() throws Exception {
     testCreateOrganization_withRobotIcon();
     testEditOrganization_withRobotIcon();
@@ -324,6 +398,70 @@ public class CreateOwnerTest
     BufferedImage persistedImage = readImage(OwnerType.ORGANIZATION, org.getId());
     assertImageEquals(userSelectedImage, persistedImage);
     assertImageEquals(displayedImage, persistedImage);
+  }
+
+  @Test
+  public void testEditOrganization_resetToDefaultIcon() throws Exception {
+    RootOrganizationNode.newOrganizationButton().shouldBe(visible, enabled).click();
+    // fill in organization data
+    OwnerEditorDialog.name().val(NAME);
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().should(disappear);
+
+    // check backend
+    Organization org = organizationDAO.getByName(NAME);
+    assertThat(org).isNotNull();
+
+    // grab reference to default image
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
+    assertImage(OwnerSummaryPage.summaryTile().headerIcon());
+    String summaryTileHeaderIconSrc = OwnerSummaryPage.summaryTile().headerIcon().attr("src");
+    BufferedImage originalDefaultImage = fetchImage(summaryTileHeaderIconSrc);
+
+    // Edit icon to be a robot
+    ActionDropDown.actionButton().click();
+    ActionDropDown.editOwner().shouldHave(text("Org")).click();
+    OwnerEditorDialog.root().shouldBe(visible);
+    OwnerEditorDialog.title().shouldHave(text("Organization"));
+
+    // select a robot image
+    OwnerEditorDialog.robotIcon().click();
+    OwnerEditorDialog.RobotIconSelector.button().click();
+
+    // validate image is displayed
+    assertImage(OwnerEditorDialog.RobotIconSelector.icon());
+    String userSelectedImageSrc = OwnerEditorDialog.RobotIconSelector.icon().attr("src");
+    BufferedImage userSelectedImage = fetchImage(userSelectedImageSrc);
+
+    // save the form with updated image
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().should(disappear);
+
+    // validate the selected image is displayed
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
+    assertImage(OwnerSummaryPage.summaryTile().headerIcon());
+    summaryTileHeaderIconSrc = OwnerSummaryPage.summaryTile().headerIcon().attr("src");
+    BufferedImage displayedRobotImage = fetchImage(summaryTileHeaderIconSrc);
+
+    // validate image saved is the same as image that was selected and displayed
+    BufferedImage persistedImage = readImage(OwnerType.ORGANIZATION, org.getId());
+    assertImageEquals(userSelectedImage, persistedImage);
+    assertImageEquals(displayedRobotImage, persistedImage);
+
+    // resetting icon back to default
+    ActionDropDown.actionButton().click();
+    ActionDropDown.editOwner().shouldHave(text("Org")).click();
+    OwnerEditorDialog.saveButton().click();
+    OwnerEditorDialog.root().should(disappear);
+
+    // validate the selected image is displayed
+    OwnerSummaryPage.summaryTile().name().should(appear).shouldHave(text(NAME));
+    assertImage(OwnerSummaryPage.summaryTile().headerIcon());
+    summaryTileHeaderIconSrc = OwnerSummaryPage.summaryTile().headerIcon().attr("src");
+    BufferedImage imageAfterResettingToDefault = fetchImage(summaryTileHeaderIconSrc);
+
+    // validate image saved is the default image
+    assertImageEquals(originalDefaultImage, imageAfterResettingToDefault);
   }
 
   @Test

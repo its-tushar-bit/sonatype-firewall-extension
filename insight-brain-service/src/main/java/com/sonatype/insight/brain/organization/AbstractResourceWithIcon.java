@@ -89,6 +89,7 @@ abstract class AbstractResourceWithIcon
     }
     else {
       AuditData.get().setData("iconType", "default");
+      new IconDAO().deleteIcon(ownerId, iconDir);
     }
   }
 

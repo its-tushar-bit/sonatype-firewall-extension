@@ -60,6 +60,20 @@ public class IconDAOTest
     }).isInstanceOf(BadRequestException.class).hasMessage("Invalid value: " + BAD_OWNER_ID);
   }
 
+  @Test
+  public void testDeleteIcon() throws Exception {
+    String ownerId = "testId";
+    File iconDir = tmpDir.newFolder();
+    ByteArrayInputStream byteArrayInputStream = getIconImageStream();
+    iconDAO.setIcon(ownerId, iconDir, byteArrayInputStream);
+
+    byte[] iconBytes = iconDAO.getIcon(ownerId, iconDir);
+    assertThat(iconBytes).isNotEmpty();
+
+    iconDAO.deleteIcon(ownerId, iconDir);
+    assertThat(new File(iconDir, ownerId)).doesNotExist();
+  }
+
   private ByteArrayInputStream getIconImageStream() throws IOException {
     BufferedImage image = new BufferedImage(420, 420, BufferedImage.TYPE_INT_ARGB);
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

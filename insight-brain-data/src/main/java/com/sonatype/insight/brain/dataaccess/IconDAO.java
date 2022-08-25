@@ -19,6 +19,8 @@ import javax.imageio.ImageIO;
 import com.sonatype.insight.brain.utils.IdValidationUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.commons.io.FileUtils;
+
 public class IconDAO
 {
   private static final String ICON_FILE_NAME = "icon420px.png";
@@ -69,5 +71,15 @@ public class IconDAO
     }
 
     ImageIO.write(resizedImage, "png", iconFile);
+  }
+
+  public void deleteIcon(String ownerId, File iconDirectory) throws IOException {
+    // Validate the ownerId to prevent traversal attacks on file create
+    IdValidationUtils.validate(ownerId);
+
+    File applicationIconDirectory = new File(iconDirectory, ownerId);
+    if (applicationIconDirectory.exists()) {
+      FileUtils.deleteDirectory(applicationIconDirectory);
+    }
   }
 }

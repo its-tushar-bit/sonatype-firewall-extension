@@ -9,9 +9,11 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,6 +23,9 @@ public class ConfigurationInfoTest
 {
   @Inject
   private ConfigurationInfo configurationInfo;
+
+  @Inject
+  private Configuration configuration;
 
   @Test
   public void testGetConfigurationInfo() throws Exception {
@@ -71,6 +76,35 @@ public class ConfigurationInfoTest
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.FORCE_BASE_URL, String.valueOf(true));
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
         "[\"*first.com\",\"second.*\"]");
+    configuration.configurationChanged(Sets.newHashSet(
+        SystemConfigurationProperty.BASE_URL,
+        SystemConfigurationProperty.FORCE_BASE_URL,
+        SystemConfigurationProperty.HDS_URL,
+        SystemConfigurationProperty.CDN_URL,
+        SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES,
+        SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE,
+        SystemConfigurationProperty.CSRF_PROTECTION,
+        SystemConfigurationProperty.USER_AGENT_SUFFIX,
+        SystemConfigurationProperty.CSP_ENABLED,
+        SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH,
+        SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH,
+        SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH,
+        SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE,
+        SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT,
+        SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD,
+        SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT,
+        SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER,
+        SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS,
+        SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS,
+        SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS,
+        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER,
+        SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING,
+        SystemConfigurationProperty.POLICY_MONITORING_HOUR,
+        SystemConfigurationProperty.DB_BACKUP_DIR,
+        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
+        SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
+        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING
+    ));
 
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());
 
@@ -85,7 +119,7 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH).asText()).isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH).asText()).isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asText()).isEqualTo("false");
-    assertThat(configNode.get(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE).asText()).isEqualTo("false");
+    assertThat(configNode.get(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE).asInt()).isEqualTo(1000);
     assertThat(configNode.get(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT).asText()).isEqualTo("20");
     assertThat(configNode.get(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD).asText()).isEqualTo(
         "30");
@@ -99,16 +133,13 @@ public class ConfigurationInfoTest
         .asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING).asText()).isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.POLICY_MONITORING_HOUR).asText()).isEqualTo("22");
-    assertThat(configNode.get(SystemConfigurationProperty.DB_BACKUP_DIR).asText()).isEqualTo("sonatype-work");
-    assertThat(configNode.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE).asText()).isEqualTo(
-        "test-passphrase");
+    assertThat(configNode.get(SystemConfigurationProperty.DB_BACKUP_DIR).asText()).endsWith("sonatype-work");
+    assertThat(configNode.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE).asText()).isEqualTo("****");
     assertThat(configNode.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED).asText()).isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING)
         .asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.BASE_URL).asText()).isEqualTo("http://127.0.0.1:8070");
     assertThat(configNode.get(SystemConfigurationProperty.FORCE_BASE_URL).asText()).isEqualTo("true");
-    assertThat(configNode.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST).asText()).isEqualTo(
-        "[\"*first.com\",\"second.*\"]");
   }
 
   @Test
@@ -116,36 +147,35 @@ public class ConfigurationInfoTest
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());
 
     assertThat(configNode.get(SystemConfigurationProperty.HDS_URL).asText()).isEqualTo("http://unknownhost");
-    assertThat(configNode.get(SystemConfigurationProperty.CSRF_PROTECTION).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.CDN_URL).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE).asText()).isEqualTo("null");
+    assertThat(configNode.get(SystemConfigurationProperty.CSRF_PROTECTION).asText()).isEqualTo("true");
+    assertThat(configNode.get(SystemConfigurationProperty.CDN_URL).asText()).isEqualTo("https://cdn.sonatype.com/");
+    assertThat(configNode.get(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES).asText()).isEqualTo("31457280");
+    assertThat(configNode.get(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE).asText()).isEqualTo("500");
     assertThat(configNode.get(SystemConfigurationProperty.USER_AGENT_SUFFIX).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.CSP_ENABLED).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT).asText()).isEqualTo("null");
+    assertThat(configNode.get(SystemConfigurationProperty.CSP_ENABLED).asText()).isEqualTo("true");
+    assertThat(configNode.get(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH).asText()).isEqualTo("true");
+    assertThat(configNode.get(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH).asText()).isEqualTo("true");
+    assertThat(configNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asText()).isEqualTo("false");
+    assertThat(configNode.get(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE).asText()).isEqualTo("1000");
+    assertThat(configNode.get(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT).asText()).isEqualTo("50");
     assertThat(configNode.get(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD).asText()).isEqualTo(
-        "null");
-    assertThat(configNode.get(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT).asText()).isEqualTo("null");
+        "0");
+    assertThat(configNode.get(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT).asText()).isEqualTo("2048");
     assertThat(configNode.get(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER).asText()).isEqualTo(
-        "null");
-    assertThat(configNode.get(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS).asText()).isEqualTo("null");
+        ",");
+    assertThat(configNode.get(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS).asText()).isEqualTo("20");
+    assertThat(configNode.get(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS).asText()).isEqualTo("180");
+    assertThat(configNode.get(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS).asText()).isEqualTo("2100");
     assertThat(configNode.get(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER)
-        .asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.POLICY_MONITORING_HOUR).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.DB_BACKUP_DIR).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED).asText()).isEqualTo("null");
+        .asText()).isEqualTo("false");
+    assertThat(configNode.get(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING).asText()).isEqualTo("true");
+    assertThat(configNode.get(SystemConfigurationProperty.POLICY_MONITORING_HOUR).asText()).isEqualTo("0");
+    assertThat(configNode.get(SystemConfigurationProperty.DB_BACKUP_DIR).asText()).endsWith("db-backup");
+    assertThat(configNode.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE).asText()).isEqualTo("****");
+    assertThat(configNode.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED).asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING)
-        .asText()).isEqualTo("null");
+        .asText()).isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.BASE_URL).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.FORCE_BASE_URL).asText()).isEqualTo("null");
-    assertThat(configNode.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST).asText()).isEqualTo("null");
+    assertThat(configNode.get(SystemConfigurationProperty.FORCE_BASE_URL).asText()).isEqualTo("false");
   }
 }

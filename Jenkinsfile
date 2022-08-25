@@ -91,33 +91,39 @@ void pushDockerImageIfDeployBranch() {
         return
     }
 
-    String version = getMavenProjectVersion('.')
-    String shortImage = "${version.split("-")[0]}-${env.BUILD_NUMBER}"
-    String containerName = "iq/snapshot"
-    echo "version:'${version}'"
+    String iqVersion = getMavenProjectVersion('.')
+    String imageVersion = "${iqVersion.split("-")[0]}-${env.BUILD_NUMBER}"
+    String imageName = 'iq/snapshot'
+    echo "iqVersion:'${iqVersion}'"
     echo "buildnum: ${env.BUILD_NUMBER}"
 
     dir("nexus-iq-server") {
         withSonatypeDockerRegistry() {
-            sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${version} --tag ${containerName}:${shortImage} ."
-            String fullImage = "${sonatypeDockerRegistryId()}/${containerName}:${shortImage}"
-            String latest = "${sonatypeDockerRegistryId()}/${containerName}:latest"
-            runSafely "docker tag ${containerName}:${shortImage} ${fullImage}"
+            sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${iqVersion} --tag ${imageName}:${imageVersion} ."
+            String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
+            String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
+            runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"
             runSafely "docker push ${fullImage}"
             // Also tag as latest
-            runSafely "docker tag ${containerName}:${shortImage} ${latest}"
+            runSafely "docker tag ${imageName}:${imageVersion} ${latest}"
             runSafely "docker push ${latest}"
         }
     }
+
+    String targetImage = "${sonatypeDockerRegistryId()}/iq/staging:${imageVersion}"
     build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging',
-              parameters: [string(
-                name: 'IQ_VERSION', value: shortImage), string(name:'CONTAINER_NAME',
-                value: containerName)], propagate: false)
+          parameters: [
+            string(name: 'BASE_IMAGE', value: fullImage), 
+            string(name: 'TARGET_IMAGE', value: targetImage),
+          ], 
+          propagate: false)
 
     build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging',
-              parameters: [string(
-                name: 'environment', value: 'Staging'), string(name:'imageUrl',
-                value: "docker-all.repo.sonatype.com/${containerName}:latest")], propagate: false)
+          parameters: [
+            string(name: 'environment', value: 'Staging'), 
+            string(name:'imageUrl', value: targetImage)
+          ], 
+          propagate: false)
 }
 
 /*

@@ -31,10 +31,12 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,9 +147,11 @@ public class ApplicationSummaryService
    * current user and the specified goal to that application.
    * If such an application does not exist and automatic application creation is enabled, then the method creates the
    * new application and returns true to indicate the application will now be available.
+   * If the optional organizationId is provided, all checks and application creation are done under the organization
+   * referenced by the given ID; otherwise the default organization for automatic application creation is used.
    * 
    * This method does not return the reason when the verification fails. This is by design.
-   * If the method would return the verification failure reason, then an attacker could use that info to
+   * If the method returned the verification failure reason, then an attacker could use that info to
    * find more about the system.
    * This is similar to login failure messages:
    * The system is supposed to return a generic message for all causes the login fails.
@@ -156,7 +160,12 @@ public class ApplicationSummaryService
    *
    * @since 1.45
    */
-  boolean verifyOrCreateApplication(String applicationPublicId, Goal goal, String clientUserAgent) {
+  boolean verifyOrCreateApplication(
+      String applicationPublicId,
+      String organizationId,
+      Goal goal,
+      String clientUserAgent)
+  {
     if (goal == null) {
       throw new BadRequestException("A goal must be specified");
     }
@@ -166,9 +175,17 @@ public class ApplicationSummaryService
     // If the application does not exist and automatic application creation is enabled, then create a new
     // application with the given public ID.
     if (automaticApplicationsConfigurationDAO.isEnabled()) {
+      String targetOrganizationId = StringUtils.isNotBlank(
+          organizationId) ? organizationId : automaticApplicationsConfigurationDAO.getOrganizationId();
+      Organization targetOrganization;
       if (application == null) {
         try {
-          checkEvaluateApplicationPermissionForOrganization(automaticApplicationsConfigurationDAO.getOrganizationId());
+          targetOrganization = organizationDAO.getByIdNotNull(targetOrganizationId);
+          checkEvaluateApplicationPermissionForOrganization(targetOrganizationId);
+        }
+        catch (NotFoundException e) { // the provided organizationId is invalid
+          log.debug(e.getMessage());
+          return false;
         }
         catch (UnauthorizedException e) {
           log.debug("Insufficient permissions to automatically create an application.");
@@ -176,11 +193,10 @@ public class ApplicationSummaryService
         }
         log.info("Automatic application creation is enabled. Creating an application with name and public id: {}.",
             applicationPublicId);
-        application = new Application(applicationPublicId, applicationPublicId,
-            automaticApplicationsConfigurationDAO.getOrganizationId());
+        application = new Application(applicationPublicId, applicationPublicId, targetOrganizationId);
         applicationHelper.validateNewApplication(application);
         applicationDAO.insert(application);
-        auditCreateApplication(application, organizationDAO.getByIdNotNull(application.getOrganizationId()));
+        auditCreateApplication(application, targetOrganization);
         sendApplicationCreatedTelemetryData(true, clientUserAgent);
       }
       else {

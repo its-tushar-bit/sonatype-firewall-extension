@@ -104,7 +104,8 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     log.info("Validating application ID {} with the IQ Server {}...", params.getApplicationId(), params.getServerUrl());
     boolean isApplicationAllowed;
     try {
-      isApplicationAllowed = restClient.verifyOrCreateApplication(params.getApplicationId());
+      isApplicationAllowed =
+          restClient.verifyOrCreateApplication(params.getApplicationId(), params.getOrganizationId());
     }
     catch (HttpResponseException e) {
       throw handleHttpResponseException(params, e, restClient);

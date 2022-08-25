@@ -63,6 +63,11 @@ public abstract class AbstractParameters
              required = true)
   private String applicationId;
 
+  @Parameter(names = {"-O", "--organization-id"},
+      description = "ID of the organization under which new applications are automatically created",
+      required = false)
+  private String organizationId;
+
   @Parameter(names = {"-s", "--server-url"},
              description = "URL to the IQ Server to which the scan result should be uploaded", required = true)
   private String serverUrl;
@@ -165,6 +170,10 @@ public abstract class AbstractParameters
 
   public String getApplicationId() {
     return applicationId;
+  }
+
+  public String getOrganizationId() {
+    return organizationId;
   }
 
   public String getServerUrl() {

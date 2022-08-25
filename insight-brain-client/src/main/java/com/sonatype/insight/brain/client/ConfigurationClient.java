@@ -27,6 +27,8 @@ import org.sonatype.aether.util.version.GenericVersionScheme;
 import org.sonatype.aether.version.InvalidVersionSpecificationException;
 import org.sonatype.aether.version.Version;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class ConfigurationClient
     extends AbstractRequestClient
 {
@@ -69,10 +71,16 @@ public class ConfigurationClient
   /**
    * @since 1.45.0
    */
-  public boolean verifyOrCreateApplication(String applicationPublicId) throws IOException {
-    Result result =
-        path("rest/integration/applications/verifyOrCreate", UrlUtils.encodeUrlComponent(applicationPublicId))
-            .query("goal", "EVALUATE_APPLICATION").post(null);
+  public boolean verifyOrCreateApplication(String applicationPublicId, String organizationId) throws IOException {
+    RequestBuilder builder =
+        path("rest/integration/applications/verifyOrCreate", UrlUtils.encodeUrlComponent(applicationPublicId));
+    if (StringUtils.isNotBlank(organizationId)) {
+      builder.query("goal", "EVALUATE_APPLICATION", "organizationId", organizationId);
+    }
+    else {
+      builder.query("goal", "EVALUATE_APPLICATION");
+    }
+    Result result = builder.post(null);
     return parseResult(result, Boolean.class);
   }
 

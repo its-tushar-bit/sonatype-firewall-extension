@@ -124,49 +124,53 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testVerifyOrCreateApplication_Authorized_EVALUATE_APPLICATION() {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "ua/1.0")).isTrue();
+    assertThat(
+        service.verifyOrCreateApplication(app.getPublicId(), null, Goal.EVALUATE_APPLICATION, "ua/1.0")).isTrue();
   }
 
   @Test
   public void testVerifyOrCreateApplication_Unauthorized_EVALUATE_APPLICATION() {
     login();
-    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_APPLICATION, "ua/1.0")).isFalse();
+    assertThat(
+        service.verifyOrCreateApplication(app.getPublicId(), null, Goal.EVALUATE_APPLICATION, "ua/1.0")).isFalse();
   }
 
   @Test
   public void testVerifyOrCreateApplication_Authorized_EVALUATE_COMPONENT() {
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
-    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_COMPONENT, "ua/1.0")).isTrue();
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), null, Goal.EVALUATE_COMPONENT, "ua/1.0")).isTrue();
   }
 
   @Test
   public void testVerifyOrCreateApplication_Unauthorized_EVALUATE_COMPONENT() {
     login();
-    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.EVALUATE_COMPONENT, "ua/1.0")).isFalse();
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), null, Goal.EVALUATE_COMPONENT, "ua/1.0")).isFalse();
   }
 
   @Test
   public void testVerifyOrCreateApplication_Authorized_VIEW_CIP() {
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
-    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.VIEW_CIP, "ua/1.0")).isTrue();
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(), null, Goal.VIEW_CIP, "ua/1.0")).isTrue();
   }
 
   @Test
   public void testVerifyOrCreateApplication_Unauthorized_VIEW_CIP() {
     login();
-    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.VIEW_CIP, "ua/1.0")).isFalse();
+    assertThat(service.verifyOrCreateApplication(app.getPublicId(),null, Goal.VIEW_CIP, "ua/1.0")).isFalse();
   }
 
   @Test
   public void testVerifyOrCreateApplication_Authorized_SUMMARIZE_EVALUATION() {
     grantPermission(app.getId(), Permission.READ);
-    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.SUMMARIZE_EVALUATION, "ua/1.0")).isTrue();
+    assertThat(
+        service.verifyOrCreateApplication(app.getPublicId(), null, Goal.SUMMARIZE_EVALUATION, "ua/1.0")).isTrue();
   }
 
   @Test
   public void testVerifyOrCreateApplication_Unauthorized_SUMMARIZE_EVALUATION() {
     login();
-    assertThat(service.verifyOrCreateApplication(app.getPublicId(), Goal.SUMMARIZE_EVALUATION, "ua/1.0")).isFalse();
+    assertThat(
+        service.verifyOrCreateApplication(app.getPublicId(), null, Goal.SUMMARIZE_EVALUATION, "ua/1.0")).isFalse();
   }
 
   @Test
@@ -174,7 +178,7 @@ public class ApplicationSummaryServiceAuthzTest
     login();
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
-            () -> service.verifyOrCreateApplication(app.getPublicId(), null /* goal */, "test_client_user_agent"))
+            () -> service.verifyOrCreateApplication(app.getPublicId(), null, null, "test_client_user_agent"))
         .withMessage("A goal must be specified");
   }
 
@@ -186,14 +190,14 @@ public class ApplicationSummaryServiceAuthzTest
     // If the application does not exist, it will be created if automatic app creation is enabled and we have permission
     // to evaluate applications for its configured organization.
     automaticApplicationsConfigurationDAO.setEnabled(false);
-    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"))
-        .isFalse();
+    assertThat(service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION,
+        "test_client_user_agent")).isFalse();
     assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNull();
 
     automaticApplicationsConfigurationDAO.setEnabled(true);
     automaticApplicationsConfigurationDAO.setOrganizationId(tempEntity.newOrganization().getId());
-    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"))
-        .isFalse();
+    assertThat(service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION,
+        "test_client_user_agent")).isFalse();
     assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNull();
   }
 
@@ -209,14 +213,14 @@ public class ApplicationSummaryServiceAuthzTest
     // If the application does not exist, then "access" is allowed only if automatic app creation is enabled.
     // We should then be able to access it in this scenario because we have permission via the organization.
     automaticApplicationsConfigurationDAO.setEnabled(false);
-    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"))
-        .isFalse();
+    assertThat(service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION,
+        "test_client_user_agent")).isFalse();
     assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNull();
 
     automaticApplicationsConfigurationDAO.setEnabled(true);
     automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
-    assertThat(service.verifyOrCreateApplication(appPublicId, Goal.EVALUATE_APPLICATION, "test_client_user_agent"))
-        .isTrue();
+    assertThat(service.verifyOrCreateApplication(appPublicId, null, Goal.EVALUATE_APPLICATION,
+        "test_client_user_agent")).isTrue();
     assertThat(new ApplicationDAO().getByPublicId(appPublicId)).isNotNull();
   }
 }

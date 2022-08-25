@@ -654,6 +654,29 @@ public abstract class DefaultPolicyEvaluatorTest
   }
 
   @Test
+  public void testRun_AutoAppCreationEnabled_orgIdProvided() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
+    automaticApplicationsConfigurationDAO.setOrganizationId("non-existent-org-id");
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "non-existent-app-public-id", "-O", org.getId(),
+        "--output-directory", tempDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
+    withTestRunner(params)
+        .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
+        .doPolicyEvaluationRun();
+
+    ApplicationDAO appDAO = new ApplicationDAO();
+    Application app = appDAO.getByPublicId("non-existent-app-public-id");
+    assertThat(app).isNotNull();
+    assertThat(app.getOrganizationId()).isEqualTo(org.getId());
+    appDAO.delete(app);
+  }
+
+  @Test
   public void testRun_AutoAppCreationDisabled() throws Exception {
     List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "non-existent-app-public-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //

@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.GOAL_PARAM;
+import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.ORG_ID_PARAM;
 import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.VERIFY_OR_CREATE_APPLICATION_PATH;
 
 /**
@@ -61,11 +62,12 @@ public class DefaultApplicationSummaryResource
   @Override
   public boolean verifyOrCreateApplication(@PathParam("applicationPublicId") String applicationPublicId,
                                            @QueryParam(GOAL_PARAM) Goal goal,
+                                           @QueryParam(ORG_ID_PARAM) String organizationId,
                                            @Context HttpServletRequest request)
   {
     log.debug("Received request to verify access for or create application with public ID {} and goal {}.",
         applicationPublicId, goal);
-    return applicationSummaryService
-        .verifyOrCreateApplication(applicationPublicId, goal, DefaultHdsClient.getClientUserAgent(request));
+    return applicationSummaryService.verifyOrCreateApplication(applicationPublicId, organizationId, goal,
+        DefaultHdsClient.getClientUserAgent(request));
   }
 }

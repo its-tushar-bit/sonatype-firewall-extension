@@ -19,8 +19,10 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.NetworkingHelper;
 import com.sonatype.insight.brain.client.ConfigurationClient.Context;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -342,7 +344,24 @@ public class ConfigurationClientTest
   }
 
   @Test
-  public void testVerifyOrCreateApplication() throws Exception {
+  public void testVerifyOrCreateApplication_NoOrgIdProvided() throws Exception {
+    String appPublicId = "non-existent-app-public-id";
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    ConfigurationClient client = new ConfigurationClient(config);
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
+    Organization org = tempEntity.newOrganization();
+    automaticApplicationsConfigurationDAO.setOrganizationId(org.getId());
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+    boolean result = client.verifyOrCreateApplication(appPublicId, null);
+    assertThat(result).isTrue();
+    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
+    assertThat(app.getOrganizationId()).isEqualTo(org.getId());
+  }
+
+  @Test
+  public void testVerifyOrCreateApplication_orgIdProvided() throws Exception {
     String appPublicId = "non-existent-app-public-id";
 
     Configuration config = getCLMServer().getClientConfiguration();
@@ -351,8 +370,12 @@ public class ConfigurationClientTest
         new AutomaticApplicationsConfigurationDAO();
     automaticApplicationsConfigurationDAO.setOrganizationId(tempEntity.newOrganization().getId());
     automaticApplicationsConfigurationDAO.setEnabled(true);
-    boolean result = client.verifyOrCreateApplication(appPublicId);
+
+    Organization org = tempEntity.newOrganization();
+    boolean result = client.verifyOrCreateApplication(appPublicId, org.getId());
     assertThat(result).isTrue();
+    Application app = new ApplicationDAO().getByPublicIdNotNull(appPublicId);
+    assertThat(app.getOrganizationId()).isEqualTo(org.getId());
   }
 
   @Test

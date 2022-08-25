@@ -38,5 +38,6 @@ public interface ApplicationSummaryResource
    */
   boolean verifyOrCreateApplication(final String applicationPublicId,
                                     final Goal goal,
+                                    final String organizationId,
                                     final HttpServletRequest request);
 }

@@ -18,6 +18,8 @@ public class ApplicationSummaryResourceConstants
 
   public static final String GOAL_PARAM = "goal";
 
+  public static final String ORG_ID_PARAM = "organizationId";
+
   private ApplicationSummaryResourceConstants() {
   }
 }

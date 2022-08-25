@@ -107,8 +107,8 @@ public class RestClientFactory
     /**
      * @since 1.45.0
      */
-    public boolean verifyOrCreateApplication(String applicationPublicId) throws IOException {
-      return new ConfigurationClient(config).verifyOrCreateApplication(applicationPublicId);
+    public boolean verifyOrCreateApplication(String applicationPublicId, String organizationId) throws IOException {
+      return new ConfigurationClient(config).verifyOrCreateApplication(applicationPublicId, organizationId);
     }
 
     /**

@@ -650,7 +650,7 @@ public class ApplicationAttributionReportBuilderTest
 
     Document doc = Jsoup.parse(content);
     assertThat(doc.select(".componentBox h2").first().toString()).contains(component.displayName);
-    assertThat(doc.select("ul li").first()).hasToString("<li> No licenses detected. </li>");
+    assertThat(doc.select("ul li").first()).hasToString("<li>No licenses detected.</li>");
   }
 
   @Test

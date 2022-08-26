@@ -9,7 +9,6 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.ApplicableLicenseThreatGroups;
 import com.sonatype.insight.brain.license.LicenseThreatGroupService.LicenseThreatGroupsByOwner;
 import com.sonatype.insight.brain.model.Owner;
@@ -61,7 +60,7 @@ abstract class AbstractLicenseThreatGroupResourceTest
     Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.AND);
     constraint.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", ltg.getId()));
     policy.addConstraint(constraint);
-    new PolicyDAO().insert(policy);
+    tempEntity.newPolicy(policy);
 
     HttpResponse response = restRequest(ownerPublicId).path(ltg.getId()).delete();
     assertResponseStatus(400, response);

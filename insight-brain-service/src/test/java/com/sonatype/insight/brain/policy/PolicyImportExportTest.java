@@ -239,7 +239,7 @@ public class PolicyImportExportTest
     constraint.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is",
         LicenseThreatGroupValueType.UNASSIGNED_LICENSE_THREAT_GROUP_ID));
     policy.addConstraint(constraint);
-    policyDAO.insert(policy);
+    tempEntity.newPolicy(policy);
 
     PolicyExportResult exportDTO = policyImportExport.exportOrganization(fromOrg);
     exportDTO = detachObjects(exportDTO);
@@ -391,7 +391,7 @@ public class PolicyImportExportTest
     Constraint constraint = new Constraint(null, tempEntity.uuid(), LogicalOperator.AND);
     constraint.addCondition(new Condition(LabelConditionType.ID, "is", labelId));
     policy.addConstraint(constraint);
-    policyDAO.insert(policy);
+    tempEntity.newPolicy(policy);
     return Lists.newArrayList(policy);
   }
 
@@ -432,7 +432,7 @@ public class PolicyImportExportTest
     constraint2.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", licenseThreatGroup.getId()));
     policy.addConstraint(constraint2);
     policy.setAction(BuildStageType.ID, Action.ID_FAIL);
-    policyDAO.insert(policy);
+    tempEntity.newPolicy(policy);
 
     // Export
     PolicyExportResult policyExportResult = policyImportExport.exportOrganization(org);

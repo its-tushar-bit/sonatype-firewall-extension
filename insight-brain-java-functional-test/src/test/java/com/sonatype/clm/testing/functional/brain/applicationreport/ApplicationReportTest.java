@@ -10,9 +10,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
-import java.util.List;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.PolicyTypeFilter;
@@ -40,13 +38,11 @@ import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
@@ -60,7 +56,6 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.openjpa.enhance.PersistenceCapable;
@@ -94,8 +89,6 @@ public class ApplicationReportTest
   private PolicyDAO policyDAO = new PolicyDAO();
 
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
-
-  private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
   @BeforeClass
   public static void startup() {
@@ -864,20 +857,5 @@ public class ApplicationReportTest
     policyViolationGrandfatheringService.grandfather(app.getPublicId());
     evaluator.reevaluatePolicy();
     refresh();
-  }
-
-  private String getViolationForPolicyComponent(String policyName, ComponentIdentifier componentIdentifier) {
-    List<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationId(app.getId());
-
-    if (CollectionUtils.isNotEmpty(policyViolations)) {
-      return policyViolations.stream()
-              .filter(pv -> pv.getPolicyName().equals(policyName)
-                      && pv.getComponentIdentifier().equals(componentIdentifier))
-              .findFirst()
-              .map(PolicyViolation::getId)
-              .orElse(null);
-    }
-
-    return null;
   }
 }

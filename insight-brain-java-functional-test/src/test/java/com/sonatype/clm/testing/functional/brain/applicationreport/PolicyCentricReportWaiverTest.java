@@ -16,7 +16,6 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViola
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
-import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.DeleteWaiverModal;
@@ -314,11 +313,6 @@ public class PolicyCentricReportWaiverTest
     addWaiverPage.comments().shouldBe(visible);
     addWaiverPage.scope(0).label().shouldHave(text("Application - " + app.getName()));
     addWaiverPage.scope(0).shouldBe(visible, selected);
-  }
-
-  private void switchCipToPolicyTab() {
-    CipModal cipModal = reportPage.cipModal();
-    cipModal.tabLink(2).click();
   }
 
   private void createGavViolatingPolicy(String ownerId) {

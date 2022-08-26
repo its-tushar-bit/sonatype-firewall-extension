@@ -6,6 +6,7 @@
 import { prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { selectSelectedComponent as selectFirewallSelectedComponent } from 'MainRoot/firewall/firewallComponentDetailsPage/overview/firewallOverviewSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
 
@@ -40,6 +41,29 @@ export const selectVulnerabilitiesRequestData = createSelector(
     hash: component.hash,
     identificationSource: component.identificationSource,
     scanId: params.scanId,
+  })
+);
+
+export const selectFirewallVulnerabilitiesRequestData = createSelector(
+  selectFirewallSelectedComponent,
+  selectRouterCurrentParams,
+  (component, params) => ({
+    clientType: 'ci',
+    ownerType: 'repository',
+    ownerId: params.repositoryId,
+    componentIdentifier: stringifyComponentIdentifier(component.componentIdentifier, component.matchState),
+    hash: component.hash,
+    identificationSource: component.identificationSource,
+    scanId: params.scanId,
+  })
+);
+
+export const selectFirewallPolicyThreatsRequestData = createSelector(
+  selectFirewallSelectedComponent,
+  selectRouterCurrentParams,
+  (component, routerParams) => ({
+    pathname: component.pathname,
+    repositoryId: routerParams.ownerId,
   })
 );
 

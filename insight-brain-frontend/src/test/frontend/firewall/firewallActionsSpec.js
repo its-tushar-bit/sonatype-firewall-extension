@@ -43,6 +43,9 @@ import {
   FIREWALL_COMPONENT_DETAILS_REQUESTED,
   FIREWALL_COMPONENT_DETAILS_FULFILLED,
   FIREWALL_COMPONENT_DETAILS_FAILED,
+  FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED,
+  FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED,
+  FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED,
   loadAutoUnquarantineData,
   loadConfiguration,
   loadFirewallData,
@@ -67,6 +70,9 @@ import {
   loadComponentDetailsFulfilled,
   loadComponentDetailsFailed,
   onComponentDetailsPageTabChange,
+  loadComponentPolicyViolationsRequested,
+  loadComponentPolicyViolationsFulfilled,
+  loadComponentPolicyViolationsFailed,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
   getFirewallConfigurationUrl,
@@ -1114,6 +1120,74 @@ describe('firewallActions', function () {
       const actions = store.getActions();
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(FIREWALL_COMPONENT_DETAILS_FAILED);
+      expect(actions[0].payload).toBe(mockResponse);
+    });
+  });
+
+  describe('loadComponentPolicyViolationsRequested', () => {
+    it('dispatches an action to indicate the request is being solved but not completed yet', () => {
+      const customState = {
+        firewall: Object.freeze({
+          componentDetailsPage: Object.freeze({
+            policyViolations: null,
+            isLoadingPolicyViolations: false,
+            policyViolationsError: null,
+          }),
+        }),
+      };
+
+      store = SpecUtil.mockReduxStore(customState);
+      store.dispatch(loadComponentPolicyViolationsRequested());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+  });
+
+  describe('loadComponentPolicyViolationsFulfilled', () => {
+    it('dispatches an action to indicate the request was solved successfully', () => {
+      const customState = {
+        firewall: Object.freeze({
+          componentDetailsPage: Object.freeze({
+            policyViolations: null,
+            isLoadingPolicyViolations: true,
+            policyViolationsError: null,
+          }),
+        }),
+      };
+
+      const mockResponse = { hash: 'hash' };
+      store = SpecUtil.mockReduxStore(customState);
+      store.dispatch(loadComponentPolicyViolationsFulfilled(mockResponse));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED);
+      expect(actions[0].payload).toBe(mockResponse);
+    });
+  });
+
+  describe('loadComponentPolicyViolationsFailed', () => {
+    it('dispatches an action to indicate the request failed', () => {
+      const customState = {
+        firewall: Object.freeze({
+          componentDetailsPage: Object.freeze({
+            policyViolations: null,
+            isLoadingPolicyViolations: false,
+            policyViolationsError: null,
+          }),
+        }),
+      };
+
+      const mockResponse = 'error!';
+      store = SpecUtil.mockReduxStore(customState);
+      store.dispatch(loadComponentPolicyViolationsFailed(mockResponse));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED);
       expect(actions[0].payload).toBe(mockResponse);
     });
   });

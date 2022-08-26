@@ -17,11 +17,12 @@ import { NxLoadWrapper } from '@sonatype/react-shared-components';
 import { createTabConfiguration } from '../../componentDetails/componentDetailsUtils';
 import FirewallOverview from './overview/FirewallOverview';
 import FirewallPolicyViolations from './policyViolations/FirewallPolicyViolations';
+import FirewallSecurityTab from 'MainRoot/firewall/firewallComponentDetailsPage/security/FirewallSecurityTab';
 
 export const tabsConfiguration = [
   createTabConfiguration('overview', 'Overview', <FirewallOverview />),
   createTabConfiguration('violations', 'Policy Violations', <FirewallPolicyViolations />),
-  createTabConfiguration('security', 'Security'),
+  createTabConfiguration('security', 'Security', <FirewallSecurityTab />),
   createTabConfiguration('legal', 'Legal'),
   createTabConfiguration('labels', 'Labels'),
 ];
@@ -32,6 +33,7 @@ export default function FirewallComponentDetailsPage(props) {
     componentDetailsPageResponseState,
     onComponentDetailsPageTabChange,
     routeParams,
+    loadComponentPolicyViolations,
   } = props;
   const { tabId } = routeParams;
   const { componentDetails, isLoadingComponentDetails, componentDetailsError } = componentDetailsPageResponseState;
@@ -40,6 +42,7 @@ export default function FirewallComponentDetailsPage(props) {
 
   useEffect(() => {
     loadComponentDetails(routeParams);
+    loadComponentPolicyViolations(routeParams.pathname, routeParams.repositoryId);
   }, []);
 
   const handleTabChange = (tabIdToMoveTo) => {
@@ -85,6 +88,7 @@ export default function FirewallComponentDetailsPage(props) {
 FirewallComponentDetailsPage.propTypes = {
   loadComponentDetails: PropTypes.func,
   onComponentDetailsPageTabChange: PropTypes.func.isRequired,
+  loadComponentPolicyViolations: PropTypes.func.isRequired,
   routeParams: PropTypes.shape({
     repositoryId: PropTypes.string.isRequired,
     componentHash: PropTypes.string.isRequired,
@@ -94,6 +98,7 @@ FirewallComponentDetailsPage.propTypes = {
     scanId: PropTypes.string,
     tabId: PropTypes.string.isRequired,
     componentIdentifier: PropTypes.string.isRequired,
+    pathname: PropTypes.string.isRequired,
   }).isRequired,
   componentDetailsPageResponseState: PropTypes.shape({
     componentDetails: PropTypes.object,

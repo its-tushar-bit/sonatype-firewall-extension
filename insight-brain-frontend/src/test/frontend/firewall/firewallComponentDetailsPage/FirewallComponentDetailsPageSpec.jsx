@@ -23,7 +23,12 @@ const assertTabs = (component, activeTabId) => {
 };
 
 describe('FirewallComponentDetailsPage', function () {
-  let minimalProps, getShallowComponent, getMountedComponent, loadComponentDetailsSpy, onTabChangeSpy;
+  let minimalProps,
+    getShallowComponent,
+    getMountedComponent,
+    loadComponentDetailsSpy,
+    onTabChangeSpy,
+    loadComponentPolicyViolationsSpy;
 
   const setCustomComponentDetailsPageResponseStateParamsOnMinimalProps = (key, value) => ({
     ...minimalProps,
@@ -33,6 +38,7 @@ describe('FirewallComponentDetailsPage', function () {
   beforeEach(function () {
     loadComponentDetailsSpy = jasmine.createSpy('loadComponentDetails');
     onTabChangeSpy = jasmine.createSpy('onTabChange');
+    loadComponentPolicyViolationsSpy = jasmine.createSpy('loadComponentPolicyViolations');
 
     spyOn(ComponentDetailsTabsFile, 'default').and.returnValue(<div>Tabs</div>);
 
@@ -45,12 +51,15 @@ describe('FirewallComponentDetailsPage', function () {
         matchState: 'exact',
         proprietary: 'false',
         tabId: 'overview',
+        componentIdentifier: 'componentIdentifier',
+        pathname: 'pathname',
       },
       componentDetailsPageResponseState: {
         componentDetails: {},
         isLoadingComponentDetails: false,
         componentDetailsError: null,
       },
+      loadComponentPolicyViolations: loadComponentPolicyViolationsSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(FirewallComponentDetailsPage, minimalProps);

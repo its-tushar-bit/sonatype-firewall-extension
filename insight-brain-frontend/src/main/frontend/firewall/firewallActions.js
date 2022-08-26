@@ -16,6 +16,7 @@ import {
   getPoliciesUrl,
   getComponentDetailsUrl,
   getVersionGraphUrl,
+  getComponentPolicyViolationsUrl,
 } from '../util/CLMLocation';
 import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
@@ -125,6 +126,22 @@ export const loadVersionExplorerDataFulfilled = payloadParamActionCreator(
 );
 export const loadVersionExplorerDataFailed = payloadParamActionCreator(FIREWALL_LOAD_VERSION_EXPLORER_DATA_FAILED);
 
+export const FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED =
+  'FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED';
+export const FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED =
+  'FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED';
+export const FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED = 'FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED';
+
+export const loadComponentPolicyViolationsRequested = noPayloadActionCreator(
+  FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED
+);
+export const loadComponentPolicyViolationsFulfilled = payloadParamActionCreator(
+  FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED
+);
+export const loadComponentPolicyViolationsFailed = payloadParamActionCreator(
+  FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED
+);
+
 export function loadFirewallData() {
   return (dispatch) => {
     dispatch(loadFirewallDataRequested());
@@ -190,6 +207,18 @@ export function loadPolicies() {
       });
   };
 }
+
+export const loadComponentPolicyViolations = (pathname, repository) => (dispatch) => {
+  dispatch(loadComponentPolicyViolationsRequested());
+  return axios
+    .get(getComponentPolicyViolationsUrl(pathname, repository))
+    .then(({ data }) => {
+      dispatch(loadComponentPolicyViolationsFulfilled(data));
+    })
+    .catch((error) => {
+      dispatch(loadComponentPolicyViolationsFailed(Messages.getHttpErrorMessage(error)));
+    });
+};
 
 export function loadConfiguration() {
   return function (dispatch) {

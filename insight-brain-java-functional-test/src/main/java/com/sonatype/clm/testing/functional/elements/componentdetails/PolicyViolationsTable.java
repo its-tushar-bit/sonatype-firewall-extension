@@ -33,6 +33,10 @@ public class PolicyViolationsTable
     return child("tbody > tr.nx-clickable:nth-child(" + rowIndex + ")");
   }
 
+  public ElementsCollection getCellsByNthRow(int rowIndex) {
+    return children("tbody > tr:nth-child(" + rowIndex + ") .nx-cell");
+  }
+
   public SelenideElement waiversDropdownButton(int rowIndex) {
     return getRow(rowIndex).find(".iq-policy-violation__waivers-dropdown-btn");
   }

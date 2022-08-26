@@ -18,6 +18,7 @@ import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import {
   selectSelectedVulnerability,
   selectVulnerabilitiesRequestData,
+  selectFirewallVulnerabilitiesRequestData,
   selectVulnerabilityOverrideFormData,
   selectVulnerabityRefId,
 } from './vulnerabilitiesSelectors';
@@ -75,6 +76,20 @@ const loadVulnerabilities = createAsyncThunk(
   }
 );
 
+const loadFirewallVulnerabilities = createAsyncThunk(
+  `${REDUCER_NAME}/loadVulnerabilities`,
+  (_, { getState, rejectWithValue }) => {
+    const state = getState();
+    const urlData = selectFirewallVulnerabilitiesRequestData(state);
+    const url = getVulnerabilitiesUrl(urlData);
+
+    return axios
+      .get(url)
+      .then((result) => result)
+      .catch(rejectWithValue);
+  }
+);
+
 const loadVulnerabilityDetails = createAsyncThunk(
   `${REDUCER_NAME}/loadVulnerabilityDetails`,
   (_, { getState, rejectWithValue }) => {
@@ -90,7 +105,23 @@ const loadVulnerabilityDetails = createAsyncThunk(
 const saveVulnerabilityOverride = createAsyncThunk(
   `${REDUCER_NAME}/saveVulnerabilityOverride`,
   (_, { dispatch, getState, rejectWithValue }) => {
-    const { publicId: ownerId, hash } = selectRouterCurrentParams(getState());
+    const routerParams = selectRouterCurrentParams(getState());
+    let retrievedRouterParams = {};
+    const isRepositoryComponent = routerParams.repositoryId && routerParams.componentHash;
+
+    if (isRepositoryComponent) {
+      retrievedRouterParams = {
+        ownerId: routerParams.repositoryId,
+        hash: routerParams.componentHash,
+      };
+    } else {
+      retrievedRouterParams = {
+        ownerId: routerParams.publicId,
+        hash: routerParams.hash,
+      };
+    }
+
+    const { ownerId, hash } = retrievedRouterParams;
     const { refId, source } = selectSelectedVulnerability(getState());
     const { status, comments } = selectVulnerabilityOverrideFormData(getState());
 
@@ -102,7 +133,7 @@ const saveVulnerabilityOverride = createAsyncThunk(
       source,
     };
     return axios
-      .put(getVulnerabilityOverrideUrl('application', ownerId), override)
+      .put(getVulnerabilityOverrideUrl(isRepositoryComponent ? 'repository' : 'application', ownerId), override)
       .then(({ data }) => {
         startSaveMaskSuccessTimer(dispatch);
         return data;
@@ -191,6 +222,10 @@ const componentDetailsVulnerabilitiesSlice = createSlice({
     [loadVulnerabilities.fulfilled]: loadVulnerabilitiesFulfilled,
     [loadVulnerabilities.rejected]: loadVulnerabilitiesFailed,
 
+    [loadFirewallVulnerabilities.pending]: pathSet(['vulnerabilities', 'loading'], true),
+    [loadFirewallVulnerabilities.fulfilled]: loadVulnerabilitiesFulfilled,
+    [loadFirewallVulnerabilities.rejected]: loadVulnerabilitiesFailed,
+
     [loadVulnerabilityDetails.pending]: (state) => {
       state.vulnerabilityDetails.loading = true;
       state.vulnerabilitySecurityOverride.loading = true;
@@ -226,6 +261,7 @@ export default componentDetailsVulnerabilitiesSlice.reducer;
 export const actions = {
   ...componentDetailsVulnerabilitiesSlice.actions,
   loadVulnerabilities,
+  loadFirewallVulnerabilities,
   loadVulnerabilityDetails,
   saveVulnerabilityOverride,
 };

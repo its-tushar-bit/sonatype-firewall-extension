@@ -900,4 +900,11 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getEndpointsUrl('api-type')).toEqual(expectedUrl);
     });
   });
+
+  describe('getComponentPolicyViolationsUrl', () => {
+    it('returns url to get component policy violations', () => {
+      const expectedUrl = '/rest/repositories/repositoryId/policyViolations/pathname';
+      expect(clmLocation.getComponentPolicyViolationsUrl('pathname', 'repositoryId')).toEqual(expectedUrl);
+    });
+  });
 });

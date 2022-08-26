@@ -36,4 +36,8 @@ public class VulnerabilitiesTable
   public SelenideElement getRow(int rowIndex) {
     return child("tbody > tr:nth-child(" + rowIndex + ")");
   }
+
+  public ElementsCollection getCellsByNthRow(int rowIndex) {
+    return children("tbody > tr:nth-child(" + rowIndex + ") .nx-cell");
+  }
 }

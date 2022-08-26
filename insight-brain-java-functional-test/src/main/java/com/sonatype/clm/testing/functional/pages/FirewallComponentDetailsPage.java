@@ -21,18 +21,20 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.sonatype.nexus.scm.api.common.JsonUtils.toJson;
 
-public class FirewallCDPPage
-    extends BasicElement<FirewallCDPPage>
+public class FirewallComponentDetailsPage
+    extends BasicElement<FirewallComponentDetailsPage>
 {
   public static final String ROOT = "firewall-component-details-page";
 
-  public static final String FIREWALL_CDP_TITLE = "#component-details-title";
+  public static final String FIREWALL_COMPONENT_DETAILS_PAGE_TITLE = "#component-details-title";
 
   private static final String NO_TAB_ID = "";
 
   private static final String VIOLATIONS_TAB_ID = "violations";
 
-  public FirewallCDPPage() {
+  private static final String SECURITY_TAB_ID = "security";
+
+  public FirewallComponentDetailsPage() {
     super(ROOT);
   }
 
@@ -60,8 +62,12 @@ public class FirewallCDPPage
     return getBaseUrl(component, VIOLATIONS_TAB_ID);
   }
 
+  public static String urlSecurityTab(RepositoryComponent component) {
+    return getBaseUrl(component, SECURITY_TAB_ID);
+  }
+
   public SelenideElement title() {
-    return child(FIREWALL_CDP_TITLE);
+    return child(FIREWALL_COMPONENT_DETAILS_PAGE_TITLE);
   }
 
   public SelenideElement formatTag() {
@@ -134,5 +140,25 @@ public class FirewallCDPPage
 
   public SelenideElement getNextVersionInVersionExplorer() {
     return child("#aiVersionChartViz > svg > g > g:nth-child(24) > g:nth-child(1) > rect:nth-child(2)");
+  }
+
+  public SelenideElement getSecurityTabContainer() {
+    return child("#component-details-security-tab-content");
+  }
+
+  public SelenideElement getVulnerabilitiesTable() {
+    return child(".iq-policy-vulnerability-table");
+  }
+
+  public ElementsCollection getVulnerabilitiesTableRows() {
+    return children(".iq-policy-vulnerability-table .iq-vulnerabilities-row");
+  }
+
+  public ElementsCollection getVulnerabilitiesTableCellsFromRow(int row) {
+    return getVulnerabilitiesTableRows().get(row).findAll(".nx-cell");
+  }
+
+  public String getProxyStateIconTypeFromViolationsTableRow(int row) {
+    return getVulnerabilitiesTableRows().get(row).find(".iq-policy-violation-row__proxy-state-flag").getText();
   }
 }

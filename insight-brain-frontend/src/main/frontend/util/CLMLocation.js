@@ -794,6 +794,9 @@ export const getVulnerabilitiesUrl = ({
   return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${ownerId}/vulnerabilities?` + params;
 };
 
+export const getComponentPolicyViolationsUrl = (pathname, repositoryId) =>
+  uriTemplate`/rest/repositories/${repositoryId}/policyViolations/${pathname}`;
+
 export function getAttributionReportUrl(applicationPublicId, stageTypeId) {
   return uriTemplate`/api/v2/licenseLegalMetadata/application/${applicationPublicId}/stage/${stageTypeId}/report`;
 }

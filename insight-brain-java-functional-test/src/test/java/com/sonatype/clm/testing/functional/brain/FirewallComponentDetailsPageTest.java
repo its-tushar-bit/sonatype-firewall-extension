@@ -28,13 +28,17 @@ import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
-import com.sonatype.clm.testing.functional.pages.FirewallCDPPage;
+import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
+import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
+import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
+import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
+import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -43,6 +47,8 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
@@ -63,12 +69,12 @@ import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
-import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.cssClass;
@@ -79,14 +85,16 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class FirewallCDPTest
+public class FirewallComponentDetailsPageTest
     extends AbstractFunctionalTest
 {
   private final List<ComponentDetails> componentDetailsArrayList = new ArrayList<>();
 
   private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
-  FirewallCDPPage firewallCDPPage = new FirewallCDPPage();
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+
+  FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
 
   private Repository repository;
 
@@ -113,8 +121,13 @@ public class FirewallCDPTest
 
   private void waitUntilSpinnersGone() {
     Wait<WebDriver> wait = getWebDriverAwait();
-    wait.until(ExpectedConditions.invisibilityOf(firewallCDPPage.getAllLoadingSpinners().get(0)));
-    firewallCDPPage.getAllLoadingSpinners().shouldHave(size(0));
+    wait.until(ExpectedConditions.invisibilityOf(firewallComponentDetailsPage.getAllLoadingSpinners().get(0)));
+    firewallComponentDetailsPage.getAllLoadingSpinners().shouldHave(size(0));
+  }
+
+  private void waitUntilElementAppears(SelenideElement element) {
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.visibilityOf(element));
   }
 
   private ComponentDetails createComponentDetail(ComponentIdentifier componentIdentifier) {
@@ -142,7 +155,12 @@ public class FirewallCDPTest
 
   private void addComponentDetailSecurityVulnerability(ComponentDetails componentDetail, float severity) {
     SecurityVulnerability secVul = new SecurityVulnerability();
-    secVul.setRefId("SecurityVulnerability-lvl" + severity);
+    if (severity > 5) {
+      secVul.setRefId("sonatype-2017-0507");
+    }
+    else {
+      secVul.setRefId("CVE-1234-56789");
+    }
     secVul.setSeverity(severity);
     secVul.setSource("cve");
     componentDetail.addSecurityVulnerability(secVul);
@@ -155,6 +173,7 @@ public class FirewallCDPTest
     ComponentDetails mainComponentDetail = componentDetailsArrayList.get(0);
 
     addComponentDetailSecurityVulnerability(mainComponentDetail, (float) 9.1);
+    addComponentDetailSecurityVulnerability(mainComponentDetail, (float) 4.3);
 
     Set<License> effectiveLicenses = new HashSet<>();
     tempEntity.newLicenseOverride(Organization.ROOT_ORGANIZATION_ID, mainComponentDetail.getComponentIdentifier(),
@@ -229,33 +248,88 @@ public class FirewallCDPTest
         componentIdentifier, lastEvaluationTime, quarantineTime);
   }
 
+  private RepositoryPolicyViolation newRepositoryPolicyViolation(
+      String repositoryId,
+      int threatLevel,
+      String pathname,
+      String hash,
+      List<ConstraintFact> constraintFacts,
+      boolean isWaived,
+      String actionId,
+      String policyId,
+      String policyName,
+      ComponentIdentifier componentIdentifier,
+      Date time,
+      String policyWaiverId,
+      String policyWaiverComment,
+      Date waiveTime,
+      PolicyThreatCategory policyThreatCategory)
+  {
+    RepositoryPolicyViolation policyViolation =
+        new RepositoryPolicyViolation(repositoryId, pathname, time, policyId, policyName, threatLevel,
+            policyThreatCategory, hash, componentIdentifier, constraintFacts);
+    policyViolation.setWaived(isWaived);
+    policyViolation.setActionTypeId(actionId);
+    policyViolation.setPolicyWaiverId(policyWaiverId);
+    policyViolation.setPolicyWaiverComment(policyWaiverComment);
+    policyViolation.setWaiveTime(waiveTime);
+    repositoryPolicyViolationDAO.insert(policyViolation);
+    return policyViolation;
+  }
+
   private void policyViolationsTableSetup(
       ComponentIdentifier componentIdentifier, RepositoryComponent repositoryComponent)
   {
     // Security policies violations
     ConstraintFact securityConstraintFact =
         createConstraintFact("constrain1", "Security constraint", "summary", "security vulnerability severity >= 9.1");
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 10, repositoryComponent.getPathname(), "hash1",
+    newRepositoryPolicyViolation(repository.getId(), 10, repositoryComponent.getPathname(), "hash1",
         Collections.singletonList(securityConstraintFact), false, "fail", SecurityVulnerabilitySeverityConditionType.ID,
-        "SecurityPolicy", componentIdentifier, date, "policyWaiverId1", "policy waiver comment", date);
+        "SecurityPolicy", componentIdentifier, date, "policyWaiverId1", "policy waiver comment", date,
+        PolicyThreatCategory.SECURITY);
 
     ConstraintFact securityLowConstraintFact = createConstraintFact("constrain2", "Security-low constraint", "summary",
         "security vulnerability severity >= 4.3");
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 6, repositoryComponent.getPathname(), "hash2",
-        Collections.singletonList(securityLowConstraintFact), false, "fail", HygieneRatingConditionType.ID,
-        "Security-Low", componentIdentifier, date, "policyWaiverId2", "policy waiver comment", date);
+    newRepositoryPolicyViolation(repository.getId(), 6, repositoryComponent.getPathname(), "hash2",
+        Collections.singletonList(securityLowConstraintFact), false, "warn", HygieneRatingConditionType.ID,
+        "Security-Low", componentIdentifier, date, "policyWaiverId2", "policy waiver comment", date,
+        PolicyThreatCategory.SECURITY);
 
     // License policy violation
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent.getPathname(), false, "fail",
-        LicenseThreatGroupLevelConditionType.ID, "LicensePolicy", componentIdentifier, date);
+    ConstraintFact licenseConstraintFact =
+        createConstraintFact("constrain3", "LicensePolicy constraint", "summary", "Found license threat group");
+    newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent.getPathname(), "hash3",
+        Collections.singletonList(licenseConstraintFact), false, "warn", LicenseThreatGroupLevelConditionType.ID,
+        "LicensePolicy", componentIdentifier, date, "policyWaiverId3", "policy waiver comment", date,
+        PolicyThreatCategory.LICENSE);
+
+    ConstraintFact qualityPolicyAgeInDaysConstraintFact =
+        createConstraintFact("constrain5", "QualityPolicyAgeInDays constraint", "summary",
+            "Found component younger than 50 days");
+
+    newRepositoryPolicyViolation(repository.getId(), 4, repositoryComponent.getPathname(), "hash5",
+        Collections.singletonList(qualityPolicyAgeInDaysConstraintFact), false, "warn", AgeInDaysConditionType.ID,
+        "QualityPolicyAgeInDays", componentIdentifier, date, "policyWaiverId5", "policy waiver comment", date,
+        PolicyThreatCategory.QUALITY);
+
     // Quality policy violation
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 4, repositoryComponent.getPathname(), false, "fail",
-        RelativePopularityConditionType.ID, "QualityPolicyRelativePopularity", componentIdentifier, date);
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 2, repositoryComponent.getPathname(), false, "fail",
-        AgeInDaysConditionType.ID, "QualityPolicyAgeInDays", componentIdentifier, date);
+    ConstraintFact qualityRelativePopularityConstraintFact =
+        createConstraintFact("constrain4", "QualityPolicyRelativePopularity constraint", "summary", "Low popularity");
+
+    newRepositoryPolicyViolation(repository.getId(), 2, repositoryComponent.getPathname(), "hash4",
+        Collections.singletonList(qualityRelativePopularityConstraintFact), false, "warn",
+        RelativePopularityConditionType.ID, "QualityPolicyRelativePopularity", componentIdentifier, date,
+        "policyWaiverId4", "policy waiver comment", date, PolicyThreatCategory.QUALITY);
+
     // Other policy violation
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, repositoryComponent.getPathname(), false, "fail",
-        "CoordinatesPolicy", CoordinatesConditionType.ID, componentIdentifier, date);
+    ConstraintFact coordinatesConstraintFact =
+        createConstraintFact("constrain6", "CoordinatesPolicy constraint", "summary",
+            "Coordinates were com.lingocoder");
+
+    newRepositoryPolicyViolation(repository.getId(), 1, repositoryComponent.getPathname(), "hash6",
+        Collections.singletonList(coordinatesConstraintFact), false, "fail", CoordinatesConditionType.ID,
+        "CoordinatesPolicy", componentIdentifier, date, "policyWaiverId6", "policy waiver comment", date,
+        PolicyThreatCategory.OTHER);
   }
 
   private void createAllTypePolicies() {
@@ -299,25 +373,25 @@ public class FirewallCDPTest
   @Test
   public void testTitle() {
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
-    firewallCDPPage.title().should(exist).shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
+    firewallComponentDetailsPage.title().should(exist).shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
   }
 
   @Test
   public void testFormatTag() {
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
-    firewallCDPPage.formatTag().should(exist).shouldHave(text("Maven"));
+    firewallComponentDetailsPage.formatTag().should(exist).shouldHave(text("Maven"));
   }
 
   @Test
   public void testTabs() {
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
-    ElementsCollection tabs = firewallCDPPage.tabs();
+    ElementsCollection tabs = firewallComponentDetailsPage.tabs();
     tabs.shouldHaveSize(5);
     tabs.first().shouldHave(cssClass("active"));
 
@@ -348,10 +422,10 @@ public class FirewallCDPTest
   public void testRiskRemediationTile_VersionGraphExplorer() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
-    RiskRemediationTile riskRemediation = firewallCDPPage.getRiskRemediationTile();
+    RiskRemediationTile riskRemediation = firewallComponentDetailsPage.getRiskRemediationTile();
     riskRemediation.shouldBe(visible);
     riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
 
@@ -366,10 +440,10 @@ public class FirewallCDPTest
   public void testRiskRemediationTile_RecommendedVersions_NoRecommendation() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
-    RiskRemediationTile riskRemediation = firewallCDPPage.getRiskRemediationTile();
+    RiskRemediationTile riskRemediation = firewallComponentDetailsPage.getRiskRemediationTile();
     riskRemediation.shouldBe(visible);
     riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
 
@@ -390,17 +464,17 @@ public class FirewallCDPTest
   public void testCompareVersionsTable() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
-    RiskRemediationTile riskRemediation = firewallCDPPage.getRiskRemediationTile();
+    RiskRemediationTile riskRemediation = firewallComponentDetailsPage.getRiskRemediationTile();
     riskRemediation.compareVersionsTitle().shouldBe(visible).shouldHave(text("Compare Versions"));
     ScrollUtil.scrollIntoView(riskRemediation.compareVersionsTitle());
     RiskRemediationTile.CompareVersionsTable table = riskRemediation.compareVersionsTable();
     table.shouldBe(visible);
     table.versionRow().get(1).shouldHave(text("0.5.2"));
     table.versionRow().get(2).shouldHave(text("-"));
-    table.highestPolicyThreatRow().get(1).shouldHave(text("10 within 6 policies"));
+    table.highestPolicyThreatRow().get(1).shouldHave(text("10 within 7 policies"));
     table.highestPolicyThreatRow().get(2).shouldBe(empty);
     table.highestSecurityThreatRow().get(1).shouldHave(text("10"));
     table.highestSecurityThreatRow().get(2).shouldBe(empty);
@@ -463,19 +537,20 @@ public class FirewallCDPTest
       String unquarantineTimeString,
       String unquarantineType)
   {
-    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
-    firewallCDPPage.getNextVersionInVersionExplorer().click();
+    waitUntilElementAppears(firewallComponentDetailsPage.getNextVersionInVersionExplorer());
+    firewallComponentDetailsPage.getNextVersionInVersionExplorer().click();
     waitUntilSpinnersGone();
 
-    RiskRemediationTile riskRemediation = firewallCDPPage.getRiskRemediationTile();
+    RiskRemediationTile riskRemediation = firewallComponentDetailsPage.getRiskRemediationTile();
     riskRemediation.compareVersionsTitle().shouldBe(visible).shouldHave(text("Compare Versions"));
     ScrollUtil.scrollIntoView(riskRemediation.compareVersionsTitle());
     RiskRemediationTile.CompareVersionsTable table = riskRemediation.compareVersionsTable();
     table.shouldBe(visible);
     table.versionRow().get(1).shouldHave(text("0.5.2"));
     table.versionRow().get(2).shouldHave(text("0.5.3"));
-    table.highestPolicyThreatRow().get(1).shouldHave(text("10 within 6 policies"));
+    table.highestPolicyThreatRow().get(1).shouldHave(text("10 within 7 policies"));
     table.highestPolicyThreatRow().get(2).shouldHave(text("5 within 2 policies"));
     table.highestSecurityThreatRow().get(1).shouldHave(text("10"));
     table.highestSecurityThreatRow().get(2).shouldHave(text("None"));
@@ -535,7 +610,7 @@ public class FirewallCDPTest
   }
 
   private void testCompareButtons(int recommendationIndex) {
-    RiskRemediationTile riskRemediation = firewallCDPPage.getRiskRemediationTile();
+    RiskRemediationTile riskRemediation = firewallComponentDetailsPage.getRiskRemediationTile();
 
     riskRemediation.shouldBe(visible);
     RiskRemediationTile.RecommendedVersionsSection recommendedVersionsSection =
@@ -571,22 +646,22 @@ public class FirewallCDPTest
   public void testRiskRemediationTile() {
     createSecurityPolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
     testCompareButtons(0);
 
-    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
     testCompareButtons(1);
 
-    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
     testCompareButtons(2);
 
-    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
     testCompareButtons(3);
@@ -596,105 +671,105 @@ public class FirewallCDPTest
   public void testComponentOverviewTile() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
 
-    firewallCDPPage.getComponentOverviewTile().shouldBe(visible);
-    firewallCDPPage.getComponentOverviewTileReadOnlyItemData(0).shouldHave(text("Exact"));
-    firewallCDPPage.getComponentOverviewTileReadOnlyItemData(1).shouldHave(text("Sonatype"));
-    firewallCDPPage.getComponentOverviewTileReadOnlyItemData(2).shouldHave(text("Visit Project Website"));
-    firewallCDPPage.getComponentOverviewTileReadOnlyItemData(3).shouldHave(text("Other"));
+    firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(0).shouldHave(text("Exact"));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(1).shouldHave(text("Sonatype"));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(2).shouldHave(text("Visit Project Website"));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(3).shouldHave(text("Other"));
 
-    firewallCDPPage.getComponentOverviewTile().shouldBe(visible);
-    firewallCDPPage.getViewCoordinatesButton().click();
-    firewallCDPPage.getComponentCoordinatesPopOver().shouldBe(visible);
-    firewallCDPPage.getComponentCoordinatesPopOverData(0).shouldHave(text("maven"));
-    firewallCDPPage.getComponentCoordinatesPopOverData(1).shouldHave(text("com.lingocoder"));
-    firewallCDPPage.getComponentCoordinatesPopOverData(2).shouldHave(text("abi.cli"));
-    firewallCDPPage.getComponentCoordinatesPopOverData(3).shouldHave(text("0.5.2"));
-    firewallCDPPage.getComponentCoordinatesPopOverCloseBtn().click();
-    firewallCDPPage.getComponentCoordinatesPopOver().shouldNotBe(visible);
+    firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
+    firewallComponentDetailsPage.getViewCoordinatesButton().click();
+    firewallComponentDetailsPage.getComponentCoordinatesPopOver().shouldBe(visible);
+    firewallComponentDetailsPage.getComponentCoordinatesPopOverData(0).shouldHave(text("maven"));
+    firewallComponentDetailsPage.getComponentCoordinatesPopOverData(1).shouldHave(text("com.lingocoder"));
+    firewallComponentDetailsPage.getComponentCoordinatesPopOverData(2).shouldHave(text("abi.cli"));
+    firewallComponentDetailsPage.getComponentCoordinatesPopOverData(3).shouldHave(text("0.5.2"));
+    firewallComponentDetailsPage.getComponentCoordinatesPopOverCloseBtn().click();
+    firewallComponentDetailsPage.getComponentCoordinatesPopOver().shouldNotBe(visible);
   }
 
   @Test
   public void testComponentDirectLinkFirewallPolicyViolations() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.urlViolationsTab(component));
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
     waitUntilSpinnersGone();
 
-    firewallCDPPage.getPolicyViolationsComponent().shouldBe(visible);
+    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
   }
 
   @Test
   public void testComponentFirewallPolicyViolationsClickTab() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.defaultUrl(component));
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
-    ElementsCollection tabs = firewallCDPPage.tabs();
+    ElementsCollection tabs = firewallComponentDetailsPage.tabs();
     tabs.shouldHaveSize(5);
     tabs.get(1).click();
     tabs.get(1).shouldHave(cssClass("active"));
     assertThat(getWebDriver().getCurrentUrl()).contains("/violations?");
 
-    firewallCDPPage.getPolicyViolationsComponent().shouldBe(visible);
+    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
   }
 
   @Test
   public void testComponentPolicyViolationsTitle() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.urlViolationsTab(component));
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
     waitUntilSpinnersGone();
 
-    firewallCDPPage.getComponentPolicyViolationsTitle().shouldBe(visible);
+    firewallComponentDetailsPage.getComponentPolicyViolationsTitle().shouldBe(visible);
   }
 
   @Test
   public void testComponentPolicyViolationsTable() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.urlViolationsTab(component));
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
     waitUntilSpinnersGone();
 
-    firewallCDPPage.getComponentPolicyViolationsTable().shouldBe(visible);
+    firewallComponentDetailsPage.getComponentPolicyViolationsTable().shouldBe(visible);
   }
 
   @Test
   public void testComponentPolicyViolationsRows() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.urlViolationsTab(component));
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
     waitUntilSpinnersGone();
 
-    firewallCDPPage.getComponentPolicyViolationsTableCols().first().findAll(By.tagName("td"));
+    firewallComponentDetailsPage.getComponentPolicyViolationsTableCols().first().findAll(By.tagName("td"));
   }
 
   @Test
   public void testComponentPolicyViolationsRowHeaders() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.urlViolationsTab(component));
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
     waitUntilSpinnersGone();
 
-    firewallCDPPage.getComponentPolicyViolationsTableHeaders(0).shouldHave(text("Threat"));
-    firewallCDPPage.getComponentPolicyViolationsTableHeaders(1).shouldHave(text("Policy/Action"));
-    firewallCDPPage.getComponentPolicyViolationsTableHeaders(2).shouldHave(text("Constraint Name"));
-    firewallCDPPage.getComponentPolicyViolationsTableHeaders(3).shouldHave(text("Condition"));
-    
-    eyesWatcher.eyesCheck(
-        "Firewall Component Details Page - Policy violation table ");
+    firewallComponentDetailsPage.getComponentPolicyViolationsTableHeaders(0).shouldHave(text("Threat"));
+    firewallComponentDetailsPage.getComponentPolicyViolationsTableHeaders(1).shouldHave(text("Policy/Action"));
+    firewallComponentDetailsPage.getComponentPolicyViolationsTableHeaders(2).shouldHave(text("Constraint Name"));
+    firewallComponentDetailsPage.getComponentPolicyViolationsTableHeaders(3).shouldHave(text("Condition"));
+
+    eyesWatcher.eyesCheck("Firewall Component Details Page - Policy violation table ");
   }
 
   @Test
   public void testPolicyViolationsTableContent() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(FirewallCDPPage.urlViolationsTab(component));
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
     waitUntilSpinnersGone();
 
-    FirewallPolicyViolationsTable policyViolationsTable = firewallCDPPage.getFirewallPolicyViolationsTable();
+    FirewallPolicyViolationsTable policyViolationsTable =
+        firewallComponentDetailsPage.getFirewallPolicyViolationsTable();
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHaveSize(6);
 
@@ -702,47 +777,165 @@ public class FirewallCDPTest
     securityViolationCells.shouldHaveSize(6);
     securityViolationCells.get(0).shouldHave(text("10"));
     securityViolationCells.get(1).shouldHave(text("SecurityPolicy"));
-    securityViolationCells.get(2).shouldHave(text("SecurityPolicy constraint"));
-    securityViolationCells.get(3).shouldHave(text("Found security vulnerability"));
+    securityViolationCells.get(2).shouldHave(text("Security constraint"));
+    securityViolationCells.get(3).shouldHave(text("security vulnerability severity >= 9.1"));
     securityViolationCells.get(4).shouldBe(empty);
 
     ElementsCollection securityLowViolationCells = policyViolationsTable.getRows().get(1).findAll(By.tagName("td"));
     securityLowViolationCells.get(0).shouldHave(text("6"));
     securityLowViolationCells.get(1).shouldHave(text("Security-Low"));
     securityLowViolationCells.get(2).shouldHave(text("Security-low constraint"));
-    securityLowViolationCells.get(3).shouldHave(text("Found security vulnerability"));
+    securityLowViolationCells.get(3).shouldHave(text("security vulnerability severity >= 4.3"));
     securityLowViolationCells.get(4).shouldBe(empty);
 
-    ElementsCollection licenseViolationCells = policyViolationsTable.getRows().get(2)
-        .findAll(By.tagName("td"));
+    ElementsCollection licenseViolationCells = policyViolationsTable.getRows().get(2).findAll(By.tagName("td"));
     licenseViolationCells.get(0).shouldHave(text("5"));
     licenseViolationCells.get(1).shouldHave(text("LicensePolicy"));
     licenseViolationCells.get(2).shouldHave(text("LicensePolicy constraint"));
     licenseViolationCells.get(3).shouldHave(text("Found license threat group"));
     licenseViolationCells.get(4).shouldBe(empty);
 
-    ElementsCollection qualityAgeInDaysViolationCells = policyViolationsTable.getRows().get(3)
-        .findAll(By.tagName("td"));
-    qualityAgeInDaysViolationCells.get(0).shouldHave(text("2"));
+    ElementsCollection qualityAgeInDaysViolationCells =
+        policyViolationsTable.getRows().get(3).findAll(By.tagName("td"));
+    qualityAgeInDaysViolationCells.get(0).shouldHave(text("4"));
     qualityAgeInDaysViolationCells.get(1).shouldHave(text("QualityPolicyAgeInDays"));
     qualityAgeInDaysViolationCells.get(2).shouldHave(text("QualityPolicyAgeInDays constraint"));
     qualityAgeInDaysViolationCells.get(3).shouldHave(text("Found component younger than 50 days"));
     qualityAgeInDaysViolationCells.get(4).shouldBe(empty);
 
-    ElementsCollection qualityPopularityViolationCells = policyViolationsTable.getRows().get(4)
-        .findAll(By.tagName("td"));
+    ElementsCollection qualityPopularityViolationCells =
+        policyViolationsTable.getRows().get(4).findAll(By.tagName("td"));
     qualityPopularityViolationCells.get(0).shouldHave(text("2"));
     qualityPopularityViolationCells.get(1).shouldHave(text("QualityPolicyRelativePopularity"));
     qualityPopularityViolationCells.get(2).shouldHave(text("QualityPolicyRelativePopularity constraint"));
-    qualityPopularityViolationCells.get(3).shouldHave(text("Relative popularity was"));
+    qualityPopularityViolationCells.get(3).shouldHave(text("Low popularity"));
     qualityPopularityViolationCells.get(4).shouldBe(empty);
 
-    ElementsCollection otherViolationCells = policyViolationsTable.getRows().get(5)
-        .findAll(By.tagName("td"));
+    ElementsCollection otherViolationCells = policyViolationsTable.getRows().get(5).findAll(By.tagName("td"));
     otherViolationCells.get(0).shouldHave(text("1"));
     otherViolationCells.get(1).shouldHave(text("CoordinatesPolicy"));
     otherViolationCells.get(2).shouldHave(text("CoordinatesPolicy constraint"));
     otherViolationCells.get(3).shouldHave(text("Coordinates were com.lingocoder"));
     otherViolationCells.get(4).shouldBe(empty);
+  }
+
+  @Test
+  public void testSecurityTabLoadByUrlChange() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
+    waitUntilSpinnersGone();
+
+    firewallComponentDetailsPage.getSecurityTabContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testSecurityTabLoadByTabClick() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
+    waitUntilSpinnersGone();
+
+    ElementsCollection tabs = firewallComponentDetailsPage.tabs();
+    tabs.get(0).shouldHave(cssClass("active"));
+
+    tabs.get(2).click();
+    waitUntilSpinnersGone();
+    tabs.get(2).shouldHave(cssClass("active"));
+    assertThat(getWebDriver().getCurrentUrl()).contains("/security?");
+
+    firewallComponentDetailsPage.getSecurityTabContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testSecurityTabSecurityViolationsTable() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
+    waitUntilSpinnersGone();
+
+    PolicyViolationsTable policyViolationsTable =
+        PolicyViolationsTable.getPolicyViolationsTableForParent(FirewallComponentDetailsPage.ROOT);
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(2);
+
+    ElementsCollection policyViolationsRow1 = policyViolationsTable.getCellsByNthRow(1);
+    ElementsCollection policyViolationsRow2 = policyViolationsTable.getCellsByNthRow(2);
+
+    policyViolationsRow1.shouldHaveSize(6);
+    policyViolationsRow1.get(0).shouldHave(text("10"));
+    policyViolationsRow1.get(1).shouldHave(text("SecurityPolicy Proxy Failing"));
+    policyViolationsRow1.get(2).shouldHave(text("Security constraint"));
+    policyViolationsRow1.get(3).shouldHave(text("security vulnerability severity >= 9.1"));
+
+    policyViolationsRow2.shouldHaveSize(6);
+    policyViolationsRow2.get(0).shouldHave(text("6"));
+    policyViolationsRow2.get(1).shouldHave(text("Security-Low Proxy Warning"));
+    policyViolationsRow2.get(2).shouldHave(text("Security-low constraint"));
+    policyViolationsRow2.get(3).shouldHave(text("security vulnerability severity >= 4.3"));
+  }
+
+  @Test
+  public void testSecurityTabVulnerabilitiesTable() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
+    waitUntilSpinnersGone();
+
+    VulnerabilitiesTable vulnerabilitiesTable =
+        VulnerabilitiesTable.getVulnerabilitiesTableForParent(FirewallComponentDetailsPage.ROOT);
+    vulnerabilitiesTable.shouldBe(visible);
+
+    ElementsCollection vulnerabilityRow1Cells = vulnerabilitiesTable.getCellsByNthRow(1);
+    ElementsCollection vulnerabilityRow2Cells = vulnerabilitiesTable.getCellsByNthRow(2);
+
+    vulnerabilityRow1Cells.shouldHaveSize(4);
+    vulnerabilityRow1Cells.get(0).shouldHave(text("9"));
+    vulnerabilityRow1Cells.get(1).shouldHave(text("sonatype-2017-0507"));
+    vulnerabilityRow1Cells.get(2).shouldHave(text("Open"));
+    vulnerabilityRow1Cells.get(3).shouldBe(empty);
+
+    vulnerabilityRow2Cells.shouldHaveSize(4);
+    vulnerabilityRow2Cells.get(0).shouldHave(text("4"));
+    vulnerabilityRow2Cells.get(1).shouldHave(text("CVE-1234-56789"));
+    vulnerabilityRow2Cells.get(2).shouldHave(text("Open"));
+    vulnerabilityRow2Cells.get(3).shouldBe(empty);
+  }
+
+  private void mockHdsResponsesForVulnerabilityDetails() {
+    testCLMServer.getHdsServer()
+        .respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails_CVE-1234-56789.json"))
+        .atUri("rest/vulnerability/details/json/CVE-1234-56789");
+    testCLMServer.getHdsServer().respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails2.json"))
+        .atUri("rest/vulnerability/details/json/sonatype-2017-0507");
+  }
+
+  @Test
+  public void testSecurityTabVulnerabilitiesTableRowClick() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    mockHdsResponsesForVulnerabilityDetails();
+    refreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
+    waitUntilSpinnersGone();
+
+    VulnerabilitiesTable vulnerabilitiesTable =
+        VulnerabilitiesTable.getVulnerabilitiesTableForParent(FirewallComponentDetailsPage.ROOT);
+    vulnerabilitiesTable.shouldBe(visible);
+
+    ElementsCollection vulnerabilityRow1Cells = vulnerabilitiesTable.getCellsByNthRow(1);
+    ElementsCollection vulnerabilityRow2Cells = vulnerabilitiesTable.getCellsByNthRow(2);
+
+    VulnerabilityDetailsPopover vulnerabilityDetailsPopover = new VulnerabilityDetailsPopover();
+
+    vulnerabilityRow1Cells.get(3).click();
+    vulnerabilityRow1Cells.get(2)
+        .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
+    vulnerabilityRow1Cells.get(1).shouldHave(text(vulnerabilityDetailsPopover.vulnerabilityTitle().getText()));
+    vulnerabilityDetailsPopover.getCloseButton().click();
+
+    vulnerabilityRow2Cells.get(3).click();
+    vulnerabilityRow2Cells.get(2)
+        .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
+    vulnerabilityRow2Cells.get(1).shouldHave(text(vulnerabilityDetailsPopover.vulnerabilityTitle().getText()));
   }
 }

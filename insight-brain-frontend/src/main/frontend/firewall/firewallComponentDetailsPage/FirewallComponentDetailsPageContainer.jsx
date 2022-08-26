@@ -9,7 +9,11 @@ import {
   selectFirewallComponentDetailsPageRouteParams,
   selectFirewallComponentDetailsPage,
 } from '../firewallSelectors';
-import { loadComponentDetails, onComponentDetailsPageTabChange } from '../firewallActions';
+import {
+  loadComponentDetails,
+  onComponentDetailsPageTabChange,
+  loadComponentPolicyViolations,
+} from '../firewallActions';
 
 function mapStateToProps(state) {
   return {
@@ -20,7 +24,8 @@ function mapStateToProps(state) {
 
 const mapDispatchToProps = {
   loadComponentDetails,
-  onComponentDetailsPageTabChange: onComponentDetailsPageTabChange,
+  onComponentDetailsPageTabChange,
+  loadComponentPolicyViolations,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(FirewallComponentDetailsPage);

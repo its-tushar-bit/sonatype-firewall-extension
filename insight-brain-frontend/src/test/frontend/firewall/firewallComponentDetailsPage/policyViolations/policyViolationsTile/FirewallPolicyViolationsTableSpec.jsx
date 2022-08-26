@@ -15,54 +15,54 @@ describe('FirewallPolicyViolationsTable', () => {
   beforeEach(() => {
     notSortArray = [
       {
-        threatLevel: 1,
+        policyThreatLevel: 1,
         policyName: 'Architecture-Quality',
       },
       {
-        threatLevel: 1,
+        policyThreatLevel: 1,
         policyName: 'Architecture-Quality',
       },
       {
-        threatLevel: 5,
+        policyThreatLevel: 5,
         policyName: 'test-policy',
       },
       {
-        threatLevel: 1,
+        policyThreatLevel: 1,
         policyName: 'Architecture-Cleanup',
       },
       {
-        threatLevel: 7,
+        policyThreatLevel: 7,
         policyName: 'Security-Medium',
       },
       {
-        threatLevel: 7,
+        policyThreatLevel: 7,
         policyName: 'Security-Medium',
       },
     ];
 
     expectArray = [
       {
-        threatLevel: 7,
+        policyThreatLevel: 7,
         policyName: 'Security-Medium',
       },
       {
-        threatLevel: 7,
+        policyThreatLevel: 7,
         policyName: 'Security-Medium',
       },
       {
-        threatLevel: 5,
+        policyThreatLevel: 5,
         policyName: 'test-policy',
       },
       {
-        threatLevel: 1,
+        policyThreatLevel: 1,
         policyName: 'Architecture-Cleanup',
       },
       {
-        threatLevel: 1,
+        policyThreatLevel: 1,
         policyName: 'Architecture-Quality',
       },
       {
-        threatLevel: 1,
+        policyThreatLevel: 1,
         policyName: 'Architecture-Quality',
       },
     ];

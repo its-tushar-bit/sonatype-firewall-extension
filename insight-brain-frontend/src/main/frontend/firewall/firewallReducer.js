@@ -40,6 +40,9 @@ import {
   FIREWALL_COMPONENT_DETAILS_REQUESTED,
   FIREWALL_COMPONENT_DETAILS_FULFILLED,
   FIREWALL_COMPONENT_DETAILS_FAILED,
+  FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED,
+  FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED,
+  FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED,
 } from './firewallActions';
 import { __, always, assoc, curry, dissoc, lensPath, lensProp, merge, over, prop } from 'ramda';
 import { pathSet } from '../util/jsUtil';
@@ -55,6 +58,9 @@ const initialState = Object.freeze({
     isLoadingComponentDetails: false,
     componentDetails: null,
     componentDetailsError: null,
+    policyViolations: null,
+    isLoadingPolicyViolations: false,
+    policyViolationsError: null,
   }),
   viewState: Object.freeze({
     isShowConfigurationModal: false,
@@ -220,6 +226,35 @@ const loadPoliciesFailed = (payload, state) => ({
   policiesState: {
     loadedPolicies: true,
     policies: [],
+  },
+});
+
+const loadComponentPolicyViolationsRequested = (_, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    policyViolations: null,
+    isLoadingPolicyViolations: true,
+    policyViolationsError: null,
+  },
+});
+
+const loadComponentPolicyViolationsFulfilled = (payload, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    policyViolations: payload,
+    isLoadingPolicyViolations: false,
+    policyViolationsError: null,
+  },
+});
+
+const loadComponentPolicyViolationsFailed = (error, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    isLoadingPolicyViolations: false,
+    policyViolationsError: error,
   },
 });
 
@@ -536,6 +571,9 @@ const reducerActionMap = {
   [FIREWALL_COMPONENT_DETAILS_REQUESTED]: loadComponentDetailsRequested,
   [FIREWALL_COMPONENT_DETAILS_FULFILLED]: loadComponentDetailsFulfilled,
   [FIREWALL_COMPONENT_DETAILS_FAILED]: loadComponentDetailsFailed,
+  [FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED]: loadComponentPolicyViolationsRequested,
+  [FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED]: loadComponentPolicyViolationsFulfilled,
+  [FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED]: loadComponentPolicyViolationsFailed,
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

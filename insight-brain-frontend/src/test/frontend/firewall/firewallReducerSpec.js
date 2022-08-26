@@ -17,6 +17,9 @@ describe('firewallReducer', function () {
       isLoadingComponentDetails: false,
       componentDetails: null,
       componentDetailsError: null,
+      policyViolations: null,
+      isLoadingPolicyViolations: false,
+      policyViolationsError: null,
     }),
     viewState: Object.freeze({
       isShowConfigurationModal: false,
@@ -905,6 +908,79 @@ describe('firewallReducer', function () {
           isLoadingComponentDetails: false,
           componentDetails: null,
           componentDetailsError: 'Error',
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED action', function () {
+    it('updates the state and sets isLoadingPolicyViolations to true', () => {
+      let minimumState = {
+        componentDetailsPage: {
+          policyViolations: null,
+          isLoadingPolicyViolations: false,
+          policyViolationsError: null,
+        },
+      };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED' })).toEqual({
+        ...minimumState,
+        componentDetailsPage: {
+          ...minimumState.componentDetailsPage,
+          policyViolations: null,
+          isLoadingPolicyViolations: true,
+          policyViolationsError: null,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED action', function () {
+    it('updates the state and sets componentDetails with the response results', () => {
+      let minimumState = {
+        componentDetailsPage: {
+          policyViolations: null,
+          isLoadingPolicyViolations: false,
+          policyViolationsError: null,
+        },
+      };
+
+      expect(
+        reduce(minimumState, {
+          type: 'FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED',
+          payload: { data: 'payload' },
+        })
+      ).toEqual({
+        ...minimumState,
+        componentDetailsPage: {
+          ...minimumState.componentDetailsPage,
+          policyViolations: { data: 'payload' },
+          isLoadingPolicyViolations: false,
+          policyViolationsError: null,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED action', function () {
+    it('updates the state and sets componentDetailsError with the request error message', () => {
+      let minimumState = {
+        componentDetailsPage: {
+          policyViolations: null,
+          isLoadingPolicyViolations: true,
+          policyViolationsError: null,
+        },
+      };
+
+      expect(
+        reduce(minimumState, { type: 'FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED', payload: 'Error' })
+      ).toEqual({
+        ...minimumState,
+        componentDetailsPage: {
+          ...minimumState.componentDetailsPage,
+          policyViolations: null,
+          isLoadingPolicyViolations: false,
+          policyViolationsError: 'Error',
         },
       });
     });

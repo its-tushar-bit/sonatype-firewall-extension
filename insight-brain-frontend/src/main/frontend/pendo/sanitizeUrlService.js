@@ -20,6 +20,7 @@ const queryParamsToShowInPlaintext = [
   'proprietary',
   'identificationSource',
   'scanId',
+  'pathname',
 ];
 
 /**

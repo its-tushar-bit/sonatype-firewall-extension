@@ -13,79 +13,41 @@ describe('FirewallPolicyViolationsTableRow component', () => {
   beforeEach(() => {
     minimalProps = {
       violation: {
-        policyId: 'd98fb873ed1f48e5b00316d8acddbc0f',
+        policyViolationId: '049d0649944148b0be20ab9d75b5ff7a',
+        policyId: 'f2c65f8d67e8405eb7d789dc227a37d4',
         policyName: 'Security-Medium',
-        threatLevel: 7,
-        componentFacts: [
+        policyThreatLevel: 7,
+        policyThreatCategory: 'SECURITY',
+        constraints: [
           {
-            componentIdentifier: {
-              format: 'maven',
-              coordinates: {
-                artifactId: 'ant',
-                classifier: '',
-                extension: 'jar',
-                groupId: 'ant',
-                version: '1.6',
-              },
-            },
-            hash: '7a3c2521ae0c6f53e044',
-            constraintFacts: [
+            constraintId: 'f60e96454d5148b69e45326409f5d976',
+            constraintName: 'Medium risk CVSS score',
+            constraintOperator: 'AND',
+            conditions: [
               {
-                constraintId: 'c6436a5a051046b1ba2aa94e9fd82a51',
-                constraintName: 'Medium risk CVSS score',
-                operatorName: 'AND',
-                conditionFacts: [
-                  {
-                    conditionTypeId: 'SecurityVulnerabilitySeverity',
-                    conditionIndex: 0,
-                    summary: 'Security Vulnerability Severity >= 4',
-                    reason: 'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)',
-                    reference: {
-                      value: 'CVE-2012-2098',
-                      type: 'SECURITY_VULNERABILITY_REFID',
-                    },
-                    triggerJson: '{"conditionIndex":0,"trigger":{"refId":"CVE-2012-2098","severity":5.0}}',
-                  },
-                  {
-                    conditionTypeId: 'SecurityVulnerabilitySeverity',
-                    conditionIndex: 1,
-                    summary: 'Security Vulnerability Severity < 7',
-                    reason: 'Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)',
-                    reference: {
-                      value: 'CVE-2012-2098',
-                      type: 'SECURITY_VULNERABILITY_REFID',
-                    },
-                    triggerJson: '{"conditionIndex":1,"trigger":{"refId":"CVE-2012-2098","severity":5.0}}',
-                  },
-                ],
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity >= 4',
+                conditionReason: 'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)',
+                conditionTriggerReference: {
+                  value: 'CVE-2012-2098',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity < 7',
+                conditionReason: 'Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)',
+                conditionTriggerReference: {
+                  value: 'CVE-2012-2098',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
               },
             ],
-            pathnames: [],
-            displayName: {
-              parts: [
-                {
-                  field: 'Group',
-                  value: 'ant',
-                },
-                {
-                  value: ' : ',
-                },
-                {
-                  field: 'Artifact',
-                  value: 'ant',
-                },
-                {
-                  value: ' : ',
-                },
-                {
-                  field: 'Version',
-                  value: '1.6',
-                },
-              ],
-              name: 'ant',
-            },
           },
         ],
+        constraintFactsJson:
+          '[{"constraintId":"f60e96454d5148b69e45326409f5d976","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"}]}]',
+        policyActionTypeId: 'fail',
       },
     };
     renderComponent = (minimalProps) => render(<FirewallPolicyViolationsTableRow {...minimalProps} />);
@@ -109,5 +71,28 @@ describe('FirewallPolicyViolationsTableRow component', () => {
         'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)'
       )
     ).toBeVisible();
+  });
+
+  describe('enabling proxy state flags', () => {
+    beforeEach(() => {
+      renderComponent = (customMinimalProps = minimalProps) =>
+        render(<FirewallPolicyViolationsTableRow {...{ ...customMinimalProps, showProxyState: true }} />);
+    });
+
+    it('render proxy failed state flag', () => {
+      renderComponent();
+
+      const rows = screen.getAllByRole('row');
+
+      expect(within(rows[0].childNodes[1]).getByText('Proxy Failing')).toBeVisible();
+    });
+
+    it('render proxy warning state flag', () => {
+      renderComponent({ ...minimalProps, violation: { ...minimalProps.violation, policyActionTypeId: 'warn' } });
+
+      const rows = screen.getAllByRole('row');
+
+      expect(within(rows[0].childNodes[1]).getByText('Proxy Warning')).toBeVisible();
+    });
   });
 });

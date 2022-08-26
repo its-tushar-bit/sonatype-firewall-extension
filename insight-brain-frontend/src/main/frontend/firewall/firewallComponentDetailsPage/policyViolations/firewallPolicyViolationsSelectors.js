@@ -6,11 +6,11 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { selectFirewallComponentDetailsPage } from '../../firewallSelectors';
 
-export const selectPolicyAlerts = createSelector(
+export const selectPolicyViolations = createSelector(
   selectFirewallComponentDetailsPage,
-  (violations) => violations.componentDetails.policyAlerts
+  (firewallComponentDetailsPage) => firewallComponentDetailsPage.policyViolations
 );
 
-export const selectPolicyViolations = createSelector(selectPolicyAlerts, (violations) =>
-  violations.map((viol) => viol.trigger)
+export const selectSecurityPolicyViolations = createSelector(selectPolicyViolations, (violations) =>
+  violations.filter((violation) => violation.policyThreatCategory === 'SECURITY')
 );

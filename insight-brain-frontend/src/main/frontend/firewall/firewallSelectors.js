@@ -8,7 +8,9 @@ import { createSelector } from '@reduxjs/toolkit';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const selectFirewall = prop('firewall');
-export const selectFirewallComponentDetailsPage = createSelector(selectFirewall, prop('componentDetailsPage'));
+export const selectFirewallComponentDetailsPage = createSelector(selectFirewall, (firewall) => {
+  return firewall.componentDetailsPage;
+});
 export const selectFirewallComponentDetailsPageRouteParams = createSelector(
   selectRouterCurrentParams,
   pickAll([

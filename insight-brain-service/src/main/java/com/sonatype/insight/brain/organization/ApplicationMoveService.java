@@ -59,7 +59,6 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
-import com.sonatype.insight.brain.policy.PolicyService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -141,26 +140,24 @@ public class ApplicationMoveService
 
   private final CurrentUser currentUser;
 
-  private final PolicyService policyService;
-
   @Inject
-  public ApplicationMoveService(ApplicationDAO applicationDAO,
-                                OrganizationDAO organizationDAO,
-                                OwnerDAO ownerDAO,
-                                ApplicationTagDAO applicationTagDAO,
-                                TagDAO tagDAO,
-                                PolicyDAO policyDAO,
-                                PolicyTagDAO policyTagDAO,
-                                PolicyViolationDAO policyViolationDAO,
-                                PolicyWaiverDAO policyWaiverDAO,
-                                PolicyMonitoringDAO policyMonitoringDAO,
-                                LabelDAO labelDAO,
-                                ComponentLabelDAO componentLabelDAO,
-                                LicenseThreatGroupDAO ltgDAO,
-                                LicenseOverrideDAO licenseOverrideDAO,
-                                MembershipMappingDAO membershipMappingDAO,
-                                CurrentUser currentUser,
-                                PolicyService policyService)
+  public ApplicationMoveService(
+      ApplicationDAO applicationDAO,
+      OrganizationDAO organizationDAO,
+      OwnerDAO ownerDAO,
+      ApplicationTagDAO applicationTagDAO,
+      TagDAO tagDAO,
+      PolicyDAO policyDAO,
+      PolicyTagDAO policyTagDAO,
+      PolicyViolationDAO policyViolationDAO,
+      PolicyWaiverDAO policyWaiverDAO,
+      PolicyMonitoringDAO policyMonitoringDAO,
+      LabelDAO labelDAO,
+      ComponentLabelDAO componentLabelDAO,
+      LicenseThreatGroupDAO ltgDAO,
+      LicenseOverrideDAO licenseOverrideDAO,
+      MembershipMappingDAO membershipMappingDAO,
+      CurrentUser currentUser)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
@@ -178,7 +175,6 @@ public class ApplicationMoveService
     this.licenseOverrideDAO = licenseOverrideDAO;
     this.membershipMappingDAO = membershipMappingDAO;
     this.currentUser = currentUser;
-    this.policyService = policyService;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -298,7 +294,7 @@ public class ApplicationMoveService
           if (owner.getId().equals(newParent.getParentOwnerId()) || owner.getId().equals(newParent.getId())) {
             break;
           }
-          policyService.removeOverrides(tx, owner.getId(), application.getId());
+          removePolicyActionOverrides(tx, owner.getId(), application.getId());
         }
 
         loadOldPolicyConfiguration();
@@ -337,6 +333,16 @@ public class ApplicationMoveService
         warnings.add(String.format(LICENSE_OVERRIDES_LOST_MSG, lostLicenseOverrides));
       }
       return warnings;
+    }
+
+    private void removePolicyActionOverrides(TransactionContext tx, String internalOwnerId, String applicationId) {
+      policyDAO.getByOwnerId(tx, internalOwnerId).stream() //
+          .filter(policy -> policy.getPolicyActionsOverrides() != null
+              && policy.getPolicyActionsOverrides().containsKey(applicationId)) //
+          .forEach(policy -> {
+            policy.getPolicyActionsOverrides().remove(applicationId);
+            policyDAO.update(tx, policy);
+          });
     }
 
     private void loadOldPolicyConfiguration() {

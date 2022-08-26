@@ -760,6 +760,20 @@ public class ApplicationDAOTest
   }
 
   @Test
+  public void testDelete_CascadesToPolicyActionOverrides() {
+    Map<String, String> policyActionsOverrides = new HashMap<>();
+    policyActionsOverrides.put("build", "warn");
+    Policy policyWithOverrides = tempEntity.newPolicy(application.getOrganizationId());
+    policyWithOverrides.addPolicyActionsOverride(application.getId(), policyActionsOverrides);
+    policyWithOverrides.addPolicyActionsOverride("fakeOwnerId", policyActionsOverrides);
+    new PolicyDAO().update(policyWithOverrides);
+
+    applicationDAO.delete(application);
+    Policy policy = new PolicyDAO().getById(policyWithOverrides.getId());
+    assertThat(policy.getPolicyActionsOverrides().keySet()).containsExactly("fakeOwnerId");
+  }
+
+  @Test
   public void testDelete_CascadesToLicenseOverrides() {
     LicenseOverride licenseOverride = new LicenseOverride(application.getId(),
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"),

@@ -7,7 +7,9 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -469,6 +471,22 @@ public class OrganizationDAOTest
     dao.delete(organization);
     policies = policyDAO.getByOwnerId(organization.getId());
     assertThat(policies).isEmpty();
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicyActionOverrides() {
+    Organization organization = tempEntity.newOrganization("organization");
+
+    Map<String, String> policyActionsOverrides = new HashMap<>();
+    policyActionsOverrides.put("build", "warn");
+    Policy policyWithOverrides = tempEntity.newPolicy(organization.getParentOrganizationId());
+    policyWithOverrides.addPolicyActionsOverride(organization.getId(), policyActionsOverrides);
+    policyWithOverrides.addPolicyActionsOverride("fakeOwnerId", policyActionsOverrides);
+    new PolicyDAO().update(policyWithOverrides);
+
+    dao.delete(organization);
+    Policy policy = new PolicyDAO().getById(policyWithOverrides.getId());
+    assertThat(policy.getPolicyActionsOverrides().keySet()).containsExactly("fakeOwnerId");
   }
 
   @Test

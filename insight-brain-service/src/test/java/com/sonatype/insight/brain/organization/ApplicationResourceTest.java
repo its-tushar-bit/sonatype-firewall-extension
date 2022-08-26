@@ -8,9 +8,8 @@ package com.sonatype.insight.brain.organization;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
 import javax.imageio.ImageIO;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -19,23 +18,18 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class ApplicationResourceTest
     extends AbstractResourceTest
 {
-  private static final PolicyDAO policyDAO = new PolicyDAO();
-
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(ApplicationResource.RESOURCE_PATH);
@@ -413,42 +407,6 @@ public class ApplicationResourceTest
   public void testGenerateIcon() throws Exception {
     HttpResponse response = restRequest().path(ApplicationResource.GENERATE_ICON_PATH).parameter("hash").get();
     testValidIconResponse(response);
-  }
-
-  @Test
-  public void testRemoveOverrides() throws Exception {
-    //given
-
-    String applicationPublicId = "PolicyResourceTest_testRemoveOverrides";
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
-    Map<String, String> actionsOverride = new HashMap<>();
-    actionsOverride.put("stage-release", "fail");
-    Policy firstPolicy = tempEntity.newPolicy();
-    Policy secondPolicy = tempEntity.newPolicy();
-    Policy policyWithEmptyOverrides = tempEntity.newPolicy();
-    firstPolicy.addPolicyActionsOverride(application.getId(), actionsOverride);
-    firstPolicy.addPolicyActionsOverride("appId", actionsOverride);
-    secondPolicy.addPolicyActionsOverride(application.getId(), actionsOverride);
-    policyDAO.update(firstPolicy);
-    policyDAO.update(secondPolicy);
-    policyDAO.update(policyWithEmptyOverrides);
-
-    //when
-    restRequest().path(applicationPublicId).delete();
-
-    //then
-    List<Policy> expectedPolicyState = policyDAO.getAll();
-    assertThat(3).isEqualTo(expectedPolicyState.size());
-
-    Map<String, Map<String, String>> firstPolicyActionsOverrides =
-        expectedPolicyState.get(1).getPolicyActionsOverrides();
-    assertThat(firstPolicyActionsOverrides.size()).isOne();
-
-    assertTrue(firstPolicyActionsOverrides.containsKey("appId"));
-
-    Map<String, Map<String, String>> secondPolicyActionsOverrides =
-        expectedPolicyState.get(2).getPolicyActionsOverrides();
-    assertThat(secondPolicyActionsOverrides).isEmpty();
   }
 
   private void makeScanReceipt() throws Exception {

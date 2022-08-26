@@ -7,18 +7,14 @@ package com.sonatype.insight.brain.organization;
 
 import java.io.File;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.policy.PolicyService;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
@@ -42,7 +38,6 @@ import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class OrganizationServiceTest
@@ -91,8 +86,7 @@ public class OrganizationServiceTest
   @Test
   public void testGetAll() throws Exception {
     OrganizationService organizationService =
-        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory,
-            new PolicyService());
+        new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory);
 
     List<Organization> orgs = organizationService.getAll();
     assertThat(orgs).hasSize(1);
@@ -148,39 +142,5 @@ public class OrganizationServiceTest
     PolicyViolationLogDTOAssert
         .assertOrganizationPolicyViolationData(policyViolationLogDTOs.get(0), PolicyViolationLogEvent.CLEAR,
             organization, before, after, currentUser.getUsername());
-  }
-
-  @Test
-  public void testRemoveOverrides() throws Exception {
-    //given
-    PolicyDAO policyDAO = new PolicyDAO();
-    String organizationName = "PolicyResourceTest_testRemoveOverrides";
-    Organization organization = tempEntity.newOrganization(organizationName);
-    Map<String, String> actionsOverride = new HashMap<>();
-    actionsOverride.put("stage-release", "fail");
-    Policy firstPolicy = tempEntity.newPolicy();
-    Policy secondPolicy = tempEntity.newPolicy();
-    firstPolicy.addPolicyActionsOverride(organization.getId(), actionsOverride);
-    firstPolicy.addPolicyActionsOverride("appId", actionsOverride);
-    secondPolicy.addPolicyActionsOverride(organization.getId(), actionsOverride);
-    policyDAO.update(firstPolicy);
-    policyDAO.update(secondPolicy);
-
-    //when
-    organizationService.deleteOrganization(organization.getId());
-
-    //then
-    List<Policy> expectedPolicyState = policyDAO.getAll();
-    assertThat(2).isEqualTo(expectedPolicyState.size());
-
-    Map<String, Map<String, String>> firstPolicyActionsOverrides =
-        expectedPolicyState.get(0).getPolicyActionsOverrides();
-    assertThat(firstPolicyActionsOverrides.size()).isOne();
-
-    assertTrue(firstPolicyActionsOverrides.containsKey("appId"));
-
-    Map<String, Map<String, String>> secondPolicyActionsOverrides =
-        expectedPolicyState.get(1).getPolicyActionsOverrides();
-    assertThat(secondPolicyActionsOverrides).isEmpty();
   }
 }

@@ -6,13 +6,16 @@
 package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -349,5 +352,19 @@ public class RepositoryDAOTest
     tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo2", true, false /* quarantineEnabled */);
 
     assertThat(dao.getQuarantineEnabledCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void testDelete_CascadesToPolicyActionOverrides() {
+    Map<String, String> policyActionsOverrides = new HashMap<>();
+    policyActionsOverrides.put("build", "warn");
+    Policy policyWithOverrides = tempEntity.newPolicy(RepositoryContainer.SINGLETON.getId());
+    policyWithOverrides.addPolicyActionsOverride(repository.getId(), policyActionsOverrides);
+    policyWithOverrides.addPolicyActionsOverride("fakeOwnerId", policyActionsOverrides);
+    new PolicyDAO().update(policyWithOverrides);
+
+    dao.delete(repository);
+    Policy policy = new PolicyDAO().getById(policyWithOverrides.getId());
+    assertThat(policy.getPolicyActionsOverrides().keySet()).containsExactly("fakeOwnerId");
   }
 }

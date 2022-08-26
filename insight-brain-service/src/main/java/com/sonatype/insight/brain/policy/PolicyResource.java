@@ -82,18 +82,15 @@ public class PolicyResource
 
   private final ManagementEventService managementEventService;
 
-  private final PolicyService policyService;
-
   @Inject
-  public PolicyResource(PolicyImportExport policyImportExport,
-                        NgUploadResponseGenerator ngUploadResponseGenerator,
-                        final ManagementEventService managementEventService,
-                        final PolicyService policyService)
+  public PolicyResource(
+      PolicyImportExport policyImportExport,
+      NgUploadResponseGenerator ngUploadResponseGenerator,
+      final ManagementEventService managementEventService)
   {
     this.policyImportExport = policyImportExport;
     this.ngUploadResponseGenerator = ngUploadResponseGenerator;
     this.managementEventService = managementEventService;
-    this.policyService = policyService;
   }
 
   @GET
@@ -248,7 +245,16 @@ public class PolicyResource
         ownerId, policyId);
 
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
-    Policy policy = policyService.removeOverride(internalOwnerId, policyId);
+    Policy policy = new PolicyDAO().getByIdNotNull(policyId);
+
+    Map<String, Map<String, String>> policyActionOverrides = policy.getPolicyActionsOverrides();
+    if (policyActionOverrides != null && !policyActionOverrides.isEmpty()
+        && policyActionOverrides.containsKey(internalOwnerId)) {
+      policyActionOverrides.remove(internalOwnerId);
+      policy.setPolicyActionsOverrides(policyActionOverrides);
+      new PolicyDAO().update(policy);
+    }
+
     AuditData.get().setPolicy(policy).setData("overridingOwnerId", ownerId);
     managementEventService.postEvent(UPDATED, policy);
 

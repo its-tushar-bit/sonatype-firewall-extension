@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.PolicyService;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -60,16 +59,14 @@ public class OrganizationService
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
-  private final PolicyService policyService;
-
   @Inject
-  public OrganizationService(final InsightWork work,
-                             final ApplicationCleaner applicationCleaner,
-                             final FileCleaner fileCleaner,
-                             final OrganizationDAO organizationDAO,
-                             final ManagementEventService managementEventService,
-                             final PolicyViolationLoggerFactory policyViolationLoggerFactory,
-                             final PolicyService policyService)
+  public OrganizationService(
+      final InsightWork work,
+      final ApplicationCleaner applicationCleaner,
+      final FileCleaner fileCleaner,
+      final OrganizationDAO organizationDAO,
+      final ManagementEventService managementEventService,
+      final PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.work = work;
     this.applicationCleaner = applicationCleaner;
@@ -77,7 +74,6 @@ public class OrganizationService
     this.organizationDAO = organizationDAO;
     this.managementEventService = managementEventService;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
-    this.policyService = policyService;
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
@@ -122,7 +118,6 @@ public class OrganizationService
       organization = organizationDAO.getByIdNotNull(tx, orgId);
       AuditData.get().setOrganization(organization);
       deleteOrganization(tx, organization);
-      policyService.removeOverrides(orgId, tx);
       tx.commit();
       AuditData.get().commitSubEvents();
 

@@ -332,7 +332,7 @@ public class PolicyResourceTest
     constraint.setName("PolicyResourceTest new constraint");
     constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
     policy.addConstraint(constraint);
-    policyDAO.insert(policy);
+    tempEntity.newPolicy(policy);
 
     // Update invalid policy
     policy.setName(null);

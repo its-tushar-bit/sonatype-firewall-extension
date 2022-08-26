@@ -322,8 +322,7 @@ public class ReportResourceTest
     policy.setThreatLevel(8);
     policy.addConstraint(constraint);
     policy.getNotifications().add(new UserNotification("manager@test.corp", Stage.ID_BUILD));
-    PolicyDAO policyDAO = new PolicyDAO();
-    policyDAO.insert(policy);
+    tempEntity.newPolicy(policy);
     final Stage stage = new Stage(Stage.ID_BUILD);
 
     List<Message> notifications = Mailbox.get("manager@test.corp");
@@ -347,7 +346,7 @@ public class ReportResourceTest
 
     // ReEvaluate
     policy.setThreatLevel(policy.getThreatLevel() - 1);
-    policyDAO.update(policy);
+    new PolicyDAO().update(policy);
     response = restRequest(app.getPublicId(), scanId).path("reevaluatePolicy").post();
     assertResponseStatus(200, response);
 

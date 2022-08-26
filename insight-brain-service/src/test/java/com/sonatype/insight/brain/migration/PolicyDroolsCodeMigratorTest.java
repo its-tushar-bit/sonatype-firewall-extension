@@ -49,7 +49,7 @@ public class PolicyDroolsCodeMigratorTest
     Constraint constraint = new Constraint(null, "Test Constraint", LogicalOperator.OR);
     constraint.addCondition(new Condition(LicenseThreatGroupConditionType.ID, "is", ltg.getId()));
     policy.addConstraint(constraint);
-    policyDAO.insert(policy);
+    tempEntity.newPolicy(policy);
 
     new LicenseThreatGroupDAO().delete(ltg);
     ValidationResult validationResult = policy.validate(null, policy.getOwnerId());

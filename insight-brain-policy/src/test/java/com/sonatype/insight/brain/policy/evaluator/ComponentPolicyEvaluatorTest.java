@@ -20,7 +20,6 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
@@ -635,8 +634,7 @@ public class ComponentPolicyEvaluatorTest
     policy1.setOwnerId(app.getId());
     policy1.setConstraints(constraints1);
     policy1.setAction(stage.getStageTypeId(), FailActionType.ID);
-    PolicyDAO policyDAO = new PolicyDAO();
-    policyDAO.insert(policy1);
+    tempEntity.newPolicy(policy1);
     List<Constraint> constraints2 = new ArrayList<>();
     Constraint constraint2 = new Constraint("ConstraintId2", "Constraint Name 2", LogicalOperator.AND);
     constraint2.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -645,7 +643,7 @@ public class ComponentPolicyEvaluatorTest
     policy2.setOwnerId(app.getId());
     policy2.setConstraints(constraints2);
     policy2.setAction(stage.getStageTypeId(), FailActionType.ID);
-    policyDAO.insert(policy2);
+    tempEntity.newPolicy(policy2);
 
     // Create two components
     List<Component> components = new ArrayList<>();

@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.innersource.InnerSourceConsumerTelemetry;
 import com.sonatype.insight.brain.innersource.InnerSourceProducerComponentTelemetry;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
+import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -87,6 +88,11 @@ public final class TelemetryUtils
     }
     if (StringUtils.isNotBlank(clientInstanceId)) {
       attributes.put("client_instance_id", clientInstanceId);
+    }
+
+    final String hostSystem = UserAgentUtils.getHostSystem();
+    if (StringUtils.isNotBlank(hostSystem)) {
+      attributes.put("deployment_type", hostSystem);
     }
 
     telemetryData.setAttributes(attributes);

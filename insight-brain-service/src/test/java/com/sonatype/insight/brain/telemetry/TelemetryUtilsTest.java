@@ -13,13 +13,18 @@ import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
 public class TelemetryUtilsTest
 {
+  @Rule
+  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
   @Test
   public void test_buildThirdPartyScanTelemetryData() {
 
@@ -43,7 +48,7 @@ public class TelemetryUtilsTest
         entry("number_of_components", "0")
     );
     assertThat(telemetryData.getAttributes()).doesNotContainKeys(
-        "client_id", "client_instance_id"
+        "client_id", "client_instance_id", "deployment_type"
     );
   }
 
@@ -60,7 +65,7 @@ public class TelemetryUtilsTest
         entry("number_of_components", "0")
     );
     assertThat(telemetryData.getAttributes()).doesNotContainKeys(
-        "client_id", "client_instance_id"
+        "client_id", "client_instance_id", "deployment_type"
     );
   }
 
@@ -86,6 +91,7 @@ public class TelemetryUtilsTest
         entry("client_other", "Jenkins 2.319.2"),
         entry("client_instance_id", "abc")
     );
+    assertThat(telemetryData.getAttributes()).doesNotContainKeys("deployment_type");
   }
 
   @Test
@@ -107,7 +113,23 @@ public class TelemetryUtilsTest
         entry("number_of_components", "5")
     );
     assertThat(telemetryData.getAttributes()).doesNotContainKeys(
-        "client_id", "client_instance_id"
+        "client_id", "client_instance_id", "deployment_type"
+    );
+  }
+
+  @Test
+  public void test_buildApplicationEvaluationTelemetryData_iqHostProvided() {
+    // given:
+    environmentVariables.set("SONATYPE_INTERNAL_HOST_SYSTEM", "Docker");
+    // when:
+    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+        "appId", "build", ScanTriggerType.CLI, null, null, null);
+    // then:
+    assertThat(telemetryData.getAttributes()).contains(
+        entry("application_id", HdsClientAnalytics.obfuscate("appId")),
+        entry("stage_id", "build"),
+        entry("scan_trigger_type", "CLI"),
+        entry("deployment_type", "Docker")
     );
   }
 }

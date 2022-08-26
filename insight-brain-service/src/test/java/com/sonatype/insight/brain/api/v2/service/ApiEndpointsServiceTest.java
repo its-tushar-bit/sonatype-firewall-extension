@@ -102,21 +102,6 @@ public class ApiEndpointsServiceTest
     )));
   }
 
-  private void setupApplicationClassesAndSingletons() {
-    when(mockApplication.getClasses()).thenReturn(new HashSet<>(Arrays.asList(
-        ApiEndpointsServiceTestInterface.class,
-        ApiEndpointsServiceTestAbstractClass.class
-    )));
-    when(mockApplication.getSingletons()).thenReturn(new HashSet<>(Arrays.asList(
-        new ApiEndpointsServiceTestClass(),
-        new ApiEndpointsServiceTestPublicResource(),
-        new ApiEndpointsServiceTestExperimentalResource(),
-        new ApiEndpointsServiceTestPrivateResource(),
-        new ApiEndpointsServiceTestApiResource(),
-        new ApiEndpointsServiceTestOtherResource()
-    )));
-  }
-
   private interface ApiEndpointsServiceTestInterface
   {
   }

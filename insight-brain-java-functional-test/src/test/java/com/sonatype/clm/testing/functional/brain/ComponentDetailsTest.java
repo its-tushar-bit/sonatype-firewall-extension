@@ -1223,12 +1223,6 @@ public class ComponentDetailsTest
     componentDetailsPage.violationsTabContent().shouldBe(visible);
   }
 
-  private void navigateToComponentDetailsPageSecurityTab(final ComponentDetailsPage componentDetailsPage) {
-    componentDetailsPage.securityTab().click();
-    waitUntilUrl(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, HASH));
-    componentDetailsPage.securityTabContent().shouldBe(visible);
-  }
-
   private void navigateToLegalObligationsPage(final LicenseDetectionsTile licenseDetectionsTile) {
     licenseDetectionsTile.reviewObligationsButton().click();
     waitUntilUrl(LegalApplicationDetailsPage.urlToApplicationScope(app.getPublicId(), "build") + "/component/"

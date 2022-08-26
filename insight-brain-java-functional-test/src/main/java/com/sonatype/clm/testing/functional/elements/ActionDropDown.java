@@ -53,8 +53,8 @@ public class ActionDropDown
     return $("#revoke-policy-violation-grandfathering-link");
   }
 
-  public static SelenideElement evaluateBinaryButton() {
-    return $("#eval-binary-link");
+  public static SelenideElement evaluateFile() {
+    return $("#eval-file-link");
   }
 
   public static SelenideElement importPoliciesButton() {

@@ -70,12 +70,12 @@
               </a>
               <div ng-if="vm.isApp" class="divider"></div>
               <a ng-if="vm.isApp"
-                 id="eval-binary-link"
+                 id="eval-file-link"
                  ng-click="vm.evaluateApp()"
                  class="iq-btn iq-btn--dropdown"
                  tooltip="{{vm.getDisabledEvaluateTooltipMessage()}}"
                  ng-class="{'disabled': !vm.hasPermissionToEvaluateApp || !vm.isEvaluateApplicationAvailable}">
-                <i class="fa fa-upload fa-fw"></i>Evaluate Binary
+                <i class="fa fa-upload fa-fw"></i>Evaluate a File
               </a>
               <div ng-if="vm.isApp" ng-repeat="stage in vm.stages track by stage.stageTypeId">
                 <a class="link iq-dropdown-menu__link tm-stage-{{::stage.stageTypeId}} tm-app-report-link"

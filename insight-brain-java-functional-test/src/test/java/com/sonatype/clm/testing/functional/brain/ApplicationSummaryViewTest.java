@@ -172,7 +172,7 @@ public class ApplicationSummaryViewTest
     ActionDropDown.deleteOwnerButton().shouldBe(visible);
     ActionDropDown.grandfather().shouldBe(visible);
     ActionDropDown.revokeGrandfathered().shouldBe(visible);
-    ActionDropDown.evaluateBinaryButton().shouldBe(visible);
+    ActionDropDown.evaluateFile().shouldBe(visible);
 
     ActionDropDown.actions().shouldHaveSize(9);
 
@@ -333,15 +333,15 @@ public class ApplicationSummaryViewTest
   public void testActionDropDown() {
     super.testActionDropDown();
 
-    testEvaluateApplicationBinary(true);
+    testEvaluateFile(true);
   }
 
   @Test
-  public void testEvaluateApplicationBinary_Foundation() {
+  public void testEvaluateApplication_Foundation() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     refresh();
 
-    testEvaluateApplicationBinary(false);
+    testEvaluateFile(false);
   }
 
   @Test
@@ -416,7 +416,7 @@ public class ApplicationSummaryViewTest
     }
   }
 
-  private void testEvaluateApplicationBinary(boolean isNotificationsAllowed) {
+  private void testEvaluateFile(boolean isNotificationsAllowed) {
     File tempFile = null;
 
     try {
@@ -433,7 +433,11 @@ public class ApplicationSummaryViewTest
             .atUri("rest/application/analysis/blah");
 
         ActionDropDown.actionButton().click();
-        ActionDropDown.evaluateBinaryButton().shouldBe(visible).shouldNotBe(DISABLED).click();
+        ActionDropDown.evaluateFile()
+            .shouldBe(visible)
+            .shouldNotBe(DISABLED)
+            .shouldHave(text("Evaluate a File"))
+            .click();
 
         EvaluateApplicationModal modal = new EvaluateApplicationModal();
         modal.shouldBe(visible);
@@ -475,6 +479,8 @@ public class ApplicationSummaryViewTest
 
         assertThat(policyEvaluations).isNotNull();
 
+        eyesWatcher.eyesCheck("evaluate file dialog");
+
         modal.viewReportButton().shouldBe(visible, enabled).click();
 
         Selenide.switchTo().window(1);
@@ -488,7 +494,7 @@ public class ApplicationSummaryViewTest
   }
 
   @Test
-  public void testEvaluateBinaryBtnDisabledWithoutPermissions() {
+  public void testEvaluateFileBtnDisabledWithoutPermissions() {
     // log in as a user that doesn't have permission to evaluate this app
     createUser();
     grantPermissions(getUsername(), application.getId(), Permission.READ);
@@ -499,9 +505,9 @@ public class ApplicationSummaryViewTest
     try {
       refreshOrOpen(OwnerSummaryPage.url(application));
       ActionDropDown.actionButton().click();
-      ActionDropDown.evaluateBinaryButton().shouldBe(visible).shouldHave(DISABLED).hover();
+      ActionDropDown.evaluateFile().shouldBe(visible).shouldHave(DISABLED).hover();
       Tooltip.get().shouldBe(visible).shouldHave(text("Insufficient permissions to evaluate application"));
-      ActionDropDown.evaluateBinaryButton().click();
+      ActionDropDown.evaluateFile().click();
       new EvaluateApplicationModal().shouldBe(hidden);
     }
     finally {

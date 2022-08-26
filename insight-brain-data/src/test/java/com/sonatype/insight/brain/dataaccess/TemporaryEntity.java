@@ -901,6 +901,10 @@ public class TemporaryEntity
     Collections.addAll(orgs, organizations);
   }
 
+  public void register(Policy... policiesToDelete) {
+    Collections.addAll(policies, policiesToDelete);
+  }
+
   public void register(Role... roles) {
     Collections.addAll(this.roles, roles);
   }

@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.audit.ApplicationCategoryAuditDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -293,7 +294,10 @@ public class PolicyResourceAuditTest
   public void testAddPolicy_Application() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = aComplexPolicy();
-    policyResourceRequest(app).body(policy).post();
+    HttpResponse response = policyResourceRequest(app).body(policy).post();
+    assertResponseStatus(200, response);
+    Policy policyResponse = response.getBody(Policy.class);
+    tempEntity.register(policyResponse);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
     assertApplicationData(auditDTO, app);
@@ -303,7 +307,10 @@ public class PolicyResourceAuditTest
   @Test
   public void testAddPolicy_Organization() throws Exception {
     Policy policy = aComplexPolicy();
-    policyResourceRequest(organization).body(policy).post();
+    HttpResponse response = policyResourceRequest(organization).body(policy).post();
+    assertResponseStatus(200, response);
+    Policy policyResponse = response.getBody(Policy.class);
+    tempEntity.register(policyResponse);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
     assertOrganizationData(auditDTO, organization);
@@ -314,7 +321,10 @@ public class PolicyResourceAuditTest
   public void testAddPolicy_RepositoryContainer() throws Exception {
     Policy policy = aComplexPolicy();
 
-    policyResourceRequest(RepositoryContainer.SINGLETON).body(policy).post();
+    HttpResponse response = policyResourceRequest(RepositoryContainer.SINGLETON).body(policy).post();
+    assertResponseStatus(200, response);
+    Policy policyResponse = response.getBody(Policy.class);
+    tempEntity.register(policyResponse);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_POLICY, null);
     assertRepositoryContainerData(auditDTO);

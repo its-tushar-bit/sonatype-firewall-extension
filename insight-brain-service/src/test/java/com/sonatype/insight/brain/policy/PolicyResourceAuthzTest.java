@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.policy;
 import java.util.LinkedHashMap;
 
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Condition;
@@ -80,8 +81,11 @@ public class PolicyResourceAuthzTest
 
     grantWritePermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
-    testAuthzPost(restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY_CONTAINER,
+    HttpResponse response = testAuthzPost(restRequest().body(newPolicy()).parameter(OwnerType.REPOSITORY_CONTAINER,
         RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    assertResponseStatus(200, response);
+    Policy policy = response.getBody(Policy.class);
+    tempEntity.register(policy);
   }
 
   @Test

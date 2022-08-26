@@ -6,7 +6,12 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.License;
@@ -31,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.IdentificationSource.isThirdPartyIdentificationSource;
 
-public class ComponentDetailsLoader
+public abstract class ComponentDetailsLoader
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentDetailsLoader.class);
 
@@ -288,13 +293,9 @@ public class ComponentDetailsLoader
     return component;
   }
 
-  protected Component getComponent(ComponentDetails componentDetails) {
-    return null;
-  }
+  protected abstract Component getComponent(ComponentDetails componentDetails);
 
-  protected com.sonatype.insight.brain.model.license.License getLicense(final String licenseId) {
-    return null;
-  }
+  protected abstract com.sonatype.insight.brain.model.license.License getLicense(String licenseId);
 
   private boolean isSameSource(final String issueSource, final String svSource) {
     //for third party components the source may not exist

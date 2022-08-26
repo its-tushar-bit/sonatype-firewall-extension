@@ -8,7 +8,7 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.NxSortingHeader;
-import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
+import com.sonatype.clm.testing.functional.elements.IqVulnerabilityModal;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
@@ -52,8 +52,8 @@ public class ApplicationReportRawDataPage
     return child(".nx-cell--meta-info");
   }
 
-  public NxVulnerabilityModal vulnerabilityModal() {
-    return new NxVulnerabilityModal("#vulnerability-details-modal");
+  public IqVulnerabilityModal vulnerabilityModal() {
+    return new IqVulnerabilityModal("#vulnerability-details-modal");
   }
 
   public AppReportRawDataHeaders headers() {

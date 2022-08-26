@@ -14,7 +14,7 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
-import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
+import com.sonatype.clm.testing.functional.elements.IqVulnerabilityModal;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -126,7 +126,7 @@ public class AddWaiverTest
     addWaiverPage.vulnerabilityDetailsLink().shouldHave(text("See Security Vulnerability Details"));
     addWaiverPage.vulnerabilityDetailsLink().click();
 
-    NxVulnerabilityModal vulnerabilityModal = addWaiverPage.vulnerabilityModal();
+    IqVulnerabilityModal vulnerabilityModal = addWaiverPage.vulnerabilityModal();
     vulnerabilityModal.shouldBe(visible);
     SelenideElement vulnerabilityDetails = vulnerabilityModal.vulnerabilityDetails();
     vulnerabilityDetails.shouldHave(text("sonatype-2017-0507"));
@@ -259,7 +259,7 @@ public class AddWaiverTest
       addWaiverPage.comments().setValue("Some comments");
 
       eyesWatcher.eyesCheck();
-      
+
       addWaiverPage.saveButton().click();
       NxSubmitMask.seeAndWaitForDismissal();
       addWaiverPage.submitError().shouldNotBe(visible);
@@ -388,7 +388,7 @@ public class AddWaiverTest
 
       addWaiverPage.customExpiryTime().val("01-01-0001");
       addWaiverPage.customExpiryTimeErrorMessage().shouldHave(text("Date must be in the future"));
-      
+
       addWaiverPage.customExpiryTime().val("01-01-9999");
       addWaiverPage.expiryTimeMessage().shouldBe(visible);
       addWaiverPage.comments().setValue("Some comments");

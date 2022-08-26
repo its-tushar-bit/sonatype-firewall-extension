@@ -11,7 +11,7 @@ import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxBackButton;
-import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
+import com.sonatype.clm.testing.functional.elements.IqVulnerabilityModal;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
@@ -141,7 +141,7 @@ public class ApplicationReportRawDataTest
     springSecurity.securityIssue().shouldHave(exactText("sonatype-2017-0507"));
     springSecurity.securityIssueLink().click();
 
-    NxVulnerabilityModal vulnerabilityModal = rawDataPage.vulnerabilityModal();
+    IqVulnerabilityModal vulnerabilityModal = rawDataPage.vulnerabilityModal();
     vulnerabilityModal.shouldBe(visible);
     vulnerabilityModal.header().shouldHave(text("Vulnerability Information"));
     SelenideElement vulnerabilityDetails = vulnerabilityModal.vulnerabilityDetails();

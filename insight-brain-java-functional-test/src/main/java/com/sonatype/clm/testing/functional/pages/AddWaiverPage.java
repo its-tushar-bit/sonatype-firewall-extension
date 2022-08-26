@@ -8,7 +8,7 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
-import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
+import com.sonatype.clm.testing.functional.elements.IqVulnerabilityModal;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -61,8 +61,8 @@ public class AddWaiverPage
     return child(".iq-add-waiver-form__vulnerability_details_link a");
   }
 
-  public NxVulnerabilityModal vulnerabilityModal() {
-    return new NxVulnerabilityModal("#vulnerability-details-modal");
+  public IqVulnerabilityModal vulnerabilityModal() {
+    return new IqVulnerabilityModal("#vulnerability-details-modal");
   }
 
   public ElementsCollection availableScopes() {

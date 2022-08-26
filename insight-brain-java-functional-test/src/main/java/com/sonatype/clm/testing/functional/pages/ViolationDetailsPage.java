@@ -205,7 +205,7 @@ public class ViolationDetailsPage
     }
 
     public SelenideElement vulnerabilityDetailsHeader() {
-      return child(".nx-vulnerability-details .nx-h2");
+      return child(".iq-vulnerability-details .nx-h2");
     }
   }
 }

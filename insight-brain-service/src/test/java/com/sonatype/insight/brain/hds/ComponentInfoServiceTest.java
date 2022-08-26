@@ -35,10 +35,8 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
@@ -146,8 +144,6 @@ public class ComponentInfoServiceTest
   @Inject
   private ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
 
-  private String applicationPublicId = "ComponentInfoServiceTest";
-
   private Application application;
 
   private Repository repository;
@@ -180,7 +176,7 @@ public class ComponentInfoServiceTest
   public void before() {
     componentInfoService.setToolName(TOOL_NAME);
 
-    application = tempEntity.newApplicationWithParent(applicationPublicId);
+    application = tempEntity.newApplicationWithParent();
     repository = tempEntity.newRepository();
   }
 
@@ -238,14 +234,14 @@ public class ComponentInfoServiceTest
     // Verify that UNSPECIFIED is removed from the result
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("EPL-1.0", "UNSPECIFIED"));
     mockHdsGetComponentDetails(hdsComponentDetails);
-    List<License> licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId,
+    List<License> licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, application.getPublicId(),
         MAVEN_A1_COORDINATES, httpRequestMock, null, null).selectableLicenses;
     assertThat(licenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("EPL-1.0");
 
     // Verify that a versionless license is resolved to versioned licenses
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-UNSPECIFIED"));
     mockHdsGetComponentDetails(hdsComponentDetails);
-    licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId, MAVEN_A1_COORDINATES,
+    licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, application.getPublicId(), MAVEN_A1_COORDINATES,
         httpRequestMock, null, null).selectableLicenses;
     assertThat(licenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-UNSPECIFIED", "Apache-1.0",
         "Apache-1.1", "Apache-2.0", "Apache-XML-Security-License", "Apache-2.0-with-LLVM-exception",
@@ -255,7 +251,7 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setDeclaredLicenses(toLicenseSet("Apache-2.0", "EPL-1.0"));
     hdsComponentDetails.setObservedLicenses(toLicenseSet("EPL-1.0", "GPL-2.0"));
     mockHdsGetComponentDetails(hdsComponentDetails);
-    licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId, MAVEN_A1_COORDINATES,
+    licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, application.getPublicId(), MAVEN_A1_COORDINATES,
         httpRequestMock, null, null).selectableLicenses;
     assertThat(licenses).extracting(License::getLicenseId).containsExactlyInAnyOrder("Apache-2.0", "EPL-1.0",
         "GPL-2.0");
@@ -304,12 +300,12 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetLicensesApplication() throws Exception {
-    testGetLicenses(OwnerType.APPLICATION, applicationPublicId);
+    testGetLicenses(OwnerType.APPLICATION, application.getPublicId());
   }
 
   @Test
   public void testGetMultiLicensesApplication() throws Exception {
-    testGetMultiLicenses(OwnerType.APPLICATION, applicationPublicId);
+    testGetMultiLicenses(OwnerType.APPLICATION, application.getPublicId());
   }
 
   @Test
@@ -334,7 +330,7 @@ public class ComponentInfoServiceTest
         .thenReturn(tpsComponentDetails);
 
     ComponentLicenses licenses =
-        componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId, MAVEN_A1_COORDINATES,
+        componentInfoService.getLicenses(OwnerType.APPLICATION, application.getPublicId(), MAVEN_A1_COORDINATES,
             httpRequestMock, identificationSource, scanId);
 
     assertLicenses(licenses.declaredlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
@@ -353,7 +349,8 @@ public class ComponentInfoServiceTest
     when(thirdPartyComponentDAO.getComponentDetailsByIdentifier(MAVEN_A1_COORDINATES, application.getId(), scanId))
         .thenReturn(tpsComponentDetails);
 
-    ComponentMultiLicenses licenses = componentInfoService.getMultiLicenses(OwnerType.APPLICATION, applicationPublicId,
+    ComponentMultiLicenses licenses =
+        componentInfoService.getMultiLicenses(OwnerType.APPLICATION, application.getPublicId(),
         MAVEN_A1_COORDINATES, httpRequestMock, identificationSource, scanId);
 
     assertMultiLicenses(licenses.declaredLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
@@ -371,7 +368,7 @@ public class ComponentInfoServiceTest
 
     mockHdsGetComponentDetailsException(componentDetails);
 
-    ComponentLicenses licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId,
+    ComponentLicenses licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, application.getPublicId(),
         MAVEN_A1_COORDINATES, httpRequestMock, identificationSource, scanId);
 
     assertLicenses(licenses.declaredlicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
@@ -390,7 +387,8 @@ public class ComponentInfoServiceTest
 
     mockHdsGetComponentDetailsException(componentDetails);
 
-    ComponentMultiLicenses licenses = componentInfoService.getMultiLicenses(OwnerType.APPLICATION, applicationPublicId,
+    ComponentMultiLicenses licenses =
+        componentInfoService.getMultiLicenses(OwnerType.APPLICATION, application.getPublicId(),
         MAVEN_A1_COORDINATES, httpRequestMock, identificationSource, scanId);
 
     assertMultiLicenses(licenses.declaredLicenses, tuple(UNSPECIFIED_ID, "Not Provided", 5));
@@ -476,12 +474,12 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetLicensesApplication_withOverride() throws Exception {
-    testGetLicenses_withOverride(OwnerType.APPLICATION, applicationPublicId);
+    testGetLicenses_withOverride(OwnerType.APPLICATION, application.getPublicId());
   }
 
   @Test
   public void testGetMultiLicensesApplication_withOverride() throws Exception {
-    testGetMultiLicenses_withOverride(OwnerType.APPLICATION, applicationPublicId);
+    testGetMultiLicenses_withOverride(OwnerType.APPLICATION, application.getPublicId());
   }
 
   @Test
@@ -544,13 +542,13 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetLicenses_withNotDeclaredForDeclaredLicenses() throws Exception {
-    testGetLicenses_withNotDeclaredForDeclaredLicenses(OwnerType.APPLICATION, applicationPublicId);
+    testGetLicenses_withNotDeclaredForDeclaredLicenses(OwnerType.APPLICATION, application.getPublicId());
     testGetLicenses_withNotDeclaredForDeclaredLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
   @Test
   public void testGetMultiLicenses_withNotDeclaredForDeclaredLicenses() throws Exception {
-    testGetMultiLicenses_withNotDeclaredForDeclaredLicenses(OwnerType.APPLICATION, applicationPublicId);
+    testGetMultiLicenses_withNotDeclaredForDeclaredLicenses(OwnerType.APPLICATION, application.getPublicId());
     testGetMultiLicenses_withNotDeclaredForDeclaredLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
@@ -585,13 +583,13 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetLicenses_withNoSourcesForObservedLicenses() throws Exception {
-    testGetLicenses_withNoSourcesForObservedLicenses(OwnerType.APPLICATION, applicationPublicId);
+    testGetLicenses_withNoSourcesForObservedLicenses(OwnerType.APPLICATION, application.getPublicId());
     testGetLicenses_withNoSourcesForObservedLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
   @Test
   public void testGetMultiLicenses_withNoSourcesForObservedLicenses() throws Exception {
-    testGetMultiLicenses_withNoSourcesForObservedLicenses(OwnerType.APPLICATION, applicationPublicId);
+    testGetMultiLicenses_withNoSourcesForObservedLicenses(OwnerType.APPLICATION, application.getPublicId());
     testGetMultiLicenses_withNoSourcesForObservedLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
@@ -626,13 +624,13 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetLicenses_withNoSourceLicenseForObservedLicenses() throws Exception {
-    testGetLicenses_withNoSourceLicenseForObservedLicenses(OwnerType.APPLICATION, applicationPublicId);
+    testGetLicenses_withNoSourceLicenseForObservedLicenses(OwnerType.APPLICATION, application.getPublicId());
     testGetLicenses_withNoSourceLicenseForObservedLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
   @Test
   public void testGetMultiLicenses_withNoSourceLicenseForObservedLicenses() throws Exception {
-    testGetMultiLicenses_withNoSourceLicenseForObservedLicenses(OwnerType.APPLICATION, applicationPublicId);
+    testGetMultiLicenses_withNoSourceLicenseForObservedLicenses(OwnerType.APPLICATION, application.getPublicId());
     testGetMultiLicenses_withNoSourceLicenseForObservedLicenses(OwnerType.REPOSITORY, repository.getId());
   }
 
@@ -668,7 +666,7 @@ public class ComponentInfoServiceTest
   @Test
   public void testGetLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses() throws Exception {
     testGetLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses(OwnerType.APPLICATION,
-        applicationPublicId);
+        application.getPublicId());
     testGetLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses(OwnerType.REPOSITORY,
         repository.getId());
   }
@@ -676,7 +674,7 @@ public class ComponentInfoServiceTest
   @Test
   public void testGetMultiLicenses_withNotDeclaredLicensesAndNoSourcesForObservedLicenses() throws Exception {
     testGetMultiLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses(OwnerType.APPLICATION,
-        applicationPublicId);
+        application.getPublicId());
     testGetMultiLicenses_withNotDeclaredForDeclaredLicensesAndNoSourcesForObservedLicenses(OwnerType.REPOSITORY,
         repository.getId());
   }
@@ -716,14 +714,14 @@ public class ComponentInfoServiceTest
   @Test
   public void testGetLicenses_withNotSupportedLicense() throws Exception {
     testGetLicenses_withNotSupportedLicense(OwnerType.APPLICATION,
-        applicationPublicId);
+        application.getPublicId());
     testGetLicenses_withNotSupportedLicense(OwnerType.REPOSITORY,
         repository.getId());
   }
 
   @Test
   public void testGetMultiLicenses_withNotSupportedLicense() throws Exception {
-    testGetMultiLicenses_withNotSupportedLicense(OwnerType.APPLICATION, applicationPublicId);
+    testGetMultiLicenses_withNotSupportedLicense(OwnerType.APPLICATION, application.getPublicId());
     testGetMultiLicenses_withNotSupportedLicense(OwnerType.REPOSITORY, repository.getId());
   }
 
@@ -761,12 +759,12 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetLicensesApplication_claimedComponent() throws Exception {
-    testGetLicenses_claimedComponent(OwnerType.APPLICATION, applicationPublicId);
+    testGetLicenses_claimedComponent(OwnerType.APPLICATION, application.getPublicId());
   }
 
   @Test
   public void testGetMultiLicensesApplication_claimedComponent() throws Exception {
-    testGetMultiLicenses_claimedComponent(OwnerType.APPLICATION, applicationPublicId);
+    testGetMultiLicenses_claimedComponent(OwnerType.APPLICATION, application.getPublicId());
   }
 
   @Test
@@ -817,7 +815,7 @@ public class ComponentInfoServiceTest
     hdsComponentDetails.setObservedLicenses(toLicenseSet("LGPL-2.1", "LGPL-2.1+", "Apache-2.0-LGPL-2.1"));
     mockHdsGetComponentDetails(hdsComponentDetails);
 
-    ComponentLicenses licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, applicationPublicId,
+    ComponentLicenses licenses = componentInfoService.getLicenses(OwnerType.APPLICATION, application.getPublicId(),
         MAVEN_A1_COORDINATES, httpRequestMock, null, null);
 
     assertLicenses(licenses.declaredlicenses, tuple("LGPL-2.1", "LGPL-2.1", 2), tuple("LGPL-3.0", "LGPL-3.0", 2),
@@ -954,7 +952,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     Constraint constraint2 = new Constraint("C2", "Constraint 2", LogicalOperator.AND);
     constraint2.addCondition(new Condition(MatchStateConditionType.ID, "is not", "similar"));
@@ -962,7 +961,8 @@ public class ComponentInfoServiceTest
     policy2.setThreatLevel(8);
     policy2.addConstraint(constraint2);
     policy2.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy2);
+    policy2.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy2);
 
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setHash(hash);
@@ -995,7 +995,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setHash(hash);
@@ -1024,7 +1025,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setHash(hash);
@@ -1056,7 +1058,8 @@ public class ComponentInfoServiceTest
     securityPolicy1.setThreatLevel(2);
     securityPolicy1.addConstraint(securityConstrain1);
     securityPolicy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, securityPolicy1);
+    securityPolicy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(securityPolicy1);
 
     Constraint securityConstrain2 = new Constraint("SC1", "SecurityConstraint 1", LogicalOperator.AND);
     Condition securityCondition2 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, "<=", "7");
@@ -1064,8 +1067,8 @@ public class ComponentInfoServiceTest
     Policy securityPolicy2 = new Policy("SecurityPolicyId2", "SecurityPolicy2");
     securityPolicy2.setThreatLevel(8);
     securityPolicy2.addConstraint(securityConstrain2);
-    securityPolicy2.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, securityPolicy2);
+    securityPolicy2.setOwnerId(application.getId());
+    tempEntity.newPolicy(securityPolicy2);
     
     Constraint qualityConstrain1 = new Constraint("QC1", "QualityConstraint 1", LogicalOperator.AND);
     Condition qualityCondition1 = new Condition(RelativePopularityConditionType.ID, "<=", "10");
@@ -1074,7 +1077,8 @@ public class ComponentInfoServiceTest
     qualityPolicy1.setThreatLevel(2);
     qualityPolicy1.addConstraint(qualityConstrain1);
     qualityPolicy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, qualityPolicy1);
+    qualityPolicy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(qualityPolicy1);
 
     Constraint qualityConstrain2 = new Constraint("QC2", "QualityConstraint 2", LogicalOperator.AND);
     Condition qualityCondition2 = new Condition(RelativePopularityConditionType.ID, "<=", "5");
@@ -1083,7 +1087,8 @@ public class ComponentInfoServiceTest
     qualityPolicy2.setThreatLevel(6);
     qualityPolicy2.addConstraint(qualityConstrain2);
     qualityPolicy2.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, qualityPolicy2);
+    qualityPolicy2.setOwnerId(application.getId());
+    tempEntity.newPolicy(qualityPolicy2);
 
     Constraint licenseContraint1 = new Constraint("LC1", "LicenseConstraint1",LogicalOperator.AND);
     Condition licenseCondition1 = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
@@ -1092,7 +1097,8 @@ public class ComponentInfoServiceTest
     licensePolicy1.setThreatLevel(3);
     licensePolicy1.addConstraint(licenseContraint1);
     licensePolicy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, licensePolicy1);
+    licensePolicy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(licensePolicy1);
 
     Constraint otherConstraint1 = new Constraint("OC1", "Other Constraint 1", LogicalOperator.AND);
     otherConstraint1.addCondition(new Condition(LabelConditionType.ID, "is", label1.getId()));
@@ -1100,7 +1106,8 @@ public class ComponentInfoServiceTest
     otherPolicy1.setThreatLevel(5);
     otherPolicy1.addConstraint(otherConstraint1);
     otherPolicy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, otherPolicy1);
+    otherPolicy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(otherPolicy1);
 
     Constraint otherConstraint2 = new Constraint("OC2", "Other Constraint 2", LogicalOperator.AND);
     otherConstraint2.addCondition(new Condition(LabelConditionType.ID, "is", label2.getId()));
@@ -1108,7 +1115,8 @@ public class ComponentInfoServiceTest
     otherPolicy2.setThreatLevel(2);
     otherPolicy2.addConstraint(otherConstraint2);
     otherPolicy2.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, otherPolicy2);
+    otherPolicy2.setOwnerId(application.getId());
+    tempEntity.newPolicy(otherPolicy2);
 
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setHash(hash);
@@ -1156,7 +1164,8 @@ public class ComponentInfoServiceTest
     otherPolicy1.setThreatLevel(5);
     otherPolicy1.addConstraint(otherConstraint1);
     otherPolicy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, otherPolicy1);
+    otherPolicy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(otherPolicy1);
 
     Constraint otherConstraint2 = new Constraint("OC2", "Other Constraint 2", LogicalOperator.AND);
     otherConstraint2.addCondition(new Condition(LabelConditionType.ID, "is", label2.getId()));
@@ -1164,7 +1173,8 @@ public class ComponentInfoServiceTest
     otherPolicy2.setThreatLevel(2);
     otherPolicy2.addConstraint(otherConstraint2);
     otherPolicy2.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, otherPolicy2);
+    otherPolicy2.setOwnerId(application.getId());
+    tempEntity.newPolicy(otherPolicy2);
 
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setHash(hash);
@@ -1197,7 +1207,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     Constraint constraint2 = new Constraint("C2", "Constraint 2", LogicalOperator.AND);
     constraint2.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -1206,7 +1217,8 @@ public class ComponentInfoServiceTest
     policy2.setThreatLevel(7);
     policy2.addConstraint(constraint2);
     policy2.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy2);
+    policy2.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy2);
 
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setHash(hash);
@@ -1328,7 +1340,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     String hash = "01234567890123456789";
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
@@ -1367,7 +1380,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     String hash = "01234567890123456789";
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
@@ -1407,7 +1421,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     String hash = "01234567890123456789";
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
@@ -1438,7 +1453,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     String hash = "01234567890123456789";
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
@@ -1497,7 +1513,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     hdsComponentDetails.setHash(hash);
@@ -1532,13 +1549,6 @@ public class ComponentInfoServiceTest
     verify(componentInfoServiceMock, times(1)).getPoliciesById(application);
   }
 
-  private void addPolicy(String applicationPublicId, Policy policy) {
-    String appId = new ApplicationDAO().getByPublicIdNotNull(applicationPublicId).getId();
-    PolicyDAO policyDAO = new PolicyDAO();
-    policy.setOwnerId(appId);
-    policyDAO.insert(policy);
-  }
-
   private static Set<License> toLicenseSet(String... licenseIds) {
     Set<License> result = new LinkedHashSet<>();
     MultiLicenseDAO dao = new MultiLicenseDAO();
@@ -1563,7 +1573,7 @@ public class ComponentInfoServiceTest
 
   @Test
   public void testGetComponentDetails_ReadPermission_Application() throws Exception {
-    testGetComponentDetails_ReadPermission(application, applicationPublicId);
+    testGetComponentDetails_ReadPermission(application, application.getPublicId());
   }
 
   @Test
@@ -1583,7 +1593,7 @@ public class ComponentInfoServiceTest
         .thenReturn(tpsComponentDetails);
 
     ComponentDetails componentDetails = componentInfoService
-        .getComponentDetails_ReadPermission(application.getType(), applicationPublicId, MAVEN_A1_COORDINATES,
+        .getComponentDetails_ReadPermission(application.getType(), application.getPublicId(), MAVEN_A1_COORDINATES,
             MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock, identificationSource,
             scanId, null);
     assertThat(componentDetails).isNotNull();
@@ -1604,8 +1614,8 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetailsException(hdsComponentDetails);
 
     ComponentDetails componentDetails = componentInfoService.getComponentDetails_ReadPermission(application.getType(),
-        applicationPublicId, MAVEN_A1_COORDINATES, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */,
-        httpRequestMock, identificationSource, scanId, null);
+        application.getPublicId(), MAVEN_A1_COORDINATES, MatchState.EXACT.getId(), null /* hash */,
+        false /* proprietary */, httpRequestMock, identificationSource, scanId, null);
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
     assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
@@ -1623,8 +1633,8 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetailsException(hdsComponentDetails);
 
     ComponentDetails componentDetails = componentInfoService.getComponentDetails_ReadPermission(application.getType(),
-        applicationPublicId, MAVEN_A1_COORDINATES, MatchState.EXACT.getId(), null /* hash */, false /* proprietary */,
-        httpRequestMock, identificationSource, scanId, null);
+        application.getPublicId(), MAVEN_A1_COORDINATES, MatchState.EXACT.getId(), null /* hash */,
+        false /* proprietary */, httpRequestMock, identificationSource, scanId, null);
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
     assertThat(componentDetails.getMatchState()).isEqualTo(MatchState.EXACT.getId());
@@ -1713,7 +1723,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(ReleaseStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     Constraint constraint2 = new Constraint("C2", "Constraint 2", LogicalOperator.AND);
     constraint2.addCondition(new Condition(LicenseConditionType.ID, "is not", "GPL-2.0")); // will hit both components
@@ -1721,7 +1732,8 @@ public class ComponentInfoServiceTest
     policy2.setThreatLevel(6);
     policy2.addConstraint(constraint2);
     policy2.setAction(ReleaseStageType.ID, WarnActionType.ID);
-    addPolicy(applicationPublicId, policy2);
+    policy2.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy2);
 
     mockLicenseFeature(false);
     ComponentVersionInfoDTO dto = testGetComponentVersionInfo_ReadPermission(
@@ -1758,7 +1770,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(ReleaseStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     Constraint constraint2 = new Constraint("C2", "Constraint 2", LogicalOperator.AND);
     constraint2.addCondition(new Condition(LicenseConditionType.ID, "is not", "GPL-2.0")); // will hit both components
@@ -1766,7 +1779,8 @@ public class ComponentInfoServiceTest
     policy2.setThreatLevel(6);
     policy2.addConstraint(constraint2);
     policy2.setAction(ReleaseStageType.ID, WarnActionType.ID);
-    addPolicy(applicationPublicId, policy2);
+    policy2.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy2);
 
     mockLicenseFeature(false);
     ComponentVersionInfoDTO dto = testGetComponentVersionInfo_ReadPermission(
@@ -1815,7 +1829,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     final String identificationSource = "Clair";
     final String scanId = "scanId";
@@ -2410,7 +2425,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(5);
     policy1.addConstraint(constraint1);
     policy1.setAction(ReleaseStageType.ID, WarnActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     // mock dependencies for advanced recommendation strategies
     PackageUrlIdentifier mvnPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A1_COORDINATES);
@@ -2451,7 +2467,8 @@ public class ComponentInfoServiceTest
     policy1.setThreatLevel(8);
     policy1.addConstraint(constraint1);
     policy1.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy1);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
 
     // policy that doesn't trigger if the corresponding waiver was loaded properly by hash
     Constraint constraint2 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
@@ -2460,7 +2477,8 @@ public class ComponentInfoServiceTest
     policy2.setThreatLevel(8);
     policy2.addConstraint(constraint1);
     policy2.setAction(BuildStageType.ID, FailActionType.ID);
-    addPolicy(applicationPublicId, policy2);
+    policy2.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy2);
     tempEntity.newWaiver(hash, policy2.getId(), application.getId());
 
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(MAVEN_A1_COORDINATES);

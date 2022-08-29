@@ -12,14 +12,14 @@ import com.codeborne.selenide.SelenideElement;
 public class RevokeGrandfatheringModal
     extends BasicElement<RevokeGrandfatheringModal>
 {
-  private static final String FOOTER_SELECTOR = ".iq-modal-footer";
+  private static final String FOOTER_SELECTOR = ".nx-footer";
 
   public RevokeGrandfatheringModal() {
     super("#revoke-grandfathering-modal");
   }
 
   public SelenideElement body() {
-    return child(".iq-modal-content");
+    return child(".nx-modal-content");
   }
 
   public SelenideElement footer() {
@@ -27,15 +27,14 @@ public class RevokeGrandfatheringModal
   }
 
   public SelenideElement revokeButton() {
-    return child(FOOTER_SELECTOR, ".iq-btn.iq-btn--primary");
+    return child(FOOTER_SELECTOR, ".nx-form__submit-btn");
   }
 
   public SelenideElement retryButton() {
-    return child(FOOTER_SELECTOR, ".iq-btn.iq-btn--error");
+    return child(FOOTER_SELECTOR, ".nx-load-error__retry");
   }
 
   public SelenideElement cancelButton() {
-    return child(FOOTER_SELECTOR, ".iq-btn.iq-btn--cancel");
+    return child(FOOTER_SELECTOR, ".nx-form__cancel-btn");
   }
 }
-

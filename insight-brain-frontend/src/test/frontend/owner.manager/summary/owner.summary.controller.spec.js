@@ -40,8 +40,9 @@ describe('owner.summary.controller', function () {
       mockDeleteService,
       isContextAuthorizedDefer,
       mockPermissionService,
-      mockGrandfatherModalService,
+      mockChangeApplicationIdService,
       mockRevokeGrandfatheringModalService,
+      mockGrandfatherModalService,
       loadOrganizationActionSpy,
       loadApplicationsActionSpy;
     let setLoadingActionSpy;
@@ -98,6 +99,7 @@ describe('owner.summary.controller', function () {
       mockPermissionService = {
         isContextAuthorized: jasmine.createSpy().and.returnValue(isContextAuthorizedDefer.promise),
       };
+      mockChangeApplicationIdService = jasmine.createSpyObj('mockChangeApplicationIdService', ['open']);
       mockApplicationSummary = applicationResourceMockData.getApplicationSummaryUrl();
 
       spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
@@ -139,6 +141,7 @@ describe('owner.summary.controller', function () {
           $window: mockWindow,
           DeleteModalService: mockDeleteService,
           PermissionService: mockPermissionService,
+          'change.application.id.service': mockChangeApplicationIdService,
           RevokeGrandfatheringModalService: mockRevokeGrandfatheringModalService,
           GrandfatherModalService: mockGrandfatherModalService,
           'evaluate.application.modal.service': mockEvaluateAppModalService,
@@ -483,31 +486,6 @@ describe('owner.summary.controller', function () {
         });
       });
     }
-
-    describe('revokeGrandfathering()', function () {
-      beforeEach(() => (vm = getVm()));
-      it('Does not open modal when grandfathering is not supported', function () {
-        createGrandfatheringMocks(false, false);
-
-        if (isApp) {
-          $timeout.flush();
-        }
-
-        vm.revokeGrandfathering();
-        expect(mockRevokeGrandfatheringModalService.open).not.toHaveBeenCalled();
-      });
-
-      it('opens modal when grandfathering is supported', function () {
-        createGrandfatheringMocks(false, true);
-
-        if (isApp) {
-          $timeout.flush();
-        }
-
-        vm.revokeGrandfathering();
-        expect(mockRevokeGrandfatheringModalService.open).toHaveBeenCalled();
-      });
-    });
 
     describe('populates SCM icon', function () {
       beforeEach(() => (vm = getVm()));

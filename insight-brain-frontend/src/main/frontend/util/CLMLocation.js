@@ -995,6 +995,9 @@ export function getPermissionsTestUrl(ownerType, ownerId) {
 export const getGrandfatheringUrl = (ownerType, ownerId) =>
   uriTemplate`/rest/policyViolationGrandfathering/${ownerType}/${ownerId}`;
 
+export const getRevokeGrandfatheringUrl = (applicationPublicId) =>
+  uriTemplate`/rest/policyViolationGrandfathering/revoke/${applicationPublicId}`;
+
 export const getEndpointsUrl = (apiType) => uriTemplate`/api/v2/endpoints/${apiType}`;
 
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
@@ -1227,10 +1230,6 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       getSystemNoticeUrl,
 
       getSystemNoticeFetchUrl,
-
-      getRevokeGrandfatheringUrl: function (applicationPublicId) {
-        return `${baseUrl.get()}/rest/policyViolationGrandfathering/revoke/${encodeURIComponent(applicationPublicId)}`;
-      },
 
       getGrandfatherUrl: function (applicationPublicId) {
         const appId = encodeURIComponent(applicationPublicId);

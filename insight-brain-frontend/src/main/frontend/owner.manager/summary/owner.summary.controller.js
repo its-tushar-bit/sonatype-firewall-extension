@@ -7,6 +7,7 @@ import { propEq, find } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 
 import { actions as deleteOwnerActions } from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/deleteOwnerSlice';
+import { actions as revokeGrandfatheringActions } from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/revokeGrandfatheringSlice';
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { actions as changeApplicationIdActions } from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSlice';
@@ -44,7 +45,6 @@ export default function OwnerSummaryController(
   MoveApplicationModal,
   EventNameConstant,
   PermissionService,
-  RevokeGrandfatheringModalService,
   GrandfatherModalService,
   $ngRedux
 ) {
@@ -88,6 +88,7 @@ export default function OwnerSummaryController(
     setLoadError: ownerSummaryActions.setLoadError,
     openDeleteModal: deleteOwnerActions.openModal,
     openChangeApplicationIdModal: changeApplicationIdActions.openModal,
+    openRevokeGrandfatheringModal: revokeGrandfatheringActions.openModal,
   })(vm);
 
   vm.doLoad();
@@ -201,7 +202,7 @@ export default function OwnerSummaryController(
 
   function revokeGrandfathering() {
     if (vm.isGrandfatheringSupported) {
-      RevokeGrandfatheringModalService.open(vm.owner);
+      vm.openRevokeGrandfatheringModal(vm.owner);
     }
   }
 
@@ -284,7 +285,6 @@ OwnerSummaryController.$inject = [
   'move.application.modal.service',
   'event.name.constant',
   'PermissionService',
-  'RevokeGrandfatheringModalService',
   'GrandfatherModalService',
   '$ngRedux',
 ];

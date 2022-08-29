@@ -146,7 +146,8 @@ public class Configuration
         SystemConfigurationProperty.DB_BACKUP_DIR,
         SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
         SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING)
+        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
+        SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST)
     );
     putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION, reverseProxyAuthenticationConfigurationDAO.get());
@@ -418,6 +419,10 @@ public class Configuration
 
   public boolean isExternalHyperlinksAllowed() {
     return (boolean) valueByPropertyName.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED);
+  }
+
+  public List<String> getFrameAncestorsAllowList() {
+    return (List<String>) valueByPropertyName.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST);
   }
 
   public Map<String, String> getMatcherConfiguration() {

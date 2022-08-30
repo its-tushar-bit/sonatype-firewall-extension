@@ -1000,6 +1000,9 @@ export const getRevokeGrandfatheringUrl = (applicationPublicId) =>
 
 export const getEndpointsUrl = (apiType) => uriTemplate`/api/v2/endpoints/${apiType}`;
 
+export const getGrandfatheringModalUrl = (appId) =>
+  uriTemplate`/rest/policyViolationGrandfathering/grandfather/${appId}`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

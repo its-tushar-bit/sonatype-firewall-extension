@@ -21,9 +21,9 @@ import ownerSummarySlice from './ownerSummarySlice';
 import ownerDetailTreeSlice from './ownerDetailTreeSlice';
 import policyViolationGrandfatheringSlice from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSlice';
 import accessSlice from './access/accessSlice';
+import grandfatheringSlice from './grandfatheringModal/grandfatheringSlice';
 import revokeGrandfatheringSlice from './revokeGrandfatheringModal/revokeGrandfatheringSlice';
 import changeApplicationIdSlice from './changeApplicationIdModal/changeApplicationIdSlice';
-
 export default combineReducers({
   root: rootSlice,
   applicationCategories: combineReducers({
@@ -41,6 +41,7 @@ export default combineReducers({
   policy: policySlice,
   ownerEditor: combineReducers({
     deleteOwner: deleteOwnerSlice,
+    grandfathering: grandfatheringSlice,
     revokeGrandfathering: revokeGrandfatheringSlice,
     changeAppId: changeApplicationIdSlice,
   }),

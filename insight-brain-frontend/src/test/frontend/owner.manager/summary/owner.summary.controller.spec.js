@@ -42,7 +42,6 @@ describe('owner.summary.controller', function () {
       mockPermissionService,
       mockChangeApplicationIdService,
       mockRevokeGrandfatheringModalService,
-      mockGrandfatherModalService,
       loadOrganizationActionSpy,
       loadApplicationsActionSpy;
     let setLoadingActionSpy;
@@ -93,7 +92,6 @@ describe('owner.summary.controller', function () {
           return deleteOwnerDefer.promise;
         },
       };
-      mockGrandfatherModalService = jasmine.createSpyObj('mockGrandfatherModalService', ['open']);
       mockRevokeGrandfatheringModalService = jasmine.createSpyObj('mockRevokeGrandfatheringModalService', ['open']);
       mockEvaluateAppModalService = jasmine.createSpyObj('mockEvaluateAppModalService', ['open']);
       mockPermissionService = {
@@ -143,7 +141,6 @@ describe('owner.summary.controller', function () {
           PermissionService: mockPermissionService,
           'change.application.id.service': mockChangeApplicationIdService,
           RevokeGrandfatheringModalService: mockRevokeGrandfatheringModalService,
-          GrandfatherModalService: mockGrandfatherModalService,
           'evaluate.application.modal.service': mockEvaluateAppModalService,
         });
         localVm.isGrandfatheringSupported = true;
@@ -360,45 +357,6 @@ describe('owner.summary.controller', function () {
     });
 
     if (isApp) {
-      describe('grandfather()', function () {
-        beforeEach(() => (vm = getVm()));
-        it('Does not open modal when grandfathering is not enabled and is NOT supported', function () {
-          createGrandfatheringMocks(false, false);
-
-          $timeout.flush();
-
-          vm.grandfather();
-          expect(mockGrandfatherModalService.open).not.toHaveBeenCalled();
-        });
-
-        it('Does not open modal when grandfathering is not enabled and is supported', function () {
-          createGrandfatheringMocks(false, true);
-
-          $timeout.flush();
-
-          vm.grandfather();
-          expect(mockGrandfatherModalService.open).not.toHaveBeenCalled();
-        });
-
-        it('Does not open modal when grandfathering is enabled and is not supported', function () {
-          createGrandfatheringMocks(true, false);
-
-          $timeout.flush();
-
-          vm.grandfather();
-          expect(mockGrandfatherModalService.open).not.toHaveBeenCalled();
-        });
-
-        it('opens modal when grandfathering is enabled and supported', function () {
-          createGrandfatheringMocks(true, true);
-
-          $timeout.flush();
-
-          vm.grandfather();
-          expect(mockGrandfatherModalService.open).toHaveBeenCalled();
-        });
-      });
-
       describe('getDisabledGrandfatherTooltipMessage()', function () {
         beforeEach(() => (vm = getVm()));
         it('returns not enabled tooltip message', function () {

@@ -49,11 +49,9 @@ import OwnerImageDirective from './summary/owner.image.directive';
 import SelectApplicationContactService from './summary/select.application.contact.service';
 import OwnerSummaryController from './summary/owner.summary.controller';
 import EvaluateApplicationModalService from './utility/services/evaluate.application.modal.service';
-import GrandfatherModalService from './utility/services/grandfatherModalService';
 import ImportPolicyModalService from './utility/services/import.policy.modal.service';
 import SelectApplicationContactController from './summary/select.application.contact.controller';
 import EvaluateApplicationModalController from './utility/services/evaluate.application.modal.controller';
-import GrandfatherModalController from './utility/services/grandfatherModalController';
 import ImportPolicyModalController from './utility/services/import.policy.modal.controller';
 import NumberInputWithStringValue from './utility/number.input.with.string.value';
 import SameOwnerEditSref from './utility/same.owner.edit.sref.directive';
@@ -84,6 +82,7 @@ import ApplicationCategoriesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/App
 import ContinuousMonitoringSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ContinuousMonitoringSummaryTile';
 import AssignAppCategory from 'MainRoot/OrgsAndPolicies/assignAppCategory/AssignAppCategory';
 import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
+import GrandfatheringModal from 'MainRoot/OrgsAndPolicies/grandfatheringModal/GrandfatheringModal';
 import ChangeApplicationIdModal from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/ChangeApplicationIdModal';
 import RevokeGrandfatheringModal from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/RevokeGrandfatheringModal';
 
@@ -141,11 +140,9 @@ export default angular
   .controller('OwnerSummaryController', OwnerSummaryController)
   .controller('OwnerSummaryTilesContainerController', OwnerSummaryTilesContainerController)
   .service('evaluate.application.modal.service', EvaluateApplicationModalService)
-  .service('GrandfatherModalService', GrandfatherModalService)
   .service('import.policy.modal.service', ImportPolicyModalService)
   .controller('select.application.contact.controller', SelectApplicationContactController)
   .controller('evaluate.application.modal.controller', EvaluateApplicationModalController)
-  .controller('GrandfatherModalController', GrandfatherModalController)
   .controller('import.policy.modal.controller', ImportPolicyModalController)
   .service('SourceControlService', SourceControlService)
   .directive('numberInputWithStringValue', NumberInputWithStringValue)
@@ -172,6 +169,7 @@ export default angular
   .component('changeApplicationIdModal', iqReact2Angular(ChangeApplicationIdModal, [], ['$ngRedux']))
   .component('revokeGrandfatheringModal', iqReact2Angular(RevokeGrandfatheringModal, [], ['$ngRedux']))
   .component('createEditApplicationCategory', iqReact2Angular(CreateEditApplicationCategory, [], ['$ngRedux']))
+  .component('grandfatheringModal', iqReact2Angular(GrandfatheringModal, [], ['$ngRedux']))
   .component('assignAppCategory', iqReact2Angular(AssignAppCategory, [], ['$ngRedux']))
   .config([
     '$stateProvider',

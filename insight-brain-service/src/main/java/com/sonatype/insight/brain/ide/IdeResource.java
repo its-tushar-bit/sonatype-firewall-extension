@@ -58,6 +58,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Named
@@ -70,7 +71,8 @@ public class IdeResource
 
   public static final String COORDINATES_SCAN_PATH = "scan/coordinates/{applicationPublicId}";
 
-  private static final ObjectMapper JSON = new ObjectMapper();
+  private static final ObjectMapper JSON =
+      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   private final HdsClient client;
 

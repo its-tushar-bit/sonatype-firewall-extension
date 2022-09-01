@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -22,6 +23,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import io.swagger.v3.core.util.Json;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -61,6 +63,32 @@ public class ApiEndpointsServiceTest
 
     assertEndpoints(result, "/api/v2/ApiEndpointsServiceTestPublicResource",
         "Api Endpoints Service Test Public Resource");
+    assertThat(ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE).containsOnlyKeys(ApiType.PUBLIC);
+  }
+
+  @Test
+  public void testGetOpenAPI_ExperimentalClass() throws Exception {
+    setupApplicationClasses();
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.EXPERIMENTAL);
+
+    assertEndpoints(result, "/api/experimental/ApiEndpointsServiceTestExperimentalResource",
+        "Api Endpoints Service Test Experimental Resource");
+    assertThat(ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE).containsOnlyKeys(ApiType.EXPERIMENTAL);
+  }
+
+  @Test
+  public void testGetOpenAPI_CustomTag() throws Exception {
+    when(mockApplication.getClasses()).thenReturn(new HashSet<>(
+        Collections.singletonList(ApiEndpointsServiceTestResourceWithCustomTag.class)));
+
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getTags()).hasSize(1);
+    assertThat(openAPI.getPaths()).hasSize(1);
+    assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceWithCustomTag", "Custom Tag", HttpMethod.GET,
+        HttpMethod.DELETE);
     assertThat(ApiEndpointsService.OPEN_API_JSON_BY_API_TYPE).containsOnlyKeys(ApiType.PUBLIC);
   }
 
@@ -219,6 +247,21 @@ public class ApiEndpointsServiceTest
     @GET
     public String get() {
       return null;
+    }
+  }
+
+  @Path("api/v2/ApiEndpointsServiceTestResourceWithCustomTag")
+  @Tag(name = "Custom Tag")
+  private static class ApiEndpointsServiceTestResourceWithCustomTag
+  {
+    @GET
+    public String get() {
+      return null;
+    }
+
+    @DELETE
+    public void delete() {
+      // noop
     }
   }
 }

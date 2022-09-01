@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * @since 1.138
@@ -29,6 +30,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(value = PublicApiPaths.REVERSE_PROXY_AUTHENTICATION_CONFIG_RESOURCE_PATH_V2)
+@Tag(name = "Config Reverse Proxy Authentication")
 public class DefaultApiReverseProxyAuthenticationConfigurationResource
     implements ApiReverseProxyAuthenticationConfigurationResource
 {

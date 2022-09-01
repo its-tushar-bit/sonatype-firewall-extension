@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * @since 1.140
@@ -30,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 @Named
 @Timed
 @Path(value = PublicApiPaths.SOURCE_CONTROL_CONFIG_RESOURCE_PATH_V2)
+@Tag(name = "Config Source Control")
 public class DefaultApiSourceControlConfigurationResource
     implements ApiSourceControlConfigurationResource
 {

@@ -26,10 +26,12 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Named
 @Timed
 @Path(value = PublicApiPaths.CROWD_CONFIG_RESOURCE_PATH_V2)
+@Tag(name = "Config Crowd")
 public class DefaultApiCrowdConfigurationResource
     implements ApiCrowdConfigurationResourceV2
 {

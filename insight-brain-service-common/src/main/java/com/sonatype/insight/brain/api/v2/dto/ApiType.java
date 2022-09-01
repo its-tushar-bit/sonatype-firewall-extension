@@ -12,8 +12,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum ApiType
 {
   PUBLIC("/api/v2/"),
-  EXPERIMENTAL("/api/experimental/"),
-  PRIVATE("/rest/");
+  EXPERIMENTAL("/api/experimental/");
 
   private final String pathPrefix;
 

@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * @since 1.83
@@ -31,6 +32,7 @@ import com.codahale.metrics.annotation.Timed;
 @Named
 @Timed
 @Path(value = PublicApiPaths.MAIL_CONFIG_RESOURCE_PATH_V2)
+@Tag(name = "Config Mail")
 public class DefaultApiMailConfigurationResource implements ApiMailConfigurationResource
 {
   private final ApiMailConfigurationService mailConfigurationService;

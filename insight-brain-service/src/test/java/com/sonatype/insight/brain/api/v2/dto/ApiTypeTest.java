@@ -32,6 +32,5 @@ public class ApiTypeTest
   public void testGetPathPrefix() {
     assertThat(ApiType.PUBLIC.getPathPrefix()).isEqualTo("/api/v2/");
     assertThat(ApiType.EXPERIMENTAL.getPathPrefix()).isEqualTo("/api/experimental/");
-    assertThat(ApiType.PRIVATE.getPathPrefix()).isEqualTo("/rest/");
   }
 }

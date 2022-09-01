@@ -25,6 +25,7 @@ import io.swagger.v3.core.util.Json;
 import io.swagger.v3.jaxrs2.Reader;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.tags.Tag;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.server.model.Resource;
@@ -67,8 +68,12 @@ public class ApiEndpointsService
     if (openAPI.getPaths() != null) {
       openAPI.getPaths().forEach((key, pathItem) -> {
         String tag = createTag(key, pathPrefix);
-        tags.add(tag);
-        pathItem.readOperations().forEach(operation -> operation.addTagsItem(tag));
+        pathItem.readOperations().forEach(operation -> {
+          if (CollectionUtils.isEmpty(operation.getTags())) {
+            operation.addTagsItem(tag);
+          }
+          tags.addAll(operation.getTags());
+        });
       });
     }
     tags.forEach(tag -> addTagToOpenAPI(tag, openAPI));

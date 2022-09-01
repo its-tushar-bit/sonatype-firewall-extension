@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * @since 1.84
@@ -31,6 +32,7 @@ import com.codahale.metrics.annotation.Timed;
 @Timed
 @Path(value = PublicApiPaths.PROXY_SERVER_CONFIG_PATH_V2)
 @UnlicensedPath
+@Tag(name = "Config Proxy Server")
 public class DefaultApiProxyServerConfigurationResource implements ApiProxyServerConfigurationResource
 {
   private final ApiProxyServerConfigurationService proxyServerConfigurationService;

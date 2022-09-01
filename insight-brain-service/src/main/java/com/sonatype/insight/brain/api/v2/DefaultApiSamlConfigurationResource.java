@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 /**
@@ -31,6 +32,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 @Named
 @Timed
 @Path(value = PublicApiPaths.SAML_CONFIG_RESOURCE_PATH_V2)
+@Tag(name = "Config SAML")
 public class DefaultApiSamlConfigurationResource implements ApiSamlConfigurationResource
 {
   static final String METADATA = "metadata";

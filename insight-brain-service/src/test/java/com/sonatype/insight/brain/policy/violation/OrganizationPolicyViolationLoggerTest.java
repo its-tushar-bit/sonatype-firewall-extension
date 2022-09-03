@@ -35,7 +35,7 @@ public class OrganizationPolicyViolationLoggerTest
   @Test
   public void testLog() throws Exception {
     Date time = new Date();
-    when(currentUser.getUsername()).thenReturn(USERNAME);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
     Organization organization = tempEntity.newOrganization();
     OrganizationPolicyViolationLogger organizationPolicyViolationLogger = new OrganizationPolicyViolationLogger(true,
@@ -49,7 +49,7 @@ public class OrganizationPolicyViolationLoggerTest
         .assertPolicyViolationLogDTOs(logOutput, 1);
     PolicyViolationLogDTOAssert
         .assertOrganizationPolicyViolationData(policyViolationLogDTOs.get(0), policyViolationLogEvent, organization,
-            time, time, currentUser.getUsername());
+            time, time, currentUser.getUsernameOrSystem());
   }
 
   @Test

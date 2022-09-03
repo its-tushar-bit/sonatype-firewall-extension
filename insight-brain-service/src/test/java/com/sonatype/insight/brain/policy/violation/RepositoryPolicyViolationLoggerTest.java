@@ -45,7 +45,7 @@ public class RepositoryPolicyViolationLoggerTest
 
   @Test
   public void testLog() throws Exception {
-    when(currentUser.getUsername()).thenReturn(USERNAME);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
     RepositoryPolicyViolationLogger policyViolationLogger =
         new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser);
@@ -61,14 +61,14 @@ public class RepositoryPolicyViolationLoggerTest
 
     List<PolicyViolationLogDTO> policyViolationLogDTOs = assertPolicyViolationLogDTOs(2);
     assertPolicyViolationData(policyViolationLogDTOs.get(0), policyViolationLogEvent, policyViolationOne,
-        currentUser.getUsername());
+        currentUser.getUsernameOrSystem());
     assertPolicyViolationData(policyViolationLogDTOs.get(1), policyViolationLogEvent, policyViolationTwo,
-        currentUser.getUsername());
+        currentUser.getUsernameOrSystem());
   }
 
   @Test
   public void testLog_NoComponentIdentifier() throws Exception {
-    when(currentUser.getUsername()).thenReturn(USERNAME);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
     RepositoryPolicyViolationLogger policyViolationLogger =
         new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser);
@@ -81,12 +81,12 @@ public class RepositoryPolicyViolationLoggerTest
     policyViolationLogger.log();
 
     assertPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent, policyViolation,
-        currentUser.getUsername());
+        currentUser.getUsernameOrSystem());
   }
 
   @Test
   public void testLog_NoLogMessagesWithoutInfoEnabled() {
-    when(currentUser.getUsername()).thenReturn(USERNAME);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
     RepositoryPolicyViolationLogger policyViolationLogger =
         new RepositoryPolicyViolationLogger(true /* licensed */, evaluationTime, repository, currentUser);
@@ -123,7 +123,7 @@ public class RepositoryPolicyViolationLoggerTest
 
   @Test
   public void testLog_NoStagePolicyActionForCreateEventWithWaivedViolation() throws Exception {
-    when(currentUser.getUsername()).thenReturn(USERNAME);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
     RepositoryPolicyViolationLogger policyViolationLogger =
         new RepositoryPolicyViolationLogger(true, evaluationTime, repository, currentUser);
@@ -136,12 +136,12 @@ public class RepositoryPolicyViolationLoggerTest
     policyViolationLogger.log();
 
     assertPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent, policyViolation,
-        currentUser.getUsername());
+        currentUser.getUsernameOrSystem());
   }
 
   @Test
   public void testLog_NoStagePolicyActionForFixEvent() throws Exception {
-    when(currentUser.getUsername()).thenReturn(USERNAME);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
 
     RepositoryPolicyViolationLogger policyViolationLogger =
         new RepositoryPolicyViolationLogger(true, evaluationTime, repository, currentUser);
@@ -153,7 +153,7 @@ public class RepositoryPolicyViolationLoggerTest
     policyViolationLogger.log();
 
     assertPolicyViolationData(assertPolicyViolationLogDTOs(1).get(0), policyViolationLogEvent, policyViolation,
-        currentUser.getUsername());
+        currentUser.getUsernameOrSystem());
   }
 
   private List<PolicyViolationLogDTO> assertPolicyViolationLogDTOs(int expected) throws Exception {

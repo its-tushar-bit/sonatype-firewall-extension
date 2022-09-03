@@ -211,12 +211,12 @@ public class RepositoryPolicyEvaluatorTest
     List<PolicyViolationLogDTO> policyViolationLogDTOs = PolicyViolationLogDTOAssert
         .assertPolicyViolationLogDTOs(policyViolationLoggerOutput, policyViolationLogEvent, policyViolations.size());
     PolicyViolationLogDTOAssert.assertRepositoryPolicyViolationData(policyViolationLogDTOs, policyViolationLogEvent,
-        repository, before, after, policyViolations, currentUser.getUsername());
+        repository, before, after, policyViolations, currentUser.getUsernameOrSystem());
   }
 
   @Test
   public void testEvaluate_PolicyViolationLogger_CreatePolicyViolations() throws Exception {
-    when(currentUser.getUsername()).thenReturn(USERNAME);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository();
 
     tempEntity.newPolicy(repository.getParentOwnerId());
@@ -270,7 +270,7 @@ public class RepositoryPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_PolicyViolationLogger_FixPolicyViolations() throws Exception {
-    when(currentUser.getUsername()).thenReturn(USERNAME);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository();
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
@@ -319,7 +319,7 @@ public class RepositoryPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_PolicyViolationLogger_WaiveAndUnwaivePolicyViolations() throws Exception {
-    when(currentUser.getUsername()).thenReturn(USERNAME);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository();
 
     Policy policy1 = tempEntity.newPolicy(repository.getParentOwnerId());
@@ -612,7 +612,7 @@ public class RepositoryPolicyEvaluatorTest
 
   @Test
   public void testEvaluate_PolicyViolationLogger_metadata() throws Exception {
-    when(currentUser.getUsername()).thenReturn(USERNAME);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository();
     createPolicyDataSourceFeature(repository);
 

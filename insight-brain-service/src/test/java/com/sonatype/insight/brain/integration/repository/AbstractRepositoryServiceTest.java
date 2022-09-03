@@ -1908,7 +1908,7 @@ public abstract class AbstractRepositoryServiceTest
 
   @Test
   public void testRemoveComponent_PolicyViolationLogger_LogsFixEventForEachDeletedViolation() throws Exception {
-    when(currentUser.getUsername()).thenReturn(USERNAME);
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "path1");
     RepositoryPolicyViolation activeRepositoryPolicyViolation1 = tempEntity
@@ -1927,7 +1927,7 @@ public abstract class AbstractRepositoryServiceTest
     PolicyViolationLogDTOAssert
         .assertRepositoryPolicyViolationData(policyViolationLogDTOs, PolicyViolationLogEvent.FIX, repository, before,
             after, Arrays.asList(activeRepositoryPolicyViolation1, activeRepositoryPolicyViolation2),
-            currentUser.getUsername());
+            currentUser.getUsernameOrSystem());
 
     verify(repositoryComponentTelemetryCreator)
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),

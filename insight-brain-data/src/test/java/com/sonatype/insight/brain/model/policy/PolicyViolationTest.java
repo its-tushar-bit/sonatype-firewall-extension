@@ -297,4 +297,12 @@ public class PolicyViolationTest
 
     assertThat(violation.getFixOrWaiveTime()).isEqualTo(waiveTime);
   }
+
+  @Test
+  public void testGetOwnerId() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
+        PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+
+    assertThat(policyViolation.getOwnerId()).isEqualTo(policyViolation.getApplicationId());
+  }
 }

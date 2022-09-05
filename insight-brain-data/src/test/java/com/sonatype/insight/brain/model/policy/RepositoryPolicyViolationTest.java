@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Test;
@@ -202,5 +203,37 @@ public class RepositoryPolicyViolationTest
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
       policyViolation.setWaiveTime(null);
     }).withMessage("Cannot un-waive a repository policy violation.");
+  }
+
+  @Test
+  public void testGetOpenTime() {
+    Date time = new Date();
+    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
+    RepositoryPolicyViolation policyViolation =
+        new RepositoryPolicyViolation("repositoryId", "path", time, "policyId", "policyName", 5 /* threatLevel */,
+            PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts);
+
+    assertThat(policyViolation.getTime()).isEqualTo(time);
+    assertThat(policyViolation.getOpenTime()).isEqualTo(time);
+  }
+
+  @Test
+  public void testGetStageTypeId() {
+    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
+    RepositoryPolicyViolation policyViolation =
+        new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
+            PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts);
+
+    assertThat(policyViolation.getStageTypeId()).isEqualTo(StageTypes.PROXY.getId());
+  }
+
+  @Test
+  public void testGetOwnerId() {
+    List<ConstraintFact> constraintFacts = createConstraintFacts(1);
+    RepositoryPolicyViolation policyViolation =
+        new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
+            PolicyThreatCategory.LICENSE, "hash", MAVEN_IDENTIFIER, constraintFacts);
+
+    assertThat(policyViolation.getOwnerId()).isEqualTo(policyViolation.getRepositoryId());
   }
 }

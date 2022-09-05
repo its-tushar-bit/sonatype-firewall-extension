@@ -122,6 +122,7 @@ public class PolicyViolation
     this.applicationId = applicationId;
   }
 
+  @Override
   public String getStageTypeId() {
     return stageTypeId;
   }
@@ -138,6 +139,7 @@ public class PolicyViolation
     this.filename = filename;
   }
 
+  @Override
   public Date getOpenTime() {
     return openTime;
   }
@@ -220,6 +222,12 @@ public class PolicyViolation
 
   public void setGrandfatherApplied(boolean grandfatherApplied) {
     this.grandfatherApplied = grandfatherApplied;
+  }
+
+  @Transient
+  @Override
+  public String getOwnerId() {
+    return getApplicationId();
   }
 
   @Override

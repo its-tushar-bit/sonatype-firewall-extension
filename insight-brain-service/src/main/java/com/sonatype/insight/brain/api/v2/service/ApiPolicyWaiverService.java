@@ -14,6 +14,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -34,10 +35,12 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -45,6 +48,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.ConstraintFactDTO;
+import com.sonatype.insight.brain.policy.evaluator.PolicyWaiverMatcherWrapper;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -58,18 +62,17 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-import com.sonatype.insight.brain.policy.evaluator.PolicyWaiverMatcherWrapper;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
+import static com.sonatype.insight.purl.PackageUrlIdentifier.toPackageUrl;
 import static java.util.stream.Collectors.partitioningBy;
 import static java.util.stream.Collectors.toList;
-import static com.sonatype.insight.purl.PackageUrlIdentifier.toPackageUrl;
 
 /**
  * @since 1.70
@@ -159,6 +162,9 @@ public class ApiPolicyWaiverService
     addPolicyWaiver(ownerType, ownerId, policyViolation, comment, EXACT_COMPONENT, null);
   }
 
+  /**
+   * @param policyViolationId The id of an application or repository policy violation
+   */
   public void addPolicyWaiverByPolicyViolationId(
       final OwnerType ownerType,
       final String ownerId,
@@ -167,28 +173,22 @@ public class ApiPolicyWaiverService
       final ComponentMatcherStrategyForWaiver matcherStrategy,
       final Date expiryTime)
   {
-    // disable adding repository waivers (for now)
-    switch (ownerType) {
-      case APPLICATION:
-      case ORGANIZATION:
-        break;
-      default:
-        throw new BadRequestException("Invalid owner type: " + ownerType);
+    AbstractPolicyViolation abstractPolicyViolation = new PolicyViolationDAO().getById(policyViolationId);
+    if (abstractPolicyViolation == null) {
+      abstractPolicyViolation = new RepositoryPolicyViolationDAO().getById(policyViolationId);
     }
 
-    PolicyViolation policyViolation = new PolicyViolationDAO().getById(policyViolationId);
-
-    if (policyViolation == null) {
+    if (abstractPolicyViolation == null) {
       throw new NotFoundException("Could not find policy violation with ID " + policyViolationId + ".");
     }
 
     String internalOwnerId = IdUtils.getInternalOwnerId(ownerType, ownerId);
 
-    if (!isViolationOwnerId(policyViolation, internalOwnerId)) {
+    if (!isViolationOwnerId(abstractPolicyViolation, internalOwnerId)) {
       throw new BadRequestException("Invalid owner id: " + ownerId);
     }
 
-    addPolicyWaiver(ownerType, internalOwnerId, policyViolation, comment, matcherStrategy, expiryTime);
+    addPolicyWaiver(ownerType, internalOwnerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime);
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
@@ -196,15 +196,15 @@ public class ApiPolicyWaiverService
       /* used to perform authz check even though owner type is unused */
       @AuthzContext(Key.TYPE) @SuppressWarnings("unused") final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId,
-      final PolicyViolation policyViolation,
+      final AbstractPolicyViolation abstractPolicyViolation,
       final String comment,
       final ComponentMatcherStrategyForWaiver matcherStrategy,
       final Date expiryTime)
   {
     PolicyWaiver policyWaiver =
-        savePolicyWaiver(ownerId, policyViolation, comment, matcherStrategy, expiryTime);
+        savePolicyWaiver(ownerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime);
     auditPolicyWaiver(policyWaiver);
-    policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(policyWaiver, ownerType, policyViolation);
+    policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(policyWaiver, ownerType, abstractPolicyViolation);
     sendTelemetry(ownerType, ownerId);
   }
 
@@ -371,9 +371,9 @@ public class ApiPolicyWaiverService
     telemetrySender.send(telemetryData);
   }
 
-  private boolean isViolationOwnerId(PolicyViolation policyViolation, String internalId) {
-    for (Owner owner : ownerDAO.walkHierarchy(policyViolation.getApplicationId())) {
-      if (owner.getId().equals(internalId)) {
+  private boolean isViolationOwnerId(AbstractPolicyViolation policyViolation, String ownerId) {
+    for (Owner owner : ownerDAO.walkHierarchy(policyViolation.getOwnerId())) {
+      if (owner.getId().equals(ownerId)) {
         return true;
       }
     }
@@ -530,7 +530,7 @@ public class ApiPolicyWaiverService
 
   private PolicyWaiver savePolicyWaiver(
       String ownerId,
-      PolicyViolation policyViolation,
+      AbstractPolicyViolation abstractPolicyViolation,
       String comment,
       ComponentMatcherStrategyForWaiver matcherStrategy,
       Date expiryTime)
@@ -538,7 +538,7 @@ public class ApiPolicyWaiverService
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       tx.begin();
       PolicyWaiver policyWaiver =
-          savePolicyWaiver(tx, ownerId, policyViolation, comment, matcherStrategy, expiryTime);
+          savePolicyWaiver(tx, ownerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime);
       tx.commit();
       return policyWaiver;
     }
@@ -547,21 +547,21 @@ public class ApiPolicyWaiverService
   private PolicyWaiver savePolicyWaiver(
       TransactionContext tx,
       String ownerId,
-      PolicyViolation policyViolation,
+      AbstractPolicyViolation abstractPolicyViolation,
       String comment,
       ComponentMatcherStrategyForWaiver matcherStrategy,
       Date expiryTime)
   {
     String hash =
-        matcherStrategy == ALL_COMPONENTS || matcherStrategy == ALL_VERSIONS ? null : policyViolation.getHash();
-    PolicyWaiver policyWaiver = new PolicyWaiver(hash, policyViolation.getPolicyId(), ownerId, comment);
-    policyWaiver.setConstraintFactsJson(policyViolation.getConstraintFactsJson());
+        matcherStrategy == ALL_COMPONENTS || matcherStrategy == ALL_VERSIONS ? null : abstractPolicyViolation.getHash();
+    PolicyWaiver policyWaiver = new PolicyWaiver(hash, abstractPolicyViolation.getPolicyId(), ownerId, comment);
+    policyWaiver.setConstraintFactsJson(abstractPolicyViolation.getConstraintFactsJson());
     policyWaiver.setExpiryTime(expiryTime);
     policyWaiver.setCreatorId(currentUser.getUserPrincipal().getUsername());
     policyWaiver.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
     policyWaiver.setComponentMatchStrategy(matcherStrategy);
     if (matcherStrategy == ALL_VERSIONS) {
-      String packageUrl = toPackageUrl(policyViolation.getComponentIdentifier().createAlternativeVersion("*"));
+      String packageUrl = toPackageUrl(abstractPolicyViolation.getComponentIdentifier().createAlternativeVersion("*"));
       policyWaiver.setAssociatedPackageUrl(packageUrl);
     }
 

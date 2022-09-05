@@ -229,4 +229,10 @@ public abstract class AbstractPolicyViolation
   public boolean isGrandfathered() {
     return false;
   }
+
+  public abstract String getStageTypeId();
+
+  public abstract Date getOpenTime();
+
+  public abstract String getOwnerId();
 }

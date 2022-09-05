@@ -12,9 +12,11 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 /**
  * @since 1.17
@@ -144,5 +146,23 @@ public class RepositoryPolicyViolation
       throw new IllegalStateException("Cannot un-waive a repository policy violation.");
     }
     super.setWaiveTime(waiveTime);
+  }
+
+  @Transient
+  @Override
+  public String getStageTypeId() {
+    return StageTypes.PROXY.getId();
+  }
+
+  @Transient
+  @Override
+  public Date getOpenTime() {
+    return getTime();
+  }
+
+  @Transient
+  @Override
+  public String getOwnerId() {
+    return getRepositoryId();
   }
 }

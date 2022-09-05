@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -46,7 +46,7 @@ public class PolicyWaiverTelemetryCreator
   public void sendWaiverTelemetryForOwnerType(
       final PolicyWaiver policyWaiver,
       final OwnerType ownerType,
-      final PolicyViolation policyViolation)
+      final AbstractPolicyViolation policyViolation)
   {
     final PolicyWaiverTelemetry policyWaiverTelemetry = new PolicyWaiverTelemetry(policyWaiver, ownerType.toString(),
         policyViolation.getComponentIdentifier(), policyViolation.getStageTypeId(), policyViolation.getOpenTime());

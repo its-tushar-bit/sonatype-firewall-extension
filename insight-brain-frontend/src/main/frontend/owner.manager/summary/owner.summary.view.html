@@ -19,6 +19,13 @@
                  class="iq-btn iq-btn--dropdown">
                 <i class="fa fa-clipboard fa-fw"></i>App ID to Clipboard
               </a>
+              <a ng-if="vm.isOrg || vm.isRootOrg"
+                 id="copy-org-id-link"
+                 copy-to-clipboard="vm.owner.id"
+                 copied-tooltip
+                 class="iq-btn iq-btn--dropdown">
+                <i class="fa fa-clipboard fa-fw"></i>Org ID to Clipboard
+              </a>
               <a ng-if="vm.isApp"
                  id="select-contact-link"
                  ng-click="vm.selectContact(vm.owner)"

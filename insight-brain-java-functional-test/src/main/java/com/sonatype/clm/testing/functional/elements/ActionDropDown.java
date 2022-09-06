@@ -65,6 +65,10 @@ public class ActionDropDown
     return $("#copy-app-id-link");
   }
 
+  public static SelenideElement copyOrgIdButton() {
+    return $("#copy-org-id-link");
+  }
+
   public static SelenideElement actionButton() {
     return $(createSelector(ROOT, "button"));
   }

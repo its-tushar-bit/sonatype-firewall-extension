@@ -132,9 +132,10 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
   @Test
   public void testActionsDropdownOptions() {
     ActionDropDown.actionButton().click();
+    ActionDropDown.copyOrgIdButton().shouldBe(visible);
     ActionDropDown.editOwner().shouldBe(visible);
     ActionDropDown.importPoliciesButton().shouldBe(visible);
-    ActionDropDown.actions().shouldHaveSize(2);
+    ActionDropDown.actions().shouldHaveSize(3);
 
     eyesWatcher.eyesCheck("root organization actions dropdown");
   }

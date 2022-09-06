@@ -74,10 +74,11 @@ public class OrganizationSummaryViewTest
   @Test
   public void testActionsDropdownOptions() {
     ActionDropDown.actionButton().click();
+    ActionDropDown.copyOrgIdButton().shouldBe(visible);
     ActionDropDown.editOwner().shouldBe(visible);
     ActionDropDown.importPoliciesButton().shouldBe(visible);
     ActionDropDown.deleteOwnerButton().shouldBe(visible);
-    ActionDropDown.actions().shouldHaveSize(3);
+    ActionDropDown.actions().shouldHaveSize(4);
 
     eyesWatcher.eyesCheck("organization actions dropdown");
   }

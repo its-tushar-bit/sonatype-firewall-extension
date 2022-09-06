@@ -103,7 +103,8 @@ public class ConfigurationInfoTest
         SystemConfigurationProperty.DB_BACKUP_DIR,
         SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
         SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING
+        SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
+        SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST
     ));
 
     JsonNode configNode = JsonUtils.parse(configurationInfo.getConfigurationInfo());
@@ -140,6 +141,8 @@ public class ConfigurationInfoTest
         .asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.BASE_URL).asText()).isEqualTo("http://127.0.0.1:8070");
     assertThat(configNode.get(SystemConfigurationProperty.FORCE_BASE_URL).asText()).isEqualTo("true");
+    assertThat(configNode.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST).asText())
+        .isEqualTo("*first.com,second.*");
   }
 
   @Test
@@ -177,5 +180,6 @@ public class ConfigurationInfoTest
         .asText()).isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.BASE_URL).asText()).isEqualTo("null");
     assertThat(configNode.get(SystemConfigurationProperty.FORCE_BASE_URL).asText()).isEqualTo("false");
+    assertThat(configNode.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST).asText()).isEqualTo("null");
   }
 }

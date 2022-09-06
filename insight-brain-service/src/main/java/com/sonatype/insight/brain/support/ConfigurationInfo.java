@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.support;
 
+import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.inject.Inject;
@@ -68,6 +69,15 @@ public class ConfigurationInfo
     entries.put(SystemConfigurationProperty.FORCE_BASE_URL,
         configuration.getBaseUrlConfiguration() != null ? configuration.getBaseUrlConfiguration()
             .isForceBaseUrl() : null);
+
+    List<String> frameAncestorsAllowList = configuration.getFrameAncestorsAllowList();
+    if (frameAncestorsAllowList != null) {
+      entries.put(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST, String.join(",", frameAncestorsAllowList));
+    }
+    else {
+      entries.put(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST, null);
+    }
+
     return JsonUtils.format(entries);
   }
 }

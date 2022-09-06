@@ -169,9 +169,7 @@ public class ApiPolicyWaiverService
       final OwnerType ownerType,
       final String ownerId,
       final String policyViolationId,
-      final String comment,
-      final ComponentMatcherStrategyForWaiver matcherStrategy,
-      final Date expiryTime)
+      final ApiWaiverOptionsDTO waiverOptionsDTO)
   {
     AbstractPolicyViolation abstractPolicyViolation = new PolicyViolationDAO().getById(policyViolationId);
     if (abstractPolicyViolation == null) {
@@ -187,6 +185,22 @@ public class ApiPolicyWaiverService
     if (!isViolationOwnerId(abstractPolicyViolation, internalOwnerId)) {
       throw new BadRequestException("Invalid owner id: " + ownerId);
     }
+
+    ComponentMatcherStrategyForWaiver matcherStrategy;
+    if (waiverOptionsDTO != null) {
+      if (waiverOptionsDTO.matcherStrategy != null) {
+        matcherStrategy = waiverOptionsDTO.matcherStrategy;
+      }
+      else {
+        matcherStrategy = waiverOptionsDTO.applyToAllComponents ? ALL_COMPONENTS : EXACT_COMPONENT;
+      }
+    }
+    else {
+      matcherStrategy = EXACT_COMPONENT;
+    }
+
+    String comment = waiverOptionsDTO == null ? null : waiverOptionsDTO.comment;
+    Date expiryTime = waiverOptionsDTO == null ? null : waiverOptionsDTO.expiryTime;
 
     addPolicyWaiver(ownerType, internalOwnerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime);
   }

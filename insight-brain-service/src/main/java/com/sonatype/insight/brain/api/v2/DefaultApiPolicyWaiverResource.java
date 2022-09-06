@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.util.Date;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -28,12 +28,8 @@ import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 
 import com.codahale.metrics.annotation.Timed;
-
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 
 /**
  * @since 1.90
@@ -73,31 +69,7 @@ public class DefaultApiPolicyWaiverResource
       @PathParam("policyViolationId") String policyViolationId,
       ApiWaiverOptionsDTO waiverOptionsDTO)
   {
-    ComponentMatcherStrategyForWaiver matcherStrategy;
-
-    if ( waiverOptionsDTO != null) {
-      if (waiverOptionsDTO.matcherStrategy != null) {
-        matcherStrategy = waiverOptionsDTO.matcherStrategy;
-      }
-      else {
-        matcherStrategy = waiverOptionsDTO.applyToAllComponents ? ALL_COMPONENTS : EXACT_COMPONENT;
-      }
-    }
-    else {
-      matcherStrategy = EXACT_COMPONENT;
-    }
-
-    String comment = waiverOptionsDTO == null ? null : waiverOptionsDTO.comment;
-    Date expiryTime = waiverOptionsDTO == null ? null : waiverOptionsDTO.expiryTime;
-
-    apiPolicyWaiverService
-        .addPolicyWaiverByPolicyViolationId(
-            ownerType,
-            ownerId,
-            policyViolationId,
-            comment,
-            matcherStrategy,
-            expiryTime);
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(ownerType, ownerId, policyViolationId, waiverOptionsDTO);
   }
 
   @Override

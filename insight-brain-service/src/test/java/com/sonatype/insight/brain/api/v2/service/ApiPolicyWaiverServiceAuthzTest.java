@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -484,9 +485,7 @@ public class ApiPolicyWaiverServiceAuthzTest
         ownerType,
         ownerId,
         violationId,
-        null,
-        DEFAULT,
-        null
+        new ApiWaiverOptionsDTO(null, DEFAULT, null)
     );
   }
 

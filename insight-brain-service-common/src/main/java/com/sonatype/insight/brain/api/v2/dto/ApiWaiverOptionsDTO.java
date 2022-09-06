@@ -29,4 +29,13 @@ public class ApiWaiverOptionsDTO
 
   @ApiDateFormat
   public Date expiryTime;
+
+  public ApiWaiverOptionsDTO() {
+  }
+
+  public ApiWaiverOptionsDTO(String comment, ComponentMatcherStrategyForWaiver matcherStrategy, Date expiryTime) {
+    this.comment = comment;
+    this.matcherStrategy = matcherStrategy;
+    this.expiryTime = expiryTime;
+  }
 }

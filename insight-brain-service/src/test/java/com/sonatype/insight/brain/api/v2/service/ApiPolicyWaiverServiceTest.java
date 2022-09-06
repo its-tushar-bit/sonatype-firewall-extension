@@ -207,7 +207,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_Application() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), "waiver comment", EXACT_COMPONENT, null);
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null));
     assertNotExpiringPolicyWaiver(app.getId(), "waiver comment", "testuser", "Test User", policyViolation.getHash(),
         policyViolation.getConstraintFactsJson(), EXACT_COMPONENT);
     assertTelemetry(OwnerType.APPLICATION, app.getId());
@@ -217,7 +217,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_ApplicationPublicId() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getPublicId(),
-        policyViolation.getId(), "waiver comment", EXACT_COMPONENT, null);
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null));
 
     assertNotExpiringPolicyWaiver(app.getId(), "waiver comment", "testuser", "Test User", policyViolation.getHash(),
         policyViolation.getConstraintFactsJson(), EXACT_COMPONENT);
@@ -231,7 +231,8 @@ public class ApiPolicyWaiverServiceTest
 
     assertThatThrownBy(() ->
         apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, otherApp.getId(),
-            policyViolation.getId(), "waiver comment", EXACT_COMPONENT, null)
+            policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT,
+                null))
     ).isInstanceOf(BadRequestException.class)
         .hasMessage("Invalid owner id: " + otherApp.getId());
   }
@@ -242,7 +243,8 @@ public class ApiPolicyWaiverServiceTest
 
     assertThatThrownBy(() ->
         apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, otherApp.getPublicId(),
-            policyViolation.getId(), "waiver comment", EXACT_COMPONENT, null)
+            policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT,
+                null))
     ).isInstanceOf(BadRequestException.class)
         .hasMessage("Invalid owner id: " + otherApp.getPublicId());
   }
@@ -250,7 +252,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_Organization() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, org.getId(),
-        policyViolation.getId(), "waiver comment", EXACT_COMPONENT, null);
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null));
 
     assertNotExpiringPolicyWaiver(org.getId(), "waiver comment", "testuser", "Test User", policyViolation.getHash(),
         policyViolation.getConstraintFactsJson(), EXACT_COMPONENT);
@@ -264,7 +266,8 @@ public class ApiPolicyWaiverServiceTest
 
     assertThatThrownBy(() ->
         apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, otherOrg.getId(),
-            policyViolation.getId(), "waiver comment", EXACT_COMPONENT, null)
+            policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT,
+                null))
     ).isInstanceOf(BadRequestException.class)
         .hasMessage("Invalid owner id: " + otherOrg.getId());
   }
@@ -272,7 +275,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_RootOrganization() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
-        policyViolation.getId(), "waiver comment", EXACT_COMPONENT, null);
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null));
 
     assertNotExpiringPolicyWaiver(Organization.ROOT_ORGANIZATION_ID, "waiver comment", "testuser",
         "Test User", policyViolation.getHash(), policyViolation.getConstraintFactsJson(), EXACT_COMPONENT);
@@ -284,7 +287,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_NullComment() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), null, EXACT_COMPONENT, null);
+        policyViolation.getId(), new ApiWaiverOptionsDTO(null, EXACT_COMPONENT, null));
 
     assertNotExpiringPolicyWaiver(app.getId(), null, "testuser", "Test User", policyViolation.getHash(),
         policyViolation.getConstraintFactsJson(), EXACT_COMPONENT);
@@ -293,7 +296,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_ApplyToAllComponents() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), "waiver comment", ALL_COMPONENTS, null);
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_COMPONENTS, null));
 
     assertNotExpiringPolicyWaiver(app.getId(), "waiver comment", "testuser", "Test User", null,
         policyViolation.getConstraintFactsJson(), ALL_COMPONENTS);
@@ -301,11 +304,10 @@ public class ApiPolicyWaiverServiceTest
 
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_InvalidPolicyViolationId() {
-    assertThatThrownBy(() ->
-        apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-            "invalid-policyViolationId", null, EXACT_COMPONENT, null)
-    ).isInstanceOf(NotFoundException.class)
-        .hasMessage("Could not find policy violation with ID invalid-policyViolationId.");
+    assertThatThrownBy(() -> apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION,
+        app.getId(), "invalid-policyViolationId", new ApiWaiverOptionsDTO(null, EXACT_COMPONENT, null)))
+            .isInstanceOf(NotFoundException.class)
+            .hasMessage("Could not find policy violation with ID invalid-policyViolationId.");
   }
 
   @Test
@@ -313,7 +315,7 @@ public class ApiPolicyWaiverServiceTest
     Date expiryTime = DateTime.now().minusHours(1).toDate();
 
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), "waiver comment", ALL_COMPONENTS, expiryTime);
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_COMPONENTS, expiryTime));
 
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).isEmpty();
@@ -329,7 +331,7 @@ public class ApiPolicyWaiverServiceTest
     Date expiryTime = DateTime.now().plusHours(1).toDate();
 
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), "waiver comment", ALL_COMPONENTS, expiryTime);
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_COMPONENTS, expiryTime));
 
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).isNotEmpty().hasSize(1);
@@ -341,7 +343,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_WithExpiry_Null() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), "waiver comment", ALL_COMPONENTS, null);
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_COMPONENTS, null));
 
     assertNotExpiringPolicyWaiver(app.getId(), "waiver comment", "testuser", "Test User", null,
         policyViolation.getConstraintFactsJson(), ALL_COMPONENTS);
@@ -350,7 +352,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_WithPackageUrl() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), "waiver comment", ALL_VERSIONS, null);
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, null));
 
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).isNotEmpty().hasSize(1);
@@ -372,7 +374,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_WithoutPackageUrl() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), "waiver comment", DEFAULT, null);
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", DEFAULT, null));
 
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).isNotEmpty().hasSize(1);
@@ -385,7 +387,7 @@ public class ApiPolicyWaiverServiceTest
   @Test
   public void testAddPolicyWaiverByPolicyViolationId_DuplicatedAllVersions() {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), "waiver comment", ALL_VERSIONS, null);
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, null));
 
     PolicyViolation policyViolation1 =
         tempEntity.newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v2", "c1", "java", "h1", "r1");
@@ -394,11 +396,12 @@ public class ApiPolicyWaiverServiceTest
 
     assertThatThrownBy(
         () -> apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-            policyViolation1.getId(), "waiver comment", ALL_VERSIONS, null)).isInstanceOf(BadRequestException.class)
+            policyViolation1.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, null)))
+                .isInstanceOf(BadRequestException.class)
         .hasMessage("This policy waiver already exists.");
 
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation2.getId(), "waiver comment", ALL_VERSIONS, null);
+        policyViolation2.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, null));
 
     List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
     assertThat(policyWaivers).isNotEmpty().hasSize(2);
@@ -1397,7 +1400,7 @@ public class ApiPolicyWaiverServiceTest
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.REPOSITORY, repository.getId(),
-        repositoryPolicyViolation.getId(), "waiver comment", EXACT_COMPONENT, null);
+        repositoryPolicyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null));
 
     assertNotExpiringPolicyWaiver(repository.getId(), "waiver comment", "testuser", "Test User",
         repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getConstraintFactsJson(), EXACT_COMPONENT);
@@ -1414,8 +1417,8 @@ public class ApiPolicyWaiverServiceTest
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
 
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.REPOSITORY_CONTAINER,
-        RepositoryContainer.REPOSITORY_CONTAINER_ID, repositoryPolicyViolation.getId(), "waiver comment",
-        EXACT_COMPONENT, null);
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, repositoryPolicyViolation.getId(),
+        new ApiWaiverOptionsDTO("waiver comment", EXACT_COMPONENT, null));
 
     assertNotExpiringPolicyWaiver(RepositoryContainer.REPOSITORY_CONTAINER_ID, "waiver comment", "testuser",
         "Test User",

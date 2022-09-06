@@ -16,7 +16,7 @@ make(
       runAllTests(mavenCommon, keystoreCredId, deployToRepo, useInstall4J)
     },
     releaseBuild: { Map<String, ?> mavenCommon, String keystoreCredentialsId, boolean useInstall4J ->
-      buildAndSkipTests(mavenConfig, keystoreCredentialsId, false, useInstall4J)
+      buildAndSkipTests(mavenCommon, keystoreCredentialsId, false, useInstall4J)
     },
     releaseFromCommit: true,
     runFeatureBranchPolicyEvaluations: true,

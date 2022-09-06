@@ -118,26 +118,27 @@ public class SourceControlScanService
     try {
       GitRepositoryInfo gitRepositoryInfo =
           sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
+      if (gitRepositoryInfo == null) {
+        log.trace("onSourceControlScan: No gitRepositoryInfo for application ID '{}'.", event.getApplicationId());
+        return;
+      }
 
-      if (gitRepositoryInfo != null) {
-        final Application application = applicationDAO.getByIdNotNull(event.getApplicationId());
+      final Application application = applicationDAO.getByIdNotNull(event.getApplicationId());
 
-        try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
-          try {
-            AuditData.get().setApplication(application);
-            AuditData.get().setStageId(event.getStageTypeId());
+      try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
+        try {
+          AuditData.get().setApplication(application);
+          AuditData.get().setStageId(event.getStageTypeId());
 
-            RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, event.getBranchName());
-            ScanResult scanResult = scan(application, event.getScanTargets(), repoSyncResult.getHeadRef());
-            evaluate(event, application, scanResult);
+          RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, event.getBranchName());
+          ScanResult scanResult = scan(application, event.getScanTargets(), repoSyncResult.getHeadRef());
+          evaluate(event, application, scanResult);
 
-            log.trace("Source control scan completed for application '{}': {}", event.getApplicationId(),
-                repoSyncResult);
-          }
-          catch (Exception e) {
-            AuditData.get().setException(e);
-            throw e;
-          }
+          log.trace("Source control scan completed for application '{}': {}", event.getApplicationId(), repoSyncResult);
+        }
+        catch (Exception e) {
+          AuditData.get().setException(e);
+          throw e;
         }
       }
     }
@@ -150,7 +151,7 @@ public class SourceControlScanService
   public PolicyEvaluation doSynchronousSourceControlScan(String applicationId, Stage stage, String branchName)
       throws GitException, IOException
   {
-    return doSynchronousSourceControlScan(applicationId, stage, branchName, null);
+    return doSynchronousSourceControlScan(applicationId, stage, branchName, null /* commitHash */);
   }
 
   public PolicyEvaluation doSynchronousSourceControlScan(
@@ -165,42 +166,42 @@ public class SourceControlScanService
       return null;
     }
 
-    PolicyEvaluation result = null;
-
     GitRepositoryInfo gitRepositoryInfo =
         sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
-
-    if (gitRepositoryInfo != null) {
-      Boolean sourceControlEvaluationsEnabled = gitRepositoryInfo.getSourceControlEvaluationsEnabled();
-      if (sourceControlEvaluationsEnabled == null || !sourceControlEvaluationsEnabled.booleanValue()) {
-        return null;
-      }
-
-      final Application application = applicationDAO.getByIdNotNull(applicationId);
-
-      try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
-        try {
-          AuditData.get().setApplication(application);
-          AuditData.get().setStageId(stage.getStageTypeId());
-
-          RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, branchName, commitHash);
-          ScanResult scanResult = scan(application, null /* scanTarget */, repoSyncResult.getHeadRef());
-          ClientScanType clientScanType =
-              scanResult.hasThirdPartyScanContent() ? ClientScanType.SONATYPE_THIRD_PARTY : ClientScanType.SONATYPE;
-          result = policyEvaluateService.evaluateSynchronousNoAuth(application, clientScanType,
-              scanResult.getScanFile(), stage, ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST,
-              null /* clientUserAgent */);
-
-          log.trace("Source control scan completed for application '{}': {}", applicationId, repoSyncResult);
-        }
-        catch (Exception e) {
-          AuditData.get().setException(e);
-          throw e;
-        }
-      }
+    if (gitRepositoryInfo == null) {
+      log.trace("doSynchronousSourceControlScan: No gitRepositoryInfo for application ID '{}'.", applicationId);
+      return null;
     }
 
-    return result;
+    Boolean sourceControlEvaluationsEnabled = gitRepositoryInfo.getSourceControlEvaluationsEnabled();
+    if (sourceControlEvaluationsEnabled == null || !sourceControlEvaluationsEnabled.booleanValue()) {
+      return null;
+    }
+
+    final Application application = applicationDAO.getByIdNotNull(applicationId);
+
+    try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_APPLICATION)) {
+      try {
+        AuditData.get().setApplication(application);
+        AuditData.get().setStageId(stage.getStageTypeId());
+
+        RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, branchName, commitHash);
+        ScanResult scanResult = scan(application, null /* scanTarget */, repoSyncResult.getHeadRef());
+        ClientScanType clientScanType =
+            scanResult.hasThirdPartyScanContent() ? ClientScanType.SONATYPE_THIRD_PARTY : ClientScanType.SONATYPE;
+        PolicyEvaluation policyEvaluation =
+            policyEvaluateService.evaluateSynchronousNoAuth(application, clientScanType, scanResult.getScanFile(),
+                stage, ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST, null /* clientUserAgent */);
+
+        log.trace("Source control scan completed for application '{}': {}", applicationId, repoSyncResult);
+
+        return policyEvaluation;
+      }
+      catch (Exception e) {
+        AuditData.get().setException(e);
+        throw e;
+      }
+    }
   }
 
   private RepositorySyncResult checkout(

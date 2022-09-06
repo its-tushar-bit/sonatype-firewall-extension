@@ -81,7 +81,7 @@ public class ApiPolicyWaiverServiceAuthzTest
    */
   @Deprecated
   @Test(expected = UnauthorizedException.class)
-  public void testAddPolicyWaiver_Application_UnauthorizedButAuthenticated() {
+  public void testAddPolicyWaiver_Application_Unauthorized() {
     login();
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.APPLICATION, "waiver comment");
   }
@@ -110,7 +110,7 @@ public class ApiPolicyWaiverServiceAuthzTest
    */
   @Deprecated
   @Test(expected = UnauthorizedException.class)
-  public void testAddWaiver_Organization_UnauthorizedButAuthenticated() {
+  public void testAddWaiver_Organization_Unauthorized() {
     login();
     apiPolicyWaiverService.addPolicyWaiver(policyViolation.getId(), OwnerType.ORGANIZATION, "waiver comment");
   }
@@ -129,7 +129,7 @@ public class ApiPolicyWaiverServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testAddPolicyWaiverByPolicyViolationId_Application_UnauthorizedButAuthenticated() {
+  public void testAddPolicyWaiverByPolicyViolationId_Application_Unauthorized() {
     login();
     addPolicyWaiverWithDefaultOptions(OwnerType.APPLICATION, app.getId(),
         policyViolation.getId());
@@ -149,7 +149,7 @@ public class ApiPolicyWaiverServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testAddPolicyWaiverByPolicyViolationId_Organization_UnauthorizedButAuthenticated() {
+  public void testAddPolicyWaiverByPolicyViolationId_Organization_Unauthorized() {
     login();
     addPolicyWaiverWithDefaultOptions(OwnerType.ORGANIZATION, org.getId(),
         policyViolation.getId());
@@ -169,7 +169,7 @@ public class ApiPolicyWaiverServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testAddPolicyWaiverByPolicyViolationId_RootOrganization_UnauthorizedButAuthenticated() {
+  public void testAddPolicyWaiverByPolicyViolationId_RootOrganization_Unauthorizedd() {
     login();
     addPolicyWaiverWithDefaultOptions(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
         policyViolation.getId());

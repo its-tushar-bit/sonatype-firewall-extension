@@ -46,7 +46,7 @@ public class ApiComponentEvaluationServiceV2AuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testEvaluateComponents_UnauthorizedButAuthenticated() {
+  public void testEvaluateComponents_Unauthorized() {
     login();
 
     ApiComponentEvaluationRequestDTOV2 evaluationRequest = createEvaluationRequest();
@@ -84,7 +84,7 @@ public class ApiComponentEvaluationServiceV2AuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetComponentEvaluation_UnauthorizedButAuthenticated() throws Exception {
+  public void testGetComponentEvaluation_Unauthorized() throws Exception {
     login();
     apiComponentEvaluationService.getComponentEvaluation(app.getId(), "resultId");
   }

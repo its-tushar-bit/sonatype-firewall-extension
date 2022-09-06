@@ -80,7 +80,7 @@ public class ApiPolicyServiceAuthzTest
   }
 
   @Test
-  public void testGetPolicies_UnauthorizedButAuthenticated() {
+  public void testGetPolicies_Unauthorized() {
     login();
     ApiPolicyListDTO policyListDTO = apiPolicyService.getPolicies();
     assertThat(policyListDTO).isNotNull();

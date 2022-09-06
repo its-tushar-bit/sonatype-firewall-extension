@@ -14,12 +14,12 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiStaleApplicationEvaluationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStaleRepositoryEvaluationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStaleWaiverDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -47,7 +47,7 @@ public class ApiStaleWaiverServiceAuthzTest
   }
 
   @Test
-  public void testGetStaleWaivers_StaleRepositoryWaiversUnauthorizedButAuthenticated() {
+  public void testGetStaleWaivers_StaleRepositoryWaiversUnauthorized() {
     login();
     assertEmptyStaleRepositoryWaiversWhenUnauthorizedOrAuthenticated();
   }
@@ -117,7 +117,7 @@ public class ApiStaleWaiverServiceAuthzTest
   }
 
   @Test
-  public void testGetStaleWaivers_StaleApplicationWaiversUnauthorizedButAuthenticated() {
+  public void testGetStaleWaivers_StaleApplicationWaiversUnauthorized() {
     login();
     assertEmptyStaleApplicationWaiversWhenUnauthorizedOrAuthenticated();
   }

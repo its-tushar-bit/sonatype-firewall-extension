@@ -55,7 +55,7 @@ public class ApiOrganizationServiceAuthzTest
   }
 
   @Test
-  public void testGetOrganizations_UnauthorizedButAuthenticated() {
+  public void testGetOrganizations_Unauthorized() {
     login();
     ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationService.getOrganizations(Collections.emptySet());
     assertThat(apiOrganizationListDTO).isNotNull();
@@ -80,7 +80,7 @@ public class ApiOrganizationServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testAddOrganization_UnauthorizedButAuthenticated() {
+  public void testAddOrganization_Unauthorized() {
     login();
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO(null, "testOrganizationName");
     apiOrganizationService.addOrganization(apiOrganizationDTO);

@@ -45,7 +45,7 @@ public class ApiApplicationServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetApplication_UnauthorizedButAuthenticated() {
+  public void testGetApplication_Unauthorized() {
     login();
     apiApplicationService.getApplicationById(app.getId());
   }
@@ -64,7 +64,7 @@ public class ApiApplicationServiceAuthzTest
   }
 
   @Test
-  public void testGetApplications_UnauthorizedButAuthenticated() {
+  public void testGetApplications_Unauthorized() {
     login();
     List<Application> applications = apiApplicationService.getApplications(Collections.emptySet());
     assertThat(applications).isEmpty();
@@ -85,7 +85,7 @@ public class ApiApplicationServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testAddApplication_UnauthorizedButAuthenticated() {
+  public void testAddApplication_Unauthorized() {
     grantWritePermission(org.getId());
     ApiApplicationDTO applicationDTO = createApplicationDTO();
     apiApplicationService.addApplication(applicationDTO);
@@ -105,7 +105,7 @@ public class ApiApplicationServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testUpdateApplication_UnauthorizedButAuthenticated() {
+  public void testUpdateApplication_Unauthorized() {
     login();
     ApiApplicationDTO applicationDTO = apiApplicationAdapter.convertToDTO(app);
     apiApplicationService.updateApplication(applicationDTO);
@@ -123,7 +123,7 @@ public class ApiApplicationServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testDeleteApplication_UnauthorizedButAuthenticated() throws Exception {
+  public void testDeleteApplication_Unauthorized() throws Exception {
     login();
     apiApplicationService.deleteApplication(app.getId());
   }

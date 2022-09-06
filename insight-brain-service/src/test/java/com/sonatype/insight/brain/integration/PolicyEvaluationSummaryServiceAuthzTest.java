@@ -41,7 +41,7 @@ public class PolicyEvaluationSummaryServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetEvaluationSummaryByApplicationId_UnauthorizedButAuthenticated() throws Exception {
+  public void testGetEvaluationSummaryByApplicationId_Unauthorized() throws Exception {
     login();
     policyEvaluationSummaryService.getEvaluationSummaryByApplicationId(app.getId(), stage);
   }

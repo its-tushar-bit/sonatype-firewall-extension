@@ -147,7 +147,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
   }
 
   @Test
-  public void testGetPolicyViolations_UnauthorizedButAuthenticated() {
+  public void testGetPolicyViolations_Unauthorized() {
     login();
     assertEmptyWhenUnauthorizedOrAuthenticated();
   }

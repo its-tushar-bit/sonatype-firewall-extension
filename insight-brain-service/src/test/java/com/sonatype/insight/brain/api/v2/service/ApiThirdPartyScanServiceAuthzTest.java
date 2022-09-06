@@ -41,7 +41,7 @@ public class ApiThirdPartyScanServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testEvaluateComponents_UnauthorizedButAuthenticated() {
+  public void testEvaluateComponents_Unauthorized() {
     login();
     apiThirdPartyEvaluationService.scanComponents(app.getId(), "clair", "build", "", null, ThirdPartyUtils.XML_SBOM);
   }

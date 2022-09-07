@@ -147,7 +147,9 @@ public class Configuration
         SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
         SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
-        SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST)
+        SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
+        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX,
+        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL)
     );
     putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION, reverseProxyAuthenticationConfigurationDAO.get());
@@ -423,6 +425,14 @@ public class Configuration
 
   public List<String> getFrameAncestorsAllowList() {
     return (List<String>) valueByPropertyName.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST);
+  }
+
+  public String getBfsArtifactoryExpiredTokenRegex() {
+    return (String) valueByPropertyName.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX);
+  }
+
+  public String getBfsArtifactoryExpiredTokenEmail() {
+    return (String) valueByPropertyName.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL);
   }
 
   public Map<String, String> getMatcherConfiguration() {

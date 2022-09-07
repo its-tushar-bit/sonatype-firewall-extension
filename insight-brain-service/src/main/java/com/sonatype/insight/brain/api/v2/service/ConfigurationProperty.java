@@ -123,7 +123,13 @@ public class ConfigurationProperty
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES, Integer.class,
           (p, s) -> NumberUtils.toInt(s, 30),
-          (p, o) -> ConfigurationUtils.sessionTimeoutToString(o))
+          (p, o) -> ConfigurationUtils.sessionTimeoutToString(o)),
+      new ConfigurationProperty(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, String.class,
+          (p, s) -> StringUtils.defaultString(s, "(?i)(?s).*token[\\s\\w:]+expired.*"),
+          (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, String.class,
+          (p, s) -> s,
+          (p, o) -> Objects.toString(o, null))
   };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

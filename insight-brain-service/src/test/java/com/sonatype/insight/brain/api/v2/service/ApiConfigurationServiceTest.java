@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -428,6 +429,22 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING))).containsEntry(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, false);
+  }
+  
+  @Test
+  public void testGetConfiguration_BfsArtifactoryExpiredTokenRegexNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX))).containsEntry(
+        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, "(?i)(?s).*token[\\s\\w:]+expired.*");
+  }
+
+  @Test
+  public void testGetConfiguration_BfsArtifactoryExpiredTokenEmailNotSet_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL))).containsEntry(
+        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, null);
   }
 
   @Test
@@ -1155,6 +1172,52 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
         SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, false);
+  }
+
+  @Test
+  public void testSetConfiguration_BfsArtifactoryExpiredTokenRegex_Null() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX))).containsEntry(
+        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, "(?i)(?s).*token[\\s\\w:]+expired.*");
+  }
+
+  @Test
+  public void testSetConfiguration_BfsArtifactoryExpiredTokenRegex() {
+    String regex = "(?s).*token[\\s\\w:]+outdated.*";
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, regex));
+
+    assertThat(dao.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX)).isEqualTo(regex);
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX))).containsEntry(
+        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, regex);
+  }
+
+  @Test
+  public void testSetConfiguration_BfsArtifactoryExpiredTokenEmail_Null() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL))).containsEntry(
+        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, null);
+  }
+
+  @Test
+  public void testSetConfiguration_BfsArtifactoryExpiredTokenEmail() {
+    String email = "username@domain";
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, email));
+
+    assertThat(dao.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL)).isEqualTo(email);
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL))).containsEntry(
+        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, email);
   }
 
   private void assertMinAndMax(String name, int min, int max) {

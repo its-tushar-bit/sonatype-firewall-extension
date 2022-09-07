@@ -56,6 +56,8 @@ import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.service.InsightMail;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.lqa.LqaFormat;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -69,6 +71,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -150,6 +153,13 @@ public class RepositoryMatcher
 
   public static final String FIELD_MATCHED_BY_COORDINATES = "matchedByCoordinates";
 
+  public static final String BFS_ARTIFACTORY_EXPIRED_TOKEN_SUBJECT = "Nexus IQ Server Artifactory Token has Expired";
+
+  public static final String BFS_ARTIFACTORY_EXPIRED_TOKEN_BODY = "The Artifactory token, which the Nexus IQ Server " +
+      "at %s is using for the owner with ID \"%s\", has expired.<br/><br/> This prevents built-from-source from " +
+      "attempting identification of some components and may result in more similar or unknown matches in your policy " +
+      "evaluations.";
+
   public static final String FIELD_AA_DATA = "aaData";
 
   public static final String NOT_SUPPORTED_LICENSE_NAME = "Not Supported";
@@ -166,6 +176,10 @@ public class RepositoryMatcher
 
   private final RepositoryIdentifiedComponentCache repositoryIdentifiedComponentCache;
 
+  private final Configuration configuration;
+
+  private final InsightMail insightMail;
+
   @Inject
   public RepositoryMatcher(
       final ArtifactoryConnectionDAO artifactoryConnectionDao,
@@ -173,7 +187,9 @@ public class RepositoryMatcher
       final ApiArtifactoryConnectionService artifactoryConnectionService,
       final PasswordHandler passwordHandler,
       final DefaultApiComponentDetailsServiceV2 defaultApiComponentDetailsServiceV2,
-      final RepositoryIdentifiedComponentCache repositoryIdentifiedComponentCache)
+      final RepositoryIdentifiedComponentCache repositoryIdentifiedComponentCache,
+      final Configuration configuration,
+      final InsightMail insightMail)
   {
     this.artifactoryConnectionDao = artifactoryConnectionDao;
     this.artifactoryClientFactory = artifactoryClientFactory;
@@ -181,6 +197,8 @@ public class RepositoryMatcher
     this.passwordHandler = passwordHandler;
     this.defaultApiComponentDetailsServiceV2 = defaultApiComponentDetailsServiceV2;
     this.repositoryIdentifiedComponentCache = repositoryIdentifiedComponentCache;
+    this.configuration = configuration;
+    this.insightMail = insightMail;
   }
 
   public Set<ComponentIdentifier> match(
@@ -196,9 +214,11 @@ public class RepositoryMatcher
     }
 
     Set<ComponentIdentifier> result = new HashSet<>();
+    ArtifactoryConnection connection = null;
     try {
       long start = System.currentTimeMillis();
-      Map<ComponentIdentifier, ObjectNode> sha256Matched = identify(application.getId(), bomJson);
+      connection = getArtifactoryConnection(application.getId());
+      Map<ComponentIdentifier, ObjectNode> sha256Matched = identify(connection, bomJson);
       log.debug("performed repository matching in {} seconds with {} identified results",
           (System.currentTimeMillis() - start) / 1000, sha256Matched.size());
       start = System.currentTimeMillis();
@@ -213,8 +233,30 @@ public class RepositoryMatcher
     }
     catch (Exception e) {
       log.error("Failed to perform Artifactory repository matching.", e);
+      sendBfsArtifactoryExpiredTokenEmailIfNeeded(connection, e);
     }
     return result;
+  }
+
+  private void sendBfsArtifactoryExpiredTokenEmailIfNeeded(ArtifactoryConnection connection, Exception exception) {
+    if (connection == null) {
+      return;
+    }
+    if (!ExceptionUtils.getFullStackTrace(exception).matches(configuration.getBfsArtifactoryExpiredTokenRegex())) {
+      return;
+    }
+    String email = configuration.getBfsArtifactoryExpiredTokenEmail();
+    if (email == null) {
+      return;
+    }
+    try {
+      insightMail.sendHtml(email, BFS_ARTIFACTORY_EXPIRED_TOKEN_SUBJECT,
+          String.format(BFS_ARTIFACTORY_EXPIRED_TOKEN_BODY, configuration.getBaseUrlConfiguration().getBaseUrl(),
+              connection.getOwnerId()));
+    }
+    catch (Exception e) {
+      log.error("Failed to send artifactory expired token email.", e);
+    }
   }
 
   // Visible for testing
@@ -474,12 +516,11 @@ public class RepositoryMatcher
   }
 
   //visible for testing
-  Map<ComponentIdentifier, ObjectNode> identify(final String applicationId, final JsonNode bomJson) {
+  Map<ComponentIdentifier, ObjectNode> identify(final ArtifactoryConnection connection, final JsonNode bomJson) {
     Map<ComponentIdentifier, ObjectNode> identifiedComponents = new HashMap<>();
-    Set<ObjectNode> filteredNodes = filterMatchableNodes(bomJson);
-    if (CollectionUtils.isNotEmpty(filteredNodes)) {
-      ArtifactoryConnection connection = getArtifactoryConnection(applicationId);
-      if (connection != null) {
+    if (connection != null) {
+      Set<ObjectNode> filteredNodes = filterMatchableNodes(bomJson);
+      if (CollectionUtils.isNotEmpty(filteredNodes)) {
         ArtifactoryClient artifactoryClient = artifactoryClientFactory.create()
             .forArtifactory(connection.getBaseUrl(), connection.getUsername(),
                 passwordHandler.decryptPassword(connection.getPassword()));

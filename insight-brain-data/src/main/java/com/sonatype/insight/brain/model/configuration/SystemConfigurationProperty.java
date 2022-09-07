@@ -133,6 +133,10 @@ public class SystemConfigurationProperty
 
   public static final String SESSION_TIMEOUT_MINUTES = "sessionTimeout";
 
+  public static final String BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX = "bfs.artifactoryExpiredTokenRegex";
+
+  public static final String BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL = "bfs.artifactoryExpiredTokenEmail";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

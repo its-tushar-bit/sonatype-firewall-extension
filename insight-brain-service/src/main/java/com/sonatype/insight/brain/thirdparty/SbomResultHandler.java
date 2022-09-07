@@ -705,12 +705,10 @@ public class SbomResultHandler
       if (CollectionUtils.isNotEmpty(targetBom.getComponents())) {
         List<Dependency> dependencies = sourceBom.getDependencies();
         if (CollectionUtils.isNotEmpty(dependencies)) {
-          Iterator<Dependency> dependencyItr = dependencies.iterator();
-          Dependency rootModule = dependencyItr.next();
-          String moduleRef = resolveModuleRef(rootModule, targetBom);
-          if (moduleRef != null) {
-            processValidDependencyGraph(moduleRef, thirdPartyFile, rootModule, targetBom, dependencyItr,
-                moduleDependencies, dependencies);
+          Pair<Dependency, String> rootModuleAndRef = resolveRootModuleAndRef(dependencies, targetBom);
+          if (rootModuleAndRef != null) {
+            processValidDependencyGraph(rootModuleAndRef.getRight(), thirdPartyFile, rootModuleAndRef.getLeft(),
+                targetBom, dependencies.iterator(), moduleDependencies, dependencies);
           }
           else {
             log.debug(String.format("Unable to process dependency graph. " +
@@ -750,19 +748,14 @@ public class SbomResultHandler
       Map<String, Dependency> dependencyMap =
           dependencies.stream().collect(Collectors.toMap(BomReference::getRef, dep -> dep, (d1, d2) -> d1));
 
-      resolveSbomDependenciesAndTypes(thirdPartyFile, dependencyItr, dependencyGraph, bomRefsToPurls, targetBom,
-          dependencyMap);
+      resolveSbomDependenciesAndTypes(rootModule, thirdPartyFile, dependencyItr, dependencyGraph, bomRefsToPurls,
+          targetBom, dependencyMap);
       constructProjectDependencyGraph(dependencyGraph, project);
       moduleDependencies.add(project);
     }
   }
 
-  private String resolveModuleRef(final Dependency firstDep, final Bom targetBom) {
-    // Check we have the first dep ref to compare
-    if (StringUtils.isBlank(firstDep.getRef())) {
-      return null;
-    }
-
+  private Pair<Dependency, String> resolveRootModuleAndRef(final List<Dependency> dependencies, final Bom targetBom) {
     // Check we have the metadata component to compare
     if (targetBom.getMetadata() == null) {
       return null;
@@ -772,21 +765,27 @@ public class SbomResultHandler
       return null;
     }
 
-    // If the first dep ref matches the metadata component purl just return the latter
-    if (firstDep.getRef().equalsIgnoreCase(metadataComponent.getPurl())) {
-      return resolvePackageUrl(metadataComponent.getPurl()).getPackageUrl();
-    }
-    // Otherwise, if the first dep ref matches the metadata component bom ref (it could be a purl or a UUID)
-    if (firstDep.getRef().equalsIgnoreCase(metadataComponent.getBomRef())) {
-      // Return the metadata component purl if it exists
-      if (StringUtils.isNotBlank(metadataComponent.getPurl())) {
-        return resolvePackageUrl(metadataComponent.getPurl()).getPackageUrl();
+    for (Dependency dependency : dependencies) {
+      // Check we have the dep ref to compare
+      if (StringUtils.isBlank(dependency.getRef())) {
+        continue;
       }
-      // Otherwise, just return the first dep ref
-      if (isPurl(firstDep.getRef())) {
-        return resolvePackageUrl(firstDep.getRef()).getPackageUrl();
+      // If the dep ref matches the metadata component purl just return the latter
+      if (dependency.getRef().equalsIgnoreCase(metadataComponent.getPurl())) {
+        return Pair.of(dependency, resolvePackageUrl(metadataComponent.getPurl()).getPackageUrl());
       }
-      return firstDep.getRef();
+      // Otherwise, if the dep ref matches the metadata component bom ref (it could be a purl or a UUID)
+      if (dependency.getRef().equalsIgnoreCase(metadataComponent.getBomRef())) {
+        // Return the metadata component purl if it exists
+        if (StringUtils.isNotBlank(metadataComponent.getPurl())) {
+          return Pair.of(dependency,resolvePackageUrl(metadataComponent.getPurl()).getPackageUrl());
+        }
+        // Otherwise, just return the dep ref
+        if (isPurl(dependency.getRef())) {
+          return Pair.of(dependency, resolvePackageUrl(dependency.getRef()).getPackageUrl());
+        }
+        return Pair.of(dependency, dependency.getRef());
+      }
     }
     return null;
   }
@@ -876,6 +875,7 @@ public class SbomResultHandler
   }
 
   private void resolveSbomDependenciesAndTypes(
+      final Dependency rootModule,
       final ThirdPartyFile thirdPartyFile,
       final Iterator<Dependency> dependencyItr,
       final Map<String, Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>>> dependencyGraph,
@@ -884,6 +884,9 @@ public class SbomResultHandler
       final Map<String, Dependency> fullDependencyMap)
   {
     dependencyItr.forEachRemaining(dependency -> {
+      if (dependency == rootModule) {
+        return;
+      }
       String ref = getPurlForDependency(dependency, bomRefPurlMap, targetBom);
       Pair<Boolean, List<com.sonatype.insight.scan.model.Dependency>> dependencyPair =
           getProjectDependencyForRef(ref, dependencyGraph, fullDependencyMap);

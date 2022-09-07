@@ -1490,6 +1490,38 @@ public class SbomResultHandlerTest
             "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
   }
 
+  @Test
+  public void testHandleAndFilterContents_RootDependencyNotFirst() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-root-dependency-not-first.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-root-dependency-not-first.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    FilteredThirdPartyContent filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    Bom bom = assertFilteredSbomFile(filteredContent.getContent(), 2);
+    assertThat(bom.getMetadata()).isNotNull();
+    assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo("pkg:generic/Acme/Acme%20Application@9.1.1");
+    List<ProjectScanItem> moduleDependencies = filteredContent.getModuleDependencies();
+    assertThat(moduleDependencies).hasSize(1).allSatisfy(projectItem -> {
+      assertThat(projectItem.getKind()).isEqualTo("sbom");
+      assertThat(projectItem.getId()).isEqualTo("pkg:generic/Acme/Acme%20Application@9.1.1");
+      assertThat(projectItem.getPath()).isEqualTo("third-party-file");
+      List<com.sonatype.insight.scan.model.Dependency> rootDependencies = projectItem.getDependencies();
+      assertThat(rootDependencies).hasSize(3)
+          .extracting(com.sonatype.insight.scan.model.Dependency::getId)
+          .containsExactlyInAnyOrder(
+              "pkg:maven/org.acme/persistence@3.1.0?type=jar",
+              "pkg:maven/org.acme/web-framework@1.0.0?type=jar",
+              "pkg:maven/org.acme/common-util@3.0.0?type=jar");
+      assertParentAndChildDependency(rootDependencies, "pkg:maven/org.acme/persistence@3.1.0?type=jar",
+          "pkg:maven/org.acme/common-util@3.0.0?type=jar");
+      assertParentAndChildDependency(rootDependencies, "pkg:maven/org.acme/web-framework@1.0.0?type=jar",
+          "pkg:maven/org.acme/common-util@3.0.0?type=jar");
+      assertParentAndChildDependency(rootDependencies, "pkg:maven/org.acme/common-util@3.0.0?type=jar", null);
+    });
+  }
+
   private void assertExtensionVulnerabilities(Component component) {
     Map<String, Extension> extensions = component.getExtensions();
     assertThat(extensions).isNotEmpty().containsKey(ExtensionType.VULNERABILITIES.getTypeName());

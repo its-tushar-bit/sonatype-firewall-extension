@@ -448,6 +448,14 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testGetConfiguration_BfsComponentLimit_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)))
+        .containsEntry(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, null);
+  }
+
+  @Test
   public void testGetConfiguration_SchemaMigrationEnabled_NullDb_NullEnv() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
@@ -1218,6 +1226,28 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL))).containsEntry(
         SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, email);
+  }
+
+  public void testSetConfiguration_BfsComponentQueryLimit_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)))
+        .containsEntry(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, null);
+  }
+
+  @Test
+  public void testSetConfiguration_BfsComponentQueryLimit() {
+    Integer limit = 10;
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, limit));
+
+    assertThat(dao.get(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)).isEqualTo(limit.toString());
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)))
+        .containsEntry(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, limit);
+    assertMinAndMax(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 0, Integer.MAX_VALUE);
   }
 
   private void assertMinAndMax(String name, int min, int max) {

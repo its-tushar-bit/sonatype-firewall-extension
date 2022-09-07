@@ -67,6 +67,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -601,11 +602,9 @@ public class RepositoryMatcher
             artifactoryConnection, artifactoryClient, unresolvedNodesBySha256.keySet());
 
     resolved.forEach((key, value) -> {
-      if (value != null) {
-        repositoryIdentifiedComponentCache.put(key, value);
-        identifiedComponents.put(value, unresolvedNodesBySha256.get(key));
-        unresolvedNodesBySha256.remove(key);
-      }
+      repositoryIdentifiedComponentCache.put(key, value);
+      identifiedComponents.put(value, unresolvedNodesBySha256.get(key));
+      unresolvedNodesBySha256.remove(key);
     });
 
     Set<String> sha256ToRemove = new HashSet<>();
@@ -618,39 +617,84 @@ public class RepositoryMatcher
     return sha256ToRemove;
   }
 
-  private static Map<String, ComponentIdentifier> resolveComponentIdentifierFromArtifactory(
+  private Map<String, ComponentIdentifier> resolveComponentIdentifierFromArtifactory(
       ArtifactoryConnection artifactoryConnection,
       ArtifactoryClient artifactoryClient,
       Set<String> sha256s)
   {
     Map<String, ComponentIdentifier> result = new HashMap<>();
     try {
-      if (StringUtils.isNotBlank(artifactoryConnection.getUsername())) {
-        for (Entry<String, ArtifactoryChecksumSearchResults> entry : artifactoryClient.searchByChecksumsUsingAQL(
-            ChecksumType.SHA256, sha256s).entrySet()) {
-          result.put(entry.getKey(), resolveComponentIdentifier(entry.getValue()));
+      if (!sha256s.isEmpty()) {
+        Integer componentQueryLimit = configuration.getBfsComponentLimit();
+        if (componentQueryLimit == null || componentQueryLimit > 0) {
+          if (StringUtils.isNotBlank(artifactoryConnection.getUsername())) {
+            queryUsingAQL(artifactoryClient, sha256s, componentQueryLimit, result);
+          }
+          else {
+            queryUsingChecksum(artifactoryClient, sha256s, componentQueryLimit, result);
+          }
         }
-      }
-      else {
-        for (String sha256 : sha256s) {
-          ArtifactoryChecksumSearchResults artifactoryChecksumSearchResults =
-              artifactoryClient.searchByChecksum(ChecksumType.SHA256, sha256);
-          result.put(sha256, resolveComponentIdentifier(artifactoryChecksumSearchResults));
+
+        if (componentQueryLimit == null) {
+          if (result.size() > 0) {
+            log.debug("Artifactory search for {} checksum(s) resulted in {} match(es).", sha256s.size(), result.size());
+          }
+          else {
+            log.debug("Artifactory search for {} checksum(s) resulted in no matches.", sha256s.size());
+          }
+        }
+        else {
+          log.debug("Artifactory search, limited to {} queries, for {} checksum(s), resulted in {} match(es).",
+              componentQueryLimit, sha256s.size(), result.size());
         }
       }
     }
     catch (IOException e) {
       log.error("Checksum search error for repository connection uri {}", artifactoryConnection.getBaseUrl(), e);
     }
-
-    if (result.size() > 0) {
-      log.debug("Artifactory search for {} checksum(s) resulted in {} match(es).", sha256s.size(), result.size());
-    }
-    else {
-      log.debug("Artifactory search for {} checksum(s) resulted in no matches.", sha256s.size());
-    }
-
     return result;
+  }
+
+  private void queryUsingAQL(
+      ArtifactoryClient artifactoryClient,
+      Set<String> sha256s,
+      Integer componentQueryLimit,
+      Map<String, ComponentIdentifier> result) throws IOException
+  {
+    if (componentQueryLimit != null && sha256s.size() > componentQueryLimit) {
+      sha256s = new HashSet<>(Iterables.partition(sha256s, componentQueryLimit).iterator().next());
+    }
+
+    for (Entry<String, ArtifactoryChecksumSearchResults> entry : artifactoryClient.searchByChecksumsUsingAQL(
+        ChecksumType.SHA256, sha256s).entrySet()) {
+      ComponentIdentifier componentIdentifier = resolveComponentIdentifier(entry.getValue());
+      if (componentIdentifier != null) {
+        result.put(entry.getKey(), componentIdentifier);
+      }
+    }
+  }
+
+  private void queryUsingChecksum(
+      ArtifactoryClient artifactoryClient,
+      Set<String> sha256s,
+      Integer componentQueryLimit,
+      Map<String, ComponentIdentifier> result) throws IOException
+  {
+    int requestCounter = 0;
+    for (String sha256 : sha256s) {
+      ArtifactoryChecksumSearchResults artifactoryChecksumSearchResults =
+          artifactoryClient.searchByChecksum(ChecksumType.SHA256, sha256);
+
+      ComponentIdentifier componentIdentifier = resolveComponentIdentifier(artifactoryChecksumSearchResults);
+      if (componentIdentifier != null) {
+        result.put(sha256, componentIdentifier);
+      }
+      requestCounter++;
+
+      if (componentQueryLimit != null && requestCounter == componentQueryLimit) {
+        break;
+      }
+    }
   }
 
   private static ComponentIdentifier resolveComponentIdentifier(

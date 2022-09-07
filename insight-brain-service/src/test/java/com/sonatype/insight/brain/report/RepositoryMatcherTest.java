@@ -80,6 +80,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -212,6 +213,7 @@ public class RepositoryMatcherTest
           () -> RepositoryMatcher.updateJsonFiles(eq(application), eq(bomJson), eq(dataJson), eq(summaryJson),
               eq(licensesJson), eq(securityJson), any(), any()));
       assertThat(logOutput).atDebugLevel().contains("Artifactory search for 1 checksum(s) resulted in 1 match(es).");
+      assertThat(logOutput).atErrorLevel().isEmpty();
     }
   }
 
@@ -591,7 +593,7 @@ public class RepositoryMatcherTest
   @Test
   public void testIdentify_ArtifactoryConfig_No_Results() throws Exception {
     matcher.identify(artifactoryConnection, readJsonFile("match-sha256/bom.json"));
-    assertThat(logOutput).atDebugLevel().contains("Artifactory search for 1 checksum(s) resulted in no matches.");
+    assertThat(logOutput).atErrorLevel().contains("Checksum search error for repository connection uri");
   }
 
   @Test
@@ -682,6 +684,74 @@ public class RepositoryMatcherTest
     assertStored(date, sha256a, componentIdentifier1);
     assertStored(date, sha256b, componentIdentifier2);
     assertThat(logOutput).atDebugLevel().contains("Artifactory search for 2 checksum(s) resulted in 2 match(es).");
+  }
+
+  @Test
+  public void testIdentify_Aql_withComponentLimit() throws Exception {
+    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 1);
+    apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT);
+    String sha256a = "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941";
+    artifactoryConnectionDAO.delete(artifactoryConnection);
+    artifactoryConnection = tempEntity.newArtifactoryConnection(Organization.ROOT_ORGANIZATION_ID,
+        artifactoryMockServer.getUrl(),
+        "artifactoryUser",
+        passwordHandler.encryptPassword("password1".toCharArray()));
+    artifactoryMockServer.mockSearchByChecksumsUsingAQL(
+        artifactoryConnection.getUsername(),
+        passwordHandler.decryptPassword(artifactoryConnection.getPassword()),
+        ChecksumType.SHA256,
+        Collections.singleton(sha256a),
+        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256a, "r1", "g1/a1/v1", "x1.jar"),
+        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256a, "r2", "g2/a2/v2", "x1.jar")
+    );
+
+    Map<ComponentIdentifier, ObjectNode> sha256Matches =
+        matcher.identify(artifactoryConnection, readJsonFile("match-multiple/bom.json"));
+
+    ComponentIdentifier componentIdentifier1 =
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
+    assertThat(sha256Matches).containsOnlyKeys(componentIdentifier1);
+    artifactoryMockServer.getWireMockServer()
+        .verify(1, anyRequestedFor(
+            urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.AQL_SEARCH_PATH))));
+    assertThat(logOutput).atDebugLevel()
+        .contains("Artifactory search, limited to 1 queries, for 2 checksum(s), resulted in 1 match(es).");
+  }
+
+  @Test
+  public void testIdentify_checksum_withComponentLimit() throws Exception {
+    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 1);
+    apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT);
+    artifactoryConnectionDAO.delete(artifactoryConnection);
+    artifactoryConnection =
+        tempEntity.newArtifactoryConnection(Organization.ROOT_ORGANIZATION_ID, artifactoryMockServer.getUrl(), null,
+            null);
+    mockArtifactoryResponse();
+
+    Map<ComponentIdentifier, ObjectNode> sha256Matches =
+        matcher.identify(artifactoryConnection, readJsonFile("match-multiple/bom.json"));
+
+    ComponentIdentifier componentIdentifier1 =
+        ComponentIdentifier.createMavenCoordinates("g.org", "a", "1.1-SNAPSHOT", null, "jar");
+    assertThat(sha256Matches).containsOnlyKeys(componentIdentifier1);
+    artifactoryMockServer.getWireMockServer().verify(1, anyRequestedFor(
+        urlPathEqualTo(artifactoryMockServer.getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH))));
+    assertThat(logOutput).atDebugLevel()
+        .contains("Artifactory search, limited to 1 queries, for 2 checksum(s), resulted in 1 match(es).");
+  }
+
+  @Test
+  public void testIdentify_withComponentLimit_zero() throws Exception {
+    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 0);
+    apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT);
+
+    Map<ComponentIdentifier, ObjectNode> sha256Matches =
+        matcher.identify(artifactoryConnection, readJsonFile("match-multiple/bom.json"));
+
+    assertThat(sha256Matches).isEmpty();
+    artifactoryMockServer.getWireMockServer().verify(0, anyRequestedFor(anyUrl()));
+    assertThat(logOutput).atDebugLevel()
+        .contains("Artifactory search, limited to 0 queries, for 2 checksum(s), resulted in 0 match(es).");
   }
 
   private void assertStored(Date dateBeforeCached, String sha256, ComponentIdentifier componentIdentifier) {

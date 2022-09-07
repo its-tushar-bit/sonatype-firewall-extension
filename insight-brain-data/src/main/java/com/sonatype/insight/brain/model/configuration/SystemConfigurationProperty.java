@@ -137,6 +137,8 @@ public class SystemConfigurationProperty
 
   public static final String BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL = "bfs.artifactoryExpiredTokenEmail";
 
+  public static final String BFS_COMPONENT_QUERY_LIMIT = "bfs.componentQueryLimit";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

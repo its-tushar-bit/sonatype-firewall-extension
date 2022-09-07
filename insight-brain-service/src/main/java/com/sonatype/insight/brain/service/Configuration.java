@@ -149,7 +149,7 @@ public class Configuration
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
         SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
         SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX,
-        SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL)
+        SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)
     );
     putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION, reverseProxyAuthenticationConfigurationDAO.get());
@@ -433,6 +433,10 @@ public class Configuration
 
   public String getBfsArtifactoryExpiredTokenEmail() {
     return (String) valueByPropertyName.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL);
+  }
+
+  public Integer getBfsComponentLimit() {
+    return (Integer) valueByPropertyName.get(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT);
   }
 
   public Map<String, String> getMatcherConfiguration() {

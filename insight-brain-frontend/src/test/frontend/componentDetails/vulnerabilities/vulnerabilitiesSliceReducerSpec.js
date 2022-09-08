@@ -5,6 +5,8 @@
  */
 import reducer, { initialState } from 'MainRoot/componentDetails/VulnerabilitiesTableTile/vulnerabilitiesSlice';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
+import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+const { initialState: initUserInput } = nxTextInputStateHelpers;
 
 describe('componentDetailsVulnerabilitiesSlice', () => {
   const stateConstantObject = { value: 'test value' };
@@ -45,6 +47,8 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
       'sets loading flag to false, unsets the error and fills in the details and override information, ' +
         'translating the status to a server accepted value',
       () => {
+        const commentsInputState = initUserInput('');
+
         const state = Object.freeze({
           vulnerabilityDetails: {
             details: null,
@@ -68,7 +72,7 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
           selectedRefId: '2',
           vulnerabilitySecurityOverride: {
             status: '',
-            comments: {},
+            comments: { ...commentsInputState },
             loading: true,
             loadError: '',
             saveError: 'save error',
@@ -96,7 +100,7 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
 
         expect(vulnerabilitySecurityOverride).toEqual({
           status: 'NOT_APPLICABLE',
-          comments: {},
+          comments: { ...commentsInputState },
           loading: false,
           loadError: null,
           saveError: null,
@@ -133,7 +137,7 @@ describe('componentDetailsVulnerabilitiesSlice', () => {
 
       const { vulnerabilitySecurityOverride } = reducer(state, {
         type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled',
-        payload: null,
+        payload: {},
       });
 
       expect(vulnerabilitySecurityOverride.showCommentField).toBe(false);

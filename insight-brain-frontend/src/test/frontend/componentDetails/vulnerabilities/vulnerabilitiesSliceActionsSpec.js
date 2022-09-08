@@ -20,6 +20,7 @@ import {
 describe('vulnerabilitiesSliceActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   let store, state;
+  const vulnerabilityObj = { refId: '2', source: 'cve' };
 
   beforeEach(function () {
     state = {
@@ -58,7 +59,7 @@ describe('vulnerabilitiesSliceActions', () => {
       componentDetailsVulnerabilities: {
         selectedRefId: '2',
         vulnerabilities: {
-          data: [{ refId: '2', source: 'cve' }],
+          data: [vulnerabilityObj],
         },
         vulnerabilitySecurityOverride: {
           status: 'ACKNOWLEDGED',
@@ -284,6 +285,12 @@ describe('vulnerabilitiesSliceActions', () => {
   describe('loadVulnerabilityDetails', () => {
     const { loadVulnerabilityDetails } = actions;
     const expectedComponentIdentifier = { format: 'format', coordinates: { part1: 'part1', part2: 'part2' } };
+    const vulnerabilityDetails = {
+      identifier: 'CVE-2014-3625',
+      description: 'Directory traversal vulnerability',
+      categories: ['data', 'operational'],
+    };
+    const comment = 'hi, this is a comment';
     beforeEach(() => {
       spyOn(vulnerabilitiesSelectors, 'selectVulnerabityRefId').and.returnValue('2');
       spyOn(applicationReportSelectors, 'selectSelectedComponent').and.returnValue({
@@ -291,18 +298,24 @@ describe('vulnerabilitiesSliceActions', () => {
       });
     });
 
-    it('dispatches a componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled action after successful requests', (done) => {
-      const vulnerabilityDetails = {
-        identifier: 'CVE-2014-3625',
-        description: 'Directory traversal vulnerability',
-        categories: ['data', 'operational'],
-      };
-
+    it('dispatches a componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled action after successful requests for application components', (done) => {
+      const applicationVulnerabilityOverrideUrl = getVulnerabilityOverrideUrl(
+        'application',
+        state.router.currentParams.publicId,
+        state.router.currentParams.hash,
+        vulnerabilityObj
+      );
+      const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl('2', expectedComponentIdentifier);
       mockAxiosCalls({
         get: {
-          [getVulnerabilityJsonDetailUrl('2', expectedComponentIdentifier)]: Promise.resolve({
+          [vulnerabilityJsonDetailUrl]: Promise.resolve({
             data: {
               ...vulnerabilityDetails,
+            },
+          }),
+          [applicationVulnerabilityOverrideUrl]: Promise.resolve({
+            data: {
+              comment,
             },
           }),
         },
@@ -313,11 +326,61 @@ describe('vulnerabilitiesSliceActions', () => {
       };
       const expectedFulfilledAction = {
         type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled',
-        payload: { ...vulnerabilityDetails },
+        payload: { ...vulnerabilityDetails, comment },
       };
 
       store.dispatch(loadVulnerabilityDetails()).then(() => {
         const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
+
+        expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFulfilledAction]);
+        done();
+      });
+    });
+
+    it('dispatches a componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled action after successful requests for repository components', (done) => {
+      const customState = {
+        ...state,
+        router: {
+          ...state.router,
+          currentParams: {
+            repositoryId: 'repositoryId',
+            componentHash: 'componentHash',
+          },
+        },
+      };
+      const customStore = SpecUtil.mockReduxStore(customState);
+      const repositoryVulnerabilityOverrideUrl = getVulnerabilityOverrideUrl(
+        'repository',
+        customState.router.currentParams.repositoryId,
+        customState.router.currentParams.componentHash,
+        vulnerabilityObj
+      );
+      const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl('2', expectedComponentIdentifier);
+      mockAxiosCalls({
+        get: {
+          [vulnerabilityJsonDetailUrl]: Promise.resolve({
+            data: {
+              ...vulnerabilityDetails,
+            },
+          }),
+          [repositoryVulnerabilityOverrideUrl]: Promise.resolve({
+            data: {
+              comment,
+            },
+          }),
+        },
+      });
+
+      const expectedPendingAction = {
+        type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/pending',
+      };
+      const expectedFulfilledAction = {
+        type: 'componentDetailsVulnerabilities/loadVulnerabilityDetails/fulfilled',
+        payload: { ...vulnerabilityDetails, comment },
+      };
+
+      customStore.dispatch(loadVulnerabilityDetails()).then(() => {
+        const actions = customStore.getActions().map((action) => omit(['meta', 'error'], action));
 
         expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFulfilledAction]);
         done();
@@ -352,7 +415,7 @@ describe('vulnerabilitiesSliceActions', () => {
     const { saveVulnerabilityOverride } = actions;
     const url = getVulnerabilityOverrideUrl('application', 'appPublicId');
 
-    it('immediately dispatches a componentDetailsVulnerabilities/saveVulnerabilityOverride/pending action and appropriate requests', () => {
+    it('immediately dispatches a componentDetailsVulnerabilities/saveVulnerabilityOverride/pending action with application component route params and appropriate requests', () => {
       const expectedPutPayload = {
         status: 'ACKNOWLEDGED',
         comment: 'Vulnerability Acknowledged',

@@ -31,3 +31,20 @@ export const selectIsRootOrganization = createSelector(
   selectRouterCurrentParams,
   propEq('organizationId', 'ROOT_ORGANIZATION_ID')
 );
+
+export const selectRouteParamsFromSecurityTab = createSelector(selectRouterCurrentParams, (routerParams) => {
+  const isRepositoryComponent = !!(routerParams.repositoryId && routerParams.componentHash);
+  if (isRepositoryComponent) {
+    return {
+      ownerId: routerParams.repositoryId,
+      hash: routerParams.componentHash,
+      isRepositoryComponent,
+    };
+  } else {
+    return {
+      ownerId: routerParams.publicId,
+      hash: routerParams.hash,
+      isRepositoryComponent,
+    };
+  }
+});

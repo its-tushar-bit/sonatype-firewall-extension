@@ -824,7 +824,8 @@ public class ComponentDetailsTest
     vulnerabilityOverrideForm.status().chooseOption(new Option(3, "CONFIRMED"));
     vulnerabilityOverrideForm.comment().shouldBe(visible);
     vulnerabilityOverrideForm.comment().shouldBe(enabled);
-    vulnerabilityOverrideForm.comment().setValue("vulnerability confirmed in the current code");
+    String overridenVulnerabilityComment = "vulnerability confirmed in the current code";
+    vulnerabilityOverrideForm.comment().setValue(overridenVulnerabilityComment);
     vulnerabilityOverrideForm.submitButton().shouldBe(enabled).click();
     // Conditions after submitting
     vulnerabilityOverrideForm.submitButton().shouldBe(CLM.DISABLED);
@@ -840,6 +841,10 @@ public class ComponentDetailsTest
 
     vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"))
         .shouldHave(exactTexts("9", "CVE-1234-56789", "Confirmed", ""));
+
+    firstRow.click();
+    vulnerabilityOverrideForm.status().getElement().shouldHave(text("CONFIRMED"));
+    vulnerabilityOverrideForm.comment().shouldHave(text(overridenVulnerabilityComment));
   }
 
   @Test

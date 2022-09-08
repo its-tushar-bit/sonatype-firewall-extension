@@ -15,6 +15,7 @@ import {
   selectOrganizationId,
   selectApplicationId,
   selectIsRootOrganization,
+  selectRouteParamsFromSecurityTab,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('routerSelectors', function () {
@@ -145,6 +146,38 @@ describe('routerSelectors', function () {
       const selection = selectIsRootOrganization.resultFunc(currentRouterParams);
 
       expect(selection).toBeTrue();
+    });
+  });
+
+  describe('selectRouteParamsFromSecurityTab', () => {
+    it('maps the route params to proper common properties in application securityTab components', () => {
+      const currentRouterParams = {
+        publicId: 'applicationId',
+        hash: 'componentHash',
+      };
+      expect(selectRouteParamsFromSecurityTab.dependencies).toEqual([selectRouterCurrentParams]);
+      const selection = selectRouteParamsFromSecurityTab.resultFunc(currentRouterParams);
+
+      expect(selection).toEqual({
+        ownerId: currentRouterParams.publicId,
+        hash: currentRouterParams.hash,
+        isRepositoryComponent: false,
+      });
+    });
+
+    it('maps the route params to proper common properties in repository securityTab components', () => {
+      const currentRouterParams = {
+        repositoryId: 'repositoryId',
+        componentHash: 'componentHash',
+      };
+      expect(selectRouteParamsFromSecurityTab.dependencies).toEqual([selectRouterCurrentParams]);
+      const selection = selectRouteParamsFromSecurityTab.resultFunc(currentRouterParams);
+
+      expect(selection).toEqual({
+        ownerId: currentRouterParams.repositoryId,
+        hash: currentRouterParams.componentHash,
+        isRepositoryComponent: true,
+      });
     });
   });
 });

@@ -33,6 +33,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViola
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover.VulnerabilityOverrideForm;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -937,5 +938,38 @@ public class FirewallComponentDetailsPageTest
     vulnerabilityRow2Cells.get(2)
         .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
     vulnerabilityRow2Cells.get(1).shouldHave(text(vulnerabilityDetailsPopover.vulnerabilityTitle().getText()));
+  }
+
+  @Test
+  public void testSecurityTabVulnerabilityOverrideForm_vulnerabilityOverride() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    mockHdsResponsesForVulnerabilityDetails();
+    refreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
+    waitUntilSpinnersGone();
+
+    VulnerabilitiesTable vulnerabilitiesTable =
+        VulnerabilitiesTable.getVulnerabilitiesTableForParent(FirewallComponentDetailsPage.ROOT);
+    vulnerabilitiesTable.shouldBe(visible);
+    ElementsCollection vulnerabilityRowCells = vulnerabilitiesTable.getCellsByNthRow(2);
+    VulnerabilityDetailsPopover vulnerabilityDetailsPopover = new VulnerabilityDetailsPopover();
+    String overriddenVulnerabilityComment = "Vulnerability comment";
+    VulnerabilityOverrideForm vulnerabilityOverrideForm = vulnerabilityDetailsPopover.getVulnerabilityOverrideForm();
+
+    vulnerabilityRowCells.get(3).click();
+    vulnerabilityRowCells.get(2)
+        .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
+    vulnerabilityOverrideForm.comment().shouldNot(visible);
+    vulnerabilityOverrideForm.status().click();
+    vulnerabilityOverrideForm.status().listItem(2).click();
+    vulnerabilityOverrideForm.comment().setValue(overriddenVulnerabilityComment);
+    vulnerabilityOverrideForm.submitButton().click();
+    waitUntilSpinnersGone();
+    vulnerabilityDetailsPopover.getCloseButton().click();
+
+    vulnerabilityRowCells.get(3).click();
+    vulnerabilityRowCells.get(2)
+        .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
+    vulnerabilityOverrideForm.comment().shouldHave(text(overriddenVulnerabilityComment));
   }
 }

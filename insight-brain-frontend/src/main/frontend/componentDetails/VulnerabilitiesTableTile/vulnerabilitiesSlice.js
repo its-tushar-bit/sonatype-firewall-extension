@@ -20,10 +20,9 @@ import {
   selectVulnerabilitiesRequestData,
   selectFirewallVulnerabilitiesRequestData,
   selectVulnerabilityOverrideFormData,
-  selectVulnerabityRefId,
 } from './vulnerabilitiesSelectors';
+import { selectRouteParamsFromSecurityTab } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { validateMaxLength } from 'MainRoot/util/validationUtil';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
 
@@ -93,11 +92,23 @@ const loadFirewallVulnerabilities = createAsyncThunk(
 const loadVulnerabilityDetails = createAsyncThunk(
   `${REDUCER_NAME}/loadVulnerabilityDetails`,
   (_, { getState, rejectWithValue }) => {
-    const refId = selectVulnerabityRefId(getState());
     const componentIdentifier = selectSelectedComponent(getState())?.componentIdentifier;
+    const { ownerId, hash, isRepositoryComponent } = selectRouteParamsFromSecurityTab(getState());
+    const vulnerability = selectSelectedVulnerability(getState());
+
+    const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(vulnerability.refId, componentIdentifier);
+    const vulnerabilityOverideUrl = getVulnerabilityOverrideUrl(
+      isRepositoryComponent ? 'repository' : 'application',
+      ownerId,
+      hash,
+      vulnerability
+    );
+
     return axios
-      .get(getVulnerabilityJsonDetailUrl(refId, componentIdentifier))
-      .then(({ data }) => data)
+      .all([axios.get(vulnerabilityJsonDetailUrl), axios.get(vulnerabilityOverideUrl)])
+      .then(([{ data: vulnerabilityDetails }, { data: vulnerabilityOverride }]) => {
+        return { ...vulnerabilityDetails, comment: vulnerabilityOverride.comment };
+      })
       .catch(rejectWithValue);
   }
 );
@@ -105,23 +116,7 @@ const loadVulnerabilityDetails = createAsyncThunk(
 const saveVulnerabilityOverride = createAsyncThunk(
   `${REDUCER_NAME}/saveVulnerabilityOverride`,
   (_, { dispatch, getState, rejectWithValue }) => {
-    const routerParams = selectRouterCurrentParams(getState());
-    let retrievedRouterParams = {};
-    const isRepositoryComponent = routerParams.repositoryId && routerParams.componentHash;
-
-    if (isRepositoryComponent) {
-      retrievedRouterParams = {
-        ownerId: routerParams.repositoryId,
-        hash: routerParams.componentHash,
-      };
-    } else {
-      retrievedRouterParams = {
-        ownerId: routerParams.publicId,
-        hash: routerParams.hash,
-      };
-    }
-
-    const { ownerId, hash } = retrievedRouterParams;
+    const { ownerId, hash, isRepositoryComponent } = selectRouteParamsFromSecurityTab(getState());
     const { refId, source } = selectSelectedVulnerability(getState());
     const { status, comments } = selectVulnerabilityOverrideFormData(getState());
 
@@ -141,6 +136,7 @@ const saveVulnerabilityOverride = createAsyncThunk(
       .catch(rejectWithValue);
   }
 );
+
 const startSaveMaskSuccessTimer = (dispatch) => {
   setTimeout(() => {
     dispatch(actions.saveVulnerabilityOverrideMaskDone());
@@ -164,6 +160,8 @@ function loadVulnerabilityDetailsFulfilled(state, { payload }) {
   state.vulnerabilityDetails.loading = false;
   state.vulnerabilityDetails.error = null;
   state.vulnerabilityDetails.details = payload;
+
+  state.vulnerabilitySecurityOverride.comments = initUserInput(payload?.comment || '');
 
   const currentVulnerability = state.vulnerabilities.data.find(
     (vulnerability) => vulnerability.refId === state.selectedRefId

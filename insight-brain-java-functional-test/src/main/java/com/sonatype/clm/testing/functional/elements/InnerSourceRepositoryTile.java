@@ -18,11 +18,11 @@ public class InnerSourceRepositoryTile
   }
 
   public ElementsCollection rows() {
-    return children(".test-list-item-title");
+    return children(".nx-list__item");
   }
 
   public SelenideElement listTitle() {
-    return child(".iq-list__title");
+    return child(".nx-h3");
   }
 
   public SelenideElement editButton() {

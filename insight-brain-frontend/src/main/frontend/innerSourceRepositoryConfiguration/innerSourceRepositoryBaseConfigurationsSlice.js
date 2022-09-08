@@ -16,6 +16,9 @@ import {
   toServerData,
 } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsUtil';
 import { pathSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export const SUBMIT_MASK_SAVING_CONFIGURATION_MESSAGE = 'Saving Configuration';
 export const SUBMIT_MASK_TESTING_CONFIGURATION_MESSAGE = 'Testing Configuration';
@@ -129,6 +132,18 @@ function startSubmitMaskSuccessTimer(dispatch) {
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 }
 
+const goToEditPage = () => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const isOrganization = selectIsOrganization(state);
+    const ownerType = isOrganization ? 'organization' : 'application';
+    const ownerId = selectSelectedOwnerId(state);
+    const params = { [`${ownerType}Id`]: ownerId };
+
+    dispatch(stateGo(`repositoryBaseConfigurations.${ownerType}`, params));
+  };
+};
+
 const innerSourceRepositoryBaseConfigurationsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -153,4 +168,5 @@ export const actions = {
   ...innerSourceRepositoryBaseConfigurationsSlice.actions,
   load,
   save,
+  goToEditPage,
 };

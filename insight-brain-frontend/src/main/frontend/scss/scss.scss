@@ -112,7 +112,6 @@
 @use '../violation/requestWaiveTransitiveViolationsPopover';
 @use '../componentDetails/overview/occurrencesPopover/occurrencesPopover';
 @use '../quarantinedComponentReport/quarantinedComponentReport';
-@use '../owner.manager/innersource.repository/innersourceRepositoryTile';
 @use '../innerSourceRepositoryConfiguration/innerSourceRepositoryConfigurationModal';
 @use '../innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurations';
 @use '../owner.manager/artifactory.repository/artifactoryRepositoryTile';

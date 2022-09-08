@@ -7,8 +7,6 @@ import { prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 import { getOriginalValues } from './innerSourceRepositoryBaseConfigurationsUtil';
 import { NO_CHANGES_MESSAGE } from './innerSourceRepositoryConfigurationModalSlice';
-import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const selectInnerSourceRepositoryBaseConfigurationsSlice = prop('innerSourceRepositoryBaseConfigurations');
 
@@ -57,11 +55,6 @@ export const selectValidationErrors = createSelector(selectIsDirty, (isDirty) =>
     return NO_CHANGES_MESSAGE;
   }
   return null;
-});
-
-export const selectEditLink = createSelector(selectIsOrganization, selectSelectedOwnerId, (isOrganization, ownerId) => {
-  const ownerType = isOrganization ? 'organization' : 'application';
-  return `repositoryBaseConfigurations.${ownerType}({${ownerType}Id:'${ownerId}'})`;
 });
 
 export const selectInnerSourceRepositoriesEnabled = createSelector(

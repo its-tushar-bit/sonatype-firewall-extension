@@ -26,7 +26,6 @@ describe('innerSourceRepositoryBaseConfigurationsSelectors', function () {
     selectValidationErrors,
     selectLoading,
     selectLoadError,
-    selectEditLink,
     selectInnerSourceRepositoriesEnabled;
   beforeEach(() => {
     spyGetOriginalValues = jasmine.createSpy('getOriginalValues').and.callFake((serverData) => {
@@ -57,7 +56,6 @@ describe('innerSourceRepositoryBaseConfigurationsSelectors', function () {
       selectValidationErrors,
       selectLoading,
       selectLoadError,
-      selectEditLink,
       selectInnerSourceRepositoriesEnabled,
     } = module);
   });
@@ -295,43 +293,6 @@ describe('innerSourceRepositoryBaseConfigurationsSelectors', function () {
         },
       };
       expect(selectLoadError(state)).toBe('error');
-    });
-  });
-
-  describe('selectEditLink', () => {
-    it('forms the editLink with application', () => {
-      const state = {
-        router: {
-          currentState: {
-            name: 'management.view.application',
-          },
-        },
-        orgsAndPolicies: {
-          root: {
-            selectedOwner: {
-              id: 'id',
-            },
-          },
-        },
-      };
-      expect(selectEditLink(state)).toBe(`repositoryBaseConfigurations.application({applicationId:'id'})`);
-    });
-    it('forms the editLink with organization', () => {
-      const state = {
-        router: {
-          currentState: {
-            name: 'management.view.organization',
-          },
-        },
-        orgsAndPolicies: {
-          root: {
-            selectedOwner: {
-              id: 'id',
-            },
-          },
-        },
-      };
-      expect(selectEditLink(state)).toBe(`repositoryBaseConfigurations.organization({organizationId:'id'})`);
     });
   });
 

@@ -65,7 +65,6 @@ import summaryViewTemplate from './summary/owner.summary.view.html';
 import policyEditorTemplate from './policy/policy.editor.view.html';
 import ltgEditorTemplate from './license.threat.group/license.threat.group.editor.view.html';
 import SourceControlService from './source.control/source.control.service';
-import innerSourceRepositoryModule from './innersource.repository/module';
 import ContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/ContinuousMonitoringEditor';
 import artifactoryRepositoryModule from './artifactory.repository/module';
 import LabelsTile from 'MainRoot/OrgsAndPolicies/ownerSummary/labelsTile/LabelsTile';
@@ -85,6 +84,7 @@ import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOw
 import GrandfatheringModal from 'MainRoot/OrgsAndPolicies/grandfatheringModal/GrandfatheringModal';
 import ChangeApplicationIdModal from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/ChangeApplicationIdModal';
 import RevokeGrandfatheringModal from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/RevokeGrandfatheringModal';
+import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
 
 export default angular
   .module('owner.manager.module', [
@@ -105,7 +105,6 @@ export default angular
     PolicyViolationGrandfatheringModule.name,
     retentionModule.name,
     sourceControlModule.name,
-    innerSourceRepositoryModule.name,
     artifactoryRepositoryModule.name,
   ])
   .component('ownerPolicyList', ownerPolicyList)
@@ -165,6 +164,7 @@ export default angular
     'continuousMonitoringSummaryTile',
     iqReact2Angular(ContinuousMonitoringSummaryTile, [], ['$ngRedux', '$state'])
   )
+  .component('innerSourceRepositoryTile', iqReact2Angular(InnerSourceRepositoryTile, [], ['$ngRedux']))
   .component('deleteOwnerModal', iqReact2Angular(DeleteOwnerModal, [], ['$ngRedux']))
   .component('changeApplicationIdModal', iqReact2Angular(ChangeApplicationIdModal, [], ['$ngRedux']))
   .component('revokeGrandfatheringModal', iqReact2Angular(RevokeGrandfatheringModal, [], ['$ngRedux']))

@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -93,6 +94,7 @@ public class ContainerResultHandler
     Set<Component> componentsToAdd = new LinkedHashSet<>();
     ScanModule[] modules = scanRepoReportData.getReport().getModules();
     Map<String, org.cyclonedx.model.vulnerability.Vulnerability> cveCycloneDxVulnMap = new HashMap<>();
+    Map<String, Set<String>> vulnerabilityAffectsMap = new HashMap<>();
 
     for (ScanModule module : modules) {
       String resourceId = module.getName();
@@ -143,9 +145,14 @@ public class ContainerResultHandler
           if (affects == null) {
             vuln.setAffects(new ArrayList<>());
           }
-          Affect affect = new Affect();
-          affect.setRef(packageUrlIdentifier.getPackageUrl());
-          vuln.getAffects().add(affect);
+          vulnerabilityAffectsMap.putIfAbsent(vuln.getId(), new HashSet<>());
+          String packageUrl = packageUrlIdentifier.getPackageUrl();
+          if (!vulnerabilityAffectsMap.get(vuln.getId()).contains(packageUrl)) {
+            vulnerabilityAffectsMap.get(vuln.getId()).add(packageUrl);
+            Affect affect = new Affect();
+            affect.setRef(packageUrl);
+            vuln.getAffects().add(affect);
+          }
         }
       }
     }

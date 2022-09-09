@@ -59,53 +59,53 @@ public class ApiComponentRemediationServiceAuthzTest
         .thenReturn(ComponentSummary.create(true));
   }
 
-  private void testGetSuggestedRemediationForComponent_Authorized(final Owner owner, final String ownerId) {
+  private void testGetSuggestedRemediationForComponent_Authorized(Owner owner) {
     configureHdsClientMock();
     grantEvaluateComponentPermission(owner.getId());
     apiComponentRemediationService
-        .getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(), ownerId, DevelopStageType.ID);
+        .getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(), owner.getId(), DevelopStageType.ID);
   }
 
   @Test
   public void testGetSuggestedRemediationForComponent_Authorized_Application() {
-    testGetSuggestedRemediationForComponent_Authorized(app, app.getId());
+    testGetSuggestedRemediationForComponent_Authorized(app);
   }
 
   @Test
   public void testGetSuggestedRemediationForComponent_Authorized_Organization() {
-    testGetSuggestedRemediationForComponent_Authorized(org, org.getId());
+    testGetSuggestedRemediationForComponent_Authorized(org);
   }
 
-  private void testGetSuggestedRemediationForComponent_Unauthorized(final Owner owner, final String ownerId) {
+  private void testGetSuggestedRemediationForComponent_Unauthorized(Owner owner) {
     login();
 
     apiComponentRemediationService
-        .getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(), ownerId, DevelopStageType.ID);
+        .getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(), owner.getId(), DevelopStageType.ID);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetSuggestedRemediationForComponent_Unauthorized_Application() {
-    testGetSuggestedRemediationForComponent_Unauthorized(app, app.getId());
+    testGetSuggestedRemediationForComponent_Unauthorized(app);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetSuggestedRemediationForComponent_Unauthorized_Organization() {
-    testGetSuggestedRemediationForComponent_Unauthorized(org, org.getId());
+    testGetSuggestedRemediationForComponent_Unauthorized(org);
   }
 
-  private void testGetSuggestedRemediationForComponent_Unauthenticated(final Owner owner, final String ownerId) {
+  private void testGetSuggestedRemediationForComponent_Unauthenticated(Owner owner) {
     apiComponentRemediationService
-        .getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(), ownerId, DevelopStageType.ID);
+        .getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(), owner.getId(), DevelopStageType.ID);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetSuggestedRemediationForComponent_Unauthenticated_Application() {
-    testGetSuggestedRemediationForComponent_Unauthenticated(app, app.getPublicId());
+    testGetSuggestedRemediationForComponent_Unauthenticated(app);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetSuggestedRemediationForComponent_Unauthenticated_Organization() {
-    testGetSuggestedRemediationForComponent_Unauthenticated(org, org.getId());
+    testGetSuggestedRemediationForComponent_Unauthenticated(org);
   }
 
   private static ApiComponentDTOV2 createApiComponentDTOV2() {

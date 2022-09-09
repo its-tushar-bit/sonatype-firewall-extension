@@ -90,6 +90,48 @@ describe('ViolationDetailsTile', function () {
       stateGo: stateGoMock,
       goToWaivers: goToWaiversMock,
       activeWaivers: [],
+      isPolicyPopoverShown: false,
+      policyDetail: {
+        policyViolationId: '02a6107559a94c39b04d4ec8374b9508',
+        policyId: 'd98fb873ed1f48e5b00316d8acddbc0f',
+        policyName: 'Security-Medium',
+        policyOwner: {
+          ownerId: 'ROOT_ORGANIZATION_ID',
+          ownerName: 'Root Organization',
+          ownerType: 'organization',
+        },
+        policyThreatLevel: 7,
+        policyThreatCategory: 'SECURITY',
+        constraints: [
+          {
+            constraintId: 'c6436a5a051046b1ba2aa94e9fd82a51',
+            constraintName: 'Medium risk CVSS score',
+            constraintOperator: 'AND',
+            conditions: [
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity >= 4',
+                conditionReason: 'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)',
+                conditionTriggerReference: {
+                  value: 'CVE-2012-2098',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity < 7',
+                conditionReason: 'Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)',
+                conditionTriggerReference: {
+                  value: 'CVE-2012-2098',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+            ],
+          },
+        ],
+        policyActionTypeId: null,
+        lastReported: '2022-08-10T13:35:40.641+03:00',
+      },
     };
 
     ViolationDetailsTile = require('inject-loader!../../../main/frontend/violation/ViolationDetailsTile')({
@@ -211,6 +253,16 @@ describe('ViolationDetailsTile', function () {
       button.simulate('click');
       expect(goToWaiversMock).toHaveBeenCalledWith('selectedViolationId');
       expect(stateGoMock).toHaveBeenCalledTimes(0);
+    });
+
+    it('show header subtitle if isPolicyPopoverShown not active', () => {
+      const component = getShallowComponent({ isPolicyPopoverShown: false });
+      expect(component.find(ViolationDetailsSubtitle)).toExist();
+    });
+
+    it('hide header subtitle if isPolicyPopoverShown active', () => {
+      const component = getShallowComponent({ isPolicyPopoverShown: true });
+      expect(component.find(ViolationDetailsSubtitle)).not.toExist();
     });
 
     describe('active waivers counter', function () {
@@ -335,9 +387,19 @@ describe('ViolationDetailsTile', function () {
       expect(component.find('dt')).toExist();
       expect(component.find('dd')).toHaveText('1 weeks ago');
     });
+
+    it('hidden first report section if isPolicyPopoverShown is true', () => {
+      const component = getShallowComponent({ isPolicyPopoverShown: true });
+      expect(component.find('.iq-violation-details__first-reported')).not.toExist();
+    });
+
+    it('show first report section if isPolicyPopoverShown is false', () => {
+      const component = getShallowComponent({ isPolicyPopoverShown: false });
+      expect(component.find('.iq-violation-details__first-reported')).toExist();
+    });
   });
 
-  describe('first reported section', function () {
+  describe('second reported section', function () {
     it('contains a dt and a dd with the highest mostRecentEvaluationTime time displayed in relative terms', function () {
       const component = getShallowComponent().find('.iq-violation-details__last-reported');
 
@@ -376,6 +438,16 @@ describe('ViolationDetailsTile', function () {
       expect(dds.at(2).children()).toHaveProp('stageType', minimalProps.stageTypes[2]);
       expect(dds.at(2).children()).toHaveProp('stageData', minimalProps.violationDetails.stageData.release);
       expect(dds.at(2).children()).toHaveProp('applicationPublicId', 'app1');
+    });
+
+    it('hide stage section if isPolicyPopoverShown is true', () => {
+      const component = getShallowComponent({ isPolicyPopoverShown: true });
+      expect(component.find('.iq-violation-details__stages')).not.toExist();
+    });
+
+    it('show stage section if isPolicyPopoverShown is false', () => {
+      const component = getShallowComponent({ isPolicyPopoverShown: false });
+      expect(component.find('.iq-violation-details__stages')).toExist();
     });
   });
 

@@ -769,8 +769,8 @@ public class FirewallComponentDetailsPageTest
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
     waitUntilSpinnersGone();
 
-    FirewallPolicyViolationsTable policyViolationsTable =
-        firewallComponentDetailsPage.getFirewallPolicyViolationsTable();
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHaveSize(6);
 

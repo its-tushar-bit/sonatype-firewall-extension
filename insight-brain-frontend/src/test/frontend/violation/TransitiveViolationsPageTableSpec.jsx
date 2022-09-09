@@ -106,7 +106,7 @@ describe('TransitiveViolationsPageTable', function () {
       expectTransitivePolicyViolationWithThreatLevelHasClass(0, '.iq-threat-level--none');
     });
 
-    it('with action fail uses the correct icon and text', function () {
+    fit('with action fail uses the correct icon and text', function () {
       const wrapper = getShallowComponentWithTransitivePolicyViolation({ action: 'fail' });
       const actionFailIcon = wrapper.find('.nx-icon--fail');
       expect(actionFailIcon).toExist();

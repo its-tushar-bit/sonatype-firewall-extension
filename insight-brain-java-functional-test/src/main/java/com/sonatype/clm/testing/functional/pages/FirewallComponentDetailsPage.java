@@ -134,7 +134,7 @@ public class FirewallComponentDetailsPage
     return children(".iq-policy-violation-row .nx-cell").get(index);
   }
 
-  public FirewallPolicyViolationsTable getFirewallPolicyViolationsTable() {
+  public static FirewallPolicyViolationsTable getFirewallPolicyViolationsTable() {
     return FirewallPolicyViolationsTable.getPolicyViolationsTableForParent(ROOT);
   }
 

@@ -48,4 +48,8 @@ public class FirewallPolicyViolationsTable
   public SelenideElement addWaiverButton(int rowIndex) {
     return waiversDropdownButton(rowIndex).find("#policy-violations-add-waiver-button");
   }
+
+  public ElementsCollection getCellsByNthRow(int rowIndex) {
+    return children("tbody > tr:nth-child(" + rowIndex + ") .nx-cell");
+  }
 }

@@ -10,6 +10,7 @@ import {
   isNilOrEmpty,
   multiGroupBy,
   union,
+  capitalizeFirstLetter,
 } from '../../../main/frontend/util/jsUtil';
 
 describe('jsUtil', function () {
@@ -197,6 +198,14 @@ describe('jsUtil', function () {
 
     it('returns true for matching arrays where element order is different', () => {
       expect(eqValues([1, 2], [2, 1])).toBeTrue();
+    });
+  });
+
+  describe('capitalizeFirstLetter', function () {
+    it('uppercases the first letter of the string', function () {
+      expect(capitalizeFirstLetter('boo')).toBe('Boo');
+      expect(capitalizeFirstLetter('Boo')).toBe('Boo');
+      expect(capitalizeFirstLetter('BOO')).toBe('Boo');
     });
   });
 });

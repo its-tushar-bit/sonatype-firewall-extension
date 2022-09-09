@@ -140,3 +140,13 @@ export const getKey = prop('key');
  * The Comparison does not account for the order of elements within each list.
  */
 export const eqValues = compose(isEmpty, symmetricDifference);
+
+// Return a string only with first letter uppercase
+export const capitalizeFirstLetter = (string) => {
+  if (!string) {
+    return string;
+  } else {
+    string = string.toLowerCase();
+    return string.toLowerCase().charAt(0).toUpperCase() + string.slice(1);
+  }
+};

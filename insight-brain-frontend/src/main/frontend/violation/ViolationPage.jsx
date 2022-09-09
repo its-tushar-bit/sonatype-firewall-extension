@@ -11,6 +11,7 @@ import ViolationDetailsTile, { violationDetailsPropTypes } from './ViolationDeta
 import PolicyViolationConstraintInfoTile, { constraintViolationsPropType } from './PolicyViolationConstraintInfoTile';
 import SecurityVulnerabilityDetailsTile from './SecurityVulnerabilityDetailsTile';
 
+import { capitalizeFirstLetter } from '../util/jsUtil';
 export default function ViolationPage(props) {
   const {
     $state,
@@ -28,29 +29,55 @@ export default function ViolationPage(props) {
     selectedViolationId,
     goToWaivers,
     isFromPolicyViolations,
+    isPolicyPopoverShown,
+    policyViolations,
+    selectPolicyId,
+    loadFirewallPolicyVulnerabilityDetails,
   } = props;
 
   const error = props.violationDetailsError || props.stageTypesError;
 
-  const constraintViolations = violationDetails ? violationDetails.constraintViolations : [];
+  const policyDetail = selectPolicyId
+    ? policyViolations.find((item) => item.policyViolationId === selectPolicyId)
+    : null;
 
-  // eslint-disable-next-line react/prop-types
+  const detailViolations = violationDetails ? violationDetails.constraintViolations : [];
+
+  const constraintViolations = isPolicyPopoverShown ? policyDetail.constraints : detailViolations;
+
+  const violationLoading = isPolicyPopoverShown
+    ? !loading || !policyViolations
+    : loading || !(violationDetails && stageTypes);
+
+  const conditionTriggerReference = isPolicyPopoverShown
+    ? policyDetail.constraints[0].conditions[0].conditionTriggerReference
+    : null;
+
   const isSecurityVulnerability =
-    // eslint-disable-next-line react/prop-types
-    violationDetails && violationDetails.policyThreatCategory === 'security';
+    capitalizeFirstLetter(
+      isPolicyPopoverShown
+        ? policyDetail.policyThreatCategory
+        : violationDetails && violationDetails.policyThreatCategory
+    ) === 'Security';
 
   useEffect(() => {
     load();
-  }, [selectedViolationId]);
+  }, [selectedViolationId, conditionTriggerReference]);
 
   function load() {
-    loadViolation(selectedViolationId);
+    if (!isPolicyPopoverShown) {
+      loadViolation(selectedViolationId);
+    } else {
+      if (conditionTriggerReference) {
+        loadFirewallPolicyVulnerabilityDetails(conditionTriggerReference.value);
+      }
+    }
     fetchStageTypes('dashboard');
   }
 
   return (
     <div id="violation-page">
-      <LoadWrapper error={error} loading={loading || !(violationDetails && stageTypes)} retryHandler={load}>
+      <LoadWrapper error={error} loading={violationLoading} retryHandler={load}>
         <ViolationDetailsTile
           {...{
             $state,
@@ -61,9 +88,16 @@ export default function ViolationPage(props) {
             goToWaivers,
             selectedViolationId,
             isFromPolicyViolations,
+            isPolicyPopoverShown,
+            policyViolations,
+            selectPolicyId,
+            policyDetail,
           }}
         />
-        <PolicyViolationConstraintInfoTile constraintViolations={constraintViolations} />
+        <PolicyViolationConstraintInfoTile
+          isPolicyPopoverShown={isPolicyPopoverShown}
+          constraintViolations={constraintViolations}
+        />
         {isSecurityVulnerability && (
           <SecurityVulnerabilityDetailsTile
             showTitle={!isFromPolicyViolations}
@@ -102,6 +136,10 @@ export const violationPageTypes = {
   activeWaivers: ViolationDetailsTile.propTypes.activeWaivers,
   goToWaivers: PropTypes.func.isRequired,
   isFromPolicyViolations: PropTypes.bool,
+  isPolicyPopoverShown: PropTypes.bool,
+  policyViolations: PropTypes.array,
+  selectPolicyId: PropTypes.string,
+  loadFirewallPolicyVulnerabilityDetails: PropTypes.func,
 };
 
 ViolationPage.propTypes = violationPageTypes;

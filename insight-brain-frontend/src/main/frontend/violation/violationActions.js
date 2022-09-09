@@ -94,14 +94,25 @@ export function loadVulnerabilityDetails() {
 
     if (reasonWithRefId) {
       dispatch(loadVulnerabilityDetailsRequested());
-      const refId = reasonWithRefId.reference.value;
+      const conditionTriggerReferenceValue = reasonWithRefId.reference.value;
       return axios
-        .get(getVulnerabilityJsonDetailUrl(refId, componentIdentifier))
+        .get(getVulnerabilityJsonDetailUrl(conditionTriggerReferenceValue, componentIdentifier))
         .then(({ data }) => dispatch(loadVulnerabilityDetailsFulfilled(data)))
         .catch((err) => dispatch(loadVulnerabilityDetailsFailed(err)));
     } else {
       return Promise.resolve();
     }
+  };
+}
+
+export function loadFirewallPolicyVulnerabilityDetails(conditionTriggerReferenceValue) {
+  return function (dispatch, getState) {
+    const state = getState();
+    const componentIdentifier = JSON.parse(state.router.currentParams.componentIdentifier);
+    return axios
+      .get(getVulnerabilityJsonDetailUrl(conditionTriggerReferenceValue, componentIdentifier))
+      .then(({ data }) => dispatch(loadVulnerabilityDetailsFulfilled(data)))
+      .catch((err) => dispatch(loadVulnerabilityDetailsFailed(err)));
   };
 }
 

@@ -13,12 +13,19 @@ import SecurityVulnerabilityDetailsTile from '../../../main/frontend/violation/S
 import PolicyViolationConstraintInfoTile from '../../../main/frontend/violation/PolicyViolationConstraintInfoTile';
 
 describe('ViolationPage', function () {
-  let minimalProps, loadViolationSpy, fetchStageTypesSpy, stateGoSpy, getShallowComponent, getMountedComponent;
+  let minimalProps,
+    loadViolationSpy,
+    fetchStageTypesSpy,
+    stateGoSpy,
+    getShallowComponent,
+    getMountedComponent,
+    loadFirewallPolicyVulnerabilityDetailsSpy;
 
   beforeEach(function () {
     loadViolationSpy = jasmine.createSpy('loadViolation');
     fetchStageTypesSpy = jasmine.createSpy('fetchStageTypes');
     stateGoSpy = jasmine.createSpy('stateGo');
+    loadFirewallPolicyVulnerabilityDetailsSpy = jasmine.createSpy('loadFirewallPolicyVulnerabilityDetails');
 
     minimalProps = {
       $state: {
@@ -34,6 +41,125 @@ describe('ViolationPage', function () {
       fetchStageTypes: fetchStageTypesSpy,
       stateGo: stateGoSpy,
       loading: false,
+      isPolicyPopoverShown: false,
+      refId: { value: 'CVE-2012-2098' },
+      policyDetail: {
+        policyViolationId: '02a6107559a94c39b04d4ec8374b9508',
+        policyId: 'd98fb873ed1f48e5b00316d8acddbc0f',
+        policyName: 'Security-Medium',
+        policyOwner: {
+          ownerId: 'ROOT_ORGANIZATION_ID',
+          ownerName: 'Root Organization',
+          ownerType: 'organization',
+        },
+        policyThreatLevel: 7,
+        policyThreatCategory: 'SECURITY',
+        constraints: [
+          {
+            constraintId: 'c6436a5a051046b1ba2aa94e9fd82a51',
+            constraintName: 'Medium risk CVSS score',
+            constraintOperator: 'AND',
+            conditions: [
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity >= 4',
+                conditionReason: 'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)',
+                conditionTriggerReference: {
+                  value: 'CVE-2012-2098',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity < 7',
+                conditionReason: 'Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)',
+                conditionTriggerReference: {
+                  value: 'CVE-2012-2098',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+            ],
+          },
+        ],
+        constraintFactsJson:
+          '[{"constraintId":"c6436a5a051046b1ba2aa94e9fd82a51","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"}]}]',
+        policyActionTypeId: null,
+        lastReported: '2022-08-10T13:35:40.641+03:00',
+      },
+      constraintViolations: [
+        {
+          constraintId: 'c6436a5a051046b1ba2aa94e9fd82a51',
+          constraintName: 'Medium risk CVSS score',
+          constraintOperator: 'AND',
+          conditions: [
+            {
+              conditionType: 'SecurityVulnerabilitySeverity',
+              conditionSummary: 'Security Vulnerability Severity >= 4',
+              conditionReason: 'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)',
+              conditionTriggerReference: {
+                value: 'CVE-2012-2098',
+                type: 'SECURITY_VULNERABILITY_REFID',
+              },
+            },
+            {
+              conditionType: 'SecurityVulnerabilitySeverity',
+              conditionSummary: 'Security Vulnerability Severity < 7',
+              conditionReason: 'Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)',
+              conditionTriggerReference: {
+                value: 'CVE-2012-2098',
+                type: 'SECURITY_VULNERABILITY_REFID',
+              },
+            },
+          ],
+        },
+      ],
+      policyViolations: [
+        {
+          policyViolationId: '02a6107559a94c39b04d4ec8374b9508',
+          policyId: 'd98fb873ed1f48e5b00316d8acddbc0f',
+          policyName: 'Security-Medium',
+          policyOwner: {
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            ownerName: 'Root Organization',
+            ownerType: 'organization',
+          },
+          policyThreatLevel: 7,
+          policyThreatCategory: 'SECURITY',
+          constraints: [
+            {
+              constraintId: 'c6436a5a051046b1ba2aa94e9fd82a51',
+              constraintName: 'Medium risk CVSS score',
+              constraintOperator: 'AND',
+              conditions: [
+                {
+                  conditionType: 'SecurityVulnerabilitySeverity',
+                  conditionSummary: 'Security Vulnerability Severity >= 4',
+                  conditionReason: 'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)',
+                  conditionTriggerReference: {
+                    value: 'CVE-2012-2098',
+                    type: 'SECURITY_VULNERABILITY_REFID',
+                  },
+                },
+                {
+                  conditionType: 'SecurityVulnerabilitySeverity',
+                  conditionSummary: 'Security Vulnerability Severity < 7',
+                  conditionReason: 'Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)',
+                  conditionTriggerReference: {
+                    value: 'CVE-2012-2098',
+                    type: 'SECURITY_VULNERABILITY_REFID',
+                  },
+                },
+              ],
+            },
+          ],
+          constraintFactsJson:
+            '[{"constraintId":"c6436a5a051046b1ba2aa94e9fd82a51","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"}]}]',
+          policyActionTypeId: null,
+          lastReported: '2022-08-10T13:35:40.641+03:00',
+        },
+      ],
+      selectPolicyId: '02a6107559a94c39b04d4ec8374b9508',
+      loadFirewallPolicyVulnerabilityDetails: loadFirewallPolicyVulnerabilityDetailsSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ViolationPage, minimalProps);
@@ -94,11 +220,22 @@ describe('ViolationPage', function () {
     expect(loadViolationSpy).toHaveBeenCalledWith('bar');
   });
 
+  it('calls loadFirewallPolicyVulnerabilityDetails', function () {
+    const component = getMountedComponent();
+
+    expect(loadFirewallPolicyVulnerabilityDetailsSpy).not.toHaveBeenCalledWith('CVE-2012-2098');
+
+    component.setProps({ isPolicyPopoverShown: true });
+
+    expect(loadFirewallPolicyVulnerabilityDetailsSpy).toHaveBeenCalledWith('CVE-2012-2098');
+  });
+
   it('renders a ViolationDetailsTile within the LoadWrapper with $state, stageTypes, violationDetails & stateGo', function () {
     const violationDetails = {},
       stageTypes = {},
       stateGo = () => {},
       component = getShallowComponent({
+        ...minimalProps,
         violationDetails,
         stageTypes,
         stateGo,
@@ -109,15 +246,19 @@ describe('ViolationPage', function () {
     expect(tile.prop('$state')).toBe(minimalProps.$state);
     expect(tile.prop('violationDetails')).toBe(violationDetails);
     expect(tile.prop('stageTypes')).toBe(stageTypes);
-    expect(tile.prop('stateGo')).toBe(stateGo);
+    expect(tile.prop('isPolicyPopoverShown')).toBe(minimalProps.isPolicyPopoverShown);
+    expect(tile.prop('policyViolations')).toBe(minimalProps.policyViolations);
+    expect(tile.prop('selectPolicyId')).toBe(minimalProps.selectPolicyId);
+    expect(tile.prop('policyDetail')).toEqual(minimalProps.policyDetail);
   });
 
   it('renders a PolicyViolationConstraintInfoTile within the LoadWrapper with correct props', function () {
-    const violationDetails = { constraintViolations: 'constraintViolations' };
+    const violationDetails = { constraintViolations: 'constraintViolations', isPolicyPopoverShown: false };
     const tile = getShallowComponent({ violationDetails }).find(LoadWrapper).find(PolicyViolationConstraintInfoTile);
 
     expect(tile).toExist();
     expect(tile.prop('constraintViolations')).toBe('constraintViolations');
+    expect(tile.prop('isPolicyPopoverShown')).toBe(false);
   });
 
   it("renders a SecurityVulnerabilityDetailsTile with correct props if it's a security vulnerability", function () {

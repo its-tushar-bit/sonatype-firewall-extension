@@ -8,10 +8,12 @@ import PolicyViolationConstraintInfoTile from '../../../main/frontend/violation/
 
 describe('PolicyViolationConstraintInfoTile', function () {
   const minimalProps = {
+    isPolicyPopoverShown: false,
     constraintViolations: [
       {
         constraintName: 'test constraint',
         reasons: [{ reason: 'reason 1' }, { reason: 'reason 2' }],
+        conditions: [{ conditionReason: 'conditionReason 1' }, { conditionReason: 'conditionReason 2' }],
       },
     ],
   };
@@ -34,5 +36,19 @@ describe('PolicyViolationConstraintInfoTile', function () {
     expect(reasonListItems.length).toBe(2);
     expect(reasonListItems.at(0)).toHaveText('reason 1');
     expect(reasonListItems.at(1)).toHaveText('reason 2');
+  });
+
+  it('renders conditions if isPolicyPopoverShown is active', () => {
+    const component = getShallowComponent({ isPolicyPopoverShown: true });
+    expect(component.find('.nx-tile-header__subtitle')).not.toExist();
+  });
+
+  it('renders violation conditions', function () {
+    const reasonListItems = getShallowComponent({ isPolicyPopoverShown: true }).find(
+      'div.nx-list--violation-reasons #policy-violation-reasons .nx-list__item'
+    );
+    expect(reasonListItems.length).toBe(2);
+    expect(reasonListItems.at(0)).toHaveText('conditionReason 1');
+    expect(reasonListItems.at(1)).toHaveText('conditionReason 2');
   });
 });

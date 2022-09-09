@@ -8,15 +8,25 @@ import * as PropTypes from 'prop-types';
 import { NxTableCell, NxTableRow, NxThreatIndicator, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faExclamationCircle, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
-export default function FirewallPolicyViolationsTableRow({ violation, showProxyState = false }) {
-  const { policyThreatLevel, policyName, constraints } = violation;
+export default function FirewallPolicyViolationsTableRow({
+  violation,
+  showProxyState = false,
+  showPopover,
+  savePolicyId,
+}) {
+  const { policyThreatLevel, policyName, constraints, policyViolationId } = violation;
   const [constraintFacts] = constraints;
   const conditionFacts = [...constraintFacts.conditions];
   const PROXY_FAILING_FLAG = 'fail';
   const PROXY_WARNING_FLAG = 'warn';
 
+  const setPolicyViolationIdToShow = () => {
+    showPopover(true);
+    savePolicyId(policyViolationId);
+  };
+
   return (
-    <NxTableRow className="iq-policy-violation-row">
+    <NxTableRow className="iq-policy-violation-row" isClickable onClick={setPolicyViolationIdToShow}>
       <NxTableCell>
         <NxThreatIndicator policyThreatLevel={policyThreatLevel} />
         <span className="nx-threat-number">{policyThreatLevel}</span>
@@ -80,4 +90,6 @@ FirewallPolicyViolationsTableRow.propTypes = {
     policyActionTypeId: PropTypes.string,
   }),
   showProxyState: PropTypes.bool,
+  showPopover: PropTypes.func,
+  savePolicyId: PropTypes.func,
 };

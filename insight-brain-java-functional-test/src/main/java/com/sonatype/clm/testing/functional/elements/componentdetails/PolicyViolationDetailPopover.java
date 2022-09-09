@@ -25,4 +25,20 @@ public class PolicyViolationDetailPopover
   public SelenideElement getCloseButton() {
     return child("#policy-violation-close-btn");
   }
+
+  public SelenideElement popoverList() {
+    return child("#policy-violation-reasons");
+  }
+
+  public SelenideElement popoverHeaderTitle() {
+    return child(".nx-tile-header__title span em");
+  }
+
+  public SelenideElement popoverThreatLevel() {
+    return child(".iq-threat-level");
+  }
+
+  public SelenideElement policyViolationText() {
+    return child(".nx-h3 strong");
+  }
 }

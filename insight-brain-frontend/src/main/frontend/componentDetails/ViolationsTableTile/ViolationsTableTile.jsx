@@ -37,9 +37,9 @@ export const ViewTransitiveViolationsButton = ({ stateGo, ownerType, ownerId, sc
 ViewTransitiveViolationsButton.propTypes = {
   stateGo: PropTypes.func.isRequired,
   ownerType: PropTypes.string.isRequired,
-  ownerId: PropTypes.string.isRequired,
-  scanId: PropTypes.string.isRequired,
-  hash: PropTypes.string.isRequired,
+  ownerId: PropTypes.string,
+  scanId: PropTypes.string,
+  hash: PropTypes.string,
 };
 
 export default function ViolationsTableTile({

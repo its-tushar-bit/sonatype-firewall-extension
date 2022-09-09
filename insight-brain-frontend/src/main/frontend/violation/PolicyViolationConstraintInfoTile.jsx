@@ -8,8 +8,8 @@ import * as PropTypes from 'prop-types';
 import { map } from 'ramda';
 
 export default function PolicyViolationConstraintInfoTile(props) {
-  const { constraintViolations } = props,
-    { constraintName, reasons } = constraintViolations[0];
+  const { constraintViolations, isPolicyPopoverShown } = props;
+  const { constraintName, reasons, conditions } = constraintViolations[0];
 
   return (
     <div id="policy-violation-constraint-info-tile" className="nx-tile">
@@ -25,14 +25,23 @@ export default function PolicyViolationConstraintInfoTile(props) {
         </h3>
         <div className="nx-list nx-list--bulleted nx-list--violation-reasons">
           <ul id="policy-violation-reasons">
-            {map(
-              ({ reason }) => (
-                <li className="nx-list__item" key={reason}>
-                  {reason}
-                </li>
-              ),
-              reasons
-            )}
+            {isPolicyPopoverShown
+              ? map(
+                  ({ conditionReason }) => (
+                    <li className="nx-list__item" key={conditionReason}>
+                      {conditionReason}
+                    </li>
+                  ),
+                  conditions
+                )
+              : map(
+                  ({ reason }) => (
+                    <li className="nx-list__item" key={reason}>
+                      {reason}
+                    </li>
+                  ),
+                  reasons
+                )}
           </ul>
         </div>
       </div>
@@ -48,13 +57,25 @@ const reasonPropType = PropTypes.shape({
   }),
 });
 
+const conditionsPropType = PropTypes.shape({
+  conditionReason: PropTypes.string.isRequired,
+  conditionSummary: PropTypes.string.isRequired,
+  conditionTriggerReference: PropTypes.shape({
+    type: PropTypes.string.isRequired,
+    value: PropTypes.string.isRequired,
+  }),
+  conditionType: PropTypes.string.isRequired,
+});
+
 const constraintViolationPropType = PropTypes.shape({
   constraintName: PropTypes.string.isRequired,
-  reasons: PropTypes.arrayOf(reasonPropType).isRequired,
+  reasons: PropTypes.arrayOf(reasonPropType),
 });
 
 export const constraintViolationsPropType = PropTypes.arrayOf(constraintViolationPropType);
 
 PolicyViolationConstraintInfoTile.propTypes = {
-  constraintViolations: constraintViolationsPropType.isRequired,
+  constraintViolations: constraintViolationsPropType,
+  isPolicyPopoverShown: PropTypes.bool,
+  conditions: PropTypes.arrayOf(conditionsPropType),
 };

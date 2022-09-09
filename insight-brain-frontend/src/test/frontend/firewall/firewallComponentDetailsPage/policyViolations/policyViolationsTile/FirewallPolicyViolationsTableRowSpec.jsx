@@ -4,13 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, within } from 'TestRoot/SpecUtil';
+import { render, screen, within, fireEvent } from 'TestRoot/SpecUtil';
 import FirewallPolicyViolationsTableRow from 'MainRoot/firewall/firewallComponentDetailsPage/policyViolations/policyViolationsTile/FirewallPolicyViolationsTableRow';
 
 describe('FirewallPolicyViolationsTableRow component', () => {
-  let minimalProps, renderComponent;
+  let minimalProps, renderComponent, showPopoverSpy, savePolicyIdSpy;
 
   beforeEach(() => {
+    showPopoverSpy = jasmine.createSpy('showPopover');
+    savePolicyIdSpy = jasmine.createSpy('savePolicyId');
     minimalProps = {
       violation: {
         policyViolationId: '049d0649944148b0be20ab9d75b5ff7a',
@@ -49,6 +51,8 @@ describe('FirewallPolicyViolationsTableRow component', () => {
           '[{"constraintId":"f60e96454d5148b69e45326409f5d976","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"}]}]',
         policyActionTypeId: 'fail',
       },
+      showPopover: showPopoverSpy,
+      savePolicyId: savePolicyIdSpy,
     };
     renderComponent = (minimalProps) => render(<FirewallPolicyViolationsTableRow {...minimalProps} />);
   });
@@ -93,6 +97,14 @@ describe('FirewallPolicyViolationsTableRow component', () => {
       const rows = screen.getAllByRole('row');
 
       expect(within(rows[0].childNodes[1]).getByText('Proxy Warning')).toBeVisible();
+    });
+
+    it('clicking on a row', () => {
+      renderComponent(minimalProps);
+      const rows = screen.getByRole('row');
+      fireEvent.click(rows);
+      expect(showPopoverSpy).toHaveBeenCalledWith(true);
+      expect(savePolicyIdSpy).toHaveBeenCalled();
     });
   });
 });

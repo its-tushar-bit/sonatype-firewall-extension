@@ -16,6 +16,7 @@ describe('ViolationPageContainer', function () {
     state,
     store,
     vdom,
+    loadFirewallPolicyVulnerabilityDetailsMock,
     mock$State;
 
   beforeEach(function () {
@@ -25,11 +26,15 @@ describe('ViolationPageContainer', function () {
       .and.returnValue({ type: 'LOAD_VULNERABILITY' });
     fetchStageTypesMock = jasmine.createSpy('fetchStageTypes').and.returnValue({ type: 'FETCH_STAGE_TYPES' });
     stateGoMock = jasmine.createSpy('stateGo').and.returnValue({ type: 'STATE_GO' });
+    loadFirewallPolicyVulnerabilityDetailsMock = jasmine
+      .createSpy('loadFirewallPolicyVulnerabilityDetails')
+      .and.returnValue({ type: 'LOAD_POLICY_VULNERABILITY' });
 
     ViolationPageContainer = require('inject-loader!../../../main/frontend/violation/ViolationPageContainer')({
       './violationActions': {
         loadViolation: loadViolationActionMock,
         loadVulnerabilityDetails: loadVulnerabilityDetailsActionMock,
+        loadFirewallPolicyVulnerabilityDetails: loadFirewallPolicyVulnerabilityDetailsMock,
       },
       '../stages/stagesActions': {
         fetchStageTypes: fetchStageTypesMock,
@@ -55,6 +60,15 @@ describe('ViolationPageContainer', function () {
         currentParams: {
           id: 'foo',
         },
+      },
+      firewall: {
+        componentDetailsPage: {
+          policyViolations: [],
+        },
+      },
+      showViolationsDetailPopover: {
+        isPolicyPopoverShown: undefined,
+        selectPolicyId: undefined,
       },
     };
 
@@ -112,6 +126,7 @@ describe('ViolationPageContainer', function () {
     const wrapper = shallow(vdom).dive(),
       loadViolationActionCreator = wrapper.prop('loadViolation'),
       loadVulnerabilityDetailsActionCreator = wrapper.prop('loadVulnerabilityDetails'),
+      loadFirewallPolicyVulnerabilityDetailsCreator = wrapper.prop('loadFirewallPolicyVulnerabilityDetails'),
       fetchStageTypesActionCreator = wrapper.prop('fetchStageTypes'),
       stateGoActionCreator = wrapper.prop('stateGo');
 
@@ -119,6 +134,7 @@ describe('ViolationPageContainer', function () {
     expect(loadVulnerabilityDetailsActionCreator).toEqual(jasmine.any(Function));
     expect(fetchStageTypesActionCreator).toEqual(jasmine.any(Function));
     expect(stateGoActionCreator).toEqual(jasmine.any(Function));
+    expect(loadFirewallPolicyVulnerabilityDetailsCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
 
@@ -144,5 +160,47 @@ describe('ViolationPageContainer', function () {
       { type: 'FETCH_STAGE_TYPES' },
       { type: 'STATE_GO' },
     ]);
+
+    loadFirewallPolicyVulnerabilityDetailsCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_VIOLATION' },
+      { type: 'LOAD_VULNERABILITY' },
+      { type: 'FETCH_STAGE_TYPES' },
+      { type: 'STATE_GO' },
+      { type: 'LOAD_POLICY_VULNERABILITY' },
+    ]);
+  });
+
+  it('maps the state slice "policyViolations" to ViolationPageContainer props', () => {
+    let wrapper = shallow(vdom).dive();
+
+    expect(wrapper).toHaveProp('policyViolations', []);
+
+    state = {
+      ...state,
+      firewall: {
+        componentDetailsPage: {
+          policyViolations: [{ policyViolationId: '02a6107559a94c39b04d4ec8374b9508' }],
+        },
+      },
+    };
+
+    // force state update
+    store.dispatch({ type: 'UPDATE POLICY VIOLATION' });
+    wrapper = shallow(vdom).dive();
+
+    expect(wrapper).toHaveProp('policyViolations', [{ policyViolationId: '02a6107559a94c39b04d4ec8374b9508' }]);
+  });
+
+  it('maps the state slice "isPolicyPopoverShown" to ViolationPageContainer props', () => {
+    let wrapper = shallow(vdom).dive();
+
+    expect(wrapper).toHaveProp('isPolicyPopoverShown', undefined);
+  });
+
+  it('maps the state slice "selectPolicyId" to ViolationPageContainer props', () => {
+    let wrapper = shallow(vdom).dive();
+
+    expect(wrapper).toHaveProp('selectPolicyId', undefined);
   });
 });

@@ -12,7 +12,7 @@ import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 import ViolationExclamation from '../react/ViolationExclamation';
 import { timeAgo } from '../utilAngular/CommonServices';
-import { capitalize } from '../util/jsUtil';
+import { capitalizeFirstLetter } from '../util/jsUtil';
 import { getOwnerImageUrl } from '../utilAngular/CLMContextLocation';
 import ViolationDetailsSubtitle from './ViolationDetailsSubtitle';
 import StageDisplay from './StageDisplay';
@@ -34,23 +34,38 @@ export default function ViolationDetailsTile(props) {
       goToWaivers,
       selectedViolationId,
       isFromPolicyViolations,
+      isPolicyPopoverShown,
+      policyDetail,
     } = props,
-    { applicationPublicId, policyName, threatLevel, policyOwner, stageData } = violationDetails,
-    policyExists = !!policyOwner.ownerId,
-    threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
+    applicationPublicId = isPolicyPopoverShown ? null : violationDetails.applicationPublicId,
+    policyName = isPolicyPopoverShown ? policyDetail.policyName : violationDetails.policyName,
+    policyExists = isPolicyPopoverShown ? policyDetail.policyOwner.ownerId : !!violationDetails.policyOwner.ownerId,
+    threatLevel = isPolicyPopoverShown ? policyDetail.policyThreatLevel : violationDetails.threatLevel,
+    stageData = isPolicyPopoverShown
+      ? { release: { mostRecentEvaluationTime: policyDetail.lastReported } }
+      : violationDetails.stageData,
+    policyOwner = isPolicyPopoverShown ? policyDetail.policyOwner : violationDetails.policyOwner,
+    threatLevelCategory =
+      categoryByPolicyThreatLevel[isPolicyPopoverShown ? policyDetail.policyThreatLevel : violationDetails.threatLevel],
     threatLevelClassName = classnames(
       'iq-read-only-data',
       'iq-threat-level',
       `iq-threat-level--${threatLevelCategory}`
     ),
     parseISODate = (time) => new Date(time),
-    openTime = timeAgo(parseISODate(violationDetails.openTime)),
+    openTime = timeAgo(parseISODate(isPolicyPopoverShown ? null : violationDetails.openTime)),
     parseRecentEvaluationTimes = compose(parseISODate, prop('mostRecentEvaluationTime')),
-    mostRecentEvaluationTimes = map(parseRecentEvaluationTimes, values(violationDetails.stageData)),
+    mostRecentEvaluationTimes = map(
+      parseRecentEvaluationTimes,
+      values(isPolicyPopoverShown ? stageData : violationDetails.stageData)
+    ),
     mostRecentEvaluationTimestamp = reduce(max, 0, mostRecentEvaluationTimes),
     mostRecentEvaluationTime = timeAgo(mostRecentEvaluationTimestamp),
     // pair each possible stage type with its respective (optional) data from the backend
-    stageDisplayData = map((stageType) => [stageType, stageData[stageType.stageTypeId]], stageTypes),
+    stageDisplayData = map(
+      (stageType) => [stageType, stageData[stageType.stageTypeId]],
+      isPolicyPopoverShown ? '' : stageTypes
+    ),
     createStageDisplay = ([stageType, stageData]) => (
       <dd className="iq-read-only-data" key={stageType.stageTypeId}>
         <StageDisplay {...{ $state, stageType, stageData, applicationPublicId }} />
@@ -125,13 +140,13 @@ export default function ViolationDetailsTile(props) {
         })}
       >
         {headerMainTitle()}
-        <ViolationDetailsSubtitle {...violationDetails} />
+        {!isPolicyPopoverShown && <ViolationDetailsSubtitle {...violationDetails} />}
         {policyExists && (
           <Fragment>
             <div className="nx-tile__actions">{manageWaiversButton}</div>
             <ActiveWaiversIndicator
               activeWaiverCount={activeWaivers.length}
-              waived={violationDetails.waived}
+              waived={isPolicyPopoverShown ? null : violationDetails.waived}
               showUnapplied={isFromPolicyViolations}
             />
           </Fragment>
@@ -145,14 +160,20 @@ export default function ViolationDetailsTile(props) {
           </div>
           <div className="iq-violation-details__policy-type">
             <dt>Policy Type</dt>
-            <dd className="iq-read-only-data">{capitalize(violationDetails.policyThreatCategory)}</dd>
-          </div>
-          <div className="iq-violation-details__first-reported">
-            <dt>First Reported</dt>
             <dd className="iq-read-only-data">
-              {openTime.age} {openTime.qualifier}
+              {capitalizeFirstLetter(
+                isPolicyPopoverShown ? policyDetail.policyThreatCategory : violationDetails.policyThreatCategory
+              )}
             </dd>
           </div>
+          {isPolicyPopoverShown ? null : (
+            <div className="iq-violation-details__first-reported">
+              <dt>First Reported</dt>
+              <dd className="iq-read-only-data">
+                {openTime.age} {openTime.qualifier}
+              </dd>
+            </div>
+          )}
           <div className="iq-violation-details__last-reported">
             <dt>Last Reported</dt>
             <dd className="iq-read-only-data">
@@ -161,10 +182,12 @@ export default function ViolationDetailsTile(props) {
           </div>
         </dl>
         <dl className={secondFormGroupClasses}>
-          <div className="iq-violation-details__stages">
-            <dt>Stages</dt>
-            {map(createStageDisplay, stageDisplayData)}
-          </div>
+          {isPolicyPopoverShown ? null : (
+            <div className="iq-violation-details__stages">
+              <dt>Stages</dt>
+              {map(createStageDisplay, stageDisplayData)}
+            </div>
+          )}
           <div className="iq-violation-details__policy-owner">
             <dt>Policy Owner</dt>
             <dd className="iq-read-only-data">
@@ -230,7 +253,7 @@ ViolationDetailsTile.propTypes = {
       sidebarReference: PropTypes.string,
     }),
   }).isRequired,
-  selectedViolationId: PropTypes.string.isRequired,
+  selectedViolationId: PropTypes.string,
   violationDetails: PropTypes.shape(violationDetailsPropTypes),
   stageTypes: PropTypes.arrayOf(
     PropTypes.shape({
@@ -242,4 +265,6 @@ ViolationDetailsTile.propTypes = {
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(applicableWaiverPropTypes)),
   goToWaivers: PropTypes.func.isRequired,
   isFromPolicyViolations: PropTypes.bool,
+  isPolicyPopoverShown: PropTypes.bool.isRequired,
+  policyDetail: PropTypes.object,
 };

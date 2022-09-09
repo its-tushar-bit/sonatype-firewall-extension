@@ -16,6 +16,8 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
+import com.sonatype.clm.dto.model.organization.OrganizationSummary;
+import com.sonatype.clm.dto.model.organization.OrganizationSummaryList;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.NetworkingHelper;
 import com.sonatype.insight.brain.client.ConfigurationClient.Context;
@@ -319,10 +321,10 @@ public class ConfigurationClientTest
     assertThat(config.getRegexes()).isEqualTo(regexes);
   }
 
-  private Configuration createConfigForPerm(String applicationId, Permission permission) {
+  private Configuration createConfigForPerm(String contextId, Permission permission) {
     User user = tempEntity.newUser("username");
     Role role = tempEntity.newRole(false /* global */, permission);
-    tempEntity.newMembershipMapping(applicationId, role.getId(), user.getUsername());
+    tempEntity.newMembershipMapping(contextId, role.getId(), user.getUsername());
 
     Configuration clientConfig = getCLMServer().getClientConfiguration();
     clientConfig.setServerAuth(SimpleAuthentication.parse(user.getUsername() + ":" + user.getPassword()));
@@ -427,5 +429,55 @@ public class ConfigurationClientTest
 
     Set<String> licensedFeatures = client.getLicensedFeatures();
     assertThat(licensedFeatures).isNotEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsForApplicationEvaluationByOrganization() throws Exception {
+    Organization organization = tempEntity.newOrganization("A");
+    Application application = tempEntity.newApplication("valid-id", "valid-id", organization.getId());
+    Configuration config = createConfigForPerm(application.getId(), Permission.EVALUATE_APPLICATION);
+
+    ApplicationSummaryList applicationSummaryList = new ConfigurationClient(config)
+        .getApplicationsForApplicationEvaluation(organization.getId());
+    assertApplicationSummaryList(applicationSummaryList, application);
+  }
+
+  @Test
+  public void testGetApplicationsForApplicationEvaluationByOrganization_BadAuth() throws Exception {
+    Organization organization = tempEntity.newOrganization("A");
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse("bad:auth"));
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
+      new ConfigurationClient(config).getApplicationsForApplicationEvaluation(organization.getId());
+    }).withMessage(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT)
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(401));
+  }
+
+  @Test
+  public void testGetOrganizationsForApplicationEvaluation() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    Configuration config = createConfigForPerm(organization.getId(), Permission.EVALUATE_APPLICATION);
+
+    OrganizationSummaryList organizationSummaryList = new ConfigurationClient(config)
+        .getOrganizationsForApplicationEvaluation();
+    assertOrganizationSummaryList(organizationSummaryList, organization);
+  }
+
+  @Test
+  public void testGetOrganizationsForApplicationEvaluation_BadAuth() throws Exception {
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse("bad:auth"));
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
+      new ConfigurationClient(config).getOrganizationsForApplicationEvaluation();
+    }).withMessage(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT)
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(401));
+  }
+
+  private void assertOrganizationSummaryList(OrganizationSummaryList actual, Organization expected) {
+    assertThat(actual).isNotNull();
+    assertThat(actual.getOrganizationSummaries()).hasSize(1);
+    OrganizationSummary organizationSummary = actual.getOrganizationSummaries().get(0);
+    assertThat(organizationSummary.getId()).isEqualTo(expected.getId());
+    assertThat(organizationSummary.getName()).isEqualTo(expected.getName());
   }
 }

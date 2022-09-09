@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -44,7 +45,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Authorized_NullGoal() {
     grantReadPermission(app.getId());
-    ApplicationSummaryList list = service.getApplications(null /* goal */);
+    ApplicationSummaryList list = service.getApplications(null /* goal */, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
@@ -52,7 +53,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Authorized_EVALUATE_COMPONENT() {
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
-    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT);
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
@@ -60,7 +61,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Authorized_EVALUATE_APPLICATION() {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION);
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
@@ -68,7 +69,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Authorized_SUMMARIZE_EVALUATION() {
     grantPermission(app.getId(), Permission.READ);
-    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION);
+    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
@@ -76,7 +77,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Authorized_VIEW_CIP() {
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
-    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP);
+    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
@@ -84,7 +85,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Unauthorized_NullGoal() {
     login();
-    ApplicationSummaryList list = service.getApplications(null /* goal */);
+    ApplicationSummaryList list = service.getApplications(null /* goal */, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }
@@ -92,7 +93,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Unauthorized_EVALUATE_APPLICATION() {
     login();
-    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION);
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }
@@ -100,7 +101,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Unauthorized_EVALUATE_COMPONENT() {
     login();
-    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT);
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }
@@ -108,7 +109,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Unauthorized_SUMMARIZE_EVALUATION() {
     login();
-    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION);
+    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }
@@ -116,9 +117,117 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Unauthorized_VIEW_CIP() {
     login();
-    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP);
+    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_Authorized_NullGoal() {
+    createOrganizationStructure("B", 2);
+    Application app0 = tempEntity.newApplication("x", "x", org.getId());
+    Application app1 = tempEntity.newApplication("y", "y", org.getId());
+    grantReadPermission(app0.getId());
+    grantReadPermission(app1.getId());
+
+    ApplicationSummaryList list = service.getApplications(null /* goal */, org.getId());
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId)
+        .containsExactly(app0.getId(), app1.getId());
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_Authorized_EVALUATE_COMPONENT() {
+    createOrganizationStructure("B", 2);
+    Application app0 = tempEntity.newApplication("x", "x", org.getId());
+    grantPermission(app0.getId(), Permission.EVALUATE_COMPONENT);
+
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT, org.getId());
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId)
+            .containsExactly(app0.getId());
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_Authorized_EVALUATE_APPLICATION() {
+    createOrganizationStructure("B", 2);
+    Application app0 = tempEntity.newApplication("x", "x", org.getId());
+    grantPermission(app0.getId(), Permission.EVALUATE_APPLICATION);
+
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION, org.getId());
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId)
+        .containsExactly(app0.getId());
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_Authorized_SUMMARIZE_EVALUATION() {
+    createOrganizationStructure("B", 2);
+    Application app0 = tempEntity.newApplication("x", "x", org.getId());
+    grantPermission(app.getId(), Permission.READ);
+    grantPermission(app0.getId(), Permission.READ);
+
+    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION, org.getId());
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId)
+        .containsExactly(app.getId(), app0.getId());
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_Authorized_VIEW_CIP() {
+    createOrganizationStructure("B", 2);
+    Application app0 = tempEntity.newApplication("x", "x", org.getId());
+    grantPermission(app0.getId(), Permission.EVALUATE_COMPONENT);
+
+    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP, org.getId());
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId)
+        .containsExactly(app0.getId());
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_Unauthorized_NullGoal() {
+    login();
+    ApplicationSummaryList list = service.getApplications(null /* goal */, org.getId());
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_Unauthorized_EVALUATE_APPLICATION() {
+    login();
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION, org.getId());
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_Unauthorized_EVALUATE_COMPONENT() {
+    login();
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT, org.getId());
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_Unauthorized_SUMMARIZE_EVALUATION() {
+    login();
+    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION, org.getId());
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_Unauthorized_VIEW_CIP() {
+    login();
+    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP, org.getId());
+    assertThat(list).isNotNull();
+    assertThat(list.getApplicationSummaries()).isEmpty();
+  }
+
+  private void createOrganizationStructure(String orgName, int numberOfApps) {
+    Organization org1 = tempEntity.newOrganization(orgName);
+    tempEntity.newApplications(org1.getId(), numberOfApps);
   }
 
   @Test

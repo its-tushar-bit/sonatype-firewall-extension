@@ -176,7 +176,7 @@ public class ApplicationSummaryServiceTest
     Application app0 = tempEntity.newApplicationWithParent("z", "a b");
     Application app2 = tempEntity.newApplicationWithParent("x", "c");
 
-    ApplicationSummaryList applicationListDTO = service.getApplications(goal);
+    ApplicationSummaryList applicationListDTO = service.getApplications(goal, null);
     assertThat(applicationListDTO).isNotNull();
     assertThat(applicationListDTO.getApplicationSummaries()).extracting(ApplicationSummary::getId)
         .containsExactly(app0.getId(), app1.getId(), app2.getId());
@@ -280,7 +280,7 @@ public class ApplicationSummaryServiceTest
     Application app0 = tempEntity.newApplicationWithParent("z", "a b");
     Application app2 = tempEntity.newApplicationWithParent("x", "c");
 
-    ApplicationSummaryList applicationListDTO = service.getApplications(Goal.EVALUATE_APPLICATION);
+    ApplicationSummaryList applicationListDTO = service.getApplications(Goal.EVALUATE_APPLICATION, null);
     assertThat(applicationListDTO).isNotNull();
     assertThat(applicationListDTO.getApplicationSummaries()).extracting(ApplicationSummary::getId)
         .containsExactly(app0.getId(), app1.getId(), app2.getId());
@@ -291,6 +291,50 @@ public class ApplicationSummaryServiceTest
     testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
-        () -> service.getApplications(Goal.EVALUATE_COMPONENT));
+        () -> service.getApplications(Goal.EVALUATE_COMPONENT, null));
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_SortedByCaseInsensitiveName_EVALUATE_APPLICATION() throws Exception {
+    testGetApplicationsByOrganization_SortedByCaseInsensitiveName(Goal.EVALUATE_APPLICATION);
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_SortedByCaseInsensitiveName_EVALUATE_COMPONENT() throws Exception {
+    testGetApplicationsByOrganization_SortedByCaseInsensitiveName(Goal.EVALUATE_COMPONENT);
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_SortedByCaseInsensitiveName_VIEW_CIP() throws Exception {
+    testGetApplicationsByOrganization_SortedByCaseInsensitiveName(Goal.VIEW_CIP);
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_NoEnforcementFeature() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
+    testGetApplicationsByOrganization_SortedByCaseInsensitiveName(Goal.EVALUATE_APPLICATION);
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_NoEnforcementFeature_FromIDE() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
+    Organization org = tempEntity.newOrganization("A");
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
+        () -> service.getApplications(Goal.EVALUATE_COMPONENT, org.getId()));
+  }
+
+  private void testGetApplicationsByOrganization_SortedByCaseInsensitiveName(Goal goal) throws Exception {
+    Organization org0 = tempEntity.newOrganization("A");
+    Organization org1 = tempEntity.newOrganization("B");
+    Application app0 = tempEntity.newApplication("x", "x", org0.getId());
+    Application app1 = tempEntity.newApplication("y", "y", org0.getId());
+    tempEntity.newApplication("z", org1.getId());
+    tempEntity.newApplication("z1", org1.getId());
+
+    ApplicationSummaryList applicationListDTO = service.getApplications(goal, org0.getId());
+    assertThat(applicationListDTO).isNotNull();
+    assertThat(applicationListDTO.getApplicationSummaries()).extracting(ApplicationSummary::getId)
+        .containsExactly(app0.getId(), app1.getId());
   }
 }

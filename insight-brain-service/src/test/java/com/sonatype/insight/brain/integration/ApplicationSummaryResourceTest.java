@@ -28,6 +28,14 @@ public class ApplicationSummaryResourceTest
     return restRequest().query(ApplicationSummaryResourceConstants.GOAL_PARAM, goal);
   }
 
+  private HttpRequest underOrgRequest(String organizationId) {
+    return restRequest().query(ApplicationSummaryResourceConstants.ORG_ID_PARAM, organizationId);
+  }
+
+  private HttpRequest summaryUnderOrgRequest(Goal goal, String organizationId) {
+    return underOrgRequest(organizationId).query(ApplicationSummaryResourceConstants.GOAL_PARAM, goal);
+  }
+
   @Test
   public void testGetApplications_EvaluateApplication() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
@@ -55,6 +63,39 @@ public class ApplicationSummaryResourceTest
     Application application = tempEntity.newApplicationWithParent();
 
     HttpResponse response = restRequest().get();
+    assertResponseStatus(200, response);
+
+    ApplicationSummaryList applicationListDTO = response.getBody(ApplicationSummaryList.class);
+    assertApplicationSummaryList(applicationListDTO, application);
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_EvaluateApplication() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    HttpResponse response = summaryUnderOrgRequest(Goal.EVALUATE_APPLICATION, application.getOrganizationId()).get();
+    assertResponseStatus(200, response);
+
+    ApplicationSummaryList applicationListDTO = response.getBody(ApplicationSummaryList.class);
+    assertApplicationSummaryList(applicationListDTO, application);
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_EvaluateComponent() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    HttpResponse response = summaryUnderOrgRequest(Goal.EVALUATE_COMPONENT, application.getOrganizationId()).get();
+    assertResponseStatus(200, response);
+
+    ApplicationSummaryList applicationListDTO = response.getBody(ApplicationSummaryList.class);
+    assertApplicationSummaryList(applicationListDTO, application);
+  }
+
+  @Test
+  public void testGetApplicationsByOrganization_NoGoalSpecified() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    HttpResponse response = underOrgRequest(application.getOrganizationId()).get();
     assertResponseStatus(200, response);
 
     ApplicationSummaryList applicationListDTO = response.getBody(ApplicationSummaryList.class);

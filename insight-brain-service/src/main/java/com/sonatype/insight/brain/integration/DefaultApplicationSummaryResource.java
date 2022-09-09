@@ -24,6 +24,7 @@ import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.APPLICATION_PUBLIC_ID_PARAM;
 import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.GOAL_PARAM;
 import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.ORG_ID_PARAM;
 import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.VERIFY_OR_CREATE_APPLICATION_PATH;
@@ -51,16 +52,18 @@ public class DefaultApplicationSummaryResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Override
-  public ApplicationSummaryList getApplications(@QueryParam(GOAL_PARAM) Goal goal) {
-    log.debug("Received request to get applications for goal {}", goal);
-    return applicationSummaryService.getApplications(goal);
+  public ApplicationSummaryList getApplications(@QueryParam(GOAL_PARAM) Goal goal,
+                                                @QueryParam(ORG_ID_PARAM) String organizationId)
+  {
+    log.debug("Received request to get applications for goal {} and organization id {}", goal, organizationId);
+    return applicationSummaryService.getApplications(goal, organizationId);
   }
 
   @POST
   @Path(VERIFY_OR_CREATE_APPLICATION_PATH)
   @Produces("text/plain")
   @Override
-  public boolean verifyOrCreateApplication(@PathParam("applicationPublicId") String applicationPublicId,
+  public boolean verifyOrCreateApplication(@PathParam(APPLICATION_PUBLIC_ID_PARAM) String applicationPublicId,
                                            @QueryParam(GOAL_PARAM) Goal goal,
                                            @QueryParam(ORG_ID_PARAM) String organizationId,
                                            @Context HttpServletRequest request)

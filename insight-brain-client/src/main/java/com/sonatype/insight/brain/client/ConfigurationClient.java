@@ -17,12 +17,12 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
+import com.sonatype.clm.dto.model.organization.OrganizationSummaryList;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
-
 import org.sonatype.aether.util.version.GenericVersionScheme;
 import org.sonatype.aether.version.InvalidVersionSpecificationException;
 import org.sonatype.aether.version.Version;
@@ -32,6 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 public class ConfigurationClient
     extends AbstractRequestClient
 {
+  static final String EVALUATE_APPLICATION = "EVALUATE_APPLICATION";
+
   public Set<String> getLicensedFeatures() throws IOException {
     Result result = path("rest/product/features").get();
     return new HashSet<>(Arrays.asList(parseResult(result, String[].class)));
@@ -64,8 +66,33 @@ public class ConfigurationClient
    * @since 1.14.0
    */
   public ApplicationSummaryList getApplicationsForApplicationEvaluation() throws IOException {
-    Result result = path("rest/integration/applications?goal=EVALUATE_APPLICATION").get();
+    Result result = path("rest/integration/applications")
+        .query("goal", EVALUATE_APPLICATION).get();
     return parseResult(result, ApplicationSummaryList.class);
+  }
+
+  /**
+   * The list of application summaries from the CLM server for which the user can submit an application scan for
+   * evaluation and that are under the given organization Id.
+   *
+   * @since 1.144.0
+   */
+  public ApplicationSummaryList getApplicationsForApplicationEvaluation(String organizationId) throws IOException {
+    Result result = path("rest/integration/applications")
+        .query("goal", EVALUATE_APPLICATION, "organizationId", organizationId).get();
+    return parseResult(result, ApplicationSummaryList.class);
+  }
+
+  /**
+   * The list of organization summaries from the CLM server for which the user can submit an application scan for
+   * evaluation.
+   *
+   * @since 1.144.0
+   */
+  public OrganizationSummaryList getOrganizationsForApplicationEvaluation() throws IOException {
+    Result result = path("rest/integration/organizations")
+        .query("goal", EVALUATE_APPLICATION).get();
+    return parseResult(result, OrganizationSummaryList.class);
   }
 
   /**
@@ -75,10 +102,10 @@ public class ConfigurationClient
     RequestBuilder builder =
         path("rest/integration/applications/verifyOrCreate", UrlUtils.encodeUrlComponent(applicationPublicId));
     if (StringUtils.isNotBlank(organizationId)) {
-      builder.query("goal", "EVALUATE_APPLICATION", "organizationId", organizationId);
+      builder.query("goal", EVALUATE_APPLICATION, "organizationId", organizationId);
     }
     else {
-      builder.query("goal", "EVALUATE_APPLICATION");
+      builder.query("goal", EVALUATE_APPLICATION);
     }
     Result result = builder.post(null);
     return parseResult(result, Boolean.class);
@@ -133,7 +160,7 @@ public class ConfigurationClient
   public ProprietaryConfig getProprietaryConfigForApplicationEvaluation(String applicationPublicId)
       throws IOException
   {
-    Result result = path("rest/config/proprietary").query("goal", "EVALUATE_APPLICATION",
+    Result result = path("rest/config/proprietary").query("goal", EVALUATE_APPLICATION,
         "applicationPublicId", applicationPublicId).get();
     return parseResult(result, ProprietaryConfig.class);
   }

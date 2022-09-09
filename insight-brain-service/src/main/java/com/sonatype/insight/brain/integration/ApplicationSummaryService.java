@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.integration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -89,48 +88,55 @@ public class ApplicationSummaryService
     this.productLicense = productLicense;
   }
 
-  public ApplicationSummaryList getApplications(Goal goal) {
+  public ApplicationSummaryList getApplications(Goal goal, String organizationId) {
     if (!productLicense.hasFeature(LicensedFeature.ENFORCEMENT) && Goal.EVALUATE_COMPONENT.equals(goal)) {
       log.debug("License does not support IDE plugins.");
       throw new InvalidLicenseException();
     }
-    return toApplicationSummaryList(getApplicationsForGoal(goal));
+    return toApplicationSummaryList(getApplicationsForGoal(goal, organizationId));
   }
 
-  private List<Application> getApplicationsForGoal(Goal goal) {
+  private List<Application> getApplicationsForGoal(Goal goal, String organizationId) {
     if (goal == null) {
       // For back compatibility only
-      return getApplicationsForRead();
+      return getApplicationsForRead(organizationId);
     }
     switch (goal) {
       case EVALUATE_APPLICATION:
-        return getApplicationsForEvaluateApplication();
+        return getApplicationsForEvaluateApplication(organizationId);
       case EVALUATE_COMPONENT:
       case VIEW_CIP:
-        return getApplicationsForEvaluateComponent();
+        return getApplicationsForEvaluateComponent(organizationId);
       default:
-        return getApplicationsForRead();
+        return getApplicationsForRead(organizationId);
     }
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  protected List<Application> getApplicationsForRead() {
-    return applicationDAO.getAll();
+  protected List<Application> getApplicationsForRead(String organizationId) {
+    return getApplications(organizationId);
   }
 
   /**
    * @since 1.14.0
    */
   @AuthzFilter(permission = Permission.EVALUATE_APPLICATION, context = AuthzFilter.Context.APPLICATION)
-  protected List<Application> getApplicationsForEvaluateApplication() {
-    return applicationDAO.getAll();
+  protected List<Application> getApplicationsForEvaluateApplication(String organizationId) {
+    return getApplications(organizationId);
   }
 
   /**
    * @since 1.14.0
    */
   @AuthzFilter(permission = Permission.EVALUATE_COMPONENT, context = AuthzFilter.Context.APPLICATION)
-  protected List<Application> getApplicationsForEvaluateComponent() {
+  protected List<Application> getApplicationsForEvaluateComponent(String organizationId) {
+    return getApplications(organizationId);
+  }
+
+  private List<Application> getApplications(String organizationId) {
+    if (StringUtils.isNotEmpty(organizationId)) {
+      return applicationDAO.getByOrganizationId(organizationId);
+    }
     return applicationDAO.getAll();
   }
 

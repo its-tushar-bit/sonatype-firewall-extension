@@ -677,6 +677,29 @@ public abstract class DefaultPolicyEvaluatorTest
   }
 
   @Test
+  public void testRun_AutoAppCreationEnabled_orgIdProvided_appExistsInDifferentOrg() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("app-in-org", org.getId());
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
+    automaticApplicationsConfigurationDAO.setOrganizationId("non-existent-org-id");
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+    Organization org2 = tempEntity.newOrganization();
+
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", app.getPublicId(), "-O", org2.getId(),
+        "--output-directory", tempDir.getRoot().getAbsolutePath(), //
+        "src/test/data/artifact.jar");
+    withTestRunner(params)
+        .expectFailExit()
+        .expectErrorLog("The application ID app-in-org is invalid for organization ID " + org2.getId() + ".")
+        .doPolicyEvaluationRun();
+
+    ApplicationDAO appDAO = new ApplicationDAO();
+    appDAO.delete(app);
+  }
+
+  @Test
   public void testRun_AutoAppCreationDisabled() throws Exception {
     List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
         "-i", "non-existent-app-public-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //

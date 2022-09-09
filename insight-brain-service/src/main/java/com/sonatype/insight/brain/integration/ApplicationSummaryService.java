@@ -172,6 +172,14 @@ public class ApplicationSummaryService
 
     Application application = applicationDAO.getByPublicId(applicationPublicId);
 
+    if (application != null) {
+      if (StringUtils.isNotBlank(organizationId) && !application.getOrganizationId().equals(organizationId)) {
+        log.debug("Application '{}' exists, but it doesn't belong to organization '{}'.", applicationPublicId,
+            organizationId);
+        return false;
+      }
+    }
+
     // If the application does not exist and automatic application creation is enabled, then create a new
     // application with the given public ID.
     if (automaticApplicationsConfigurationDAO.isEnabled()) {

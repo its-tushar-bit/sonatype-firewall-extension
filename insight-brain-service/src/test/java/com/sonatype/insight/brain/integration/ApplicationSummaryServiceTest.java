@@ -154,6 +154,23 @@ public class ApplicationSummaryServiceTest
     assertThat(result).isFalse();
   }
 
+  @Test
+  public void testVerifyOrCreateApplication_ApplicationExists_AutomaticAppsEnabled_differentOrgIdProvided() {
+    Organization org1 = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplication("app1-in-org1", org1.getId());
+
+    // AutomaticApplications enabled with org1 as default org
+    AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO =
+        new AutomaticApplicationsConfigurationDAO();
+    automaticApplicationsConfigurationDAO.setOrganizationId(org1.getId());
+    automaticApplicationsConfigurationDAO.setEnabled(true);
+
+    Organization org2 = tempEntity.newOrganization();
+    boolean result = service.verifyOrCreateApplication(app1.getPublicId(), org2.getId(), Goal.EVALUATE_APPLICATION,
+        "test_client_user_agent");
+    assertThat(result).isFalse();
+  }
+
   private void testGetApplications_SortedByCaseInsensitiveName(Goal goal) throws Exception {
     Application app1 = tempEntity.newApplicationWithParent("y", "AA");
     Application app0 = tempEntity.newApplicationWithParent("z", "a b");

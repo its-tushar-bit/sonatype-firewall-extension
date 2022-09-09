@@ -116,7 +116,10 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
     if (!isApplicationAllowed) {
-      String message = String.format("The application ID %s is invalid.", params.getApplicationId());
+      String message =
+          StringUtils.isBlank(params.getOrganizationId()) ? String.format("The application ID %s is invalid.",
+              params.getApplicationId()) : String.format("The application ID %s is invalid for organization ID %s.",
+              params.getApplicationId(), params.getOrganizationId());
       log.error(message);
       saveErrorData(params, CLIError.forConfigurationError(message), restClient);
       throw new ExitException(1, message);

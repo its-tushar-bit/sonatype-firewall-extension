@@ -69,7 +69,7 @@ public class ConfigurationClient
   }
 
   /**
-   * @since 1.45.0
+   * @since 1.143.0
    */
   public boolean verifyOrCreateApplication(String applicationPublicId, String organizationId) throws IOException {
     RequestBuilder builder =
@@ -82,6 +82,13 @@ public class ConfigurationClient
     }
     Result result = builder.post(null);
     return parseResult(result, Boolean.class);
+  }
+
+  /**
+   * @since 1.45.0
+   */
+  public boolean verifyOrCreateApplication(String applicationPublicId) throws IOException {
+    return verifyOrCreateApplication(applicationPublicId, null);
   }
 
   /**

@@ -105,10 +105,17 @@ public class RestClientFactory
         throws IOException;
 
     /**
-     * @since 1.45.0
+     * @since 1.143.0
      */
     public boolean verifyOrCreateApplication(String applicationPublicId, String organizationId) throws IOException {
       return new ConfigurationClient(config).verifyOrCreateApplication(applicationPublicId, organizationId);
+    }
+
+    /**
+     * @since 1.45.0
+     */
+    public boolean verifyOrCreateApplication(String applicationPublicId) throws IOException {
+      return new ConfigurationClient(config).verifyOrCreateApplication(applicationPublicId);
     }
 
     /**

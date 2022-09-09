@@ -197,8 +197,8 @@ public class ReportListTest
     buildThreatIndicators.moderate().shouldHave(exactText("Moderate 4"));
 
     IQThreatIndicators stageReleaseThreatIndicators = firstRow.stageReleaseReportThreatIndicators();
-    stageReleaseThreatIndicators.critical().shouldNotBe(visible);
-    stageReleaseThreatIndicators.severe().shouldNotBe(visible);
+    stageReleaseThreatIndicators.critical().shouldHave(exactText("Critical 0"));
+    stageReleaseThreatIndicators.severe().shouldHave(exactText("Severe 0"));
     stageReleaseThreatIndicators.moderate().shouldHave(exactText("Moderate 1"));
 
     IQThreatIndicators releaseThreatIndicators = firstRow.releaseReportThreatIndicators();

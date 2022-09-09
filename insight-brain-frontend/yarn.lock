@@ -1245,10 +1245,10 @@
     in-publish "^2.0.0"
     prop-types "^15.5.10"
 
-"@sonatype/react-shared-components@^10.4.8":
-  version "10.4.8"
-  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/react-shared-components/-/react-shared-components-10.4.8.tgz#596ccef264f9d7f8d3c85dca41498f67685c3fb2"
-  integrity sha512-9vadV9LhpI9w2Plrvzm/ZfRhJ+IJ/01c8dFM4wXbBrMX5jzW4KrowqAovpyxEp+VxfrdMP3UMGmkX4OnClCB3A==
+"@sonatype/react-shared-components@^11.1.0":
+  version "11.1.0"
+  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/react-shared-components/-/react-shared-components-11.1.0.tgz#619680f7d5e5ba7613495eed3123e2c7f673320e"
+  integrity sha512-4/9v+nIKnFwIx59wqob22YOn8gCrgFb/8L63FpIsc9Wg/fAu+G80gviPUnBCP0tswVych+Nno5Ywxot/r6kTHg==
   dependencies:
     "@fortawesome/fontawesome-svg-core" "^1.2.32"
     "@fortawesome/free-regular-svg-icons" "^5.15.4"
@@ -1264,6 +1264,7 @@
     "@types/ramda" "^0.27.64"
     classnames "^2.2.6"
     fuse.js "^6.4.6"
+    pretty-bytes "^6.0.0"
     prop-types "^15.7.2"
     ramda "^0.28.0"
 
@@ -7068,6 +7069,11 @@ prettier@^2.2.1:
   version "2.2.1"
   resolved "https://repo.sonatype.com/repository/npm-all/prettier/-/prettier-2.2.1.tgz"
   integrity sha512-PqyhM2yCjg/oKkFPtTGUojv7gnZAoG80ttl45O6x2Ug/rMJw4wcc9k6aaf2hibP7BGVCCM33gZoGjyvt9mm16Q==
+
+pretty-bytes@^6.0.0:
+  version "6.0.0"
+  resolved "https://repo.sonatype.com/repository/npm-all/pretty-bytes/-/pretty-bytes-6.0.0.tgz#928be2ad1f51a2e336add8ba764739f9776a8140"
+  integrity sha512-6UqkYefdogmzqAZWzJ7laYeJnaXDy2/J+ZqiiMtS7t7OfpXWTlaeGMwX8U6EFvPV/YWWEKRkS8hKS4k60WHTOg==
 
 pretty-format@^27.0.2:
   version "27.2.4"

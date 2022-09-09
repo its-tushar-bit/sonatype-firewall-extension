@@ -15,6 +15,7 @@ import applicationsSlice from './applicationsSlice';
 import organizationsSlice from './organizationsSlice';
 import stagesSlice from './stagesSlice';
 import policySlice from './policySlice';
+import retentionSlice from './retentionSlice';
 import deleteOwnerSlice from './deleteOwnerModal/deleteOwnerSlice';
 import sourceControlSlice from './sourceControlSlice';
 import ownerSummarySlice from './ownerSummarySlice';
@@ -24,6 +25,7 @@ import accessSlice from './access/accessSlice';
 import grandfatheringSlice from './grandfatheringModal/grandfatheringSlice';
 import revokeGrandfatheringSlice from './revokeGrandfatheringModal/revokeGrandfatheringSlice';
 import changeApplicationIdSlice from './changeApplicationIdModal/changeApplicationIdSlice';
+
 export default combineReducers({
   root: rootSlice,
   applicationCategories: combineReducers({
@@ -49,4 +51,5 @@ export default combineReducers({
   ownerSummary: ownerSummarySlice,
   ownerDetailTree: ownerDetailTreeSlice,
   policyViolationGrandfathering: policyViolationGrandfatheringSlice,
+  retention: retentionSlice,
 });

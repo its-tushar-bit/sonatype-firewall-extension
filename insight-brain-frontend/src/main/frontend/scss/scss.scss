@@ -60,7 +60,6 @@
 @use '../security/users/user-list';
 @use '../owner.manager/utility/services/evaluateApplicationModal';
 @use '../owner.manager/retention/retentionEditor';
-@use '../owner.manager/retention/retentionTile';
 @use '../vulnerabilitySearch/vulnerabilitySearch';
 @use '../configuration/saml/samlConfiguration';
 @use '../configuration/systemConfiguration';
@@ -127,6 +126,7 @@
 @use '../dashboard/results/componentRisk/componentRiskItem/componentRiskItem';
 @use '../OrgsAndPolicies/ownerSummary/ownerSummary';
 @use '../OrgsAndPolicies/ownerSummary/labelsTile/labelsTile';
+@use '../OrgsAndPolicies/ownerSummary/retentionTile/retentionTile';
 @use '../OrgsAndPolicies/сontinuousMonitoringEditor/continuousMonitoringEditor';
 @use '../firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';
 @use '../api/apiPage';

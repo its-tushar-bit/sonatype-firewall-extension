@@ -14,9 +14,9 @@ public class DataRetentionTile
 {
   private static final String DATA_RETENTION_OWNER_ELEMENT_ID = "#owner-pill-retention";
 
-  public static final String MAX_AGE_HEADER = "Max Age";
+  public static final String MAX_AGE_HEADER = "Age";
 
-  public static final String MAX_REPORTS_HEADER = "Max Reports";
+  public static final String MAX_REPORTS_HEADER = "Reports";
 
   public static final String DONT_PURGE = "Don't Purge";
 
@@ -35,7 +35,7 @@ public class DataRetentionTile
   }
 
   public ElementsCollection rows() {
-    return children(".iq-table-row");
+    return children(".nx-table-row");
   }
 
   public ElementsCollection rowHeaders() {
@@ -64,6 +64,6 @@ public class DataRetentionTile
   }
 
   public SelenideElement successMetrics() {
-    return child("#success-metrics-retention-tile");
+    return child(".retention-tile__success-metrics");
   }
 }

@@ -84,6 +84,7 @@ import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOw
 import GrandfatheringModal from 'MainRoot/OrgsAndPolicies/grandfatheringModal/GrandfatheringModal';
 import ChangeApplicationIdModal from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/ChangeApplicationIdModal';
 import RevokeGrandfatheringModal from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/RevokeGrandfatheringModal';
+import RetentionTile from 'MainRoot/OrgsAndPolicies/ownerSummary/retentionTile/RetentionTile';
 import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
 
 export default angular
@@ -158,6 +159,7 @@ export default angular
   .component('accessPage', iqReact2Angular(AccessPage, [], ['$ngRedux', '$state']))
   .component('sourceControlTile', iqReact2Angular(SourceControlTile, [], ['$ngRedux', '$state']))
   .component('labelsTile', iqReact2Angular(LabelsTile, [], ['$ngRedux', '$state']))
+  .component('retentionTile', iqReact2Angular(RetentionTile, [], ['$ngRedux']))
   .component('applicationCategoriesTile', iqReact2Angular(ApplicationCategoriesTile, [], ['$ngRedux', '$state']))
   .component('proprietaryComponentConfiguration', iqReact2Angular(ProprietaryComponentConfiguration, [], ['$ngRedux']))
   .component(

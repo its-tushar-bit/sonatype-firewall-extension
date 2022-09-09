@@ -237,6 +237,10 @@ export function getFirewallReleaseQuarantineSummaryUrl() {
   return uriTemplate`/api/v2/firewall/releaseQuarantine/summary`;
 }
 
+export function getRetentionPoliciesUrl(orgId) {
+  return uriTemplate`/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(orgId)}`;
+}
+
 export const getComponentLicensesUrl = ({
   clientType,
   ownerType,

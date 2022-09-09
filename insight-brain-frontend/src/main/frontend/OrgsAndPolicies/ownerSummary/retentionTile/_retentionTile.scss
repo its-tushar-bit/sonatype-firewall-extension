@@ -1,0 +1,66 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+.retention-tile {
+  .nx-divider {
+    margin: var(--nx-spacing-4x) 0;
+  }
+
+  &__success-metrics {
+    font-size: var(--nx-font-size-s);
+    padding-left: var(--nx-spacing-4x);
+  }
+
+  .nx-table {
+    font-size: var(--nx-font-size-s);
+    tr {
+      display: grid;
+      grid-auto-columns: auto;
+      grid-template-columns:
+        minmax(83px, 1fr)
+        minmax(87px, 90px)
+        minmax(79px, 85px)
+        minmax(67px, 75px)
+        minmax(112px, 135px)
+        minmax(82px, 85px)
+        minmax(86px, 90px)
+        minmax(85px, 145px);
+
+      .nx-cell {
+        display: flex;
+        align-items: center;
+        vertical-align: middle;
+        box-sizing: border-box;
+
+        &.stage-release,
+        &.continuous-monitoring {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          padding-top: 0;
+          padding-bottom: 0;
+
+          .nx-truncate-ellipsis {
+            white-space: normal;
+          }
+        }
+
+        &.stage-release .nx-truncate-ellipsis {
+          white-space: inherit;
+        }
+      }
+    }
+  }
+
+  $actionColumns: 6;
+  @for $i from 1 through $actionColumns {
+    .retention-tile__stages-num--#{$i} {
+      tr {
+        grid-template-columns:
+          minmax(83px, 1fr)
+          repeat($i, minmax(90px, 135px));
+      }
+    }
+  }
+}

@@ -288,7 +288,7 @@ public class OrganizationSummaryViewTest
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
-    tile.subHeader().shouldBe(visible).shouldHave(tile.subHeaderText(currentOwner.getName()));
+    tile.nxSubHeader().shouldBe(visible).shouldHave(tile.subHeaderText(currentOwner.getName()));
 
     List<String> contextIds = Arrays.asList(
         Stage.ID_DEVELOP,
@@ -311,7 +311,7 @@ public class OrganizationSummaryViewTest
     maxReports.shouldHaveSize(contextIds.size() + 1);
     maxReports.get(0).shouldHave(exactTextCaseSensitive(DataRetentionTile.MAX_REPORTS_HEADER));
 
-    tile.successMetrics().shouldBe(visible).shouldHave(exactTextCaseSensitive("Max Age 1 year"));
+    tile.successMetrics().shouldBe(visible).shouldHave(exactTextCaseSensitive("Max Age: 1 year"));
 
     DataRetentionPolicyDAO dao = new DataRetentionPolicyDAO();
     DataRetentionPolicy customMaxCount = new DataRetentionPolicy();
@@ -362,14 +362,14 @@ public class OrganizationSummaryViewTest
 
     tile.maxAge(Stage.ID_DEVELOP).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
     tile.maxReport(Stage.ID_DEVELOP).shouldBe(visible).shouldHave(exactTextCaseSensitive("6"));
-    tile.maxAge(Stage.ID_SOURCE).shouldBe(visible).shouldHave(exactTextCaseSensitive("3 weeks"));
+    tile.maxAge(Stage.ID_SOURCE).shouldBe(visible).shouldHave(exactTextCaseSensitive("3 w"));
     tile.maxReport(Stage.ID_SOURCE).shouldBe(visible)
         .shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
-    tile.maxAge(Stage.ID_BUILD).shouldBe(visible).shouldHave(exactTextCaseSensitive("2 weeks"));
+    tile.maxAge(Stage.ID_BUILD).shouldBe(visible).shouldHave(exactTextCaseSensitive("2 w"));
     tile.maxReport(Stage.ID_BUILD).shouldBe(visible).shouldHave(exactTextCaseSensitive("8"));
     tile.maxAge(Stage.ID_RELEASE).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.DONT_PURGE));
     tile.maxReport(Stage.ID_RELEASE).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.DONT_PURGE));
-    tile.maxAge(Stage.ID_OPERATE).shouldBe(visible).shouldHave(exactTextCaseSensitive("1 week"));
+    tile.maxAge(Stage.ID_OPERATE).shouldBe(visible).shouldHave(exactTextCaseSensitive("1 w"));
     tile.maxReport(Stage.ID_OPERATE).shouldBe(visible)
         .shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
     tile.successMetrics().shouldBe(visible).shouldHave(exactTextCaseSensitive("Don\'t Purge"));
@@ -414,7 +414,7 @@ public class OrganizationSummaryViewTest
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
-    tile.subHeader().shouldBe(visible).shouldHave(tile.subHeaderText(currentOwner.getName()));
+    tile.nxSubHeader().shouldBe(visible).shouldHave(tile.subHeaderText(currentOwner.getName()));
     tile.rows().shouldHaveSize(3);
     ElementsCollection rowHeaders = tile.rowHeaders();
     rowHeaders.shouldHaveSize(2);

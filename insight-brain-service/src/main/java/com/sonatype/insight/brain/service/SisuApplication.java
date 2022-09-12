@@ -111,6 +111,7 @@ public abstract class SisuApplication<T extends Configuration>
     customize(configuration, environment);
     BeanLocator locator = injector.getInstance(BeanLocator.class);
     addHealthChecks(environment, locator);
+    addAdminHealthCheckEndpoints(environment, locator);
     addRestComponents(environment, locator);
     addDynamicFeatures(environment, locator);
     addTasks(environment, locator);
@@ -165,6 +166,15 @@ public abstract class SisuApplication<T extends Configuration>
       HealthCheck healthCheck = healthCheckBeanEntry.getValue();
       environment.healthChecks().register(healthCheck.toString(), healthCheck);
       logger.debug("Added healthCheck: {}", healthCheck);
+    }
+  }
+
+  private void addAdminHealthCheckEndpoints(Environment environment, BeanLocator locator) {
+    for (BeanEntry<Annotation, AdminHealthCheckEndpoint> entry : locate(locator, AdminHealthCheckEndpoint.class)) {
+      AdminHealthCheckEndpoint adminHealthCheckEndpoint = entry.getValue();
+      AdminHealthCheckEndpoint.addAdminHealthCheckEndpoint(environment.admin(), adminHealthCheckEndpoint);
+      logger.debug("Added AdminHealthCheckEndpoint {} at {}.", adminHealthCheckEndpoint.getName(),
+          adminHealthCheckEndpoint.getPath());
     }
   }
 

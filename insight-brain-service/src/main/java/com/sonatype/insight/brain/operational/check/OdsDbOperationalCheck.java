@@ -37,13 +37,17 @@ public class OdsDbOperationalCheck
   @Override
   protected Result check() throws Exception {
     DataSource dataSource = OperationalDataStoreProvider.getDataSource();
-    try (Connection connection = dataSource.getConnection()) {
+    return checkConnection(dataSource);
+  }
+
+  public static Result checkConnection(DataSource datasource) {
+    try (Connection connection = datasource.getConnection()) {
       ResultBuilder resultBuilder = Result.builder();
 
       long start = System.currentTimeMillis();
       boolean isValidConnection = connection.isValid(3 /* timeout in seconds */);
       long duration = System.currentTimeMillis() - start;
-      
+
       if (isValidConnection) {
         return resultBuilder.withDetail("roundTripTimeInMs", duration).build();
       }

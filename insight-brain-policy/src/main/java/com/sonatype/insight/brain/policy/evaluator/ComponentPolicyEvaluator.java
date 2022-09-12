@@ -12,6 +12,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Named;
@@ -44,7 +46,11 @@ import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparato
 import com.sonatype.insight.brain.utils.ComponentFactUtil;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.drools.core.ObjectFilter;
+import org.kie.api.KieBase;
 import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieSession;
 import org.kie.internal.builder.KnowledgeBuilder;
@@ -59,6 +65,11 @@ public class ComponentPolicyEvaluator
   private static final Logger log = LoggerFactory.getLogger(ComponentPolicyEvaluator.class);
 
   private static final OwnerDAO ownerDAO = new OwnerDAO();
+
+  private static final LoadingCache<String, Object> droolsCodeKiaBase = CacheBuilder.newBuilder()
+      .concurrencyLevel(20)
+      .expireAfterAccess(24, TimeUnit.HOURS)
+      .build(CacheLoader.from(Object::new));
 
   static final Comparator<PolicyFact> POLICY_FACT_COMPARATOR = new Comparator<PolicyFact>()
   {
@@ -247,20 +258,35 @@ public class ComponentPolicyEvaluator
   static List<MatchFact> evaluateFacts(final List<Policy> policies, final List<Component> components) {
     final String droolsCode = DroolsGenerator.get(policies);
 
-    final KnowledgeBuilder droolsKnowledgeBuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
-    droolsKnowledgeBuilder.add(ResourceFactory.newReaderResource(new StringReader(droolsCode)), ResourceType.DRL);
-    if (droolsKnowledgeBuilder.hasErrors()) {
-      throw new RuntimeException("Failed to load the policies: " + droolsKnowledgeBuilder.getErrors().toString());
+    KieBase kieBase;
+    try {
+      kieBase = (KieBase) droolsCodeKiaBase.get(droolsCode, () -> {
+        log.debug("KieBase cache miss. Loading KieBase to cache for policies.");
+        KnowledgeBuilder droolsKnowledgeBuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
+        droolsKnowledgeBuilder.add(ResourceFactory.newReaderResource(new StringReader(droolsCode)), ResourceType.DRL);
+        if (droolsKnowledgeBuilder.hasErrors()) {
+          throw new RuntimeException("Failed to load the policies: " + droolsKnowledgeBuilder.getErrors().toString());
+        }
+        return droolsKnowledgeBuilder.newKieBase();
+      });
     }
-    final KieSession droolsSession = droolsKnowledgeBuilder.newKieBase().newKieSession();
-
-    for (final Component component : components) {
-      droolsSession.insert(component);
+    catch (ExecutionException e) {
+      throw new RuntimeException(e);
     }
+    final KieSession droolsSession = kieBase.newKieSession();
+    try {
+      for (final Component component : components) {
+        droolsSession.insert(component);
+      }
 
-    droolsSession.fireAllRules();
+      droolsSession.fireAllRules();
 
-    return getMatchFacts(droolsSession);
+      List<MatchFact> matchFacts = getMatchFacts(droolsSession);
+      return matchFacts;
+    }
+    finally {
+      droolsSession.dispose();
+    }
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})

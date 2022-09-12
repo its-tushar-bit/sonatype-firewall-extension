@@ -56,7 +56,6 @@ import ImportPolicyModalController from './utility/services/import.policy.modal.
 import NumberInputWithStringValue from './utility/number.input.with.string.value';
 import SameOwnerEditSref from './utility/same.owner.edit.sref.directive';
 import SameOwnerViewSref from './utility/same.owner.view.sref.directive';
-import PolicyViolationGrandfatheringModule from './policyViolationGrandfathering/module';
 import retentionModule from './retention/module';
 import sourceControlModule from './source.control/module';
 import viewTemplate from './state/owner.manager.view.html';
@@ -81,6 +80,7 @@ import ApplicationCategoriesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/App
 import ContinuousMonitoringSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ContinuousMonitoringSummaryTile';
 import AssignAppCategory from 'MainRoot/OrgsAndPolicies/assignAppCategory/AssignAppCategory';
 import DeleteOwnerModal from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/DeleteOwnerModal';
+import PolicyViolationGrandfatheringEditor from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringEditor/PolicyViolationGrandfatheringEditor';
 import GrandfatheringModal from 'MainRoot/OrgsAndPolicies/grandfatheringModal/GrandfatheringModal';
 import ChangeApplicationIdModal from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/ChangeApplicationIdModal';
 import RevokeGrandfatheringModal from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/RevokeGrandfatheringModal';
@@ -103,7 +103,6 @@ export default angular
     validatorsModule.name,
     roleMembershipModule.name,
     moveApplicationModule.name,
-    PolicyViolationGrandfatheringModule.name,
     retentionModule.name,
     sourceControlModule.name,
     artifactoryRepositoryModule.name,
@@ -173,6 +172,10 @@ export default angular
   .component('createEditApplicationCategory', iqReact2Angular(CreateEditApplicationCategory, [], ['$ngRedux']))
   .component('grandfatheringModal', iqReact2Angular(GrandfatheringModal, [], ['$ngRedux']))
   .component('assignAppCategory', iqReact2Angular(AssignAppCategory, [], ['$ngRedux']))
+  .component(
+    'policyViolationGrandfatheringEditor',
+    iqReact2Angular(PolicyViolationGrandfatheringEditor, [], ['$ngRedux'])
+  )
   .config([
     '$stateProvider',
     function ($stateProvider) {
@@ -357,6 +360,7 @@ export default angular
             url: '/grandfathering',
             data: {
               title: ownerType.name + ' Violation Grandfathering',
+              isDirty: ['orgsAndPolicies', 'policyViolationGrandfathering', 'isDirty'],
             },
             views: {
               '@management.edit': {

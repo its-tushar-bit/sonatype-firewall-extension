@@ -23,10 +23,10 @@ import com.codeborne.selenide.Condition;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.NX_RADIO_CHECKBOX_DISABLED;
+import static com.sonatype.clm.testing.functional.elements.CLM.NX_RADIO_SELECTED;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -69,20 +69,29 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
 
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
     OwnerSummaryPage.violationGrandfathering().shouldHave(text(summaryText)).click();
-
     PolicyViolationGrandfatheringEditorPage.statusMessage().shouldHave(text(summaryText));
     PolicyViolationGrandfatheringEditorPage.disabledMessage().shouldNotBe(visible);
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(currentOwner.getId())) {
-      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited().shouldNotBe(visible);
-      PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldBe(selected);
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().shouldHaveSize(2);
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(0).shouldHave(text("Enabled"));
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(1).shouldHave(text("Disabled"));
+
+      PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldBe(NX_RADIO_SELECTED);
     }
     else {
-      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited().shouldBe(visible).shouldBe(selected);
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().shouldHaveSize(3);
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(0)
+              .shouldHave(text("Inherit from parent organization"));
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(2).shouldHave(text("Disabled"));
+
+      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited()
+              .shouldBe(visible).shouldBe(NX_RADIO_SELECTED);
     }
 
     if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
-      PolicyViolationGrandfatheringEditorPage.overridesCheckbox().shouldBe(visible).shouldBe(selected);
+      PolicyViolationGrandfatheringEditorPage.overridesCheckbox().shouldBe(visible).shouldBe(NX_RADIO_SELECTED);
     }
     else {
       PolicyViolationGrandfatheringEditorPage.overridesCheckbox().shouldNotBe(visible);
@@ -119,23 +128,33 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
 
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
     OwnerSummaryPage.violationGrandfathering().shouldHave(text(summaryText)).click();
-
     PolicyViolationGrandfatheringEditorPage.statusMessage().shouldHave(text(summaryText));
 
     if (Organization.ROOT_ORGANIZATION_ID.equals(currentOwner.getId())) {
-      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited().shouldNotBe(visible);
-      PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldBe(selected);
-      PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldNotBe(disabled);
-      PolicyViolationGrandfatheringEditorPage.grandfatheringEnabled().shouldNotBe(disabled);
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().shouldHaveSize(2);
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(0).shouldHave(text("Enabled"));
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(1).shouldHave(text("Disabled"));
+
+      PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldBe(NX_RADIO_SELECTED);
+      PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldNotHave(NX_RADIO_CHECKBOX_DISABLED);
+      PolicyViolationGrandfatheringEditorPage.grandfatheringEnabled().shouldNotHave(NX_RADIO_CHECKBOX_DISABLED);
       PolicyViolationGrandfatheringEditorPage.disabledMessage().shouldNotBe(visible);
     }
     else {
-      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited().shouldBe(disabled);
-      PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldBe(disabled);
-      PolicyViolationGrandfatheringEditorPage.grandfatheringEnabled().shouldBe(disabled);
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().shouldHaveSize(3);
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons()
+              .get(0).shouldHave(text("Inherit from parent organization"));
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(1).shouldHave(text("Enabled"));
+      PolicyViolationGrandfatheringEditorPage.policyRadioButttons().get(2).shouldHave(text("Disabled"));
+
+      PolicyViolationGrandfatheringEditorPage.grandfatheringInherited()
+              .shouldHave(NX_RADIO_CHECKBOX_DISABLED);
+      PolicyViolationGrandfatheringEditorPage.grandfatheringDisabled().shouldHave(NX_RADIO_CHECKBOX_DISABLED);
+      PolicyViolationGrandfatheringEditorPage.grandfatheringEnabled().shouldHave(NX_RADIO_CHECKBOX_DISABLED);
       PolicyViolationGrandfatheringEditorPage.disabledMessage().shouldBe(visible);
       if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
-        PolicyViolationGrandfatheringEditorPage.overridesCheckbox().shouldBe(disabled).shouldBe(visible);
+        PolicyViolationGrandfatheringEditorPage.overridesCheckbox()
+                .shouldHave(NX_RADIO_CHECKBOX_DISABLED).shouldBe(visible);
       }
     }
 
@@ -153,8 +172,6 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
 
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
     OwnerSummaryPage.violationGrandfathering().shouldHave(notLicensedText).click();
-
-    PolicyViolationGrandfatheringEditorPage.title().shouldNotBe(visible);
 
     // if the user gets there manually, show a warning
     refreshOrOpen(PolicyViolationGrandfatheringEditorPage.url(currentOwner));

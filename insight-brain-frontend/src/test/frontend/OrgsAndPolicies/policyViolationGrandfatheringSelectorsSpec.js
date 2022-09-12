@@ -14,6 +14,7 @@ import {
   selectGrandfatheringStatusMessage,
 } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 import { selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRoot } from '../../../main/frontend/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 
 describe('policyViolationGrandfatheringSelectors', () => {
   describe('selectPolicyViolationGrandfatheringSlice', () => {
@@ -100,6 +101,7 @@ describe('policyViolationGrandfatheringSelectors', () => {
           allowChange: false,
           enabled: true,
           calculatedEnabled: true,
+          organizationName: 'myOrg',
         },
       },
       {
@@ -114,6 +116,7 @@ describe('policyViolationGrandfatheringSelectors', () => {
           allowChange: false,
           enabled: null,
           calculatedEnabled: false,
+          organizationName: 'myOrg',
         },
       },
       {
@@ -128,6 +131,7 @@ describe('policyViolationGrandfatheringSelectors', () => {
           allowChange: false,
           enabled: null,
           calculatedEnabled: null,
+          organizationName: 'myOrg',
         },
       },
       {
@@ -142,6 +146,7 @@ describe('policyViolationGrandfatheringSelectors', () => {
           allowChange: false,
           enabled: false,
           calculatedEnabled: false,
+          organizationName: 'myOrg',
         },
       },
     ];
@@ -149,15 +154,22 @@ describe('policyViolationGrandfatheringSelectors', () => {
       expect(selectPolicyViolationGrandfatheringConfig.dependencies).toEqual([
         selectPolicyViolationGrandfathering,
         selectIsRootOrganization,
+        selectRoot,
       ]);
     });
 
     testsToRun.forEach((policyViolationGrandfatheringSlice) => {
       const { inheritedFromOrganizationName, isOrg, expected } = policyViolationGrandfatheringSlice;
       it(`selects PolicyViolationGrandfathering slice with rootOrg = ${isOrg} and inheritedFromOrganizationName = ${inheritedFromOrganizationName}`, () => {
+        const data = {
+          selectedOwner: {
+            organizationName: 'myOrg',
+          },
+        };
         const selected = selectPolicyViolationGrandfatheringConfig.resultFunc(
           policyViolationGrandfatheringSlice,
-          isOrg
+          isOrg,
+          data
         );
         expect(selected).toEqual(expected);
       });

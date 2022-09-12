@@ -14,22 +14,37 @@ export const selectPolicyViolationGrandfatheringSlice = createSelector(
   prop('policyViolationGrandfathering')
 );
 
+export const selectRoot = createSelector(selectOrgsAndPoliciesSlice, prop('root'));
+
 export const selectLoadError = createSelector(selectPolicyViolationGrandfatheringSlice, prop('loadError'));
 export const selectLoading = createSelector(selectPolicyViolationGrandfatheringSlice, prop('loading'));
 export const selectPolicyViolationGrandfathering = createSelector(
   selectPolicyViolationGrandfatheringSlice,
   prop('data')
 );
+export const selectPolicyViolationGrandfatheringServerData = createSelector(
+  selectPolicyViolationGrandfatheringSlice,
+  prop('serverData')
+);
 
 export const selectPolicyViolationGrandfatheringConfig = createSelector(
   selectPolicyViolationGrandfathering,
   selectIsRootOrganization,
-  (policyViolationGrandfathering, isRootOrg) => {
+  selectRoot,
+  (policyViolationGrandfathering, isRootOrg, root) => {
     if (!policyViolationGrandfathering) return {};
     const config = pick(
       ['inheritedFromOrganizationName', 'allowOverride', 'allowChange'],
       policyViolationGrandfathering
     );
+
+    if (root.selectedOwner.organizationName) {
+      config.organizationName = root.selectedOwner.organizationName;
+    } else if (root.selectedOwner.parentOrganizationId) {
+      config.organizationName = 'Root Organization';
+    } else {
+      config.organizationName = 'parent';
+    }
 
     // The returned data contains the calculated value of the "enabled" flag based on the
     // current settings for the owner and its parents. For enabled values that are being
@@ -69,6 +84,18 @@ export const selectGrandfatheringStatusMessage = createSelector(
       msg += ')';
     }
     return msg;
+  }
+);
+
+export const selectGrandfatheringStatusMessageFromServer = createSelector(
+  selectPolicyViolationGrandfatheringServerData,
+  (serverData) => {
+    if (serverData?.inheritedFromOrganizationName) {
+      return `Inherit from ${serverData?.inheritedFromOrganizationName} (Grandfathering is ${
+        serverData?.enabled ? 'enabled' : 'disabled'
+      })`;
+    }
+    return `Grandfathering is ${serverData?.enabled ? 'enabled' : 'disabled'}`;
   }
 );
 

@@ -55,4 +55,69 @@ describe('policyViolationGrandfathering reducer', () => {
       expect(loadError).toBe('error');
     });
   });
+
+  describe('policyViolationGrandfathering/savePolicyViolationGrandfathering/fulfilled', () => {
+    it('sets enabled and allowChange', () => {
+      const state = Object.freeze({
+        submitMaskState: null,
+        submitError: false,
+        isDirty: true,
+        data: {
+          enabled: false,
+          allowChange: false,
+        },
+      });
+      const { submitMaskState, submitError, isDirty } = reducer(state, {
+        type: 'policyViolationGrandfathering/savePolicyViolationGrandfathering/fulfilled',
+      });
+      expect(submitMaskState).toBeTrue();
+      expect(submitError).toBeFalse();
+      expect(isDirty).toBeFalse();
+      const { data } = reducer(state, {
+        type: 'policyViolationGrandfathering/loadPolicyViolationGrandfathering/fulfilled',
+        payload: {
+          enabled: true,
+          allowChange: true,
+        },
+      });
+      expect(data).toEqual({ enabled: true, allowChange: true });
+    });
+  });
+
+  describe('policyViolationGrandfathering/toggleOverride', () => {
+    it('toggleOverride sets allowChange', () => {
+      const state = Object.freeze({
+        data: {
+          allowOverride: false,
+        },
+      });
+      const { data } = reducer(state, {
+        type: 'policyViolationGrandfathering/toggleOverride',
+      });
+      expect(data).toEqual({ allowOverride: true });
+    });
+  });
+
+  describe('policyViolationGrandfathering/setGrandfatheringStatus', () => {
+    it('setGrandfatheringStatus sets Policy Violation Grandfathering', () => {
+      const state = Object.freeze({
+        data: {
+          allowChange: true,
+          allowOverride: true,
+          enabled: false,
+          inheritedFromOrganizationName: null,
+        },
+      });
+      const { data } = reducer(state, {
+        type: 'policyViolationGrandfathering/setGrandfatheringStatus',
+        payload: 'enabled',
+      });
+      expect(data).toEqual({
+        allowChange: true,
+        allowOverride: true,
+        enabled: true,
+        inheritedFromOrganizationName: null,
+      });
+    });
+  });
 });

@@ -36,4 +36,6 @@ public class CLM
   public static final Condition CSS_SIDEBAR_CLOSED = cssClass("closed");
 
   public static final Condition NX_RADIO_SELECTED = cssClass("tm-checked");
+
+  public static final Condition NX_RADIO_CHECKBOX_DISABLED = cssClass("nx-radio-checkbox--disabled");
 }

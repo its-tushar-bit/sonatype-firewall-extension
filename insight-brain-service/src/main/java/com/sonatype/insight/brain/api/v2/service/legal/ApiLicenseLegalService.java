@@ -22,6 +22,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -556,54 +557,55 @@ public class ApiLicenseLegalService
       filterInnerSourceComponents(latestRawReport);
     }
 
-    Map<ComponentIdentifier, Set<ApiLicenseDTO>> componentIdentifierToMultiLicenses =
-        getReportMultiLicenses(latestRawReport);
-
-    Set<ApiLicenseDTO> allMultiLicenses = componentIdentifierToMultiLicenses.entrySet().stream()
+    Set<ApiLicenseDTO> allMultiLicenses = getReportMultiLicenses(latestRawReport).entrySet().stream()
         .flatMap(e -> e.getValue().stream())
         .collect(Collectors.toCollection(LinkedHashSet::new));
 
     Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense =
         buildMultiLicenseToSingleLicenseMap(allMultiLicenses);
 
-    Set<License> allSingleLicenses = multiLicenseToSingleLicense.values().stream()
-        .flatMap(Collection::stream)
-        .collect(Collectors.toSet());
-
     sendApplicationTelemetryData(application.getPublicId(), latestRawReport, allMultiLicenses);
 
-    Map<String, LicenseMetadataDTO> licenseMetadataById = allMultiLicenses.isEmpty() ?
-        Collections.emptyMap() :
-        getLicenseMetadata(allSingleLicenses, application.getId());
+    CompletableFuture<Map<String, LicenseMetadataDTO>> licenseMetadataById =
+        CompletableFuture.supplyAsync(() -> multiLicenseToSingleLicense.values().stream()
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toSet()))
+            .thenApply(allSingleLicenses -> allMultiLicenses.isEmpty() ? Collections.emptyMap() : getLicenseMetadata(
+                allSingleLicenses, application.getId()));
 
     final Set<ApiReportComponentDTOV2> apiReportComponentDTOV2s = new HashSet<>(latestRawReport.components);
 
-    Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData> componentIdentifierToLegalData =
-        fetchApiReportComponentDTOV2ToLegalData(
-            application,
-            apiReportComponentDTOV2s,
-            multiLicenseToSingleLicense
-        );
+    CompletableFuture<Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData>> componentIdentifierToLegalData =
+        CompletableFuture.supplyAsync(
+            () -> fetchApiReportComponentDTOV2ToLegalData(application, apiReportComponentDTOV2s,
+                multiLicenseToSingleLicense));
 
-    Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier =
-        getComponentLegalCommentsByComponentIdentifier(Collections.singleton(latestRawReport));
+    CompletableFuture<Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>>>
+        componentLegalCommentsByComponentIdentifier =
+        CompletableFuture.supplyAsync(
+            () -> getComponentLegalCommentsByComponentIdentifier(Collections.singleton(latestRawReport)));
 
-    Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier =
-        getComponentLegalFilesByComponentIdentifier(Collections.singleton(latestRawReport));
+    CompletableFuture<Map<ComponentIdentifier, Set<ComponentLegalFileDTO>>> componentLegalFilesByComponentIdentifier =
+        CompletableFuture.supplyAsync(
+            () -> getComponentLegalFilesByComponentIdentifier(Collections.singleton(latestRawReport)));
 
-    Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> sourceLinksByComponentIdentifier =
-        getSourceLinksByComponentIdentifier(application, Collections.singleton(latestRawReport));
+    CompletableFuture<Map<ComponentIdentifier, Set<LegalSourceLinkDTO>>> sourceLinksByComponentIdentifier =
+        CompletableFuture.supplyAsync(
+            () -> getSourceLinksByComponentIdentifier(application, Collections.singleton(latestRawReport)));
+
+    CompletableFuture.allOf(componentLegalCommentsByComponentIdentifier, componentLegalFilesByComponentIdentifier,
+        sourceLinksByComponentIdentifier, licenseMetadataById, componentIdentifierToLegalData).join();
 
     log.info("Building license metadata report for {}.", application.getName());
     return legalReportBuilder
         .getLicenseLegalApplicationReport(
             latestRawReport,
-            componentIdentifierToLegalData,
-            componentLegalCommentsByComponentIdentifier,
-            componentLegalFilesByComponentIdentifier,
+            componentIdentifierToLegalData.join(),
+            componentLegalCommentsByComponentIdentifier.join(),
+            componentLegalFilesByComponentIdentifier.join(),
             multiLicenseToSingleLicense,
-            licenseMetadataById,
-            sourceLinksByComponentIdentifier);
+            licenseMetadataById.join(),
+            sourceLinksByComponentIdentifier.join());
   }
 
   private void filterInnerSourceComponents(final ApiReportRawDataDTOV2 latestRawReport) {

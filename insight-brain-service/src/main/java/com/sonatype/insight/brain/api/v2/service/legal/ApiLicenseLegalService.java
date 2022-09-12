@@ -749,8 +749,21 @@ public class ApiLicenseLegalService
       ComponentIdentifier compIdentifier,
       Owner owner)
   {
-    Set<LegalSourceLinkDTO> sourceLinks =
-        apiLicenseLegalHdsService.getSourceLinksFromComponentIdentifier(compIdentifier);
+    return mergeLegalSourceLinkAndSourceLinkOverride(compIdentifier, owner, null);
+  }
+
+  private Set<LegalSourceLinkDTO> mergeLegalSourceLinkAndSourceLinkOverride(
+      ComponentIdentifier compIdentifier,
+      Owner owner,
+      Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> sourceLinksByComponent)
+  {
+    Set<LegalSourceLinkDTO> sourceLinks;
+    if (sourceLinksByComponent == null) {
+      sourceLinks = apiLicenseLegalHdsService.getSourceLinksFromComponentIdentifier(compIdentifier);
+    }
+    else {
+      sourceLinks = sourceLinksByComponent.getOrDefault(compIdentifier, Collections.emptySet());
+    }
     Set<LegalSourceLinkDTO> sourceLinkOverrides =
         componentLegalService.getSourceLinksOverridesFromComponentIdentifier(owner.getId(), compIdentifier);
     sourceLinks = sourceLinks.stream()
@@ -1119,11 +1132,15 @@ public class ApiLicenseLegalService
   {
     Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> result = new HashMap<>();
 
-    for (ComponentIdentifier componentIdentifier : getComponentIdentifiers(rawReports)) {
-      Set<LegalSourceLinkDTO> links = mergeLegalSourceLinkAndSourceLinkOverride(componentIdentifier, owner).stream()
-          .filter(link -> link.status == ComponentLegalPartStatus.ENABLED)
-          .collect(Collectors.toCollection(() -> new TreeSet<>(LEGAL_SOURCE_LINK_COMPARATOR)));
+    Set<ComponentIdentifier> componentIdentifiersFromRawReports = getComponentIdentifiers(rawReports);
+    Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> sourceLinksByComponent =
+        apiLicenseLegalHdsService.getSourceLinksFromComponentIdentifierSet(componentIdentifiersFromRawReports);
 
+    for (ComponentIdentifier componentIdentifier : componentIdentifiersFromRawReports) {
+      Set<LegalSourceLinkDTO> links =
+          mergeLegalSourceLinkAndSourceLinkOverride(componentIdentifier, owner, sourceLinksByComponent).stream()
+              .filter(link -> link.status == ComponentLegalPartStatus.ENABLED)
+              .collect(Collectors.toCollection(() -> new TreeSet<>(LEGAL_SOURCE_LINK_COMPARATOR)));
       ComponentIdentifier simpleIdentifier =
           LegalComponentIdentifierUtil.removeClassifierAndExtension(componentIdentifier);
 

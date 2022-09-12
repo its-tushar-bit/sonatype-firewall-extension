@@ -210,6 +210,9 @@ public class ApiLicenseLegalServiceTest
   @Captor
   private ArgumentCaptor<Collection<ComponentIdentifier>> componentIdentifiersArgumentCaptor;
 
+  @Captor
+  private ArgumentCaptor<Set<ComponentIdentifier>> componentIdentifiersArgumentCaptorForSourceLinks;
+
   @Inject
   private MultiLicenseDAO multiLicenseDAO;
 
@@ -1458,18 +1461,18 @@ public class ApiLicenseLegalServiceTest
     when(mockApiLicenseLegalHdsService.getComponentLegalFiles(componentIdentifiersArgumentCaptor.capture()))
         .thenReturn(new LinkedHashSet<>(Arrays.asList(componentLegalFiles)));
 
-    ArgumentCaptor<ComponentIdentifier> componentIdentifierArgumentCaptor =
-        ArgumentCaptor.forClass(ComponentIdentifier.class);
-
-    LegalSourceLinkDTO[] legalSourceLinks =
-        getContent("lls-legal-source-links.json", LegalSourceLinkDTO[].class);
-    when(mockApiLicenseLegalHdsService.getSourceLinksFromComponentIdentifier(
-        componentIdentifierArgumentCaptor.capture()))
-        .thenAnswer(invocation -> {
-          String sourceLink = "https://mockrepository.com/component.jar";
-          return Sets.newHashSet(
-              new LegalSourceLinkDTO(null, sourceLink, sourceLink, ComponentLegalPartStatus.ENABLED));
-        });
+    LegalSourceLinkDTO[] legalSourceLinks = getContent("lls-legal-source-links.json", LegalSourceLinkDTO[].class);
+    when(mockApiLicenseLegalHdsService
+        .getSourceLinksFromComponentIdentifierSet(componentIdentifiersArgumentCaptorForSourceLinks.capture()))
+            .thenAnswer(invocation -> {
+              String sourceLink = "https://mockrepository.com/component.jar";
+              Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> sourceLinksForComponents = new HashMap<>();
+              for (ComponentIdentifier comp : componentIdentifiersArgumentCaptorForSourceLinks.getValue()) {
+                sourceLinksForComponents.put(comp, Sets.newHashSet(
+                    new LegalSourceLinkDTO(null, sourceLink, sourceLink, ComponentLegalPartStatus.ENABLED)));
+              }
+              return sourceLinksForComponents;
+            });
     when(mockComponentLegalService.getSourceLinksOverridesFromComponentIdentifier(anyString(),
         any(ComponentIdentifier.class)))
         .thenReturn(new LinkedHashSet<>(Arrays.asList(legalSourceLinks)));
@@ -1496,7 +1499,7 @@ public class ApiLicenseLegalServiceTest
 
     assertApplicationTelemetry(app, rawReport, includeInnerSource);
 
-    List<ComponentIdentifier> sourceLinkComponents = componentIdentifierArgumentCaptor.getAllValues();
+    Set<ComponentIdentifier> sourceLinkComponents = componentIdentifiersArgumentCaptorForSourceLinks.getValue();
     assertThat(sourceLinkComponents).containsExactlyInAnyOrder(expectedComponentIdentifiers);
     assertThat(licenseMetadataReport.components.stream().flatMap(c -> c.licenseLegalData.sourceLinks.stream())
         .collect(Collectors.toSet())).hasSize(3).map(sl -> sl.status).areExactly(3,

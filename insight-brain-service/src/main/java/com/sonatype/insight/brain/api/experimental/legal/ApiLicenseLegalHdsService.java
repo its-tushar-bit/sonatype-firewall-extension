@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.experimental.legal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -200,6 +201,22 @@ public class ApiLicenseLegalHdsService
         .flatMap(componentSourceLinkDTO -> componentSourceLinkDTO.getSourceLinks().stream())
         .map(LegalSourceLinkDTO::new)
         .collect(Collectors.toSet());
+  }
+
+  public Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> getSourceLinksFromComponentIdentifierSet(
+      Set<ComponentIdentifier> componentIdentifier)
+  {
+    Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> legalSourceLinkDTOByComponents = new HashMap<>();
+    List<ComponentSourceLinkDTO> componentSourceLinkDTOs = StreamSupport
+        .stream(Iterables.partition(componentIdentifier, configuration.getLicenseLegalHdsRequestLimit()).spliterator(),
+            true)
+        .flatMap(partition -> Arrays.stream(hdsClient.post(ComponentSourceLinkDTO[].class, SOURCE_LINK_URL, partition)))
+        .collect(Collectors.toList());
+    for (ComponentSourceLinkDTO component : componentSourceLinkDTOs) {
+      legalSourceLinkDTOByComponents.put(component.getComponentIdentifier(),
+          component.getSourceLinks().stream().map(LegalSourceLinkDTO::new).collect(Collectors.toSet()));
+    }
+    return legalSourceLinkDTOByComponents;
   }
 
   private static ComponentLegalCommentDTO entryToComponentLegalComment(

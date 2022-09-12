@@ -8,19 +8,25 @@ package com.sonatype.insight.brain.api.experimental.legal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.legal.LegalSourceLinkDTO;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
+import com.sonatype.insight.brain.model.legal.SourceLinkOverride;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.dto.model.AnameAggregateFileGroup;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalCommentFilePathsDTO;
 import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
+import com.sonatype.insight.license.dto.model.ComponentSourceLinkDTO;
 import com.sonatype.insight.license.dto.model.LegalCommentDTO;
 import com.sonatype.insight.license.dto.model.LegalCommentFilesDTO;
 import com.sonatype.insight.license.dto.model.LegalCopyrightDTO;
@@ -402,5 +408,27 @@ public class ApiLicenseLegalHdsServiceTest
         .getComponentLegalCommentFilePaths(component1);
 
     assertThat(results).isEqualTo(expectedLegalComments);
+  }
+  
+  @Test
+  public void testGetSourceLinksFromComponentIdentifierSet() {
+    SourceLinkOverride source1 = new SourceLinkOverride("www.sltest.net", ComponentLegalPartStatus.ENABLED, "slId1");
+    ComponentIdentifier component1 = ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version");
+    ComponentSourceLinkDTO componentSourceLink1 = new ComponentSourceLinkDTO();
+    componentSourceLink1.setComponentIdentifier(component1);
+    componentSourceLink1.setSourceLinks(Arrays.asList("www.sltest.net"));
+    Set<ComponentSourceLinkDTO> expectedComponentSourceLinkDTO =
+        new LinkedHashSet<>(Collections.singletonList(componentSourceLink1));
+
+    when(mockHdsClient.post(ComponentSourceLinkDTO[].class, ApiLicenseLegalHdsService.SOURCE_LINK_URL,
+        Arrays.asList(component1)))
+        .thenReturn(expectedComponentSourceLinkDTO.toArray(new ComponentSourceLinkDTO[1]));
+
+    Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> results =
+        apiLicenseLegalHdsService.getSourceLinksFromComponentIdentifierSet(Sets.newHashSet(component1));
+    Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> expectedSourceLinkMap = new HashMap<>();
+    expectedSourceLinkMap.put(component1, Sets.newHashSet(new LegalSourceLinkDTO(source1)));
+
+    assertThat(results).isEqualTo(expectedSourceLinkMap);
   }
 }

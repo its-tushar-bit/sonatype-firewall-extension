@@ -9,8 +9,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,6 +41,9 @@ public class ConfigurationUtils
 
   public static final String OUTSIDE_RANGE_ERROR_MSG =
       "The %s must be greater than or equal to %s and less than or equal to %s.";
+
+  public static final String INVALID_CHARACTERS_ERROR_MSG = "The repository list must be comma-separated " +
+      "and each repository can only contain alphanumeric characters, underscores, and hyphens. Invalid repository: %s";
 
   private ConfigurationUtils() { }
 
@@ -182,5 +187,22 @@ public class ConfigurationUtils
       throw new RuntimeException("Timeout configuration should be in range from 3 to 120 minutes.");
     }
     return ObjectUtils.toString(minutes, null);
+  }
+
+  public static String parseRepositoryList(String repositoryList) {
+    if (repositoryList == null) {
+      return null;
+    }
+    Set<String> repositories = new LinkedHashSet<>();
+    for (String repository : repositoryList.split(",")) {
+      String trimmedRepository = repository.trim();
+      if (trimmedRepository.matches("^[\\w\\-]+$")) {
+        repositories.add(trimmedRepository);
+      }
+      else {
+        throw new BadRequestException(String.format(INVALID_CHARACTERS_ERROR_MSG, repository));
+      }
+    }
+    return String.join(",", repositories);
   }
 }

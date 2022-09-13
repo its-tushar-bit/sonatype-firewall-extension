@@ -294,7 +294,8 @@ public class ArtifactoryRepositoryConfigurationModalTest
             equalTo(
                 ArtifactoryQueryLanguageUtils.createChecksumSearch(
                     ChecksumType.SHA256,
-                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256))))
+                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256),
+                    Collections.emptySet())))
         .willReturn(
             aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
                 .withStatus(200)));
@@ -329,7 +330,8 @@ public class ArtifactoryRepositoryConfigurationModalTest
             equalTo(
                 ArtifactoryQueryLanguageUtils.createChecksumSearch(
                     ChecksumType.SHA256,
-                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256))))
+                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256),
+                    Collections.emptySet())))
         .willReturn(
             aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
                 .withStatus(404)));
@@ -362,7 +364,8 @@ public class ArtifactoryRepositoryConfigurationModalTest
             equalTo(
                 ArtifactoryQueryLanguageUtils.createChecksumSearch(
                     ChecksumType.SHA256,
-                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256))))
+                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256),
+                    Collections.emptySet())))
         .willReturn(
             aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
                 .withStatus(200)));
@@ -399,7 +402,8 @@ public class ArtifactoryRepositoryConfigurationModalTest
             equalTo(
                 ArtifactoryQueryLanguageUtils.createChecksumSearch(
                     ChecksumType.SHA256,
-                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256))))
+                    Collections.singleton(DefaultArtifactoryClient.TEST_SHA256),
+                    Collections.emptySet())))
         .willReturn(
         aResponse().withHeader(ARTIFACTORY_ID_HEADER_NAME, ARTIFACTORY_ID_HEADER_MOCK_VALUE)
             .withStatus(404)));

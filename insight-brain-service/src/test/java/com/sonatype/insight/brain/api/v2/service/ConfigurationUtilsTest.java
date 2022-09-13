@@ -203,4 +203,26 @@ public class ConfigurationUtilsTest
     expectedEx.expectMessage("Timeout configuration should be in range from 3 to 120 minutes.");
     ConfigurationUtils.sessionTimeoutToString(122);
   }
+
+  @Test
+  public void testParseRepositoryList() {
+    assertThat(ConfigurationUtils.parseRepositoryList("repo1,repo2")).isEqualTo("repo1,repo2");
+  }
+
+  @Test
+  public void testParseRepositoryList_invalidCharacters() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> ConfigurationUtils.parseRepositoryList("repo1,repo 2, repo3"))
+        .withMessageContaining(String.format(ConfigurationUtils.INVALID_CHARACTERS_ERROR_MSG, "repo 2"));
+  }
+
+  @Test
+  public void testParseRepositoryList_removeInvalidComma() {
+    assertThat(ConfigurationUtils.parseRepositoryList("repo1,repo2,,,,,")).isEqualTo("repo1,repo2");
+  }
+
+  @Test
+  public void testParseRepositoryList_duplicatedItems() {
+    assertThat(ConfigurationUtils.parseRepositoryList("repo1,repo1,repo2")).isEqualTo("repo1,repo2");
+  }
 }

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.artifactory;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Set;
 
@@ -79,12 +80,14 @@ public class ArtifactoryMockServerRule
       char[] password,
       ChecksumType checksumType,
       Set<String> checksums,
+      Set<String> repositories,
       JsonNode... results)
   {
     artifactoryMockServer.stubFor(
         post(urlPathMatching(getRelativePath(DefaultArtifactoryClient.AQL_SEARCH_PATH)))
             .withBasicAuth(username, String.valueOf(password))
-            .withRequestBody(equalTo(ArtifactoryQueryLanguageUtils.createChecksumSearch(checksumType, checksums)))
+            .withRequestBody(equalTo(ArtifactoryQueryLanguageUtils
+                .createChecksumSearch(checksumType, checksums, repositories)))
             .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
                     ARTIFACTORY_ID_HEADER_MOCK_VALUE)
                 .withBody(JsonUtils.format(createAQLResults(results))).withStatus(200))
@@ -102,7 +105,8 @@ public class ArtifactoryMockServerRule
     artifactoryMockServer.stubFor(
         post(urlPathMatching(getRelativePath(DefaultArtifactoryClient.AQL_SEARCH_PATH)))
             .withBasicAuth(username, String.valueOf(password))
-            .withRequestBody(equalTo(ArtifactoryQueryLanguageUtils.createChecksumSearch(checksumType, checksums)))
+            .withRequestBody(equalTo(ArtifactoryQueryLanguageUtils
+                .createChecksumSearch(checksumType, checksums, Collections.emptySet())))
             .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
                     ARTIFACTORY_ID_HEADER_MOCK_VALUE)
                 .withStatus(status)
@@ -147,12 +151,14 @@ public class ArtifactoryMockServerRule
       char[] password,
       ChecksumType checksumType,
       String checksum,
+      String repos,
       ArtifactoryChecksumSearchResults results)
   {
     artifactoryMockServer.stubFor(
         get(urlPathMatching(getRelativePath(DefaultArtifactoryClient.CHECKSUM_SEARCH_PATH)))
             .withBasicAuth(username, String.valueOf(password))
             .withQueryParam(checksumType.name().toLowerCase(Locale.ROOT), equalTo(checksum))
+            .withQueryParam("repos", equalTo(repos))
             .willReturn(aResponse().withHeader(DefaultArtifactoryClient.ARTIFACTORY_ID_HEADER_NAME,
                     ARTIFACTORY_ID_HEADER_MOCK_VALUE)
                 .withBody(JsonUtils.format(results)).withStatus(200))

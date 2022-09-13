@@ -16,10 +16,11 @@ import javax.ws.rs.core.Response.StatusType;
  */
 public interface ArtifactoryClient
 {
-  ArtifactoryChecksumSearchResults searchByChecksum(ChecksumType checksumType, String checksum) throws IOException;
+  ArtifactoryChecksumSearchResults searchByChecksum(
+      ChecksumType checksumType, String checksum, Set<String> repositories) throws IOException;
 
   Map<String, ArtifactoryChecksumSearchResults> searchByChecksumsUsingAQL(
-      ChecksumType checksumType, Set<String> checksums) throws IOException;
+      ChecksumType checksumType, Set<String> checksums, Set<String> repositories) throws IOException;
 
   StatusType getServerStatusViaQueryParam() throws IOException;
 

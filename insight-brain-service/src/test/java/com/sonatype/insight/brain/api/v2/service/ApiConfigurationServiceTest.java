@@ -430,7 +430,7 @@ public class ApiConfigurationServiceTest
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING))).containsEntry(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, false);
   }
-  
+
   @Test
   public void testGetConfiguration_BfsArtifactoryExpiredTokenRegexNotSet_ReturnsDefault() {
     assertThat(
@@ -453,6 +453,14 @@ public class ApiConfigurationServiceTest
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)))
         .containsEntry(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, null);
+  }
+
+  @Test
+  public void testGetConfiguration_BfsQueryRepositoriesList_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.BFS_REPOSITORIES)))
+        .containsEntry(SystemConfigurationProperty.BFS_REPOSITORIES, null);
   }
 
   @Test
@@ -1228,6 +1236,7 @@ public class ApiConfigurationServiceTest
         SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, email);
   }
 
+  @Test
   public void testSetConfiguration_BfsComponentQueryLimit_Null() {
     service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, null));
 
@@ -1248,6 +1257,27 @@ public class ApiConfigurationServiceTest
         SetUtils.hashSet(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)))
         .containsEntry(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, limit);
     assertMinAndMax(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 0, Integer.MAX_VALUE);
+  }
+
+  @Test
+  public void testSetConfiguration_BfsQueryRepositoriesList_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.BFS_REPOSITORIES, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.BFS_REPOSITORIES)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.BFS_REPOSITORIES)))
+        .containsEntry(SystemConfigurationProperty.BFS_REPOSITORIES, null);
+  }
+
+  @Test
+  public void testSetConfiguration_BfsQueryRepositoriesList() {
+    String repos = "repo1,repo2,repo3";
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.BFS_REPOSITORIES, repos));
+    assertThat(dao.get(SystemConfigurationProperty.BFS_REPOSITORIES)).isEqualTo(repos);
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.BFS_REPOSITORIES)))
+        .containsEntry(SystemConfigurationProperty.BFS_REPOSITORIES, repos);
   }
 
   private void assertMinAndMax(String name, int min, int max) {

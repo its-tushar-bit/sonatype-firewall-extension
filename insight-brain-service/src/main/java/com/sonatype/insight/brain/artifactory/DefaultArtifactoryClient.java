@@ -109,11 +109,14 @@ public class DefaultArtifactoryClient
   }
 
   @Override
-  public ArtifactoryChecksumSearchResults searchByChecksum(ChecksumType checksumType, String checksum)
-      throws IOException
+  public ArtifactoryChecksumSearchResults searchByChecksum(
+      ChecksumType checksumType,
+      String checksum,
+      Set<String> repositories) throws IOException
   {
     HttpGet request = new HttpGet(this.configuration.getServerUrl() + CHECKSUM_SEARCH_PATH +
-        UrlUtils.appendQueryParams(checksumType.name().toLowerCase(Locale.ROOT), checksum));
+        UrlUtils.appendQueryParams(checksumType.name().toLowerCase(Locale.ROOT), checksum,
+            "repos", StringUtils.join(repositories, ",")));
     HttpResponse response = httpClient.execute(request, httpClientContext);
     log.debug("Artifactory checksum search response status: {}", response.getStatusLine());
     if (response.getStatusLine().getStatusCode() != 200) {
@@ -125,14 +128,16 @@ public class DefaultArtifactoryClient
   @Override
   public Map<String, ArtifactoryChecksumSearchResults> searchByChecksumsUsingAQL(
       ChecksumType checksumType,
-      Set<String> checksums) throws IOException
+      Set<String> checksums,
+      Set<String> repositories) throws IOException
   {
     if (CollectionUtils.isEmpty(checksums)) {
       log.debug("No checksums provided for AQL call, returning empty result.");
       return Collections.emptyMap();
     }
     HttpPost request = new HttpPost(configuration.getServerUrl() + AQL_SEARCH_PATH);
-    request.setEntity(new StringEntity(ArtifactoryQueryLanguageUtils.createChecksumSearch(checksumType, checksums)));
+    request.setEntity(new StringEntity(
+        ArtifactoryQueryLanguageUtils.createChecksumSearch(checksumType, checksums, repositories)));
     HttpResponse response = httpClient.execute(request, httpClientContext);
     log.debug("Artifactory AQL checksums search response status: {}", response.getStatusLine());
     int status = response.getStatusLine().getStatusCode();
@@ -196,7 +201,7 @@ public class DefaultArtifactoryClient
   public StatusType getServerStatusViaAQL() throws IOException {
     HttpPost request = new HttpPost(configuration.getServerUrl() + AQL_SEARCH_PATH);
     request.setEntity(new StringEntity(ArtifactoryQueryLanguageUtils
-        .createChecksumSearch(ChecksumType.SHA256, Collections.singleton(TEST_SHA256))));
+        .createChecksumSearch(ChecksumType.SHA256, Collections.singleton(TEST_SHA256), Collections.emptySet())));
     return getStatusType(httpClient.execute(request, httpClientContext));
   }
 

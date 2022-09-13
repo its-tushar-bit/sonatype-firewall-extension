@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectDeleteOwnerSlice } from './deleteOwnerSelectors';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -21,6 +21,10 @@ export default function DeleteOwnerModal() {
 
   const closeModal = () => dispatch(actions.closeModal());
   const deleteOwner = () => dispatch(actions.removeOwner());
+
+  useEffect(() => {
+    return () => closeModal();
+  }, []);
 
   return isModalOpen ? (
     <NxModal id="owner-delete-modal" onCancel={closeModal}>

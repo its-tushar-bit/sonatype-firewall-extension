@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectChangeApplicationIdSlice, selectNewPublicId } from './changeApplicationIdSelectors';
@@ -32,6 +32,10 @@ export default function ChangeApplicationIdModal() {
   const closeModal = () => dispatch(actions.closeModal());
   const changeApplicationId = () => dispatch(actions.changeApplicationId());
   const onChangeAppId = (value) => dispatch(actions.setNewPublicIdValue({ value, appsList }));
+
+  useEffect(() => {
+    return () => closeModal();
+  }, []);
 
   return isModalOpen ? (
     <NxModal id="change-application-id-modal" onCancel={closeModal}>

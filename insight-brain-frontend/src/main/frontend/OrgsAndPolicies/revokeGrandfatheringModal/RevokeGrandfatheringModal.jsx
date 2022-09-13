@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectRevokeGrandfatheringSlice } from './revokeGrandfatheringSelectors';
 import { NxModal, NxWarningAlert, NxH2, NxForm } from '@sonatype/react-shared-components';
@@ -16,6 +16,10 @@ export default function RevokeGrandfatheringModal() {
 
   const closeModal = () => dispatch(actions.closeModal());
   const revokeGrandfathering = () => dispatch(actions.revokeGrandfathering());
+
+  useEffect(() => {
+    return () => closeModal();
+  }, []);
 
   return isModalOpen ? (
     <NxModal id="revoke-grandfathering-modal" onCancel={closeModal}>

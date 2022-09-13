@@ -21,19 +21,19 @@ public class ApplicationSummaryResourceTest
 {
   @Override
   protected HttpRequest restRequest() {
-    return super.restRequest().path(ApplicationSummaryResourceConstants.RESOURCE_PATH);
+    return super.restRequest().path(DefaultApplicationSummaryResource.RESOURCE_PATH);
   }
 
   private HttpRequest summaryRequest(Goal goal) {
-    return restRequest().query(ApplicationSummaryResourceConstants.GOAL_PARAM, goal);
+    return restRequest().query("goal", goal);
   }
 
   private HttpRequest underOrgRequest(String organizationId) {
-    return restRequest().query(ApplicationSummaryResourceConstants.ORG_ID_PARAM, organizationId);
+    return restRequest().query("organizationId", organizationId);
   }
 
   private HttpRequest summaryUnderOrgRequest(Goal goal, String organizationId) {
-    return underOrgRequest(organizationId).query(ApplicationSummaryResourceConstants.GOAL_PARAM, goal);
+    return underOrgRequest(organizationId).query("goal", goal);
   }
 
   @Test
@@ -116,9 +116,9 @@ public class ApplicationSummaryResourceTest
     Application app = tempEntity.newApplicationWithParent();
 
     HttpResponse response = restRequest()
-        .path(ApplicationSummaryResourceConstants.VERIFY_OR_CREATE_APPLICATION_PATH)
+        .path(DefaultApplicationSummaryResource.VERIFY_OR_CREATE_APPLICATION_PATH)
         .parameter(app.getPublicId())
-        .query(ApplicationSummaryResourceConstants.GOAL_PARAM, Goal.EVALUATE_APPLICATION)
+        .query("goal", Goal.EVALUATE_APPLICATION)
         .post();
     assertResponseStatus(200, response);
 

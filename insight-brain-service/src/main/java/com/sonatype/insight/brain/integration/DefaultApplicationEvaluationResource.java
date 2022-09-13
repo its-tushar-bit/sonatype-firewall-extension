@@ -32,12 +32,18 @@ import com.codahale.metrics.annotation.Timed;
 /**
  * @since 1.69
  */
-@Path(ApplicationEvaluationResourceConstants.RESOURCE_PATH)
+@Path(DefaultApplicationEvaluationResource.RESOURCE_PATH)
 @Named
 @Timed
 public class DefaultApplicationEvaluationResource
     implements ApplicationEvaluationResource
 {
+  static final String RESOURCE_PATH = "rest/integration/applications/{applicationPublicId}/evaluations";
+
+  static final String EVALUATE_PATH = "{integrationType: ci|cli|rm}/stages/{stageId}";
+
+  static final String STATUS_PATH = "status/{statusId}";
+
   private final PolicyEvaluateService policyEvaluateService;
 
   @Inject
@@ -47,7 +53,7 @@ public class DefaultApplicationEvaluationResource
 
   @POST
   @Produces(MediaType.APPLICATION_JSON)
-  @Path(ApplicationEvaluationResourceConstants.EVALUATE_PATH)
+  @Path(EVALUATE_PATH)
   @Audited(AuditEvent.EVALUATE_APPLICATION)
   @Override
   public PolicyEvaluationReceipt evaluateWithPolling(
@@ -63,7 +69,7 @@ public class DefaultApplicationEvaluationResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Path(ApplicationEvaluationResourceConstants.STATUS_PATH)
+  @Path(STATUS_PATH)
   @Override
   public PolicyEvaluationPollingResult pollEvaluationResult(
       @PathParam("applicationPublicId") final String applicationPublicId,

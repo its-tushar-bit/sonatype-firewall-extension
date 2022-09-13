@@ -24,11 +24,6 @@ import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.APPLICATION_PUBLIC_ID_PARAM;
-import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.GOAL_PARAM;
-import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.ORG_ID_PARAM;
-import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.VERIFY_OR_CREATE_APPLICATION_PATH;
-
 /**
  * Application rest resource for integration with other tools such as Sonar
  *
@@ -36,10 +31,14 @@ import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceC
  */
 @Named
 @Timed
-@Path(ApplicationSummaryResourceConstants.RESOURCE_PATH)
+@Path(DefaultApplicationSummaryResource.RESOURCE_PATH)
 public class DefaultApplicationSummaryResource
     implements ApplicationSummaryResource
 {
+  public static final String RESOURCE_PATH = "rest/integration/applications";
+
+  static final String VERIFY_OR_CREATE_APPLICATION_PATH = "verifyOrCreate/{applicationPublicId}";
+
   private static final Logger log = LoggerFactory.getLogger(DefaultApplicationSummaryResource.class);
 
   private final ApplicationSummaryService applicationSummaryService;
@@ -52,8 +51,9 @@ public class DefaultApplicationSummaryResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Override
-  public ApplicationSummaryList getApplications(@QueryParam(GOAL_PARAM) Goal goal,
-                                                @QueryParam(ORG_ID_PARAM) String organizationId)
+  public ApplicationSummaryList getApplications(
+      @QueryParam("goal") Goal goal,
+      @QueryParam("organizationId") String organizationId)
   {
     log.debug("Received request to get applications for goal {} and organization id {}", goal, organizationId);
     return applicationSummaryService.getApplications(goal, organizationId);
@@ -63,10 +63,11 @@ public class DefaultApplicationSummaryResource
   @Path(VERIFY_OR_CREATE_APPLICATION_PATH)
   @Produces("text/plain")
   @Override
-  public boolean verifyOrCreateApplication(@PathParam(APPLICATION_PUBLIC_ID_PARAM) String applicationPublicId,
-                                           @QueryParam(GOAL_PARAM) Goal goal,
-                                           @QueryParam(ORG_ID_PARAM) String organizationId,
-                                           @Context HttpServletRequest request)
+  public boolean verifyOrCreateApplication(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @QueryParam("goal") Goal goal,
+      @QueryParam("organizationId") String organizationId,
+      @Context HttpServletRequest request)
   {
     log.debug("Received request to verify access for or create application with public ID {} and goal {}.",
         applicationPublicId, goal);

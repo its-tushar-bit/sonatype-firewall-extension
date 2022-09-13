@@ -40,15 +40,13 @@ public class ApplicationEvaluationResourceTest
                                                  String stageId)
   {
     return restRequest()
-        .path(ApplicationEvaluationResourceConstants.RESOURCE_PATH,
-              ApplicationEvaluationResourceConstants.EVALUATE_PATH)
+        .path(DefaultApplicationEvaluationResource.RESOURCE_PATH, DefaultApplicationEvaluationResource.EVALUATE_PATH)
         .query("scanType", ClientScanType.SONATYPE).parameter(applicationPublicId, integrationType, stageId);
   }
 
   private HttpRequest pollEvaluationResultRequest(String appId, String statusId) {
     return restRequest()
-        .path(ApplicationEvaluationResourceConstants.RESOURCE_PATH,
-              ApplicationEvaluationResourceConstants.STATUS_PATH)
+        .path(DefaultApplicationEvaluationResource.RESOURCE_PATH, DefaultApplicationEvaluationResource.STATUS_PATH)
         .parameter(appId, statusId);
   }
 

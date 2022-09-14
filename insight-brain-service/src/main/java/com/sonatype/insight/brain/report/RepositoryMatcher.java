@@ -154,6 +154,12 @@ public class RepositoryMatcher
 
   public static final String FIELD_MATCHED_BY_COORDINATES = "matchedByCoordinates";
 
+  public static final String FIELD_CWE = "cwe";
+
+  public static final String FIELD_VECTOR_SOURCE = "cvssVectorSource";
+
+  public static final String FIELD_VECTOR_STRING = "cvssVectorString";
+
   public static final String BFS_ARTIFACTORY_EXPIRED_TOKEN_SUBJECT = "Nexus IQ Server Artifactory Token has Expired";
 
   public static final String BFS_ARTIFACTORY_EXPIRED_TOKEN_BODY = "The Artifactory token, which the Nexus IQ Server " +
@@ -483,6 +489,9 @@ public class RepositoryMatcher
       securityVulnerabilityNode.put(FIELD_PROPRIETARY, proprietary);
       securityVulnerabilityNode.set(FIELD_VULNERABILITY_CATEGORIES,
           convert(securityVulnerability.getVulnerabilityCategories()));
+      securityVulnerabilityNode.put(FIELD_CWE, securityVulnerability.getCwe());
+      securityVulnerabilityNode.put(FIELD_VECTOR_SOURCE, securityVulnerability.getCvssVectorSource());
+      securityVulnerabilityNode.put(FIELD_VECTOR_STRING, securityVulnerability.getCvssVector());
     }
   }
 

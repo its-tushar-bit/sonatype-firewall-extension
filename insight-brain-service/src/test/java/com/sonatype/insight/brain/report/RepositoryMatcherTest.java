@@ -1422,6 +1422,9 @@ public class RepositoryMatcherTest
     securityVulnerability2.setRefId("refId");
     securityVulnerability2.setSource("source");
     securityVulnerability2.setSeverity(9f);
+    securityVulnerability2.setCwe("11");
+    securityVulnerability2.setCvssVector("test");
+    securityVulnerability2.setCvssVectorSource("testSource");
     securityVulnerability2.setVulnerabilityCategories(Arrays.asList("c1", "c2"));
     evaluation.securityVulnerabilities = Arrays.asList(securityVulnerability1, securityVulnerability2);
 
@@ -1438,6 +1441,10 @@ public class RepositoryMatcherTest
     assertThat(nodes.get(0).get(RepositoryMatcher.FIELD_SOURCE)).isEqualTo(NullNode.getInstance());
     assertThat(nodes.get(0).get(RepositoryMatcher.FIELD_SCORE)).isEqualTo(NullNode.getInstance());
     assertThat(nodes.get(0).get(RepositoryMatcher.FIELD_VULNERABILITY_CATEGORIES)).isEqualTo(NullNode.getInstance());
+    assertThat(nodes.get(0).get(RepositoryMatcher.FIELD_CWE)).isEqualTo(NullNode.getInstance());
+    assertThat(nodes.get(0).get(RepositoryMatcher.FIELD_VECTOR_SOURCE)).isEqualTo(NullNode.getInstance());
+    assertThat(nodes.get(0).get(RepositoryMatcher.FIELD_VECTOR_STRING)).isEqualTo(NullNode.getInstance());
+
     assertThat(nodes.get(1).get(RepositoryMatcher.FIELD_URL).asText()).isEqualTo(securityVulnerability2.getUrl());
     assertThat(nodes.get(1).get(RepositoryMatcher.FIELD_REFERENCE).asText()).isEqualTo(
         securityVulnerability2.getRefId());
@@ -1446,6 +1453,11 @@ public class RepositoryMatcherTest
         (double) securityVulnerability2.getSeverity());
     assertThat(nodes.get(1).get(RepositoryMatcher.FIELD_VULNERABILITY_CATEGORIES)).isEqualTo(
         JsonUtils.asTree(securityVulnerability2.getVulnerabilityCategories()));
+    assertThat(nodes.get(1).get(RepositoryMatcher.FIELD_CWE).asText()).isEqualTo(securityVulnerability2.getCwe());
+    assertThat(nodes.get(1).get(RepositoryMatcher.FIELD_VECTOR_SOURCE).asText())
+        .isEqualTo(securityVulnerability2.getCvssVectorSource());
+    assertThat(nodes.get(1).get(RepositoryMatcher.FIELD_VECTOR_STRING).asText())
+        .isEqualTo(securityVulnerability2.getCvssVector());
   }
 
   private JsonNode getNodeByHash(ArrayNode arrayNode, String hash) {

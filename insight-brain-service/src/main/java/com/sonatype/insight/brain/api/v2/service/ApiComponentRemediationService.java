@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -36,6 +37,8 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.64
@@ -90,16 +93,28 @@ public class ApiComponentRemediationService
         scanId);
   }
 
-  public ApiComponentRemediationDTO getSuggestedRemediationForComponentNoAuth(
+  private ApiComponentRemediationDTO getSuggestedRemediationForComponentNoAuth(
       ApiComponentDTOV2 componentDTO,
       final OwnerType ownerType,
       final String ownerId,
-      final String stageId,
+      String stageId,
       final String identificationSource,
       final String scanId)
   {
-    if (stageId != null && StageTypes.getById(stageId) == null) {
-      throw new BadRequestException("Invalid stage: " + stageId + ".");
+    if (OwnerType.REPOSITORY.equals(ownerType)) {
+      if (stageId == null) {
+        stageId = ProxyStageType.ID;
+      }
+      else if (!ProxyStageType.ID.equals(stageId)) {
+        throw new BadRequestException("Invalid stage ID for repositories: " + stageId + ".");
+      }
+
+      if (!StringUtils.isBlank(scanId)) {
+        throw new BadRequestException("The scan ID is not allowed for repositories.");
+      }
+    }
+    else if (stageId != null && StageTypes.getById(stageId) == null) {
+      throw new BadRequestException("Invalid stage ID: " + stageId + ".");
     }
 
     String publicOwnerId = ownerId;

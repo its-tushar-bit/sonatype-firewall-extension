@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +34,8 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -195,6 +198,38 @@ public class ApiComponentRemediationResourceTest
     assertRemediationOrganization(component, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
   }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Repository() throws Exception {
+    Repository repo = tempEntity.newRepository();
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
+    mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
+    mockGetDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
+    createPolicyWithSecurityVulnerabilityConstraint(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    ComponentDetails componentDetails1 = createComponentDetailsForSecurityViolation(MAVEN_COORDINATES_V1);
+    ComponentDetails componentDetails2 = createComponentDetailsForSecurityViolation(MAVEN_COORDINATES_V2);
+    ComponentDetails componentDetails3 = createComponentDetailsForNoViolation(MAVEN_COORDINATES_V3);
+    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
+    componentDetailsList.setList(Arrays.asList(componentDetails1, componentDetails2, componentDetails3));
+    mockComponentDetails(componentDetailsList);
+
+    // no violations / alerts - we expect component version 3
+    ApiComponentDTOV2 expectedComponentNoViolations =
+        componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V3, null);
+    // non-failing violations / alerts - we expect component version 1
+    ApiComponentDTOV2 expectedComponentNonFailing =
+        componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
+
+    HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
+        .parameter(OwnerType.REPOSITORY, repo.getId()).body(component).post();
+
+    assertResponse(response, expectedComponentNoViolations, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
+        expectedComponentNonFailing, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V1),
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, ApiVersionChangeOptionType.NEXT_NON_FAILING,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
+        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
+  }
   
   private void assertRemediationOrganization(
       final ApiComponentDTOV2 component,
@@ -252,10 +287,22 @@ public class ApiComponentRemediationResourceTest
     hdsRespondWith(componentEvaluationDataList).atUri("rest/ci/componentDetails/list");
   }
 
-  private void assertResponse(final HttpResponse response,
-                              final ApiComponentDTOV2 expectedComponent,
-                              final String expectedPackageUrl,
-                              final ApiVersionChangeOptionType... optionTypes)
+  private void assertResponse(
+      final HttpResponse response,
+      final ApiComponentDTOV2 expectedComponent,
+      final String expectedPackageUrl,
+      final ApiVersionChangeOptionType... optionTypes)
+  {
+    assertResponse(response, expectedComponent, expectedPackageUrl, expectedComponent, expectedPackageUrl, optionTypes);
+  }
+
+  private void assertResponse(
+      HttpResponse response,
+      ApiComponentDTOV2 expectedComponentNoViolations,
+      String expectedPackageUrlNoViolations,
+      ApiComponentDTOV2 expectedComponentNonFailing,
+      String expectedPackageUrlNonFailing,
+      ApiVersionChangeOptionType... optionTypes)
   {
     assertResponseStatus(200, response);
     String responseText = response.getBodyText();
@@ -267,14 +314,29 @@ public class ApiComponentRemediationResourceTest
     for (int i = 0; i < optionTypes.length; i++) {
       ApiVersionChangeOptionDTO versionChangeOption = result.remediation.versionChanges.get(i);
       assertThat(versionChangeOption.getType()).isEqualTo(optionTypes[i]);
-      assertThat(equalsMavenIdsIgnoringBlankClassifier(
-          versionChangeOption.getData().getComponent().componentIdentifier.toComponentIdentifier(),
-          expectedComponent.componentIdentifier.toComponentIdentifier())
-      ).isTrue();
-      assertThat(versionChangeOption.getData().getComponent().packageUrl).isEqualTo(expectedPackageUrl);
-      assertThat(versionChangeOption.getData().getComponent().displayName)
-          .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expectedComponent.componentIdentifier
-              .toComponentIdentifier()).toString());
+
+      switch (optionTypes[i]) {
+        case NEXT_NO_VIOLATIONS:
+        case NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES:
+          assertThat(equalsMavenIdsIgnoringBlankClassifier(
+              versionChangeOption.getData().getComponent().componentIdentifier.toComponentIdentifier(),
+              expectedComponentNoViolations.componentIdentifier.toComponentIdentifier())).isTrue();
+          assertThat(versionChangeOption.getData().getComponent().packageUrl).isEqualTo(expectedPackageUrlNoViolations);
+          assertThat(versionChangeOption.getData().getComponent().displayName).isEqualTo(ComponentDisplayNameUtil
+              .fromIdentifier(expectedComponentNoViolations.componentIdentifier.toComponentIdentifier()).toString());
+          break;
+        case NEXT_NON_FAILING:
+        case NEXT_NON_FAILING_WITH_DEPENDENCIES:
+          assertThat(equalsMavenIdsIgnoringBlankClassifier(
+              versionChangeOption.getData().getComponent().componentIdentifier.toComponentIdentifier(),
+              expectedComponentNonFailing.componentIdentifier.toComponentIdentifier())).isTrue();
+          assertThat(versionChangeOption.getData().getComponent().packageUrl).isEqualTo(expectedPackageUrlNonFailing);
+          assertThat(versionChangeOption.getData().getComponent().displayName).isEqualTo(ComponentDisplayNameUtil
+              .fromIdentifier(expectedComponentNonFailing.componentIdentifier.toComponentIdentifier()).toString());
+          break;
+        default:
+          throw new RuntimeException("Unknown ApiVersionChangeOptionType:" + optionTypes[i]);
+      }
     }
   }
 

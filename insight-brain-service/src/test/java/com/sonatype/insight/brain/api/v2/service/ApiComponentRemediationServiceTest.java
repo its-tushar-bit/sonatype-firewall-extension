@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,10 +29,16 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
-import com.sonatype.insight.brain.hds.*;
+import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
+import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -60,9 +67,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -620,7 +627,87 @@ public class ApiComponentRemediationServiceTest
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> service.getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), "bogusStageId"))
-        .withMessage("Invalid stage: bogusStageId.");
+        .withMessage("Invalid stage ID: bogusStageId.");
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Repository() {
+    Repository repo = tempEntity.newRepository();
+    ApiComponentDTOV2 apiComponentDTOV2 = new ApiComponentDTOV2();
+    apiComponentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_V1);
+    ComponentDetailsDTO dto1 = new ComponentDetailsDTO();
+    dto1.componentIdentifier = MAVEN_COORDINATES_V1;
+    dto1.violatedPolicyCount = 1;
+    dto1.policyAlerts = Collections.singletonList(failAlert);
+    ComponentDetailsDTO dto2 = new ComponentDetailsDTO();
+    dto2.componentIdentifier = MAVEN_COORDINATES_V2;
+    ComponentDetailsDTO dto3 = new ComponentDetailsDTO();
+    dto3.componentIdentifier = MAVEN_COORDINATES_V3;
+
+    List<ComponentDetailsDTO> componentDetailsDTOList = Arrays.asList(dto1, dto2, dto3);
+    mockHdsGetComponentDetailsList(OwnerType.REPOSITORY, repo.getId(), componentDetailsDTOList,
+        dto1.componentIdentifier);
+
+    ApiComponentRemediationDTO apiComponentRemediationDTO = service
+        .getSuggestedRemediationForComponent(apiComponentDTOV2, OwnerType.REPOSITORY, repo.getId(), ProxyStageType.ID,
+            null /* identificationSource */, null /* scanId */);
+
+    assertNoViolations(apiComponentRemediationDTO.remediation, dto2.componentIdentifier,
+        PackageUrlIdentifier.toPackageUrl(dto2.componentIdentifier));
+    assertTelemetry("repository", repo.getId(), dto1.componentIdentifier, "option_next_no_violations",
+        "option_next_non_failing");
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Repository_StageIdNull() {
+    Repository repo = tempEntity.newRepository();
+    ApiComponentDTOV2 apiComponentDTOV2 = new ApiComponentDTOV2();
+    apiComponentDTOV2.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_V1);
+    ComponentDetailsDTO dto1 = new ComponentDetailsDTO();
+    dto1.componentIdentifier = MAVEN_COORDINATES_V1;
+    dto1.violatedPolicyCount = 1;
+    dto1.policyAlerts = Collections.singletonList(failAlert);
+    ComponentDetailsDTO dto2 = new ComponentDetailsDTO();
+    dto2.componentIdentifier = MAVEN_COORDINATES_V2;
+    ComponentDetailsDTO dto3 = new ComponentDetailsDTO();
+    dto3.componentIdentifier = MAVEN_COORDINATES_V3;
+
+    List<ComponentDetailsDTO> componentDetailsDTOList = Arrays.asList(dto1, dto2, dto3);
+    mockHdsGetComponentDetailsList(OwnerType.REPOSITORY, repo.getId(), componentDetailsDTOList,
+        dto1.componentIdentifier);
+
+    ApiComponentRemediationDTO apiComponentRemediationDTO = service
+        .getSuggestedRemediationForComponent(apiComponentDTOV2, OwnerType.REPOSITORY, repo.getId(), null /* stageId */,
+            null /* identificationSource */, null /* scanId */);
+
+    assertNoViolations(apiComponentRemediationDTO.remediation, dto2.componentIdentifier,
+        PackageUrlIdentifier.toPackageUrl(dto2.componentIdentifier));
+    assertTelemetry("repository", repo.getId(), dto1.componentIdentifier, "option_next_no_violations",
+        "option_next_non_failing");
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Repository_NotProxyStage() {
+    Repository repo = tempEntity.newRepository();
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> {
+          service.getSuggestedRemediationForComponent(new ApiComponentDTOV2(), OwnerType.REPOSITORY, repo.getId(),
+              BuildStageType.ID, null /* identificationSource */, null /* scanId */);
+        })
+        .withMessage("Invalid stage ID for repositories: build.");
+  }
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_Repository_ScanIdNotNull() {
+    Repository repo = tempEntity.newRepository();
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> {
+          service.getSuggestedRemediationForComponent(new ApiComponentDTOV2(), OwnerType.REPOSITORY, repo.getId(),
+              null /* stageId */, null /* identificationSource */, "testScanId");
+        })
+        .withMessage("The scan ID is not allowed for repositories.");
   }
 
   private void assertTelemetry(final String ownerType,
@@ -649,9 +736,17 @@ public class ApiComponentRemediationServiceTest
   }
 
   private void mockHdsGetComponentDetailsList(List<ComponentDetailsDTO> list, ComponentIdentifier componentIdentifier) {
-    doReturn(Pair.of(list, null)).when(componentInfoServiceMock)
-        .getComponentDetailsForAllVersionsNoAuth(eq(OwnerType.APPLICATION), eq(app.getPublicId()),
-            eq(componentIdentifier), any(), any(), any(), isNull());
+    mockHdsGetComponentDetailsList(OwnerType.APPLICATION, app.getPublicId(), list, componentIdentifier);
+  }
+
+  private void mockHdsGetComponentDetailsList(
+      OwnerType ownerType,
+      String ownerid,
+      List<ComponentDetailsDTO> list,
+      ComponentIdentifier componentIdentifier)
+  {
+    doReturn(Pair.of(list, null)).when(componentInfoServiceMock).getComponentDetailsForAllVersionsNoAuth(eq(ownerType),
+        eq(ownerid), eq(componentIdentifier), any(), any(), any(), isNull());
   }
 
   private void mockHdsGetComponentDependencies(ComponentDependenciesDTO dependenciesDto) {

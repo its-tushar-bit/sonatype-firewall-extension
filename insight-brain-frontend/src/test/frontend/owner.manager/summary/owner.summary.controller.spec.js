@@ -134,7 +134,7 @@ describe('owner.summary.controller', function () {
 
       getVm = function () {
         const localVm = $controller('OwnerSummaryController', {
-          $scope: { $on: angular.noop },
+          $scope: { $on: angular.noop, $watch: angular.noop },
           $state: mockState,
           $window: mockWindow,
           DeleteModalService: mockDeleteService,

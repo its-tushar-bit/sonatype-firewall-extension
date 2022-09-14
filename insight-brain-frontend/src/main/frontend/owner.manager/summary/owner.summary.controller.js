@@ -9,6 +9,7 @@ import { unwrapResult } from '@reduxjs/toolkit';
 import { actions as deleteOwnerActions } from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/deleteOwnerSlice';
 import { actions as grandfatheringActions } from 'MainRoot/OrgsAndPolicies/grandfatheringModal/grandfatheringSlice';
 import { actions as revokeGrandfatheringActions } from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/revokeGrandfatheringSlice';
+import { actions as moveApplicationActions } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSlice';
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { actions as changeApplicationIdActions } from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSlice';
@@ -29,6 +30,7 @@ import {
   selectCalculatedEnabled,
   selectGrandfatheringStatusMessage,
 } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
+import { selectMoveApplicationSlice } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSelectors';
 
 export default function OwnerSummaryController(
   $state,
@@ -43,7 +45,6 @@ export default function OwnerSummaryController(
   EvaluateApplicationModalService,
   ImportPolicyModalService,
   ownerConstant,
-  MoveApplicationModal,
   EventNameConstant,
   PermissionService,
   $ngRedux
@@ -90,6 +91,7 @@ export default function OwnerSummaryController(
     openGrandfatheringModal: grandfatheringActions.openModal,
     openChangeApplicationIdModal: changeApplicationIdActions.openModal,
     openRevokeGrandfatheringModal: revokeGrandfatheringActions.openModal,
+    openMoveApplicationModal: moveApplicationActions.openMoveAppModal,
   })(vm);
 
   vm.doLoad();
@@ -108,6 +110,12 @@ export default function OwnerSummaryController(
 
     $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
     $scope.$on(EventNameConstant.OWNER_UPDATED, doLoad);
+    $scope.$watch('vm.isShowSuccessMoveAppModal', (currentValue, oldValue) => {
+      // triggers doLoad func only when modal closes, i.e. mask going from true to null
+      if (!currentValue && oldValue) {
+        vm.doLoad();
+      }
+    });
   }
 
   $scope.$on('$destroy', function () {
@@ -174,7 +182,7 @@ export default function OwnerSummaryController(
   }
 
   function moveApplication() {
-    MoveApplicationModal.open(vm.owner);
+    vm.openMoveApplicationModal();
   }
 
   function evaluateApp() {
@@ -268,6 +276,7 @@ const mapStateToThis = (state) => ({
   loadError: selectLoadError(state),
   isGrandfatheringEnabled: selectCalculatedEnabled(state),
   grandfatheringStatusMessage: selectGrandfatheringStatusMessage(state),
+  isShowSuccessMoveAppModal: selectMoveApplicationSlice(state).isShowSuccessModal,
 });
 
 OwnerSummaryController.$inject = [
@@ -283,7 +292,6 @@ OwnerSummaryController.$inject = [
   'evaluate.application.modal.service',
   'import.policy.modal.service',
   'owner.constant',
-  'move.application.modal.service',
   'event.name.constant',
   'PermissionService',
   '$ngRedux',

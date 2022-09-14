@@ -6,6 +6,7 @@
 import { selectIsSourceControlSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectDeleteOwnerSlice } from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/deleteOwnerSelectors';
 import { selectChangeApplicationIdSlice } from '../../OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSelectors';
+import { selectMoveApplicationSlice } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSelectors';
 import template from './owner.tree.view.directive.html';
 
 function OwnerTreeViewController(
@@ -77,19 +78,17 @@ function OwnerTreeViewController(
     }
   });
 
-  $scope.$watch('vm.submitDeleteMaskState', (currentValue, oldValue) => {
-    // triggers doLoad func only when delete app or org modal closes, i.e. mask going from true to null
-    if (!currentValue && oldValue) {
-      vm.doLoad();
+  $scope.$watchGroup(
+    ['vm.isShowSuccessMoveAppModal', 'vm.submitDeleteMaskState', 'vm.submitChangeAppIdMaskState'],
+    function (newValues, oldValues) {
+      newValues.forEach((currentValue, index) => {
+        // triggers doLoad func only when modal closes, i.e. mask going from true to null/false
+        if (!currentValue && oldValues[index]) {
+          vm.doLoad();
+        }
+      });
     }
-  });
-
-  $scope.$watch('vm.submitChangeAppIdMaskState', (currentValue, oldValue) => {
-    // triggers doLoad func only when change app id modal closes, i.e. mask going from true to null
-    if (!currentValue && oldValue) {
-      vm.doLoad();
-    }
-  });
+  );
 
   $scope.$on('$stateChangeSuccess', function () {
     redirectIfNecessary();
@@ -322,6 +321,7 @@ function OwnerTreeViewController(
       isSourceControlSupported: selectIsSourceControlSupported(state),
       submitDeleteMaskState: selectDeleteOwnerSlice(state).submitMaskState,
       submitChangeAppIdMaskState: selectChangeApplicationIdSlice(state).submitMaskState,
+      isShowSuccessMoveAppModal: selectMoveApplicationSlice(state).isShowSuccessModal,
     };
   }
 }

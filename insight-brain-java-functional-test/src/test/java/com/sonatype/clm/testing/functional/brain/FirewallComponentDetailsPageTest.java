@@ -5,6 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.io.UncheckedIOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -48,11 +51,11 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
@@ -62,6 +65,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -90,13 +94,23 @@ public class FirewallComponentDetailsPageTest
 {
   private final List<ComponentDetails> componentDetailsArrayList = new ArrayList<>();
 
-  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
-
-  FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
+  private final FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
 
   private Repository repository;
 
   private RepositoryManager repositoryManager;
+
+  private Policy securityHighPolicy;
+
+  private Policy securityLowPolicy;
+
+  private Policy licensePolicy;
+
+  private Policy popularityPolicy;
+
+  private Policy agePolicy;
+
+  private Policy coordinatesPolicy;
 
   private Date date;
 
@@ -128,10 +142,10 @@ public class FirewallComponentDetailsPageTest
     wait.until(ExpectedConditions.visibilityOf(element));
   }
 
-  private ComponentDetails createComponentDetail(ComponentIdentifier componentIdentifier) {
+  private ComponentDetails createComponentDetail(String hash, ComponentIdentifier componentIdentifier) {
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     ComponentDetails componentDetails = new ComponentDetails(componentIdentifier);
-    componentDetails.setHash("somehash" + Math.floor(Math.random() * 100));
+    componentDetails.setHash(hash);
     componentDetails.setMatchState(MatchState.EXACT.getId());
     componentDetails.setDeclaredLicenses(
         Collections.singleton(toLicenseDTO(multiLicenseDAO.getByIdNotNull("Apache-2.0"))));
@@ -185,11 +199,15 @@ public class FirewallComponentDetailsPageTest
     componentDetailsList.setList(componentDetailsArrayList);
     ComponentDependenciesDTO componentDependenciesDTO = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
 
-    testCLMServer.getHdsServer().respondWith(mainComponentDetail).atUri("/rest/ci/componentDetails/");
-    testCLMServer.getHdsServer().respondWith(mainComponentDetail).atUri("/rest/ci/componentDetails?" +
-        "componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId" +
-        "%22%3A%22abi.cli%22%2C%22classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId" +
-        "%22%3A%22com.lingocoder%22%2C%22version%22%3A%220.5.2%22%7D%7D&hash=hash");
+    try {
+      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+          .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
+              + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8") + "&hash="
+              + mainComponentDetail.getHash());
+    }
+    catch (UnsupportedEncodingException e) {
+      throw new UncheckedIOException(e);
+    }
     testCLMServer.getHdsServer().respondWith(componentDetailsList).atUri("/rest/ci/componentDetails/list");
     testCLMServer.getHdsServer().respondWith(componentDependenciesDTO).atUri("/rest/component/dependencies");
   }
@@ -210,27 +228,27 @@ public class FirewallComponentDetailsPageTest
   }
 
   private void createSecurityPolicies() {
-    createPolicy(Organization.ROOT_ORGANIZATION_ID, 10, "SecurityPolicy", SecurityVulnerabilitySeverityConditionType.ID,
-        ">=", "9.1");
-    createPolicy(Organization.ROOT_ORGANIZATION_ID, 6, "Security-Low", SecurityVulnerabilitySeverityConditionType.ID,
-        ">=", "4.3");
+    securityHighPolicy = createPolicy(Organization.ROOT_ORGANIZATION_ID, 10, "Security-High",
+        SecurityVulnerabilitySeverityConditionType.ID, ">=", "9.1");
+    securityLowPolicy = createPolicy(Organization.ROOT_ORGANIZATION_ID, 6, "Security-Low",
+        SecurityVulnerabilitySeverityConditionType.ID, ">=", "4.3");
   }
 
   private void createLicensePolicies() {
-    createPolicy(Organization.ROOT_ORGANIZATION_ID, 5, "LicensePolicy", LicenseThreatGroupLevelConditionType.ID, "<=",
-        "5");
+    licensePolicy = createPolicy(Organization.ROOT_ORGANIZATION_ID, 5, "LicensePolicy",
+        LicenseThreatGroupLevelConditionType.ID, "<=", "5");
   }
 
   private void createQualityPolicies() {
-    createPolicy(Organization.ROOT_ORGANIZATION_ID, 2, "QualityPolicyRelativePopularity",
+    popularityPolicy = createPolicy(Organization.ROOT_ORGANIZATION_ID, 2, "QualityPolicyRelativePopularity",
         RelativePopularityConditionType.ID, "<=", "100");
-    createPolicy(Organization.ROOT_ORGANIZATION_ID, 2, "QualityPolicyAgeInDays", AgeInDaysConditionType.ID,
+    agePolicy = createPolicy(Organization.ROOT_ORGANIZATION_ID, 2, "QualityPolicyAgeInDays", AgeInDaysConditionType.ID,
         "younger than", "50");
   }
 
   private void createOtherPolicies() {
-    createPolicy(Organization.ROOT_ORGANIZATION_ID, 1, "CoordinatesPolicy", CoordinatesConditionType.ID, "do not match",
-        "maven:javancss*");
+    coordinatesPolicy = createPolicy(Organization.ROOT_ORGANIZATION_ID, 1, "CoordinatesPolicy",
+        CoordinatesConditionType.ID, "do not match", "maven:javancss*");
   }
 
   private ComponentIdentifier createComponentIdentifier(String version) {
@@ -238,15 +256,18 @@ public class FirewallComponentDetailsPageTest
   }
 
   private RepositoryComponent createRepositoryComponent(
-      ComponentIdentifier componentIdentifier, Date lastEvaluationTime, Date quarantineTime)
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      Date lastEvaluationTime,
+      Date quarantineTime)
   {
     String componentVersion = componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION);
     return tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
-        "com/lingocoder/abi.cli/" + componentVersion + "/abi.cli-" + componentVersion + ".jar", "hash",
+        "com/lingocoder/abi.cli/" + componentVersion + "/abi.cli-" + componentVersion + ".jar", hash,
         componentIdentifier, lastEvaluationTime, quarantineTime);
   }
 
-  private RepositoryPolicyViolation newRepositoryPolicyViolation(
+  private RepositoryPolicyViolation createRepositoryPolicyViolation(
       String repositoryId,
       int threatLevel,
       String pathname,
@@ -275,59 +296,68 @@ public class FirewallComponentDetailsPageTest
     return policyViolation;
   }
 
-  private void policyViolationsTableSetup(
-      ComponentIdentifier componentIdentifier, RepositoryComponent repositoryComponent)
-  {
-    // Security policies violations
-    ConstraintFact securityConstraintFact =
-        createConstraintFact("constrain1", "Security constraint", "summary", "security vulnerability severity >= 9.1");
-    newRepositoryPolicyViolation(repository.getId(), 10, repositoryComponent.getPathname(), "hash1",
-        Collections.singletonList(securityConstraintFact), false, "fail", SecurityVulnerabilitySeverityConditionType.ID,
-        "SecurityPolicy", componentIdentifier, date, "policyWaiverId1", "policy waiver comment", date,
-        PolicyThreatCategory.SECURITY);
+  private void policyViolationsTableSetup(RepositoryComponent repositoryComponent) {
+    ComponentIdentifier componentIdentifier = repositoryComponent.getComponentIdentifier();
 
-    ConstraintFact securityLowConstraintFact = createConstraintFact("constrain2", "Security-low constraint", "summary",
-        "security vulnerability severity >= 4.3");
-    newRepositoryPolicyViolation(repository.getId(), 6, repositoryComponent.getPathname(), "hash2",
-        Collections.singletonList(securityLowConstraintFact), false, "warn", HygieneRatingConditionType.ID,
-        "Security-Low", componentIdentifier, date, "policyWaiverId2", "policy waiver comment", date,
-        PolicyThreatCategory.SECURITY);
+    // Security policies violations
+    if (securityHighPolicy != null) {
+      ConstraintFact securityConstraintFact = createConstraintFact("constraint1", "Security constraint", "summary",
+          "security vulnerability severity >= 9.1");
+      createRepositoryPolicyViolation(repository.getId(), 10, repositoryComponent.getPathname(),
+          repositoryComponent.getHash(), Collections.singletonList(securityConstraintFact), false /* isWaived */,
+          "fail", securityHighPolicy.getId(), securityHighPolicy.getName(), componentIdentifier, date,
+          null /* policyWaiverId */, null/* policyWaiverComment */, null/* waiveTime */, PolicyThreatCategory.SECURITY);
+    }
+    if (securityLowPolicy != null) {
+      ConstraintFact securityLowConstraintFact = createConstraintFact("constraint2", "Security-low constraint",
+          "summary", "security vulnerability severity >= 4.3");
+      PolicyWaiver policyWaiver = tempEntity.newWaiver(repositoryComponent.getHash(), securityLowPolicy.getId(),
+          Organization.ROOT_ORGANIZATION_ID, Collections.singletonList(securityLowConstraintFact),
+          "Test comment for waiver");
+      createRepositoryPolicyViolation(repository.getId(), 6, repositoryComponent.getPathname(),
+          repositoryComponent.getHash(), Collections.singletonList(securityLowConstraintFact), true /* isWaived */,
+          "warn", securityLowPolicy.getId(), securityLowPolicy.getName(), componentIdentifier, date,
+          policyWaiver.getId(), policyWaiver.getComment(), date, PolicyThreatCategory.SECURITY);
+    }
 
     // License policy violation
-    ConstraintFact licenseConstraintFact =
-        createConstraintFact("constrain3", "LicensePolicy constraint", "summary", "Found license threat group");
-    newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent.getPathname(), "hash3",
-        Collections.singletonList(licenseConstraintFact), false, "warn", LicenseThreatGroupLevelConditionType.ID,
-        "LicensePolicy", componentIdentifier, date, "policyWaiverId3", "policy waiver comment", date,
-        PolicyThreatCategory.LICENSE);
+    if (licensePolicy != null) {
+      ConstraintFact licenseConstraintFact =
+          createConstraintFact("constraint3", "LicensePolicy constraint", "summary", "Found license threat group");
+      createRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent.getPathname(),
+          repositoryComponent.getHash(), Collections.singletonList(licenseConstraintFact), false /* isWaived */, "warn",
+          licensePolicy.getId(), licensePolicy.getName(), componentIdentifier, date, null /* policyWaiverId */,
+          null/* policyWaiverComment */, null/* waiveTime */, PolicyThreatCategory.LICENSE);
+    }
 
-    ConstraintFact qualityPolicyAgeInDaysConstraintFact =
-        createConstraintFact("constrain5", "QualityPolicyAgeInDays constraint", "summary",
-            "Found component younger than 50 days");
+    if (agePolicy != null) {
+      ConstraintFact qualityPolicyAgeInDaysConstraintFact = createConstraintFact("constraint5",
+          "QualityPolicyAgeInDays constraint", "summary", "Found component younger than 50 days");
+      createRepositoryPolicyViolation(repository.getId(), 4, repositoryComponent.getPathname(),
+          repositoryComponent.getHash(), Collections.singletonList(qualityPolicyAgeInDaysConstraintFact),
+          false /* isWaived */, "warn", agePolicy.getId(), agePolicy.getName(), componentIdentifier, date,
+          null /* policyWaiverId */, null/* policyWaiverComment */, null/* waiveTime */, PolicyThreatCategory.QUALITY);
+    }
 
-    newRepositoryPolicyViolation(repository.getId(), 4, repositoryComponent.getPathname(), "hash5",
-        Collections.singletonList(qualityPolicyAgeInDaysConstraintFact), false, "warn", AgeInDaysConditionType.ID,
-        "QualityPolicyAgeInDays", componentIdentifier, date, "policyWaiverId5", "policy waiver comment", date,
-        PolicyThreatCategory.QUALITY);
-
-    // Quality policy violation
-    ConstraintFact qualityRelativePopularityConstraintFact =
-        createConstraintFact("constrain4", "QualityPolicyRelativePopularity constraint", "summary", "Low popularity");
-
-    newRepositoryPolicyViolation(repository.getId(), 2, repositoryComponent.getPathname(), "hash4",
-        Collections.singletonList(qualityRelativePopularityConstraintFact), false, "warn",
-        RelativePopularityConditionType.ID, "QualityPolicyRelativePopularity", componentIdentifier, date,
-        "policyWaiverId4", "policy waiver comment", date, PolicyThreatCategory.QUALITY);
+    if (popularityPolicy != null) {
+      // Quality policy violation
+      ConstraintFact qualityRelativePopularityConstraintFact = createConstraintFact("constraint4",
+          "QualityPolicyRelativePopularity constraint", "summary", "Low popularity");
+      createRepositoryPolicyViolation(repository.getId(), 2, repositoryComponent.getPathname(),
+          repositoryComponent.getHash(), Collections.singletonList(qualityRelativePopularityConstraintFact),
+          false /* isWaived */, "warn", popularityPolicy.getId(), popularityPolicy.getName(), componentIdentifier, date,
+          null /* policyWaiverId */, null/* policyWaiverComment */, null/* waiveTime */, PolicyThreatCategory.QUALITY);
+    }
 
     // Other policy violation
-    ConstraintFact coordinatesConstraintFact =
-        createConstraintFact("constrain6", "CoordinatesPolicy constraint", "summary",
-            "Coordinates were com.lingocoder");
-
-    newRepositoryPolicyViolation(repository.getId(), 1, repositoryComponent.getPathname(), "hash6",
-        Collections.singletonList(coordinatesConstraintFact), false, "fail", CoordinatesConditionType.ID,
-        "CoordinatesPolicy", componentIdentifier, date, "policyWaiverId6", "policy waiver comment", date,
-        PolicyThreatCategory.OTHER);
+    if (coordinatesPolicy != null) {
+      ConstraintFact coordinatesConstraintFact = createConstraintFact("constraint6", "CoordinatesPolicy constraint",
+          "summary", "Coordinates were com.lingocoder");
+      createRepositoryPolicyViolation(repository.getId(), 1, repositoryComponent.getPathname(),
+          repositoryComponent.getHash(), Collections.singletonList(coordinatesConstraintFact), false /* isWaived */,
+          "fail", coordinatesPolicy.getId(), coordinatesPolicy.getName(), componentIdentifier, date,
+          null /* policyWaiverId */, null/* policyWaiverComment */, null/* waiveTime */, PolicyThreatCategory.OTHER);
+    }
   }
 
   private void createAllTypePolicies() {
@@ -338,15 +368,17 @@ public class FirewallComponentDetailsPageTest
   }
 
   private RepositoryComponent setupAllTestData() {
-    ComponentIdentifier mainComponentIdentifier = createComponentIdentifier("0.5.2");
-    componentDetailsArrayList.add(createComponentDetail(mainComponentIdentifier));
-    componentDetailsArrayList.add(createComponentDetail(createComponentIdentifier("0.5.3")));
+    ComponentDetails componentDetails1 = createComponentDetail("hash1", createComponentIdentifier("0.5.2"));
+    ComponentDetails componentDetails2 = createComponentDetail("hash2", createComponentIdentifier("0.5.3"));
+    componentDetailsArrayList.add(componentDetails1);
+    componentDetailsArrayList.add(componentDetails2);
 
-    RepositoryComponent repositoryComponent = createRepositoryComponent(mainComponentIdentifier, date, date);
-    createRepositoryComponent(componentDetailsArrayList.get(1).getComponentIdentifier(), date, null);
+    RepositoryComponent repositoryComponent =
+        createRepositoryComponent(componentDetails1.getHash(), componentDetails1.getComponentIdentifier(), date, date);
+    createRepositoryComponent(componentDetails2.getHash(), componentDetails2.getComponentIdentifier(), date, null);
 
     riskRemediationSetup(componentDetailsArrayList);
-    policyViolationsTableSetup(mainComponentIdentifier, repositoryComponent);
+    policyViolationsTableSetup(repositoryComponent);
 
     return repositoryComponent;
   }
@@ -370,6 +402,7 @@ public class FirewallComponentDetailsPageTest
 
   @Test
   public void testTitle() {
+    createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
@@ -378,6 +411,7 @@ public class FirewallComponentDetailsPageTest
 
   @Test
   public void testFormatTag() {
+    createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
@@ -386,6 +420,7 @@ public class FirewallComponentDetailsPageTest
 
   @Test
   public void testTabs() {
+    createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
@@ -499,15 +534,15 @@ public class FirewallComponentDetailsPageTest
   private RepositoryComponent setupAllUnquarantinedComponentTestData(
       Date lastEvaluationTime, Date quarantineTime, Date unquarantineTime, Boolean autoUnquarantined)
   {
-    ComponentIdentifier mainComponentIdentifier = createComponentIdentifier("0.5.2");
-    componentDetailsArrayList.add(createComponentDetail(mainComponentIdentifier));
-    ComponentIdentifier selectedComponentIdentifier = createComponentIdentifier("0.5.3");
-    componentDetailsArrayList.add(createComponentDetail(selectedComponentIdentifier));
+    ComponentDetails componentDetails1 = createComponentDetail("hash1", createComponentIdentifier("0.5.2"));
+    ComponentDetails componentDetails2 = createComponentDetail("hash2", createComponentIdentifier("0.5.3"));
+    componentDetailsArrayList.add(componentDetails1);
+    componentDetailsArrayList.add(componentDetails2);
 
-    RepositoryComponent repositoryComponent =
-        createRepositoryComponent(mainComponentIdentifier, lastEvaluationTime, quarantineTime);
-    RepositoryComponent selectedRepositoryComponent =
-        createRepositoryComponent(selectedComponentIdentifier, lastEvaluationTime, quarantineTime);
+    RepositoryComponent repositoryComponent = createRepositoryComponent(componentDetails1.getHash(),
+        componentDetails1.getComponentIdentifier(), lastEvaluationTime, quarantineTime);
+    RepositoryComponent selectedRepositoryComponent = createRepositoryComponent(componentDetails2.getHash(),
+        componentDetails2.getComponentIdentifier(), lastEvaluationTime, quarantineTime);
 
     if (autoUnquarantined) {
       repositoryComponent.setUnquarantineTimeForMonitoring(unquarantineTime);
@@ -519,9 +554,10 @@ public class FirewallComponentDetailsPageTest
     }
 
     riskRemediationSetup(componentDetailsArrayList);
-    policyViolationsTableSetup(mainComponentIdentifier, repositoryComponent);
-    policyViolationsTableSetup(selectedComponentIdentifier, selectedRepositoryComponent);
+    policyViolationsTableSetup(repositoryComponent);
+    policyViolationsTableSetup(selectedRepositoryComponent);
 
+    RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
     repositoryComponentDAO.update(repositoryComponent);
     repositoryComponentDAO.update(selectedRepositoryComponent);
 
@@ -774,7 +810,7 @@ public class FirewallComponentDetailsPageTest
     ElementsCollection securityViolationCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
     securityViolationCells.shouldHaveSize(6);
     securityViolationCells.get(0).shouldHave(text("10"));
-    securityViolationCells.get(1).shouldHave(text("SecurityPolicy"));
+    securityViolationCells.get(1).shouldHave(text("Security-High"));
     securityViolationCells.get(2).shouldHave(text("Security constraint"));
     securityViolationCells.get(3).shouldHave(text("security vulnerability severity >= 9.1"));
     securityViolationCells.get(4).shouldBe(empty);
@@ -862,7 +898,7 @@ public class FirewallComponentDetailsPageTest
 
     policyViolationsRow1.shouldHaveSize(6);
     policyViolationsRow1.get(0).shouldHave(text("10"));
-    policyViolationsRow1.get(1).shouldHave(text("SecurityPolicy Proxy Failing"));
+    policyViolationsRow1.get(1).shouldHave(text("Security-High Proxy Failing"));
     policyViolationsRow1.get(2).shouldHave(text("Security constraint"));
     policyViolationsRow1.get(3).shouldHave(text("security vulnerability severity >= 9.1"));
 

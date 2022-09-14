@@ -19,6 +19,7 @@ make(
       buildAndSkipTests(mavenCommon, keystoreCredentialsId, false, useInstall4J)
     },
     releaseFromCommit: true,
+    snapshotProjectName: 'insight/insight-brain/master-snapshot',
     runFeatureBranchPolicyEvaluations: true,
     iqPolicyEvaluation: { stage ->
         nexusPolicyEvaluation iqStage: stage, iqApplication: 'insight-brain',
@@ -48,9 +49,6 @@ make(
     },
     onUnstable: {
         pushDockerImageIfDeployBranch()
-    },
-    getGitCommitHash: { String snapshotBuildNumber ->
-      return readBuildArtifact('insight/insight-brain/master-snapshot', snapshotBuildNumber, 'artifacts/git_commit_hash.txt')
     }
 )
 
@@ -128,15 +126,11 @@ void pushDockerImageIfDeployBranch() {
 }
 
 /*
- * Archive as a text file the git commit hash which triggered this build.
- *
  * For main snapshot builds only, store the git commit hash.
  */
 void saveGitCommitHashIfMainSnapshotBuild() {
   if (isDeployBranch(env, 'main') && currentBuild.fullProjectName.contains('snapshot')) {
-    String filename = 'target/dist/git_commit_hash.txt'
-    writeFile file: filename, text: env.GIT_COMMIT
-    archiveAdditionalArtifacts(filename)
+    storeGitCommit(env.GIT_COMMIT)
   }
 }
 

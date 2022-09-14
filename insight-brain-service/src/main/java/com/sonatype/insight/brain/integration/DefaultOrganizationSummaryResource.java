@@ -19,8 +19,6 @@ import com.codahale.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants.GOAL_PARAM;
-
 /**
  * Organization rest resource for integration with other tools
  *
@@ -48,7 +46,7 @@ public class DefaultOrganizationSummaryResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Override
-  public OrganizationSummaryList getOrganizations(@QueryParam(GOAL_PARAM) Goal goal) {
+  public OrganizationSummaryList getOrganizations(@QueryParam("goal") Goal goal) {
     log.debug("Received request to get organizations for goal {}", goal);
     return organizationSummaryService.getOrganizations(goal);
   }

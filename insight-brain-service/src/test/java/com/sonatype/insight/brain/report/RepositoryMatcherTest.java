@@ -234,6 +234,7 @@ public class RepositoryMatcherTest
 
   private void testMatch_ExpiredToken(String error, String email, boolean assertEmailSent) throws Exception {
     SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
+    apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_REPOSITORIES);
     if (email != null) {
       apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL,
           email);
@@ -649,6 +650,10 @@ public class RepositoryMatcherTest
   public void testIdentify_Aql() throws Exception {
     String sha256a = "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941";
     String sha256b = "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f942";
+    Set<String> repos = new HashSet<>(Arrays.asList("repo1", "repo2"));
+    apiConfigurationService.setConfigurationNoAuthz(
+        SystemConfigurationProperty.BFS_REPOSITORIES, String.join(",", repos));
+    apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_REPOSITORIES);
     artifactoryConnectionDAO.delete(artifactoryConnection);
     artifactoryConnection = tempEntity.newArtifactoryConnection(Organization.ROOT_ORGANIZATION_ID,
         artifactoryMockServer.getUrl(),
@@ -659,6 +664,7 @@ public class RepositoryMatcherTest
         passwordHandler.decryptPassword(artifactoryConnection.getPassword()),
         ChecksumType.SHA256,
         new HashSet<>(Arrays.asList(sha256a, sha256b)),
+        repos,
         ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256a, "r1", "g1/a1/v1", "x1.jar"),
         ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256a, "r2", "g2/a2/v2", "x1.jar"),
         ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256b, "r3", "g3/a3/v3", "x2.jar"),
@@ -688,6 +694,10 @@ public class RepositoryMatcherTest
 
   @Test
   public void testIdentify_Aql_withComponentLimit() throws Exception {
+    Set<String> repos = new HashSet<>(Arrays.asList("repo1", "repo2"));
+    apiConfigurationService.setConfigurationNoAuthz(
+        SystemConfigurationProperty.BFS_REPOSITORIES, String.join(",", repos));
+    apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_REPOSITORIES);
     apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 1);
     apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT);
     String sha256a = "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941";
@@ -701,6 +711,7 @@ public class RepositoryMatcherTest
         passwordHandler.decryptPassword(artifactoryConnection.getPassword()),
         ChecksumType.SHA256,
         Collections.singleton(sha256a),
+        repos,
         ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256a, "r1", "g1/a1/v1", "x1.jar"),
         ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256a, "r2", "g2/a2/v2", "x1.jar")
     );
@@ -762,6 +773,58 @@ public class RepositoryMatcherTest
     assertThat(repositoryIdentifiedComponent.getCreateTime()).isAfterOrEqualTo(dateBeforeCached);
     assertThat(repositoryIdentifiedComponent.getLastAccessTime()).isEqualTo(
         repositoryIdentifiedComponent.getCreateTime());
+  }
+
+  @Test
+  public void testIdentify_Aql_withRepositoryList() throws Exception {
+    Set<String> repos = new HashSet<>(Arrays.asList("repo1", "repo2"));
+    apiConfigurationService.setConfigurationNoAuthz(
+        SystemConfigurationProperty.BFS_REPOSITORIES, String.join(",", repos));
+    apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_REPOSITORIES);
+    String sha256a = "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f941";
+    String sha256b = "eba07aa1954b30c10b2a562bed89ba077555fdbf3a40e2edc672a055aa40f942";
+    artifactoryConnectionDAO.delete(artifactoryConnection);
+    artifactoryConnection = tempEntity.newArtifactoryConnection(Organization.ROOT_ORGANIZATION_ID,
+        artifactoryMockServer.getUrl(),
+        "artifactoryUser",
+        passwordHandler.encryptPassword("password1".toCharArray()));
+    artifactoryMockServer.mockSearchByChecksumsUsingAQL(
+        artifactoryConnection.getUsername(),
+        passwordHandler.decryptPassword(artifactoryConnection.getPassword()),
+        ChecksumType.SHA256,
+        new HashSet<>(Arrays.asList(sha256a, sha256b)),
+        repos,
+        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256a, "repo1", "g1/a1/v1", "x1.jar"),
+        ArtifactoryMockServerRule.createAQLResult(ChecksumType.SHA256, sha256b, "repo2", "g2/a2/v2", "x2.jar")
+    );
+
+    Map<ComponentIdentifier, ObjectNode> sha256Matches =
+        matcher.identify(artifactoryConnection, readJsonFile("match-multiple/bom.json"));
+
+    ComponentIdentifier componentIdentifier1 =
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
+    ComponentIdentifier componentIdentifier2 =
+        ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", null, "jar");
+    assertThat(sha256Matches).containsOnlyKeys(componentIdentifier1, componentIdentifier2);
+  }
+
+  @Test
+  public void testIdentify_Checksum_withRepositoryList() throws Exception {
+    String repos = "repo1,repo2";
+    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.BFS_REPOSITORIES, repos);
+    apiConfigurationService.applyConfigurationToClients(SystemConfigurationProperty.BFS_REPOSITORIES);
+    artifactoryConnectionDAO.delete(artifactoryConnection);
+    artifactoryConnection =
+        tempEntity.newArtifactoryConnection(Organization.ROOT_ORGANIZATION_ID, artifactoryMockServer.getUrl(), null,
+            null);
+    mockArtifactoryResponse();
+
+    Map<ComponentIdentifier, ObjectNode> sha256Matches =
+        matcher.identify(artifactoryConnection, readJsonFile("match-multiple/bom.json"));
+
+    ComponentIdentifier componentIdentifier1 =
+        ComponentIdentifier.createMavenCoordinates("g.org", "a", "1.1-SNAPSHOT", null, "jar");
+    assertThat(sha256Matches).containsOnlyKeys(componentIdentifier1);
   }
 
   @Test

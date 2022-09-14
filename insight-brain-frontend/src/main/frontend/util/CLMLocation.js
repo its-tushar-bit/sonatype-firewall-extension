@@ -982,6 +982,10 @@ export const getCrowdConfigurationTestUrl = () => {
   return uriTemplate`/api/v2/config/crowd/test`;
 };
 
+export const getDestinationOrganizationsUrl = (applicationId) => {
+  return uriTemplate`/rest/move/application/${applicationId}/destinations`;
+};
+
 export const getMoveApplicationUrl = (applicationId, organizationId) =>
   uriTemplate`/api/v2/applications/${applicationId}/move/organization/${organizationId}`;
 
@@ -1217,11 +1221,6 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       },
 
       getRequestWaiverUrl,
-
-      getDestinationOrganizationsUrl: function (applicationId) {
-        return baseUrl.get() + '/rest/move/application/' + applicationId + '/destinations';
-      },
-
       getIsJiraEnabledUrl: function () {
         return baseUrl.get() + '/rest/jira/enabled';
       },

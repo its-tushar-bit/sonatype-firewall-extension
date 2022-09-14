@@ -133,7 +133,10 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, Integer.class,
           (p, s) -> NumberUtils.createInteger(s),
           (p, o) -> ConfigurationUtils.integerValueToString(o, SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT, 0,
-              Integer.MAX_VALUE))
+              Integer.MAX_VALUE)),
+      new ConfigurationProperty(SystemConfigurationProperty.BFS_REPOSITORIES, String.class,
+          (p, s) -> s,
+          (p, o) -> ConfigurationUtils.parseRepositoryList((String) o))
   };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

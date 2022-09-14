@@ -25,6 +25,7 @@ import accessSlice from './access/accessSlice';
 import grandfatheringSlice from './grandfatheringModal/grandfatheringSlice';
 import revokeGrandfatheringSlice from './revokeGrandfatheringModal/revokeGrandfatheringSlice';
 import changeApplicationIdSlice from './changeApplicationIdModal/changeApplicationIdSlice';
+import moveApplicationSlice from './moveApplicationModal/moveApplicationSlice';
 
 export default combineReducers({
   root: rootSlice,
@@ -46,6 +47,7 @@ export default combineReducers({
     grandfathering: grandfatheringSlice,
     revokeGrandfathering: revokeGrandfatheringSlice,
     changeAppId: changeApplicationIdSlice,
+    moveApplication: moveApplicationSlice,
   }),
   sourceControl: sourceControlSlice,
   ownerSummary: ownerSummarySlice,

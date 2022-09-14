@@ -8,10 +8,8 @@ import { findIndex, isEmpty, prop, propEq, reject } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { getApplicationsUrl, getMoveApplicationUrl } from '../util/CLMLocation';
+import { getApplicationsUrl } from '../util/CLMLocation';
 import { selectApplications } from './applicationsSelectors';
-import { actions as rootActions } from './rootSlice';
-import moveApplicationErrorMessages from 'MainRoot/owner.manager/move.application/move.application.messages';
 
 const REDUCER_NAME = 'applications';
 
@@ -52,7 +50,6 @@ const loadApplications = createAsyncThunk(
 
 const updateApplication = (state, { payload }) => {
   const { isNew, application } = payload;
-
   if (isNew) {
     state.applications.push(application);
   } else {
@@ -63,29 +60,6 @@ const updateApplication = (state, { payload }) => {
 
 const removeApplicationFromList = (state, { payload }) => {
   state.applications = reject(propEq('id', payload))(state.applications);
-};
-
-const moveApplication = ({ applicationId, organizationId, organizationName }) => {
-  return (dispatch) => {
-    return axios
-      .post(getMoveApplicationUrl(applicationId, organizationId))
-      .then((response) => {
-        return dispatch(actions.loadApplications(true)).then(() => {
-          dispatch(rootActions.selectedOwnerParentOrganizationUpdated({ organizationName, organizationId }));
-          return response?.data?.warnings;
-        });
-      })
-      .catch((error) => {
-        if (error.response?.status === 409 && error.response?.data?.errors?.length) {
-          // data.errors is an array of incompatibilities
-          return Promise.reject({
-            message: moveApplicationErrorMessages.ERROR_INCOMPATIBLE_DESTINATION,
-            incompatibilities: error.response.data.errors,
-          });
-        }
-        return Promise.reject(error);
-      });
-  };
 };
 
 const applicationsSlice = createSlice({
@@ -105,7 +79,6 @@ const applicationsSlice = createSlice({
 export const actions = {
   ...applicationsSlice.actions,
   loadApplications,
-  moveApplication,
 };
 
 export default applicationsSlice.reducer;

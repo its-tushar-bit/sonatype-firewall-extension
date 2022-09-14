@@ -8,10 +8,9 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
-import com.sonatype.clm.testing.functional.elements.Dropdown;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
-import com.sonatype.clm.testing.functional.elements.MoveApplicationErrorModal;
 import com.sonatype.clm.testing.functional.elements.MoveApplicationSuccessModal;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -20,12 +19,10 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.tag.Tag;
 
-import com.codeborne.selenide.Condition;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -43,8 +40,6 @@ public class MoveApplicationTest
 
   private static final String POLICY_MONITORING_MISSING_MSG = "The new parent organization does not use continuous"
       + " policy monitoring.";
-
-  public static final Condition ERROR = cssClass("error");
 
   private Application application;
 
@@ -75,9 +70,8 @@ public class MoveApplicationTest
     modal.shouldBe(visible);
     modal.moveButton().shouldBe(hidden);
     modal.body().shouldBe(hidden);
-    modal.footer().shouldHave(ERROR);
-    modal.footer().shouldHave(text("No available destination organizations."));
-    modal.dismissButton().shouldHave(text("OK")).shouldBe(visible).click();
+    modal.errorMessage().shouldBe(visible).shouldHave(text("No available destination organizations."));
+    modal.okButton().shouldHave(text("OK")).shouldBe(visible).click();
     modal.shouldBe(hidden);
   }
 
@@ -144,24 +138,11 @@ public class MoveApplicationTest
     // move
     MoveApplicationDialog modal = new MoveApplicationDialog();
     selectFirstOptionAndSubmit(modal);
-
     // error state
     modal.shouldBe(visible);
-    modal.footer().shouldBe(visible).shouldHave(ERROR);
     modal.retryButton().shouldBe(visible);
-    modal.detailsButton().shouldBe(visible).click();
-    modal.shouldBe(hidden);
-
-    // error details modal
-    MoveApplicationErrorModal errorModal = new MoveApplicationErrorModal();
-    errorModal.shouldBe(visible);
-    errorModal.body().shouldHave(text("Incompatible Destination"));
+    modal.incompatibleErrorMessage().shouldBe(visible).shouldHave(text("Incompatible Destinations:"));
     eyesWatcher.eyesCheck();
-    errorModal.okButton().click();
-    errorModal.shouldBe(hidden);
-
-    // retry and cancel
-    modal.shouldBe(visible);
     modal.retryButton().shouldBe(visible).click();
     FormMask.seeAndWaitForDismissal();
     modal.dismissButton().click();
@@ -175,11 +156,11 @@ public class MoveApplicationTest
     modal.moveButton().shouldBe(DISABLED);
     modal.body().shouldBe(visible);
 
-    Dropdown destinationDropdown = modal.destinationDropdown();
-    destinationDropdown.shouldBe(visible).selectedItem().click();
-    destinationDropdown.listItem(0).shouldHave(text(SOME_OTHER_ORGANIZATION)).click();
+    NxFormSelect destinationDropdown = modal.destinationDropdown();
+    destinationDropdown.shouldBe(visible).click();
+    destinationDropdown.listItem(1).shouldHave(text(SOME_OTHER_ORGANIZATION)).click();
 
-    modal.footer().shouldNotHave(ERROR);
+    modal.errorMessage().shouldBe(hidden);
     modal.dismissButton().shouldHave(text("Cancel"));
     modal.moveButton().shouldNotBe(DISABLED).click();
   }

@@ -17,7 +17,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import com.google.inject.Binder;
@@ -76,6 +78,14 @@ public class ApiComponentRemediationServiceAuthzTest
     testGetSuggestedRemediationForComponent_Authorized(org);
   }
 
+  @Test
+  public void testGetSuggestedRemediationForComponent_Authorized_Repository() {
+    configureHdsClientMock();
+    grantEvaluateComponentPermission(repository.getId());
+    apiComponentRemediationService.getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, OwnerType.REPOSITORY,
+        repository.getId(), ProxyStageType.ID);
+  }
+
   private void testGetSuggestedRemediationForComponent_Unauthorized(Owner owner) {
     login();
 
@@ -93,6 +103,13 @@ public class ApiComponentRemediationServiceAuthzTest
     testGetSuggestedRemediationForComponent_Unauthorized(org);
   }
 
+  @Test(expected = UnauthorizedException.class)
+  public void testGetSuggestedRemediationForComponent_Unauthorized_Repository() {
+    login();
+    apiComponentRemediationService.getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, OwnerType.REPOSITORY,
+        repository.getId(), ProxyStageType.ID);
+  }
+
   private void testGetSuggestedRemediationForComponent_Unauthenticated(Owner owner) {
     apiComponentRemediationService
         .getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, owner.getType(), owner.getId(), DevelopStageType.ID);
@@ -106,6 +123,12 @@ public class ApiComponentRemediationServiceAuthzTest
   @Test(expected = UnauthenticatedException.class)
   public void testGetSuggestedRemediationForComponent_Unauthenticated_Organization() {
     testGetSuggestedRemediationForComponent_Unauthenticated(org);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetSuggestedRemediationForComponent_Unauthenticated_Repository() {
+    apiComponentRemediationService.getSuggestedRemediationForComponent(API_COMPONENT_DTOV2, OwnerType.REPOSITORY,
+        repository.getId(), ProxyStageType.ID);
   }
 
   private static ApiComponentDTOV2 createApiComponentDTOV2() {

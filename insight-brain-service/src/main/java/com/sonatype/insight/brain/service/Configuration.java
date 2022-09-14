@@ -149,7 +149,8 @@ public class Configuration
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
         SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
         SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX,
-        SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT)
+        SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT,
+        SystemConfigurationProperty.BFS_REPOSITORIES)
     );
     putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION, reverseProxyAuthenticationConfigurationDAO.get());
@@ -437,6 +438,10 @@ public class Configuration
 
   public Integer getBfsComponentLimit() {
     return (Integer) valueByPropertyName.get(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT);
+  }
+
+  public String getBfsQueryRepositoriesList() {
+    return (String) valueByPropertyName.get(SystemConfigurationProperty.BFS_REPOSITORIES);
   }
 
   public Map<String, String> getMatcherConfiguration() {

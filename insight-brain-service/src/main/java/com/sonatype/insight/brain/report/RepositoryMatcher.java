@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,7 +23,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -626,12 +626,15 @@ public class RepositoryMatcher
     try {
       if (!sha256s.isEmpty()) {
         Integer componentQueryLimit = configuration.getBfsComponentLimit();
+        Set<String> repositories =
+            new LinkedHashSet<>(Arrays.asList(
+                StringUtils.defaultString(configuration.getBfsQueryRepositoriesList(), "").split(",")));
         if (componentQueryLimit == null || componentQueryLimit > 0) {
           if (StringUtils.isNotBlank(artifactoryConnection.getUsername())) {
-            queryUsingAQL(artifactoryClient, sha256s, componentQueryLimit, result);
+            queryUsingAQL(artifactoryClient, sha256s, componentQueryLimit, result, repositories);
           }
           else {
-            queryUsingChecksum(artifactoryClient, sha256s, componentQueryLimit, result);
+            queryUsingChecksum(artifactoryClient, sha256s, componentQueryLimit, result, repositories);
           }
         }
 
@@ -659,14 +662,15 @@ public class RepositoryMatcher
       ArtifactoryClient artifactoryClient,
       Set<String> sha256s,
       Integer componentQueryLimit,
-      Map<String, ComponentIdentifier> result) throws IOException
+      Map<String, ComponentIdentifier> result,
+      Set<String> repositories) throws IOException
   {
     if (componentQueryLimit != null && sha256s.size() > componentQueryLimit) {
       sha256s = new HashSet<>(Iterables.partition(sha256s, componentQueryLimit).iterator().next());
     }
 
     for (Entry<String, ArtifactoryChecksumSearchResults> entry : artifactoryClient.searchByChecksumsUsingAQL(
-        ChecksumType.SHA256, sha256s).entrySet()) {
+        ChecksumType.SHA256, sha256s, repositories).entrySet()) {
       ComponentIdentifier componentIdentifier = resolveComponentIdentifier(entry.getValue());
       if (componentIdentifier != null) {
         result.put(entry.getKey(), componentIdentifier);
@@ -678,12 +682,13 @@ public class RepositoryMatcher
       ArtifactoryClient artifactoryClient,
       Set<String> sha256s,
       Integer componentQueryLimit,
-      Map<String, ComponentIdentifier> result) throws IOException
+      Map<String, ComponentIdentifier> result,
+      Set<String> repositories) throws IOException
   {
     int requestCounter = 0;
     for (String sha256 : sha256s) {
       ArtifactoryChecksumSearchResults artifactoryChecksumSearchResults =
-          artifactoryClient.searchByChecksum(ChecksumType.SHA256, sha256);
+          artifactoryClient.searchByChecksum(ChecksumType.SHA256, sha256, repositories);
 
       ComponentIdentifier componentIdentifier = resolveComponentIdentifier(artifactoryChecksumSearchResults);
       if (componentIdentifier != null) {

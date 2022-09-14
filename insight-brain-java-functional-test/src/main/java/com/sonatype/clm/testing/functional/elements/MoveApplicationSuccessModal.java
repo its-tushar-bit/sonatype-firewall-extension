@@ -13,18 +13,18 @@ public class MoveApplicationSuccessModal
     extends BasicElement<MoveApplicationSuccessModal>
 {
   public MoveApplicationSuccessModal() {
-    super("#move-app-success-modal");
+    super("#success-move-application-modal");
   }
 
   public SelenideElement infoSection() {
-    return child(".iq-modal-content .iq-alert.iq-alert--info");
+    return child(".nx-modal-content .nx-alert--info");
   }
 
   public SelenideElement warningSection() {
-    return child(".iq-modal-content .iq-alert.iq-scrollable");
+    return child(".nx-modal-content .nx-alert--warning");
   }
 
   public SelenideElement okButton() {
-    return child(".iq-modal-footer .iq-btn--primary");
+    return child(".nx-footer .nx-btn--primary");
   }
 }

@@ -14,7 +14,8 @@ import com.sonatype.insight.brain.hds.DeprecatedCIResource;
 import com.sonatype.insight.brain.hds.DeprecatedCLIResource;
 import com.sonatype.insight.brain.hds.RepoManResource;
 import com.sonatype.insight.brain.ide.IdeResource;
-import com.sonatype.insight.brain.integration.ApplicationSummaryResourceConstants;
+import com.sonatype.insight.brain.integration.DefaultApplicationSummaryResource;
+import com.sonatype.insight.brain.integration.DefaultOrganizationSummaryResource;
 import com.sonatype.insight.brain.integration.PolicyEvaluationSummaryResource;
 import com.sonatype.insight.brain.integration.ProprietaryConfigResource;
 import com.sonatype.insight.brain.integration.repository.RepositoryResource;
@@ -181,7 +182,11 @@ public class InternalRestApiAuthcTest
     assertResponseStatus(404, response);
     assertThat(response.getSessionCookie()).isNull();
 
-    response = request.subpath(ApplicationSummaryResourceConstants.RESOURCE_PATH).get();
+    response = request.subpath(DefaultApplicationSummaryResource.RESOURCE_PATH).get();
+    assertResponseStatus(200, response);
+    assertThat(response.getSessionCookie()).isNull();
+
+    response = request.subpath(DefaultOrganizationSummaryResource.RESOURCE_PATH).get();
     assertResponseStatus(200, response);
     assertThat(response.getSessionCookie()).isNull();
 

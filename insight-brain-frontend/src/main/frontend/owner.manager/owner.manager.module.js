@@ -5,7 +5,6 @@
  */
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
-import moveApplicationModule from './move.application/module';
 import formsModule from '../FormsModule';
 import angularCommonModule from '../utilAngular/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
@@ -86,6 +85,7 @@ import ChangeApplicationIdModal from 'MainRoot/OrgsAndPolicies/changeApplication
 import RevokeGrandfatheringModal from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/RevokeGrandfatheringModal';
 import RetentionTile from 'MainRoot/OrgsAndPolicies/ownerSummary/retentionTile/RetentionTile';
 import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
+import MoveApplicationModal from 'MainRoot/OrgsAndPolicies/moveApplicationModal/MoveApplicationModal';
 
 export default angular
   .module('owner.manager.module', [
@@ -102,7 +102,6 @@ export default angular
     utilityServicesModule.name,
     validatorsModule.name,
     roleMembershipModule.name,
-    moveApplicationModule.name,
     retentionModule.name,
     sourceControlModule.name,
     artifactoryRepositoryModule.name,
@@ -176,6 +175,7 @@ export default angular
     'policyViolationGrandfatheringEditor',
     iqReact2Angular(PolicyViolationGrandfatheringEditor, [], ['$ngRedux'])
   )
+  .component('moveApplicationModal', iqReact2Angular(MoveApplicationModal, [], ['$ngRedux']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

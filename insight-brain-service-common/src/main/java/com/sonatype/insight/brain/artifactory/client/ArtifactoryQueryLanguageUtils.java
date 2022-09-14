@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.StringUtils;
 
 public class ArtifactoryQueryLanguageUtils
 {
@@ -27,20 +28,36 @@ public class ArtifactoryQueryLanguageUtils
     // Utility class
   }
 
-  public static String createChecksumSearch(ChecksumType checksumType, Set<String> checksums) {
+  public static String createChecksumSearch(ChecksumType checksumType, Set<String> checksums, Set<String> repos) {
     ObjectMapper objectMapper = new ObjectMapper();
-    ObjectNode criteria = objectMapper.createObjectNode();
-    ArrayNode or = criteria.putArray("$or");
+    ObjectNode checksumsCriteria = getSearchCriteria(objectMapper, checksums,
+        checksumType.name().toLowerCase(Locale.ROOT));
+    ObjectNode repositoriesCriteria = getSearchCriteria(objectMapper, repos, FIELD_REPO);
     String checksumTypeNameLowercase = checksumType.name().toLowerCase(Locale.ROOT);
-    for (String checksum : checksums) {
-      or.addObject().put(checksumTypeNameLowercase, checksum);
-    }
+    StringBuilder queryBuilder = new StringBuilder();
     try {
-      return "items.find(" + objectMapper.writeValueAsString(criteria) + ").include(\"" +
-          String.join("\",\"", Arrays.asList(checksumTypeNameLowercase, FIELD_REPO, FIELD_PATH, FIELD_NAME)) + "\")";
+      return queryBuilder.append("items.find(")
+          .append(objectMapper.writeValueAsString(checksumsCriteria))
+          .append(repositoriesCriteria.get("$or").size() > 0
+              ? "," + objectMapper.writeValueAsString(repositoriesCriteria)
+              : "")
+          .append(").include(\"")
+          .append(String.join("\",\"", Arrays.asList(checksumTypeNameLowercase, FIELD_REPO, FIELD_PATH, FIELD_NAME)))
+          .append("\")").toString();
     }
     catch (JsonProcessingException e) {
       throw new UncheckedIOException(e.getMessage(), e);
     }
+  }
+
+  public static ObjectNode getSearchCriteria(ObjectMapper objectMapper, Set<String> data, String propName) {
+    ObjectNode criteria = objectMapper.createObjectNode();
+    ArrayNode or = criteria.putArray("$or");
+    for (String term : data) {
+      if (StringUtils.isNotBlank(term)) {
+        or.addObject().put(propName, term);
+      }
+    }
+    return criteria;
   }
 }

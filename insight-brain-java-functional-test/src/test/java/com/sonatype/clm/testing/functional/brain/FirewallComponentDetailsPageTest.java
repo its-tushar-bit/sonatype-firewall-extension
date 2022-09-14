@@ -39,7 +39,6 @@ import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -92,8 +91,6 @@ public class FirewallComponentDetailsPageTest
   private final List<ComponentDetails> componentDetailsArrayList = new ArrayList<>();
 
   private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
-
-  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
   FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
 
@@ -274,7 +271,7 @@ public class FirewallComponentDetailsPageTest
     policyViolation.setPolicyWaiverId(policyWaiverId);
     policyViolation.setPolicyWaiverComment(policyWaiverComment);
     policyViolation.setWaiveTime(waiveTime);
-    repositoryPolicyViolationDAO.insert(policyViolation);
+    tempEntity.newRepositoryPolicyViolation(policyViolation);
     return policyViolation;
   }
 

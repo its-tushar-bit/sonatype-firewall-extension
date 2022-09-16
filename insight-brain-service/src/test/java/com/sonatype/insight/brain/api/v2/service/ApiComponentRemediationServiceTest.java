@@ -159,7 +159,8 @@ public class ApiComponentRemediationServiceTest
         eq("rest/component/summary"), anyMap());
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.getSuggestedRemediationForComponent(componentDto, OwnerType.APPLICATION, app.getId(),
-            DevelopStageType.ID)).withMessage("Invalid Component Identifier or packageUrl");
+            DevelopStageType.ID, null /* identificationSource */, null /* scanId */))
+        .withMessage("Invalid Component Identifier or packageUrl");
   }
 
   @Test
@@ -171,21 +172,24 @@ public class ApiComponentRemediationServiceTest
         eq("rest/component/summary"), anyMap());
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.getSuggestedRemediationForComponent(componentDto, OwnerType.APPLICATION, app.getId(),
-            DevelopStageType.ID)).withMessage("Invalid Component Identifier or packageUrl");
+            DevelopStageType.ID, null /* identificationSource */, null /* scanId */))
+        .withMessage("Invalid Component Identifier or packageUrl");
   }
 
   @Test
   public void testGetSuggestedRemediationForComponent_emptyRequest() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> service.getSuggestedRemediationForComponent(new ApiComponentDTOV2(), OwnerType.APPLICATION, app.getId(),
-            DevelopStageType.ID)).withMessage("One of either componentIdentifier or packageUrl must be supplied.");
+            DevelopStageType.ID, null /* identificationSource */, null /* scanId */))
+        .withMessage("One of either componentIdentifier or packageUrl must be supplied.");
   }
 
   @Test
   public void testGetSuggestedRemediationForComponent_nullRequest() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.getSuggestedRemediationForComponent(null, OwnerType.APPLICATION, app.getId(),
-            DevelopStageType.ID)).withMessage("One of either componentIdentifier or packageUrl must be supplied.");
+            DevelopStageType.ID, null /* identificationSource */, null /* scanId */))
+        .withMessage("One of either componentIdentifier or packageUrl must be supplied.");
   }
 
   @Test
@@ -194,7 +198,8 @@ public class ApiComponentRemediationServiceTest
         "{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}";
     ApiComponentDTOV2 request = JsonUtils.parse(jsonRequest, ApiComponentDTOV2.class);
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service
-        .getSuggestedRemediationForComponent(request, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID))
+        .getSuggestedRemediationForComponent(request, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID,
+            null /* identificationSource */, null /* scanId */))
         .withMessage("A component identifier must have at least one coordinate.");
   }
 
@@ -204,7 +209,8 @@ public class ApiComponentRemediationServiceTest
     component.packageUrl = "invalid-package-url";
 
     assertThatExceptionOfType(InvalidPackageURLException.class).isThrownBy(() -> service
-        .getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID))
+        .getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID,
+            null /* identificationSource */, null /* scanId */))
         .withMessage("Invalid package url");
   }
 
@@ -214,7 +220,8 @@ public class ApiComponentRemediationServiceTest
     component.packageUrl = "pkg:maven/g1/a1@v1";
 
     assertThatExceptionOfType(InvalidPackageURLException.class).isThrownBy(() -> service
-        .getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID))
+        .getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID,
+            null /* identificationSource */, null /* scanId */))
         .withMessage(MISSING_COORDINATES + "[type]");
   }
 
@@ -224,7 +231,8 @@ public class ApiComponentRemediationServiceTest
     ApiComponentDTOV2 component = createComponent(componentIdentifier);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service
-        .getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID))
+        .getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID,
+            null /* identificationSource */, null /* scanId */))
         .withMessage(MISSING_COORDINATES + "[extension]");
   }
 
@@ -243,7 +251,8 @@ public class ApiComponentRemediationServiceTest
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_V1);
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-        () -> service.getSuggestedRemediationForComponent(dto, ownerType, "bogusOwnerId", DevelopStageType.ID))
+        () -> service.getSuggestedRemediationForComponent(dto, ownerType, "bogusOwnerId", DevelopStageType.ID,
+            null /* identificationSource */, null /* scanId */))
         .withMessage(expectedErrMsgPrefix + "bogusOwnerId.");
   }
 
@@ -275,8 +284,8 @@ public class ApiComponentRemediationServiceTest
     mockHdsGetComponentDetailsList(list, componentDetailsDTO.componentIdentifier);
     mockLicenseFeature(false);
 
-    ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    ApiComponentRemediationDTO retVal = service.getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION,
+        app.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */);
     assertNoViolations(retVal.remediation, componentDetailsDTO.componentIdentifier,
         PackageUrlIdentifier.toPackageUrl(componentDetailsDTO.componentIdentifier));
     assertTelemetry("application", app.getId(), componentDetailsDTO.componentIdentifier, "option_next_no_violations",
@@ -307,8 +316,8 @@ public class ApiComponentRemediationServiceTest
     mockHdsGetComponentDependencies(dependenciesDto);
     mockLicenseFeature(true);
 
-    ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    ApiComponentRemediationDTO retVal = service.getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION,
+        app.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */);
     assertNoViolationsWithAdvancedRecommendations(retVal.remediation,
         PackageUrlIdentifier.toPackageUrl(componentDetailsDTO.componentIdentifier));
     assertTelemetry("application", app.getId(), componentDetailsDTO.componentIdentifier,
@@ -350,7 +359,8 @@ public class ApiComponentRemediationServiceTest
     ApiComponentDTOV2 component = createComponent(RPM_COORDINATES_NO_ARCH);
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> service.getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(),
-            DevelopStageType.ID)).withMessage("The following coordinates are missing for given format: [architecture]");
+            DevelopStageType.ID, null /* identificationSource */, null /* scanId */))
+        .withMessage("The following coordinates are missing for given format: [architecture]");
   }
 
   @Test
@@ -421,8 +431,8 @@ public class ApiComponentRemediationServiceTest
     List<ComponentDetailsDTO> list = Stream.of(dto1, dto2, dto3).collect(Collectors.toList());
     mockHdsGetComponentDetailsList(list, dto1.componentIdentifier);
 
-    ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    ApiComponentRemediationDTO retVal = service.getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION,
+        app.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */);
     assertRemediationZeroCounts(retVal.remediation);
     assertTelemetry("application", app.getId(), dto1.componentIdentifier);
   }
@@ -459,8 +469,8 @@ public class ApiComponentRemediationServiceTest
     List<ComponentDetailsDTO> list = Stream.of(v1, v2, v3).collect(Collectors.toList());
     mockHdsGetComponentDetailsList(list, v2.componentIdentifier);
 
-    ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    ApiComponentRemediationDTO retVal = service.getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION,
+        app.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */);
     // we only look forward so we shouldn't downgrade
     assertRemediationZeroCounts(retVal.remediation);
   }
@@ -486,8 +496,8 @@ public class ApiComponentRemediationServiceTest
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_V3);
 
-    ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    ApiComponentRemediationDTO retVal = service.getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION,
+        app.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */);
     assertRemediationZeroCounts(retVal.remediation);
   }
 
@@ -510,8 +520,8 @@ public class ApiComponentRemediationServiceTest
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_V1);
 
-    ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    ApiComponentRemediationDTO retVal = service.getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION,
+        app.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */);
     assertNoViolations(retVal.remediation, v2.componentIdentifier,
         PackageUrlIdentifier.toPackageUrl(v2.componentIdentifier));
     assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations",
@@ -536,8 +546,8 @@ public class ApiComponentRemediationServiceTest
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_V1);
 
-    ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    ApiComponentRemediationDTO retVal = service.getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION,
+        app.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */);
     assertNoViolations(retVal.remediation, v1.componentIdentifier,
         PackageUrlIdentifier.toPackageUrl(v1.componentIdentifier));
     assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_no_violations",
@@ -565,8 +575,8 @@ public class ApiComponentRemediationServiceTest
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_V1);
 
-    ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), DevelopStageType.ID);
+    ApiComponentRemediationDTO retVal = service.getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION,
+        app.getId(), DevelopStageType.ID, null /* identificationSource */, null /* scanId */);
     assertNonFailing(retVal.remediation, v2.componentIdentifier,
         PackageUrlIdentifier.toPackageUrl(v2.componentIdentifier));
     assertTelemetry("application", app.getId(), v1.componentIdentifier, "option_next_non_failing");
@@ -592,8 +602,8 @@ public class ApiComponentRemediationServiceTest
     ApiComponentDTOV2 dto = new ApiComponentDTOV2();
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(MAVEN_COORDINATES_V1);
 
-    ApiComponentRemediationDTO retVal = service
-        .getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), null);
+    ApiComponentRemediationDTO retVal = service.getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION,
+        app.getId(), null /* stageId */, null /* identificationSource */, null /* scanId */);
 
     String expectedPackageUrl = PackageUrlIdentifier.toPackageUrl(v3.componentIdentifier);
 
@@ -626,7 +636,8 @@ public class ApiComponentRemediationServiceTest
     dto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(v1.componentIdentifier);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), "bogusStageId"))
+        () -> service.getSuggestedRemediationForComponent(dto, OwnerType.APPLICATION, app.getId(), "bogusStageId",
+            null /* identificationSource */, null /* scanId */))
         .withMessage("Invalid stage ID: bogusStageId.");
   }
 

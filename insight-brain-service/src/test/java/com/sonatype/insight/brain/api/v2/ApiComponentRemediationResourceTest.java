@@ -73,25 +73,25 @@ public class ApiComponentRemediationResourceTest
   }
 
   @Test
-  public void testSuggestedRemediation_Application() throws Exception {
+  public void testGetSuggestedRemediationForComponent_Application() throws Exception {
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1,null);
     assertRemediationApplication(component, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
   }
 
   @Test
-  public void testSuggestedRemediation_Application_ThirdParty_NoViolations() throws Exception {
-    testSuggestedRemediation_Application_ThirdParty(1);
+  public void testGetSuggestedRemediationForComponent_Application_ThirdParty_NoViolations() throws Exception {
+    testGetSuggestedRemediationForComponent_Application_ThirdParty(1);
   }
 
   @Test
-  public void testSuggestedRemediation_Application_ThirdParty_WithViolation() throws Exception {
+  public void testGetSuggestedRemediationForComponent_Application_ThirdParty_WithViolation() throws Exception {
     createPolicyWithSecurityVulnerabilityConstraint(org.getId());
-    testSuggestedRemediation_Application_ThirdParty(1);
+    testGetSuggestedRemediationForComponent_Application_ThirdParty(1);
   }
 
-  private void testSuggestedRemediation_Application_ThirdParty(final int expectedRemediationVersionsCount)
-      throws Exception
+  private void testGetSuggestedRemediationForComponent_Application_ThirdParty(
+      final int expectedRemediationVersionsCount) throws Exception
   {
     final String scanId = "ScanId";
     createReportFile(app.getId(), scanId, "/ApiComponentRemediationResourceTest/report");
@@ -123,7 +123,7 @@ public class ApiComponentRemediationResourceTest
   }
 
   @Test
-  public void testSuggestedRemediation_Application_ThirdParty_ByPurl() throws Exception {
+  public void testGetSuggestedRemediationForComponent_Application_ThirdParty_ByPurl() throws Exception {
     String scanId = "ScanId";
     createReportFile(app.getId(), scanId, "/ApiComponentRemediationResourceTest/report");
     ComponentIdentifier tpComponentIdentifier = componentIdentifierFrom("debian-9", "glibc", "2.24-11+deb9u3");
@@ -151,7 +151,7 @@ public class ApiComponentRemediationResourceTest
   }
 
   @Test
-  public void testSuggestedRemediation_Application_Purl() throws Exception {
+  public void testGetSuggestedRemediationForComponent_Application_Purl() throws Exception {
     String purl = "pkg:maven/g1/a1@v1?type=jar";
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purl);
     assertRemediationApplication(component, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
@@ -185,14 +185,14 @@ public class ApiComponentRemediationResourceTest
   }
 
   @Test
-  public void testSuggestedRemediation_Organization() throws Exception {
+  public void testGetSuggestedRemediationForComponent_Organization() throws Exception {
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
     assertRemediationOrganization(component, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
   }
   
   @Test
-  public void testSuggestedRemediation_Organization_Purl() throws Exception {
+  public void testGetSuggestedRemediationForComponent_Organization_Purl() throws Exception {
     String purl = "pkg:maven/g1/a1@v1?type=jar";
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(purl);
     assertRemediationOrganization(component, ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,

@@ -41,7 +41,6 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -318,18 +317,16 @@ public class ApiComponentRemediationResourceTest
       switch (optionTypes[i]) {
         case NEXT_NO_VIOLATIONS:
         case NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES:
-          assertThat(equalsMavenIdsIgnoringBlankClassifier(
-              versionChangeOption.getData().getComponent().componentIdentifier.toComponentIdentifier(),
-              expectedComponentNoViolations.componentIdentifier.toComponentIdentifier())).isTrue();
+          assertThat(versionChangeOption.getData().getComponent().componentIdentifier.toComponentIdentifier())
+              .isEqualTo(expectedComponentNoViolations.componentIdentifier.toComponentIdentifier());
           assertThat(versionChangeOption.getData().getComponent().packageUrl).isEqualTo(expectedPackageUrlNoViolations);
           assertThat(versionChangeOption.getData().getComponent().displayName).isEqualTo(ComponentDisplayNameUtil
               .fromIdentifier(expectedComponentNoViolations.componentIdentifier.toComponentIdentifier()).toString());
           break;
         case NEXT_NON_FAILING:
         case NEXT_NON_FAILING_WITH_DEPENDENCIES:
-          assertThat(equalsMavenIdsIgnoringBlankClassifier(
-              versionChangeOption.getData().getComponent().componentIdentifier.toComponentIdentifier(),
-              expectedComponentNonFailing.componentIdentifier.toComponentIdentifier())).isTrue();
+          assertThat(versionChangeOption.getData().getComponent().componentIdentifier.toComponentIdentifier())
+              .isEqualTo(expectedComponentNonFailing.componentIdentifier.toComponentIdentifier());
           assertThat(versionChangeOption.getData().getComponent().packageUrl).isEqualTo(expectedPackageUrlNonFailing);
           assertThat(versionChangeOption.getData().getComponent().displayName).isEqualTo(ComponentDisplayNameUtil
               .fromIdentifier(expectedComponentNonFailing.componentIdentifier.toComponentIdentifier()).toString());
@@ -345,20 +342,5 @@ public class ApiComponentRemediationResourceTest
     coords.put("name", name);
     coords.put(ComponentIdentifier.VERSION, version);
     return new ComponentIdentifier(format, coords);
-  }
-
-  private boolean equalsMavenIdsIgnoringBlankClassifier(ComponentIdentifier actual, ComponentIdentifier expected) {
-    if (!actual.isMaven() || !expected.isMaven()) {
-      return actual.equals(expected);
-    }
-
-    return actual.get(ComponentIdentifier.MAVEN_GROUP_ID).equals(expected.get(ComponentIdentifier.MAVEN_GROUP_ID))
-        && actual.get(ComponentIdentifier.MAVEN_ARTIFACT_ID).equals(expected.get(ComponentIdentifier.MAVEN_ARTIFACT_ID))
-        && actual.get(ComponentIdentifier.VERSION).equals(expected.get(ComponentIdentifier.VERSION))
-        && actual.get(ComponentIdentifier.MAVEN_EXTENSION).equals(expected.get(ComponentIdentifier.MAVEN_EXTENSION))
-        && ((StringUtils.isBlank(actual.get(ComponentIdentifier.MAVEN_CLASSIFIER))
-              && StringUtils.isBlank(expected.get(ComponentIdentifier.MAVEN_CLASSIFIER)))
-            || actual.get(ComponentIdentifier.MAVEN_CLASSIFIER).equals(
-                expected.get(ComponentIdentifier.MAVEN_CLASSIFIER)));
   }
 }

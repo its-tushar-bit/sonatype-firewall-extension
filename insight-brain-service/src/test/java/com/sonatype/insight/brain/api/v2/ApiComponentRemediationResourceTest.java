@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -229,7 +230,39 @@ public class ApiComponentRemediationResourceTest
         ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
         ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
   }
-  
+
+  @Test
+  public void testGetSuggestedRemediationForComponent_SpecifiedStage() throws Exception {
+    ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
+    mockComponentSummary(MAVEN_COORDINATES_V1, ComponentSummary.create(true));
+    mockGetDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
+    createPolicyWithSecurityVulnerabilityConstraint(app.getId());
+
+    ComponentDetails details1 = createComponentDetailsForSecurityViolation(MAVEN_COORDINATES_V1);
+    ComponentDetails details2 = createComponentDetailsForSecurityViolation(MAVEN_COORDINATES_V2);
+    ComponentDetails details3 = createComponentDetailsForNoViolation(MAVEN_COORDINATES_V3);
+    List<ComponentDetails> list = Stream.of(details1, details2, details3).collect(Collectors.toList());
+    ComponentDetailsList detailsList = new ComponentDetailsList();
+    detailsList.setList(list);
+    mockComponentDetails(detailsList);
+
+    // no violations / alerts - we expect component version 3
+    ApiComponentDTOV2 expectedComponentNoViolations =
+        componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V3, null);
+    // non-failing violations / alerts - we expect component version 1
+    ApiComponentDTOV2 expectedComponentNonFailing =
+        componentEvaluationV2Helper.createComponent(MAVEN_COORDINATES_V1, null);
+
+    HttpResponse response = restRequest().path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
+        .parameter(OwnerType.APPLICATION, app.getId()).query("stageId", BuildStageType.ID).body(component).post();
+
+    assertResponse(response, expectedComponentNoViolations, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V3),
+        expectedComponentNonFailing, PackageUrlIdentifier.toPackageUrl(MAVEN_COORDINATES_V1),
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, ApiVersionChangeOptionType.NEXT_NON_FAILING,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
+        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
+  }
+
   private void assertRemediationOrganization(
       final ApiComponentDTOV2 component,
       final ApiVersionChangeOptionType... optionTypes) throws Exception

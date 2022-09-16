@@ -510,4 +510,27 @@ public class DefaultArtifactoryClientTest
             ChecksumType.SHA256, checksums, Collections.emptySet()))
         .withMessageContaining("error");
   }
+
+  @Test
+  public void testPath() {
+    DefaultArtifactoryClient defaultArtifactoryClient = (DefaultArtifactoryClient) artifactoryClientFactory.create()
+        .forArtifactory("http://baseUrl:8081", null, null);
+
+    assertThat(defaultArtifactoryClient.path()).isEqualTo("http://baseUrl:8081");
+    assertThat(defaultArtifactoryClient.path("a")).isEqualTo("http://baseUrl:8081/a");
+    assertThat(defaultArtifactoryClient.path("/a")).isEqualTo("http://baseUrl:8081/a");
+    assertThat(defaultArtifactoryClient.path("a", "b", "c")).isEqualTo("http://baseUrl:8081/a/b/c");
+    assertThat(defaultArtifactoryClient.path("/a", "/b", "/c")).isEqualTo("http://baseUrl:8081/a/b/c");
+    assertThat(defaultArtifactoryClient.path("/a", "b", "/c")).isEqualTo("http://baseUrl:8081/a/b/c");
+
+    defaultArtifactoryClient =
+        (DefaultArtifactoryClient) artifactoryClientFactory.create().forArtifactory("http://baseUrl:8081/", null, null);
+
+    assertThat(defaultArtifactoryClient.path()).isEqualTo("http://baseUrl:8081/");
+    assertThat(defaultArtifactoryClient.path("a")).isEqualTo("http://baseUrl:8081/a");
+    assertThat(defaultArtifactoryClient.path("/a")).isEqualTo("http://baseUrl:8081/a");
+    assertThat(defaultArtifactoryClient.path("a", "b", "c")).isEqualTo("http://baseUrl:8081/a/b/c");
+    assertThat(defaultArtifactoryClient.path("/a", "/b", "/c")).isEqualTo("http://baseUrl:8081/a/b/c");
+    assertThat(defaultArtifactoryClient.path("/a", "b", "/c")).isEqualTo("http://baseUrl:8081/a/b/c");
+  }
 }

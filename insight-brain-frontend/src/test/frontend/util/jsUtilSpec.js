@@ -10,8 +10,9 @@ import {
   isNilOrEmpty,
   multiGroupBy,
   union,
+  allEqual,
   capitalizeFirstLetter,
-} from '../../../main/frontend/util/jsUtil';
+} from 'MainRoot/util/jsUtil';
 
 describe('jsUtil', function () {
   describe('isNilOrEmpty', function () {
@@ -28,6 +29,18 @@ describe('jsUtil', function () {
     it('returns false if the argument is a non-empty object or non-empty list', function () {
       expect(isNilOrEmpty({ a: 1 })).toBe(false);
       expect(isNilOrEmpty(['foo'])).toBe(false);
+    });
+  });
+
+  describe('allEqual', () => {
+    it('returns true if all values in the array are equal', () => {
+      expect(allEqual([1, 1, 1, 1, 1, 1])).toBe(true);
+      expect(allEqual([undefined, undefined, undefined])).toBe(true);
+    });
+
+    it('returns false if at least one value in the array is different', () => {
+      expect(allEqual([1, 1, 1, 4, 1, 1])).toBe(false);
+      expect(allEqual([undefined, 0, undefined])).toBe(false);
     });
   });
 

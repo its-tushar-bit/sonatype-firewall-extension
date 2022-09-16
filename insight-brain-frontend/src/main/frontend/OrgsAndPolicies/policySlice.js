@@ -4,7 +4,22 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { any, curryN, equals, findIndex, isEmpty, isNil, map, omit, prop, propEq } from 'ramda';
+import {
+  any,
+  curryN,
+  equals,
+  findIndex,
+  isEmpty,
+  isNil,
+  map,
+  omit,
+  prop,
+  propEq,
+  sortWith,
+  reverse,
+  clone,
+  includes,
+} from 'ramda';
 import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
@@ -24,13 +39,14 @@ import {
   selectIsOrgOwner,
 } from './policySelectors';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSlice';
-import { deriveEditRoute, getActionsOverride } from './utility/util';
+import { deriveEditRoute, policiesComparator, getActionsOverride } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { propSet, pathSet } from 'MainRoot/util/jsUtil';
+import { propSet, pathSet, allEqual } from 'MainRoot/util/jsUtil';
 import { pathSetConst, propSet as reduxPropSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { selectOwnerProperties, selectSelectedOwnerId } from './orgsAndPoliciesSelectors';
 import { actions as constraintActions } from 'MainRoot/OrgsAndPolicies/constraintSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
+import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { stateReload } from '../reduxUiRouter/routerActions';
 import { checkPermissions } from '../util/authorizationUtil';
 
@@ -91,6 +107,12 @@ export const initialState = {
     errorState: null,
   },
   hasEditIqPermission: false,
+  policyTile: {
+    loading: false,
+    loadError: null,
+    policiesByOwner: null,
+    sorting: {},
+  },
 };
 
 const getCategoriesForCurrentPolicy = (categoriesByOwner, currentPolicy) => {
@@ -167,6 +189,131 @@ const loadCategoriesForPolicyFailed = (state, { payload }) => {
   state.categoriesForPolicyLoadError = Messages.getHttpErrorMessage(payload);
   state.isDirty = false;
   state.currentPolicy = state.originalPolicy;
+};
+
+const loadPolicyTile = createAsyncThunk(`${REDUCER_NAME}/loadPolicyTile`, (_, { rejectWithValue, dispatch }) => {
+  const promises = [dispatch(rootActions.loadApplicablePoliciesByOwner()), dispatch(stagesActions.loadActionStages())];
+  return Promise.all(promises)
+    .then(
+      ([
+        { payload: policiesByOwner },
+        {
+          payload: { data: actionStages },
+        },
+      ]) => {
+        const ownerIds = policiesByOwner.map(prop('ownerId'));
+
+        const updatedPoliciesByOwner = policiesByOwner.map((policyOwner, index) => {
+          const policies = policyOwner.policies.map((policy) => {
+            const actionsOverrideInfo = getActionsOverride(ownerIds, policy);
+            const actions = actionsOverrideInfo?.actionsOverride || policy.actions;
+
+            const enforcementAction = {};
+            actionStages.forEach((actionStage) => {
+              if (actions[actionStage.stageTypeId]) {
+                enforcementAction[actionStage.stageTypeId] = actions[actionStage.stageTypeId];
+              }
+            });
+
+            return {
+              ...policy,
+              hasLocalActionsOverrides: actionsOverrideInfo?.isCurrentOwnerOverride,
+              enforcementAction,
+            };
+          });
+
+          return {
+            ...policyOwner,
+            inherited: index > 0,
+            policies,
+          };
+        });
+
+        return updatedPoliciesByOwner;
+      }
+    )
+    .catch(rejectWithValue);
+});
+
+const loadPolicyTileRequested = (state) => {
+  state.policyTile.loading = true;
+  state.policyTile.loadError = null;
+};
+
+const loadPolicyTileFulfilled = (state, { payload }) => {
+  state.policyTile.loading = false;
+  state.policyTile.sorting = setInitialSorting(payload);
+  state.policyTile.policiesByOwner = sortItemsByField(payload, state.policyTile.sorting);
+};
+
+const loadPolicyTileFailed = (state, { payload }) => {
+  state.policyTile.loading = false;
+  state.policyTile.loadError = Messages.getHttpErrorMessage(payload);
+};
+
+const setInitialSorting = (policiesByOwner) => {
+  const mapped = map(
+    (owner) => ({
+      key: 'threatLevel',
+      dir: 'desc',
+      ownerName: owner.ownerName,
+    }),
+    policiesByOwner
+  );
+
+  const options = {};
+  mapped.forEach((option) => {
+    options[option.ownerName] = option;
+  });
+  return options;
+};
+
+const checkAreStageValuesEqual = (key, policies) => {
+  if (includes(key, ['name', 'threatLevel'])) {
+    return false;
+  }
+  const values = policies.map(
+    (policy) => policy[isNil(policy.hasLocalActionsOverrides) ? 'actions' : 'enforcementAction'][key]
+  );
+  return allEqual(values);
+};
+
+const sortItemsByField = (policiesByOwner, sortingConfig, updatedSorting = null) => {
+  if (!isNil(updatedSorting)) {
+    const { key, dir, ownerName } = updatedSorting;
+    const customSort = sortWith(policiesComparator(prop(key), key));
+
+    const cloned = clone(policiesByOwner);
+    const index = findIndex(propEq('ownerName', ownerName), cloned);
+    const equalValues = checkAreStageValuesEqual(key, cloned[index].policies);
+
+    if (equalValues) {
+      return policiesByOwner;
+    }
+
+    const sorted = customSort(cloned[index].policies);
+
+    cloned[index].policies = dir === 'asc' ? sorted : reverse(sorted);
+    return cloned;
+  }
+
+  return map((owner) => {
+    const { dir, key } = sortingConfig[owner.ownerName];
+    const customSort = sortWith(policiesComparator(prop(key), key));
+    return {
+      ...owner,
+      policies: dir === 'asc' ? customSort(owner.policies) : reverse(customSort(owner.policies)),
+    };
+  }, policiesByOwner);
+};
+
+const changeSortField = (state, { payload }) => {
+  const newSorting = {
+    ...state.policyTile.sorting,
+    [payload.ownerName]: payload,
+  };
+  state.policyTile.sorting = newSorting;
+  state.policyTile.policiesByOwner = sortItemsByField(state.policyTile.policiesByOwner, newSorting, payload);
 };
 
 const loadPolicyEditor = createAsyncThunk(
@@ -424,6 +571,13 @@ const goToCreatePolicy = createAsyncThunk(`${REDUCER_NAME}/goToCreatePolicy`, (_
   dispatch(stateGo(to, params));
 });
 
+const goToEditPolicy = createAsyncThunk(`${REDUCER_NAME}/goToEditPolicy`, (policyId, { getState, dispatch }) => {
+  const router = selectRouterSlice(getState());
+  const { to, params } = deriveEditRoute(router, 'policy', { policyId });
+
+  dispatch(stateGo(to, params));
+});
+
 const removePolicy = createAsyncThunk(`${REDUCER_NAME}/removePolicy`, (_, { getState, dispatch, rejectWithValue }) => {
   const state = getState();
   const { ownerType, ownerId } = selectOwnerProperties(state);
@@ -590,6 +744,7 @@ const policySlice = createSlice({
     setConditionValue: setConstraintConditionField('value'),
     setOverrideParentActions,
     unSetOverrideParentActions,
+    changeSortField,
   },
   extraReducers: {
     [loadCategoriesForPolicy.pending]: loadCategoriesForPolicyRequested,
@@ -601,6 +756,10 @@ const policySlice = createSlice({
     [savePolicy.pending]: savePolicyRequested,
     [savePolicy.fulfilled]: savePolicyFulfilled,
     [savePolicy.rejected]: savePolicyFailed,
+
+    [loadPolicyTile.pending]: loadPolicyTileRequested,
+    [loadPolicyTile.fulfilled]: loadPolicyTileFulfilled,
+    [loadPolicyTile.rejected]: loadPolicyTileFailed,
 
     [removePolicy.pending]: pathSetConst(['deleteModal', 'deleting'], true),
     [removePolicy.fulfilled]: removePolicyFulfilled,
@@ -622,12 +781,14 @@ export const actions = {
   ...policySlice.actions,
   loadCategoriesForPolicy,
   loadPolicyEditor,
+  loadPolicyTile,
   savePolicy,
   removePolicy,
   saveActionsOverride,
   removeActionsOverride,
   checkEditIqPermission,
   goToCreatePolicy,
+  goToEditPolicy,
 };
 
 export default policySlice.reducer;

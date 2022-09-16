@@ -14,8 +14,6 @@ import utilityModule from '../utility/utility.module';
 import permissionServiceModule from '../utilAngular/PermissionService';
 import validatorsModule from '../utilAngular/Validators';
 import storesModule from '../utilAngular/Stores';
-import ownerPolicyList from './summary/ownerPolicyList/ownerPolicyList';
-
 import licenseThreatGroupModule from '../policy/LicenseThreatGroupsController';
 import roleMembershipModule from '../role.membership/role.membership.module';
 import AccessTileController from './access/access.tile.controller';
@@ -35,7 +33,6 @@ import PolicyEditorConstraintsController from './policy/policy.editor.constraint
 import PolicyEditorController from './policy/policy.editor.controller';
 import PolicyEditorSummaryController from './policy/policy.editor.summary.controller';
 import PolicyEditorFormContainerController from './policy/policy.editor.form.container.controller';
-import PolicyTileController from './policy/policy.tile.controller';
 import PolicyEditorActionsDirective from './policy/policy.editor.actions.directive';
 import PolicyEditorNotificationsDirective from './policy/policy.editor.notifications.directive';
 import PolicyEditorConstraintsDirective from './policy/policy.editor.constraints.directive';
@@ -71,7 +68,7 @@ import CreateEditApplicationCategory from 'MainRoot/OrgsAndPolicies/createEditAp
 import ProprietaryComponentConfiguration from 'MainRoot/OrgsAndPolicies/proprietaryComponentConfig/ProprietaryComponentConfiguration';
 import OwnerSummaryTilesContainerController from './summary/owner.summary.tiles.container.controller';
 import PolicyGrandfatheringTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PolicyGrandfatheringTile';
-import PoliciesHeaderTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PoliciesHeaderTile';
+import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
 import ProprietaryComponentConfigurationTile from 'MainRoot/OrgsAndPolicies/ownerSummary/ProprietaryComponentConfigurationTile';
 import AccessPage from 'MainRoot/OrgsAndPolicies/access/AccessPage';
 import SourceControlTile from 'MainRoot/OrgsAndPolicies/ownerSummary/SourceControlTile';
@@ -106,7 +103,6 @@ export default angular
     sourceControlModule.name,
     artifactoryRepositoryModule.name,
   ])
-  .component('ownerPolicyList', ownerPolicyList)
   .controller('AccessTileController', AccessTileController)
   .directive('accessTile', AccessTile)
   .controller('license.threat.group.editor.controller', LicenseThreatGroupEditorController)
@@ -123,7 +119,6 @@ export default angular
   .controller('PolicyEditorController', PolicyEditorController)
   .controller('PolicyEditorSummaryController', PolicyEditorSummaryController)
   .controller('PolicyEditorFormContainerController', PolicyEditorFormContainerController)
-  .controller('policy.tile.controller', PolicyTileController)
   .directive('policyEditorActions', PolicyEditorActionsDirective)
   .directive('policyEditorNotifications', PolicyEditorNotificationsDirective)
   .directive('policyEditorConstraints', PolicyEditorConstraintsDirective)
@@ -147,7 +142,7 @@ export default angular
   .directive('sameOwnerEditSref', SameOwnerEditSref)
   .directive('sameOwnerViewSref', SameOwnerViewSref)
   .component('policyGrandfatheringTile', iqReact2Angular(PolicyGrandfatheringTile, [], ['$ngRedux', '$state']))
-  .component('policiesHeaderTile', iqReact2Angular(PoliciesHeaderTile, [], ['$ngRedux']))
+  .component('policiesTile', iqReact2Angular(PoliciesTile, [], ['$ngRedux']))
   .component(
     'proprietaryComponentConfigurationTile',
     iqReact2Angular(ProprietaryComponentConfigurationTile, [], ['$ngRedux', '$state'])

@@ -16,9 +16,10 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionsSection;
 import com.sonatype.clm.testing.functional.elements.IqCheckbox;
+import com.sonatype.clm.testing.functional.elements.NxTooltip;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -279,10 +280,17 @@ public class ApplicationPolicyEditorActionsOverrideTest
 
     refresh();
 
-    SelenideElement policyEntry = OwnerSummaryPage.policyTile().localPolicy(policy.getName());
+    PolicyTile policyTile = OwnerSummaryPage.policyTile();
+
+    SelenideElement policyEntry = policyTile.localPolicy(policy.getName());
     assertThat(policyEntry).isNotNull();
-    policyEntry.hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("Policy Actions are overridden"));
+    policyEntry.shouldHave(text("*" + policy.getName()));
+
+    SelenideElement overrideAsterisk = policyTile.policyOverrideAsterisk();
+    overrideAsterisk.hover();
+
+    NxTooltip tooltip = new NxTooltip();
+    tooltip.shouldBe(visible).shouldHave(text("Policy Actions are overridden"));
 
     eyesWatcher.eyesCheck("owner summary view with overridden policies");
   }

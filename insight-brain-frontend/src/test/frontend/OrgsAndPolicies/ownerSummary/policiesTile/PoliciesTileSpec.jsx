@@ -1,0 +1,317 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import { render, axiosMockAdapter, within, screen, fireEvent } from 'TestRoot/SpecUtil';
+
+import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
+import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
+import { getActionStageUrl, getApplicablePolicies } from 'MainRoot/util/CLMLocation';
+import {
+  rootOrganizationPoliciesByOwnerPayload,
+  rootOrganizationNoPoliciesByOwnerPayload,
+  organizationPoliciesByOwnerPayload,
+  actionStagesPayload,
+} from './policiesTileTestData';
+import { getNumberOfTables } from './policiesTableSpecUtil';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+
+describe('PoliciesTile', () => {
+  let axiosMock, goToCreatePolicySpy, preloadedState, ownerName, ownerId, ownerType, numberOfTables;
+  let firewallSupported = true;
+  let enforcementSupported = true;
+  const renderComponent = (preloadedState) => render(<PoliciesTile />, { preloadedState });
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
+
+  beforeEach(() => {
+    goToCreatePolicySpy = spyOn(policyActions, 'goToCreatePolicy').and.callThrough();
+    spyOn(policyActions, 'loadPolicyTile').and.callThrough();
+  });
+
+  describe('Loading and retry logic', () => {
+    beforeAll(() => {
+      ownerName = organizationPoliciesByOwnerPayload.ownerName;
+      ownerId = organizationPoliciesByOwnerPayload.ownerId;
+      ownerType = organizationPoliciesByOwnerPayload.ownerType;
+
+      preloadedState = {
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        productFeatures: {
+          loading: false,
+          loadError: null,
+          productFeatures: {
+            firewall: firewallSupported,
+            enforcement: enforcementSupported,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: ownerName,
+              policyViolationGrandfatheringEnabled: null,
+              allowPolicyViolationGrandfatheringOverride: true,
+              repositoryConnectionEnabled: null,
+              allowRepositoryConnectionOverride: true,
+              artifactoryConnectionEnabled: null,
+              allowArtifactoryConnectionOverride: true,
+            },
+          },
+          stages: {
+            action: {
+              loading: false,
+              error: null,
+              stageTypes: null,
+            },
+          },
+        },
+      };
+    });
+
+    it('renders a loading legend', () => {
+      renderComponent(preloadedState);
+      expect(screen.getByText('Loading…')).toBeVisible();
+    });
+
+    it('renders an alert with retry if something goes wrongs', async () => {
+      axiosMock
+        .onGet(getApplicablePolicies(ownerType, ownerId))
+        .reply(500, { data: { error: 'An error occurred loading data.' } });
+
+      renderComponent(preloadedState);
+      let failureAlert = await screen.findByRole('alert');
+      expect(failureAlert).toBeVisible();
+      expect(failureAlert).toHaveTextContent('An error occurred loading data.');
+      let retryButton = await within(failureAlert).getByRole('button');
+      expect(retryButton).toBeVisible();
+      fireEvent.click(retryButton);
+
+      expect(await screen.findByText('Loading…')).toBeVisible();
+      failureAlert = await screen.findByRole('alert');
+      expect(failureAlert).toBeVisible();
+      expect(failureAlert).toHaveTextContent('An error occurred loading data.');
+    });
+  });
+
+  describe('Owner is Root Organization', () => {
+    beforeAll(() => {
+      ownerName = rootOrganizationPoliciesByOwnerPayload.ownerName;
+      ownerId = rootOrganizationPoliciesByOwnerPayload.ownerId;
+      ownerType = rootOrganizationPoliciesByOwnerPayload.ownerType;
+      numberOfTables = getNumberOfTables(rootOrganizationPoliciesByOwnerPayload.policiesByOwner);
+
+      preloadedState = {
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        productFeatures: {
+          loading: false,
+          loadError: null,
+          productFeatures: {
+            firewall: firewallSupported,
+            enforcement: enforcementSupported,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: ownerName,
+              policyViolationGrandfatheringEnabled: null,
+              allowPolicyViolationGrandfatheringOverride: true,
+              repositoryConnectionEnabled: null,
+              allowRepositoryConnectionOverride: true,
+              artifactoryConnectionEnabled: null,
+              allowArtifactoryConnectionOverride: true,
+            },
+          },
+          stages: {
+            action: {
+              loading: false,
+              error: null,
+              stageTypes: null,
+            },
+          },
+        },
+      };
+    });
+
+    beforeEach(() => {
+      axiosMock
+        .onGet(getApplicablePolicies(ownerType, ownerId))
+        .reply(200, { policiesByOwner: rootOrganizationPoliciesByOwnerPayload.policiesByOwner });
+      axiosMock.onGet(getActionStageUrl()).reply(200, actionStagesPayload);
+
+      renderComponent(preloadedState);
+    });
+
+    describe('Tile Header', () => {
+      it('renders header with the correct title', async () => {
+        expect(await screen.findByText('Policies')).toBeVisible();
+      });
+
+      it('renders header with the correct subtitle', async () => {
+        let text = `applying to ${ownerName}`;
+        expect(await screen.findByText(text)).toBeVisible();
+      });
+
+      it('Add Policy button is visible and navigates to policy create page', async () => {
+        const addButton = await screen.findByRole('button', { name: 'Add a Policy' });
+        expect(addButton).toBeVisible();
+        fireEvent.click(addButton);
+        expect(goToCreatePolicySpy).toHaveBeenCalled();
+      });
+    });
+
+    describe('Tile Content', () => {
+      it('renders correct amount of tables', async () => {
+        const tables = await screen.findAllByRole('table');
+        expect(tables.length).toBe(numberOfTables);
+      });
+
+      it('render all correct titles', async () => {
+        const ownersWithPolicies = rootOrganizationNoPoliciesByOwnerPayload.policiesByOwner.filter(
+          (owner) => !isNilOrEmpty(owner.policies)
+        );
+        for (const owner of ownersWithPolicies) {
+          const index = ownersWithPolicies.indexOf(owner);
+          if (index === 0) {
+            expect(await screen.findByText('Local')).toBeVisible();
+          } else {
+            let title = `Inherited from ${owner.ownerName}`;
+            expect(await screen.findByText(title)).toBeVisible();
+          }
+        }
+      });
+    });
+  });
+
+  describe('Owner is Root Organization with no policies', () => {
+    beforeAll(() => {
+      ownerName = rootOrganizationNoPoliciesByOwnerPayload.ownerName;
+      ownerId = rootOrganizationNoPoliciesByOwnerPayload.ownerId;
+      ownerType = rootOrganizationNoPoliciesByOwnerPayload.ownerType;
+
+      preloadedState = {
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        productFeatures: {
+          loading: false,
+          loadError: null,
+          productFeatures: {
+            firewall: firewallSupported,
+            enforcement: enforcementSupported,
+          },
+        },
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: ownerId,
+              name: ownerName,
+              policyViolationGrandfatheringEnabled: null,
+              allowPolicyViolationGrandfatheringOverride: true,
+              repositoryConnectionEnabled: null,
+              allowRepositoryConnectionOverride: true,
+              artifactoryConnectionEnabled: null,
+              allowArtifactoryConnectionOverride: true,
+            },
+          },
+          stages: {
+            action: {
+              loading: false,
+              error: null,
+              stageTypes: null,
+            },
+          },
+        },
+      };
+    });
+
+    beforeEach(() => {
+      axiosMock
+        .onGet(getApplicablePolicies(ownerType, ownerId))
+        .reply(200, { policiesByOwner: rootOrganizationNoPoliciesByOwnerPayload.policiesByOwner });
+      axiosMock.onGet(getActionStageUrl()).reply(200, actionStagesPayload);
+
+      renderComponent(preloadedState);
+    });
+
+    describe('Tile Header', () => {
+      it('renders header with the correct title', async () => {
+        expect(await screen.findByText('Policies')).toBeVisible();
+      });
+
+      it('renders header with the correct subtitle', async () => {
+        let text = `applying to ${ownerName}`;
+        expect(await screen.findByText(text)).toBeVisible();
+      });
+
+      it('Add Policy button is visible and navigates to policy create page', async () => {
+        const addButton = await screen.findByRole('button', { name: 'Add a Policy' });
+        expect(addButton).toBeVisible();
+        fireEvent.click(addButton);
+        expect(goToCreatePolicySpy).toHaveBeenCalled();
+      });
+    });
+
+    describe('Tile Content', () => {
+      it('renders correct empty message text', async () => {
+        const emptyMessage = within(await screen.findByRole('list')).getAllByRole('listitem')[0];
+        expect(emptyMessage).toHaveTextContent('No local policies defined');
+      });
+
+      it('render all correct titles', async () => {
+        const ownersWithPolicies = rootOrganizationNoPoliciesByOwnerPayload.policiesByOwner.filter(
+          (owner) => !isNilOrEmpty(owner.policies)
+        );
+        for (const owner of ownersWithPolicies) {
+          const index = ownersWithPolicies.indexOf(owner);
+          if (index === 0) {
+            expect(await screen.findByText('Local')).toBeVisible();
+          } else {
+            let title = `Inherited from ${owner.ownerName}`;
+            expect(await screen.findByText(title)).toBeVisible();
+          }
+        }
+      });
+    });
+  });
+});

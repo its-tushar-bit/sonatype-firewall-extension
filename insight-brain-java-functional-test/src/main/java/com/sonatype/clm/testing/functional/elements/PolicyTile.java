@@ -16,7 +16,7 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class PolicyTile
     extends OwnerTile
 {
-  private static final String OWNER_POLICY_LIST = "owner-policy-list";
+  private static final String OWNER_POLICY = ".nx-tile-subsection";
 
   public PolicyTile() {
     super("#owner-pill-policy");
@@ -31,7 +31,7 @@ public class PolicyTile
   }
 
   public static Condition noActionText() {
-    return Condition.text("no action");
+    return Condition.text("—");
   }
 
   public SelenideElement addPolicyButton() {
@@ -39,15 +39,19 @@ public class PolicyTile
   }
 
   public ElementsCollection policyLists() {
-    return children(OWNER_POLICY_LIST);
+    return children(OWNER_POLICY);
   }
 
   public PolicyTileList policyList(int num) {
-    return new PolicyTileList(selector, OWNER_POLICY_LIST, nthChild(num + 1));
+    return new PolicyTileList(selector, OWNER_POLICY, nthChild(num + 1));
   }
 
   public SelenideElement localPolicy(String policyName) {
-    return children("table tr > .iq-cell--policy-list-name").findBy(text(policyName));
+    return children("table tr > .nx-cell:nth-of-type(2)").findBy(text(policyName));
+  }
+
+  public SelenideElement policyOverrideAsterisk() {
+    return children("table tr > .nx-cell:nth-of-type(2) span").findBy(text("*"));
   }
 
   @Override

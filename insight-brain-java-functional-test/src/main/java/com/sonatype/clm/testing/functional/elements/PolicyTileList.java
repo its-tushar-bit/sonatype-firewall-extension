@@ -17,6 +17,8 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class PolicyTileList
     extends GreedyTable<PolicyTileListElement>
 {
+  public static final Condition CELL_DISABLED = cssClass("policy-tile__cell--disabled");
+
   public PolicyTileList(String... selectors) {
     super(selectors);
   }
@@ -27,11 +29,15 @@ public class PolicyTileList
   }
 
   public SelenideElement ownerName() {
-    return child(".iq-list__title");
+    return child(".nx-h3");
   }
 
   public SelenideElement emptyDescriptor() {
-    return child(".iq-list__item--empty");
+    return child(".nx-cell--meta-info");
+  }
+
+  public SelenideElement localEmptyDescriptor() {
+    return child(".nx-list__item--empty");
   }
 
   public HeaderColumn threatLegendHeaderColumn() {
@@ -46,10 +52,6 @@ public class PolicyTileList
     return this.header(5);
   }
 
-  public static Condition threatLevel(int threatLevel) {
-    return cssClass("iq-threat-bar--policy-level-" + threatLevel);
-  }
-
   public static class PolicyTileListElement
       extends BasicElement<PolicyTileListElement>
   {
@@ -60,51 +62,55 @@ public class PolicyTileList
     public static final Condition FAIL_ICON = cssClass("fa-exclamation-circle");
 
     public static final Condition FAIL = cssClass("fail");
-    
-    public static final Condition CHEVRON = cssClass("iq-cell--chevron");
+
+    public static final Condition CHEVRON = cssClass("fa-chevron-right");
 
     public PolicyTileListElement(String... selectors) {
       super(selectors);
     }
 
     public SelenideElement threatLegend() {
-      return child(".iq-threat-bar");
+      return child(".nx-threat-number");
     }
 
     public SelenideElement name() {
-      return column(1);
-    }
-
-    public SelenideElement proxy() {
       return column(2);
     }
 
-    public SelenideElement develop() {
+    public SelenideElement proxy() {
       return column(3);
     }
 
-    public SelenideElement source() {
+    public SelenideElement develop() {
       return column(4);
     }
 
-    public SelenideElement build() {
+    public SelenideElement source() {
       return column(5);
     }
 
-    public SelenideElement stageRelease() {
+    public SelenideElement build() {
       return column(6);
     }
 
-    public SelenideElement release() {
+    public SelenideElement stageRelease() {
       return column(7);
     }
 
-    public SelenideElement operate() {
+    public SelenideElement release() {
       return column(8);
+    }
+
+    public SelenideElement operate() {
+      return column(9);
     }
 
     public SelenideElement column(int num) {
       return child("td", nthChild(num));
+    }
+
+    public SelenideElement chevronColumn(int num) {
+      return child("td", nthChild(num), ".nx-icon");
     }
 
     public SelenideElement chevron() {

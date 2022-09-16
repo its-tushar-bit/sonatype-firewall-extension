@@ -150,3 +150,10 @@ export const capitalizeFirstLetter = (string) => {
     return string.toLowerCase().charAt(0).toUpperCase() + string.slice(1);
   }
 };
+
+/**
+ * Checks whether all elements in the array are equal
+ * @param {*} arr - array with primitive values
+ * @returns Boolean
+ */
+export const allEqual = (arr) => arr.every((val) => val === arr[0]);

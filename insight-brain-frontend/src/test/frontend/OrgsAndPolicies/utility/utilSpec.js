@@ -3,11 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { sortWith, prop } from 'ramda';
 import {
   deriveEditRoute,
   deriveViewRoute,
   getOwnerName,
   getActionsOverride,
+  policiesComparator,
 } from 'MainRoot/OrgsAndPolicies/utility/util';
 
 describe('OrgsAndPolicies util', () => {
@@ -140,6 +142,136 @@ describe('OrgsAndPolicies util', () => {
         actionsOverride: { build: 'warn', release: 'warn' },
         isCurrentOwnerOverride: true,
       });
+    });
+  });
+
+  describe('policiesComparator', () => {
+    let policiesByOwner;
+
+    beforeEach(() => {
+      policiesByOwner = [
+        {
+          inherited: false,
+          ownerId: 'ROOT_ORGANIZATION_ID',
+          ownerName: 'Root Organization',
+          ownerType: 'organization',
+          policies: [
+            {
+              actions: { build: 'warn', develop: 'warn', operate: 'fail', release: 'fail', source: 'fail' },
+              enforcementAction: { build: 'warn', develop: 'warn', operate: 'fail', release: 'fail', source: 'fail' },
+              hasLocalActionsOverrides: undefined,
+              id: '1f5efb56c0784d7e8c084432ee1f08ac',
+              name: 'Root custom',
+              threatLevel: 7,
+            },
+            {
+              actions: {},
+              enforcementAction: {},
+              hasLocalActionsOverrides: undefined,
+              id: '7fb4196ab691480ead0f718b6e60a116',
+              name: 'License-Commercial',
+              threatLevel: 7,
+            },
+            {
+              actions: { proxy: 'fail' },
+              enforcementAction: { proxy: 'fail' },
+              hasLocalActionsOverrides: undefined,
+              id: 'd0b7cb708f554f558b921fbe278bf63c',
+              name: 'Security-Namespace Conflict',
+              threatLevel: 10,
+            },
+            {
+              actions: { build: 'fail', develop: 'fail' },
+              enforcementAction: { build: 'fail', develop: 'fail' },
+              hasLocalActionsOverrides: undefined,
+              id: '1334f90601014fcda903049dc2789aad',
+              name: 'Architecture-Quality',
+              threatLevel: 8,
+            },
+          ],
+          policyTags: [],
+        },
+      ];
+    });
+
+    it('sorts policies by "name" key in asc order', () => {
+      const key = 'name';
+      const customSort = sortWith(policiesComparator(prop(key), key));
+
+      const sorted = customSort(policiesByOwner[0].policies);
+      const nameOrder = sorted.map((item) => item.name);
+
+      expect(nameOrder).toEqual([
+        'Architecture-Quality',
+        'License-Commercial',
+        'Root custom',
+        'Security-Namespace Conflict',
+      ]);
+    });
+
+    it('sorts policies by "threatLevel" and "name" keys in asc order if key is "threatLevel"', () => {
+      const key = 'threatLevel';
+      const customSort = sortWith(policiesComparator(prop(key), key));
+
+      const sorted = customSort(policiesByOwner[0].policies);
+      const order = sorted.map((item) => ({ threatLevel: item.threatLevel, name: item.name }));
+
+      expect(order).toEqual([
+        {
+          threatLevel: 7,
+          name: 'License-Commercial',
+        },
+        {
+          threatLevel: 7,
+          name: 'Root custom',
+        },
+        {
+          threatLevel: 8,
+          name: 'Architecture-Quality',
+        },
+        {
+          threatLevel: 10,
+          name: 'Security-Namespace Conflict',
+        },
+      ]);
+    });
+
+    it('sorts policies by stage name key in asc order', () => {
+      const key = 'develop';
+      const customSort = sortWith(policiesComparator(prop(key), key));
+
+      const sorted = customSort(policiesByOwner[0].policies);
+      const nameOrder = sorted.map((item) => item.name);
+
+      expect(nameOrder).toEqual([
+        'Architecture-Quality',
+        'Root custom',
+        'License-Commercial',
+        'Security-Namespace Conflict',
+      ]);
+    });
+
+    it('sorts policies by stage name key in asc order taking in account hasLocalActionsOverrides flag', () => {
+      policiesByOwner[0].policies[1] = {
+        actions: {},
+        enforcementAction: { develop: 'warn' },
+        hasLocalActionsOverrides: true,
+        id: '7fb4196ab691480ead0f718b6e60a116',
+        name: 'License-Commercial',
+        threatLevel: 7,
+      };
+      const key = 'develop';
+      const customSort = sortWith(policiesComparator(prop(key), key));
+
+      const sorted = customSort(policiesByOwner[0].policies);
+      const nameOrder = sorted.map((item) => item.name);
+
+      expect(nameOrder).toEqual([
+        'Architecture-Quality',
+        'License-Commercial',
+        'Root custom',
+        'Security-Namespace Conflict',
+      ]);
     });
   });
 });

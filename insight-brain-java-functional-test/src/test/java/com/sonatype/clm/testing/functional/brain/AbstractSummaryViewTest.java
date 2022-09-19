@@ -23,18 +23,19 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn;
 import com.sonatype.clm.testing.functional.elements.InnerSourceRepositoryTile;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
-import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.ApplicableLicenseThreatGroupSection;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.LicenseThreatGroupElement;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
-import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList;
-import com.sonatype.clm.testing.functional.elements.ThreatGroupTileSimpleList.ThreatGroupTileSimpleListElement;
 import com.sonatype.clm.testing.functional.elements.NxList;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.utils.NxColor;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -61,6 +62,7 @@ import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -548,51 +550,47 @@ public abstract class AbstractSummaryViewTest
   }
 
   private void testLTGTile_Local(List<LicenseThreatGroup> locaLTGs) {
-    int hierarchySize = getHierarchySize(currentOwner);
+    LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
+    ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHaveSize(2);
 
-    LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
-    ltgTile.ltgLists().shouldHaveSize(hierarchySize);
-
+    ScrollUtil.scrollIntoView(ltgTile.nxHeader());
     if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
-      ltgTile.newButton().shouldBe(hidden);
+      ltgTile.addLTGButton().shouldNot(exist);
     }
     else {
-      ltgTile.newButton().shouldBe(visible);
+      ltgTile.addLTGButton().shouldBe(visible);
     }
 
     // scroll to the ltgs
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
 
-    for (int i = 0; i < hierarchySize; i++) {
-      ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
+    ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
 
-      if (i == 0) {
-        list.ownerName().shouldBe(visible).shouldHave(text("Local"));
-        list.emptyDescriptor().shouldNot(exist);
-        list.elements().shouldHaveSize(locaLTGs.size());
+    ScrollUtil.scrollIntoView(section.getTitle());
+    section.getTitle().shouldBe(visible).shouldHave(text("Local"));
+    section.getEmptyDescriptor().shouldNot(exist);
+    section.getTableContent().shouldHaveSize(locaLTGs.size());
 
-        for (int j = 0; j < locaLTGs.size(); j++) {
-          ThreatGroupTileSimpleListElement actualLTG = list.element(j);
-          LicenseThreatGroup expectedLTG = locaLTGs.get(j);
+    for (int j = 0; j < locaLTGs.size(); j++) {
+      LicenseThreatGroupElement actualLTG = section.getLicenseThreatGroupElement(section.getLTG(j));
+      //ThreatGroupTileSimpleListElement actualLTG = list.element(j);
+      LicenseThreatGroup expectedLTG = locaLTGs.get(j);
 
-          actualLTG.name().shouldBe(visible).shouldHave(text(expectedLTG.getName()));
+      actualLTG.getName().shouldBe(visible).shouldHave(text(expectedLTG.getName()));
 
-          actualLTG.threatLevel().shouldBe(visible)
-              .shouldHave(ThreatGroupTileSimpleList.threatLevel(expectedLTG.getThreatLevel()));
-          actualLTG.chevron().shouldBe(visible);
-        }
-      }
-      else if (i != hierarchySize - 1) {
-        list.ownerName().shouldNot(exist);
-        list.elements().shouldBe(empty);
-      }
-      else {
-        list.ownerName().shouldBe(visible);
-        list.emptyDescriptor().shouldBe(hidden);
-        list.elements().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
-      }
+      String threatLevel = String.valueOf(expectedLTG.getThreatLevel());
+      actualLTG.getThreatLevelValue().shouldBe(visible).shouldHave(text(threatLevel));
+      actualLTG.getThreatLevelIndicator().shouldBe(visible)
+        .shouldHave(LicenseThreatGroupElement.threatLevel(expectedLTG.getThreatLevel()));
+      actualLTG.getChevron().shouldBe(visible);
     }
+
+    section = ltgTile.getApplicableLicenseThreatGroupSection(1);
+    ScrollUtil.scrollIntoView(section.getTitle());
+    section.getTitle().shouldBe(visible).shouldHave(text("INHERITED FROM ROOT ORGANIZATION"));;
+    section.getEmptyDescriptor().shouldBe(hidden);
+    section.getTableContent().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
   }
 
   private void testAccessTile_Local(User testUser) {
@@ -838,46 +836,47 @@ public abstract class AbstractSummaryViewTest
   }
 
   private void testLTGTile_Inherited(List<List<LicenseThreatGroup>> inheritedLTGs, List<Owner> parentOwners) {
-    LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
+    LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
 
     // scroll to the ltgs
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
 
-    final int hierarchyCount = ltgTile.ltgLists().size();
+    final int hierarchyCount = ltgTile.getAllApplicableLicenseThreatGroupSection().size();
     for (int i = 0; i < hierarchyCount; i++) {
-      ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
+      ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(i);
+      ScrollUtil.scrollIntoView(section.getTitle());
 
       if (i == 0) {
-        if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
-          list.ownerName().shouldNot(exist);
-          list.emptyDescriptor().shouldNot(exist);
+        if (!OwnerType.APPLICATION.equals(currentOwner.getType())) {
+          section.getTitle().shouldBe(visible).shouldHave(text("Local"));
+          SelenideElement emptyDescriptor = section.getEmptyDescriptor();
+          if (section.getEmptyDescriptor() != null ) {
+            emptyDescriptor.should(exist).shouldBe(visible);
+            section.getTableContent().shouldHaveSize(1);
+          }
         }
-        else {
-          list.ownerName().shouldBe(visible).shouldHave(text("Local"));
-          list.emptyDescriptor().shouldBe(visible);
-        }
-        list.elements().shouldBe(empty);
       }
       else {
-        int expectedTestLTGSize = Organization.ROOT_ORGANIZATION_ID
-            .equals(parentOwners.get(i - 1).getId()) ? LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT : 0;
-        int expectedLTGCount = inheritedLTGs.get(i - 1).size() + expectedTestLTGSize;
-        list.elements().shouldHaveSize(expectedLTGCount);
-        list.ownerName().shouldBe(visible)
-            .shouldHave(LicenseThreatGroupTile.inheritedText(parentOwners.get(i - 1).getName()));
+        int element = i - 1;
+        int expectedTestLTGSize = Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(element).getId()) 
+            ? LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT : 0;
+        int expectedLTGCount = inheritedLTGs.get(element).size() + expectedTestLTGSize;
+        section.getTableContent().shouldHaveSize(expectedLTGCount);
+        section.getTitle().shouldBe(visible)
+            .shouldHave(LicenseThreatGroupSummaryTile.inheritedText(parentOwners.get(element).getName()));
 
         for (int j = 0; j < expectedLTGCount; j++) {
-          ThreatGroupTileSimpleListElement actualLTG = list.element(j);
+          LicenseThreatGroupElement actualLTG = section.getLicenseThreatGroupElement(section.getLTG(j));
 
           if (inheritedLTGs.size() < i) {
             LicenseThreatGroup expectedLTG = inheritedLTGs.get(i - 1).get(j);
-            actualLTG.name().shouldBe(visible).shouldHave(text(expectedLTG.getName()));
-            actualLTG.threatLevel().shouldBe(visible)
-                .shouldHave(ThreatGroupTileSimpleList.threatLevel(expectedLTG.getThreatLevel()));
+            actualLTG.getName().shouldBe(visible).shouldHave(text(expectedLTG.getName()));
+            actualLTG.getThreatLevelValue().shouldBe(visible)
+                .shouldHave(LicenseThreatGroupElement.threatLevel(expectedLTG.getThreatLevel()));
           }
 
-          actualLTG.chevron().shouldBe(hidden);
+          actualLTG.getChevron().shouldNot(exist);
         }
       }
     }

@@ -121,6 +121,26 @@ export function getOrganizationsUrl() {
   return uriTemplate`/rest/organization`;
 }
 
+export function getAllLicensesUrl() {
+  return uriTemplate`/rest/license`;
+}
+
+export function getLicenseGroupsUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/licenseThreatGroup/${ownerType}/${ownerId}`;
+}
+
+export function getApplicableLicenseGroupsUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/licenseThreatGroup/${ownerType}/${ownerId}/applicable`;
+}
+
+export function getDeleteLicenseGroupUrl(ownerType, ownerId, licenseThreatGroupId) {
+  return uriTemplate`/rest/licenseThreatGroup/${ownerType}/${ownerId}/${licenseThreatGroupId}`;
+}
+
+export function getLicenseGroupLicensesUrl(ownerType, ownerId, licenseThreatGroupId) {
+  return uriTemplate`/rest/licenseThreatGroupLicense/${ownerType}/${ownerId}/${licenseThreatGroupId}`;
+}
+
 export function getIsHdsReachable() {
   return uriTemplate`/rest/hdsPing`;
 }

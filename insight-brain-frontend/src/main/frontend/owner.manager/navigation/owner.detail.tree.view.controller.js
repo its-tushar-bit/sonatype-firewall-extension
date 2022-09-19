@@ -17,6 +17,7 @@ import {
   selectIsMonitoringSupported,
   selectIsGrandfatheringSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectLicenseThreatGroupSiblings } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
 import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
@@ -116,7 +117,7 @@ export default function OwnerDetailTreeViewController(
       });
   }
 
-  $scope.$watchGroup(['vm.labels', 'vm.access', 'vm.categories'], function (watched) {
+  $scope.$watchGroup(['vm.labels', 'vm.access', 'vm.categories', 'vm.licenseThreatGroups'], function (watched) {
     if (any(complement(isNil), watched)) {
       vm.doLoad();
     }
@@ -132,6 +133,7 @@ export const mapStateToThis = (state) => ({
   policies: selectPolicySiblings(state),
   isMonitoringSupported: selectIsMonitoringSupported(state),
   isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
+  licenseThreatGroups: selectLicenseThreatGroupSiblings(state),
   ownerName: selectSelectedOwnerName(state),
   loading: selectLoading(state),
   loadError: selectLoadError(state),

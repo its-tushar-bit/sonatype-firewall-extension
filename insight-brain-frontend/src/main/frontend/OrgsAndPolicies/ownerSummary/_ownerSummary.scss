@@ -7,6 +7,14 @@
 .iq-tile-scroll-container .nx-tile {
   margin-right: var(--nx-spacing-3x);
 }
+
 .hexagon.nx-icon {
   fill: var(--nx-selectable-color-dark);
+}
+
+// this style will be removed once the whole policy tile is migrated to React
+policies-header-tile {
+  .nx-tile-header {
+    padding-bottom: var(--nx-spacing-4x);
+  }
 }

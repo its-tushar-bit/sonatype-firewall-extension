@@ -9,6 +9,7 @@ import {
   deriveViewRoute,
   getOwnerName,
   getActionsOverride,
+  sortByThreatLevel,
   policiesComparator,
 } from 'MainRoot/OrgsAndPolicies/utility/util';
 
@@ -142,6 +143,83 @@ describe('OrgsAndPolicies util', () => {
         actionsOverride: { build: 'warn', release: 'warn' },
         isCurrentOwnerOverride: true,
       });
+    });
+  });
+
+  describe('sortByThreatLevel', () => {
+    it('return a sorted list of license threat groups', () => {
+      const licenseThreatGroups = [
+        {
+          id: '542783ebfbc54698962875340a4f805b',
+          name: 'Banned',
+          threatLevel: 1,
+          licenses: [],
+        },
+        {
+          id: '7dea5f29e910404f86d76d32c0a31fdc',
+          name: 'Liberal',
+          threatLevel: 0,
+          licenses: [],
+        },
+        {
+          id: '542783ebfbc54698962875340a4f805b',
+          name: 'Banned',
+          threatLevel: 10,
+          licenses: [],
+        },
+        {
+          id: '7dea5f29e910404f86d76d32c0a31fdc',
+          name: 'Liberal2',
+          threatLevel: 0,
+          licenses: [],
+        },
+        {
+          id: '7c6ad1eeefa848f5ae434464f0132599',
+          name: 'Commercial',
+          threatLevel: 7,
+          licenses: [],
+        },
+      ];
+
+      const sortedList = sortByThreatLevel(licenseThreatGroups);
+      expect(sortedList).toHaveSize(5);
+      expect(sortedList[0]).toEqual({
+        id: '542783ebfbc54698962875340a4f805b',
+        name: 'Banned',
+        threatLevel: 10,
+        licenses: [],
+      });
+      expect(sortedList[1]).toEqual({
+        id: '7c6ad1eeefa848f5ae434464f0132599',
+        name: 'Commercial',
+        threatLevel: 7,
+        licenses: [],
+      });
+      expect(sortedList[2]).toEqual({
+        id: '542783ebfbc54698962875340a4f805b',
+        name: 'Banned',
+        threatLevel: 1,
+        licenses: [],
+      });
+      expect(sortedList[3]).toEqual({
+        id: '7dea5f29e910404f86d76d32c0a31fdc',
+        name: 'Liberal2',
+        threatLevel: 0,
+        licenses: [],
+      });
+      expect(sortedList[4]).toEqual({
+        id: '7dea5f29e910404f86d76d32c0a31fdc',
+        name: 'Liberal',
+        threatLevel: 0,
+        licenses: [],
+      });
+    });
+
+    it('Returns an empty list if list is empty', () => {
+      const licenseThreatGroups = [];
+
+      const sortedList = sortByThreatLevel(licenseThreatGroups);
+      expect(sortedList).toEqual([]);
     });
   });
 

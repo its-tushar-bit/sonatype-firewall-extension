@@ -127,6 +127,7 @@
 @use '../OrgsAndPolicies/ownerSummary/labelsTile/labelsTile';
 @use '../OrgsAndPolicies/ownerSummary/policiesTile/policiesTile';
 @use '../OrgsAndPolicies/ownerSummary/retentionTile/retentionTile';
+@use '../OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/applicableLicenseThreatGroupTable';
 @use '../OrgsAndPolicies/сontinuousMonitoringEditor/continuousMonitoringEditor';
 @use '../firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';
 @use '../api/apiPage';

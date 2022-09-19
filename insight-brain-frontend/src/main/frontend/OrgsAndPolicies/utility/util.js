@@ -3,7 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { compose, includes, propEq, propOr, find, findIndex, equals, invertObj, ascend, prop, isNil } from 'ramda';
+import {
+  compose,
+  includes,
+  propEq,
+  propOr,
+  find,
+  findIndex,
+  equals,
+  invertObj,
+  sortWith,
+  descend,
+  ascend,
+  prop,
+  isNil,
+} from 'ramda';
 
 export function deriveEditRoute(routerState, to, params = {}) {
   return deriveRouteFromStateParams('edit', routerState, to, params);
@@ -83,6 +97,8 @@ export const getActionsOverride = (ownerHierarchyIds, policy) => {
 
   return actionsOverride ? { actionsOverride, isCurrentOwnerOverride } : null;
 };
+
+export const sortByThreatLevel = sortWith([descend(prop('threatLevel')), descend(prop('name'))]);
 
 export const rscToAngularColorMap = {
   purple: 'light-purple',

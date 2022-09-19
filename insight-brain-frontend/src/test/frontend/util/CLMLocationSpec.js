@@ -3,8 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as urlUtil from '../../../main/frontend/util/urlUtil';
-import * as clmLocation from '../../../main/frontend/util/CLMLocation';
+import * as urlUtil from 'MainRoot/util/urlUtil';
+import * as clmLocation from 'MainRoot/util/CLMLocation';
 
 describe('CLMLocation.js', function () {
   let CLMLocation, CLMLocationsService, $window;
@@ -286,6 +286,66 @@ describe('CLMLocation.js', function () {
     expect(CLMLocation.getLegalDashboardDeleteFilterUrl('theFilterName')).toBe(
       '/rest/userFilter/?name=theFilterName&type=ADVANCED_LEGAL_PACK_DASHBOARD'
     );
+  });
+
+  it('should return the all licenses url', function () {
+    expect(CLMLocation.getAllLicensesUrl()).toBe('/rest/license');
+  });
+
+  describe('getLicenseGroupsUrl', () => {
+    it('returns the license threat group url with application', () => {
+      expect(CLMLocation.getLicenseGroupsUrl('application', 'applicationId')).toBe(
+        '/rest/licenseThreatGroup/application/applicationId'
+      );
+    });
+
+    it('returns the license threat group url with organization', () => {
+      expect(CLMLocation.getLicenseGroupsUrl('organization', 'organizationId')).toBe(
+        '/rest/licenseThreatGroup/organization/organizationId'
+      );
+    });
+  });
+
+  describe('getApplicableLicenseGroupsUrl', () => {
+    it('returns the applicable license threat group url with application', () => {
+      expect(CLMLocation.getApplicableLicenseGroupsUrl('application', 'applicationId')).toBe(
+        '/rest/licenseThreatGroup/application/applicationId/applicable'
+      );
+    });
+
+    it('returns the applicable license threat group url with organization', () => {
+      expect(CLMLocation.getApplicableLicenseGroupsUrl('organization', 'organizationId')).toBe(
+        '/rest/licenseThreatGroup/organization/organizationId/applicable'
+      );
+    });
+  });
+
+  describe('getDeleteLicenseGroupUrl', () => {
+    it('returns the delete license threat group url with application', () => {
+      expect(CLMLocation.getDeleteLicenseGroupUrl('application', 'applicationId', 'ltgId')).toBe(
+        '/rest/licenseThreatGroup/application/applicationId/ltgId'
+      );
+    });
+
+    it('returns the delete license threat group url with organization', () => {
+      expect(CLMLocation.getDeleteLicenseGroupUrl('organization', 'organizationId', 'ltgId')).toBe(
+        '/rest/licenseThreatGroup/organization/organizationId/ltgId'
+      );
+    });
+  });
+
+  describe('getLicenseGroupLicensesUrl', () => {
+    it('returns the license threat group licenses url with application', () => {
+      expect(CLMLocation.getLicenseGroupLicensesUrl('application', 'applicationId', 'ltgId')).toBe(
+        '/rest/licenseThreatGroupLicense/application/applicationId/ltgId'
+      );
+    });
+
+    it('returns the license threat group licenses url with organization', () => {
+      expect(CLMLocation.getLicenseGroupLicensesUrl('organization', 'organizationId', 'ltgId')).toBe(
+        '/rest/licenseThreatGroupLicense/organization/organizationId/ltgId'
+      );
+    });
   });
 
   it('should return the application save component copyright override url', function () {

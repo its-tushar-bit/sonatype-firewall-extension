@@ -14,15 +14,12 @@ import utilityModule from '../utility/utility.module';
 import permissionServiceModule from '../utilAngular/PermissionService';
 import validatorsModule from '../utilAngular/Validators';
 import storesModule from '../utilAngular/Stores';
-import licenseThreatGroupModule from '../policy/LicenseThreatGroupsController';
 import roleMembershipModule from '../role.membership/role.membership.module';
 import AccessTileController from './access/access.tile.controller';
 import AccessTile from './access/access.tile.directive';
 import LocalRoleService from './utility/local.role.service';
 import SameOwnerStateNavigationService from './utility/same.owner.state.navigation.service';
 import RoleMappingService from './access/role.mapping.service';
-import LicenseThreatGroupEditorController from './license.threat.group/license.threat.group.editor.controller';
-import LicenseThreatGroupTileController from './license.threat.group/license.threat.group.tile.controller';
 import OwnerDetailTreeViewController from './navigation/owner.detail.tree.view.controller';
 import OwnerDetailTreeViewDirective from './navigation/owner.detail.tree.view.directive';
 import ownerTreeView from './navigation/owner.tree.view.directive';
@@ -58,10 +55,10 @@ import viewTemplate from './state/owner.manager.view.html';
 import repoSummaryTemplate from './repositories/repositories.summary.view.html';
 import summaryViewTemplate from './summary/owner.summary.view.html';
 import policyEditorTemplate from './policy/policy.editor.view.html';
-import ltgEditorTemplate from './license.threat.group/license.threat.group.editor.view.html';
 import SourceControlService from './source.control/source.control.service';
 import ContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/ContinuousMonitoringEditor';
 import artifactoryRepositoryModule from './artifactory.repository/module';
+import LicenseThreatGroupEditor from 'MainRoot/OrgsAndPolicies/licenseThreatGroupEditor/LicenseThreatGroupEditor';
 import LabelsTile from 'MainRoot/OrgsAndPolicies/ownerSummary/labelsTile/LabelsTile';
 import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/componentLabels/CreateComponentLabel';
 import CreateEditApplicationCategory from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/CreateEditApplicationCategory';
@@ -83,11 +80,11 @@ import RevokeGrandfatheringModal from 'MainRoot/OrgsAndPolicies/revokeGrandfathe
 import RetentionTile from 'MainRoot/OrgsAndPolicies/ownerSummary/retentionTile/RetentionTile';
 import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
 import MoveApplicationModal from 'MainRoot/OrgsAndPolicies/moveApplicationModal/MoveApplicationModal';
+import LicenseThreatGroupSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/LicenseThreatGroupSummaryTile';
 
 export default angular
   .module('owner.manager.module', [
     storesModule.name,
-    licenseThreatGroupModule.name,
     'ui.bootstrap',
     'ui.router',
     angularCommonModule.name,
@@ -105,8 +102,6 @@ export default angular
   ])
   .controller('AccessTileController', AccessTileController)
   .directive('accessTile', AccessTile)
-  .controller('license.threat.group.editor.controller', LicenseThreatGroupEditorController)
-  .controller('LicenseThreatGroupTileController', LicenseThreatGroupTileController)
   .controller('OwnerDetailTreeViewController', OwnerDetailTreeViewController)
   .directive('ownerDetailTreeView', OwnerDetailTreeViewDirective)
   .directive('ownerTreeView', ownerTreeView)
@@ -141,6 +136,7 @@ export default angular
   .directive('numberInputWithStringValue', NumberInputWithStringValue)
   .directive('sameOwnerEditSref', SameOwnerEditSref)
   .directive('sameOwnerViewSref', SameOwnerViewSref)
+  .component('licenseThreatGroupEditor', iqReact2Angular(LicenseThreatGroupEditor, [], ['$ngRedux']))
   .component('policyGrandfatheringTile', iqReact2Angular(PolicyGrandfatheringTile, [], ['$ngRedux', '$state']))
   .component('policiesTile', iqReact2Angular(PoliciesTile, [], ['$ngRedux']))
   .component(
@@ -171,6 +167,10 @@ export default angular
     iqReact2Angular(PolicyViolationGrandfatheringEditor, [], ['$ngRedux'])
   )
   .component('moveApplicationModal', iqReact2Angular(MoveApplicationModal, [], ['$ngRedux']))
+  .component(
+    'licenseThreatGroupSummaryTile',
+    iqReact2Angular(LicenseThreatGroupSummaryTile, [], ['$ngRedux', '$state'])
+  )
   .config([
     '$stateProvider',
     function ($stateProvider) {
@@ -391,13 +391,11 @@ export default angular
             url: '/licenseThreatGroup/{licenseThreatGroupId}',
             data: {
               title: ownerType.name + ' License Threat Groups',
+              isDirty: ['orgsAndPolicies', 'licenseThreatGroups', 'isDirty'],
             },
             views: {
               '@management.edit': {
-                controller: 'license.threat.group.editor.controller',
-                controllerAs: 'vm',
-                template: ltgEditorTemplate,
-                clmBuildTimestamp,
+                component: 'licenseThreatGroupEditor',
               },
             },
           })
@@ -454,13 +452,12 @@ export default angular
         .state('management.edit.organization.create-license-threat-group', {
           data: {
             title: 'Organization License Threat Group',
+            isDirty: ['orgsAndPolicies', 'licenseThreatGroups', 'isDirty'],
           },
           url: '/licenseThreatGroup',
           views: {
             '@management.edit': {
-              controller: 'license.threat.group.editor.controller',
-              controllerAs: 'vm',
-              template: ltgEditorTemplate,
+              component: 'licenseThreatGroupEditor',
             },
           },
         })

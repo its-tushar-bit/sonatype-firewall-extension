@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.elements.*;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.ApplicableLicenseThreatGroupSection;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
@@ -234,31 +235,27 @@ public class ApplicationSummaryViewTest
 
   @Test
   public void testLTGTile_NoLocal() {
-    int hierarchySize = getHierarchySize(application);
-
-    LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
-    ltgTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(application.getName()));
+    LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
+    ScrollUtil.scrollIntoView(ltgTile.nxHeader());
+    ltgTile.nxHeader().shouldBe(visible).shouldHave(text("License Threat Groups"));
+    ltgTile.nxSubHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(application.getName()));
     ltgTile.newButton().shouldBe(hidden);
 
-    ltgTile.ltgLists().shouldHaveSize(hierarchySize);
-
-    ScrollUtil.scrollIntoView(ltgTile.header());
+    ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHaveSize(2);
+    ScrollUtil.scrollIntoView(ltgTile.nxHeader());
     eyesWatcher.eyesCheck("Application License Threat Group Tile with no local threats");
 
-    for (int i = 0; i < hierarchySize; i++) {
-      ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
+    ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
+    ScrollUtil.scrollIntoView(section.getTitle());
+    section.getTitle().shouldBe(visible).shouldHave(text("LOCAL"));
+    section.getEmptyDescriptor().shouldBe(visible);
 
-      if (i != hierarchySize - 1) {
-        list.ownerName().shouldBe(hidden);
-        list.emptyDescriptor().shouldBe(hidden);
-        list.elements().shouldBe(empty);
-      }
-      else {
-        list.ownerName().shouldBe(visible);
-        list.emptyDescriptor().shouldBe(hidden);
-        list.elements().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
-      }
-    }
+    section = ltgTile.getApplicableLicenseThreatGroupSection(1);
+    ScrollUtil.scrollIntoView(section.getTitle());
+    section.getTitle().shouldBe(visible).shouldHave(text("INHERITED FROM ROOT ORGANIZATION"));
+    section.getEmptyDescriptor().shouldBe(hidden);
+    section.getTableContent().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
+
   }
 
   @Override

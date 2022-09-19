@@ -1,0 +1,23 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+.nx-table.iq-ltg-summary-table {
+  thead > .nx-table-row {
+    > .nx-cell:first-child {
+      width: 1px;
+    }
+  }
+
+  tbody > .nx-table-row {
+    > .nx-cell:first-child {
+      //put it like this so that first cell containing threat indicator will take just the right amount of space
+      width: 1px;
+    }
+
+    > .nx-cell:nth-child(2) {
+      font-weight: bold;
+    }
+  }
+}

@@ -215,57 +215,7 @@ class="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-
       <continuous-monitoring-summary-tile></continuous-monitoring-summary-tile>
       <proprietary-component-configuration-tile></proprietary-component-configuration-tile>
       <labels-tile></labels-tile>
-      <div class="iq-tile" id="owner-pill-ltgs" ng-controller="LicenseThreatGroupTileController as vm">
-        <div load-wrapper="vm.loadError"
-             loading="!(vm.ownerName && vm.applicableLicenseGroups)"
-             reload="vm.doLoad()">
-          <div class="iq-tile__actions" ng-if="vm.isOrg">
-            <button id="add-ltg-button"
-                    class="iq-btn iq-btn--tertiary"
-                    same-owner-edit-sref="create-license-threat-group">
-              <i class="fa fa-plus"></i>Add a Threat Group
-            </button>
-          </div>
-          <div class="iq-tile-header">
-            <div class="iq-tile-header__title">
-              <i class="fa fa-book size-20px slate iq-tile-header__icon"></i>
-              <h2>License Threat Groups</h2>
-            </div>
-            <div class="iq-tile-header__subtitle">
-              available to {{vm.ownerName}} policies
-            </div>
-          </div>
-          <div class="iq-tile-content" id="ltg-summary-hierarchy">
-            <div class="iq-list"
-                 ng-repeat="ownerLicenseGroupList in vm.applicableLicenseGroups"
-                 ng-class="{'iq-list--clickable': !ownerLicenseGroupList.inherited}">
-              <h4 class="iq-list__title"
-                  ng-if="!ownerLicenseGroupList.inherited && (ownerLicenseGroupList.licenseThreatGroups.length > 0 || ownerLicenseGroupList.ownerType !== 'application')">
-                Local
-              </h4>
-              <h4 class="iq-list__title"
-                  ng-if="ownerLicenseGroupList.inherited && ownerLicenseGroupList.licenseThreatGroups.length > 0">
-                  Inherited from {{ownerLicenseGroupList.ownerName}}
-              </h4>
-              <div class="iq-list__item iq-list__item--empty"
-                   ng-if="!ownerLicenseGroupList.inherited && ownerLicenseGroupList.licenseThreatGroups.length <= 0 && ownerLicenseGroupList.ownerType !== 'application'">
-                No local threat groups defined
-              </div>
-              <ul ng-if="ownerLicenseGroupList.licenseThreatGroups.length > 0">
-                <li class="iq-list__item"
-                    ng-repeat="licenseThreatGroup in ownerLicenseGroupList.licenseThreatGroups | orderBy: ['-threatLevel', 'name']"
-                    ng-click="vm.editLTG(licenseThreatGroup.id, ownerLicenseGroupList.inherited)">
-                  <i ng-if="!ownerLicenseGroupList.inherited" class="fa fa-chevron-right iq-pull-right"></i>
-                  <span class="iq-threat-bar iq-threat-bar--{{licenseThreatGroup.threatLevel}}"></span>
-                  <span class="test-list-item-title">
-                    {{licenseThreatGroup.name}}
-                  </span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
+      <license-threat-group-summary-tile></license-threat-group-summary-tile>
       <retention-tile></retention-tile>
       <source-control-tile></source-control-tile>
       <inner-source-repository-tile></inner-source-repository-tile>

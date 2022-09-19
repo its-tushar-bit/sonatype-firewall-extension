@@ -5,9 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.model.Application;
@@ -40,7 +39,7 @@ public class ApplicationLTGEditorTest
 
   @Test
   public void testCreateLTG() {
-    OwnerSummaryPage.licenseThreatGroupTile().addLTGButton().shouldNot(exist);
+    OwnerSummaryPage.licenseThreatGroupSummaryTile().addLTGButton().shouldNot(exist);
   }
 
   @Test
@@ -50,29 +49,34 @@ public class ApplicationLTGEditorTest
 
     refresh();
 
-    OwnerSummaryPage.licenseThreatGroupTile().localLTG(ltg.getName()).click();
+    OwnerSummaryPage.licenseThreatGroupSummaryTile().getLocalLTGSection().getLTG(ltg.getName()).click();
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner, ltg.getId()));
     LTGEditorPage.title().shouldHave(text("Edit"));
-    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("app ltg 1"));
+    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(value("app ltg 1"));
 
     LTGEditorPage.deleteButton().click();
-    DeleteModal.root().shouldBe(visible);
-    DeleteModal.header().shouldHave(DeleteModal.headerText("License Threat Group"));
-    DeleteModal.body().shouldHave(DeleteModal.bodyText(ltg.getName()));
 
-    DeleteModal.continueButton().click();
+    NxDeleteModal deleteModal = LTGEditorPage.deleteModal();
+
+    deleteModal.shouldBe(visible);
+    deleteModal.header().shouldHave(text("Delete License Threat Group"));
+    deleteModal.alertContent().shouldHave(text("You are about to permanently remove " + ltg.getName() +
+        ". This action cannot be undone."));
+
+    deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldBe(hidden);
+    deleteModal.shouldBe(hidden);
 
     waitUntilUrl(LTGEditorPage.urlToEdit(currentOwner, ltg2.getId()));
+
     LTGEditorPage.title().shouldHave(text("Edit"));
-    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(CLM.PRISTINE).shouldHave(value("app ltg 2"));
+    LTGEditorPage.ltgName().shouldBe(visible).shouldHave(value("app ltg 2"));
 
     LTGEditorPage.deleteButton().click();
-    DeleteModal.root().shouldBe(visible);
-    DeleteModal.continueButton().click();
+    deleteModal.shouldBe(visible);
+    deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldBe(hidden);
+    deleteModal.shouldBe(hidden);
 
     // no more ltgs left to delete so take user back to the summary page
     waitUntilUrl(OwnerSummaryPage.url(application));

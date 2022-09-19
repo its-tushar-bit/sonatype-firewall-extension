@@ -11,7 +11,7 @@ import com.sonatype.clm.testing.functional.elements.CategoryTile;
 import com.sonatype.clm.testing.functional.elements.DataRetentionTile;
 import com.sonatype.clm.testing.functional.elements.InnerSourceRepositoryTile;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
-import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.SourceControlTile;
@@ -73,8 +73,8 @@ public class OwnerSummaryPage
     return new LabelTile();
   }
 
-  public static LicenseThreatGroupTile licenseThreatGroupTile() {
-    return new LicenseThreatGroupTile();
+  public static LicenseThreatGroupSummaryTile licenseThreatGroupSummaryTile() {
+    return new LicenseThreatGroupSummaryTile();
   }
 
   public static DataRetentionTile dataRetentionTile() {

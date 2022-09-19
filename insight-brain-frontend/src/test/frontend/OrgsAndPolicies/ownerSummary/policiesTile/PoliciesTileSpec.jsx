@@ -15,7 +15,7 @@ import {
   organizationPoliciesByOwnerPayload,
   actionStagesPayload,
 } from './policiesTileTestData';
-import { getNumberOfTables } from './policiesTableSpecUtil';
+import { getNumberOfTables } from '../utils/tileAndTableTestingUtils';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 describe('PoliciesTile', () => {
@@ -115,7 +115,7 @@ describe('PoliciesTile', () => {
       ownerName = rootOrganizationPoliciesByOwnerPayload.ownerName;
       ownerId = rootOrganizationPoliciesByOwnerPayload.ownerId;
       ownerType = rootOrganizationPoliciesByOwnerPayload.ownerType;
-      numberOfTables = getNumberOfTables(rootOrganizationPoliciesByOwnerPayload.policiesByOwner);
+      numberOfTables = getNumberOfTables('policies', rootOrganizationPoliciesByOwnerPayload.policiesByOwner);
 
       preloadedState = {
         router: {

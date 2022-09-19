@@ -9,7 +9,7 @@ import * as PropTypes from 'prop-types';
 
 export default function UnsavedChangesModal({ onContinue, onClose }) {
   return (
-    <NxModal id="unsaved-modal">
+    <NxModal id="unsaved-modal" variant="narrow">
       <header className="nx-modal-header">
         <h2 className="nx-h2">Unsaved Changes</h2>
       </header>

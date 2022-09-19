@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -719,6 +720,9 @@ public class RepositoryMatcher
       if (resolvedId != null && hasRequiredCoordinates(resolvedId)) {
         return resolvedId;
       }
+      else {
+        log.debug("Unable to parse the uri {}.", result.uri);
+      }
     }
     return null;
   }
@@ -738,6 +742,7 @@ public class RepositoryMatcher
       path = path.substring(start + API_STORAGE_PREFIX.length());
       String[] pathParts = StringUtils.split(path, "/");
       // We expect at least [repo]/[group]/[artifact]/[version]/[filename.extension]
+      log.debug("Parsing the path {} from Artifactory.", path);
       if (pathParts.length >= 5) {
         String extension = resolveExtension(pathParts[pathParts.length - 1]);
         pathParts = ArrayUtils.removeAll(pathParts, 0, pathParts.length - 1); // remove repository and filename

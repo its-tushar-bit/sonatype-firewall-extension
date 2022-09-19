@@ -34,6 +34,10 @@ public abstract class GreedyTable<RowElementT>
     return $$(createSelector(selector, "thead th .up") + ", " + createSelector(selector, "thead th .down"));
   }
 
+  public SelenideElement nxSelectedHeaderElements() {
+    return $$(createSelector(selector, "thead th .fa-sort-up")).get(0);
+  }
+
   public HeaderColumn header(int num) {
     return new HeaderColumn(child("thead th", nthChild(num + 1)));
   }
@@ -43,11 +47,19 @@ public abstract class GreedyTable<RowElementT>
     return new HeaderColumn(selectedHeaderElements().get(0).parent().parent().parent());
   }
 
+  public HeaderColumn nxSelectedHeaderColumn() {
+    return new HeaderColumn(nxSelectedHeaderElements().closest(".nx-cell"));
+  }
+
   public static class HeaderColumn
   {
     public static final Condition UP_SELECTED = cssClass("up");
 
+    public static final String NX_UP_SELECTED = ".fa-sort-up";
+
     public static final Condition DOWN_SELECTED = cssClass("down");
+
+    public static final String NX_DOWN_SELECTED = ".fa-sort-down";
 
     public static final Condition COLUMN_SELECTED = cssClass("selected-column");
 
@@ -67,6 +79,18 @@ public abstract class GreedyTable<RowElementT>
 
     public SelenideElement downArrow() {
       return root.$(".fa-caret-down");
+    }
+
+    public SelenideElement nxAnchor() {
+      return root.$("button");
+    }
+
+    public SelenideElement nxAnchorHeader() {
+      return root.$("span");
+    }
+
+    public SelenideElement sort(String sortClass) {
+      return root.$(".nx-cell__sort-icons " + sortClass);
     }
 
     public SelenideElement name() {

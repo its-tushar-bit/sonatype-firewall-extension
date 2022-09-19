@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { compose, includes, propEq, propOr, find, findIndex, equals, invertObj } from 'ramda';
+import { compose, includes, propEq, propOr, find, findIndex, equals, invertObj, ascend, prop, isNil } from 'ramda';
 
 export function deriveEditRoute(routerState, to, params = {}) {
   return deriveRouteFromStateParams('edit', routerState, to, params);
@@ -30,6 +30,30 @@ function deriveRouteFromStateParams(ownerState, routerState, to, params = {}) {
     params,
   };
 }
+
+/**
+ * Depending on the sorting key passed returns function which will be used for further sorting of policies
+ * @param {any} field - policy value for predefined key (f.e.: name, threatLevel, build, etc)
+ * @param {String} key - sorting key
+ * @returns sorting function
+ */
+export const policiesComparator = (field, key) => {
+  switch (key) {
+    case 'name':
+      return [ascend(field)];
+    case 'threatLevel':
+      return [ascend(field), ascend(prop('name'))];
+    default:
+      return [
+        ascend((policy) => {
+          const property = isNil(policy.hasLocalActionsOverrides) ? 'actions' : 'enforcementAction';
+          return ['fail', 'warn', undefined].indexOf(policy[property][key]);
+        }),
+        ascend(prop('name')),
+      ];
+  }
+};
+
 //Returns a function that receives a list of applications or orgs and returns the owner's name that matches the ownerId
 export const getOwnerName = (ownerId) => compose(propOr('', 'name'), find(propEq('publicId', ownerId)));
 

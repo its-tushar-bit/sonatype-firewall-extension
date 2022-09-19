@@ -53,7 +53,6 @@
 @use '../configuration/configuration';
 @use 'policy-editor';
 @use '../owner.manager/summary/owner.summary.view';
-@use '../owner.manager/summary/ownerPolicyList/ownerPolicyList';
 @use '../owner.manager/repositories/repositories.summary.view';
 @use '../applicationReport/applicationReport';
 @use '../role.membership/role.membership.view';
@@ -126,6 +125,7 @@
 @use '../dashboard/results/componentRisk/componentRiskItem/componentRiskItem';
 @use '../OrgsAndPolicies/ownerSummary/ownerSummary';
 @use '../OrgsAndPolicies/ownerSummary/labelsTile/labelsTile';
+@use '../OrgsAndPolicies/ownerSummary/policiesTile/policiesTile';
 @use '../OrgsAndPolicies/ownerSummary/retentionTile/retentionTile';
 @use '../OrgsAndPolicies/сontinuousMonitoringEditor/continuousMonitoringEditor';
 @use '../firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';

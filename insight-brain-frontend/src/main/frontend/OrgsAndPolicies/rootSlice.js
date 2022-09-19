@@ -54,7 +54,6 @@ const rootSlice = createSlice({
     setSelectedOwner,
     setSelectedOwnerContact,
     selectedOwnerParentOrganizationUpdated,
-    setPoliciesByOwner: propSet('policiesByOwner'),
   },
   extraReducers: {
     [loadApplicablePoliciesByOwner.fulfilled]: propSet('policiesByOwner'),

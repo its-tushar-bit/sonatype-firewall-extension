@@ -114,9 +114,9 @@ public class DefaultArtifactoryClient
       String checksum,
       Set<String> repositories) throws IOException
   {
-    HttpGet request = new HttpGet(this.configuration.getServerUrl() + CHECKSUM_SEARCH_PATH +
-        UrlUtils.appendQueryParams(checksumType.name().toLowerCase(Locale.ROOT), checksum,
-            "repos", StringUtils.join(repositories, ",")));
+    HttpGet request = new HttpGet(path(CHECKSUM_SEARCH_PATH) +
+        UrlUtils.appendQueryParams(checksumType.name().toLowerCase(Locale.ROOT), checksum, "repos",
+            StringUtils.join(repositories, ",")));
     HttpResponse response = httpClient.execute(request, httpClientContext);
     log.debug("Artifactory checksum search response status: {}", response.getStatusLine());
     if (response.getStatusLine().getStatusCode() != 200) {
@@ -135,7 +135,7 @@ public class DefaultArtifactoryClient
       log.debug("No checksums provided for AQL call, returning empty result.");
       return Collections.emptyMap();
     }
-    HttpPost request = new HttpPost(configuration.getServerUrl() + AQL_SEARCH_PATH);
+    HttpPost request = new HttpPost(path(AQL_SEARCH_PATH));
     request.setEntity(new StringEntity(
         ArtifactoryQueryLanguageUtils.createChecksumSearch(checksumType, checksums, repositories)));
     HttpResponse response = httpClient.execute(request, httpClientContext);
@@ -168,8 +168,7 @@ public class DefaultArtifactoryClient
       ArtifactoryChecksumSearchResults artifactoryChecksumSearchResults =
           results.computeIfAbsent(sha256, key -> new ArtifactoryChecksumSearchResults());
       ArtifactoryChecksumSearchResult artifactoryChecksumSearchResult = new ArtifactoryChecksumSearchResult();
-      artifactoryChecksumSearchResult.uri =
-          configuration.getServerUrl() + RepositoryMatcher.API_STORAGE_PREFIX + repo + "/" + path + "/" + name;
+      artifactoryChecksumSearchResult.uri = path(RepositoryMatcher.API_STORAGE_PREFIX, repo, path, name);
       artifactoryChecksumSearchResults.results.add(artifactoryChecksumSearchResult);
     }
     return results;
@@ -192,17 +191,22 @@ public class DefaultArtifactoryClient
 
   @Override
   public StatusType getServerStatusViaQueryParam() throws IOException {
-    HttpGet request = new HttpGet(this.configuration.getServerUrl() + CHECKSUM_SEARCH_PATH +
+    HttpGet request = new HttpGet(path(CHECKSUM_SEARCH_PATH) +
         UrlUtils.appendQueryParams(ChecksumType.SHA256.name().toLowerCase(Locale.ROOT), TEST_SHA256));
     return getStatusType(httpClient.execute(request, httpClientContext));
   }
 
   @Override
   public StatusType getServerStatusViaAQL() throws IOException {
-    HttpPost request = new HttpPost(configuration.getServerUrl() + AQL_SEARCH_PATH);
+    HttpPost request = new HttpPost(path(AQL_SEARCH_PATH));
     request.setEntity(new StringEntity(ArtifactoryQueryLanguageUtils
         .createChecksumSearch(ChecksumType.SHA256, Collections.singleton(TEST_SHA256), Collections.emptySet())));
     return getStatusType(httpClient.execute(request, httpClientContext));
+  }
+
+  // Visible for testing
+  String path(String... paths) {
+    return UrlUtils.appendUrlPaths(configuration.getServerUrl(), paths);
   }
 
   private StatusType getStatusType(final HttpResponse response) {

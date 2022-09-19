@@ -87,6 +87,7 @@ describe('import.policy.modal.controller.spec.js', function () {
       $httpBackend.flush();
 
       expect(vm.loadApplicableLabels).toHaveBeenCalled();
+      expect(vm.loadPolicyTile).toHaveBeenCalled();
       expect(vm.loadApplicableCategories).toHaveBeenCalled();
     });
   });

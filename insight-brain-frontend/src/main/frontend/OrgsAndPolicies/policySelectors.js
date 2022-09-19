@@ -105,3 +105,9 @@ export const selectOverrideNeedsToBeRemoved = createSelector(
   selectOverrideActionsFlag,
   (originalOverrideFlag, overrideFlag) => originalOverrideFlag && !overrideFlag
 );
+
+export const selectPolicyTile = createSelector(selectPolicySlice, prop('policyTile'));
+export const selectPoliciesByOwner = createSelector(selectPolicyTile, prop('policiesByOwner'));
+export const selectPolicyTileLoading = createSelector(selectPolicyTile, prop('loading'));
+export const selectPolicyTileLoadError = createSelector(selectPolicyTile, prop('loadError'));
+export const selectPolicyTileSorting = createSelector(selectPolicyTile, prop('sorting'));

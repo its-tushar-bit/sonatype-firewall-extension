@@ -75,28 +75,6 @@ public class ApiComponentRemediationService
       ApiComponentDTOV2 componentDTO,
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) final String ownerId,
-      final String stageId)
-  {
-    return getSuggestedRemediationForComponentNoAuth(componentDTO, ownerType, ownerId, stageId, null, null);
-  }
-
-  @Authorize(permission = Permission.EVALUATE_COMPONENT)
-  public ApiComponentRemediationDTO getSuggestedRemediationForComponent(
-      ApiComponentDTOV2 componentDTO,
-      @AuthzContext(Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(Key.INTERNAL_ID) final String ownerId,
-      final String stageId,
-      final String identificationSource,
-      final String scanId)
-  {
-    return getSuggestedRemediationForComponentNoAuth(componentDTO, ownerType, ownerId, stageId, identificationSource,
-        scanId);
-  }
-
-  private ApiComponentRemediationDTO getSuggestedRemediationForComponentNoAuth(
-      ApiComponentDTOV2 componentDTO,
-      final OwnerType ownerType,
-      final String ownerId,
       String stageId,
       final String identificationSource,
       final String scanId)

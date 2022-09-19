@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { actions as labelsActions } from 'MainRoot/OrgsAndPolicies/labelsSlice';
+import { actions as policyActions } from 'MainRoot/OrgsAndPolicies/policySlice';
 import { actions as createEditApplicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/createEditApplicationCategoriesSlice';
 export default function ImportPolicyModalController(
   $rootScope,
@@ -18,6 +19,7 @@ export default function ImportPolicyModalController(
 
   vm.unsubscribe = $ngRedux.connect(null, {
     loadApplicableLabels: labelsActions.loadApplicableLabels,
+    loadPolicyTile: policyActions.loadPolicyTile,
     loadApplicableCategories: createEditApplicationCategoriesActions.loadApplicableCategories,
   })(vm);
 
@@ -69,6 +71,8 @@ export default function ImportPolicyModalController(
         vm.loadApplicableCategories();
         // This action is dispatched to update the Labels Tile
         vm.loadApplicableLabels();
+        // This action is dispatched to update the Policies Tile
+        vm.loadPolicyTile();
       },
       function (error) {
         setError(Messages.getHttpErrorMessage(error), doSubmit);

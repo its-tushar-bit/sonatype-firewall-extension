@@ -40,21 +40,6 @@ describe('root reducer', () => {
     });
   });
 
-  describe('orgsAndPolicies/setPoliciesByOwner', () => {
-    it('sets policiesByOwner', () => {
-      const state = Object.freeze({
-        policiesByOwner: null,
-      });
-
-      const newState = reducer(state, {
-        type: 'orgsAndPolicies/setPoliciesByOwner',
-        payload: 'newValue',
-      });
-
-      expect(newState.policiesByOwner).toBe('newValue');
-    });
-  });
-
   describe('orgsAndPolicies/loadApplicablePoliciesByOwner/fulfilled', () => {
     it('sets policiesByOwner', () => {
       const state = Object.freeze({

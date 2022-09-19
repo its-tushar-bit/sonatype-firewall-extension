@@ -1217,4 +1217,218 @@ describe('policySlice reducers', () => {
       expect(currentPolicy.policyActionsOverrides).toEqual({});
     });
   });
+
+  describe('policy/loadPolicyTile/pending', () => {
+    it('resets loadError and sets loading to true for policy tile', () => {
+      const state = Object.freeze({ policyTile: { loadError: 'error', loading: false } });
+
+      const { policyTile } = reducer(state, {
+        type: 'policy/loadPolicyTile/pending',
+      });
+
+      expect(policyTile.loadError).toBeNull();
+      expect(policyTile.loading).toBeTrue();
+    });
+  });
+
+  describe('policy/loadPolicyTile/fulfilled', () => {
+    it('resets loading flag, sets initial sorting config and policies sorted by threat', () => {
+      const state = Object.freeze({
+        policyTile: {
+          loading: true,
+          sorting: {},
+          policiesByOwner: null,
+        },
+      });
+
+      const action = {
+        type: 'policy/loadPolicyTile/fulfilled',
+        payload: [
+          {
+            inherited: false,
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            ownerName: 'Root Organization',
+            ownerType: 'organizations',
+            policies: [
+              {
+                hasLocalActionsOverrides: undefined,
+                id: '787822577d384a28b59c9d06ff6d37e2',
+                name: 'allowed to override',
+                threatLevel: 5,
+                ownerId: 'ROOT_ORGANIZATION_ID',
+                actions: {},
+              },
+              {
+                hasLocalActionsOverrides: undefined,
+                id: 'e2cb70070ce540f7af0af8478b4d8bd9',
+                name: 'fresh allowed to override',
+                threatLevel: 5,
+                ownerId: 'ROOT_ORGANIZATION_ID',
+                actions: {},
+              },
+              {
+                hasLocalActionsOverrides: undefined,
+                id: '9bd6ecd914f04e41bc983a9421f31b12',
+                name: 'not allowed to override',
+                threatLevel: 10,
+                ownerId: 'ROOT_ORGANIZATION_ID',
+                actions: {},
+              },
+            ],
+          },
+        ],
+      };
+
+      const { policyTile } = reducer(state, action);
+
+      expect(policyTile.loading).toBe(false);
+      expect(policyTile.sorting).toEqual({
+        'Root Organization': { key: 'threatLevel', dir: 'desc', ownerName: 'Root Organization' },
+      });
+      expect(policyTile.policiesByOwner[0].policies[0].threatLevel).toBe(10);
+      expect(policyTile.policiesByOwner[0].policies[0].name).toBe('not allowed to override');
+      expect(policyTile.policiesByOwner[0].policies[1].threatLevel).toBe(5);
+      expect(policyTile.policiesByOwner[0].policies[1].name).toBe('fresh allowed to override');
+      expect(policyTile.policiesByOwner[0].policies[2].threatLevel).toBe(5);
+      expect(policyTile.policiesByOwner[0].policies[2].name).toBe('allowed to override');
+    });
+  });
+
+  describe('policy/changeSortField', () => {
+    it('sets sorting config and policies sorted by chosen payload key', () => {
+      const state = Object.freeze({
+        policyTile: {
+          sorting: {
+            'Root Organization': { key: 'threatLevel', dir: 'desc', ownerName: 'Root Organization' },
+          },
+          policiesByOwner: [
+            {
+              inherited: false,
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              ownerName: 'Root Organization',
+              ownerType: 'organizations',
+              policies: [
+                {
+                  hasLocalActionsOverrides: undefined,
+                  id: '9bd6ecd914f04e41bc983a9421f31b12',
+                  name: 'not allowed to override',
+                  threatLevel: 10,
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  actions: {},
+                },
+                {
+                  hasLocalActionsOverrides: undefined,
+                  id: 'e2cb70070ce540f7af0af8478b4d8bd9',
+                  name: 'fresh allowed to override',
+                  threatLevel: 5,
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  actions: {},
+                },
+                {
+                  hasLocalActionsOverrides: undefined,
+                  id: '787822577d384a28b59c9d06ff6d37e2',
+                  name: 'allowed to override',
+                  threatLevel: 5,
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  actions: {},
+                },
+              ],
+            },
+          ],
+        },
+      });
+
+      const action = {
+        type: 'policy/changeSortField',
+        payload: { key: 'threatLevel', dir: 'asc', ownerName: 'Root Organization' },
+      };
+
+      const { policyTile } = reducer(state, action);
+
+      expect(policyTile.sorting).toEqual({
+        'Root Organization': { key: 'threatLevel', dir: 'asc', ownerName: 'Root Organization' },
+      });
+      expect(policyTile.policiesByOwner[0].policies[0].threatLevel).toBe(5);
+      expect(policyTile.policiesByOwner[0].policies[0].name).toBe('allowed to override');
+      expect(policyTile.policiesByOwner[0].policies[1].threatLevel).toBe(5);
+      expect(policyTile.policiesByOwner[0].policies[1].name).toBe('fresh allowed to override');
+      expect(policyTile.policiesByOwner[0].policies[2].threatLevel).toBe(10);
+      expect(policyTile.policiesByOwner[0].policies[2].name).toBe('not allowed to override');
+    });
+
+    it('returns policies in preserved order if values are equal by the key', () => {
+      const state = Object.freeze({
+        policyTile: {
+          sorting: {
+            'Root Organization': { key: 'threatLevel', dir: 'desc', ownerName: 'Root Organization' },
+          },
+          policiesByOwner: [
+            {
+              inherited: false,
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              ownerName: 'Root Organization',
+              ownerType: 'organizations',
+              policies: [
+                {
+                  hasLocalActionsOverrides: undefined,
+                  id: '9bd6ecd914f04e41bc983a9421f31b12',
+                  name: 'not allowed to override',
+                  threatLevel: 10,
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  actions: { build: 'warn', develop: 'warn', operate: 'fail', release: 'fail', source: 'fail' },
+                },
+                {
+                  hasLocalActionsOverrides: undefined,
+                  id: 'e2cb70070ce540f7af0af8478b4d8bd9',
+                  name: 'fresh allowed to override',
+                  threatLevel: 5,
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  actions: { build: 'warn', develop: 'fail' },
+                },
+                {
+                  hasLocalActionsOverrides: undefined,
+                  id: '787822577d384a28b59c9d06ff6d37e2',
+                  name: 'allowed to override',
+                  threatLevel: 7,
+                  ownerId: 'ROOT_ORGANIZATION_ID',
+                  actions: { build: 'warn', release: 'fail' },
+                },
+              ],
+            },
+          ],
+        },
+      });
+
+      const action = {
+        type: 'policy/changeSortField',
+        payload: { key: 'build', dir: 'asc', ownerName: 'Root Organization' },
+      };
+
+      const { policyTile } = reducer(state, action);
+
+      expect(policyTile.sorting).toEqual({
+        'Root Organization': { key: 'build', dir: 'asc', ownerName: 'Root Organization' },
+      });
+      expect(policyTile.policiesByOwner[0].policies[0].threatLevel).toBe(10);
+      expect(policyTile.policiesByOwner[0].policies[0].name).toBe('not allowed to override');
+      expect(policyTile.policiesByOwner[0].policies[1].threatLevel).toBe(5);
+      expect(policyTile.policiesByOwner[0].policies[1].name).toBe('fresh allowed to override');
+      expect(policyTile.policiesByOwner[0].policies[2].threatLevel).toBe(7);
+      expect(policyTile.policiesByOwner[0].policies[2].name).toBe('allowed to override');
+    });
+  });
+
+  describe('policy/loadPolicyTile/failed', () => {
+    it('resets loading and sets loadError for policy tile', () => {
+      const state = Object.freeze({ policyTile: { loadError: null, loading: true } });
+
+      const { policyTile } = reducer(state, {
+        type: 'policy/loadPolicyTile/rejected',
+        payload: 'error',
+      });
+
+      expect(policyTile.loadError).toBe('error');
+      expect(policyTile.loading).toBeFalse();
+    });
+  });
 });

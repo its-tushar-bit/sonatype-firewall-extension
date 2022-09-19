@@ -210,24 +210,10 @@ class="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-
   <div ng-controller="OwnerSummaryTilesContainerController as vm">
     <div ng-if="!vm.loading">
       <application-categories-tile></application-categories-tile>
-      <div ng-controller="policy.tile.controller as vm">
-        <div load-wrapper="vm.loadError" loading="vm.loading || vm.proprietaryConfigIsLoading" reload="vm.doLoad()">
-          <div class="iq-tile" id="owner-pill-policy">
-            <policies-header-tile></policies-header-tile>
-            <div class="iq-tile-content">
-              <owner-policy-list ng-repeat="ownerPolicyList in vm.policiesByOwner track by ownerPolicyList.ownerId"
-                                owner-policy-list="ownerPolicyList"
-                                action-stages="vm.actionStages"
-                                on-policy-click="vm.editPolicy(policyId)"
-                                is-enforcement-supported-for-stage="vm.isEnforcementSupportedForStage(stage)">
-              </owner-policy-list>
-            </div>
-          </div>
-          <policy-grandfathering-tile></policy-grandfathering-tile>
-          <continuous-monitoring-summary-tile></continuous-monitoring-summary-tile>
-          <proprietary-component-configuration-tile></proprietary-component-configuration-tile>
-        </div>
-      </div>
+      <policies-tile></policies-tile>
+      <policy-grandfathering-tile></policy-grandfathering-tile>
+      <continuous-monitoring-summary-tile></continuous-monitoring-summary-tile>
+      <proprietary-component-configuration-tile></proprietary-component-configuration-tile>
       <labels-tile></labels-tile>
       <div class="iq-tile" id="owner-pill-ltgs" ng-controller="LicenseThreatGroupTileController as vm">
         <div load-wrapper="vm.loadError"

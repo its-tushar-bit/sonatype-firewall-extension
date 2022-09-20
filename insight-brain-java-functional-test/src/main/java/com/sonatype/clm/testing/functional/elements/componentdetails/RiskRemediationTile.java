@@ -30,6 +30,8 @@ public class RiskRemediationTile
 
   private static final String LIST_ITEM_CLICKABLE_SELECTOR = ".nx-list__item .nx-text-link";
 
+  private static final String LOADING_SPINNER = ".nx-loading-spinner";
+
   public static RiskRemediationTile getOverviewTileForParent(String parentSelector) {
     String combinedSelector = SelectorUtils.createSelector(parentSelector, TILE_SELECTOR);
     return new RiskRemediationTile(combinedSelector);
@@ -41,6 +43,10 @@ public class RiskRemediationTile
 
   public SelenideElement getTitle() {
     return child(TILE_HEADER_TITLE_SELECTOR);
+  }
+
+  public SelenideElement getLoadingSpinner() {
+    return child(LOADING_SPINNER);
   }
 
   public RecommendedRemediationSection dependencyInformationSection() {

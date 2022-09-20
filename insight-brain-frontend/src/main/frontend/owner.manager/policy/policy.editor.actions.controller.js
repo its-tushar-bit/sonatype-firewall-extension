@@ -57,6 +57,7 @@ export default function PolicyEditorActionsController($scope, $ngRedux) {
 
   function onPolicyActionsOverride(isOverride) {
     if (isOverride) {
+      vm.setActionsOverride({ ownerId: vm.ownerInternalId, actionsOverride: vm.actions });
       vm.setOverrideParentActions();
     } else {
       vm.unSetOverrideParentActions(vm.ownerInternalId);

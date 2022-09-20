@@ -82,6 +82,7 @@ describe('policy.editor.actions.controller', function () {
     it('calls setOverrideParentActions if selected option is override', () => {
       vm.onPolicyActionsOverride(true);
       expect(vm.setOverrideParentActions).toHaveBeenCalledTimes(1);
+      expect(vm.setActionsOverride).toHaveBeenCalledTimes(1);
     });
 
     it('calls unSetOverrideParentActions if selected option is inherit', () => {

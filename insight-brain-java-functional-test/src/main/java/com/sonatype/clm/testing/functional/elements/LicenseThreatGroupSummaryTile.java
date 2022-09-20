@@ -64,7 +64,7 @@ public class LicenseThreatGroupSummaryTile
 
   public ElementsCollection getAllApplicableLicenseThreatGroupSection() {
 
-    SelenideElement child = getElement().find(TILE_CONTENT_SELECTOR);;
+    SelenideElement child = getElement().find(TILE_CONTENT_SELECTOR);
     return child.findAll(TILE_CONTENT_SUBSECTION_SELECTOR);
   }
 

@@ -1202,6 +1202,15 @@
         <artifactId>swagger-jaxrs2</artifactId>
         <version>${swagger.version}</version>
       </dependency>
+      <!--
+        Avoid banned license of jakarta.activation-api:1.2.1 (which is a transitive dependency of
+        jackson-jaxrs-json-provider:2.13.2)
+      -->
+      <dependency>
+        <groupId>jakarta.activation</groupId>
+        <artifactId>jakarta.activation-api</artifactId>
+        <version>1.2.2</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

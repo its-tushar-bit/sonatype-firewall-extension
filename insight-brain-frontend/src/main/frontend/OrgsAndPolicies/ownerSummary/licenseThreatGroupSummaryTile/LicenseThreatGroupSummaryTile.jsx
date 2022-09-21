@@ -46,7 +46,7 @@ export default function LicenseThreatGroupSummaryTile() {
     const title = props.inherited ? `Inherited from ${name}` : 'Local';
 
     return (
-      <NxTile.Subsection>
+      <NxTile.Subsection key={props.ownerId}>
         <NxTile.SubsectionHeader>
           <NxH3>{title}</NxH3>
         </NxTile.SubsectionHeader>

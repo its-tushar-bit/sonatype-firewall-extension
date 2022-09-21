@@ -81,6 +81,8 @@ public class SystemConfigurationProperty
 
   public static final String SUPPORT_READ_LIMIT_BYTES = "support.readLimitBytes";
 
+  public static final String SUPPORT_CLUSTER_LOG_FILE_REGEX = "support.clusterLogFileRegex";
+
   public static final String EVENT_BUS_MAX_THREAD_POOL_SIZE = "eventBus.maxThreadPoolSize";
 
   public static final String CSRF_PROTECTION = "csrfProtection";

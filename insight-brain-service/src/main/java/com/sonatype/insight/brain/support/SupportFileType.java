@@ -13,6 +13,7 @@ import java.util.Locale;
 public enum SupportFileType
 {
   LOG,
+  CLUSTER_LOG,
   INFO,
   CONFIG,
   DB;

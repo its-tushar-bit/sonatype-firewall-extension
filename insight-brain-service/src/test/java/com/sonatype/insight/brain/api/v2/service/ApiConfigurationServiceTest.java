@@ -275,6 +275,41 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testGetConfiguration_SupportClusterLogFileRegexNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX)).isEqualTo(
+        InsightConfig.DEFAULT_SUPPORT_CLUSTER_LOG_FILE_REGEX);
+  }
+
+  @Test
+  public void testGetConfiguration_SupportClusterLogFileRegex_OnlyEnv() {
+    String supportClusterLogFileRegex = ".*other/" + InsightConfig.DEFAULT_SUPPORT_CLUSTER_LOG_FILE_REGEX;
+    environmentVariables.set(InsightConfig.NXIQ_SUPPORT_CLUSTER_LOG_FILE_REGEX, supportClusterLogFileRegex);
+
+    assertThat(service.getConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX)).isEqualTo(
+        supportClusterLogFileRegex);
+  }
+
+  @Test
+  public void testGetConfiguration_SupportClusterLogFileRegex_OnlyDb() {
+    String supportClusterLogFileRegex = ".*other/" + InsightConfig.DEFAULT_SUPPORT_CLUSTER_LOG_FILE_REGEX;
+    dao.set(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX, supportClusterLogFileRegex);
+
+    assertThat(service.getConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX)).isEqualTo(
+        supportClusterLogFileRegex);
+  }
+
+  @Test
+  public void testGetConfiguration_SupportClusterLogFileRegex_EnvAndDb() {
+    String supportClusterLogFileRegex1 = ".*other1/" + InsightConfig.DEFAULT_SUPPORT_CLUSTER_LOG_FILE_REGEX;
+    environmentVariables.set(InsightConfig.NXIQ_SUPPORT_CLUSTER_LOG_FILE_REGEX, supportClusterLogFileRegex1);
+    String supportClusterLogFileRegex2 = ".*other2/" + InsightConfig.DEFAULT_SUPPORT_CLUSTER_LOG_FILE_REGEX;
+    dao.set(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX, supportClusterLogFileRegex2);
+
+    assertThat(service.getConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX)).isEqualTo(
+        supportClusterLogFileRegex1);
+  }
+
+  @Test
   public void testGetConfiguration_EventBusMaxThreadPoolSizeNotSet_ReturnsDefault() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE))).containsEntry(
@@ -678,6 +713,28 @@ public class ApiConfigurationServiceTest
         service.getConfigurationNoAuthz(
             SetUtils.hashSet(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES))).containsEntry(
         SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, 10L);
+  }
+
+  @Test
+  public void testSetConfiguration_SupportClusterFileRegex_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX)).isNull();
+    assertThat(service.getConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX)).isEqualTo(
+        InsightConfig.DEFAULT_SUPPORT_CLUSTER_LOG_FILE_REGEX);
+  }
+
+  @Test
+  public void testSetConfiguration_SupportClusterLogFileRegex() {
+    String supportClusterLogFileRegex = ".*other/" + InsightConfig.DEFAULT_SUPPORT_CLUSTER_LOG_FILE_REGEX;
+
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX, supportClusterLogFileRegex));
+
+    assertThat(dao.get(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX)).isEqualTo(
+        supportClusterLogFileRegex);
+    assertThat(service.getConfigurationNoAuthz(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX)).isEqualTo(
+        supportClusterLogFileRegex);
   }
 
   @Test

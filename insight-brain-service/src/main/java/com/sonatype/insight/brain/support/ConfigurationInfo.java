@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.support;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -34,6 +35,8 @@ public class ConfigurationInfo
     entries.put(SystemConfigurationProperty.CSRF_PROTECTION, configuration.isAntiCsrfEnabled());
     entries.put(SystemConfigurationProperty.CDN_URL, configuration.getCdnUrl());
     entries.put(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES, configuration.getSupportReadLimitBytes());
+    entries.put(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX,
+        configuration.getSupportClusterLogFileRegex());
     entries.put(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE,
         configuration.getEventBusMaxThreadPoolSize());
     entries.put(SystemConfigurationProperty.USER_AGENT_SUFFIX, configuration.getUserAgentSuffix());

@@ -39,6 +39,10 @@ public class InsightConfig
 
   public static final String DEFAULT_BACKUP_DIR = "db-backup";
 
+  public static final String NXIQ_SUPPORT_CLUSTER_LOG_FILE_REGEX = "NXIQ_SUPPORT_CLUSTER_LOG_FILE_REGEX";
+
+  public static final String DEFAULT_SUPPORT_CLUSTER_LOG_FILE_REGEX = "^.*log[\\\\/].*log$";
+
   {
     setServerFactory(new InsightDefaultServerFactory());
   }

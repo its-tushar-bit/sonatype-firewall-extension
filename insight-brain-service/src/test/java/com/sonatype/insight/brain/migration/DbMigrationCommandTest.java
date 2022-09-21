@@ -575,6 +575,13 @@ public class DbMigrationCommandTest
     }
   }
 
+  @Test
+  public void testOnError() throws Exception {
+    DbMigrationCommand dbMigrationCommand = new DbMigrationCommand();
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
+        () -> dbMigrationCommand.onError(null, null, new IOException("test")));
+  }
+
   private void assertMigrated() {
     assertThat(DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(),
         OperationalDataStoreProvider.ID)).isEqualTo(

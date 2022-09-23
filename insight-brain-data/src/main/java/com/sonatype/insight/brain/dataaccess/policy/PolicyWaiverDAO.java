@@ -22,9 +22,9 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 
 public class PolicyWaiverDAO
     extends AbstractOperationalSqlDAO<PolicyWaiver>
@@ -203,17 +203,6 @@ public class PolicyWaiverDAO
       String hash,
       String policyId,
       String ownerId,
-      List<ConstraintFact> constraintFacts)
-  {
-    return getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId, constraintFacts, null,
-        null);
-  }
-
-  PolicyWaiver getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(
-      TransactionContext tx,
-      String hash,
-      String policyId,
-      String ownerId,
       List<ConstraintFact> constraintFacts,
       String associatedPackageUrl,
       ComponentMatcherStrategyForWaiver componentMatchStrategy)
@@ -267,6 +256,8 @@ public class PolicyWaiverDAO
 
   @Override
   public void insert(TransactionContext tx, PolicyWaiver entity) {
+    setComponentMatchStrategyIfNeeded(entity);
+
     PolicyWaiver other = getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(),
         entity.getPolicyId(), entity.getOwnerId(), entity.getConstraintFacts(),
         entity.getAssociatedPackageUrl(), entity.getComponentMatchStrategy());
@@ -284,8 +275,16 @@ public class PolicyWaiverDAO
     super.insert(tx, entity);
   }
 
+  private void setComponentMatchStrategyIfNeeded(PolicyWaiver entity) {
+    if (entity.getComponentMatchStrategy() == null) {
+      entity.setComponentMatchStrategy(entity.getHash() == null ? ALL_COMPONENTS : EXACT_COMPONENT);
+    }
+  }
+
   @Override
   public void update(TransactionContext tx, PolicyWaiver entity) {
+    setComponentMatchStrategyIfNeeded(entity);
+
     PolicyWaiver other = getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, entity.getHash(),
         entity.getPolicyId(), entity.getOwnerId(), entity.getConstraintFacts(),
         entity.getAssociatedPackageUrl(), entity.getComponentMatchStrategy());

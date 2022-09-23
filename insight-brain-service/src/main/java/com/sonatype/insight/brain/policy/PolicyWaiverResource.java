@@ -50,9 +50,6 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codahale.metrics.annotation.Timed;
 
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
-
 /**
  * @since 1.6
  */
@@ -105,7 +102,6 @@ public class PolicyWaiverResource
     policyWaiver.setOwnerId(internalOwnerId);
     policyWaiver.setCreatorId(currentUser.getUserPrincipal().getUsername());
     policyWaiver.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
-    policyWaiver.setComponentMatchStrategy(policyWaiver.getHash() == null ? ALL_COMPONENTS : EXACT_COMPONENT);
     new PolicyWaiverDAO().insert(policyWaiver);
     auditPolicyWaiver(policyWaiver);
     policyWaiverTelemetryCreator.sendWaiverTelemetryWithoutViolationInformation(policyWaiver, ownerType);

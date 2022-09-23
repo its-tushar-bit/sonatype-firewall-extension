@@ -36,7 +36,7 @@ export default function RetentionTile() {
   const stages = useSelector(selectApplicationReportsStages);
 
   const goToEditRetention = () => dispatch(actions.goToEditRetention());
-  const doLoad = () => dispatch(actions.loadRetentionTile());
+  const doLoad = () => dispatch(actions.loadRetention());
 
   useEffect(() => {
     if (isOrg) {

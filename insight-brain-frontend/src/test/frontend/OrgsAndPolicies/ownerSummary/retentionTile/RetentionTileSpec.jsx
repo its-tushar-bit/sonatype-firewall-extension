@@ -20,7 +20,7 @@ describe('RetentionTile', () => {
 
   beforeEach(() => {
     goToEditRetentionSpy = spyOn(actions, 'goToEditRetention').and.callThrough();
-    spyOn(actions, 'loadRetentionTile').and.callThrough();
+    spyOn(actions, 'loadRetention').and.callThrough();
 
     axiosMock.onGet(getRetentionPoliciesUrl(ownerId)).reply(200, {});
   });

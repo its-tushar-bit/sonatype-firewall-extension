@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -87,10 +86,11 @@ public class IdeResource
   private final TelemetrySender telemetrySender;
 
   @Inject
-  public IdeResource(BaseUrl baseUrl,
-                     HdsClient client,
-                     ComponentPolicyEvaluator componentPolicyEvaluator,
-                     TelemetrySender telemetrySender)
+  public IdeResource(
+      BaseUrl baseUrl,
+      HdsClient client,
+      ComponentPolicyEvaluator componentPolicyEvaluator,
+      TelemetrySender telemetrySender)
   {
     this.baseUrl = baseUrl;
     this.client = client;
@@ -100,8 +100,8 @@ public class IdeResource
 
   /**
    * Get the result from a scan request, or a wait delta
-   * 
-   * @param scanType simple or enhanced though we do not enforce that in the Brain
+   *
+   * @param scanType    simple or enhanced though we do not enforce that in the Brain
    * @param appPublicId the public application id
    * @return the result of the scan or a wait delta
    * @since 1.2
@@ -179,7 +179,7 @@ public class IdeResource
         Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier));
 
     List<?> list = client.relay(req, List.class, "rest/ide/scan/coordinates", queryParams).content;
-    List<MatchedComponent> matchedComponents = JSON.convertValue(list, new TypeReference<List<MatchedComponent>>(){ });
+    List<MatchedComponent> matchedComponents = JSON.convertValue(list, new TypeReference<List<MatchedComponent>>() { });
 
     return matchedComponents.stream()
         .map(mc -> fromMatchedComponent(mc, app, proprietary, true))
@@ -188,8 +188,8 @@ public class IdeResource
 
   /**
    * Submit a scan request, may return the result or a wait delta.
-   * 
-   * @param scanType simple or enhanced though we do not enforce that in the Brain
+   *
+   * @param scanType            simple or enhanced though we do not enforce that in the Brain
    * @param applicationPublicId the public applicationId
    * @return the result of the scan or a wait delta
    * @since 1.2
@@ -198,11 +198,12 @@ public class IdeResource
   @Path("scan/{scanType}/{applicationPublicId}/{path:.*}")
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_PROJECT)
-  public IdeMatchedComponent postScan(@PathParam("scanType") String scanType,
-                                      @PathParam("applicationPublicId") String applicationPublicId,
-                                      @PathParam("path") String path,
-                                      @QueryParam("proprietary") boolean proprietary,
-                                      @Context HttpServletRequest req) throws IOException
+  public IdeMatchedComponent postScan(
+      @PathParam("scanType") String scanType,
+      @PathParam("applicationPublicId") String applicationPublicId,
+      @PathParam("path") String path,
+      @QueryParam("proprietary") boolean proprietary,
+      @Context HttpServletRequest req) throws IOException
   {
     return doScan(scanType, applicationPublicId, path, proprietary, req);
   }
@@ -220,7 +221,7 @@ public class IdeResource
 
   /**
    * Gets the list of available versions for a given GA from the HDS. (e.g. for use by migration wizard)
-   * 
+   *
    * @return the HDS response
    * @since 1.3
    */
@@ -233,7 +234,7 @@ public class IdeResource
 
   /**
    * Access a Brain resource
-   * 
+   *
    * @param path the path from the brain root
    * @since 1.3
    */
@@ -249,7 +250,7 @@ public class IdeResource
    * Send telemetry data for APPLICATION_EVALUATION_COMPONENT_COUNTS purpose.
    *
    * @param applicationPublicId the public applicationId
-   * @param componentCounts the total components by each component type
+   * @param componentCounts     the total components by each component type
    * @since 1.136
    */
   @POST
@@ -269,7 +270,36 @@ public class IdeResource
         ScanTriggerType.IDE,
         userAgent,
         instanceId,
-        componentCounts
+        Collections.singletonMap("component_counts", componentCounts)
+    );
+    telemetrySender.send(telemetryData);
+  }
+
+  /**
+   * Send telemetry data for APPLICATION_EVALUATION_COMPONENT_COUNTS purpose V2.
+   *
+   * @param applicationPublicId the public applicationId
+   * @param telemetryRequest    a map of attributes requested containing the inner map of total components by type
+   * @since 1.144
+   */
+  @POST
+  @Path("v2/telemetry/{applicationPublicId}")
+  @Audited(AuditEvent.EVALUATE_PROJECT)
+  public void sendTelemetryV2(
+      @PathParam("applicationPublicId") String applicationPublicId,
+      Map<String, Object> telemetryRequest,
+      @Context HttpServletRequest req)
+  {
+    String userAgent = DefaultHdsClient.getClientUserAgent(req);
+    String instanceId = DefaultHdsClient.getClientInstanceId(req);
+
+    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+        applicationPublicId,
+        Stage.ID_DEVELOP,
+        ScanTriggerType.IDE,
+        userAgent,
+        instanceId,
+        telemetryRequest
     );
     telemetrySender.send(telemetryData);
   }

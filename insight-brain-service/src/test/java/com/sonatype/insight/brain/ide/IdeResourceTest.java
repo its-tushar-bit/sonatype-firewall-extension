@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
@@ -713,10 +714,11 @@ public class IdeResourceTest
   }
 
   @SuppressWarnings("deprecation")
-  private void assertGavInIdeMatchedComponent(String groupId,
-                                              String artifactId,
-                                              String version,
-                                              IdeMatchedComponent ideMatchedComponent)
+  private void assertGavInIdeMatchedComponent(
+      String groupId,
+      String artifactId,
+      String version,
+      IdeMatchedComponent ideMatchedComponent)
   {
     assertThat(ideMatchedComponent.getGroupId()).isEqualTo(groupId);
     assertThat(ideMatchedComponent.getArtifactId()).isEqualTo(artifactId);
@@ -743,7 +745,7 @@ public class IdeResourceTest
     // Assert Result
     assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
     assertUserAgentData(telemetryAttributes, userAgent);
-    assertThat(telemetryAttributes.get("client_instance_id")).isEqualTo(instanceId);
+    assertThat(telemetryAttributes).containsEntry("client_instance_id", instanceId);
   }
 
   @Test
@@ -787,7 +789,7 @@ public class IdeResourceTest
     // Assert Result
     assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
     assertUserAgentDataIsNotSent(telemetryAttributes);
-    assertThat(telemetryAttributes.get("client_instance_id")).isEqualTo(instanceId);
+    assertThat(telemetryAttributes).containsEntry("client_instance_id", instanceId);
   }
 
   @Test
@@ -810,7 +812,7 @@ public class IdeResourceTest
     // Assert Result
     assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
     assertUserAgentData(telemetryAttributes, userAgent);
-    assertThat(telemetryAttributes.get("client_instance_id")).isEqualTo(instanceId);
+    assertThat(telemetryAttributes).containsEntry("client_instance_id", instanceId);
   }
 
   @Test
@@ -855,6 +857,60 @@ public class IdeResourceTest
     assertThat(telemetryAttributes.get("client_instance_id")).isNull();
   }
 
+  @Test
+  public void testSendTelemetryV2() throws Exception {
+    String appId = "IdeResourceTest_AppId";
+    String instanceId = "my-unique-id";
+    String userAgent = "Sonatype_CLM_CI_Jenkins/3.13 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)";
+    Integer mavenComponents = 15;
+    Integer npmComponents = 10;
+    String attribute = "ide_theme";
+    String attributeValue = "dark";
+
+    // Send request
+    Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributesV2(
+        appId,
+        instanceId,
+        userAgent,
+        mavenComponents,
+        npmComponents,
+        attribute,
+        attributeValue
+    );
+
+    // Assert Result
+    assertThat(telemetryAttributes).containsEntry("ide_theme", "dark");
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertUserAgentData(telemetryAttributes, userAgent);
+    assertThat(telemetryAttributes).containsEntry("client_instance_id", instanceId);
+  }
+
+  @Test
+  public void testSendTelemetryV2_NoAttribute() throws Exception {
+    String appId = "IdeResourceTest_AppId";
+    String instanceId = "my-unique-id";
+    String userAgent = "Sonatype_CLM_CI_Jenkins/3.13 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)";
+    Integer mavenComponents = 15;
+    Integer npmComponents = 10;
+
+    // Send request
+    Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributesV2(
+        appId,
+        instanceId,
+        userAgent,
+        mavenComponents,
+        npmComponents,
+        null,
+        null
+    );
+
+    // Assert Result
+    assertThat(telemetryAttributes).doesNotContainEntry("ide_theme", "dark");
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertUserAgentData(telemetryAttributes, userAgent);
+    assertThat(telemetryAttributes).containsEntry("client_instance_id", instanceId);
+  }
+
   private Map<String, Object> sendTelemetryRequestAndGetTelemetryAttributes(
       final String appId,
       final String instanceId,
@@ -864,13 +920,7 @@ public class IdeResourceTest
   ) throws Exception
   {
     // Setup telemetry data collection
-    final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    initServer(config -> getHdsServer()
-        .respondWith((HttpResponseProcessor) (request, response) ->
-            responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"),
-                response.getStatus()))
-        .andStatus(204)
-        .atUri(TelemetrySender.RESOURCE_PATH));
+    final Map<ByteArrayDataSource, Integer> responses = getHdsTelemetryDataCollection();
 
     // Prepare request
     Application app = tempEntity.newApplicationWithParent(appId);
@@ -885,6 +935,44 @@ public class IdeResourceTest
     return assertTelemetryPurposeIsFound(responses, TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS);
   }
 
+  private Map<String, Object> sendTelemetryRequestAndGetTelemetryAttributesV2(
+      final String appId,
+      final String instanceId,
+      final String userAgent,
+      final Integer mavenComponents,
+      final Integer npmComponents,
+      final String attribute,
+      final String attributeValue
+  ) throws Exception
+  {
+    // Setup telemetry data collection
+    final Map<ByteArrayDataSource, Integer> responses = getHdsTelemetryDataCollection();
+
+    // Prepare request
+    Application app = tempEntity.newApplicationWithParent(appId);
+    Map<String, Object> telemetryRequest =
+        getTelemetryRequestV2(attribute, attributeValue, getComponentCounts(mavenComponents, npmComponents));
+    HttpRequest request = sendTelemetryRequestV2(telemetryRequest, app.getPublicId(), instanceId, userAgent);
+
+    // Send request
+    HttpResponse response = request.post();
+
+    // Assert result and telemetry purpose
+    assertResponseStatus(204, response);
+    return assertTelemetryPurposeIsFound(responses, TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS);
+  }
+
+  private Map<ByteArrayDataSource, Integer> getHdsTelemetryDataCollection() throws Exception {
+    final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
+    initServer(config -> getHdsServer()
+        .respondWith((HttpResponseProcessor) (request, response) ->
+            responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"),
+                response.getStatus()))
+        .andStatus(204)
+        .atUri(TelemetrySender.RESOURCE_PATH));
+    return responses;
+  }
+
   private Map<String, Integer> getComponentCounts(final Integer mavenComponents, final Integer npmComponents) {
     Map<String, Integer> componentCounts = new HashMap<>();
     if (mavenComponents != null) {
@@ -894,6 +982,17 @@ public class IdeResourceTest
       componentCounts.put("npm", npmComponents);
     }
     return componentCounts;
+  }
+
+  private Map<String, Object> getTelemetryRequestV2(
+      String attribute,
+      String attributeValue,
+      Map<String, Integer> componentCounts)
+  {
+    Map<String, Object> telemetryRequest = new HashMap<>();
+    Optional.ofNullable(attribute).ifPresent(attr -> telemetryRequest.put(attr, attributeValue));
+    telemetryRequest.put("component_counts", componentCounts);
+    return telemetryRequest;
   }
 
   private HttpRequest sendTelemetryRequest(
@@ -908,6 +1007,18 @@ public class IdeResourceTest
     return restRequest().path("telemetry", appId).headers(headers).body(componentCounts);
   }
 
+  private HttpRequest sendTelemetryRequestV2(
+      final Map<String, Object> telemetryRequest,
+      final String appId,
+      final String instanceId,
+      final String userAgent)
+  {
+    Map<String, String> headers = new HashMap<>();
+    headers.put(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, userAgent);
+    headers.put(DefaultHdsClient.CLIENT_INSTANCE_ID_HEADER, instanceId);
+    return restRequest().path("v2/telemetry", appId).headers(headers).body(telemetryRequest);
+  }
+
   private Map<String, Object> assertTelemetryPurposeIsFound(
       final Map<ByteArrayDataSource, Integer> responses,
       final TelemetryPurpose purpose) throws MessagingException, IOException
@@ -918,7 +1029,7 @@ public class IdeResourceTest
     // Assert telemetry purpose is found
     List<TelemetryItem> telemetryItems = collectedTelemetry.get(purpose);
     assertThat(telemetryItems).isNotNull();
-    assertThat(telemetryItems.size()).isGreaterThan(0);
+    assertThat(telemetryItems).isNotEmpty();
 
     return telemetryItems.get(0).getTelemetryData().get(0).getAttributes();
   }
@@ -930,12 +1041,12 @@ public class IdeResourceTest
       Integer npmComponents
   )
   {
-    assertThat(telemetryAttributes.get("application_id")).isEqualTo(HdsClientAnalytics.obfuscate(appId));
-    assertThat(telemetryAttributes.get("stage_id")).isEqualTo(Stage.ID_DEVELOP);
-    assertThat(telemetryAttributes.get("scan_trigger_type")).isEqualTo(ScanTriggerType.IDE.getId());
+    assertThat(telemetryAttributes).containsEntry("application_id", HdsClientAnalytics.obfuscate(appId));
+    assertThat(telemetryAttributes).containsEntry("stage_id", Stage.ID_DEVELOP);
+    assertThat(telemetryAttributes).containsEntry("scan_trigger_type", ScanTriggerType.IDE.getId());
 
     if (mavenComponents != null) {
-      assertThat(telemetryAttributes.get("number_of_maven_components")).isEqualTo(mavenComponents.toString());
+      assertThat(telemetryAttributes).containsEntry("number_of_maven_components", mavenComponents.toString());
     }
     else {
       mavenComponents = 0;
@@ -943,7 +1054,7 @@ public class IdeResourceTest
     }
 
     if (npmComponents != null) {
-      assertThat(telemetryAttributes.get("number_of_npm_components")).isEqualTo(npmComponents.toString());
+      assertThat(telemetryAttributes).containsEntry("number_of_npm_components", npmComponents.toString());
     }
     else {
       npmComponents = 0;
@@ -951,18 +1062,18 @@ public class IdeResourceTest
     }
 
     Integer total = mavenComponents + npmComponents;
-    assertThat(telemetryAttributes.get("number_of_components")).isEqualTo(total.toString());
+    assertThat(telemetryAttributes).containsEntry("number_of_components", total.toString());
   }
 
   private void assertUserAgentData(Map<String, Object> telemetryAttributes, String userAgent) {
     ClientUserAgentUtil.UserAgent userAgentData = ClientUserAgentUtil.parse(userAgent);
-    assertThat(telemetryAttributes.get("client_id")).isEqualTo(userAgentData.client);
-    assertThat(telemetryAttributes.get("client_version")).isEqualTo(userAgentData.clientVersion);
-    assertThat(telemetryAttributes.get("client_runtime")).isEqualTo(userAgentData.runtime);
-    assertThat(telemetryAttributes.get("client_runtime_version")).isEqualTo(userAgentData.runtimeVersion);
-    assertThat(telemetryAttributes.get("client_os_name")).isEqualTo(userAgentData.os);
-    assertThat(telemetryAttributes.get("client_os_version")).isEqualTo(userAgentData.osVersion);
-    assertThat(telemetryAttributes.get("client_other")).isEqualTo(userAgentData.other);
+    assertThat(telemetryAttributes).containsEntry("client_id", userAgentData.client);
+    assertThat(telemetryAttributes).containsEntry("client_version", userAgentData.clientVersion);
+    assertThat(telemetryAttributes).containsEntry("client_runtime", userAgentData.runtime);
+    assertThat(telemetryAttributes).containsEntry("client_runtime_version", userAgentData.runtimeVersion);
+    assertThat(telemetryAttributes).containsEntry("client_os_name", userAgentData.os);
+    assertThat(telemetryAttributes).containsEntry("client_os_version", userAgentData.osVersion);
+    assertThat(telemetryAttributes).containsEntry("client_other", userAgentData.other);
   }
 
   private void assertUserAgentDataIsNotSent(Map<String, Object> telemetryAttributes) {

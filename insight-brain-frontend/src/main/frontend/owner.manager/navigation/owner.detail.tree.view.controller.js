@@ -23,16 +23,12 @@ import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicie
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import {
+  selectOwnerDetails,
+  selectRolesWithoutLocalMembersExist,
+} from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSelectors';
 
-export default function OwnerDetailTreeViewController(
-  $scope,
-  $q,
-  $http,
-  $state,
-  CLMContextLocations,
-  LocalRoleService,
-  $ngRedux
-) {
+export default function OwnerDetailTreeViewController($scope, $q, $state, CLMContextLocations, $ngRedux) {
   var vm = this;
 
   vm.areAnyCategoriesDefined = undefined;
@@ -40,9 +36,7 @@ export default function OwnerDetailTreeViewController(
   vm.isOrg = CLMContextLocations.isOrganization();
   vm.isRepositories = CLMContextLocations.isRepositories();
   vm.state = $state;
-  vm.details = undefined;
   vm.doLoad = doLoad;
-  vm.rolesWithoutLocalMembersExist = undefined;
   vm.error = undefined;
   vm.accessState = { isExpanded: vm.state.$current.name.endsWith('access') };
   vm.categoryState = {
@@ -61,6 +55,7 @@ export default function OwnerDetailTreeViewController(
     loadApplicableCategories: applicationCategoriesActions.loadApplicableCategories,
     setSelectedOwner: rootActions.setSelectedOwner,
     setLoading: ownerDetailTreeActions.setLoading,
+    loadOwnerDetails: ownerDetailTreeActions.loadOwnerDetails,
     setLoadError: ownerDetailTreeActions.setLoadError,
   })(vm);
 
@@ -73,7 +68,7 @@ export default function OwnerDetailTreeViewController(
   function doLoad() {
     vm.setLoading(true);
     vm.setLoadError(null);
-    var promises = [$http.get(CLMContextLocations.getOwnerDetailsUrl())];
+    var promises = [vm.loadOwnerDetails()];
 
     if (vm.isApp) {
       promises.push(vm.loadApplications());
@@ -84,12 +79,6 @@ export default function OwnerDetailTreeViewController(
 
     $q.all(promises)
       .then(function (results) {
-        vm.details = results[0].data;
-
-        var allMembersByRoles = vm.details.roles.membersByRole;
-        vm.details.roles = LocalRoleService.getRolesWithLocalMembers(allMembersByRoles);
-        vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(allMembersByRoles).length > 0;
-
         if (!vm.isRepositories) {
           const siblings = unwrapResult(results[1]);
           const entityId = CLMContextLocations.getEntityId();
@@ -117,11 +106,14 @@ export default function OwnerDetailTreeViewController(
       });
   }
 
-  $scope.$watchGroup(['vm.labels', 'vm.access', 'vm.categories', 'vm.licenseThreatGroups'], function (watched) {
-    if (any(complement(isNil), watched)) {
-      vm.doLoad();
+  $scope.$watchGroup(
+    ['vm.labels', 'vm.access', 'vm.categories', 'vm.policies', 'vm.licenseThreatGroups'],
+    function (watched) {
+      if (any(complement(isNil), watched)) {
+        vm.doLoad();
+      }
     }
-  });
+  );
 
   $scope.$on('resource.data.modified', vm.doLoad);
 }
@@ -137,14 +129,8 @@ export const mapStateToThis = (state) => ({
   ownerName: selectSelectedOwnerName(state),
   loading: selectLoading(state),
   loadError: selectLoadError(state),
+  details: angular.copy(selectOwnerDetails(state)),
+  rolesWithoutLocalMembersExist: selectRolesWithoutLocalMembersExist(state),
 });
 
-OwnerDetailTreeViewController.$inject = [
-  '$scope',
-  '$q',
-  '$http',
-  '$state',
-  'CLMContextLocations',
-  'local.role.service',
-  '$ngRedux',
-];
+OwnerDetailTreeViewController.$inject = ['$scope', '$q', '$state', 'CLMContextLocations', '$ngRedux'];

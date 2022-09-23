@@ -20,9 +20,11 @@ export const selectPreviousRouteName = createSelector(selectRouterPrevState, pro
 const includesNamePart = curryN(2, (part, str) => contains(part, split('.', str)));
 const nameIncludesOrganization = includesNamePart('organization');
 const nameIncludesApplication = includesNamePart('application');
+const nameIncludesRepositories = includesNamePart('repositories');
 
 export const selectIsOrganization = createSelector(selectCurrentRouteName, nameIncludesOrganization);
 export const selectIsApplication = createSelector(selectCurrentRouteName, nameIncludesApplication);
+export const selectIsRepositories = createSelector(selectCurrentRouteName, nameIncludesRepositories);
 
 export const selectOrganizationId = createSelector(selectRouterCurrentParams, propOr('', 'organizationId'));
 export const selectApplicationId = createSelector(selectRouterCurrentParams, propOr('', 'applicationPublicId'));
@@ -48,3 +50,29 @@ export const selectRouteParamsFromSecurityTab = createSelector(selectRouterCurre
     };
   }
 });
+
+export const selectOwnerInfo = createSelector(
+  selectIsOrganization,
+  selectIsApplication,
+  selectIsRepositories,
+  selectOrganizationId,
+  selectApplicationId,
+  (isOrganization, isApplication, isRepositories, organizationId, applicationId) => {
+    const ownerId = isApplication ? applicationId : isOrganization ? organizationId : 'global';
+    const ownerType = isApplication
+      ? 'application'
+      : isOrganization
+      ? 'organization'
+      : isRepositories
+      ? 'repository_container'
+      : 'global';
+
+    if (isRepositories) {
+      return { ownerType };
+    } else if (ownerId === '_new_') {
+      return { ownerType: 'global', ownerId: 'global' };
+    } else {
+      return { ownerType, ownerId };
+    }
+  }
+);

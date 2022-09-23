@@ -8,8 +8,10 @@ package com.sonatype.clm.testing.functional.elements;
 import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.ElementsCollection;
 
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
+import static com.codeborne.selenide.Selenide.$;
 
 public class PolicyInheritsToSection
     extends BasicElement<PolicyInheritsToSection>
@@ -20,6 +22,10 @@ public class PolicyInheritsToSection
 
   public PolicyInheritsToSection() {
     super(ROOT);
+  }
+
+  public SelenideElement header() {
+    return $(ROOT + " .nx-h2");
   }
 
   public static Condition allRadioText(String ownerName) {
@@ -34,19 +40,23 @@ public class PolicyInheritsToSection
     return Condition.text("Applications of the specified Application Categories in " + ownerName);
   }
 
-  public IqRadio allChildrenInheritRadio() {
-    return new IqRadio(child("#editor-policy-inherit iq-radio", nthChild(1)));
+  public ElementsCollection allInheritRadios() {
+    return children("#editor-policy-inherit .nx-radio");
   }
 
-  public IqRadio specifiedChildrenInheritRadio() {
-    return new IqRadio(child("#editor-policy-inherit iq-radio", nthChild(2)));
+  public NxRadio allChildrenInheritRadio() {
+    return new NxRadio(allInheritRadios().get(0));
   }
 
-  public AssociationEditor associationEditor() {
-    return new AssociationEditor(ROOT);
+  public NxRadio specifiedChildrenInheritRadio() {
+    return new NxRadio(allInheritRadios().get(1));
   }
 
-  public IqCheckbox policyActionsOverrideCheckbox() {
-    return new IqCheckbox(child("#editor-policy-actions-override"));
+  public IqAssociationEditor associationEditor() {
+    return new IqAssociationEditor(ROOT);
+  }
+
+  public NxCheckbox policyActionsOverrideCheckbox() {
+    return new NxCheckbox($("#editor-policy-actions-override"));
   }
 }

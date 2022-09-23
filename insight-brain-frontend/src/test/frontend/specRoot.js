@@ -37,7 +37,6 @@ import './stores/store.utils';
 import './stores/policy/policy.mock.data';
 import './stores/proprietary/proprietary.mock.data';
 import './mock.data/sidebar.resource.mock.data';
-import './mock.data/jira.service.mock.data';
 import './assets/MockData';
 import customMatchers from './customMatchers';
 

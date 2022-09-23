@@ -3,7 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { applyTo, curryN, isNil, map, prop, reject, test, isEmpty, none, any, values } from 'ramda';
+import {
+  applyTo,
+  curryN,
+  isNil,
+  map,
+  prop,
+  reject,
+  test,
+  isEmpty,
+  none,
+  any,
+  values,
+  find,
+  propEq,
+  equals,
+  not,
+} from 'ramda';
 import isValidHostname from 'is-valid-hostname';
 
 export const GLOBAL_FORM_VALIDATION_ERROR = 'Unable to save: fields with invalid or missing data';
@@ -26,6 +42,14 @@ export const validateMaxLength = curryN(2, function validateMaxLength(maxLength,
   return val.length <= maxLength ? null : `Please enter less than ${maxLength} characters`;
 });
 
+export const validateDuplicatedValue = curryN(2, function validateDuplicatedValue(dupsArr, val, currentVal) {
+  return find((targetVal) => propEq('name', val, targetVal) && not(equals(currentVal, prop('name', targetVal))))(
+    dupsArr
+  )
+    ? `Name is already in use`
+    : null;
+});
+
 export const validatePatternMatch = curryN(3, function validatePatternMatch(regex, message, val) {
   return test(regex, val) ? null : message;
 });
@@ -35,7 +59,7 @@ export const validatePatternDoesNotMatch = curryN(3, function validatePatternDoe
 });
 
 export const validateEmailPatternMatch = curryN(2, function validateEmailPatternMatch(message, val) {
-  const emailRegEx = /^.+@.+$/;
+  const emailRegEx = /\S+@\S+$/;
   return test(emailRegEx, val) ? null : message;
 });
 

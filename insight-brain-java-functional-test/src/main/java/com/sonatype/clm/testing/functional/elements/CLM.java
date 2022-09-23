@@ -15,6 +15,8 @@ public class CLM
 {
   public static final Condition PRISTINE = cssClass("ng-pristine");
 
+  public static final Condition RSC_PRISTINE = cssClass("pristine");
+
   public static final Condition DISABLED = cssClass("disabled");
 
   public static final Condition EXPANDED = cssClass("expand");

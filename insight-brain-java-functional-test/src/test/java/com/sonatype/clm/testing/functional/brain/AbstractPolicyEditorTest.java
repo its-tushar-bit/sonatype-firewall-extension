@@ -23,22 +23,21 @@ import com.sonatype.clm.testing.functional.elements.ConstraintSection.Constraint
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection.DropdownConditionEditSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection.InputConditionEditSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintSummary;
-import com.sonatype.clm.testing.functional.elements.DeleteModal;
-import com.sonatype.clm.testing.functional.elements.Dropdown;
-import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection.AddNotificationItem;
-import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
-import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
+import com.sonatype.clm.testing.functional.elements.ThreatDropdownSelector;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
-import com.sonatype.clm.testing.functional.utils.ConditionUtils;
+import com.sonatype.clm.testing.functional.utils.InputUtils;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
@@ -105,8 +104,6 @@ import org.openqa.selenium.interactions.Actions;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.back;
-import static com.sonatype.clm.testing.functional.elements.ActionsSection.activeClass;
-import static com.sonatype.clm.testing.functional.elements.ActionsSection.warnClass;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.dark_blue;
 import static com.sonatype.insight.brain.model.Color.dark_red;
@@ -210,19 +207,24 @@ public abstract class AbstractPolicyEditorTest
     assertCondition(constraint.getConditions().get(3), CoordinatesConditionType.ID, "match",
         "pypi:MarkupSafe:1.1.0:cp37:tar.gz");
     assertCondition(constraint.getConditions().get(4), LabelConditionType.ID, "is", sampleLabel.getId());
-    assertCondition(constraint.getConditions().get(5), LicenseConditionType.ID, "is", "Abstyles");
+    assertCondition(constraint.getConditions().get(5),
+            LicenseConditionType.ID, "is", "Abstyles");
     assertCondition(constraint.getConditions().get(6), LicenseStatusConditionType.ID, "is not",
         LicenseOverrideStatus.CONFIRMED.name());
     assertCondition(constraint.getConditions().get(7), LicenseThreatGroupConditionType.ID, "is",
         new LicenseThreatGroupDAO().getByName("Liberal").get(0).getId());
-    assertCondition(constraint.getConditions().get(8), LicenseThreatGroupLevelConditionType.ID, ">=", "5");
-    assertCondition(constraint.getConditions().get(9), SecurityVulnerabilitySeverityConditionType.ID, ">", "1");
+    assertCondition(constraint.getConditions().get(8),
+            LicenseThreatGroupLevelConditionType.ID, ">=", "5");
+    assertCondition(constraint.getConditions().get(9),
+            SecurityVulnerabilitySeverityConditionType.ID, ">", "1");
     assertCondition(constraint.getConditions().get(10), SecurityVulnerabilityStatusConditionType.ID, "is",
         SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE.name());
-    assertCondition(constraint.getConditions().get(11), RelativePopularityConditionType.ID, "=", "50");
+    assertCondition(constraint.getConditions().get(11),
+            RelativePopularityConditionType.ID, "=", "50");
     assertCondition(constraint.getConditions().get(12), MatchStateConditionType.ID, "is not",
         MatchState.UNKNOWN.getId());
-    assertCondition(constraint.getConditions().get(13), ProprietaryConditionType.ID, "is false", null);
+    assertCondition(constraint.getConditions().get(13),
+            ProprietaryConditionType.ID, "is false", null);
     assertCondition(constraint.getConditions().get(14), IdentificationSourceConditionType.ID, "is not",
         IdentificationSource.MANUAL.getId());
     assertCondition(constraint.getConditions().get(15), PackageUrlConditionType.ID, "matches",
@@ -233,20 +235,25 @@ public abstract class AbstractPolicyEditorTest
         "pkg:npm/a@v");
     assertCondition(constraint.getConditions().get(18), PackageUrlConditionType.ID, "matches",
         "pkg:pypi/*/*/a@*?extension=*&qualifier=*");
-    assertCondition(constraint.getConditions().get(19), PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/a@*");
+    assertCondition(constraint.getConditions().get(19),
+            PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/a@*");
     assertCondition(constraint.getConditions().get(20), PackageUrlConditionType.ID, "matches",
         "pkg:conan/*/*/a@*?channel=*");
-    assertCondition(constraint.getConditions().get(21), PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/*@*");
+    assertCondition(constraint.getConditions().get(21),
+            PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/*@*");
     assertCondition(constraint.getConditions().get(22), HygieneRatingConditionType.ID, "is not",
         HygieneRating.getById("4").getId());
     assertCondition(constraint.getConditions().get(23), DataSourceConditionType.ID, HAS_NO_SUPPORT_FOR,
         ComponentDataSource.getById("identity").getId());
-    assertCondition(constraint.getConditions().get(24), DependencyTypeConditionType.ID, "is not", "transitive");
-    assertCondition(constraint.getConditions().get(25), SecurityVulnerabilityCategoryConditionType.ID, "is not",
+    assertCondition(constraint.getConditions().get(24),
+            DependencyTypeConditionType.ID, "is not", "transitive");
+    assertCondition(constraint.getConditions().get(25),
+            SecurityVulnerabilityCategoryConditionType.ID, "is not",
         "configuration");
     assertCondition(constraint.getConditions().get(26), IntegrityRatingConditionType.ID, "is not",
         IntegrityRating.getById("1").getId());
-    assertCondition(constraint.getConditions().get(27), DependencyTypeConditionType.ID, "is", "innersource");
+    assertCondition(constraint.getConditions().get(27),
+            DependencyTypeConditionType.ID, "is", "innersource");
 
     assertThat(newPolicy.getActions().get(Stage.ID_BUILD)).isEqualTo("warn");
 
@@ -353,7 +360,7 @@ public abstract class AbstractPolicyEditorTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     OwnerSummaryPage.policyTile().addPolicyButton().click();
 
-    PolicyEditorPage.summarySection().policyName().val("New Policy");
+    PolicyEditorPage.summarySection().policyName().input().val("New Policy");
 
     ConstraintEditSection newConstraint = PolicyEditorPage.constraintSection().constraintEditor(0);
     newConstraint.name().val("New Constraint");
@@ -364,22 +371,21 @@ public abstract class AbstractPolicyEditorTest
     AddNotificationItem addNotification = NotificationsSection.addNotification();
 
     // add jira notifications
-    addNotification.notificationType().selectedItem().click();
-    addNotification.notificationType().listItem(3).click();
-    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.notificationType().chooseOption("JIRA");
+    addNotification.addButton().shouldBe(disabled);
 
-    addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)
+    addNotification.issueType().shouldBe(visible).shouldBe(disabled)
         .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
     addNotification.project().shouldBe(visible).selectedItem().click();
     addNotification.project().listItems().findBy(text(jiraProject.getName())).click();
-    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.addButton().shouldBe(disabled);
 
     addNotification.issueType().shouldBe(visible).selectedItem().click();
     addNotification.issueType().listItems().findBy(text(jiraProject.getIssueTypes().get(0).getName())).click();
-    addNotification.addButton().shouldNotHave(DISABLED).click();
-    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.addButton().shouldNotBe(disabled).click();
+    addNotification.addButton().shouldBe(disabled);
     addNotification.project().shouldBe(visible);
-    addNotification.issueType().shouldBe(visible).shouldHave(DISABLED)
+    addNotification.issueType().shouldBe(visible).shouldBe(disabled)
         .shouldHave(AddNotificationItem.ISSUE_TYPE_NEEDS_PROJECT);
 
     addNotification.project().shouldHave(text("No applicable projects available."));
@@ -425,20 +431,15 @@ public abstract class AbstractPolicyEditorTest
     ConstraintEditSection constraintEditor = PolicyEditorPage.constraintSection().constraintEditor(0);
 
     //make sure certain fields are making the editor dirty
-    PolicyEditorPage.constraintsPill().click();
+    ScrollUtil.scrollIntoView(PolicyEditorPage.constraintSection().header());
     constraintEditor.addConditionButton().click();
     handleUnsavedChangesDialog(unsavedModal, editorUrl);
     constraintEditor.condition(1).deleteConditionButton().click();
-    constraintEditor.condition(0).type().chooseOption(conditionTypesOptionMap.get(CoordinatesConditionType.class));
+    constraintEditor.condition(0).type()
+        .chooseOptionWithHidden(conditionTypesOptionMap.get(CoordinatesConditionType.class));
     handleUnsavedChangesDialog(unsavedModal, editorUrl);
-    constraintEditor.condition(0).type().chooseOption(conditionTypesOptionMap.get(AgeInDaysConditionType.class));
-    PolicyEditorPage.actionsPill().click();
-    //CLM-6366
-    //proxyAction.twisty().click();
-    //proxyAction.addNotification().email().val("someemail@email.com");
-    //proxyAction.addNotification().addButton().click();
-    //handleUnsavedChangesDialog(unsavedModal, editorUrl);
-    //proxyAction.getNotification(1).deleteButton().click();
+    constraintEditor.condition(0).type()
+        .chooseOptionWithHidden(conditionTypesOptionMap.get(AgeInDaysConditionType.class));
 
     // Assert no Modal appears when the editor is clean
     unsavedModal.shouldBe(hidden);
@@ -519,7 +520,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(policy.isPolicyViolationGrandfatheringAllowed()).isFalse();
 
     SummarySection summary = PolicyEditorPage.summarySection();
-    summary.policyName().val("updated name");
+    summary.policyName().input().val("updated name");
     summary.policyViolationGrandfatheringCheckbox().shouldBe(visible).shouldNotBe(selected);
     summary.policyViolationGrandfatheringCheckbox().click();
     PolicyEditorPage.savePolicy();
@@ -530,9 +531,9 @@ public abstract class AbstractPolicyEditorTest
     refresh();
 
     PolicyEditorPage.title().shouldHave(text("Edit"));
-    summary.policyName().shouldBe(visible).shouldHave(value("updated name"));
+    summary.policyName().input().shouldBe(visible).shouldHave(value("updated name"));
     summary.policyViolationGrandfatheringCheckbox().shouldBe(visible).shouldBe(selected);
-    ThreatLevelSelector.selectedThreatLevel().shouldBe(text("6"));
+    ThreatDropdownSelector.selectedThreatLabel().shouldBe(text("6"));
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     Policy updatedPolicy = policyDAO.getById(policy.getId());
@@ -611,41 +612,41 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.conditionUnsupportedMessages().shouldHaveSize(0);
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
-    constraintEdit.operator().selectedItem().shouldHave(text("all"));
+    constraintEdit.operator().shouldHave(text("all"));
     constraintEdit.name().shouldHave(value(constraints.get(0).getName())).val("New Constraint Name");
     PolicyEditorPage.savePolicy();
 
     policy = policyDAO.getById(policy.getId());
     assertThat(policy.getConstraints().get(0).getName()).isEqualTo("New Constraint Name");
 
-    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
     constraintEdit.conditions().shouldHaveSize(1);
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.ageCondition(0).deleteConditionButton().shouldBe(visible, disabled);
     constraintEdit.ageCondition(0).value().age().shouldHave(value("2")).val("3");
-    constraintEdit.ageCondition(0).value().modifier().selectedItem().shouldHave(text("Years")).click();
+    constraintEdit.ageCondition(0).value().modifier().shouldHave(text("Years")).click();
     constraintEdit.ageCondition(0).value().modifier().listItem(2).shouldHave(text("Months")).click();
-    constraintEdit.ageCondition(0).operator().selectedItem().shouldHave(text("older than")).click();
+    constraintEdit.ageCondition(0).operator().shouldHave(text("older than")).click();
     constraintEdit.ageCondition(0).operator().listItem(1).shouldHave(text("younger than")).click();
     PolicyEditorPage.savePolicy();
-    PolicyEditorPage.constraintsPill().click();
+    ScrollUtil.scrollIntoView(constraintSection.header());
 
-    Condition updatedAgeCondition = policyDAO.getById(policy.getId()).getConstraints().get(0).getConditions().get(0);
+    Condition updatedAgeCondition = policyDAO.getById(policy.getId()).getConstraints().get(0)
+        .getConditions().get(0);
     assertThat(updatedAgeCondition.getConditionTypeId()).isEqualTo(AgeInDaysConditionType.ID);
     assertThat(updatedAgeCondition.getValue()).isEqualTo(Integer.toString(3 * 30));
     assertThat(updatedAgeCondition.getOperator()).isEqualTo("younger than");
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
-    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
     constraintEdit.addConditionButton().shouldBe(visible, enabled).click();
     constraintEdit.conditions().shouldHaveSize(2);
-    constraintEdit.condition(1).type().chooseOption(conditionTypesOptionMap.get(LicenseThreatGroupConditionType.class));
-    constraintEdit.dropdownCondition(1).operator().selectedItem().shouldHave(text("is")).click();
+    constraintEdit.condition(1).type()
+        .chooseOptionWithHidden(conditionTypesOptionMap.get(LicenseThreatGroupConditionType.class));
+    constraintEdit.dropdownCondition(1).operator().shouldHave(text("is")).click();
     constraintEdit.dropdownCondition(1).operator().listItem(1).shouldHave(text("is not")).click();
-    constraintEdit.dropdownCondition(1).value().selectedItem().shouldHave(text("my LTG")).click();
+    constraintEdit.dropdownCondition(1).value().shouldHave(text("my LTG")).click();
     constraintEdit.dropdownCondition(1).value().listItem(1).shouldHave(text("my LTG 2")).click();
     PolicyEditorPage.savePolicy();
-    PolicyEditorPage.constraintsPill().click();
+    ScrollUtil.scrollIntoView(constraintSection.header());
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
     assertThat(constraints.get(0).getConditions()).hasSize(2);
@@ -657,19 +658,18 @@ public abstract class AbstractPolicyEditorTest
     assertThat(ltgCondition.getOperator()).isEqualTo("is not");
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
-    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
     constraintEdit.addConditionButton().shouldBe(visible, enabled).click();
     constraintEdit.conditions().shouldHaveSize(3);
-    constraintEdit.condition(2).type().selectedItem().shouldHave(text("Age"));
+    constraintEdit.condition(2).type().shouldHave(text("Age"));
 
     CoordinatesCondition coordConditionEditor = constraintEdit.coordinatesCondition(2);
-    coordConditionEditor.type().chooseOption(conditionTypesOptionMap.get(CoordinatesConditionType.class));
+    coordConditionEditor.type().chooseOptionWithHidden(conditionTypesOptionMap.get(CoordinatesConditionType.class));
     coordConditionEditor.setOperator("do not match");
     coordConditionEditor.groupId().val("com.eclipse.*");
     coordConditionEditor.artifactId().val("*");
     coordConditionEditor.version().val("*");
     PolicyEditorPage.savePolicy();
-    PolicyEditorPage.constraintsPill().click();
+    ScrollUtil.scrollIntoView(constraintSection.header());
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
     assertThat(constraints.get(0).getConditions()).hasSize(3);
@@ -680,17 +680,16 @@ public abstract class AbstractPolicyEditorTest
     assertThat(coordinatesCondition.getOperator()).isEqualTo("do not match");
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
-    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
     constraintEdit.condition(2).type()
-        .chooseOption(conditionTypesOptionMap.get(SecurityVulnerabilitySeverityConditionType.class));
-    constraintEdit.condition(2).operator().selectedItem().shouldHave(text("=")).click();
+        .chooseOptionWithHidden(conditionTypesOptionMap.get(SecurityVulnerabilitySeverityConditionType.class));
+    constraintEdit.condition(2).operator().shouldHave(text("=")).click();
     constraintEdit.condition(2).operator().listItem(1).shouldHave(text("<"));
     constraintEdit.condition(2).operator().listItem(2).shouldHave(text("<="));
     constraintEdit.condition(2).operator().listItem(3).shouldHave(text(">"));
     constraintEdit.condition(2).operator().listItem(4).shouldHave(text(">=")).click();
     constraintEdit.inputCondition(2).value().val("1");
     PolicyEditorPage.savePolicy();
-    PolicyEditorPage.constraintsPill().click();
+    ScrollUtil.scrollIntoView(constraintSection.header());
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
     assertThat(constraints.get(0).getConditions()).hasSize(3);
@@ -704,12 +703,9 @@ public abstract class AbstractPolicyEditorTest
     constraintEdit.conditionUnsupportedMessages().shouldHaveSize(0);
 
     // Check that severity can be set to 0 as well
-    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
     constraintEdit.inputCondition(2).value().val("0");
     PolicyEditorPage.savePolicy();
-    PolicyEditorPage.constraintsPill().click();
-
-    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
+    ScrollUtil.scrollIntoView(constraintSection.header());
 
     constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, enabled);
     constraintEdit.condition(1).deleteConditionButton().shouldBe(visible, enabled);
@@ -722,8 +718,7 @@ public abstract class AbstractPolicyEditorTest
 
     constraintEdit.condition(0).deleteConditionButton().shouldBe(visible, disabled);
     PolicyEditorPage.savePolicy();
-    PolicyEditorPage.constraintsPill().click();
-    constraintSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled).click();
+    ScrollUtil.scrollIntoView(constraintSection.header());
 
     constraints = policyDAO.getById(policy.getId()).getConstraints();
     assertThat(constraints.get(0).getConditions()).hasSize(1);
@@ -741,17 +736,12 @@ public abstract class AbstractPolicyEditorTest
 
     testDisabledPolicy_constraintSectionConditions_summaries(policy,
         new String[]{"Hygiene Rating is Exemplar", "Hygiene Rating is Laggard"},
-        new String[]{
-            "Hygiene Rating condition is not supported by your license. Please delete the condition.",
-            "Hygiene Rating condition is not supported by your license. Please delete the condition."
-        });
+        "Hygiene Rating condition is not supported by your license. Please revise the constraint."
+    );
     testDisabledPolicy_constraintSectionConditions_editors(policy,
         new String[]{"Hygiene Rating", "Hygiene Rating"},
-        new String[]{
-            "Hygiene Rating condition is not supported by your license. Please delete the condition.",
-            "Hygiene Rating condition is not supported by your license. Please delete the condition."
-        },
-        "Hygiene Rating", "is", "Exemplar");
+        "Hygiene Rating condition is not supported by your license. Please revise the constraint.",
+        "Hygiene Rating", "is", "1");
   }
 
   @Test
@@ -766,17 +756,12 @@ public abstract class AbstractPolicyEditorTest
 
     testDisabledPolicy_constraintSectionConditions_summaries(policy,
         new String[]{"Integrity Rating is Suspicious", "Integrity Rating is Normal"},
-        new String[]{
-            "Integrity Rating condition is not supported by your license. Please delete the condition.",
-            "Integrity Rating condition is not supported by your license. Please delete the condition."
-        });
+        "Integrity Rating condition is not supported by your license. Please revise the constraint."
+    );
     testDisabledPolicy_constraintSectionConditions_editors(policy,
         new String[]{"Integrity Rating", "Integrity Rating"},
-        new String[]{
-            "Integrity Rating condition is not supported by your license. Please delete the condition.",
-            "Integrity Rating condition is not supported by your license. Please delete the condition."
-        },
-        "Integrity Rating", "is", "Suspicious");
+        "Integrity Rating condition is not supported by your license. Please revise the constraint.",
+        "Integrity Rating", "is", "1");
   }
 
   private Policy createDisabledHygieneRatingPolicyConditions(String ownerId) {
@@ -812,7 +797,7 @@ public abstract class AbstractPolicyEditorTest
   private void testDisabledPolicy_constraintSectionConditions_summaries(
       Policy policy,
       String[] expectedSummaryTexts,
-      String[] expectedWarningMessages)
+      String expectedWarningMessage)
   {
     List<Constraint> constraints = policy.getConstraints();
     ConstraintSection constraintSection = PolicyEditorPage.constraintSection();
@@ -832,7 +817,7 @@ public abstract class AbstractPolicyEditorTest
 
     constraintSummary1.conditionUnsupportedMessages().shouldHaveSize(1);
     assertPolicySummary_constraintSectionDisabled(constraintSummary1, 0, expectedSummaryTexts[0],
-        expectedWarningMessages[0]);
+        expectedWarningMessage);
 
     ConstraintSection.ConstraintSummary constraintSummary2 = constraintSection.constraintSummary(1);
     constraintSummary2.name().shouldHave(text(constraints.get(1).getName()));
@@ -845,11 +830,11 @@ public abstract class AbstractPolicyEditorTest
     constraintSummary2.deleteConstraintButton().shouldBe(visible, enabled);
     constraintSummary2.editConstraintButton().shouldBe(visible, enabled);
 
-    constraintSummary2.conditionUnsupportedMessages().shouldHaveSize(2);
+    constraintSummary2.conditionUnsupportedMessages().shouldHaveSize(1);
     assertPolicySummary_constraintSectionDisabled(constraintSummary2, 0, expectedSummaryTexts[0],
-        expectedWarningMessages[0]);
+        expectedWarningMessage);
     assertPolicySummary_constraintSectionDisabled(constraintSummary2, 1, expectedSummaryTexts[1],
-        expectedWarningMessages[1]);
+        expectedWarningMessage);
   }
 
   private void assertPolicySummary_constraintSectionDisabled(
@@ -865,7 +850,7 @@ public abstract class AbstractPolicyEditorTest
   private void testDisabledPolicy_constraintSectionConditions_editors(
       Policy policy,
       String[] expectedConditionTexts,
-      String[] expectedWarningTexts,
+      String expectedWarningText,
       String dropdownConditionType,
       String dropdownConditionOperator,
       String dropdownConditionValue)
@@ -879,7 +864,7 @@ public abstract class AbstractPolicyEditorTest
     ConstraintEditSection constraintEdit = constraintSection.constraintEditor(0);
 
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
-    constraintEdit.operator().selectedItem().shouldHave(text("all"));
+    constraintEdit.operator().shouldHave(text("all"));
 
     policy = policyDAO.getById(policy.getId());
     assertThat(policy.getConstraints().get(0).getName()).isEqualTo("First Constraint with One Condition");
@@ -888,21 +873,21 @@ public abstract class AbstractPolicyEditorTest
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     constraintEdit.conditionUnsupportedMessages().shouldHaveSize(1);
     assertPolicyEditor_constraintSectionDisabled(constraintEdit, 0, expectedConditionTexts[0],
-        expectedWarningTexts[0]);
+        expectedWarningText);
     constraintEdit.dropdownCondition(0).deleteConditionButton().shouldBe(visible, disabled);
-    constraintEdit.dropdownCondition(0).type().selectedItem().shouldBe(text(dropdownConditionType));
-    constraintEdit.dropdownCondition(0).operator().selectedItem().shouldBe(text(dropdownConditionOperator));
-    constraintEdit.dropdownCondition(0).value().selectedItem().shouldBe(text(dropdownConditionValue));
+    constraintEdit.dropdownCondition(0).type().shouldBe(value(dropdownConditionType));
+    constraintEdit.dropdownCondition(0).operator().shouldBe(value(dropdownConditionOperator));
+    constraintEdit.dropdownCondition(0).value().shouldBe(value(dropdownConditionValue));
 
     constraintSection.constraintSummary(1).editConstraintButton().shouldBe(visible, enabled).click();
     constraintSection.constraintEditors().shouldHaveSize(2);
 
     constraintEdit = constraintSection.constraintEditor(1);
-    constraintEdit.conditionUnsupportedMessages().shouldHaveSize(2);
+    constraintEdit.conditionUnsupportedMessages().shouldHaveSize(1);
     assertPolicyEditor_constraintSectionDisabled(constraintEdit, 0, expectedConditionTexts[0],
-        expectedWarningTexts[0]);
+        expectedWarningText);
     assertPolicyEditor_constraintSectionDisabled(constraintEdit, 1, expectedConditionTexts[1],
-        expectedWarningTexts[1]);
+        expectedWarningText);
   }
 
   private void assertPolicyEditor_constraintSectionDisabled(
@@ -911,25 +896,25 @@ public abstract class AbstractPolicyEditorTest
       final String expectedConditionText,
       final String expectedWarningMessage)
   {
-    constraintEditSection.conditionUnsupportedMessage(conditionIndex).shouldHave(text(expectedWarningMessage));
-    constraintEditSection.condition(conditionIndex).type().selectedItem().shouldBe(text(expectedConditionText));
+    constraintEditSection.conditionUnsupportedMessage().shouldHave(text(expectedWarningMessage));
+    constraintEditSection.condition(conditionIndex).type().shouldBe(value(expectedConditionText));
   }
 
   private void testEditPolicy_notificationsSection(Policy policy) {
-    PolicyEditorPage.notificationsPill().click();
+    ScrollUtil.scrollIntoView(PolicyEditorPage.notificationsSection().header());
 
     AddNotificationItem addNotification = NotificationsSection.addNotification();
     addNotification.errorBox().shouldBe(hidden);
 
     // add email notifications
-    addNotification.addButton().shouldHave(DISABLED);
-    addNotification.notificationType().selectedItem().shouldHave(text("Email"));
-    addNotification.email().val("validation_test").shouldHave(cssClass("ng-invalid"));
-    addNotification.addButton().shouldHave(DISABLED);
-    addNotification.email().val("aaa@sonatype.com").shouldNotHave(cssClass("ng-invalid")).shouldBe(visible);
+    addNotification.addButton().shouldBe(disabled);
+    addNotification.notificationType().chooseOption("Email");
+    addNotification.email().val("validation_test").shouldHave(attribute("aria-invalid"));
+    addNotification.addButton().shouldBe(disabled);
+    addNotification.email().val("aaa@sonatype.com").shouldNotHave(attribute("aria-invalid", "true")).shouldBe(visible);
     addNotification.role().shouldNot(exist);
-    addNotification.addButton().shouldNotHave(DISABLED).click();
-    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.addButton().shouldNotBe(disabled).click();
+    addNotification.addButton().shouldBe(disabled);
     addNotification.email().shouldBe(empty);
     // should be last
     NotificationsSection.notifications().shouldHaveSize(3);
@@ -937,18 +922,16 @@ public abstract class AbstractPolicyEditorTest
     //NotificationsSection.notifications().get(2).shouldHave(text("aaa@sonatype.com"));
 
     // duplicate email validation
-    addNotification.email().val("aaa@sonatype.com").shouldHave(cssClass("ng-invalid"));
-    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.email().val("aaa@sonatype.com").shouldHave(attribute("aria-invalid", "true"));
+    addNotification.addButton().shouldBe(disabled);
 
     // add role notifications
-    addNotification.notificationType().selectedItem().click();
-    addNotification.notificationType().listItem(1).click();
+    addNotification.notificationType().chooseOption("Role");
     addNotification.email().shouldNot(exist);
-    addNotification.role().shouldBe(visible).selectedItem().click();
-    addNotification.role().listItems().findBy(text("Application Evaluator")).click();
-    addNotification.addButton().shouldNotHave(DISABLED).click();
-    addNotification.addButton().shouldHave(DISABLED);
-    addNotification.role().selectedItem().shouldHave(text("-- Select Role --"));
+    addNotification.role().shouldBe(visible).chooseOption("Application Evaluator");
+    addNotification.addButton().shouldNotBe(disabled).click();
+    addNotification.addButton().shouldBe(disabled);
+    assertThat(addNotification.role().selectedItem().getText()).isEqualTo("-- Select Role --");
     addNotification.role().listItems().findBy(text("Application Evaluator")).shouldNot(exist);
     // should be last
     // Uncomment when fixing CLM-18677
@@ -959,17 +942,15 @@ public abstract class AbstractPolicyEditorTest
     //.shouldHave(texts("Developer", "test@foo.com", "aaa@sonatype.com", "Application Evaluator"));
 
     // switch from Role to Email notification type - email input should be empty
-    addNotification.role().shouldBe(visible).selectedItem().click();
-    addNotification.role().listItems().findBy(text("Owner")).click();
-    addNotification.notificationType().selectedItem().click();
-    addNotification.notificationType().listItem(0).click();
+    addNotification.role().shouldBe(visible).chooseOption("Owner");
+    addNotification.notificationType().chooseOption("Email");
     addNotification.email().shouldBe(empty);
 
     // delete one and save
     NotificationsSection.notificationFor("test@foo.com").deleteButton().click();
     NotificationsSection.notifications().shouldHaveSize(3);
     PolicyEditorPage.savePolicy();
-    PolicyEditorPage.notificationsPill().click();
+    ScrollUtil.scrollIntoView(PolicyEditorPage.notificationsSection().header());
     NotificationsSection.notifications().shouldHaveSize(3);
     // Uncomment when fixing CLM-18677
     // "aaa@sonatype.com" should be first after save
@@ -988,31 +969,25 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notificationFor("aaa@sonatype.com").operate().click();
     NotificationsSection.notificationFor("Application Evaluator").continuousMonitoring().click();
     PolicyEditorPage.savePolicy();
-    PolicyEditorPage.notificationsPill().click();
+    ScrollUtil.scrollIntoView(PolicyEditorPage.notificationsSection().header());
     policy = policyDAO.getById(policy.getId());
     assertThat(policy.getNotifications().getApplicable(Stage.ID_OPERATE, false).getUserNotifications()).hasSize(1);
     assertThat(policy.getNotifications().getApplicable(Stage.ID_OPERATE, true).getRoleNotifications()).hasSize(1);
 
     // test "All roles are being notified." message
-    addNotification.notificationType().selectedItem().click();
-    addNotification.notificationType().listItem(1).click();
-    addNotification.role().shouldBe(visible).selectedItem().click();
-    addNotification.role().listItems().findBy(text("Owner")).click();
-    addNotification.addButton().shouldNotHave(DISABLED).click();
-    addNotification.role().shouldBe(visible).selectedItem().click();
-    addNotification.role().listItems().findBy(text("Component Evaluator")).click();
-    addNotification.addButton().shouldNotHave(DISABLED).click();
-    addNotification.role().shouldBe(visible).selectedItem().click();
-    addNotification.role().listItems().findBy(text("Legal Reviewer")).click();
-    addNotification.addButton().shouldNotHave(DISABLED).click();
+    addNotification.notificationType().chooseOption( "Role");
+    addNotification.role().shouldBe(visible).chooseOption("Owner");
+    addNotification.addButton().shouldNotBe(disabled).click();
+    addNotification.role().shouldBe(visible).chooseOption("Component Evaluator");
+    addNotification.addButton().shouldNotBe(disabled).click();
+    addNotification.role().shouldBe(visible).chooseOption("Legal Reviewer");
+    addNotification.addButton().shouldNotBe(disabled).click();
     addNotification.role().shouldHave(text("All roles are being notified."));
     PolicyEditorPage.savePolicy();
-    addNotification.notificationType().selectedItem().click();
-    addNotification.notificationType().listItem(1).click();
-    addNotification.role().shouldHave(text("All roles are being notified."));
+    addNotification.notificationType().chooseOption("Role");
+    assertThat(addNotification.role().selectedItem().getText()).isEqualTo("All roles are being notified.");
     NotificationsSection.notificationFor("Owner").deleteButton().click();
-    addNotification.role().shouldBe(visible).selectedItem().click();
-    addNotification.role().listItems().get(0).shouldHave(text("Owner"));
+    addNotification.role().listItems().get(1).shouldHave(text("Owner"));
 
     // test "No notifications configured" message
     NotificationsSection.notificationFor("Component Evaluator").deleteButton().click();
@@ -1064,16 +1039,17 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void testDeletePolicy(Policy policy) {
-    PolicyEditorPage.endOfPagePill().click();
+    ScrollUtil.scrollIntoView(PolicyEditorPage.footer());
     PolicyEditorPage.deleteButton().shouldBe(visible, enabled).click();
 
-    DeleteModal.root().shouldBe(visible);
-    DeleteModal.header().shouldHave(DeleteModal.headerText("Policy"));
-    DeleteModal.body().shouldHave(DeleteModal.bodyText(policy.getName()));
+    NxDeleteModal deleteModal = new NxDeleteModal("#policy-delete-modal");
+    deleteModal.shouldBe(visible);
+    deleteModal.header().shouldHave(text("Policy"));
+    deleteModal.alertContent().shouldHave(text(policy.getName()));
 
-    DeleteModal.continueButton().click();
+    deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldBe(hidden);
+    deleteModal.shouldBe(hidden);
 
     assertNewPolicyStateIsCorrect();
     assertThat(policyDAO.getById(policy.getId())).isNull();
@@ -1081,7 +1057,7 @@ public abstract class AbstractPolicyEditorTest
 
   public void testCreatePolicy_summarySection() {
     SummarySection summary = PolicyEditorPage.summarySection();
-    summary.policyName().val("New Policy");
+    summary.policyName().input().val("New Policy");
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     changeThreatLevel(9);
@@ -1100,28 +1076,31 @@ public abstract class AbstractPolicyEditorTest
     newConstraint.conditionUnsupportedMessages().shouldHaveSize(0);
     newConstraint.name().shouldBe(empty).val("New Constraint");
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
-    newConstraint.operator().selectedItem().shouldHave(text("any"));
+    newConstraint.operator().shouldHave(text("any"));
     newConstraint.conditions().shouldHaveSize(1);
 
     AgeConditionEditSection ageCondition = newConstraint.ageCondition(0);
     ageCondition.deleteConditionButton().shouldBe(visible, disabled);
-    ageCondition.type().selectedItem().shouldHave(text("Age"));
-    ageCondition.operator().selectedItem().shouldHave(text("older than"));
-    ageCondition.value().modifier().selectedItem().shouldHave(text("Years"));
+    ageCondition.type().shouldHave(text("Age"));
+    ageCondition.operator().shouldHave(text("older than"));
+    ageCondition.value().modifier().shouldHave(text("Years"));
     ageCondition.value().age().shouldBe(empty).val("3");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     CoordinatesCondition coordsCondition = newConstraint.coordinatesCondition(1);
-    coordsCondition.type().chooseOption(conditionTypesOptionMap.get(CoordinatesConditionType.class));
-    coordsCondition.format().selectedItem().shouldHave(text("maven"));
+
+    coordsCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(CoordinatesConditionType.class));
+    coordsCondition.format().shouldHave(text("maven"));
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
+
     // Check initial values
     coordsCondition.groupId().shouldHave(value(""));
     coordsCondition.artifactId().shouldHave(value(""));
     coordsCondition.version().shouldHave(value(""));
     coordsCondition.extension().shouldHave(value("*"));
     coordsCondition.classifier().shouldHave(value("*"));
+
     // With everything set to wildcard, if we set any except classifier to empty we can't save
     coordsCondition.groupId().val("*");
     coordsCondition.artifactId().val("*");
@@ -1130,85 +1109,109 @@ public abstract class AbstractPolicyEditorTest
     toggleAndCheckSave(coordsCondition.artifactId());
     toggleAndCheckSave(coordsCondition.version());
     toggleAndCheckSave(coordsCondition.extension());
+
     // With everything set to wildcard, if we set classifier to empty we can still save
-    coordsCondition.classifier().val("");
+    InputUtils.clearInput(coordsCondition.classifier());
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
     // With everything set to wildcard, if we set classifier back to a wildcard we can still save
     coordsCondition.classifier().val("*");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
     // With everything set to specific values, if we set any except classifier to empty we can't save
+    InputUtils.clearInput(coordsCondition.groupId());
     coordsCondition.groupId().val("org.apache");
+
+    InputUtils.clearInput(coordsCondition.artifactId());
     coordsCondition.artifactId().val("tomcat");
+
+    InputUtils.clearInput(coordsCondition.version());
     coordsCondition.version().val("5.0.28");
+
+    InputUtils.clearInput(coordsCondition.extension());
     coordsCondition.extension().val("jar");
+
+    InputUtils.clearInput(coordsCondition.classifier());
     coordsCondition.classifier().val("javadoc");
+
     toggleAndCheckSave(coordsCondition.groupId());
     toggleAndCheckSave(coordsCondition.artifactId());
     toggleAndCheckSave(coordsCondition.version());
     toggleAndCheckSave(coordsCondition.extension());
+
     // With everything set to specific values, if we set classifier to empty we can still save
-    coordsCondition.classifier().val("");
+    InputUtils.clearInput(coordsCondition.classifier());
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
     // With everything set to specific values, if we set classifier back to a value we can still save
     coordsCondition.classifier().val("javadoc");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     coordsCondition = newConstraint.coordinatesCondition(2);
-    coordsCondition.type().chooseOption(conditionTypesOptionMap.get(CoordinatesConditionType.class));
+    coordsCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(CoordinatesConditionType.class));
     coordsCondition.setOperator("do not match");
 
-    Dropdown format = coordsCondition.format();
-    format.selectedItem().click();
+    NxFormSelect format = coordsCondition.format();
+    format.click();
     format.listItem(1).click();
-    format.selectedItem().shouldHave(text("a-name"));
+    format.shouldHave(text("a-name"));
 
     // Check initial values
     coordsCondition.name().shouldHave(value(""));
     coordsCondition.qualifier().shouldHave(value("*"));
     coordsCondition.version().shouldHave(value(""));
+
     // With everything set to wildcard, if we set any except qualifier to empty we can't save
     coordsCondition.name().val("*");
     coordsCondition.qualifier().val("*");
     coordsCondition.version().val("*");
     toggleAndCheckSave(coordsCondition.name());
     toggleAndCheckSave(coordsCondition.version());
+
     // With everything set to wildcard, if we set qualifier to empty we can still save
-    coordsCondition.qualifier().val("");
+    InputUtils.clearInput(coordsCondition.qualifier());
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
     // With everything set to wildcard, if we set qualifier back to a wildcard we can still save
     coordsCondition.qualifier().val("*");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
-    // With everything set to specific values, if we set any except classifier to empty we can't save
+
+    // With everything set to specific values, if we set any except qualifier to empty we can't save
     coordsCondition.name().val("log4net");
     coordsCondition.qualifier().val("Framework 3.5");
     coordsCondition.version().val("2.0.5");
     toggleAndCheckSave(coordsCondition.name());
     toggleAndCheckSave(coordsCondition.version());
+
     // With everything set to specific values, if we set qualifier to empty we can still save
-    coordsCondition.qualifier().val("");
+    InputUtils.clearInput(coordsCondition.qualifier());
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
     // With everything set to specific values, if we set qualifier back to a specific value we can still save
     coordsCondition.qualifier().val("Framework 3.5");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
+    InputUtils.clearInput(coordsCondition.name());
     coordsCondition.name().val("jquery");
-    coordsCondition.qualifier().val("");
+
+    InputUtils.clearInput(coordsCondition.qualifier());
     coordsCondition.version().val("1.0.28");
 
     newConstraint.addConditionButton().click();
     coordsCondition = newConstraint.coordinatesCondition(3);
-    coordsCondition.type().chooseOption(conditionTypesOptionMap.get(CoordinatesConditionType.class));
-
+    coordsCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(CoordinatesConditionType.class));
     format = coordsCondition.format();
-    format.selectedItem().click();
+    format.click();
     format.listItem(2).click();
-    format.selectedItem().shouldHave(text("pypi"));
+    format.shouldHave(text("pypi"));
 
     // Check initial values
     coordsCondition.name().shouldHave(value(""));
     coordsCondition.version().shouldHave(value(""));
     coordsCondition.qualifier().shouldHave(value("*"));
     coordsCondition.extension().shouldHave(value("*"));
+
     // With everything set to wildcard, if we set any except qualifier to empty we can't save
     coordsCondition.name().val("*");
     coordsCondition.version().val("*");
@@ -1216,16 +1219,20 @@ public abstract class AbstractPolicyEditorTest
     coordsCondition.extension().val("*");
     toggleAndCheckSave(coordsCondition.name());
     toggleAndCheckSave(coordsCondition.version());
+
     // With everything set to wildcard, if we set extension and qualifier to empty we can still save
-    coordsCondition.extension().val("");
-    coordsCondition.qualifier().val("");
+    InputUtils.clearInput(coordsCondition.extension());
+    InputUtils.clearInput(coordsCondition.qualifier());
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
     // With everything set to wildcard, if we set qualifier back to a wildcard we can still save
     coordsCondition.qualifier().val("*");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
     // With everything set to wildcard, if we set extension back to a wildcard we can still save
     coordsCondition.extension().val("*");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
     // With everything set to specific values, if we set any except qualifier to empty we can't save
     coordsCondition.name().val("MarkupSafe");
     coordsCondition.version().val("1.1.0");
@@ -1233,136 +1240,142 @@ public abstract class AbstractPolicyEditorTest
     coordsCondition.extension().val("tar.gz");
     toggleAndCheckSave(coordsCondition.name());
     toggleAndCheckSave(coordsCondition.version());
+
     // With everything set to specific values, if we set qualifier to empty we can still save
-    coordsCondition.qualifier().val("");
+    InputUtils.clearInput(coordsCondition.qualifier());
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
     // With everything set to specific values, if we set extension to empty we can still save
-    coordsCondition.extension().val("");
+    InputUtils.clearInput(coordsCondition.extension());
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
     // With everything set to specific values, if we set qualifier back to a specific value we can still save
     coordsCondition.qualifier().val("cp37");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
     // With everything set to specific values, if we set extension back to a specific value we can still save
     coordsCondition.extension().val("tar.gz");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+
     DropdownConditionEditSection labelCondition =
         addDropdownCondition(newConstraint, LabelConditionType.class, 4, conditionTypesOptionMap);
-    labelCondition.operator().selectedItem().shouldHave(text("is"));
+    labelCondition.operator().shouldHave(text("is"));
     labelCondition.value().shouldBe(text("Sample Label"));
 
     DropdownConditionEditSection licenseCondition =
         addDropdownCondition(newConstraint, LicenseConditionType.class, 5, conditionTypesOptionMap);
-    licenseCondition.operator().selectedItem().shouldHave(text("is"));
-    licenseCondition.value().selectedItem().shouldHave(text("0BSD")).click();
+    licenseCondition.operator().shouldHave(text("is"));
+    licenseCondition.value().shouldHave(text("0BSD")).click();
     licenseCondition.value().listItem(5).shouldHave(text("Abstyles")).click();
 
     DropdownConditionEditSection licenseStatus =
         addDropdownCondition(newConstraint, LicenseStatusConditionType.class, 6, conditionTypesOptionMap);
-    licenseStatus.operator().selectedItem().shouldHave(text("is")).click();
+    licenseStatus.operator().shouldHave(text("is")).click();
     licenseStatus.operator().listItem(1).shouldHave(text("is not")).click();
-    licenseStatus.value().selectedItem().shouldHave(text("Open")).click();
+    licenseStatus.value().shouldHave(text("Open")).click();
     licenseStatus.value().listItem(4).shouldHave(text("Confirmed")).click();
 
     DropdownConditionEditSection licenseThreatGroup =
         addDropdownCondition(newConstraint, LicenseThreatGroupConditionType.class, 7, conditionTypesOptionMap);
-    licenseThreatGroup.operator().selectedItem().shouldHave(text("is"));
-    licenseThreatGroup.value().selectedItem().shouldHave(text("Banned")).click();
+    licenseThreatGroup.operator().shouldHave(text("is"));
+    licenseThreatGroup.value().shouldHave(text("Banned")).click();
     licenseThreatGroup.value().listItem(2).shouldHave(text("Liberal")).click();
 
     InputConditionEditSection licenseThreatGroupLevel =
         addInputCondition(newConstraint, LicenseThreatGroupLevelConditionType.class, 8, conditionTypesOptionMap);
-    licenseThreatGroupLevel.operator().selectedItem().shouldHave(text("<=")).click();
+    licenseThreatGroupLevel.operator().shouldHave(text("<=")).click();
     licenseThreatGroupLevel.operator().listItem(1).shouldHave(text(">=")).click();
     licenseThreatGroupLevel.value().val("5");
 
     InputConditionEditSection securityVulnerabilitySeverity =
         addInputCondition(newConstraint, SecurityVulnerabilitySeverityConditionType.class, 9, conditionTypesOptionMap);
-    securityVulnerabilitySeverity.operator().selectedItem().shouldHave(text("=")).click();
+    securityVulnerabilitySeverity.operator().shouldHave(text("=")).click();
     securityVulnerabilitySeverity.operator().listItem(3).shouldHave(text(">")).click();
     securityVulnerabilitySeverity.value().val("1");
 
     DropdownConditionEditSection securityVulnerabilityStatus = addDropdownCondition(newConstraint,
         SecurityVulnerabilityStatusConditionType.class, 10, conditionTypesOptionMap);
-    securityVulnerabilityStatus.operator().selectedItem().shouldHave(text("is"));
-    securityVulnerabilityStatus.value().selectedItem().shouldHave(text("Open")).click();
+    securityVulnerabilityStatus.operator().shouldHave(text("is"));
+    securityVulnerabilityStatus.value().shouldHave(text("Open")).click();
     securityVulnerabilityStatus.value().listItem(2).shouldHave(text("Not Applicable")).click();
 
     InputConditionEditSection relativePopularity =
         addInputCondition(newConstraint, RelativePopularityConditionType.class, 11, conditionTypesOptionMap);
-    relativePopularity.operator().selectedItem().shouldHave(text("="));
+    relativePopularity.operator().shouldHave(text("="));
     relativePopularity.value().val("50");
 
     newConstraint.addConditionButton().click();
     DropdownConditionEditSection matchState = newConstraint.dropdownCondition(12);
-    matchState.type().chooseOption(conditionTypesOptionMap.get(MatchStateConditionType.class));
-    matchState.operator().selectedItem().shouldHave(text("is")).click();
+    matchState.type().chooseOptionWithHidden(conditionTypesOptionMap.get(MatchStateConditionType.class));
+    matchState.operator().shouldHave(text("is")).click();
     matchState.operator().listItem(1).shouldHave(text("is not")).click();
-    matchState.value().selectedItem().shouldHave(text(MatchState.EXACT.getName())).click();
+    matchState.value().shouldHave(text(MatchState.EXACT.getName())).click();
     matchState.value().listItem(2).shouldHave(text(MatchState.UNKNOWN.getName())).click();
 
     newConstraint.addConditionButton().click();
     DropdownConditionEditSection proprietary = newConstraint.dropdownCondition(13);
-    proprietary.type().chooseOption(conditionTypesOptionMap.get(ProprietaryConditionType.class));
-    proprietary.operator().selectedItem().shouldHave(text("is true")).click();
+    proprietary.type().chooseOptionWithHidden(conditionTypesOptionMap.get(ProprietaryConditionType.class));
+    proprietary.operator().shouldHave(text("is true")).click();
     proprietary.operator().listItem(1).shouldHave(text("is false")).click();
 
     newConstraint.addConditionButton().click();
     DropdownConditionEditSection identificationSource = newConstraint.dropdownCondition(14);
-    identificationSource.type().chooseOption(conditionTypesOptionMap.get(IdentificationSourceConditionType.class));
-    identificationSource.operator().selectedItem().shouldHave(text("is")).click();
+    identificationSource.type()
+        .chooseOptionWithHidden(conditionTypesOptionMap.get(IdentificationSourceConditionType.class));
+    identificationSource.operator().shouldHave(text("is")).click();
     identificationSource.operator().listItem(1).shouldHave(text("is not")).click();
-    identificationSource.value().selectedItem().shouldHave(text(IdentificationSource.SONATYPE.getName())).click();
+    identificationSource.value().shouldHave(text(IdentificationSource.SONATYPE.getName())).click();
     identificationSource.value().listItem(2).shouldHave(text(IdentificationSource.MANUAL.getName())).click();
 
     newConstraint.addConditionButton().click();
     InputConditionEditSection packageUrlCondition = newConstraint.inputCondition(15);
-    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
-    packageUrlCondition.operator().selectedItem().shouldHave(text("matches"));
+    packageUrlCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.operator().shouldHave(text("matches"));
     packageUrlCondition.value().shouldBe(empty).val("pkg:maven/g/a@v?type=jar");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     packageUrlCondition = newConstraint.inputCondition(16);
-    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
-    packageUrlCondition.operator().selectedItem().shouldHave(text("matches"));
+    packageUrlCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.operator().shouldHave(text("matches"));
     packageUrlCondition.value().shouldBe(empty).val("pkg:maven/*/a@*?type=jar");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     packageUrlCondition = newConstraint.inputCondition(17);
-    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(PackageUrlConditionType.class));
     packageUrlCondition.operator().click().listItem(1).click();
-    packageUrlCondition.operator().selectedItem().shouldHave(text("does not match"));
+    packageUrlCondition.operator().shouldHave(text("does not match"));
     packageUrlCondition.value().shouldBe(empty).val("pkg:npm/a@v");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     packageUrlCondition = newConstraint.inputCondition(18);
-    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(PackageUrlConditionType.class));
     packageUrlCondition.value().shouldBe(empty).val("pkg:pypi/*/*/a@*?type=jar");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     packageUrlCondition = newConstraint.inputCondition(19);
-    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(PackageUrlConditionType.class));
     packageUrlCondition.value().shouldBe(empty).val("pkg:golang/*/*/a@*");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     packageUrlCondition = newConstraint.inputCondition(20);
-    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(PackageUrlConditionType.class));
     packageUrlCondition.value().shouldBe(empty).val("pkg:conan/*/*/a@*");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     packageUrlCondition = newConstraint.inputCondition(21);
-    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(PackageUrlConditionType.class));
     packageUrlCondition.value().shouldBe(empty).val("pkg:golang/*/*/*@*");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     packageUrlCondition = newConstraint.inputCondition(22);
-    packageUrlCondition.type().chooseOption(conditionTypesOptionMap.get(PackageUrlConditionType.class));
+    packageUrlCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(PackageUrlConditionType.class));
     packageUrlCondition.value().shouldBe(empty).val("pkg:*/*/*/*@*");
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     packageUrlCondition.deleteConditionButton().click();
@@ -1370,55 +1383,56 @@ public abstract class AbstractPolicyEditorTest
 
     newConstraint.addConditionButton().click();
     DropdownConditionEditSection hygieneRating = newConstraint.dropdownCondition(22);
-    hygieneRating.type().chooseOption(conditionTypesOptionMap.get(HygieneRatingConditionType.class));
-    hygieneRating.operator().selectedItem().shouldHave(text("is")).click();
+    hygieneRating.type().chooseOptionWithHidden(conditionTypesOptionMap.get(HygieneRatingConditionType.class));
+    hygieneRating.operator().shouldHave(text("is")).click();
     hygieneRating.operator().listItem(1).shouldHave(text("is not")).click();
-    hygieneRating.value().selectedItem().shouldHave(text("Exemplar")).click();
+    hygieneRating.value().shouldHave(text("Exemplar")).click();
     hygieneRating.value().listItem(1).shouldHave(text("Laggard")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     DropdownConditionEditSection dataSourceCondition = newConstraint.dropdownCondition(23);
-    dataSourceCondition.type().chooseOption(conditionTypesOptionMap.get(DataSourceConditionType.class));
-    dataSourceCondition.operator().selectedItem().shouldHave(text(HAS_SUPPORT_FOR)).click();
+    dataSourceCondition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(DataSourceConditionType.class));
+    dataSourceCondition.operator().shouldHave(text(HAS_SUPPORT_FOR)).click();
     dataSourceCondition.operator().listItem(1).shouldHave(text(HAS_NO_SUPPORT_FOR)).click();
-    dataSourceCondition.value().selectedItem().shouldHave(text("license")).click();
+    dataSourceCondition.value().shouldHave(text("license")).click();
     dataSourceCondition.value().listItem(1).shouldHave(text("identity")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     DropdownConditionEditSection dependencyType = newConstraint.dropdownCondition(24);
-    dependencyType.type().chooseOption(conditionTypesOptionMap.get(DependencyTypeConditionType.class));
-    dependencyType.operator().selectedItem().shouldHave(text("is")).click();
+    dependencyType.type().chooseOptionWithHidden(conditionTypesOptionMap.get(DependencyTypeConditionType.class));
+    dependencyType.operator().shouldHave(text("is")).click();
     dependencyType.operator().listItem(1).shouldHave(text("is not")).click();
-    dependencyType.value().selectedItem().shouldHave(text("Direct")).click();
+    dependencyType.value().shouldHave(text("Direct")).click();
     dependencyType.value().listItem(1).shouldHave(text("Transitive")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     DropdownConditionEditSection vulnerabilityCategory = newConstraint.dropdownCondition(25);
     vulnerabilityCategory.type()
-        .chooseOption(conditionTypesOptionMap.get(SecurityVulnerabilityCategoryConditionType.class));
-    vulnerabilityCategory.operator().selectedItem().shouldHave(text("is")).click();
+        .chooseOptionWithHidden(conditionTypesOptionMap.get(SecurityVulnerabilityCategoryConditionType.class));
+    vulnerabilityCategory.operator().shouldHave(text("is")).click();
     vulnerabilityCategory.operator().listItem(1).shouldHave(text("is not")).click();
     SidebarNavigation.closeNavigationSidebar();
-    vulnerabilityCategory.value().selectedItem().shouldHave(text("Configuration")).click();
+    vulnerabilityCategory.value().shouldHave(text("Configuration")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     DropdownConditionEditSection integrityRating = newConstraint.dropdownCondition(26);
-    integrityRating.type().chooseOption(conditionTypesOptionMap.get(IntegrityRatingConditionType.class));
-    integrityRating.operator().selectedItem().shouldHave(text("is")).click();
+    integrityRating.type().chooseOptionWithHidden(conditionTypesOptionMap.get(IntegrityRatingConditionType.class));
+    integrityRating.operator().shouldHave(text("is")).click();
     integrityRating.operator().listItem(1).shouldHave(text("is not")).click();
-    integrityRating.value().selectedItem().shouldHave(text("Normal")).click();
+    integrityRating.value().shouldHave(text("Normal")).click();
     integrityRating.value().listItem(1).shouldHave(text("Suspicious")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.addConditionButton().click();
     DropdownConditionEditSection dependencyInnerSourceType = newConstraint.dropdownCondition(27);
-    dependencyInnerSourceType.type().chooseOption(conditionTypesOptionMap.get(DependencyTypeConditionType.class));
-    dependencyInnerSourceType.operator().selectedItem().shouldHave(text("is"));
-    dependencyInnerSourceType.value().selectedItem().shouldHave(text("Direct")).click();
+    dependencyInnerSourceType.type()
+        .chooseOptionWithHidden(conditionTypesOptionMap.get(DependencyTypeConditionType.class));
+    dependencyInnerSourceType.operator().shouldHave(text("is"));
+    dependencyInnerSourceType.value().shouldHave(text("Direct")).click();
     dependencyInnerSourceType.value().listItem(2).shouldHave(text("InnerSource")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
@@ -1428,7 +1442,7 @@ public abstract class AbstractPolicyEditorTest
   private void toggleAndCheckSave(final SelenideElement element) {
     final String value = element.val();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
-    element.val("");
+    InputUtils.clearInput(element);
     PolicyEditorPage.saveButton().shouldHave(DISABLED);
     element.val(value);
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
@@ -1440,19 +1454,8 @@ public abstract class AbstractPolicyEditorTest
     ScrollUtil.scrollIntoView(actionsTable.headers().first());
     actionsTable.headers().shouldHave(texts("PROXY", "DEVELOP", "SOURCE", "BUILD", "STAGE", "RELEASE", "OPERATE"));
 
-    // column hover
-    ConditionUtils.shouldNotHave(actionsTable.build().cells(), activeClass());
-    actionsTable.build().warnRadio().label().hover();
-    ConditionUtils.shouldHave(actionsTable.build().cells(), activeClass());
-    actionsTable.proxy().warnRadio().label().hover();
-    ConditionUtils.shouldNotHave(actionsTable.build().cells(), activeClass());
-    ConditionUtils.shouldHave(actionsTable.proxy().cells(), activeClass());
-
-    // make an actual change and check that warn icon appears
-    SelenideElement icon = actionsTable.build().warnRadio().label().$("i");
-    icon.shouldNotHave(warnClass());
+    // make an actual change
     actionsTable.build().warnRadio().click();
-    icon.shouldHave(warnClass());
 
     actionsTable.quarantineWarningMessage().shouldNotBe(visible);
     actionsTable.proxy().failRadio().click();
@@ -1465,41 +1468,34 @@ public abstract class AbstractPolicyEditorTest
   }
 
   private void testCreatePolicy_notificationsSection() {
-    PolicyEditorPage.notificationsPill().click();
+    ScrollUtil.scrollIntoView(PolicyEditorPage.notificationsSection().header());
     NotificationsSection.notifications().get(0).shouldHave(text("No notifications configured"));
 
     // add role notifications
     AddNotificationItem addNotification = NotificationsSection.addNotification();
-    addNotification.notificationType().selectedItem().click();
-    addNotification.notificationType().listItem(1).click();
-    addNotification.role().shouldBe(visible).selectedItem().click();
-    addNotification.role().listItems().findBy(text("Application Evaluator")).click();
-    addNotification.addButton().shouldNotHave(DISABLED).click();
+    addNotification.notificationType().chooseOption("Role");
+    addNotification.role().shouldBe(visible).chooseOption("Application Evaluator");
+    addNotification.addButton().shouldNotBe(disabled).click();
 
     // add email notifications
-    addNotification.notificationType().selectedItem().click();
-    addNotification.notificationType().listItem(0).click();
-    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.notificationType().chooseOption( "Email");
+    addNotification.addButton().shouldBe(disabled);
     addNotification.email().val("aaa@sonatype.com").shouldNotHave(cssClass("ng-invalid")).shouldBe(visible);
-    addNotification.addButton().shouldNotHave(DISABLED).click();
-    addNotification.addButton().shouldHave(DISABLED);
+    addNotification.addButton().shouldNotBe(disabled).click();
+    addNotification.addButton().shouldBe(disabled);
     addNotification.email().shouldBe(empty);
 
     // add webhook notifications
-    addNotification.notificationType().selectedItem().click();
-    addNotification.notificationType().listItem(2).click();
-    addNotification.addButton().shouldHave(DISABLED);
-    addNotification.webhook().shouldBe(visible).selectedItem().click();
-    addNotification.webhook().listItems().findBy(text("http://localhost")).click();
-    addNotification.addButton().shouldNotHave(DISABLED).click();
+    addNotification.notificationType().chooseOption("Webhook");
+    addNotification.addButton().shouldBe(disabled);
+    addNotification.webhook().shouldBe(visible).chooseOption("http://localhost");
+    addNotification.addButton().shouldNotBe(disabled).click();
 
     // add webhook with description
-    addNotification.notificationType().selectedItem().click();
-    addNotification.notificationType().listItem(2).click();
-    addNotification.addButton().shouldHave(DISABLED);
-    addNotification.webhook().shouldBe(visible).selectedItem().click();
-    addNotification.webhook().listItems().findBy(text("description")).click();
-    addNotification.addButton().shouldNotHave(DISABLED).click();
+    addNotification.notificationType().chooseOption("Webhook");
+    addNotification.addButton().shouldBe(disabled);
+    addNotification.webhook().shouldBe(visible).chooseOption("description");
+    addNotification.addButton().shouldNotBe(disabled).click();
 
     // Uncomment after fixing CLM-18677. The notification recipient column is currently completely
     // squeezed out of the visible layout causing these checks to fail
@@ -1512,7 +1508,8 @@ public abstract class AbstractPolicyEditorTest
     NotificationsSection.notificationFor("aaa@sonatype.com").build().click();
     NotificationsSection.notificationFor("Application Evaluator").continuousMonitoring().click();
     NotificationsSection.notificationFor("Webhook: http://localhost").stageRelease().click();
-    NotificationsSection.notificationFor("Webhook: http://localhost").proxy().input().shouldHave(attribute("disabled"));
+    NotificationsSection.notificationFor("Webhook: http://localhost").proxy().input()
+        .shouldHave(attribute("disabled", "true"));
     NotificationsSection.notificationFor("Webhook: http://localhost").proxy().hover();
     Tooltip.get().shouldBe(visible)
         .shouldHave(text("Webhooks are not available for policy violations at Proxy stage."));
@@ -1538,35 +1535,39 @@ public abstract class AbstractPolicyEditorTest
 
   private void assertNewPolicyStateIsCorrect_summarySection() {
     SummarySection summary = PolicyEditorPage.summarySection();
-    summary.policyName().shouldBe(visible, empty, focused).shouldHave(CLM.PRISTINE);
+    summary.policyName().input().shouldBe(visible, empty, focused);
+    summary.policyName().inputWrapper().shouldHave(CLM.RSC_PRISTINE);
 
-    summary.policyName().val("$$$"); // invalid characters
-    PopoverViolations.on(summary.policyName()).shouldShowInvalidCharactersError();
+    summary.policyName().input().val("$$$"); // invalid characters
+    summary.policyName().errorMessage().shouldHave(text("Use valid characters"));
 
-    summary.policyName().val("1  2"); // double spaces
-    PopoverViolations.on(summary.policyName()).shouldShowInvalidSpacingError();
+    summary.policyName().input().val("1  2"); // double spaces
+    summary.policyName().errorMessage().shouldHave(text("No leading, trailing or double spaces or tabs"));
 
-    summary.policyName().val("Acceptable Name");
-    PopoverViolations.on(summary.policyName()).shouldNotExist();
+    summary.policyName().input().val("Acceptable Name");
+    summary.policyName().errorMessage().shouldBe(empty);
 
-    summary.policyName().clear();
+    InputUtils.clearInput(summary.policyName().input());
 
-    assertThreatLevelSelectorState(PolicyEditorPage.DEFAULT_THREAT_LEVEL, false);
+    assertThreatDropdownSelectorState(PolicyEditorPage.DEFAULT_THREAT_LEVEL, false);
   }
 
   private void assertNewPolicyStateIsCorrect_constraintSection() {
     SelenideElement constraintName = PolicyEditorPage.constraintSection().constraintEditor(0).name();
 
-    constraintName.shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
-    PopoverViolations.on(constraintName).shouldNotExist();
+    constraintName.shouldBe(visible, empty);
+    PolicyEditorPage.constraintSection().getInputValidationElement(constraintName).shouldNotBe(visible);
 
     constraintName.val(" ");
-    PopoverViolations.on(constraintName).shouldShowRequiredError();
+    PolicyEditorPage.constraintSection().getInputValidationElement(constraintName)
+        .shouldHave(text("Must be non-empty"));
+
+    InputUtils.clearInput(constraintName);
 
     constraintName.val("$ Anything  !s Accept@ble :)   ");
-    PopoverViolations.on(constraintName).shouldNotExist();
+    PolicyEditorPage.constraintSection().getInputValidationElement(constraintName).shouldNotBe(visible);
 
-    constraintName.clear();
+    InputUtils.clearInput(constraintName);
   }
 
   private void assertNewPolicyStateIsCorrect_notificationsSection() {
@@ -1575,15 +1576,13 @@ public abstract class AbstractPolicyEditorTest
     notifications.get(0).shouldHave(text("No notifications Configured"));
 
     AddNotificationItem addNotification = NotificationsSection.addNotification();
-    addNotification.addButton().shouldHave(DISABLED);
-    addNotification.notificationType().selectedItem().shouldHave(text("Email"));
+    addNotification.addButton().shouldBe(disabled);
     addNotification.role().shouldNot(exist);
     addNotification.email().shouldBe(empty);
 
-    addNotification.notificationType().selectedItem().click();
-    addNotification.notificationType().listItem(1).click();
+    addNotification.notificationType().chooseOption("Role");
     addNotification.email().shouldNot(exist);
-    addNotification.role().listItems().shouldHaveSize(5);
+    addNotification.role().listItems().shouldHaveSize(6);
   }
 
   private void assertNewPolicyStateIsCorrect_actionsSection() {
@@ -1627,9 +1626,9 @@ public abstract class AbstractPolicyEditorTest
       boolean grandfatheringReadOnly)
   {
     SummarySection summary = PolicyEditorPage.summarySection();
-    summary.policyName().shouldBe(visible, isReadOnly ? disabled : enabled).shouldHave(CLM.PRISTINE)
-        .shouldHave(value(policy.getName()));
-    assertThreatLevelSelectorState(policy.getThreatLevel(), isReadOnly);
+    summary.policyName().input().shouldBe(visible, isReadOnly ? disabled : enabled).shouldHave(value(policy.getName()));
+    summary.policyName().inputWrapper().shouldHave(CLM.RSC_PRISTINE);
+    assertThreatDropdownSelectorState(policy.getThreatLevel(), isReadOnly);
 
     com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || grandfatheringReadOnly ? disabled : enabled;
     summary.policyViolationGrandfatheringCheckbox().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
@@ -1647,7 +1646,7 @@ public abstract class AbstractPolicyEditorTest
       boolean actionsReadOnly,
       boolean proxyActionReadOnly)
   {
-    PolicyEditorPage.actionsPill().click();
+    ScrollUtil.scrollIntoView(PolicyEditorPage.actionsSection().header());
 
     com.codeborne.selenide.Condition disabledOrEnabled = isReadOnly || actionsReadOnly ? disabled : enabled;
     ActionsSection actionsTable = PolicyEditorPage.actionsSection();
@@ -1691,12 +1690,12 @@ public abstract class AbstractPolicyEditorTest
     AddNotificationItem addNotificationItem = NotificationsSection.addNotification();
 
     if (isReadOnly || (notificationsReadOnly && proxyActionReadOnly)) {
-      addNotificationItem.notificationType().shouldHave(CLM.DISABLED);
+      addNotificationItem.notificationType().shouldBe(disabled);
       addNotificationItem.email().shouldBe(disabled);
     }
     else {
-      addNotificationItem.notificationType().shouldNotHave(CLM.DISABLED);
-      addNotificationItem.notificationType().selectedItem().shouldBe(visible).shouldHave(text("Email"));
+      addNotificationItem.notificationType().shouldNotBe(disabled);
+      assertThat(addNotificationItem.notificationType().selectedItem().getText()).isEqualTo("Email");
       addNotificationItem.email().shouldBe(enabled);
     }
     addNotificationItem.role().shouldNot(exist);
@@ -1737,31 +1736,31 @@ public abstract class AbstractPolicyEditorTest
     }
   }
 
-  private void assertThreatLevelSelectorState(int selectedThreatLevel, boolean isReadOnly) {
-    ThreatLevelSelector.root().shouldBe(visible);
+  private void assertThreatDropdownSelectorState(int selectedThreatLevel, boolean isReadOnly) {
+    ThreatDropdownSelector.root().shouldBe(visible);
     if (isReadOnly) {
-      ThreatLevelSelector.caretButton().shouldBe(visible).shouldHave(DISABLED);
-      ThreatLevelSelector.threatLevelList().shouldBe(hidden);
+      ThreatDropdownSelector.dropdownButton().shouldBe(visible).shouldHave(DISABLED);
+      ThreatDropdownSelector.threatLevelList().shouldBe(hidden);
     }
     else {
-      ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
-      ThreatLevelSelector.threatLevelList().shouldBe(visible);
+      ThreatDropdownSelector.dropdownButton().shouldBe(visible, enabled).click();
+      ThreatDropdownSelector.threatLevelList().shouldBe(visible);
 
-      ThreatLevelSelector.threatLevelListItems().shouldHaveSize(ThreatLevelSelector.NUM_THREAT_LEVELS);
+      ThreatDropdownSelector.threatLevelListItems().shouldHaveSize(ThreatDropdownSelector.IQ_NUM_THREAT_LEVELS);
 
-      for (int i = 0; i < ThreatLevelSelector.NUM_THREAT_LEVELS; i++) {
-        ThreatLevelSelector.threatLevelListItem(i).shouldBe(visible).shouldHave(text(Integer.toString(10 - i)));
+      for (int i = 0; i < ThreatDropdownSelector.IQ_NUM_THREAT_LEVELS; i++) {
+        ThreatDropdownSelector.threatLevelListItem(i).shouldBe(visible).shouldHave(text(Integer.toString(10 - i)));
       }
 
-      ThreatLevelSelector.selectedThreatLevel().shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
+      ThreatDropdownSelector.selectedThreatLabel().shouldBe(visible, text(Integer.toString(selectedThreatLevel)))
           .click();
     }
   }
 
   private void changeThreatLevel(int threatLevel) {
-    ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
-    ThreatLevelSelector.threatLevelListItem(10 - threatLevel).shouldBe(visible).click();
-    ThreatLevelSelector.selectedThreatLevel().shouldHave(text(String.valueOf(threatLevel)));
+    ThreatDropdownSelector.dropdownButton().shouldBe(visible, enabled).click();
+    ThreatDropdownSelector.threatLevelListItem(10 - threatLevel).shouldBe(visible).click();
+    ThreatDropdownSelector.selectedThreatLabel().shouldHave(text(String.valueOf(threatLevel)));
   }
 
   private DropdownConditionEditSection addDropdownCondition(
@@ -1772,7 +1771,7 @@ public abstract class AbstractPolicyEditorTest
   {
     constraint.addConditionButton().click();
     DropdownConditionEditSection condition = constraint.dropdownCondition(row);
-    condition.type().chooseOption(conditionTypesOptionMap.get(conditionType));
+    condition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(conditionType));
     return condition;
   }
 
@@ -1784,7 +1783,7 @@ public abstract class AbstractPolicyEditorTest
   {
     constraint.addConditionButton().click();
     InputConditionEditSection condition = constraint.inputCondition(row);
-    condition.type().chooseOption(conditionTypesOptionMap.get(conditionType));
+    condition.type().chooseOptionWithHidden(conditionTypesOptionMap.get(conditionType));
     return condition;
   }
 

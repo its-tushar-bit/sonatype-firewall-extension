@@ -31,6 +31,7 @@ const initialState = {
   loading: false,
   loadError: null,
   fetchUsers: { data: [], loading: false, loadError: null, partialError: null },
+  rolesForCurrentOwner: { data: null, loading: false, loadError: null },
   addedUsers: [],
   serverAddedUsers: [],
   submitMaskState: null,

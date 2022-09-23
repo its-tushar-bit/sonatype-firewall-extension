@@ -4,12 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.clm.testing.functional.elements;
+import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class AgeInput
+public class AgeInput extends BasicElement<AgeInput>
 {
   private String rootSelector;
 
@@ -18,10 +19,10 @@ public class AgeInput
   }
 
   public SelenideElement age() {
-    return $(rootSelector + " .iq-text-input--age-input");
+    return $(rootSelector + " .constraint-editor__age-input input");
   }
 
-  public Dropdown modifier() {
-    return new Dropdown(rootSelector, "dropdown-selector");
+  public NxFormSelect modifier() {
+    return new NxFormSelect(childSelector(rootSelector + " .constraint-editor__age-modifier"));
   }
 }

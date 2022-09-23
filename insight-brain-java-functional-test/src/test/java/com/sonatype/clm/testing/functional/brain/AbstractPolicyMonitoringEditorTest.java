@@ -7,18 +7,18 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.IqCheckbox;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
+import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.MonitoredStageEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Condition;
@@ -107,18 +107,15 @@ public abstract class AbstractPolicyMonitoringEditorTest
     OwnerDetailTreeView.policyGroup().item(cmIndex).shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Policy Monitoring is not supported by your license"));
     // disable continuous monitoring checkboxes in notification area
-    PolicyEditorPage.notificationsPill().click();
-    NotificationsSection notificationsSection = PolicyEditorPage.notificationsSection();
-    cmIndex = testCLMServer.getCLMServer().getInstance(StageTypeService.class).getLicensedStageTypes().size();
-    notificationsSection.headers().get(cmIndex).shouldBe(DISABLED);
+    ScrollUtil.scrollIntoView(PolicyEditorPage.notificationsSection().header());
     if (notificationsReadOnly) {
       NotificationsSection.addNotification().email().shouldBe(disabled);
-      NotificationsSection.addNotification().addButton().shouldBe(DISABLED);
+      NotificationsSection.addNotification().addButton().shouldBe(disabled);
     }
     else {
       NotificationsSection.addNotification().email().val("a@b");
       NotificationsSection.addNotification().addButton().shouldNotBe(DISABLED).click();
-      IqCheckbox monitoringCheckbox = NotificationsSection.notificationFor("a@b").continuousMonitoring();
+      NxCheckbox monitoringCheckbox = NotificationsSection.notificationFor("a@b").continuousMonitoring();
       monitoringCheckbox.input().shouldBe(disabled);
       monitoringCheckbox.hover();
       Tooltip.get().shouldBe(visible).shouldHave(text("Policy Monitoring is not supported by your license"));

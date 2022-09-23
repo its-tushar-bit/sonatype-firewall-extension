@@ -4,10 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
-import accessMockData from 'TestRoot/stores/access/access.mock.data';
+import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as accessSelectors from 'MainRoot/OrgsAndPolicies/access/accessSelectors';
+import { mapStateToThis } from 'MainRoot/owner.manager/access/access.tile.controller';
 
 describe('access.tile.controller', function () {
-  var vm, $rootScope, $httpBackend, CLMContextLocations, EventNameConstant;
+  var vm, $rootScope;
 
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
@@ -18,21 +21,13 @@ describe('access.tile.controller', function () {
     })
   );
 
-  beforeEach(inject(function (_$rootScope_, $controller, $injector, _$httpBackend_, _CLMContextLocations_) {
-    $httpBackend = _$httpBackend_;
-    CLMContextLocations = _CLMContextLocations_;
-    EventNameConstant = $injector.get('event.name.constant');
+  beforeEach(inject(function (_$rootScope_, $controller) {
     $rootScope = _$rootScope_;
 
     vm = $controller('AccessTileController', {
       $scope: $rootScope.$new(),
     });
   }));
-
-  afterEach(function () {
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
-  });
 
   describe('on $destroy()', () => {
     it('unsubscribes from redux store', () => {
@@ -42,41 +37,25 @@ describe('access.tile.controller', function () {
     });
   });
 
-  it('Properly Loading Membership Mappings', function () {
-    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
-    $httpBackend.flush();
+  describe('mapStateToThis', () => {
+    it('sets selectedComponent and showCipModal', function () {
+      spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwnerName').and.returnValue('selectSelectedOwnerName');
+      spyOn(accessSelectors, 'selectRolesWithoutLocalMembersExist').and.returnValue(
+        'selectRolesWithoutLocalMembersExist'
+      );
+      spyOn(accessSelectors, 'selectExtendedMembersByRole').and.returnValue('selectExtendedMembersByRole');
+      spyOn(accessSelectors, 'selectLoading').and.returnValue('selectLoading');
+      spyOn(accessSelectors, 'selectLoadError').and.returnValue('selectLoadError');
+      spyOn(routerSelectors, 'selectIsRepositories').and.returnValue('selectIsRepositories');
 
-    expect(vm.membersByRole.length).toEqual(accessMockData.getRoleMappings().membersByRole.length);
-    vm.membersByRole.forEach(function (role, roleIndex) {
-      expect(role.roleName).toEqual(accessMockData.getRoleMappings().membersByRole[roleIndex].roleName);
-      role.membersByOwner.forEach(function (owner, ownerIndex) {
-        expect(owner.members).toEqual(
-          accessMockData.getRoleMappings().membersByRole[roleIndex].membersByOwner[ownerIndex].members
-        );
-      });
+      const output = mapStateToThis({});
+
+      expect(output.ownerName).toBe('selectSelectedOwnerName');
+      expect(output.rolesWithoutLocalMembersExist).toBe('selectRolesWithoutLocalMembersExist');
+      expect(output.ownersWithRoles).toBe('selectExtendedMembersByRole');
+      expect(output.loading).toBe('selectLoading');
+      expect(output.error).toBe('selectLoadError');
+      expect(output.isRepositories).toBe('selectIsRepositories');
     });
-  });
-
-  it('Missing Membership Mappings', function () {
-    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(400, 'Bad Request');
-    $httpBackend.flush();
-
-    expect(vm.error).toBeDefined();
-
-    vm.doLoad();
-    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
-    $httpBackend.flush();
-
-    expect(vm.error).toBeUndefined();
-  });
-
-  it('Reloads on broadcasted owner summary reload event', function () {
-    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
-    expect($httpBackend.flush).not.toThrow();
-
-    $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
-
-    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
-    expect($httpBackend.flush).not.toThrow();
   });
 });

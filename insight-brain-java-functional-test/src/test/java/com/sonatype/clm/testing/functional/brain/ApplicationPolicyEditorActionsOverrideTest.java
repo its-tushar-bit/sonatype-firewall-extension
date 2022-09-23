@@ -14,12 +14,7 @@ import java.util.Map;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.ActionsSection;
-import com.sonatype.clm.testing.functional.elements.IqCheckbox;
-import com.sonatype.clm.testing.functional.elements.NxTooltip;
-import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
-import com.sonatype.clm.testing.functional.elements.SummarySection;
-import com.sonatype.clm.testing.functional.elements.PolicyTile;
+import com.sonatype.clm.testing.functional.elements.*;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -99,7 +94,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
     SummarySection summarySection = PolicyEditorPage.summarySection();
-    assertThat(summarySection.policyName().getValue()).isEqualTo(policy.getName());
+    assertThat(summarySection.policyName().input().getValue()).isEqualTo(policy.getName());
 
     PolicyInheritsToSection inheritanceSection = PolicyEditorPage.inheritanceSection();
     inheritanceSection.policyActionsOverrideCheckbox().shouldBe(disabled).shouldBe(visible).shouldBe(selected);
@@ -196,7 +191,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
     SummarySection summarySection = PolicyEditorPage.summarySection();
-    assertThat(summarySection.policyName().getValue()).isEqualTo(policy.getName());
+    assertThat(summarySection.policyName().input().getValue()).isEqualTo(policy.getName());
 
     PolicyInheritsToSection inheritanceSection = PolicyEditorPage.inheritanceSection();
     inheritanceSection.policyActionsOverrideCheckbox().shouldBe(disabled).shouldBe(visible).shouldNotBe(selected);
@@ -242,10 +237,10 @@ public class ApplicationPolicyEditorActionsOverrideTest
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
     SummarySection summarySection = PolicyEditorPage.summarySection();
-    assertThat(summarySection.policyName().getValue()).isEqualTo(policy.getName());
+    assertThat(summarySection.policyName().input().getValue()).isEqualTo(policy.getName());
 
     PolicyInheritsToSection inheritanceSection = PolicyEditorPage.inheritanceSection();
-    IqCheckbox policyActionsOverride = inheritanceSection.policyActionsOverrideCheckbox();
+    NxCheckbox policyActionsOverride = inheritanceSection.policyActionsOverrideCheckbox();
     policyActionsOverride.shouldNotBe(disabled).shouldBe(visible).shouldBe(selected);
 
     policyActionsOverride.click();
@@ -320,7 +315,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
     waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
     SummarySection summarySection = PolicyEditorPage.summarySection();
-    assertThat(summarySection.policyName().getValue()).isEqualTo(policy.getName());
+    assertThat(summarySection.policyName().input().getValue()).isEqualTo(policy.getName());
 
     PolicyInheritsToSection inheritanceSection = PolicyEditorPage.inheritanceSection();
     inheritanceSection.policyActionsOverrideCheckbox().shouldBe(disabled).shouldBe(visible).shouldBe(selected);

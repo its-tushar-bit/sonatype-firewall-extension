@@ -114,3 +114,31 @@ export const rscToAngularColorMap = {
 };
 
 export const angularToRscColorMap = invertObj(rscToAngularColorMap);
+
+/**
+ * @param membersByRoles - array of roles
+ * @returns [membersByRoles] the roles which has members assigned
+ */
+export const getRolesWithLocalMembers = (membersByRoles) => {
+  if (membersByRoles) {
+    return membersByRoles.filter(function (membersByRole) {
+      return membersByRole.membersByOwner[0].members.length > 0;
+    });
+  } else {
+    return [];
+  }
+};
+
+/**
+ * @param membersByRoles - array of roles
+ * @returns [membersByRoles] returns roles with no members
+ */
+export const getRolesWithoutLocalMembers = (membersByRoles) => {
+  if (membersByRoles) {
+    return membersByRoles.filter(function (membersByRole) {
+      return membersByRole.membersByOwner[0].members.length === 0;
+    });
+  } else {
+    return [];
+  }
+};

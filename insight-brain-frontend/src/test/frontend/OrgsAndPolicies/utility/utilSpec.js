@@ -11,7 +11,9 @@ import {
   getActionsOverride,
   sortByThreatLevel,
   policiesComparator,
+  getRolesWithLocalMembers,
 } from 'MainRoot/OrgsAndPolicies/utility/util';
+import { getRolesWithoutLocalMembers } from '../../../../main/frontend/OrgsAndPolicies/utility/util';
 
 describe('OrgsAndPolicies util', () => {
   describe('route derivation util', () => {
@@ -220,6 +222,92 @@ describe('OrgsAndPolicies util', () => {
 
       const sortedList = sortByThreatLevel(licenseThreatGroups);
       expect(sortedList).toEqual([]);
+    });
+  });
+
+  describe('rolesUtils', () => {
+    const membersByRole = [
+      {
+        roleId: '2cb71b3468d649789163ea2e212b541e',
+        roleName: 'Application Evaluator',
+        roleDescription: 'Evaluates applications and views policy violation summary results.',
+        membersByOwner: [
+          {
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            ownerName: 'Root Organization',
+            ownerType: 'organization',
+            members: ['some member'],
+          },
+        ],
+      },
+      {
+        roleId: '90c7c98683b4471cb77a916744540bcc',
+        roleName: 'Component Evaluator',
+        roleDescription:
+          'Evaluates individual components and views policy violation results for a specified application.',
+        membersByOwner: [
+          {
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            ownerName: 'Root Organization',
+            ownerType: 'organization',
+            members: [],
+          },
+        ],
+      },
+    ];
+
+    describe('getRolesWithLocalMembers', () => {
+      it('filters roles with local members', () => {
+        const rolesWithLocalMembers = getRolesWithLocalMembers(membersByRole);
+
+        expect(rolesWithLocalMembers).toEqual([
+          {
+            roleId: '2cb71b3468d649789163ea2e212b541e',
+            roleName: 'Application Evaluator',
+            roleDescription: 'Evaluates applications and views policy violation summary results.',
+            membersByOwner: [
+              {
+                ownerId: 'ROOT_ORGANIZATION_ID',
+                ownerName: 'Root Organization',
+                ownerType: 'organization',
+                members: ['some member'],
+              },
+            ],
+          },
+        ]);
+      });
+
+      it('returns empty array when there is no input param', () => {
+        const rolesWithLocalMembers = getRolesWithLocalMembers();
+        expect(rolesWithLocalMembers).toEqual([]);
+      });
+    });
+
+    describe('getRolesWithoutLocalMembers', () => {
+      it('filters roles with local members', () => {
+        const rolesWithoutLocalMembers = getRolesWithoutLocalMembers(membersByRole);
+        expect(rolesWithoutLocalMembers).toEqual([
+          {
+            roleId: '90c7c98683b4471cb77a916744540bcc',
+            roleName: 'Component Evaluator',
+            roleDescription:
+              'Evaluates individual components and views policy violation results for a specified application.',
+            membersByOwner: [
+              {
+                ownerId: 'ROOT_ORGANIZATION_ID',
+                ownerName: 'Root Organization',
+                ownerType: 'organization',
+                members: [],
+              },
+            ],
+          },
+        ]);
+      });
+
+      it('returns empty array when there is no input param', () => {
+        const rolesWithoutLocalMembers = getRolesWithoutLocalMembers();
+        expect(rolesWithoutLocalMembers).toEqual([]);
+      });
     });
   });
 

@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectConditionTypesMap } from 'MainRoot/OrgsAndPolicies/constraintSelectors';
+import { selectOrgsAndPoliciesSlice, selectPoliciesByOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectPolicySlice,
   selectIsEditMode,
@@ -34,8 +35,35 @@ import {
   selectOverrideNeedsToBeRemoved,
   selectOverrideActionsFlag,
   selectOriginalOverrideActionsFlag,
+  selectActionsOverridesForCurrentPolicy,
+  selectOriginalPolicyName,
+  selectCurrentPolicyName,
+  selectCurrentPolicyThreatLevel,
+  selectCurrentPolicyViolationGrandfatheringAllowed,
+  selectNotificationWebhooks,
+  selectApplicableWebhooks,
+  selectNotificationRecipients,
+  selectNotificationsEditorFormState,
+  selectRolesForCurrentOwner,
+  selectIsJiraEnabled,
+  selectJiraIssueTypeNames,
+  selectJiraProjectNames,
+  selectJiraProjects,
+  selectNotificationRecipientTypeOptions,
+  selectAvailableJiraProjects,
+  selectSelectedJiraProject,
+  selectNotificationsEditor,
+  selectNotificationsEditorLoading,
+  selectNotificationsEditorLoadError,
+  selectIfSubmitButtonShouldBeDisabled,
+  selectValidationError,
+  selectCurrentPolicyConstraints,
+  selectPolicyDeleteError,
+  selectCurrentSubmitMaskState,
 } from 'MainRoot/OrgsAndPolicies/policySelectors';
+import { selectIsWebhooksSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { RECIPIENT_TYPES } from 'MainRoot/OrgsAndPolicies/policySlice';
 
 describe('policySelectors', () => {
   describe('selectPolicySlice', () => {
@@ -223,6 +251,22 @@ describe('policySelectors', () => {
     });
   });
 
+  describe('selectOriginalPolicyName', () => {
+    it('is composed from the following selector', () => {
+      expect(selectOriginalPolicyName.dependencies).toEqual([selectOriginalPolicy]);
+    });
+
+    it('selects originalPolicy name', () => {
+      const originalPolicy = {
+        name: 'Policy name',
+      };
+
+      const selected = selectOriginalPolicyName.resultFunc(originalPolicy);
+
+      expect(selected).toBe('Policy name');
+    });
+  });
+
   describe('selectOverrideActionsFlag', () => {
     it('is composed from the following selector', () => {
       expect(selectOverrideActionsFlag.dependencies).toEqual([selectPolicySlice]);
@@ -329,7 +373,9 @@ describe('policySelectors', () => {
 
     it('selects loading', () => {
       const policySlice = {
-        loading: true,
+        loadingSavePolicy: false,
+        loadingCategories: true,
+        loadingPolicyEditor: false,
       };
 
       const selected = selectLoading.resultFunc(policySlice);
@@ -521,6 +567,204 @@ describe('policySelectors', () => {
     );
   });
 
+  describe('selectIfSubmitButtonShouldBeDisabled', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectIfSubmitButtonShouldBeDisabled.dependencies).toEqual([
+        selectValidationError,
+        selectCurrentPolicyConstraints,
+        selectConditionTypesMap,
+        selectIsCurrentPolicyDirty,
+        selectCurrentPolicyName,
+        selectIsInherited,
+        selectIsActionOverrideEnabled,
+      ]);
+    });
+
+    const currentConstraints = [
+      {
+        id: '1661470698102',
+        name: {
+          isPristine: false,
+          value: 'Custom',
+          trimmedValue: 'Custom',
+          validationErrors: [],
+        },
+        conditions: [
+          {
+            conditionTypeId: 'AgeInDays',
+            operator: 'older than',
+            value: {
+              isPristine: false,
+              value: '1825',
+              trimmedValue: '1825',
+              validationErrors: [],
+            },
+          },
+        ],
+        operator: 'OR',
+      },
+    ];
+    const conditionTypesMap = {
+      AgeInDays: {
+        enabled: true,
+        autoUnquarantineSupported: false,
+        threatCategory: 'QUALITY',
+        valueTypeId: 'AgeInDaysValueType',
+        supportedOperators: ['older than', 'younger than'],
+        valueHint: 'Enter term',
+        name: 'Age',
+        id: 'AgeInDays',
+        valueType: {
+          dataType: 'Integer',
+          allowMultiple: false,
+          availableValues: null,
+          id: 'AgeInDaysValueType',
+        },
+      },
+    };
+    const unsupportedConditionTypesMap = {
+      AgeInDays: {
+        enabled: false,
+        autoUnquarantineSupported: false,
+        threatCategory: 'QUALITY',
+        valueTypeId: 'AgeInDaysValueType',
+        supportedOperators: ['older than', 'younger than'],
+        valueHint: 'Enter term',
+        name: 'Age',
+        id: 'AgeInDays',
+        valueType: {
+          dataType: 'Integer',
+          allowMultiple: false,
+          availableValues: null,
+          id: 'AgeInDaysValueType',
+        },
+      },
+    };
+
+    const testCases = [
+      {
+        validationError: null,
+        currentConstraints,
+        conditionTypesMap,
+        isPolicyDirty: true,
+        policyName: { validationErrors: [], isPristine: false },
+        isInherited: false,
+        isActionOverrideEnabled: true,
+        result: null,
+      },
+      {
+        validationError: null,
+        currentConstraints,
+        conditionTypesMap,
+        isPolicyDirty: true,
+        policyName: { validationErrors: [], isPristine: false },
+        isInherited: true,
+        isActionOverrideEnabled: true,
+        result: null,
+      },
+      {
+        validationError: null,
+        currentConstraints,
+        conditionTypesMap,
+        isPolicyDirty: true,
+        policyName: { validationErrors: [], isPristine: false },
+        isInherited: true,
+        isActionOverrideEnabled: false,
+        result: true,
+      },
+      {
+        validationError: null,
+        currentConstraints,
+        conditionTypesMap,
+        isPolicyDirty: false,
+        policyName: { validationErrors: [], isPristine: false },
+        isInherited: false,
+        isActionOverrideEnabled: true,
+        result: 'There are no changes to save',
+      },
+      {
+        validationError: 'Some validation error',
+        currentConstraints,
+        conditionTypesMap,
+        isPolicyDirty: true,
+        policyName: { validationErrors: [], isPristine: false },
+        isInherited: false,
+        isActionOverrideEnabled: true,
+        result: 'Some validation error',
+      },
+      {
+        validationError: null,
+        currentConstraints,
+        conditionTypesMap: unsupportedConditionTypesMap,
+        isPolicyDirty: true,
+        policyName: { validationErrors: [], isPristine: false },
+        isInherited: false,
+        isActionOverrideEnabled: true,
+        result: 'Unable to save: unsupported conditions added',
+      },
+      {
+        validationError: null,
+        currentConstraints,
+        conditionTypesMap,
+        isPolicyDirty: true,
+        policyName: { validationErrors: ['some error'], isPristine: true },
+        isInherited: false,
+        isActionOverrideEnabled: true,
+        result: null,
+      },
+      {
+        validationError: null,
+        currentConstraints,
+        conditionTypesMap,
+        isPolicyDirty: true,
+        policyName: { validationErrors: ['some error'], isPristine: false },
+        isInherited: false,
+        isActionOverrideEnabled: true,
+        result: 'Unable to save: fields with invalid or missing data',
+      },
+    ];
+
+    testCases.forEach(
+      ({
+        validationError,
+        currentConstraints,
+        conditionTypesMap,
+        isPolicyDirty,
+        policyName,
+        isInherited,
+        isActionOverrideEnabled,
+        result,
+      }) => {
+        it(`selects ifSubmitButtonShouldBeDisabled with the following params: ${JSON.stringify(
+          {
+            validationError,
+            currentConstraints,
+            conditionTypesMap,
+            isPolicyDirty,
+            policyName,
+            isInherited,
+            isActionOverrideEnabled,
+            result,
+          },
+          null,
+          2
+        )}`, () => {
+          const selected = selectIfSubmitButtonShouldBeDisabled.resultFunc(
+            validationError,
+            currentConstraints,
+            conditionTypesMap,
+            isPolicyDirty,
+            policyName,
+            isInherited,
+            isActionOverrideEnabled
+          );
+
+          expect(selected).toBe(result);
+        });
+      }
+    );
+  });
+
   describe('selectCurrentPolicyActions', () => {
     it('is composed from the following selector', () => {
       expect(selectCurrentPolicyActions.dependencies).toEqual([selectCurrentPolicy]);
@@ -535,6 +779,54 @@ describe('policySelectors', () => {
       const selected = selectCurrentPolicyActions.resultFunc(currentPolicy);
 
       expect(selected).toEqual(actions);
+    });
+  });
+
+  describe('selectCurrentPolicyName', () => {
+    it('is composed from the following selector', () => {
+      expect(selectCurrentPolicyName.dependencies).toEqual([selectCurrentPolicy]);
+    });
+
+    it('selects CurrentPolicy Name', () => {
+      const currentPolicy = {
+        name: 'Policy name',
+      };
+
+      const selected = selectCurrentPolicyName.resultFunc(currentPolicy);
+
+      expect(selected).toBe('Policy name');
+    });
+  });
+
+  describe('selectCurrentPolicyThreatLevel', () => {
+    it('is composed from the following selector', () => {
+      expect(selectCurrentPolicyThreatLevel.dependencies).toEqual([selectCurrentPolicy]);
+    });
+
+    it('selects CurrentPolicy threatLevel', () => {
+      const currentPolicy = {
+        threatLevel: 2,
+      };
+
+      const selected = selectCurrentPolicyThreatLevel.resultFunc(currentPolicy);
+
+      expect(selected).toBe(2);
+    });
+  });
+
+  describe('selectCurrentPolicyViolationGrandfatheringAllowed', () => {
+    it('is composed from the following selector', () => {
+      expect(selectCurrentPolicyViolationGrandfatheringAllowed.dependencies).toEqual([selectCurrentPolicy]);
+    });
+
+    it('selects CurrentPolicy isViolationGrandfatheringAllowed', () => {
+      const currentPolicy = {
+        policyViolationGrandfatheringAllowed: true,
+      };
+
+      const selected = selectCurrentPolicyViolationGrandfatheringAllowed.resultFunc(currentPolicy);
+
+      expect(selected).toBeTrue();
     });
   });
 
@@ -651,6 +943,369 @@ describe('policySelectors', () => {
 
     it('returns true if policy is inherited and policyActionsOverrideAllowed is true', () => {
       expect(selectIsActionOverrideEnabled.resultFunc(true, currentPolicy)).toBe(true);
+    });
+  });
+
+  describe('selectActionsOverridesForCurrentPolicy', () => {
+    it('is composed from the following selector', () => {
+      expect(selectActionsOverridesForCurrentPolicy.dependencies).toEqual([selectPoliciesByOwner, selectCurrentPolicy]);
+    });
+
+    it('selects actions overrides for current policy', () => {
+      const currentPolicy = {
+        ownerId: 'ownerId',
+        policyActionsOverrideAllowed: true,
+        policyActionsOverrides: { rootOwnerId: { build: 'fail' } },
+      };
+      const policiesByOwners = [{ ownerId: 'rootOwnerId' }, { ownerId: 'ownerId' }];
+      const actualSelection = selectActionsOverridesForCurrentPolicy.resultFunc(policiesByOwners, currentPolicy);
+
+      expect(actualSelection).toEqual({ build: 'fail' });
+    });
+
+    it('returns undefined when there are no actions overrides for current policy', () => {
+      const currentPolicy = {
+        ownerId: 'ownerId',
+        policyActionsOverrideAllowed: true,
+      };
+      const policiesByOwners = [{ ownerId: 'rootOwnerId' }, { ownerId: 'ownerId' }];
+      const actualSelection = selectActionsOverridesForCurrentPolicy.resultFunc(policiesByOwners, currentPolicy);
+
+      expect(actualSelection).toBe(undefined);
+    });
+
+    it('returns undefined when policy actions overrides are not allowed', () => {
+      const currentPolicy = {
+        ownerId: 'ownerId',
+        policyActionsOverrideAllowed: false,
+        policyActionsOverrides: { rootOwnerId: { build: 'fail' } },
+      };
+      const policiesByOwners = [{ ownerId: 'rootOwnerId' }, { ownerId: 'ownerId' }];
+      const actualSelection = selectActionsOverridesForCurrentPolicy.resultFunc(policiesByOwners, currentPolicy);
+
+      expect(actualSelection).toBe(undefined);
+    });
+  });
+
+  describe('selectActionsOverridesForCurrentPolicy', () => {
+    it('is composed from the following selector', () => {
+      expect(selectActionsOverridesForCurrentPolicy.dependencies).toEqual([selectPoliciesByOwner, selectCurrentPolicy]);
+    });
+
+    it('selects actions overrides for current policy', () => {
+      const currentPolicy = {
+        ownerId: 'ownerId',
+        policyActionsOverrideAllowed: true,
+        policyActionsOverrides: { rootOwnerId: { build: 'fail' } },
+      };
+      const policiesByOwners = [{ ownerId: 'rootOwnerId' }, { ownerId: 'ownerId' }];
+      const actualSelection = selectActionsOverridesForCurrentPolicy.resultFunc(policiesByOwners, currentPolicy);
+
+      expect(actualSelection).toEqual({ build: 'fail' });
+    });
+
+    it('returns undefined when there are no actions overrides for current policy', () => {
+      const currentPolicy = {
+        ownerId: 'ownerId',
+        policyActionsOverrideAllowed: true,
+      };
+      const policiesByOwners = [{ ownerId: 'rootOwnerId' }, { ownerId: 'ownerId' }];
+      const actualSelection = selectActionsOverridesForCurrentPolicy.resultFunc(policiesByOwners, currentPolicy);
+
+      expect(actualSelection).toBe(undefined);
+    });
+
+    it('returns undefined when policy actions overrides are not allowed', () => {
+      const currentPolicy = {
+        ownerId: 'ownerId',
+        policyActionsOverrideAllowed: false,
+        policyActionsOverrides: { rootOwnerId: { build: 'fail' } },
+      };
+      const policiesByOwners = [{ ownerId: 'rootOwnerId' }, { ownerId: 'ownerId' }];
+      const actualSelection = selectActionsOverridesForCurrentPolicy.resultFunc(policiesByOwners, currentPolicy);
+
+      expect(actualSelection).toBe(undefined);
+    });
+  });
+
+  describe('selectNotificationsEditor', () => {
+    it('is composed from the following selector', () => {
+      expect(selectNotificationsEditor.dependencies).toEqual([selectPolicySlice]);
+    });
+
+    it('returns notificationsEditor', () => {
+      const policySlice = { notificationsEditor: null };
+
+      expect(selectNotificationsEditor.resultFunc(policySlice)).toBe(null);
+    });
+  });
+
+  describe('selectNotificationsEditorLoading', () => {
+    it('is composed from the following selector', () => {
+      expect(selectNotificationsEditorLoading.dependencies).toEqual([selectNotificationsEditor]);
+    });
+
+    it('returns loading', () => {
+      expect(selectNotificationsEditorLoading.resultFunc({ loading: true })).toBe(true);
+    });
+  });
+
+  describe('selectNotificationsEditorLoadError', () => {
+    it('is composed from the following selector', () => {
+      expect(selectNotificationsEditorLoadError.dependencies).toEqual([selectNotificationsEditor]);
+    });
+
+    it('returns loadError', () => {
+      expect(selectNotificationsEditorLoadError.resultFunc({ loadError: null })).toBe(null);
+    });
+  });
+
+  describe('selectNotificationWebhooks', () => {
+    it('is composed from the following selector', () => {
+      expect(selectNotificationWebhooks.dependencies).toEqual([selectNotificationsEditor]);
+    });
+
+    it('returns recipients with proper display names', () => {
+      const notificationsEditor = { notificationWebhooks: [] };
+
+      expect(selectNotificationWebhooks.resultFunc(notificationsEditor)).toEqual([]);
+    });
+  });
+
+  describe('selectApplicableWebhooks', () => {
+    const webhooks = [
+      { id: '1', description: 'webhook', url: 'url' },
+      { id: '2', description: 'webhook', url: 'url' },
+    ];
+    const currentPolicy = {
+      notifications: {
+        userNotifications: [{ emailAddress: 'user@email.com', stageIds: [] }],
+        roleNotifications: [{ roleId: '1', stageIds: [] }],
+        webhookNotifications: [{ webhookId: '1', stageIds: [] }],
+      },
+    };
+
+    it('is composed from the following selectors', () => {
+      expect(selectApplicableWebhooks.dependencies).toEqual([selectCurrentPolicy, selectNotificationWebhooks]);
+    });
+
+    it('returns only available webhooks', () => {
+      expect(selectApplicableWebhooks.resultFunc(currentPolicy, webhooks)).toEqual([
+        { id: '2', description: 'webhook', url: 'url', displayName: 'webhook' },
+      ]);
+    });
+  });
+
+  describe('selectNotificationRecipients', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectNotificationRecipients.dependencies).toEqual([
+        selectCurrentPolicy,
+        selectNotificationWebhooks,
+        selectRolesForCurrentOwner,
+        selectJiraProjectNames,
+        selectJiraIssueTypeNames,
+      ]);
+    });
+
+    it('returns recipients with proper display names', () => {
+      const currentPolicy = {
+        notifications: {
+          userNotifications: [{ emailAddress: 'user@email.com', stageIds: [] }],
+          roleNotifications: [{ roleId: '1', stageIds: [] }],
+          webhookNotifications: [{ webhookId: '1', stageIds: [] }],
+          jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
+        },
+      };
+      const roles = [{ roleId: '1', roleName: 'developer' }];
+      const webhooks = [{ id: '1', description: 'webhook', url: 'url' }];
+      const jiraProjectNames = { 1: 'Project 1' };
+      const jiraIssueTypeNames = { 1: 'Issue 1' };
+
+      expect(
+        selectNotificationRecipients.resultFunc(currentPolicy, webhooks, roles, jiraProjectNames, jiraIssueTypeNames)
+      ).toEqual([
+        { roleId: '1', displayName: 'developer', stageIds: [] },
+        { projectKey: 1, issueTypeId: 1, displayName: 'Project 1 (Issue 1)', stageIds: [] },
+        { emailAddress: 'user@email.com', displayName: 'user@email.com', stageIds: [] },
+        { webhookId: '1', displayName: 'Webhook: webhook', stageIds: [] },
+      ]);
+    });
+  });
+
+  describe('selectNotificationsEditorFormState', () => {
+    it('is composed from the following selector', () => {
+      expect(selectNotificationsEditorFormState.dependencies).toEqual([selectNotificationsEditor]);
+    });
+
+    it('returns policy editor form state', () => {
+      const notificationsEditor = {
+        formState: {
+          recipientType: { value: 'type' },
+          recipientEmail: { value: 'email' },
+          recipientRoleId: { value: 'roleId' },
+          recipientWebhookId: { value: 'webhookId' },
+        },
+      };
+
+      expect(selectNotificationsEditorFormState.resultFunc(notificationsEditor)).toEqual({
+        recipientType: { value: 'type' },
+        recipientEmail: { value: 'email' },
+        recipientRoleId: { value: 'roleId' },
+        recipientWebhookId: { value: 'webhookId' },
+      });
+    });
+  });
+
+  describe('selectRolesForCurrentOwner', () => {
+    it('is composed from the following selector', () => {
+      expect(selectRolesForCurrentOwner.dependencies).toEqual([selectNotificationsEditor]);
+    });
+
+    it('selects roles for current owner', () => {
+      const actual = selectRolesForCurrentOwner.resultFunc({
+        roles: [],
+      });
+      expect(actual).toEqual([]);
+    });
+  });
+
+  describe('selectIsJiraEnabled', () => {
+    it('is composed from the following selector', () => {
+      expect(selectIsJiraEnabled.dependencies).toEqual([selectNotificationsEditor]);
+    });
+
+    it('selects isJiraEnabled flag', () => {
+      const actual = selectIsJiraEnabled.resultFunc({ isJiraEnabled: true });
+      expect(actual).toBe(true);
+    });
+  });
+
+  describe('selectJiraProjects', () => {
+    it('is composed from the following selector', () => {
+      expect(selectJiraProjects.dependencies).toEqual([selectNotificationsEditor]);
+    });
+
+    it('selects jira projects', () => {
+      const actual = selectJiraProjects.resultFunc({ jiraProjects: [] });
+      expect(actual).toEqual([]);
+    });
+  });
+
+  describe('selectJiraProjectNames', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectJiraProjectNames.dependencies).toEqual([selectJiraProjects]);
+    });
+
+    it('selects jira project names', () => {
+      const actual = selectJiraProjectNames.resultFunc([
+        { key: 1, name: 'Name 1' },
+        { key: 2, name: 'Name 2' },
+      ]);
+      expect(actual).toEqual({ 1: 'Name 1', 2: 'Name 2' });
+    });
+  });
+
+  describe('selectJiraIssueTypeNames', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectJiraIssueTypeNames.dependencies).toEqual([selectJiraProjects]);
+    });
+
+    it('selects jira issue type names', () => {
+      const actual = selectJiraIssueTypeNames.resultFunc([
+        { key: 1, name: 'Name 1', issueTypes: [{ id: 1, name: 'Name 1' }] },
+        { key: 2, name: 'Name 2', issueTypes: [{ id: 2, name: 'Name 2' }] },
+      ]);
+      expect(actual).toEqual({ 1: 'Name 1', 2: 'Name 2' });
+    });
+  });
+
+  describe('selectNotificationRecipientTypeOptions', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectNotificationRecipientTypeOptions.dependencies).toEqual([
+        selectIsJiraEnabled,
+        selectIsWebhooksSupported,
+      ]);
+    });
+
+    it('selects recipient type options', () => {
+      const actual = selectNotificationRecipientTypeOptions.resultFunc(true, true);
+      expect(actual).toEqual([
+        RECIPIENT_TYPES.EMAIL,
+        RECIPIENT_TYPES.ROLE,
+        RECIPIENT_TYPES.WEBHOOK,
+        RECIPIENT_TYPES.JIRA,
+      ]);
+    });
+
+    it('selects recipient type options without jira type when jira is not enabled', () => {
+      const actual = selectNotificationRecipientTypeOptions.resultFunc(false, true);
+      expect(actual).toEqual([RECIPIENT_TYPES.EMAIL, RECIPIENT_TYPES.ROLE, RECIPIENT_TYPES.WEBHOOK]);
+    });
+
+    it('selects recipient type options without webhook type when webhooks are not supported', () => {
+      const actual = selectNotificationRecipientTypeOptions.resultFunc(true, false);
+      expect(actual).toEqual([RECIPIENT_TYPES.EMAIL, RECIPIENT_TYPES.ROLE, RECIPIENT_TYPES.JIRA]);
+    });
+  });
+
+  describe('selectAvailableJiraProjects', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectAvailableJiraProjects.dependencies).toEqual([selectCurrentPolicy, selectJiraProjects]);
+    });
+
+    it('selects available jira projects', () => {
+      const actual = selectAvailableJiraProjects.resultFunc(
+        { notifications: { jiraNotifications: [{ projectKey: 1 }] } },
+        [
+          { key: 1, name: 'Name 1', issueTypes: [{ id: 1, name: 'Name 1' }] },
+          { key: 2, name: 'Name 2', issueTypes: [{ id: 2, name: 'Name 2' }] },
+        ]
+      );
+      expect(actual).toEqual([{ key: 2, name: 'Name 2', issueTypes: [{ id: 2, name: 'Name 2' }] }]);
+    });
+  });
+
+  describe('selectSelectedJiraProject', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectSelectedJiraProject.dependencies).toEqual([
+        selectAvailableJiraProjects,
+        selectNotificationsEditorFormState,
+      ]);
+    });
+
+    it('selects selected jira project', () => {
+      const actual = selectSelectedJiraProject.resultFunc(
+        [
+          { key: 1, name: 'Name 1', issueTypes: [{ id: 1, name: 'Name 1' }] },
+          { key: 2, name: 'Name 2', issueTypes: [{ id: 2, name: 'Name 2' }] },
+        ],
+        {
+          recipientProjectKey: { value: 2 },
+        }
+      );
+      expect(actual).toEqual({ key: 2, name: 'Name 2', issueTypes: [{ id: 2, name: 'Name 2' }] });
+    });
+  });
+
+  describe('selectPolicyDeleteError', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectPolicyDeleteError.dependencies).toEqual([selectPolicySlice]);
+    });
+
+    it('selects deleteError', () => {
+      const actual = selectPolicyDeleteError.resultFunc({ deleteError: 'error' });
+      expect(actual).toEqual('error');
+    });
+  });
+
+  describe('selectCurrentSubmitMaskState', () => {
+    it('is composed from the following selectors', () => {
+      expect(selectCurrentSubmitMaskState.dependencies).toEqual([selectPolicySlice]);
+    });
+
+    it('selects selected jira project', () => {
+      const actual = selectCurrentSubmitMaskState.resultFunc({ submitMaskState: 'submitMaskState' });
+      expect(actual).toEqual('submitMaskState');
     });
   });
 });

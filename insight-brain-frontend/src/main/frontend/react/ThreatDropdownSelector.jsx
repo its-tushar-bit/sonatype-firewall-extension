@@ -15,26 +15,33 @@ import {
 
 import * as PropTypes from 'prop-types';
 import { is, reverse } from 'ramda';
-import { capitalize } from '../util/jsUtil';
+import cx from 'classnames';
+import { capitalize } from 'MainRoot/util/jsUtil';
 
-export default function ThreatDropdownSelector({ threatLevel, onSelectThreatLevel, ...props }) {
+export default function ThreatDropdownSelector({ threatLevel, onSelectThreatLevel, className, ...props }) {
   const renderThreatLevel = (level) =>
     is(Number, level) ? (
-      <span>
-        <NxThreatIndicator policyThreatLevel={level} /> {level} - {capitalize(categoryByPolicyThreatLevel[level])}
-      </span>
+      <>
+        <NxThreatIndicator policyThreatLevel={level} />
+        <span>
+          {level} - {capitalize(categoryByPolicyThreatLevel[level])}
+        </span>
+      </>
     ) : (
       'Threat level'
     );
 
   const [isThreatDropdownOpen, toggleIsThreatDropdownOpen] = useToggle(false);
 
+  const classnames = cx('iq-threat-dropdown-selector', className);
+
   return (
     <NxDropdown
+      {...props}
       label={renderThreatLevel(threatLevel)}
       isOpen={isThreatDropdownOpen}
       onToggleCollapse={toggleIsThreatDropdownOpen}
-      {...props}
+      className={classnames}
     >
       {reverse(allThreatLevelNumbers).map((level) => {
         return (
@@ -55,10 +62,11 @@ export default function ThreatDropdownSelector({ threatLevel, onSelectThreatLeve
 }
 
 ThreatDropdownSelector.defaultProps = {
-  onSelect: () => {},
+  onSelectThreatLevel: () => {},
 };
 
 ThreatDropdownSelector.propTypes = {
   threatLevel: PropTypes.number,
+  className: PropTypes.string,
   onSelectThreatLevel: PropTypes.func,
 };

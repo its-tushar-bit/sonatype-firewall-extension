@@ -6,7 +6,6 @@
 import ownerManagerModule from 'MainRoot/owner.manager/owner.manager.module';
 import OwnerUtils from '../owner.utils';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 import { actions as ownerDetailTreeActions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
@@ -15,6 +14,9 @@ import * as createEditApplicationCategoriesSelectors from 'MainRoot/OrgsAndPolic
 import * as policySelectors from 'MainRoot/OrgsAndPolicies/policySelectors';
 import * as labelsSelectors from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import * as ownerDetailTreeSelectors from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSelectors';
+import * as accessSelectors from 'MainRoot/OrgsAndPolicies/access/accessSelectors';
+import * as ownerSummarySelectors from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { mapStateToThis } from 'MainRoot/owner.manager/navigation/owner.detail.tree.view.controller';
 
 describe('owner.detail.tree.view.directive', function () {
@@ -28,12 +30,10 @@ describe('owner.detail.tree.view.directive', function () {
   );
 
   function createTests(type, owner) {
-    var vm, $scope, $timeout, $httpBackend, CLMContextLocations, loadApplicationsMock;
+    var vm, $scope, $httpBackend, CLMContextLocations;
     let setLoadingActionSpy;
-    let setLoadErrorActionSpy;
     beforeEach(inject(function ($rootScope, $controller, _$timeout_, _$httpBackend_, _CLMContextLocations_) {
       $scope = $rootScope.$new();
-      $timeout = _$timeout_;
       $httpBackend = _$httpBackend_;
       CLMContextLocations = _CLMContextLocations_;
 
@@ -43,22 +43,13 @@ describe('owner.detail.tree.view.directive', function () {
       spyOn(actions, 'fetchProductFeaturesIfNeeded').and.returnValue({ payload: [] });
       spyOn(applicationCategoriesActions, 'loadApplicableCategories').and.returnValue({ payload: [] });
       setLoadingActionSpy = spyOn(ownerDetailTreeActions, 'setLoading');
-      setLoadErrorActionSpy = spyOn(ownerDetailTreeActions, 'setLoadError');
 
       spyOn(organizationsActions, 'loadOrganizations').and.returnValue({
         payload: [owner],
       });
-      loadApplicationsMock = spyOn(applicationActions, 'loadApplications').and.returnValue({
-        payload: [
-          {
-            contact: null,
-            id: '635618f9560042fb80608592c568041d',
-            name: 'PublicId',
-            organizationId: '0a4ca3e6b672406892170481ef79799e',
-            organizationName: 'org',
-            publicId: owner.publicId,
-          },
-        ],
+
+      spyOn(ownerDetailTreeActions, 'loadOwnerDetails').and.returnValue({
+        payload: SidebarResourceMockData.getOwnerDetailsUrl(),
       });
 
       vm = $controller('OwnerDetailTreeViewController', {
@@ -71,6 +62,7 @@ describe('owner.detail.tree.view.directive', function () {
       vm.isMonitoringSupported = true;
       vm.isGrandfatheringSupported = true;
       vm.applicableCategories = [];
+      vm.details = SidebarResourceMockData.getOwnerDetailsUrl();
       $scope.vm = vm;
     }));
 
@@ -81,14 +73,12 @@ describe('owner.detail.tree.view.directive', function () {
 
     describe('on component init', () => {
       it('subscribes to the redux store', () => {
-        resolveGet([SidebarResourceMockData.getOwnerDetailsUrl()]);
         expect(vm.unsubscribe).toBeDefined();
       });
     });
 
     describe('on $destroy()', () => {
       it('unsubscribes from the redux store', () => {
-        resolveGet([SidebarResourceMockData.getOwnerDetailsUrl()]);
         expect(vm.unsubscribe).not.toHaveBeenCalled();
         $scope.$destroy();
         expect(vm.unsubscribe).toHaveBeenCalled();
@@ -97,13 +87,21 @@ describe('owner.detail.tree.view.directive', function () {
 
     describe('mapStateToThis', () => {
       it('maps redux properties to component', () => {
-        resolveGet(owner, [SidebarResourceMockData.getOwnerDetailsUrl()]);
         spyOn(labelsSelectors, 'selectLabelsSiblings').and.returnValue('labels');
         spyOn(createEditApplicationCategoriesSelectors, 'selectSiblings').and.returnValue('categories');
         spyOn(policySelectors, 'selectSiblings').and.returnValue('policies');
         spyOn(productFeaturesSelectors, 'selectIsMonitoringSupported').and.returnValue('isMonitoringSupported');
         spyOn(productFeaturesSelectors, 'selectIsGrandfatheringSupported').and.returnValue('isGrandfatheringSupported');
         spyOn(orgsAndPoliciesSelectors, 'selectSelectedOwnerName').and.returnValue('OwnerName');
+        spyOn(ownerDetailTreeSelectors, 'selectOwnerDetails').and.returnValue(
+          SidebarResourceMockData.getOwnerDetailsUrl()
+        );
+        spyOn(accessSelectors, 'selectRolesSiblings').and.returnValue('access');
+        spyOn(ownerSummarySelectors, 'selectLoading').and.returnValue('loading');
+        spyOn(ownerSummarySelectors, 'selectLoadError').and.returnValue('loadError');
+        spyOn(ownerDetailTreeSelectors, 'selectRolesWithoutLocalMembersExist').and.returnValue(
+          'rolesWithoutLocalMembersExist'
+        );
 
         const output = mapStateToThis({});
 
@@ -113,12 +111,16 @@ describe('owner.detail.tree.view.directive', function () {
         expect(output.isMonitoringSupported).toBe('isMonitoringSupported');
         expect(output.isGrandfatheringSupported).toBe('isGrandfatheringSupported');
         expect(output.ownerName).toBe('OwnerName');
+        expect(output.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
+        expect(output.access).toBe('access');
+        expect(output.loading).toBe('loading');
+        expect(output.loadError).toBe('loadError');
+        expect(output.rolesWithoutLocalMembersExist).toBe('rolesWithoutLocalMembersExist');
       });
     });
 
     it('Properly Loading Data', function () {
       expect(setLoadingActionSpy).toHaveBeenCalledOnceWith(true);
-      resolveGet([SidebarResourceMockData.getOwnerDetailsUrl()]);
 
       expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
 
@@ -129,46 +131,8 @@ describe('owner.detail.tree.view.directive', function () {
       expect(vm.isMonitoringSupported).toBe(true);
     });
 
-    it('Properly Detecting Details Loading Error', function () {
-      resolveGet([400, 'Bad Request']);
-
-      expect(vm.details).toBeUndefined();
-      expect(setLoadErrorActionSpy).toHaveBeenCalled();
-    });
-
-    it('Properly Displaying Owner Name Loading Error', function () {
-      loadApplicationsMock.and.returnValue({ payload: [] });
-
-      resolveGet([SidebarResourceMockData.getOwnerDetailsUrl()]);
-    });
-
-    it('Properly Updating Data via broadcast', inject(function ($rootScope) {
-      resolveGet([400, 'Bad Request']);
-
-      expect(vm.details).toBeUndefined();
-      expect(setLoadErrorActionSpy).toHaveBeenCalled();
-
-      $rootScope.$broadcast('resource.data.modified');
-
-      $httpBackend
-        .expectGET(CLMContextLocations.getOwnerDetailsUrl())
-        .respond(SidebarResourceMockData.getOwnerDetailsUrl());
-
-      $httpBackend.flush();
-      $timeout.flush();
-
-      expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
-    }));
-
     it('watches vm.labels and calls vm.doLoad on change', function () {
-      resolveGet([400, 'Bad Request']);
-
-      expect(vm.details).toBeUndefined();
-      expect(setLoadErrorActionSpy).toHaveBeenCalled();
-
-      $httpBackend
-        .expectGET(CLMContextLocations.getOwnerDetailsUrl())
-        .respond(SidebarResourceMockData.getOwnerDetailsUrl());
+      expect(setLoadingActionSpy).toHaveBeenCalledTimes(1);
 
       vm.labels = [
         {
@@ -180,18 +144,10 @@ describe('owner.detail.tree.view.directive', function () {
       ];
 
       $scope.$digest();
-
-      $httpBackend.flush();
+      expect(setLoadingActionSpy).toHaveBeenCalledTimes(4);
 
       expect(vm.details).toEqual(SidebarResourceMockData.getOwnerDetailsUrl());
     });
-
-    function resolveGet(detailsDataArray) {
-      $httpBackend.expectGET(CLMContextLocations.getOwnerDetailsUrl()).respond.apply(this, detailsDataArray);
-
-      $httpBackend.flush();
-      $timeout.flush();
-    }
   }
 
   OwnerUtils.runTestsForAllOwnerTypes(createTests);

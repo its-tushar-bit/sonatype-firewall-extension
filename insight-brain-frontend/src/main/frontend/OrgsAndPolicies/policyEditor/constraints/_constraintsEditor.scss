@@ -1,0 +1,115 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+#policy-edit-constraints {
+  .nx-list__item:first-child {
+    border-top: none;
+  }
+
+  .nx-list--bulleted {
+    margin-bottom: 0;
+  }
+
+  .nx-alert--error {
+    margin-top: 0;
+  }
+
+  .constraint-editor {
+    &__150-width {
+      width: 150px;
+    }
+
+    &__300-width {
+      width: 300px;
+    }
+
+    &__data-source-width {
+      width: 179px;
+    }
+
+    &__operator-wrapper {
+      display: flex;
+      align-items: baseline;
+      margin-bottom: var(--nx-spacing-8x);
+    }
+
+    &__operator {
+      margin: 0 var(--nx-spacing-4x);
+    }
+
+    &__conditions {
+      width: 100%;
+      padding-left: var(--nx-spacing-4x);
+      margin: 0 0 var(--nx-spacing-4x) 0;
+
+      // change position to static to accommodate long inline-validation error
+      div[role='alert']:not(:empty) {
+        position: static;
+      }
+
+      .nx-list__item {
+        padding-left: 0;
+
+        &:first-child {
+          padding-top: 0;
+        }
+
+        &:last-child {
+          border-bottom: 1px solid var(--nx-color-border-secondary);
+        }
+      }
+
+      .nx-list__text {
+        display: flex;
+        flex-flow: row wrap;
+        min-width: 100%;
+        gap: var(--nx-spacing-6x);
+      }
+
+      .nx-text-input,
+      .nx-form-select {
+        margin-bottom: 0;
+      }
+
+      .nx-text-input {
+        margin-left: 0;
+      }
+    }
+
+    &__add-constraint-btn {
+      margin-left: 0;
+    }
+
+    &__add-condition-btn {
+      margin-left: var(--nx-spacing-4x);
+    }
+
+    &__delete-condition-btn {
+      flex: none;
+      margin-right: var(--nx-spacing-3x);
+    }
+
+    &__item {
+      padding-left: 0;
+    }
+
+    &__item--editable {
+      display: flex;
+      flex-flow: column nowrap;
+
+      .nx-h3 {
+        margin-top: 0;
+      }
+    }
+
+    &__editable-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+  }
+}

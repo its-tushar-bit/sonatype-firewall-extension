@@ -21,9 +21,12 @@ public class NxTextInput
     return this.element;
   }
 
+  public SelenideElement inputWrapper() {
+    return this.element.closest(".nx-text-input");
+  }
+
   public SelenideElement errorMessage() {
-    SelenideElement inputWrapper = this.element.closest(".nx-text-input");
-    return inputWrapper.find(".nx-text-input__invalid-message");
+    return this.inputWrapper().find(".nx-text-input__invalid-message");
   }
 }
 

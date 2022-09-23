@@ -33,12 +33,12 @@
 @use 'reports';
 @use '../mainHeader/mainHeader';
 @use '../react/iqViolationExclamation';
+@use '../react/ThreatDropdownSelector';
 @use '../user/LoginModal/loginModal';
 
 // Directives
 @use '../directives/directives';
 @use '../owner.manager/access/access.tile.directive';
-@use '../owner.manager/policy/policy.editor.constraints.directive';
 @use '../utility/widgets/age.in.days.input.directive';
 @use '../owner.manager/navigation/ownerTreeView';
 
@@ -116,7 +116,10 @@
 @use '../artifactoryRepositoryConfiguration/artifactoryRepositoryConfigurationModal';
 @use '../artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurations';
 @use '../configuration/administrators/administrators';
+@use '../OrgsAndPolicies/policyEditor/policyActionsEditor/PolicyActionsEditor';
 @use '../OrgsAndPolicies/componentLabels/createComponentLabel';
+@use '../OrgsAndPolicies/policyEditor/editPolicyInheritance/EditPolicyInheritance';
+@use '../OrgsAndPolicies/policyEditor/policyNotificationsEditor/PolicyNotificationsEditor';
 @use '../OrgsAndPolicies/access/accessPage';
 @use '../OrgsAndPolicies/proprietaryComponentConfig/proprietaryComponentConfiguration';
 @use '../firewall/firewallComponentDetailsPage/firewallComponentDetailsPage';
@@ -124,6 +127,7 @@
 @use '../dashboard/results/componentRisk/component-risk';
 @use '../dashboard/results/componentRisk/componentRiskItem/componentRiskItem';
 @use '../OrgsAndPolicies/ownerSummary/ownerSummary';
+@use '../OrgsAndPolicies/policyEditor/constraints/constraintsEditor';
 @use '../OrgsAndPolicies/ownerSummary/labelsTile/labelsTile';
 @use '../OrgsAndPolicies/ownerSummary/policiesTile/policiesTile';
 @use '../OrgsAndPolicies/ownerSummary/retentionTile/retentionTile';

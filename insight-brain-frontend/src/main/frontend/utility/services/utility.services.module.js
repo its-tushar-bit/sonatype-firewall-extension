@@ -7,7 +7,6 @@
 import systemConfigurationPropertyService from './systemConfigurationPropertyService';
 import CLMLocationModule from '../../util/CLMLocation';
 import utilityDirectivesModule from '../directives/utility.directives.module';
-import JiraService from './jira.service';
 import StateHistoryService from './state.history.service';
 import UnauthenticatedRequestQueueService from './unauthenticated.request.queue.service';
 import routeStateUtilService from './routeStateUtilService';
@@ -16,7 +15,6 @@ import ProductLicense from './ProductLicense';
 export default angular
   .module('utility.services', [utilityDirectivesModule.name, CLMLocationModule.name])
   .service('systemConfigurationPropertyService', systemConfigurationPropertyService)
-  .service('jira.service', JiraService)
   .service('state.history.service', StateHistoryService)
   .service('UnauthenticatedRequestQueueService', UnauthenticatedRequestQueueService)
   .service('routeStateUtilService', routeStateUtilService)

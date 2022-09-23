@@ -5,12 +5,10 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.ActionsSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
-import com.sonatype.clm.testing.functional.elements.PillButton;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -43,40 +41,20 @@ public class PolicyEditorPage
     return BaseUrl.resolvePageUrl("/management/edit/{ownerType}/{ownerId}/policy", ownerType, ownerId);
   }
 
-  static SelenideElement scrollContainer() {
-    return $("#policy-editor");
-  }
-
   public static SelenideElement title() {
     return $("#policy-editor-summary h1");
   }
 
+  public static SelenideElement footer() {
+    return $(".nx-footer");
+  }
+
   public static SelenideElement saveButton() {
-    return $("#save-policy-button");
+    return $(".nx-form__submit-btn");
   }
 
   public static SelenideElement deleteButton() {
     return $("#delete-policy-button");
-  }
-
-  public static PillButton constraintsPill() {
-    return new PillButton(scrollContainer(), "#policy-constraints-button");
-  }
-
-  public static BasicElement<?> actionsPill() {
-    return new PillButton(scrollContainer(), "#policy-actions-button");
-  }
-
-  public static PillButton notificationsPill() {
-    return new PillButton(scrollContainer(), "#policy-notifications-button");
-  }
-
-  public static PillButton inhertancePill() {
-    return new PillButton(scrollContainer(), "#policy-inheritance-button");
-  }
-
-  public static PillButton endOfPagePill() {
-    return new PillButton(scrollContainer(), "#policy-endofpage-button");
   }
 
   public static SummarySection summarySection() {
@@ -112,7 +90,7 @@ public class PolicyEditorPage
   }
 
   public static void savePolicy() {
-    endOfPagePill().click();
+    ScrollUtil.scrollIntoView(saveButton());
     saveButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     ScrollUtil.awaitEndOfScrolling(saveButton());

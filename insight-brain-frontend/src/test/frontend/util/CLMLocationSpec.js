@@ -820,6 +820,20 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getOwnerDetailsUrl', () => {
+    it('should return a URL with proper ownerType and ownerId', () => {
+      expect(CLMLocation.getOwnerDetailsUrl('application', 'application')).toBe(
+        '/rest/sidebar/application/application/details'
+      );
+    });
+
+    it('should return a URL with repository_container', () => {
+      expect(CLMLocation.getOwnerDetailsUrl('application', 'application', true)).toBe(
+        '/rest/sidebar/repository_container/details'
+      );
+    });
+  });
+
   describe('getCategoriesUrl', () => {
     it('returns url for applicationCategories', () => {
       const expectedUrl = '/api/v2/applicationCategories/organization/ROOT_ORGANIZATION_ID';
@@ -958,6 +972,22 @@ describe('CLMLocation.js', function () {
       const expectedUrl = '/api/v2/endpoints/api-type';
 
       expect(clmLocation.getEndpointsUrl('api-type')).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getIsJiraEnabledUrl', () => {
+    it('returns url for whether jira is enabled', () => {
+      const expectedUrl = '/rest/jira/enabled';
+
+      expect(clmLocation.getIsJiraEnabledUrl()).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getJiraProjectsUrl', () => {
+    it('returns url for jira projects', () => {
+      const expectedUrl = '/rest/jira/project';
+
+      expect(clmLocation.getJiraProjectsUrl()).toEqual(expectedUrl);
     });
   });
 

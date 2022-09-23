@@ -199,6 +199,15 @@
 }
 
 /*
+  Fix to solve issue of input not expanding to full width
+  (or expanding too much when custom value for input is specified):
+  This overrides the value so that the input expands to full width.
+*/
+.nx-text-input input {
+  width: 100%;
+}
+
+/*
   Fix to properly show items in NxTransferList.
 */
 .nx-transfer-list__select {

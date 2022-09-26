@@ -39,7 +39,13 @@ import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguratio
 import org.codehaus.plexus.util.FileUtils;
 import org.cyclonedx.BomParserFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
-import org.cyclonedx.model.*;
+import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Hash;
+import org.cyclonedx.model.License;
+import org.cyclonedx.model.LicenseChoice;
+import org.cyclonedx.model.Metadata;
+import org.cyclonedx.model.Property;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
@@ -593,6 +599,48 @@ public class ApiCycloneDxServiceV2Test
         .flatExtracting(list -> (List<Rating>) list)
         .extracting("ref")
         .containsExactlyInAnyOrder(vuln1.packageUrl, vuln2.packageUrl);
+  }
+  
+  @Test
+  public void test_getVulnerabilityInformation_Cwes() {
+    List<ApiReportComponentDTOV2> componentReport = new ArrayList<>();
+    List<String> matchingComponents = new ArrayList<>();
+
+    ApiReportComponentDTOV2 vuln1 =
+        createComponentReport("pkg:generic/test@1", "cve", 9.8f, "cwe-1", "CVSSv3", "www.test.com",
+            "Critical", "CVE-2022-1234");
+    matchingComponents.add(vuln1.packageUrl);
+    componentReport.add(vuln1);
+    
+    ApiReportComponentDTOV2 vuln2 =
+        createComponentReport("pkg:generic/test@2", "cve", 9.8f, "CWE-2", "CVSSv3", "www.test.com",
+            "Critical", "CVE-2022-1235");
+    matchingComponents.add(vuln2.packageUrl);
+    componentReport.add(vuln2);
+
+    ApiReportComponentDTOV2 vuln3 =
+        createComponentReport("pkg:generic/test@3", "cve", 9.8f, "CwE-14", "CVSSv3", "www.test.com",
+            "Critical", "CVE-2022-1236");
+    matchingComponents.add(vuln3.packageUrl);
+    componentReport.add(vuln3);
+    
+    ApiReportComponentDTOV2 vuln4 =
+        createComponentReport("pkg:generic/test@4", "cve", 9.8f, "155", "CVSSv3", "www.test.com",
+            "Critical", "CVE-2022-1237");
+    matchingComponents.add(vuln4.packageUrl);
+    componentReport.add(vuln4);
+    
+    ApiReportComponentDTOV2 vuln5 =
+        createComponentReport("pkg:generic/test@5", "cve", 9.8f, "other", "CVSSv3", "www.test.com",
+            "Critical", "CVE-2022-1238");
+    matchingComponents.add(vuln5.packageUrl);
+    componentReport.add(vuln5);
+
+    List<Vulnerability> vulnerabilities = service.getVulnerabilityInformation(componentReport, matchingComponents);
+
+    assertThat(vulnerabilities).hasSize(5)
+        .flatExtracting(v -> v.getCwes() == null ? Collections.emptyList() : v.getCwes())
+        .containsExactly(1, 2, 14, 155);
   }
 
   @Test

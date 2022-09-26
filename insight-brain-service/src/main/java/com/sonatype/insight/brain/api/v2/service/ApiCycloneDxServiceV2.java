@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -56,8 +58,15 @@ import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.exception.GeneratorException;
 import org.cyclonedx.generators.json.BomJsonGenerator;
 import org.cyclonedx.generators.xml.BomXmlGenerator;
-import org.cyclonedx.model.*;
+import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
+import org.cyclonedx.model.ExternalReference;
+import org.cyclonedx.model.Hash;
+import org.cyclonedx.model.License;
+import org.cyclonedx.model.LicenseChoice;
+import org.cyclonedx.model.Metadata;
+import org.cyclonedx.model.Property;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
@@ -77,6 +86,8 @@ public class ApiCycloneDxServiceV2
   public static final String NVD = "NVD";
 
   public static final String CVE = "cve";
+
+  public static final Pattern CWE_REGEX = Pattern.compile("(?:cwe-)?(\\d+)", Pattern.CASE_INSENSITIVE);
 
   private final ApiReportDataServiceV2 apiReportDataServiceV2;
 
@@ -253,7 +264,13 @@ public class ApiCycloneDxServiceV2
       if (StringUtils.isNotBlank(securityIssue.cwe)) {
         String[] cwes = securityIssue.cwe.split(",");
         for (String cwe : cwes) {
-          vulnerability.addCwe(Integer.parseInt(cwe));
+          Matcher cweMatcher = CWE_REGEX.matcher(cwe);
+          if (cweMatcher.matches()) {
+            vulnerability.addCwe(Integer.parseInt(cweMatcher.group(1)));
+          }
+          else {
+            log.debug("Ignoring cwe {} not matching the format {}.", cwe, CWE_REGEX.pattern());
+          }
         }
       }
       vulnerabilities.put(vulnerability.getId(), vulnerability);

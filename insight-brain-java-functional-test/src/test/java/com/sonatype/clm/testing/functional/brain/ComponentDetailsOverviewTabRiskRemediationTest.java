@@ -207,6 +207,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     RiskRemediationTile riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
     riskRemediation.shouldBe(visible);
+    riskRemediation.getLoadingSpinner().shouldNotBe(visible);  // wait until loading complete
     ScrollUtil.scrollIntoView(riskRemediation.getTitle());
     riskRemediation.getTitle().shouldHave(text("Risk Remediation"));
 

@@ -5,10 +5,11 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import com.sonatype.clm.testing.functional.elements.AssociationEditor.AssociationEditorElement;
+import com.sonatype.clm.testing.functional.elements.IqAssociationEditor.AssociationEditorElement;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -23,7 +24,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.AssociationEditor.MULTI_COLUMN;
+import static com.sonatype.clm.testing.functional.elements.IqAssociationEditor.MULTI_COLUMN;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.ALL_TEXT_ROOT_ORG;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.allRadioText;
@@ -44,7 +45,7 @@ public class OrganizationPolicyEditorTest
   protected void assertNewPolicyStateIsCorrect_inheritanceSection() {
     PolicyInheritsToSection inheritance = PolicyEditorPage.inheritanceSection();
 
-    PolicyEditorPage.inhertancePill().shouldBe(visible);
+    ScrollUtil.scrollIntoView(PolicyEditorPage.inheritanceSection().header());
     inheritance.shouldBe(visible);
     inheritance.allChildrenInheritRadio().shouldBe(visible).shouldBe(selected);
     inheritance.allChildrenInheritRadio().shouldHave(allRadioText(organization.getName()));
@@ -73,6 +74,7 @@ public class OrganizationPolicyEditorTest
     inheritance.associationEditor().shouldBe(hidden);
     PolicyEditorPage.savePolicy();
 
+    ScrollUtil.scrollIntoView(inheritance.header());
     inheritance.allChildrenInheritRadio().shouldBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldNotBe(selected).click();
     inheritance.associationEditor().shouldBe(visible);
@@ -80,6 +82,7 @@ public class OrganizationPolicyEditorTest
     inheritance.policyActionsOverrideCheckbox().shouldBe(visible).shouldNotBe(selected);
     PolicyEditorPage.savePolicy();
 
+    ScrollUtil.scrollIntoView(inheritance.header());
     inheritance.allChildrenInheritRadio().shouldNotBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldBe(selected);
     inheritance.associationEditor().shouldBe(visible);
@@ -87,9 +90,10 @@ public class OrganizationPolicyEditorTest
 
     refresh();
 
+    ScrollUtil.scrollIntoView(inheritance.header());
     inheritance.allChildrenInheritRadio().shouldNotBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldBe(selected);
-    inheritance.associationEditor().item(0).checkBox().shouldNotBe(selected);
+    inheritance.associationEditor().item(0).checkBox().shouldBe(selected);
     inheritance.associationEditor().item(1).checkBox().shouldBe(selected);
   }
 
@@ -111,12 +115,12 @@ public class OrganizationPolicyEditorTest
     AssociationEditorElement category1Item = inheritance.associationEditor().item(0);
     category1Item.checkBox().shouldBe(visible, selected, isReadOnly ? disabled : enabled);
     category1Item.description().shouldBe(visible).shouldHave(text(category1.getName()));
-    category1Item.icon().shouldBe(visible).shouldHave(cssClass(category1.getColor().toValue()));
+    category1Item.icon().shouldBe(visible).shouldHave(cssClass("nx-selectable-color--blue"));
 
     AssociationEditorElement category2Item = inheritance.associationEditor().item(1);
     category2Item.checkBox().shouldBe(visible, isReadOnly ? disabled : enabled).shouldNotBe(selected);
     category2Item.description().shouldBe(visible).shouldHave(text(category2.getName()));
-    category2Item.icon().shouldBe(visible).shouldHave(cssClass(category2.getColor().toValue()));
+    category2Item.icon().shouldBe(visible).shouldHave(cssClass("nx-selectable-color--red"));
   }
 
   @Test

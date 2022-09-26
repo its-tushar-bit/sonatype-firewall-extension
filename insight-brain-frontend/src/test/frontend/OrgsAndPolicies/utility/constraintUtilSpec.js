@@ -3,7 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { conditionString } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
+import {
+  conditionString,
+  validatePatternMatchAndEmptyValue,
+  getCoordinatesValue,
+} from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
+import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+
+const { initialState: initUserInput } = nxTextInputStateHelpers;
 
 describe('constraintUtil', () => {
   describe('conditionString return proper condition string', () => {
@@ -12,7 +19,10 @@ describe('constraintUtil', () => {
         conditionIndex: 0,
         conditionTypeId: 'AgeInDays',
         operator: 'older than',
-        value: '730',
+        value: {
+          value: '730',
+          trimmedValue: '730',
+        },
       };
       const mockConditionTypesMap = {
         AgeInDays: {
@@ -43,7 +53,10 @@ describe('constraintUtil', () => {
         conditionIndex: 0,
         conditionTypeId: 'Label',
         operator: 'is not',
-        value: '2438cdfe428141c8b8a06fac9bc699c3',
+        value: {
+          value: '2438cdfe428141c8b8a06fac9bc699c3',
+          trimmedValue: '2438cdfe428141c8b8a06fac9bc699c3',
+        },
       };
       const mockConditionTypesMap = {
         Label: {
@@ -76,6 +89,84 @@ describe('constraintUtil', () => {
       const actual = conditionString(mockCondition, mockConditionTypesMap);
 
       expect(actual).toBe('Label is not Label Name');
+    });
+  });
+
+  describe('validatePatternMatchAndEmptyValue', () => {
+    let validator;
+    beforeEach(() => {
+      validator = validatePatternMatchAndEmptyValue(/^[^:]+$/, 'not valid');
+    });
+
+    it('returns null if no value', () => {
+      expect(validator('')).toBeNull();
+    });
+
+    it('returns null if value does not have deprecated symbols', () => {
+      expect(validator('valid')).toBeNull();
+    });
+
+    it('returns predefined error message if value has deprecated symbols', () => {
+      expect(validator('wait:')).toBe('not valid');
+    });
+  });
+
+  describe('getCoordinatesValue', () => {
+    describe('maven', () => {
+      const value = {
+        format: 'maven',
+        classifier: initUserInput('classifier'),
+        groupId: initUserInput('groupId'),
+        artifactId: initUserInput('artifactId'),
+        version: initUserInput('version'),
+        extension: initUserInput('extension'),
+      };
+
+      it('returns combined coordinates value for maven', () => {
+        expect(getCoordinatesValue(value)).toBe('maven:groupId:artifactId:version:extension:classifier');
+      });
+
+      it('returns combined coordinates value for maven even if classifier is empty', () => {
+        value.classifier = initUserInput('');
+        expect(getCoordinatesValue(value)).toBe('maven:groupId:artifactId:version:extension:');
+      });
+    });
+
+    describe('a-name', () => {
+      const value = {
+        format: 'a-name',
+        qualifier: initUserInput('qualifier'),
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+      };
+
+      it('returns combined coordinates value for a-name', () => {
+        expect(getCoordinatesValue(value)).toBe('a-name:name:qualifier:version');
+      });
+
+      it('returns combined coordinates value for a-name if qualifier is empty', () => {
+        value.qualifier = initUserInput('');
+        expect(getCoordinatesValue(value)).toBe('a-name:name::version');
+      });
+    });
+
+    describe('pypi', () => {
+      const value = {
+        format: 'pypi',
+        qualifier: initUserInput('qualifier'),
+        name: initUserInput('name'),
+        version: initUserInput('version'),
+        extension: initUserInput('extension'),
+      };
+
+      it('returns combined coordinates value for pypi', () => {
+        expect(getCoordinatesValue(value)).toBe('pypi:name:version:qualifier:extension');
+      });
+
+      it('returns combined coordinates value for pypi if qualifier is empty', () => {
+        value.qualifier = initUserInput('');
+        expect(getCoordinatesValue(value)).toBe('pypi:name:version::extension');
+      });
     });
   });
 });

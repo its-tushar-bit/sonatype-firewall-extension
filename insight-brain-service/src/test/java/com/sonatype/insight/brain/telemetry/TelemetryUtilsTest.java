@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,7 +49,7 @@ public class TelemetryUtilsTest
         entry("number_of_components", "0")
     );
     assertThat(telemetryData.getAttributes()).doesNotContainKeys(
-        "client_id", "client_instance_id", "deployment_type"
+        "client_id", "client_instance_id", "deployment_type", "ide_theme"
     );
   }
 
@@ -56,7 +57,7 @@ public class TelemetryUtilsTest
   public void test_buildApplicationEvaluationTelemetryData_noComponents_invalidUA_noInstanceId() {
     // when:
     TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
-        "appId", "build", ScanTriggerType.CLI, "user agent", null, null);
+        "appId", "build", ScanTriggerType.CLI, "user agent", null, Collections.singletonMap("component_counts", null));
     // then:
     assertThat(telemetryData.getAttributes()).contains(
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
@@ -65,7 +66,7 @@ public class TelemetryUtilsTest
         entry("number_of_components", "0")
     );
     assertThat(telemetryData.getAttributes()).doesNotContainKeys(
-        "client_id", "client_instance_id", "deployment_type"
+        "client_id", "client_instance_id", "deployment_type", "ide_theme"
     );
   }
 
@@ -75,7 +76,7 @@ public class TelemetryUtilsTest
     String ua = "Sonatype_CLM_CI_Jenkins/3.13 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)";
     // when:
     TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
-        "appId", "build", ScanTriggerType.CLI, ua, "abc", null);
+        "appId", "build", ScanTriggerType.CLI, ua, "abc", Collections.singletonMap("component_counts", null));
     // then:
     assertThat(telemetryData.getAttributes()).contains(
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
@@ -91,7 +92,7 @@ public class TelemetryUtilsTest
         entry("client_other", "Jenkins 2.319.2"),
         entry("client_instance_id", "abc")
     );
-    assertThat(telemetryData.getAttributes()).doesNotContainKeys("deployment_type");
+    assertThat(telemetryData.getAttributes()).doesNotContainKeys("deployment_type", "ide_theme");
   }
 
   @Test
@@ -102,7 +103,7 @@ public class TelemetryUtilsTest
     map.put("npm", 2L);
     // when:
     TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
-        "appId", "build", ScanTriggerType.CLI, null, null, map);
+        "appId", "build", ScanTriggerType.CLI, null, null, Collections.singletonMap("component_counts", map));
     // then:
     assertThat(telemetryData.getAttributes()).contains(
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
@@ -113,7 +114,31 @@ public class TelemetryUtilsTest
         entry("number_of_components", "5")
     );
     assertThat(telemetryData.getAttributes()).doesNotContainKeys(
-        "client_id", "client_instance_id", "deployment_type"
+        "client_id", "client_instance_id", "deployment_type", "ide_theme"
+    );
+  }
+
+  @Test
+  public void test_buildApplicationEvaluationTelemetryData_AcceptsIntegerComponentCounts() {
+    // given:
+    Map<String, Integer> componentCounts = new HashMap<>();
+    componentCounts.put("maven", 15);
+    componentCounts.put("npm", 10);
+    // when:
+    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+        "appId", "build", ScanTriggerType.CLI, null, null,
+        Collections.singletonMap("component_counts", componentCounts));
+    // then:
+    assertThat(telemetryData.getAttributes()).contains(
+        entry("application_id", HdsClientAnalytics.obfuscate("appId")),
+        entry("stage_id", "build"),
+        entry("scan_trigger_type", "CLI"),
+        entry("number_of_maven_components", "15"),
+        entry("number_of_npm_components", "10"),
+        entry("number_of_components", "25")
+    );
+    assertThat(telemetryData.getAttributes()).doesNotContainKeys(
+        "client_id", "client_instance_id", "deployment_type", "ide_theme"
     );
   }
 
@@ -123,13 +148,32 @@ public class TelemetryUtilsTest
     environmentVariables.set("SONATYPE_INTERNAL_HOST_SYSTEM", "Docker");
     // when:
     TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
-        "appId", "build", ScanTriggerType.CLI, null, null, null);
+        "appId", "build", ScanTriggerType.CLI, null, null, Collections.singletonMap("component_counts", null));
     // then:
     assertThat(telemetryData.getAttributes()).contains(
         entry("application_id", HdsClientAnalytics.obfuscate("appId")),
         entry("stage_id", "build"),
         entry("scan_trigger_type", "CLI"),
         entry("deployment_type", "Docker")
+    );
+  }
+
+  @Test
+  public void test_buildApplicationEvaluationTelemetryData_ideThemeProvided() {
+    // given:
+    Map<String, Object> requestedAttributes = new HashMap<>();
+    requestedAttributes.put("ide_theme", "light");
+    requestedAttributes.put("component_counts", null);
+    // when:
+    TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
+        "appId", "build", ScanTriggerType.CLI, null, null,
+        requestedAttributes);
+    // then:
+    assertThat(telemetryData.getAttributes()).contains(
+        entry("application_id", HdsClientAnalytics.obfuscate("appId")),
+        entry("stage_id", "build"),
+        entry("scan_trigger_type", "CLI"),
+        entry("ide_theme", "light")
     );
   }
 }

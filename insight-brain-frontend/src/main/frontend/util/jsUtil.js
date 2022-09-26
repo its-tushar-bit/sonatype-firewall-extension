@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
+  any,
   chain,
   curry,
   either,
@@ -140,6 +141,15 @@ export const getKey = prop('key');
  * The Comparison does not account for the order of elements within each list.
  */
 export const eqValues = compose(isEmpty, symmetricDifference);
+
+/**
+ * [a] → Boolean
+ *
+ * Iteration function with index similar to Array.prototype.some
+ *
+ * Returns true if at least one of the elements of the list match the predicate, false otherwise.
+ */
+export const anyIndexed = addIndex(any);
 
 // Return a string only with first letter uppercase
 export const capitalizeFirstLetter = (string) => {

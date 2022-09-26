@@ -71,17 +71,17 @@ locationModule.factory('CLMContextLocations', [
     }
 
     function getServicePath() {
-      return isApplication()
-        ? 'application'
-        : isOrganization()
-        ? 'organization'
-        : isRepositories()
-        ? 'repository_container'
-        : 'global';
+      if (isApplication()) {
+        return 'application';
+      } else if (isOrganization()) {
+        return 'organization';
+      } else {
+        return isRepositories() ? 'repository_container' : 'global';
+      }
     }
 
     function getServicePathWithId() {
-      var id = getId(),
+      let id = getId(),
         path = getServicePath();
 
       // Repositories do not need to be associated with an ID.
@@ -104,16 +104,20 @@ locationModule.factory('CLMContextLocations', [
       return url;
     }
 
-    var getId = function (raw) {
-      return isApplication()
-        ? raw
-          ? appId.raw()
-          : appId.encoded()
-        : isOrganization()
-        ? raw
-          ? orgId.raw()
-          : orgId.encoded()
-        : 'global';
+    const getId = (raw) => {
+      if (isApplication()) {
+        return getApplicationId(raw);
+      } else {
+        return isOrganization() ? getOrganizationId(raw) : 'global';
+      }
+    };
+
+    const getApplicationId = (raw) => {
+      return raw ? appId.raw() : appId.encoded();
+    };
+
+    const getOrganizationId = (raw) => {
+      return raw ? orgId.raw() : orgId.encoded();
     };
 
     return {
@@ -162,7 +166,7 @@ locationModule.factory('CLMContextLocations', [
       },
 
       getAddIconUrl: function (ownerType, ownerId) {
-        var servicePath = ownerType ? encodeURIComponent(ownerType) : getServicePath();
+        let servicePath = ownerType ? encodeURIComponent(ownerType) : getServicePath();
         return (
           baseUrl.get() +
           '/rest/' +

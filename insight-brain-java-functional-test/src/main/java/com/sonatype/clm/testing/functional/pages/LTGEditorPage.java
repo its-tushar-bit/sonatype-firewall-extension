@@ -5,10 +5,11 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import com.sonatype.clm.testing.functional.elements.DoubleColumnPicker;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.NxTransferList;
 
 import com.codeborne.selenide.SelenideElement;
 
@@ -35,22 +36,30 @@ public class LTGEditorPage
   }
 
   public static SelenideElement title() {
-    return $("#ltg-editor").$("h2");
+    return $(".nx-h1");
   }
 
   public static SelenideElement ltgName() {
-    return $("#editor-ltg-name");
+    return $(".nx-text-input__input");
   }
 
-  public static DoubleColumnPicker picker() {
-    return new DoubleColumnPicker();
+  public static NxTransferList picker() {
+    return new NxTransferList("#editor-ltg-included-licenses");
   }
 
   public static SelenideElement saveButton() {
-    return $("#save-ltg-button");
+    return $(".nx-form__submit-btn");
   }
 
   public static SelenideElement deleteButton() {
     return $("#delete-ltg-button");
+  }
+
+  public static NxDeleteModal deleteModal() {
+    return new NxDeleteModal("#ltg-config-delete-modal");
+  }
+
+  public static SelenideElement getInputValidationElement(SelenideElement element) {
+    return element.closest(".nx-form-group").find(".nx-text-input__invalid-message");
   }
 }

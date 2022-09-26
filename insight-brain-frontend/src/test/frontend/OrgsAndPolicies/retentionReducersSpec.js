@@ -6,7 +6,7 @@
 import reducer from 'MainRoot/OrgsAndPolicies/retentionSlice';
 
 describe('retentionSlice reducers', () => {
-  describe('retention/loadRetentionTile/pending', () => {
+  describe('retention/loadRetention/pending', () => {
     it('sets loading and loadError', () => {
       const state = Object.freeze({
         loading: false,
@@ -14,7 +14,7 @@ describe('retentionSlice reducers', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'retention/loadRetentionTile/pending',
+        type: 'retention/loadRetention/pending',
       });
 
       expect(loading).toBeTrue();
@@ -22,7 +22,7 @@ describe('retentionSlice reducers', () => {
     });
   });
 
-  describe('retention/loadRetentionTile/fulfilled', () => {
+  describe('retention/loadRetention/fulfilled', () => {
     it('sets loading, applicationReports and successMetrics', () => {
       const state = Object.freeze({
         loading: true,
@@ -31,7 +31,7 @@ describe('retentionSlice reducers', () => {
       });
 
       const { loading, applicationReports, successMetrics } = reducer(state, {
-        type: 'retention/loadRetentionTile/fulfilled',
+        type: 'retention/loadRetention/fulfilled',
         payload: {
           applicationReports: {
             stages: {
@@ -68,7 +68,7 @@ describe('retentionSlice reducers', () => {
     });
   });
 
-  describe('retention/loadRetentionTile/failed', () => {
+  describe('retention/loadRetention/failed', () => {
     it('sets loading and loadError', () => {
       const state = Object.freeze({
         loading: true,
@@ -76,7 +76,7 @@ describe('retentionSlice reducers', () => {
       });
 
       const { loading, loadError } = reducer(state, {
-        type: 'retention/loadRetentionTile/rejected',
+        type: 'retention/loadRetention/rejected',
         payload: 'some error occurred',
       });
 

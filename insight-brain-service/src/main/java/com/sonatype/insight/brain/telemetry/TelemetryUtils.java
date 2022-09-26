@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -53,15 +54,17 @@ public final class TelemetryUtils
     return telemetryData;
   }
 
+  @SuppressWarnings("unchecked")
   public static TelemetryData buildApplicationEvaluationTelemetryData(
       String applicationId,
       String stageId,
       ScanTriggerType scanTriggerType,
       String clientUserAgent,
       String clientInstanceId,
-      Map<String, Long> componentCounts)
+      Map<String, Object> requestedAttributes)
   {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS);
+    Map<String, Number> componentCounts = (Map<String, Number>) requestedAttributes.get("component_counts");
 
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
@@ -95,15 +98,20 @@ public final class TelemetryUtils
       attributes.put("deployment_type", hostSystem);
     }
 
+    Optional.of(requestedAttributes)
+        .map(attr -> attr.get("ide_theme"))
+        .ifPresent(val -> attributes.put("ide_theme", val));
+
     telemetryData.setAttributes(attributes);
 
     return telemetryData;
   }
 
-  private static long getTotalComponentCounts(final Map<String, Long> componentCounts) {
+  private static long getTotalComponentCounts(final Map<String, Number> componentCounts) {
     if (componentCounts == null) {
       return 0L;
     }
-    return componentCounts.values().stream().reduce(Long::sum).orElse(0L);
+    return componentCounts.values().stream().map(Number::longValue).reduce(Long::sum)
+        .orElse(0L);
   }
 }

@@ -5,19 +5,26 @@
  */
 import { createSelector } from '@reduxjs/toolkit';
 import { prop } from 'ramda';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
+  selectRouterCurrentParams,
   selectApplicationId,
   selectIsApplication,
   selectIsOrganization,
   selectOrganizationId,
-} from '../reduxUiRouter/routerSelectors';
+  selectIsRepositories,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const selectOrgsAndPoliciesSlice = prop('orgsAndPolicies');
 export const selectRootSlice = createSelector(selectOrgsAndPoliciesSlice, prop('root'));
 
 export const selectSelectedOwner = createSelector(selectRootSlice, prop('selectedOwner'));
-export const selectSelectedOwnerName = createSelector(selectSelectedOwner, prop('name'));
+export const selectSelectedOwnerName = createSelector(
+  selectSelectedOwner,
+  selectIsRepositories,
+  (selectedOwner, isRepositories) => {
+    return isRepositories ? 'All Repositories' : selectedOwner.name;
+  }
+);
 export const selectSelectedOwnerId = createSelector(selectSelectedOwner, prop('id'));
 
 export const selectPoliciesByOwner = createSelector(selectRootSlice, prop('policiesByOwner'));

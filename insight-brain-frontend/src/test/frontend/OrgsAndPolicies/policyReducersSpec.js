@@ -3,8 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
+import { omit } from 'ramda';
 import reducer, { initialState } from 'MainRoot/OrgsAndPolicies/policySlice';
+import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+
+const { initialState: initUserInput } = nxTextInputStateHelpers;
 
 describe('policySlice reducers', () => {
   describe('policy/resetIsDirty', () => {
@@ -21,27 +24,15 @@ describe('policySlice reducers', () => {
     });
   });
 
-  describe('policy/resetDeleteModalState', () => {
-    it('resets isDirty', () => {
-      const state = Object.freeze({
-        deleteModal: { success: true, deleting: false, errorState: 'someError' },
-      });
-
-      const { deleteModal } = reducer(state, {
-        type: 'policy/resetDeleteModalState',
-      });
-
-      expect(deleteModal).toEqual({ deleting: null, success: null, errorState: null });
-    });
-  });
-
   describe('policy/setPolicyName', () => {
     it('sets currentPolicy name and compute isDirty', () => {
       const state = Object.freeze({
         currentPolicy: {
           name: null,
+          constraints: [],
         },
-
+        siblings: [],
+        originalPolicy: { name: { value: '' } },
         isDirty: false,
       });
 
@@ -50,8 +41,89 @@ describe('policySlice reducers', () => {
         payload: 'newName',
       });
 
-      expect(currentPolicy.name).toBe('newName');
+      expect(currentPolicy.name).toEqual({
+        isPristine: false,
+        value: 'newName',
+        trimmedValue: 'newName',
+        validationErrors: [],
+      });
       expect(isDirty).toBeTrue();
+    });
+
+    it('sets currentPolicy name with validation errors', () => {
+      const state = Object.freeze({
+        currentPolicy: {
+          name: null,
+          constraints: [],
+        },
+        siblings: [],
+        originalPolicy: { name: { value: 'newName' } },
+        isDirty: false,
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/setPolicyName',
+        payload: 'newName this is a really long string for  validation...........................!',
+      });
+
+      expect(currentPolicy.name).toEqual({
+        isPristine: false,
+        value: 'newName this is a really long string for  validation...........................!',
+        trimmedValue: 'newName this is a really long string for  validation...........................!',
+        validationErrors: [
+          'Use valid characters: alphanumeric, "_", ".", "-", or spaces',
+          'Please enter less than 60 characters',
+          'No leading, trailing or double spaces or tabs',
+        ],
+      });
+    });
+
+    it('sets currentPolicy name with validation empty error', () => {
+      const state = Object.freeze({
+        currentPolicy: {
+          name: null,
+          constraints: [],
+        },
+        siblings: [],
+        originalPolicy: { name: { value: 'newName' } },
+        isDirty: false,
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/setPolicyName',
+        payload: '',
+      });
+
+      expect(currentPolicy.name).toEqual({
+        isPristine: false,
+        value: '',
+        trimmedValue: '',
+        validationErrors: ['Must be non-empty'],
+      });
+    });
+
+    it('sets currentPolicy name with validation duplicate error', () => {
+      const state = Object.freeze({
+        currentPolicy: {
+          name: null,
+          constraints: [],
+        },
+        siblings: [{ name: 'newName' }],
+        originalPolicy: { name: { value: '' } },
+        isDirty: false,
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/setPolicyName',
+        payload: 'newName',
+      });
+
+      expect(currentPolicy.name).toEqual({
+        isPristine: false,
+        value: 'newName',
+        trimmedValue: 'newName',
+        validationErrors: ['Name is already in use'],
+      });
     });
   });
 
@@ -60,6 +132,7 @@ describe('policySlice reducers', () => {
       const state = Object.freeze({
         currentPolicy: {
           threatLevel: 1,
+          constraints: [],
         },
 
         isDirty: false,
@@ -78,15 +151,20 @@ describe('policySlice reducers', () => {
   describe('policy/setActions', () => {
     it('sets actions', () => {
       const state = Object.freeze({
-        currentPolicy: { actions: null },
+        currentPolicy: {
+          actions: null,
+          constraints: [],
+        },
+        validationError: null,
       });
 
-      const { currentPolicy } = reducer(state, {
+      const { currentPolicy, validationError } = reducer(state, {
         type: 'policy/setActions',
         payload: { proxy: 'warn' },
       });
 
       expect(currentPolicy.actions).toEqual({ proxy: 'warn' });
+      expect(validationError).toBeNull();
     });
   });
 
@@ -105,10 +183,38 @@ describe('policySlice reducers', () => {
     });
   });
 
+  describe('policy/saveMaskTimerDone', () => {
+    it('nulls submitMaskState', () => {
+      const state = Object.freeze({
+        submitMaskState: true,
+      });
+
+      const { submitMaskState } = reducer(state, {
+        type: 'policy/saveMaskTimerDone',
+      });
+
+      expect(submitMaskState).toBeNull();
+    });
+  });
+
+  describe('policy/clearDeleteError', () => {
+    it('clears deleteError', () => {
+      const state = Object.freeze({
+        deleteError: true,
+      });
+
+      const { deleteError } = reducer(state, {
+        type: 'policy/clearDeleteError',
+      });
+
+      expect(deleteError).toBeNull();
+    });
+  });
+
   describe('policy/togglePolicyViolationGrandfatheringAllowed', () => {
     it('toggles policyViolationGrandfatheringAllowed for a category', () => {
       const state = Object.freeze({
-        currentPolicy: { policyViolationGrandfatheringAllowed: false },
+        currentPolicy: { policyViolationGrandfatheringAllowed: false, constraints: [] },
       });
 
       const { currentPolicy } = reducer(state, {
@@ -119,11 +225,11 @@ describe('policySlice reducers', () => {
     });
   });
 
-  describe('policy/policyActionsOverrideAllowed', () => {
+  describe('policy/togglePolicyActionsOverrideAllowed', () => {
     it('toggles policyActionsOverrideAllowed for a category from false to true', () => {
       const state = Object.freeze({
         isDirty: false,
-        currentPolicy: { policyActionsOverrideAllowed: false },
+        currentPolicy: { policyActionsOverrideAllowed: false, constraints: [] },
       });
 
       const { currentPolicy, isDirty } = reducer(state, {
@@ -138,6 +244,7 @@ describe('policySlice reducers', () => {
       const state = Object.freeze({
         isDirty: false,
         currentPolicy: {
+          constraints: [],
           policyActionsOverrideAllowed: true,
           policyActionsOverrides: {
             df9ad82193e44f4f9385e0c9e8835409: {
@@ -161,14 +268,17 @@ describe('policySlice reducers', () => {
     });
   });
 
-  describe('policy/addConstraint', () => {
+  describe('policy/setConstraint', () => {
     it('sets currentPolicy constraints and compute isDirty', () => {
       const state = Object.freeze({
         currentPolicy: {
-          constraints: null,
+          constraints: [],
         },
-
+        originalPolicy: {
+          constraints: [],
+        },
         isDirty: false,
+        validationError: null,
       });
 
       const constraints = [
@@ -178,52 +288,62 @@ describe('policySlice reducers', () => {
             {
               conditionTypeId: 'AgeInDays',
               operator: 'older than',
-              value: null,
+              value: {
+                value: '730',
+                trimmedValue: '730',
+              },
             },
           ],
           operator: 'OR',
         },
       ];
 
-      const { currentPolicy, isDirty } = reducer(state, {
-        type: 'policy/addConstraint',
+      const { currentPolicy, isDirty, validationError } = reducer(state, {
+        type: 'policy/setConstraint',
         payload: constraints,
       });
 
       expect(currentPolicy.constraints).toEqual(constraints);
       expect(isDirty).toBeTrue();
+      expect(validationError).toBeNull();
     });
-  });
 
-  describe('policy/deleteConstraint', () => {
-    it('sets currentPolicy constraints and compute isDirty', () => {
+    it('sets currentPolicy constraints and compute validationError', () => {
       const state = Object.freeze({
         currentPolicy: {
-          constraints: [
+          constraints: [],
+        },
+        originalPolicy: {
+          constraints: [],
+        },
+        isDirty: false,
+        validationError: null,
+      });
+
+      const constraints = [
+        {
+          id: 'someId',
+          conditions: [
             {
-              id: 'someId',
-              conditions: [
-                {
-                  conditionTypeId: 'AgeInDays',
-                  operator: 'older than',
-                  value: null,
-                },
-              ],
-              operator: 'OR',
+              conditionTypeId: 'AgeInDays',
+              operator: 'older than',
+              value: {
+                value: '',
+                trimmedValue: '',
+              },
             },
           ],
+          operator: 'OR',
         },
+      ];
 
-        isDirty: false,
+      const { currentPolicy, validationError } = reducer(state, {
+        type: 'policy/setConstraint',
+        payload: constraints,
       });
 
-      const { currentPolicy, isDirty } = reducer(state, {
-        type: 'policy/deleteConstraint',
-        payload: [],
-      });
-
-      expect(currentPolicy.constraints).toEqual([]);
-      expect(isDirty).toBeTrue();
+      expect(currentPolicy.constraints).toEqual(constraints);
+      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
     });
   });
 
@@ -231,6 +351,7 @@ describe('policySlice reducers', () => {
     it('sets userNotifications and compute isDirty', () => {
       const state = Object.freeze({
         currentPolicy: {
+          constraints: [],
           notifications: { userNotifications: null },
         },
 
@@ -252,6 +373,7 @@ describe('policySlice reducers', () => {
     it('sets roleNotifications and compute isDirty', () => {
       const state = Object.freeze({
         currentPolicy: {
+          constraints: [],
           notifications: { roleNotifications: null },
         },
 
@@ -273,6 +395,7 @@ describe('policySlice reducers', () => {
     it('sets jiraNotifications and compute isDirty', () => {
       const state = Object.freeze({
         currentPolicy: {
+          constraints: [],
           notifications: { jiraNotifications: null },
         },
 
@@ -295,6 +418,7 @@ describe('policySlice reducers', () => {
     it('sets webhookNotifications and compute isDirty', () => {
       const state = Object.freeze({
         currentPolicy: {
+          constraints: [],
           notifications: { webhookNotifications: null },
         },
 
@@ -317,6 +441,7 @@ describe('policySlice reducers', () => {
     it('sets stageIds in userNotifications and compute isDirty', () => {
       const state = Object.freeze({
         currentPolicy: {
+          constraints: [],
           notifications: {
             userNotifications: [
               { emailAddress: 'someEmail', stageIds: [] },
@@ -343,6 +468,7 @@ describe('policySlice reducers', () => {
     it('sets stageIds in roleNotifications and compute isDirty', () => {
       const state = Object.freeze({
         currentPolicy: {
+          constraints: [],
           notifications: {
             roleNotifications: [
               { roleId: 'someId', stageIds: [] },
@@ -369,6 +495,7 @@ describe('policySlice reducers', () => {
     it('sets stageIds in jiraNotifications and compute isDirty', () => {
       const state = Object.freeze({
         currentPolicy: {
+          constraints: [],
           notifications: {
             jiraNotifications: [
               { projectKey: 'test', stageIds: [] },
@@ -395,6 +522,7 @@ describe('policySlice reducers', () => {
     it('sets stageIds in webhookNotifications and compute isDirty', () => {
       const state = Object.freeze({
         currentPolicy: {
+          constraints: [],
           notifications: {
             webhookNotifications: [
               { webhookId: 'test', stageIds: [] },
@@ -416,84 +544,63 @@ describe('policySlice reducers', () => {
     });
   });
 
-  describe('policy/addCondition', () => {
-    it('sets conditions for currentPolicy constraints and compute isDirty', () => {
+  describe('policy/setCondition', () => {
+    it('sets conditions for currentPolicy constraints and compute isDirty, validationError', () => {
       const state = Object.freeze({
+        originalPolicy: {
+          constraints: [],
+        },
         currentPolicy: {
           constraints: [
             {
               id: 'someId',
-              conditions: null,
-              operator: 'OR',
-            },
-            {
-              id: 'someOtherId',
-              conditions: null,
+              conditions: [],
               operator: 'OR',
             },
           ],
         },
         isDirty: false,
+        validationError: null,
       });
-      const conditions = [{ conditionTypeId: 'AgeInDays', operator: 'older than', value: null }];
+      const conditions = [
+        {
+          conditionTypeId: 'AgeInDays',
+          operator: 'older than',
+          value: initUserInput(''),
+        },
+      ];
 
-      const { currentPolicy, isDirty } = reducer(state, {
-        type: 'policy/addCondition',
+      const { currentPolicy, isDirty, validationError } = reducer(state, {
+        type: 'policy/setCondition',
         payload: { constraintIndex: 1, value: conditions },
       });
 
-      expect(currentPolicy.constraints[0].conditions).toBeNull();
+      expect(currentPolicy.constraints[0].conditions).toEqual([]);
       expect(currentPolicy.constraints[1].conditions).toEqual(conditions);
       expect(isDirty).toBeTrue();
-    });
-  });
-
-  describe('policy/addCondition', () => {
-    it('sets conditions for currentPolicy constraints and compute isDirty', () => {
-      const state = Object.freeze({
-        currentPolicy: {
-          constraints: [
-            {
-              id: 'someId',
-              conditions: null,
-              operator: 'OR',
-            },
-            {
-              id: 'someOtherId',
-              conditions: null,
-              operator: 'OR',
-            },
-          ],
-        },
-        isDirty: false,
-      });
-
-      const { currentPolicy, isDirty } = reducer(state, {
-        type: 'policy/addCondition',
-        payload: { constraintIndex: 1, value: [] },
-      });
-
-      expect(currentPolicy.constraints[0].conditions).toBeNull();
-      expect(currentPolicy.constraints[1].conditions).toEqual([]);
-      expect(isDirty).toBeTrue();
+      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
     });
   });
 
   describe('policy/setConstraintName', () => {
     it('sets name for currentPolicy constraints and compute isDirty', () => {
       const state = Object.freeze({
+        originalPolicy: {
+          constraints: [],
+        },
         currentPolicy: {
           constraints: [
             {
               id: 'someId',
-              conditions: null,
-              name: null,
+              conditions: [],
+              name: initUserInput(''),
               operator: 'OR',
             },
             {
               id: 'someOtherId',
-              conditions: null,
+              conditions: [],
               operator: 'OR',
+              name: initUserInput(''),
             },
           ],
         },
@@ -502,27 +609,66 @@ describe('policySlice reducers', () => {
 
       const { currentPolicy, isDirty } = reducer(state, {
         type: 'policy/setConstraintName',
-        payload: { constraintIndex: 1, value: 'newName' },
+        payload: { constraintIndex: 1, value: 'newName', id: 'someOtherId' },
       });
 
-      expect(currentPolicy.constraints[0].name).toBeNull();
-      expect(currentPolicy.constraints[1].name).toBe('newName');
+      expect(currentPolicy.constraints[0].name.value).toBe('');
+      expect(currentPolicy.constraints[1].name.value).toBe('newName');
       expect(isDirty).toBeTrue();
+    });
+
+    it('sets duplicated name for currentPolicy constraint and compute validationError', () => {
+      const state = Object.freeze({
+        originalPolicy: {
+          constraints: [],
+        },
+        currentPolicy: {
+          constraints: [
+            {
+              id: 'someId',
+              conditions: [],
+              name: initUserInput('duplicate'),
+              operator: 'OR',
+            },
+            {
+              id: 'someOtherId',
+              conditions: [],
+              operator: 'OR',
+              name: initUserInput(''),
+            },
+          ],
+        },
+        validationError: null,
+      });
+
+      const { currentPolicy, validationError } = reducer(state, {
+        type: 'policy/setConstraintName',
+        payload: { constraintIndex: 1, value: 'duplicate', id: 'someOtherId' },
+      });
+
+      expect(currentPolicy.constraints[0].name.value).toBe('duplicate');
+      expect(currentPolicy.constraints[1].name.value).toBe('duplicate');
+      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
     });
   });
 
   describe('policy/setConstraintOperator', () => {
     it('sets operator for currentPolicy constraints and compute isDirty', () => {
       const state = Object.freeze({
+        originalPolicy: {
+          constraints: [],
+        },
         currentPolicy: {
           constraints: [
             {
               id: 'someId',
               operator: null,
+              conditions: [],
             },
             {
               id: 'someOtherId',
               operator: 'OR',
+              conditions: [],
             },
           ],
         },
@@ -543,9 +689,15 @@ describe('policySlice reducers', () => {
   describe('policy/setConditionOperator', () => {
     it('sets operator and compute isDirty', () => {
       const state = Object.freeze({
+        originalPolicy: {
+          constraints: [],
+        },
         currentPolicy: {
           constraints: [
-            { id: 'test' },
+            {
+              id: 'test',
+              conditions: [],
+            },
             {
               id: 'someOtherId',
               conditions: [{ operator: null }, { operator: null }],
@@ -569,9 +721,15 @@ describe('policySlice reducers', () => {
   describe('policy/setConditionValue', () => {
     it('sets value and compute isDirty', () => {
       const state = Object.freeze({
+        originalPolicy: {
+          constraints: [],
+        },
         currentPolicy: {
           constraints: [
-            { id: 'test' },
+            {
+              id: 'test',
+              conditions: [],
+            },
             {
               id: 'someOtherId',
               conditions: [{ value: null }, { value: null }],
@@ -592,26 +750,180 @@ describe('policySlice reducers', () => {
     });
   });
 
-  describe('policy/setConstraintCondition', () => {
-    it('sets conditions and compute isDirty', () => {
+  describe('policy/setConstraintCoordinatesFormat', () => {
+    it('sets value to a-name and compute isDirty, validationError', () => {
       const state = Object.freeze({
+        originalPolicy: {
+          conditions: [],
+        },
         currentPolicy: {
           constraints: [
-            { id: 'test', conditions: null },
             {
-              id: 'someOtherId',
+              id: 'someId',
               conditions: [
                 {
-                  conditionTypeId: 'MatchState',
-                  operator: 'is',
-                  value: 'similar',
-                  conditionIndex: 0,
+                  conditionTypeId: 'Coordinates',
+                  operator: 'match',
+                  value: {
+                    format: 'maven',
+                    groupId: initUserInput(''),
+                    artifactId: initUserInput(''),
+                    version: initUserInput(''),
+                    extension: initUserInput('*'),
+                    classifier: initUserInput('*'),
+                  },
                 },
+              ],
+            },
+          ],
+        },
+        isDirty: false,
+        validationError: null,
+      });
+
+      const { currentPolicy, isDirty, validationError } = reducer(state, {
+        type: 'policy/setConstraintCoordinatesFormat',
+        payload: { constraintIndex: 0, conditionIndex: 0, value: 'a-name' },
+      });
+
+      expect(currentPolicy.constraints[0].conditions[0]).toEqual({
+        conditionTypeId: 'Coordinates',
+        operator: 'match',
+        value: {
+          format: 'a-name',
+          name: initUserInput(''),
+          qualifier: initUserInput('*'),
+          version: initUserInput(''),
+        },
+      });
+      expect(isDirty).toBeTrue();
+      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
+    });
+
+    it('sets value to pypi and compute isDirty, validationError', () => {
+      const state = Object.freeze({
+        originalPolicy: {
+          conditions: [],
+        },
+        currentPolicy: {
+          constraints: [
+            {
+              id: 'someId',
+              conditions: [
                 {
                   conditionTypeId: 'Coordinates',
-                  operator: 'do not match',
-                  value: 'maven:org.eclipse.*:*:*:*:*',
-                  conditionIndex: 1,
+                  operator: 'match',
+                  value: {
+                    format: 'maven',
+                    groupId: initUserInput(''),
+                    artifactId: initUserInput(''),
+                    version: initUserInput(''),
+                    extension: initUserInput('*'),
+                    classifier: initUserInput('*'),
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        isDirty: false,
+        validationError: null,
+      });
+
+      const { currentPolicy, isDirty, validationError } = reducer(state, {
+        type: 'policy/setConstraintCoordinatesFormat',
+        payload: { constraintIndex: 0, conditionIndex: 0, value: 'pypi' },
+      });
+
+      expect(currentPolicy.constraints[0].conditions[0]).toEqual({
+        conditionTypeId: 'Coordinates',
+        operator: 'match',
+        value: {
+          format: 'pypi',
+          name: initUserInput(''),
+          qualifier: initUserInput('*'),
+          version: initUserInput(''),
+          extension: initUserInput('*'),
+        },
+      });
+      expect(isDirty).toBeTrue();
+      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
+    });
+  });
+
+  describe('policy/setConstraintCoordinatesInput', () => {
+    it('sets value and compute isDirty, validationError', () => {
+      const state = Object.freeze({
+        originalPolicy: {
+          conditions: [],
+        },
+        currentPolicy: {
+          constraints: [
+            {
+              id: 'someId',
+              conditions: [
+                {
+                  conditionTypeId: 'Coordinates',
+                  operator: 'match',
+                  value: {
+                    format: 'maven',
+                    groupId: initUserInput(''),
+                    artifactId: initUserInput(''),
+                    version: initUserInput(''),
+                    extension: initUserInput('*'),
+                    classifier: initUserInput('*'),
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        isDirty: false,
+        validationError: null,
+      });
+
+      const { currentPolicy, isDirty, validationError } = reducer(state, {
+        type: 'policy/setConstraintCoordinatesInput',
+        payload: { constraintIndex: 0, conditionIndex: 0, value: 'version value', name: 'version' },
+      });
+
+      expect(currentPolicy.constraints[0].conditions[0]).toEqual({
+        conditionTypeId: 'Coordinates',
+        operator: 'match',
+        value: {
+          format: 'maven',
+          groupId: initUserInput(''),
+          artifactId: initUserInput(''),
+          version: {
+            value: 'version value',
+            trimmedValue: 'version value',
+            isPristine: false,
+            validationErrors: [],
+          },
+          extension: initUserInput('*'),
+          classifier: initUserInput('*'),
+        },
+      });
+      expect(isDirty).toBeTrue();
+      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
+    });
+  });
+
+  describe('policy/setConstraintConditionAgeField', () => {
+    it('sets value and compute isDirty, sets age field validation errors', () => {
+      const state = Object.freeze({
+        originalPolicy: {
+          conditions: [],
+        },
+        currentPolicy: {
+          constraints: [
+            {
+              id: 'someId',
+              conditions: [
+                {
+                  conditionTypeId: 'AgeInDays',
+                  operator: 'older than',
+                  value: initUserInput('730'),
                 },
               ],
             },
@@ -619,33 +931,231 @@ describe('policySlice reducers', () => {
         },
         isDirty: false,
       });
+
+      const { currentPolicy, isDirty } = reducer(state, {
+        type: 'policy/setConditionAgeValue',
+        payload: { constraintIndex: 0, conditionIndex: 0, value: '0' },
+      });
+
+      expect(currentPolicy.constraints[0].conditions[0].value).toEqual({
+        value: '0',
+        trimmedValue: '0',
+        isPristine: false,
+        validationErrors: ['Minimum allowed value is 1'],
+      });
+      expect(isDirty).toBeTrue();
+    });
+
+    it('sets value and compute isDirty, sets age field validation errors', () => {
+      const state = Object.freeze({
+        originalPolicy: {
+          conditions: [],
+        },
+        currentPolicy: {
+          constraints: [
+            {
+              id: 'someId',
+              conditions: [
+                {
+                  conditionTypeId: 'AgeInDays',
+                  operator: 'older than',
+                  value: initUserInput('730'),
+                },
+              ],
+            },
+          ],
+        },
+        isDirty: false,
+      });
+
+      const { currentPolicy, isDirty } = reducer(state, {
+        type: 'policy/setConditionAgeValue',
+        payload: { constraintIndex: 0, conditionIndex: 0, value: '' },
+      });
+
+      expect(currentPolicy.constraints[0].conditions[0].value).toEqual({
+        value: '',
+        trimmedValue: '',
+        isPristine: false,
+        validationErrors: ['Must be non-empty', 'Minimum allowed value is 1'],
+      });
+      expect(isDirty).toBeTrue();
+    });
+  });
+
+  describe('setMultiInputConditionValue', () => {
+    it('sets value and compute isDirty, sets age field validation errors for PercentageValueType', () => {
+      const state = Object.freeze({
+        originalPolicy: {
+          conditions: [],
+        },
+        currentPolicy: {
+          constraints: [],
+        },
+        isDirty: false,
+      });
+
+      const { currentPolicy, isDirty } = reducer(state, {
+        type: 'policy/setMultiInputConditionValue',
+        payload: {
+          constraintIndex: 0,
+          conditionIndex: 0,
+          value: '',
+          dataType: 'Integer',
+          valueTypeId: 'PercentageValueType',
+        },
+      });
+
+      expect(currentPolicy.constraints[0].conditions[0].value).toEqual({
+        value: '',
+        trimmedValue: '',
+        isPristine: false,
+        validationErrors: ['Must be non-empty', 'Value must be from 0 to 100'],
+      });
+      expect(isDirty).toBeTrue();
+    });
+
+    it('sets value and compute isDirty, sets age field validation errors for PackageUrlValueType', () => {
+      const state = Object.freeze({
+        originalPolicy: {
+          conditions: [],
+        },
+        currentPolicy: {
+          constraints: [],
+        },
+        isDirty: false,
+      });
+
+      const { currentPolicy, isDirty } = reducer(state, {
+        type: 'policy/setMultiInputConditionValue',
+        payload: {
+          constraintIndex: 0,
+          conditionIndex: 0,
+          value: '',
+          dataType: 'String',
+          valueTypeId: 'PackageUrlValueType',
+        },
+      });
+
+      expect(currentPolicy.constraints[0].conditions[0].value).toEqual({
+        value: '',
+        trimmedValue: '',
+        isPristine: false,
+        validationErrors: ['Must be non-empty', 'Value must be a valid Package URL: pkg:type/name@version'],
+      });
+      expect(isDirty).toBeTrue();
+    });
+  });
+
+  describe('policy/setConstraintCondition', () => {
+    it('sets conditions and compute isDirty, validationError', () => {
+      const state = Object.freeze({
+        originalPolicy: {
+          conditions: [],
+        },
+        currentPolicy: {
+          constraints: [
+            { id: 'test', conditions: [] },
+            {
+              id: 'someOtherId',
+              conditions: [
+                {
+                  conditionTypeId: 'MatchState',
+                  operator: 'is',
+                  value: initUserInput('similar'),
+                  conditionIndex: 0,
+                },
+              ],
+            },
+          ],
+        },
+        isDirty: false,
+        validationError: null,
+      });
       const newCondition = {
         conditionTypeId: 'AgeInDays',
         operator: 'older than',
-        value: '730',
+        value: '',
       };
 
-      const { currentPolicy, isDirty } = reducer(state, {
+      const { currentPolicy, isDirty, validationError } = reducer(state, {
         type: 'policy/setConstraintCondition',
-        payload: { constraintIndex: 1, conditionIndex: 1, value: newCondition },
+        payload: { constraintIndex: 1, conditionIndex: 0, value: newCondition },
       });
 
-      expect(currentPolicy.constraints[0].conditions).toBeNull();
-      expect(currentPolicy.constraints[1].conditions[1]).toEqual(newCondition);
+      expect(currentPolicy.constraints[0].conditions).toEqual([]);
+      expect(currentPolicy.constraints[1].conditions[0]).toEqual({
+        conditionTypeId: 'AgeInDays',
+        operator: 'older than',
+        value: initUserInput(''),
+      });
       expect(isDirty).toBeTrue();
+      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
+    });
+
+    it('sets conditions for coordinates case and compute isDirty, validationError', () => {
+      const state = Object.freeze({
+        originalPolicy: {
+          conditions: [],
+        },
+        currentPolicy: {
+          constraints: [
+            { id: 'test', conditions: [] },
+            {
+              id: 'someOtherId',
+              conditions: [
+                {
+                  conditionTypeId: 'MatchState',
+                  operator: 'is',
+                  value: initUserInput('similar'),
+                  conditionIndex: 0,
+                },
+              ],
+            },
+          ],
+        },
+        isDirty: false,
+        validationError: null,
+      });
+      const newCondition = {
+        conditionTypeId: 'Coordinates',
+        operator: 'match',
+        value: '',
+      };
+
+      const { currentPolicy, isDirty, validationError } = reducer(state, {
+        type: 'policy/setConstraintCondition',
+        payload: { constraintIndex: 1, conditionIndex: 0, value: newCondition },
+      });
+
+      expect(currentPolicy.constraints[0].conditions).toEqual([]);
+      expect(currentPolicy.constraints[1].conditions[0]).toEqual({
+        conditionTypeId: 'Coordinates',
+        operator: 'match',
+        value: {
+          format: 'maven',
+          groupId: initUserInput(''),
+          artifactId: initUserInput(''),
+          version: initUserInput(''),
+          extension: initUserInput('*'),
+          classifier: initUserInput('*'),
+        },
+      });
+      expect(isDirty).toBeTrue();
+      expect(validationError).toBe('Unable to save: fields with invalid or missing data');
     });
   });
 
   describe('policy/loadCategoriesForPolicy/pending', () => {
     it('sets categoriesForPolicyLoadError and loading', () => {
-      const state = Object.freeze({ categoriesForPolicyLoadError: 'error', loading: false });
+      const state = Object.freeze({ categoriesForPolicyLoadError: 'error', loadingCategories: false });
 
-      const { categoriesForPolicyLoadError, loading } = reducer(state, {
+      const { categoriesForPolicyLoadError, loadingCategories } = reducer(state, {
         type: 'policy/loadCategoriesForPolicy/pending',
       });
 
       expect(categoriesForPolicyLoadError).toBeNull();
-      expect(loading).toBeTrue();
+      expect(loadingCategories).toBeTrue();
     });
   });
 
@@ -653,7 +1163,7 @@ describe('policySlice reducers', () => {
     it('sets payload into state', () => {
       const state = Object.freeze({
         categoriesForPolicyLoadError: 'error',
-        loading: false,
+        loadingCategories: false,
         hasPolicyCategories: false,
         originalHasPolicyCategories: false,
         categories: null,
@@ -666,7 +1176,7 @@ describe('policySlice reducers', () => {
       };
       const {
         categoriesForPolicyLoadError,
-        loading,
+        loadingCategories,
         hasPolicyCategories,
         originalHasPolicyCategories,
         categories,
@@ -677,7 +1187,7 @@ describe('policySlice reducers', () => {
       });
 
       expect(categoriesForPolicyLoadError).toBeNull();
-      expect(loading).toBeFalse();
+      expect(loadingCategories).toBeFalse();
       expect(hasPolicyCategories).toBeTrue();
       expect(originalHasPolicyCategories).toBeTrue();
       expect(categories).toEqual([]);
@@ -685,17 +1195,25 @@ describe('policySlice reducers', () => {
     });
   });
 
-  describe('policy/loadCategoriesForPolicy/failed', () => {
+  describe('policy/loadCategoriesForPolicy/rejected', () => {
     it('sets loadError and loading', () => {
-      const state = Object.freeze({ categoriesForPolicyLoadError: null, loading: true });
+      const state = Object.freeze({
+        categoriesForPolicyLoadError: null,
+        loadingCategories: true,
+        isDirty: true,
+        currentPolicy: { name: 'current' },
+        originalPolicy: { name: 'initial' },
+      });
 
-      const { categoriesForPolicyLoadError, loading } = reducer(state, {
+      const { categoriesForPolicyLoadError, loadingCategories, isDirty, currentPolicy } = reducer(state, {
         type: 'policy/loadCategoriesForPolicy/rejected',
         payload: 'error',
       });
 
       expect(categoriesForPolicyLoadError).toBe('error');
-      expect(loading).toBeFalse();
+      expect(loadingCategories).toBeFalse();
+      expect(isDirty).toBeFalse();
+      expect(currentPolicy).toEqual(state.originalPolicy);
     });
   });
 
@@ -725,14 +1243,14 @@ describe('policySlice reducers', () => {
 
   describe('policy/loadPolicyEditor/pending', () => {
     it('sets loadError and loading', () => {
-      const state = Object.freeze({ loadError: 'error', loading: false });
+      const state = Object.freeze({ loadError: 'error', loadingPolicyEditor: false });
 
-      const { loadError, loading } = reducer(state, {
+      const { loadError, loadingPolicyEditor } = reducer(state, {
         type: 'policy/loadPolicyEditor/pending',
       });
 
       expect(loadError).toBeNull();
-      expect(loading).toBeTrue();
+      expect(loadingPolicyEditor).toBeTrue();
     });
   });
 
@@ -740,12 +1258,7 @@ describe('policySlice reducers', () => {
     it('sets payload into the state', () => {
       const state = Object.freeze({
         loadError: 'error',
-        loading: true,
-        deleteModal: {
-          deleting: false,
-          success: false,
-          errorState: 'someError',
-        },
+        loadingPolicyEditor: true,
         isDirty: true,
         currentPolicy: null,
         currentPolicyOwner: null,
@@ -755,6 +1268,7 @@ describe('policySlice reducers', () => {
         isOrgOwner: false,
         isRootOrg: false,
         originalProxyStageAction: null,
+        validationError: null,
       });
 
       const fulfilledPayload = {
@@ -769,8 +1283,7 @@ describe('policySlice reducers', () => {
 
       const {
         loadError,
-        loading,
-        deleteModal,
+        loadingPolicyEditor,
         isDirty,
         currentPolicy,
         currentPolicyOwner,
@@ -780,18 +1293,14 @@ describe('policySlice reducers', () => {
         isOrgOwner,
         isRootOrg,
         originalProxyStageAction,
+        validationError,
       } = reducer(state, {
         type: 'policy/loadPolicyEditor/fulfilled',
         payload: fulfilledPayload,
       });
 
       expect(loadError).toBeNull();
-      expect(loading).toBeFalse();
-      expect(deleteModal).toEqual({
-        success: null,
-        deleting: null,
-        errorState: null,
-      });
+      expect(loadingPolicyEditor).toBeFalse();
       expect(isDirty).toBeFalse();
       expect(currentPolicy).toEqual(fulfilledPayload.currentPolicy);
       expect(currentPolicyOwner).toEqual(fulfilledPayload.currentPolicyOwner);
@@ -801,33 +1310,34 @@ describe('policySlice reducers', () => {
       expect(isOrgOwner).toBe(fulfilledPayload.isOrgOwner);
       expect(isRootOrg).toBe(fulfilledPayload.isRootOrg);
       expect(originalProxyStageAction).toBe(fulfilledPayload.originalProxyStageAction);
+      expect(validationError).toBeNull();
     });
   });
 
   describe('policy/loadPolicyEditor/failed', () => {
     it('sets loadError and loading', () => {
-      const state = Object.freeze({ loadError: null, loading: true });
+      const state = Object.freeze({ loadError: null, loadingPolicyEditor: true });
 
-      const { loadError, loading } = reducer(state, {
+      const { loadError, loadingPolicyEditor } = reducer(state, {
         type: 'policy/loadPolicyEditor/rejected',
         payload: 'error',
       });
 
       expect(loadError).toBe('error');
-      expect(loading).toBeFalse();
+      expect(loadingPolicyEditor).toBeFalse();
     });
   });
 
   describe('policy/savePolicy/pending', () => {
     it('sets loadError and loading', () => {
-      const state = Object.freeze({ loadError: 'error', loading: false });
+      const state = Object.freeze({ loadError: 'error', submitMaskState: null });
 
-      const { loadError, loading } = reducer(state, {
+      const { loadError, submitMaskState } = reducer(state, {
         type: 'policy/savePolicy/pending',
       });
 
       expect(loadError).toBeNull();
-      expect(loading).toBeTrue();
+      expect(submitMaskState).toBeFalse();
     });
   });
 
@@ -835,7 +1345,7 @@ describe('policySlice reducers', () => {
     it('updates originals and siblings when payload has isEditMode', () => {
       const state = Object.freeze({
         loadError: 'error',
-        loading: false,
+        loadingSavePolicy: false,
         isDirty: true,
         originalPolicy: null,
         currentPolicy: { id: 'somePolicyId', actions: { proxy: 'warn' } },
@@ -844,26 +1354,29 @@ describe('policySlice reducers', () => {
         originalHasPolicyCategories: false,
         hasPolicyCategories: true,
         originalProxyStageAction: null,
+        submitMaskState: false,
         siblings: [{ id: 'somePolicyId' }, { id: 'someOtherPolicyId' }],
       });
 
       const {
         loadError,
-        loading,
+        loadingSavePolicy,
         isDirty,
         originalPolicy,
         originalCategories,
         originalHasPolicyCategories,
         originalProxyStageAction,
         siblings,
+        submitMaskState,
       } = reducer(state, {
         type: 'policy/savePolicy/fulfilled',
         payload: { isEditMode: true },
       });
 
       expect(loadError).toBeNull();
-      expect(loading).toBeFalse();
+      expect(loadingSavePolicy).toBeFalse();
       expect(isDirty).toBeFalse();
+      expect(submitMaskState).toBeTrue();
       expect(originalPolicy).toEqual(state.currentPolicy);
       expect(originalCategories).toEqual(state.categories);
       expect(originalHasPolicyCategories).toBe(state.hasPolicyCategories);
@@ -874,7 +1387,7 @@ describe('policySlice reducers', () => {
     it('should not update originals and siblings when payload has isEditMode', () => {
       const state = Object.freeze({
         loadError: 'error',
-        loading: false,
+        loadingSavePolicy: false,
         isDirty: true,
         originalPolicy: null,
         currentPolicy: { id: 'somePolicyId', actions: { proxy: 'warn' } },
@@ -883,12 +1396,13 @@ describe('policySlice reducers', () => {
         originalHasPolicyCategories: false,
         hasPolicyCategories: true,
         originalProxyStageAction: null,
+        submitMaskState: false,
         siblings: [{ id: 'somePolicyId' }, { id: 'someOtherPolicyId' }],
       });
 
       const {
         loadError,
-        loading,
+        loadingSavePolicy,
         isDirty,
         originalPolicy,
         originalCategories,
@@ -896,12 +1410,14 @@ describe('policySlice reducers', () => {
         originalProxyStageAction,
         siblings,
         currentPolicy,
+        submitMaskState,
       } = reducer(state, {
         type: 'policy/savePolicy/fulfilled',
       });
 
       expect(loadError).toBeNull();
-      expect(loading).toBeFalse();
+      expect(loadingSavePolicy).toBeFalse();
+      expect(submitMaskState).toBeTrue();
       expect(isDirty).toBeFalse();
       expect(originalPolicy).toEqual(state.originalPolicy);
       expect(originalCategories).toEqual(state.originalCategories);
@@ -914,55 +1430,55 @@ describe('policySlice reducers', () => {
 
   describe('policy/savePolicy/failed', () => {
     it('sets loadError and loading', () => {
-      const state = Object.freeze({ loadError: null, loading: true });
+      const state = Object.freeze({ loadError: null, submitMaskState: true });
 
-      const { loadError, loading } = reducer(state, {
+      const { loadError, submitMaskState } = reducer(state, {
         type: 'policy/savePolicy/rejected',
         payload: 'error',
       });
 
       expect(loadError).toBe('error');
-      expect(loading).toBeFalse();
+      expect(submitMaskState).toBeNull();
     });
   });
 
   describe('policy/removePolicy/pending', () => {
     it('sets deleting', () => {
-      const state = Object.freeze({ deleteModal: { deleting: null } });
+      const state = Object.freeze({ deleteError: 'error', submitMaskState: null });
 
-      const { deleteModal } = reducer(state, {
+      const { deleteError, submitMaskState } = reducer(state, {
         type: 'policy/removePolicy/pending',
       });
 
-      expect(deleteModal.deleting).toBeTrue();
+      expect(deleteError).toBeNull();
+      expect(submitMaskState).toBeFalse();
     });
   });
 
   describe('policy/removePolicy/fulfilled', () => {
     it('sets deleteModal states, updates currentPolicy, originalPolicy and siblings', () => {
-      const state = Object.freeze({ deleteModal: { deleting: true, errorState: 'someError', success: null } });
+      const state = Object.freeze({ deleteError: 'error', submitMaskState: false });
 
-      const { deleteModal } = reducer(state, {
+      const { deleteError, submitMaskState } = reducer(state, {
         type: 'policy/removePolicy/fulfilled',
       });
 
-      expect(deleteModal.deleting).toBeNull();
-      expect(deleteModal.success).toBeTrue();
-      expect(deleteModal.errorState).toBeNull();
+      expect(deleteError).toBeNull();
+      expect(submitMaskState).toBeTrue();
     });
   });
 
   describe('policy/removePolicy/failed', () => {
     it('sets deleting and errorState ', () => {
-      const state = Object.freeze({ deleteModal: { deleting: true, errorState: null } });
+      const state = Object.freeze({ deleteError: null, submitMaskState: false });
 
-      const { deleteModal } = reducer(state, {
+      const { submitMaskState, deleteError } = reducer(state, {
         type: 'policy/removePolicy/rejected',
         payload: 'error',
       });
 
-      expect(deleteModal.deleting).toBeFalse();
-      expect(deleteModal.errorState).toBe('error');
+      expect(submitMaskState).toBeNull();
+      expect(deleteError).toBe('error');
     });
   });
 
@@ -974,6 +1490,7 @@ describe('policySlice reducers', () => {
         overrideActionsFlag: true,
         originalOverrideActionsFlag: false,
         currentPolicy: {
+          constraints: [],
           policyActionsOverrides: {
             someOwnerId: { build: 'warn' },
           },
@@ -1007,6 +1524,7 @@ describe('policySlice reducers', () => {
         overrideActionsFlag: false,
         originalOverrideActionsFlag: false,
         currentPolicy: {
+          constraints: [],
           policyActionsOverrides: {
             someOwnerId: { build: 'warn' },
           },
@@ -1037,7 +1555,7 @@ describe('policySlice reducers', () => {
   describe('policy/saveActionsOverride/fulfilled', () => {
     it('resets loading flags, resets isDirty and resets the policy from payload', () => {
       const state = Object.freeze({
-        loading: true,
+        submitMaskState: false,
         loadError: 'some error',
         isDirty: true,
         currentPolicy: 'current policy',
@@ -1048,11 +1566,11 @@ describe('policySlice reducers', () => {
 
       const action = {
         type: 'policy/saveActionsOverride/fulfilled',
-        payload: 'updated policy',
+        payload: { name: 'updated policy' },
       };
 
       const {
-        loading,
+        submitMaskState,
         loadError,
         isDirty,
         currentPolicy,
@@ -1061,11 +1579,25 @@ describe('policySlice reducers', () => {
         originalOverrideActionsFlag,
       } = reducer(state, action);
 
-      expect(loading).toBe(false);
+      expect(submitMaskState).toBeTrue();
       expect(loadError).toBe(null);
       expect(isDirty).toBe(false);
-      expect(currentPolicy).toBe('updated policy');
-      expect(originalPolicy).toBe('updated policy');
+      expect(currentPolicy).toEqual({
+        name: {
+          isPristine: true,
+          value: 'updated policy',
+          trimmedValue: 'updated policy',
+          validationErrors: null,
+        },
+      });
+      expect(originalPolicy).toEqual({
+        name: {
+          isPristine: true,
+          value: 'updated policy',
+          trimmedValue: 'updated policy',
+          validationErrors: null,
+        },
+      });
       expect(overrideActionsFlag).toBeTrue();
       expect(originalOverrideActionsFlag).toBeTrue();
     });
@@ -1073,35 +1605,35 @@ describe('policySlice reducers', () => {
 
   describe('policy/saveActionsOverride/pending', () => {
     it('resets loadError and sets loading to true', () => {
-      const state = Object.freeze({ loadError: 'error', loading: false });
+      const state = Object.freeze({ loadError: 'error', submitMaskState: null });
 
-      const { loadError, loading } = reducer(state, {
+      const { loadError, submitMaskState } = reducer(state, {
         type: 'policy/saveActionsOverride/pending',
       });
 
       expect(loadError).toBeNull();
-      expect(loading).toBeTrue();
+      expect(submitMaskState).toBeFalse();
     });
   });
 
   describe('policy/saveActionsOverride/failed', () => {
     it('resets loading and sets loadError', () => {
-      const state = Object.freeze({ loadError: null, loading: true });
+      const state = Object.freeze({ loadError: null, submitMaskState: false });
 
-      const { loadError, loading } = reducer(state, {
+      const { loadError, submitMaskState } = reducer(state, {
         type: 'policy/saveActionsOverride/rejected',
         payload: 'error',
       });
 
       expect(loadError).toBe('error');
-      expect(loading).toBeFalse();
+      expect(submitMaskState).toBeNull();
     });
   });
 
   describe('policy/removeActionsOverride/fulfilled', () => {
     it('resets loading flags, resets isDirty and resets the policy from payload', () => {
       const state = Object.freeze({
-        loading: true,
+        submitMaskState: false,
         loadError: 'some error',
         isDirty: true,
         currentPolicy: 'current policy',
@@ -1112,11 +1644,11 @@ describe('policySlice reducers', () => {
 
       const action = {
         type: 'policy/removeActionsOverride/fulfilled',
-        payload: 'removed overrides for policy',
+        payload: { name: 'removed overrides for policy' },
       };
 
       const {
-        loading,
+        submitMaskState,
         loadError,
         isDirty,
         currentPolicy,
@@ -1125,11 +1657,25 @@ describe('policySlice reducers', () => {
         originalOverrideActionsFlag,
       } = reducer(state, action);
 
-      expect(loading).toBe(false);
+      expect(submitMaskState).toBeTrue();
       expect(loadError).toBe(null);
       expect(isDirty).toBe(false);
-      expect(currentPolicy).toBe('removed overrides for policy');
-      expect(originalPolicy).toBe('removed overrides for policy');
+      expect(currentPolicy).toEqual({
+        name: {
+          isPristine: true,
+          value: 'removed overrides for policy',
+          trimmedValue: 'removed overrides for policy',
+          validationErrors: null,
+        },
+      });
+      expect(originalPolicy).toEqual({
+        name: {
+          isPristine: true,
+          value: 'removed overrides for policy',
+          trimmedValue: 'removed overrides for policy',
+          validationErrors: null,
+        },
+      });
       expect(overrideActionsFlag).toBeFalse();
       expect(originalOverrideActionsFlag).toBeFalse();
     });
@@ -1137,28 +1683,28 @@ describe('policySlice reducers', () => {
 
   describe('policy/removeActionsOverride/pending', () => {
     it('resets loadError and sets loading to true', () => {
-      const state = Object.freeze({ loadError: 'error', loading: false });
+      const state = Object.freeze({ loadError: 'error', submitMaskState: null });
 
-      const { loadError, loading } = reducer(state, {
+      const { loadError, submitMaskState } = reducer(state, {
         type: 'policy/removeActionsOverride/pending',
       });
 
       expect(loadError).toBeNull();
-      expect(loading).toBeTrue();
+      expect(submitMaskState).toBeFalse();
     });
   });
 
   describe('policy/removeActionsOverride/failed', () => {
     it('resets loading and sets loadError', () => {
-      const state = Object.freeze({ loadError: null, loading: true });
+      const state = Object.freeze({ loadError: null, submitMaskState: false });
 
-      const { loadError, loading } = reducer(state, {
+      const { loadError, submitMaskState } = reducer(state, {
         type: 'policy/removeActionsOverride/rejected',
         payload: 'error',
       });
 
       expect(loadError).toBe('error');
-      expect(loading).toBeFalse();
+      expect(submitMaskState).toBeNull();
     });
   });
 
@@ -1169,7 +1715,9 @@ describe('policySlice reducers', () => {
         originalOverrideActionsFlag: false,
         isDirty: false,
         isInherited: true,
-        currentPolicy: {},
+        currentPolicy: {
+          constraints: [],
+        },
         originalPolicy: {
           policyActionsOverrides: {
             someOwnerId: { build: 'warn' },
@@ -1196,6 +1744,7 @@ describe('policySlice reducers', () => {
         isDirty: false,
         isInherited: true,
         currentPolicy: {
+          constraints: [],
           policyActionsOverrides: {
             id201: {
               proxy: 'fail',
@@ -1215,6 +1764,415 @@ describe('policySlice reducers', () => {
       expect(overrideActionsFlag).toBeFalse();
       expect(isDirty).toBeTrue();
       expect(currentPolicy.policyActionsOverrides).toEqual({});
+    });
+  });
+
+  describe('policy/addNotificationRecipient', () => {
+    it('adds user notification recipient', () => {
+      const state = Object.freeze({
+        notificationsEditor: {
+          formState: {
+            recipientType: { value: 'Email', trimmedValue: 'Email' },
+            recipientEmail: { value: ' nonTrimmedEmail@email.com ', trimmedValue: 'trimmedEmail@email.com' },
+          },
+        },
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [],
+            userNotifications: [],
+            webhookNotifications: [],
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/addNotificationRecipient',
+      });
+
+      expect(currentPolicy.notifications).toEqual({
+        roleNotifications: [],
+        userNotifications: [{ emailAddress: 'trimmedEmail@email.com', stageIds: [] }],
+        webhookNotifications: [],
+      });
+    });
+
+    it('adds role notification recipient', () => {
+      const state = Object.freeze({
+        notificationsEditor: {
+          formState: {
+            recipientType: { value: 'Role', trimmedValue: 'Role' },
+            recipientRoleId: { value: 'roleId', trimmedValue: 'roleId' },
+          },
+        },
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [],
+            userNotifications: [],
+            webhookNotifications: [],
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/addNotificationRecipient',
+      });
+
+      expect(currentPolicy.notifications).toEqual({
+        roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+        userNotifications: [],
+        webhookNotifications: [],
+      });
+    });
+
+    it('adds webhook notification recipient', () => {
+      const state = Object.freeze({
+        notificationsEditor: {
+          formState: {
+            recipientType: { value: 'Webhook', trimmedValue: 'Webhook' },
+            recipientWebhookId: { value: 'webhookId', trimmedValue: 'webhookId' },
+          },
+        },
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [],
+            userNotifications: [],
+            webhookNotifications: [],
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/addNotificationRecipient',
+      });
+
+      expect(currentPolicy.notifications).toEqual({
+        roleNotifications: [],
+        userNotifications: [],
+        webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+      });
+    });
+  });
+
+  describe('policy/removeNotificationRecipient', () => {
+    it('removes user notification recipient', () => {
+      const state = Object.freeze({
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+            userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+            webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+            jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/removeNotificationRecipient',
+        payload: { recipient: { emailAddress: 'email@email.com', stageIds: [] } },
+      });
+
+      expect(currentPolicy.notifications).toEqual({
+        roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+        userNotifications: [],
+        webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+        jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
+      });
+    });
+
+    it('removes role notification recipient', () => {
+      const state = Object.freeze({
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+            userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+            webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+            jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/removeNotificationRecipient',
+        payload: { recipient: { roleId: 'roleId', stageIds: [] } },
+      });
+
+      expect(currentPolicy.notifications).toEqual({
+        roleNotifications: [],
+        userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+        webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+        jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
+      });
+    });
+
+    it('removes webhook notification recipient', () => {
+      const state = Object.freeze({
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+            userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+            webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+            jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/removeNotificationRecipient',
+        payload: { recipient: { webhookId: 'webhookId', stageIds: [] } },
+      });
+
+      expect(currentPolicy.notifications).toEqual({
+        roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+        userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+        webhookNotifications: [],
+        jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
+      });
+    });
+
+    it('removes jira notification recipient', () => {
+      const state = Object.freeze({
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+            userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+            webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+            jiraNotifications: [{ projectKey: 1, issueTypeId: 1, stageIds: [] }],
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/removeNotificationRecipient',
+        payload: { recipient: { projectKey: 1, issueTypeId: 1, stageIds: [] } },
+      });
+
+      expect(currentPolicy.notifications).toEqual({
+        roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+        userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+        webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+        jiraNotifications: [],
+      });
+    });
+  });
+
+  describe('policy/toggleNotificationRecipientStage', () => {
+    it('toogles off notification recipient stage', () => {
+      const state = Object.freeze({
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+            userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['proxy'] }],
+            webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/toggleNotificationRecipientStage',
+        payload: { stageId: 'proxy', recipient: { emailAddress: 'email@email.com', stageIds: ['proxy'] } },
+      });
+
+      expect(currentPolicy.notifications).toEqual({
+        roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+        userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+        webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+      });
+    });
+
+    it('toogles on notification recipient stage', () => {
+      const state = Object.freeze({
+        currentPolicy: {
+          constraints: [],
+          notifications: {
+            roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+            userNotifications: [{ emailAddress: 'email@email.com', stageIds: [] }],
+            webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+          },
+        },
+      });
+
+      const { currentPolicy } = reducer(state, {
+        type: 'policy/toggleNotificationRecipientStage',
+        payload: { stageId: 'proxy', recipient: { emailAddress: 'email@email.com', stageIds: [] } },
+      });
+
+      expect(currentPolicy.notifications).toEqual({
+        roleNotifications: [{ roleId: 'roleId', stageIds: [] }],
+        userNotifications: [{ emailAddress: 'email@email.com', stageIds: ['proxy'] }],
+        webhookNotifications: [{ webhookId: 'webhookId', stageIds: [] }],
+      });
+    });
+  });
+
+  describe('policy/setNotificationsEditorFormFieldValue', () => {
+    ['recipientType', 'recipientEmail', 'recipientRoleId', 'recipientWebhookId'].forEach((field) => {
+      it(`sets ${field} value`, () => {
+        const currentFormState = {
+          recipientType: { value: 'prev' },
+          recipientRoleId: { value: 'prev' },
+          recipientWebhookId: { value: 'prev' },
+        };
+        const state = Object.freeze({
+          notificationsEditor: {
+            formState: currentFormState,
+          },
+        });
+
+        const {
+          notificationsEditor: { formState },
+        } = reducer(state, {
+          type: 'policy/setNotificationsEditorFormFieldValue',
+          payload: { field, value: 'value' },
+        });
+
+        expect(formState[field].value).toEqual('value');
+        if (field === 'recipientType') {
+          expect(formState).toEqual(
+            jasmine.objectContaining(omit([field], initialState.notificationsEditor.formState))
+          );
+        } else {
+          expect(formState).toEqual(jasmine.objectContaining(omit([field], currentFormState)));
+        }
+      });
+    });
+
+    describe('recipientEmail', () => {
+      const field = 'recipientEmail';
+      it(`sets value`, () => {
+        const currentState = {
+          recipientEmail: { value: 'prev', trimmedValue: 'prev' },
+          recipientWebhookId: { value: 'prev', trimmedValue: 'prev' },
+        };
+        const state = Object.freeze({ notificationsEditor: { formState: currentState } });
+
+        const {
+          notificationsEditor: { formState },
+        } = reducer(state, {
+          type: 'policy/setNotificationsEditorFormFieldValue',
+          payload: { field, value: ' value ' },
+        });
+
+        expect(formState[field].value).toEqual(' value ');
+        expect(formState).toEqual(jasmine.objectContaining(omit([field], currentState)));
+      });
+
+      const ERROR_MESSAGE = {
+        FORMAT: ['Use valid format: abc@xyz.com'],
+        DUPLICATE: ['Email already exists'],
+      };
+
+      [
+        { value: ' ', validationErrors: ERROR_MESSAGE.FORMAT },
+        { value: 'existing@email.com', validationErrors: ERROR_MESSAGE.DUPLICATE },
+        { value: ' existing@email.com', validationErrors: ERROR_MESSAGE.DUPLICATE },
+        { value: 'existing@email.com ', validationErrors: ERROR_MESSAGE.DUPLICATE },
+        { value: 'existing @email.com ', validationErrors: ERROR_MESSAGE.FORMAT },
+      ].forEach(({ value, validationErrors }) => {
+        it(`sets validation error`, () => {
+          const currentState = {
+            recipientEmail: { value: 'prev', trimmedValue: 'prev' },
+            recipientWebhookId: { value: 'prev', trimmedValue: 'prev' },
+          };
+          const state = Object.freeze({
+            notificationsEditor: { formState: currentState },
+            currentPolicy: { notifications: { userNotifications: [{ emailAddress: 'existing@email.com' }] } },
+          });
+
+          const { notificationsEditor } = reducer(state, {
+            type: 'policy/setNotificationsEditorFormFieldValue',
+            payload: { field, value },
+          });
+
+          expect(notificationsEditor.formState[field].validationErrors).toEqual(validationErrors);
+          expect(notificationsEditor.formState).toEqual(jasmine.objectContaining(omit([field], currentState)));
+        });
+      });
+    });
+  });
+
+  describe('policy/loadNotificationsEditor/pending action', () => {
+    it('sets loading to true and loadError to null', () => {
+      const state = Object.freeze({
+        notificationsEditor: {
+          loading: false,
+          loadError: 'error',
+          formState: {
+            recipientType: { value: 'Email' },
+            recipientEmail: { value: 'email@email.com' },
+          },
+        },
+      });
+
+      const {
+        notificationsEditor: { loading, loadError, formState },
+      } = reducer(state, {
+        type: 'policy/loadNotificationsEditor/pending',
+      });
+
+      expect(loading).toBe(true);
+      expect(loadError).toBe(null);
+      expect(formState).toBe(initialState.notificationsEditor.formState);
+    });
+  });
+
+  describe('policy/loadNotificationsEditor/rejected action', () => {
+    it('sets loading flag to false and sets loadError to payload', () => {
+      const state = Object.freeze({
+        notificationsEditor: {
+          loading: true,
+          loadError: null,
+        },
+      });
+
+      const {
+        notificationsEditor: { loading, loadError },
+      } = reducer(state, {
+        type: 'policy/loadNotificationsEditor/rejected',
+        payload: 'error',
+      });
+
+      expect(loading).toBe(false);
+      expect(loadError).toBe('error');
+    });
+  });
+
+  describe('policy/loadNotificationsEditor/fulfilled action', () => {
+    it('sets editor data', () => {
+      const state = Object.freeze({
+        notificationsEditor: {
+          loading: true,
+          loadError: 'error',
+        },
+      });
+      const isJiraEnabled = true;
+      const jiraProjects = ['project'];
+      const notificationWebhooks = ['webhook'];
+      const roles = ['role'];
+
+      const { notificationsEditor } = reducer(state, {
+        type: 'policy/loadNotificationsEditor/fulfilled',
+        payload: {
+          isJiraEnabled,
+          projects: jiraProjects,
+          notificationWebhooks,
+          membersByRole: roles,
+        },
+      });
+
+      expect(notificationsEditor.loading).toBe(false);
+      expect(notificationsEditor.loadError).toBe(null);
+      expect(notificationsEditor.isJiraEnabled).toBe(isJiraEnabled);
+      expect(notificationsEditor.jiraProjects).toEqual(jiraProjects);
+      expect(notificationsEditor.notificationWebhooks).toEqual(notificationWebhooks);
+      expect(notificationsEditor.roles).toEqual(roles);
     });
   });
 

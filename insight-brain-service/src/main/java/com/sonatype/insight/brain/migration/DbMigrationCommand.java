@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
+import io.dropwizard.cli.Cli;
 import io.dropwizard.cli.ConfiguredCommand;
 import io.dropwizard.setup.Bootstrap;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -27,6 +28,12 @@ public class DbMigrationCommand
 
   public DbMigrationCommand() {
     super("migrate-db", "Migrates the database to the latest schema version.");
+  }
+
+  @Override
+  public void onError(Cli cli, Namespace namespace, Throwable t) {
+    // throw up to let our main() method do the desired error logging/handling
+    throw new IllegalStateException("Error trying to migrate the database: " + t.getMessage(), t);
   }
 
   @Override

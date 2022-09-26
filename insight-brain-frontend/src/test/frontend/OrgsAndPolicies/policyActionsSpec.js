@@ -21,6 +21,7 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import { omit, prop } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import { urlsByPurpose } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 
 describe('policySlice actions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -35,6 +36,7 @@ describe('policySlice actions', () => {
       ownerId: mockOwnerId,
       ownerType: mockOwnerType,
     });
+    spyOn(routerSelectors, 'selectIsRepositories').and.returnValue(false);
   });
 
   describe('loadCategoriesForPolicy', () => {
@@ -212,72 +214,74 @@ describe('policySlice actions', () => {
       selectIsOrganizationSpy = spyOn(routerSelectors, 'selectIsOrganization').and.returnValue(false);
     });
 
-    it('loads data for a new policy', (done) => {
+    it('loads data for a new policy', async () => {
       selectRouterCurrentParamsSpy.and.returnValue({});
       mockAxiosCalls({
         get: {
+          [urlsByPurpose.action]: Promise.resolve({ data: [] }),
           [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
             data: getApplicablePoliciesResponse,
           }),
         },
       });
 
-      store.dispatch(actions.loadPolicyEditor()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(3);
+      await store.dispatch(actions.loadPolicyEditor());
+      await Promise.resolve();
 
-        const actions = store.getActions();
+      expect(axios.get).toHaveBeenCalledTimes(4);
 
-        expect(actions.length).toBe(5);
-        expect(actions).toHaveActionTypesInOrder([
-          'policy/loadPolicyEditor/pending',
-          'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',
-          'orgsAndPolicies/loadApplicablePoliciesByOwner/fulfilled',
-          'constraint/loadConstraint/pending',
-          'policy/loadPolicyEditor/fulfilled',
-        ]);
+      const dispatchedActions = store.getActions();
 
-        expect(actions[4].payload).toEqual({
-          isInherited: undefined,
-          originalProxyStageAction: undefined,
-          siblings: [
-            {
-              id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
-              name: 'Org Policy 3',
-              ownerId: 'f3cea033acf84984ae08d9250db4aa7b',
-              enabled: true,
-              threatLevel: 0,
-              constraints: [
-                {
-                  id: 'd4fe6780471e4543bcb0e28d0e122b69',
-                  name: 'Unpopular',
-                  enabled: true,
-                  operator: 'OR',
-                  conditions: [{ conditionTypeId: 'RelativePopularity', operator: '<', value: '10' }],
-                },
-              ],
-              actions: {
-                develop: [{ actionTypeId: 'warn', target: null }],
-                build: [{ actionTypeId: 'fail', target: null }],
-                'stage-release': [{ actionTypeId: 'fail', target: null }],
-                release: [{ actionTypeId: 'warn', target: null }],
-                operate: [{ actionTypeId: 'warn', target: null }],
-                proxy: [{ actionTypeId: 'warn', target: null }],
+      expect(dispatchedActions.length).toBe(8);
+      expect(dispatchedActions).toHaveActionTypesInOrder([
+        'policy/loadPolicyEditor/pending',
+        'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',
+        'orgsAndPolicies/loadApplicablePoliciesByOwner/fulfilled',
+        'constraint/loadConstraint/pending',
+        'stages/loadStageTypes/pending',
+        'policy/loadPolicyEditor/fulfilled',
+        'stages/loadStageTypes/fulfilled',
+      ]);
+
+      expect(dispatchedActions[5].payload).toEqual({
+        isInherited: undefined,
+        originalProxyStageAction: undefined,
+        siblings: [
+          {
+            id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
+            name: 'Org Policy 3',
+            ownerId: 'f3cea033acf84984ae08d9250db4aa7b',
+            enabled: true,
+            threatLevel: 0,
+            constraints: [
+              {
+                id: 'd4fe6780471e4543bcb0e28d0e122b69',
+                name: 'Unpopular',
+                enabled: true,
+                operator: 'OR',
+                conditions: [{ conditionTypeId: 'RelativePopularity', operator: '<', value: '10' }],
               },
-              monitorNotifyActions: null,
+            ],
+            actions: {
+              develop: [{ actionTypeId: 'warn', target: null }],
+              build: [{ actionTypeId: 'fail', target: null }],
+              'stage-release': [{ actionTypeId: 'fail', target: null }],
+              release: [{ actionTypeId: 'warn', target: null }],
+              operate: [{ actionTypeId: 'warn', target: null }],
+              proxy: [{ actionTypeId: 'warn', target: null }],
             },
-          ],
-          overrideActionsFlag: false,
-          currentPolicy: initialState.currentPolicy,
-          currentPolicyOwner: {
-            id: 'f3cea033acf84984ae08d9250db4aa7b',
-            name: 'Org1 Heh',
+            monitorNotifyActions: null,
           },
-          isOrgOwner: false,
-          isRootOrg: false,
-          policiesByOwner: getApplicablePoliciesResponse.policiesByOwner,
-        });
-
-        done();
+        ],
+        overrideActionsFlag: false,
+        currentPolicy: initialState.currentPolicy,
+        currentPolicyOwner: {
+          id: 'f3cea033acf84984ae08d9250db4aa7b',
+          name: 'Org1 Heh',
+        },
+        isOrgOwner: false,
+        isRootOrg: false,
+        policiesByOwner: getApplicablePoliciesResponse.policiesByOwner,
       });
     });
 
@@ -285,27 +289,7 @@ describe('policySlice actions', () => {
       selectRouterCurrentParamsSpy.and.returnValue({});
       selectIsOrganizationSpy.and.returnValue(true);
       mockAxiosCalls({
-        get: {
-          [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
-            data: getApplicablePoliciesResponse,
-          }),
-        },
-      });
-
-      store.dispatch(actions.loadPolicyEditor()).then(() => {
-        expect(axios.get).toHaveBeenCalledTimes(4);
-
-        const actions = store.getActions();
-
-        expect(actions).toHaveActionType('policy/loadCategoriesForPolicy/pending');
-        expect(actions[7].payload).toEqual(jasmine.objectContaining({ isOrgOwner: true }));
-
-        done();
-      });
-    });
-
-    it('loads data for an existing policy', (done) => {
-      mockAxiosCalls({
+        [urlsByPurpose.action]: Promise.resolve({ data: [] }),
         get: {
           [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
             data: getApplicablePoliciesResponse,
@@ -318,19 +302,43 @@ describe('policySlice actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(8);
+        expect(actions).toHaveActionType('policy/loadCategoriesForPolicy/pending');
+        expect(actions[9].payload).toEqual(jasmine.objectContaining({ isOrgOwner: true }));
+
+        done();
+      });
+    });
+
+    it('loads data for an existing policy', (done) => {
+      mockAxiosCalls({
+        get: {
+          [urlsByPurpose.action]: Promise.resolve({ data: [] }),
+          [getApplicablePolicies(mockOwnerType, mockOwnerId)]: Promise.resolve({
+            data: getApplicablePoliciesResponse,
+          }),
+        },
+      });
+
+      store.dispatch(actions.loadPolicyEditor()).then(() => {
+        expect(axios.get).toHaveBeenCalledTimes(6);
+
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(10);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadPolicyEditor/pending',
           'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',
           'orgsAndPolicies/loadApplicablePoliciesByOwner/fulfilled',
           'constraint/loadConstraint/pending',
+          'stages/loadStageTypes/pending',
           'policy/loadCategoriesForPolicy/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/pending',
           'applicationCategories/createEdit/loadApplicableCategoriesByOwner/rejected',
           'policy/loadPolicyEditor/fulfilled',
+          'stages/loadStageTypes/fulfilled',
         ]);
 
-        expect(actions[7].payload).toEqual({
+        expect(actions[8].payload).toEqual({
           siblings: [
             {
               id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
@@ -361,17 +369,28 @@ describe('policySlice actions', () => {
           overrideActionsFlag: false,
           currentPolicy: {
             id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
-            name: 'Org Policy 3',
+            name: {
+              isPristine: true,
+              value: 'Org Policy 3',
+              trimmedValue: 'Org Policy 3',
+              validationErrors: ['Name is already in use'],
+            },
             ownerId: 'f3cea033acf84984ae08d9250db4aa7b',
             enabled: true,
             threatLevel: 0,
             constraints: [
               {
                 id: 'd4fe6780471e4543bcb0e28d0e122b69',
-                name: 'Unpopular',
+                name: { isPristine: true, value: 'Unpopular', trimmedValue: 'Unpopular', validationErrors: null },
                 enabled: true,
                 operator: 'OR',
-                conditions: [{ conditionTypeId: 'RelativePopularity', operator: '<', value: '10' }],
+                conditions: [
+                  {
+                    conditionTypeId: 'RelativePopularity',
+                    operator: '<',
+                    value: { isPristine: true, value: '10', trimmedValue: '10', validationErrors: null },
+                  },
+                ],
               },
             ],
             actions: {
@@ -431,7 +450,7 @@ describe('policySlice actions', () => {
       { id: '1', isApplied: true },
       { id: '2', isApplied: false },
     ];
-    const currentPolicy = {
+    const currentPolicyData = {
       id: '89e50a2cc6174512814c89252e2ae668',
       name: 'safssss',
       ownerId: 'ROOT_ORGANIZATION_ID',
@@ -440,7 +459,7 @@ describe('policySlice actions', () => {
       constraints: [
         {
           id: '8080ad77e13840789d70c79e0d507172',
-          name: 'fdsf',
+          name: 'fasd',
           operator: 'OR',
           conditions: [{ conditionTypeId: 'AgeInDays', operator: 'older than', value: '730', conditionIndex: 0 }],
         },
@@ -454,6 +473,19 @@ describe('policySlice actions', () => {
       },
     };
 
+    const currentPolicy = {
+      ...currentPolicyData,
+      name: { trimmedValue: 'safssss' },
+      constraints: [
+        {
+          id: '8080ad77e13840789d70c79e0d507172',
+          name: { trimmedValue: 'fasd' },
+          operator: 'OR',
+          conditions: [{ conditionTypeId: 'AgeInDays', operator: 'older than', value: '730', conditionIndex: 0 }],
+        },
+      ],
+    };
+
     beforeEach(() => {
       spyOn(selectors, 'selectCurrentPolicy').and.returnValue(currentPolicy);
       spyOn(selectors, 'selectCategories').and.returnValue(categories);
@@ -461,29 +493,38 @@ describe('policySlice actions', () => {
       selectIsEditModeSpy = spyOn(selectors, 'selectIsEditMode').and.returnValue(true);
       selectHasPolicyCategoriesSpy = spyOn(selectors, 'selectHasPolicyCategories').and.returnValue(true);
       onSaveSpy = jasmine.createSpy('onSave');
+      jasmine.clock().install();
+    });
+
+    afterEach(() => {
+      jasmine.clock().uninstall();
     });
 
     it('saves an existing policy which is also the organization owner', (done) => {
       mockAxiosCalls({
         put: {
-          [getPolicyUrl(mockOwnerType, mockOwnerId)]: Promise.resolve({ data: currentPolicy }),
+          [getPolicyUrl(mockOwnerType, mockOwnerId)]: Promise.resolve({ data: currentPolicyData }),
           [getPolicyTagUrl(currentPolicyId, mockOwnerType, mockOwnerId)]: Promise.resolve('success'),
         },
       });
 
-      store.dispatch(actions.savePolicy({ onSaveExistingPolicy: onSaveSpy })).then(() => {
+      store.dispatch(actions.savePolicy()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         expect(axios.put).toHaveBeenCalledTimes(2);
-        expect(axios.put.calls.argsFor(0)).toEqual([jasmine.any(String), currentPolicy]);
+        expect(axios.put.calls.argsFor(0)).toEqual([jasmine.any(String), currentPolicyData]);
 
         const categoriesWithoutIsApplied = categories.filter(prop('isApplied')).map(omit(['isApplied']));
         expect(axios.put.calls.argsFor(1)).toEqual([jasmine.any(String), categoriesWithoutIsApplied]);
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder(['policy/savePolicy/pending', 'policy/savePolicy/fulfilled']);
+        expect(actions.length).toBe(3);
+        expect(actions).toHaveActionTypesInOrder([
+          'policy/savePolicy/pending',
+          'policy/savePolicy/fulfilled',
+          'policy/saveMaskTimerDone',
+        ]);
         expect(actions[1].payload).toEqual({ isEditMode: true });
-        expect(onSaveSpy).toHaveBeenCalledTimes(1);
 
         done();
       });
@@ -493,22 +534,26 @@ describe('policySlice actions', () => {
       selectHasPolicyCategoriesSpy.and.returnValue(false);
       mockAxiosCalls({
         put: {
-          [getPolicyUrl(mockOwnerType, mockOwnerId)]: Promise.resolve({ data: currentPolicy }),
+          [getPolicyUrl(mockOwnerType, mockOwnerId)]: Promise.resolve({ data: currentPolicyData }),
           [getPolicyTagUrl(currentPolicyId, mockOwnerType, mockOwnerId)]: Promise.resolve('success'),
         },
       });
 
-      store.dispatch(actions.savePolicy({ onSaveExistingPolicy: onSaveSpy })).then(() => {
+      store.dispatch(actions.savePolicy()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         expect(axios.put).toHaveBeenCalledTimes(2);
-        expect(axios.put.calls.argsFor(0)).toEqual([jasmine.any(String), currentPolicy]);
+        expect(axios.put.calls.argsFor(0)).toEqual([jasmine.any(String), currentPolicyData]);
         expect(axios.put.calls.argsFor(1)).toEqual([jasmine.any(String), []]);
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder(['policy/savePolicy/pending', 'policy/savePolicy/fulfilled']);
+        expect(actions.length).toBe(3);
+        expect(actions).toHaveActionTypesInOrder([
+          'policy/savePolicy/pending',
+          'policy/savePolicy/fulfilled',
+          'policy/saveMaskTimerDone',
+        ]);
         expect(actions[1].payload).toEqual({ isEditMode: true });
-        expect(onSaveSpy).toHaveBeenCalledTimes(1);
 
         done();
       });
@@ -518,20 +563,24 @@ describe('policySlice actions', () => {
       selectIsOrgOwnerSpy.and.returnValue(false);
       mockAxiosCalls({
         put: {
-          [getPolicyUrl(mockOwnerType, mockOwnerId)]: Promise.resolve({ data: currentPolicy }),
+          [getPolicyUrl(mockOwnerType, mockOwnerId)]: Promise.resolve({ data: currentPolicyData }),
         },
       });
 
-      store.dispatch(actions.savePolicy({ onSaveExistingPolicy: onSaveSpy })).then(() => {
+      store.dispatch(actions.savePolicy()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         expect(axios.put).toHaveBeenCalledTimes(1);
-        expect(axios.put.calls.argsFor(0)).toEqual([jasmine.any(String), currentPolicy]);
+        expect(axios.put.calls.argsFor(0)).toEqual([jasmine.any(String), currentPolicyData]);
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(2);
-        expect(actions).toHaveActionTypesInOrder(['policy/savePolicy/pending', 'policy/savePolicy/fulfilled']);
+        expect(actions.length).toBe(3);
+        expect(actions).toHaveActionTypesInOrder([
+          'policy/savePolicy/pending',
+          'policy/savePolicy/fulfilled',
+          'policy/saveMaskTimerDone',
+        ]);
         expect(actions[1].payload).toEqual({ isEditMode: true });
-        expect(onSaveSpy).toHaveBeenCalledTimes(1);
 
         done();
       });
@@ -541,17 +590,16 @@ describe('policySlice actions', () => {
       selectIsEditModeSpy.and.returnValue(false);
       mockAxiosCalls({
         post: {
-          [getPolicyUrl(mockOwnerType, mockOwnerId)]: Promise.resolve({ data: currentPolicy }),
+          [getPolicyUrl(mockOwnerType, mockOwnerId)]: Promise.resolve({ data: currentPolicyData }),
         },
         put: {
           [getPolicyTagUrl(currentPolicyId, mockOwnerType, mockOwnerId)]: Promise.resolve('success'),
         },
       });
-      jasmine.clock().install();
 
       store.dispatch(actions.savePolicy({ onSaveExistingPolicy: onSaveSpy })).then(() => {
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-        expect(axios.post).toHaveBeenCalledOnceWith(jasmine.any(String), currentPolicy);
+        expect(axios.post).toHaveBeenCalledOnceWith(jasmine.any(String), currentPolicyData);
         expect(axios.put).toHaveBeenCalledTimes(1);
         const categoriesWithoutIsApplied = categories.filter(prop('isApplied')).map(omit(['isApplied']));
         expect(axios.put).toHaveBeenCalledOnceWith(jasmine.any(String), categoriesWithoutIsApplied);
@@ -562,7 +610,6 @@ describe('policySlice actions', () => {
         expect(actions[1].payload).toBeUndefined();
         expect(onSaveSpy).not.toHaveBeenCalled();
 
-        jasmine.clock().uninstall();
         done();
       });
     });
@@ -581,6 +628,27 @@ describe('policySlice actions', () => {
 
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder(['policy/savePolicy/pending', 'policy/savePolicy/rejected']);
+
+        done();
+      });
+    });
+
+    it('dispatches rejected action if getOwnerDetails request fails', (done) => {
+      selectIsOrgOwnerSpy.and.returnValue(false);
+      mockAxiosCalls({
+        put: {
+          [getPolicyUrl(mockOwnerType, mockOwnerId)]: Promise.resolve({ data: currentPolicyData }),
+        },
+      });
+
+      store.dispatch(actions.savePolicy()).then(() => {
+        expect(axios.put).toHaveBeenCalledTimes(1);
+        expect(axios.put.calls.argsFor(0)).toEqual([jasmine.any(String), currentPolicyData]);
+
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionTypesInOrder(['policy/savePolicy/pending', 'policy/savePolicy/fulfilled']);
 
         done();
       });
@@ -605,16 +673,15 @@ describe('policySlice actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(6);
+        expect(actions.length).toBe(5);
         expect(actions).toHaveActionTypesInOrder([
           'policy/removePolicy/pending',
           'policy/resetIsDirty',
-          'policy/resetDeleteModalState',
           'policy/goToCreatePolicy/pending',
           'policy/goToCreatePolicy/rejected',
           'policy/removePolicy/fulfilled',
         ]);
-        expect(actions[5].payload).toBe(currentPolicyId);
+        expect(actions[4].payload).toBe(currentPolicyId);
 
         done();
       });
@@ -641,6 +708,13 @@ describe('policySlice actions', () => {
   });
 
   describe('saveActionsOverride', () => {
+    beforeEach(() => {
+      jasmine.clock().install();
+    });
+
+    afterEach(() => {
+      jasmine.clock().uninstall();
+    });
     it('calls crud endpoint with proper parameters and returns updated policy', (done) => {
       const currentPolicy = {
         id: 'policyID',
@@ -660,15 +734,31 @@ describe('policySlice actions', () => {
       });
 
       store.dispatch(actions.saveActionsOverride()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         expect(axios.put).toHaveBeenCalledTimes(1);
         expect(axios.put.calls.argsFor(0)).toEqual([url, { build: 'warn' }]);
-        expect(store.getActions()[1].payload).toEqual('updated policy placeholder');
+        const actions = store.getActions();
+        expect(actions.length).toBe(3);
+
+        expect(actions).toHaveActionTypesInOrder([
+          'policy/saveActionsOverride/pending',
+          'policy/saveActionsOverride/fulfilled',
+          'policy/saveMaskTimerDone',
+        ]);
+        expect(actions[1].payload).toEqual('updated policy placeholder');
         done();
       });
     });
   });
 
   describe('removeActionsOverride', () => {
+    beforeEach(() => {
+      jasmine.clock().install();
+    });
+
+    afterEach(() => {
+      jasmine.clock().uninstall();
+    });
     it('calls remove override endpoint with proper parameters', (done) => {
       const currentPolicy = {
         id: 'policyID',
@@ -684,9 +774,19 @@ describe('policySlice actions', () => {
       });
 
       store.dispatch(actions.removeActionsOverride()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         expect(axios.delete).toHaveBeenCalledTimes(1);
         expect(axios.delete.calls.argsFor(0)).toEqual([url]);
-        expect(store.getActions()[1].payload).toEqual('removed policy actions overrides placeholder');
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(3);
+
+        expect(actions).toHaveActionTypesInOrder([
+          'policy/removeActionsOverride/pending',
+          'policy/removeActionsOverride/fulfilled',
+          'policy/saveMaskTimerDone',
+        ]);
+        expect(actions[1].payload).toEqual('removed policy actions overrides placeholder');
         done();
       });
     });

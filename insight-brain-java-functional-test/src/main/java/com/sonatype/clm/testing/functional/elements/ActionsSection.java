@@ -24,6 +24,10 @@ public class ActionsSection
     return $(createSelector(ROOT_SELECTOR, "h2"));
   }
 
+  public SelenideElement header() {
+    return $(ROOT_SELECTOR + " .nx-h2");
+  }
+
   public SelenideElement paragraph() {
     return $(createSelector(ROOT_SELECTOR, "p"));
   }
@@ -72,12 +76,12 @@ public class ActionsSection
     return $("#quarantine-warning-message");
   }
 
-  public IqRadio inheritParentActions() {
-    return new IqRadio($("#edit-policy-actions-override-inherit"));
+  public NxRadio inheritParentActions() {
+    return new NxRadio($("#edit-policy-actions-override-inherit"));
   }
 
-  public IqRadio overrideParentActions() {
-    return new IqRadio($("#edit-policy-actions-override-override"));
+  public NxRadio overrideParentActions() {
+    return new NxRadio($("#edit-policy-actions-override-override"));
   }
 
   public SelenideElement actionsOverrideSection() {
@@ -95,16 +99,16 @@ public class ActionsSection
       this.stageName = stageName;
     }
 
-    public IqRadio noActionRadio() {
-      return new IqRadio($(createSelector(rootSelector, "tr", nthChild(1), "td.", stageName, "iq-radio")));
+    public NxRadio noActionRadio() {
+      return new NxRadio($(createSelector(rootSelector, "tr", nthChild(1), "td.", stageName, ".nx-radio")));
     }
 
-    public IqRadio warnRadio() {
-      return new IqRadio($(createSelector(rootSelector, "tr", nthChild(2), "td.", stageName, "iq-radio")));
+    public NxRadio warnRadio() {
+      return new NxRadio($(createSelector(rootSelector, "tr", nthChild(2), "td.", stageName, ".nx-radio")));
     }
 
-    public IqRadio failRadio() {
-      return new IqRadio($(createSelector(rootSelector, "tr", nthChild(3), "td.", stageName, "iq-radio")));
+    public NxRadio failRadio() {
+      return new NxRadio($(createSelector(rootSelector, "tr", nthChild(3), "td.", stageName, ".nx-radio")));
     }
 
     public SelenideElement header() {

@@ -35,4 +35,50 @@ describe('ownerDetailTreeSlice reducers', () => {
       expect(loadError).toBe('error');
     });
   });
+
+  describe('loadOwnerDetails', () => {
+    it('ownerDetailTree/loadOwnerDetails/pending', () => {
+      const state = Object.freeze({
+        loadError: 'error',
+        loading: false,
+      });
+
+      const { loadError, loading } = reducer(state, {
+        type: 'ownerDetailTree/loadOwnerDetails/pending',
+      });
+
+      expect(loading).toBeTrue();
+      expect(loadError).toBeNull();
+    });
+
+    it('ownerDetailTree/loadOwnerDetails/fulfilled', () => {
+      const state = Object.freeze({
+        ownerDetails: {},
+        loading: true,
+      });
+
+      const { ownerDetails, loading } = reducer(state, {
+        type: 'ownerDetailTree/loadOwnerDetails/fulfilled',
+        payload: 'some payload',
+      });
+
+      expect(loading).toBeFalse();
+      expect(ownerDetails).toBe('some payload');
+    });
+
+    it('ownerDetailTree/loadOwnerDetails/rejected', () => {
+      const state = Object.freeze({
+        loadError: null,
+        loading: true,
+      });
+
+      const { loadError, loading } = reducer(state, {
+        type: 'ownerDetailTree/loadOwnerDetails/rejected',
+        payload: 'error',
+      });
+
+      expect(loading).toBeFalse();
+      expect(loadError).toBe('error');
+    });
+  });
 });

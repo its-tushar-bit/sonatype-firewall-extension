@@ -5,14 +5,14 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { fromPairs, keys, map, pair, __ } from 'ramda';
+import { fromPairs, keys, map, pair, path, __ } from 'ramda';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getDashboardStageUrl, getActionStageUrl, getCliStageUrl } from 'MainRoot/util/CLMLocation';
 
 const REDUCER_NAME = 'stages';
 
-const urlsByPurpose = {
+export const urlsByPurpose = {
   dashboard: getDashboardStageUrl(),
   action: getActionStageUrl(),
   cli: getCliStageUrl(),
@@ -25,7 +25,7 @@ const initialPurposeState = Object.freeze({
 export const validPurposes = keys(urlsByPurpose);
 export const initialState = Object.freeze(fromPairs(map(pair(__, initialPurposeState), validPurposes)));
 
-const getAlreadyLoadedStageTypes = (state, purpose) => state.stages[purpose].stageTypes;
+const getAlreadyLoadedStageTypes = (state, purpose) => path(['stages', purpose, 'stageTypes'], state);
 const getShortName = ({ stageTypeId, stageName }) => (stageTypeId === 'stage-release' ? 'Stage' : stageName);
 const addShortName = (stageType) => Object.freeze({ ...stageType, shortName: getShortName(stageType) });
 

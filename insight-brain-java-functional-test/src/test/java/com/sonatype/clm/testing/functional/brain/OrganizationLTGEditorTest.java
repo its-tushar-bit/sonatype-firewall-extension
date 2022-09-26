@@ -5,11 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.LTGEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.utils.DoubleColumnPickerTestHelper;
+import com.sonatype.clm.testing.functional.utils.InputUtils;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 
@@ -37,15 +35,20 @@ public class OrganizationLTGEditorTest
   @Test
   public void testCreateLTG() {
     String ltgName = "Test LTG";
-    
-    OwnerSummaryPage.licenseThreatGroupTile().addLTGButton().click();
+
+    OwnerSummaryPage.licenseThreatGroupSummaryTile().addLTGButton().click();
+    //OwnerSummaryPage.licenseThreatGroupTile().addLTGButton().click();
     assertNewLTGStateIsCorrect();
     LTGEditorPage.ltgName().val("$$$"); // invalid characters
-    PopoverViolations.on(LTGEditorPage.ltgName()).shouldShowInvalidCharactersError();
+    LTGEditorPage.getInputValidationElement(LTGEditorPage.ltgName()).shouldHave(text("Use valid characters"));
+
     LTGEditorPage.saveButton().shouldHave(DISABLED);
 
+    InputUtils.clearInput(LTGEditorPage.ltgName());
+
     LTGEditorPage.ltgName().val(ltgName);
-    PopoverViolations.on(LTGEditorPage.ltgName()).shouldNotExist();
+    LTGEditorPage.getInputValidationElement(LTGEditorPage.ltgName()).shouldNotBe(visible);
+
     LTGEditorPage.saveButton().shouldBe(enabled).shouldNotHave(DISABLED).click();
 
     assertNewLTGStateIsCorrect();
@@ -59,11 +62,11 @@ public class OrganizationLTGEditorTest
   @Override
   protected void assertNewLTGStateIsCorrect() {
     waitUntilUrl(LTGEditorPage.urlToCreate(currentOwner));
+
     LTGEditorPage.title().shouldHave(text("New"));
-    LTGEditorPage.ltgName().shouldBe(visible, Condition.empty).shouldHave(CLM.PRISTINE);
-    assertThreatLevelSelectorDefaultState(LTGEditorPage.DEFAULT_THREAT_LEVEL);
-    DoubleColumnPickerTestHelper.assertDoubleColumnPickerDefaultState(LTGEditorPage.picker(),
-        licenseDAO.getAll().size());
+    LTGEditorPage.ltgName().shouldBe(visible, Condition.empty);
+
+    LTGEditorPage.picker().availableItems().shouldHaveSize(licenseDAO.getAll().size());
     LTGEditorPage.saveButton().shouldHave(DISABLED);
   }
 }

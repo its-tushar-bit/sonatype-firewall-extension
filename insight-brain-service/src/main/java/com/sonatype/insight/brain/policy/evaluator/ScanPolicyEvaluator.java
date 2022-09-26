@@ -329,12 +329,10 @@ public class ScanPolicyEvaluator
   }
 
   /**
-   * Processes the raw policy evaluation results:
-   * - persists policy evaluation
-   * - persists policy violation data and component data if this is an evaluation for the most recent scan for the
-   * specified stage
-   * - sets or updates the grandfathered status on policy violations
-   * - determines the policy violations for which notifications should be sent
+   * Processes the raw policy evaluation results: - persists policy evaluation - persists policy violation data and
+   * component data if this is an evaluation for the most recent scan for the specified stage - sets or updates the
+   * grandfathered status on policy violations - determines the policy violations for which notifications should be
+   * sent
    */
   private ScanPolicyEvaluatorResults processPolicyResults(
       Application app,
@@ -352,7 +350,7 @@ public class ScanPolicyEvaluator
     long start = System.currentTimeMillis();
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();
     try (ClusterLock clusterLock = ClusterLock.createForPolicyViolations(app);
-        TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
+         TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
       clusterLock.lock();
       tx.begin();
       boolean isPolicyViolationGrandfatheringEnabled =
@@ -567,8 +565,9 @@ public class ScanPolicyEvaluator
    * @param telemetryCollector Collector for adding telemetry.
    * @param newPolicyViolation Policy violation to include in telemetry.
    */
-  private void recordConditionTypeViolationTelemetry(final PolicyViolationTelemetryCollector telemetryCollector,
-                                                     final PolicyViolation newPolicyViolation)
+  private void recordConditionTypeViolationTelemetry(
+      final PolicyViolationTelemetryCollector telemetryCollector,
+      final PolicyViolation newPolicyViolation)
   {
     for (ConstraintFact constraintFact : newPolicyViolation.getConstraintFacts()) {
       for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
@@ -582,10 +581,10 @@ public class ScanPolicyEvaluator
   }
 
   /**
-   * If this is the first policy evaluation and grandfathering is enabled for the application, then policy
-   * violations are marked as grandfathered for the policies that are enabled for grandfathering.
-   * If this is not the first policy evaluation, then it marks policy violations as grandfathered based on the
-   * existing grandfathered policy violations (across all stages).
+   * If this is the first policy evaluation and grandfathering is enabled for the application, then policy violations
+   * are marked as grandfathered for the policies that are enabled for grandfathering. If this is not the first policy
+   * evaluation, then it marks policy violations as grandfathered based on the existing grandfathered policy violations
+   * (across all stages).
    */
   private void setGrandfatheredPolicyViolations(
       TransactionContext tx,
@@ -630,10 +629,11 @@ public class ScanPolicyEvaluator
     return new ComponentDisplayFilename().addPathnames(componentFact.getPathnames()).getFilename().orElse(null);
   }
 
-  private boolean isNotifiable(PolicyViolation oldPolicyViolation,
-                               PolicyViolation newPolicyViolation,
-                               boolean forMonitoring,
-                               boolean isReevaluation)
+  private boolean isNotifiable(
+      PolicyViolation oldPolicyViolation,
+      PolicyViolation newPolicyViolation,
+      boolean forMonitoring,
+      boolean isReevaluation)
   {
     if (isReevaluation && !forMonitoring) {
       return false;
@@ -668,11 +668,12 @@ public class ScanPolicyEvaluator
     }
   }
 
-  private void persistApplicationComponents(TransactionContext tx,
-                                            String appId,
-                                            Stage stage,
-                                            Date time,
-                                            List<Component> components)
+  private void persistApplicationComponents(
+      TransactionContext tx,
+      String appId,
+      Stage stage,
+      Date time,
+      List<Component> components)
   {
     ApplicationComponentDAO applicationComponentDAO = new ApplicationComponentDAO();
 
@@ -710,8 +711,9 @@ public class ScanPolicyEvaluator
     }
   }
 
-  private void calculateCounters(PolicyEvaluationResult policyEvaluationResult,
-                                 List<PolicyViolation> policyViolations)
+  private void calculateCounters(
+      PolicyEvaluationResult policyEvaluationResult,
+      List<PolicyViolation> policyViolations)
   {
     final Map<String, Integer> componentThreatLevels = new HashMap<>();
     int criticalPolicyViolationCount = 0;
@@ -726,7 +728,7 @@ public class ScanPolicyEvaluator
         if (policyThreatLevelForComponent == null || policyThreatLevelForComponent < policyThreatLevelNumber) {
           componentThreatLevels.put(id, policyThreatLevelNumber);
         }
-  
+
         ThreatLevel policyThreatLevel = ThreatLevel.from(policyThreatLevelNumber);
         switch (policyThreatLevel) {
           case CRITICAL:
@@ -791,9 +793,10 @@ public class ScanPolicyEvaluator
     return createPolicyEvaluationResult(policyEvaluation, policyViolations, createAlerts);
   }
 
-  public PolicyEvaluationResult createPolicyEvaluationResult(PolicyEvaluation policyEvaluation,
-                                                             List<PolicyViolation> policyViolations,
-                                                             boolean createAlerts)
+  public PolicyEvaluationResult createPolicyEvaluationResult(
+      PolicyEvaluation policyEvaluation,
+      List<PolicyViolation> policyViolations,
+      boolean createAlerts)
   {
     PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
     calculateCounters(policyEvaluationResult, policyViolations);
@@ -868,7 +871,8 @@ public class ScanPolicyEvaluator
   {
     Map<String, Long> componentCounts = getComponentCounts(components);
     TelemetryData telemetryData = TelemetryUtils.buildApplicationEvaluationTelemetryData(
-        applicationId, stageId, scanTriggerType, clientUserAgent, clientInstanceId, componentCounts);
+        applicationId, stageId, scanTriggerType, clientUserAgent, clientInstanceId,
+        Collections.singletonMap("component_counts", componentCounts));
     telemetrySender.send(telemetryData);
   }
 
@@ -891,8 +895,9 @@ public class ScanPolicyEvaluator
   /**
    * @since 1.50
    */
-  private Map<String, Object> getGrandfatheredViolationCountsAttributes(String applicationId,
-                                                                        List<PolicyViolation> policyViolations)
+  private Map<String, Object> getGrandfatheredViolationCountsAttributes(
+      String applicationId,
+      List<PolicyViolation> policyViolations)
   {
     Map<ThreatLevel, Long> threatLevels = new HashMap<>();
     for (ThreatLevel threatLevel : ThreatLevel.values()) {
@@ -955,7 +960,7 @@ public class ScanPolicyEvaluator
       log.debug("{} {} policies violated: {}.", policyViolations.size(), policyProperty, stringified);
     }
   }
-  
+
   private Component findComponentByComponentIdentifier(
       List<Component> components,
       ComponentIdentifier componentIdentifier)

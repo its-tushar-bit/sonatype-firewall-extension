@@ -29,6 +29,7 @@ describe('administratorsSelectors', () => {
       administratorsConfig: {
         loading: false,
         loadError: null,
+        rolesForCurrentOwner: { data: [], loading: false, loadError: null },
         serverData: {
           membersByRole: [
             {

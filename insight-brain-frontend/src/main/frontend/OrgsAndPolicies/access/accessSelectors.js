@@ -5,21 +5,45 @@
  */
 import { createSelector } from '@reduxjs/toolkit';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
-import { includes, isEmpty, prop, propEq, propOr } from 'ramda';
+import { includes, isEmpty, omit, prop, propEq, propOr } from 'ramda';
 import { selectOrgsAndPoliciesSlice } from '../orgsAndPoliciesSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsOrganization, selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
+import { getRolesWithoutLocalMembers } from 'MainRoot/OrgsAndPolicies/utility/util';
 
 export const selectAccessSlice = createSelector(selectOrgsAndPoliciesSlice, prop('access'));
 export const selectAvailableRoles = createSelector(selectAccessSlice, prop('availableRoles'));
 export const selectRole = createSelector(selectAccessSlice, prop('role'));
+export const selectLoading = createSelector(selectAccessSlice, prop('loading'));
+export const selectLoadError = createSelector(selectAccessSlice, prop('loadError'));
 export const selectRolesSiblings = createSelector(selectAccessSlice, prop('siblings'));
 export const selectFetchUsers = createSelector(selectAccessSlice, prop('fetchUsers'));
 export const selectServerData = createSelector(selectAccessSlice, prop('serverData'));
 export const selectMembersByRole = createSelector(selectServerData, propOr([], 'membersByRole'));
+export const selectExtendedMembersByRole = createSelector(selectMembersByRole, (membersByRole) => {
+  const owners = membersByRole[0]?.membersByOwner.map((owner, index) => {
+    const roles = membersByRole
+      .filter((role) => {
+        return role.membersByOwner[index].members?.length > 0;
+      })
+      .map((role) => {
+        return {
+          ...omit(['membersByOwner'], role),
+          members: role.membersByOwner[index].members,
+        };
+      });
+    return { ...omit(['members'], owner), roles, isInherited: index > 0 };
+  });
+
+  return owners;
+});
 export const selectIsGroupSearchEnabled = createSelector(selectServerData, prop('groupSearchEnabled'));
 export const selectUnSortedAddedUsers = createSelector(selectAccessSlice, prop('addedUsers'));
+export const selectRolesWithoutLocalMembersExist = createSelector(selectMembersByRole, (membersByRole) => {
+  const roles = getRolesWithoutLocalMembers(membersByRole);
+  return roles.length > 0;
+});
 export const selectRoleToEdit = createSelector(selectMembersByRole, selectRouterCurrentParams, (roles, { roleId }) =>
   find(propEq('roleId', roleId), roles)
 );

@@ -20,10 +20,12 @@ import {
   selectValidationError,
   selectNoRolesAvailableError,
   selectAccessSlice,
+  selectExtendedMembersByRole,
+  selectRolesWithoutLocalMembersExist,
 } from 'MainRoot/OrgsAndPolicies/access/accessSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
-import { prop } from 'ramda';
+import { lensPath, prop, set } from 'ramda';
 
 describe('accessSelectors', () => {
   let mockState;
@@ -698,6 +700,79 @@ describe('accessSelectors', () => {
       expect(JSON.stringify(selectNoRolesAvailableError.dependencies)).toEqual(
         JSON.stringify([createSelector(selectAccessSlice, prop('isNew')), selectAvailableRoles])
       );
+    });
+  });
+
+  describe('selectExtendedMembersByRole', () => {
+    it('formats the members by role object', () => {
+      const actual = selectExtendedMembersByRole(mockState);
+      const expected = [
+        {
+          ownerId: 'ROOT_ORGANIZATION_ID',
+          ownerName: 'Root Organization',
+          ownerType: 'organization',
+          roles: [
+            {
+              roleId: '90c7c98683b4471cb77a916744540bcc',
+              roleName: 'Component Evaluator',
+              roleDescription:
+                'Evaluates individual components and views policy violation results for a specified application.',
+              members: [
+                {
+                  type: 'USER',
+                  internalName: 'admin',
+                  displayName: 'Admin BuiltIn',
+                  email: 'admin@localhost',
+                  realm: 'IQ Server',
+                },
+              ],
+            },
+          ],
+          isInherited: false,
+        },
+      ];
+      expect(actual).toEqual(expected);
+    });
+  });
+
+  describe('selectRolesWithoutLocalMembersExist', () => {
+    it('returns true when there are roles without local members', () => {
+      const actual = selectRolesWithoutLocalMembersExist(mockState);
+      expect(actual).toBeTrue();
+    });
+
+    it('returns false when there are no roles without local members', () => {
+      const membersByRoleLens = lensPath(['orgsAndPolicies', 'access', 'serverData', 'membersByRole']);
+      const newMockState = set(
+        membersByRoleLens,
+        [
+          {
+            roleId: '90c7c98683b4471cb77a916744540bcc',
+            roleName: 'Component Evaluator',
+            roleDescription:
+              'Evaluates individual components and views policy violation results for a specified application.',
+            membersByOwner: [
+              {
+                ownerId: 'ROOT_ORGANIZATION_ID',
+                ownerName: 'Root Organization',
+                ownerType: 'organization',
+                members: [
+                  {
+                    type: 'USER',
+                    internalName: 'admin',
+                    displayName: 'Admin BuiltIn',
+                    email: 'admin@localhost',
+                    realm: 'IQ Server',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        mockState
+      );
+      const actual = selectRolesWithoutLocalMembersExist(newMockState);
+      expect(actual).toBeFalse();
     });
   });
 });

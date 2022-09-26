@@ -3,11 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { isNil } from 'ramda';
 export default function SubmitValidation() {
   return {
     restrict: 'A',
     scope: {
       submitDirty: '&',
+      submitValidationError: '&?',
       submitType: '&',
       submitTooltipTarget: '@?', // useful for elements relatively positioned
     },
@@ -23,10 +25,19 @@ export default function SubmitValidation() {
           function () {
             return formCtrl.$valid;
           },
+          function () {
+            if (scope.submitValidationError) {
+              return scope.submitValidationError();
+            }
+          },
         ],
         function (results) {
+          const validationError = scope.submitValidationError ? scope.submitValidationError() : null;
+
           isSubmissionDirty = results[0];
-          isSubmissionValid = isSubmissionDirty && formCtrl.$valid;
+          isSubmissionValid = !isNil(validationError)
+            ? !validationError && isSubmissionDirty && formCtrl.$valid
+            : isSubmissionDirty && formCtrl.$valid;
 
           if (isSubmissionValid) {
             element.tooltip('destroy');

@@ -9,6 +9,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,10 +27,14 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightBrainService;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.support.SupportService.SupportFile;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.collections4.EnumerationUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -52,6 +58,9 @@ public class SupportServiceTest
 
   @Inject
   private SupportService supportService;
+
+  @Inject
+  private InsightConfig insightConfig;
 
   private File originalConfigFile;
 
@@ -337,6 +346,32 @@ public class SupportServiceTest
       assertThat(firstEntry.getSize()).isEqualTo(fileToAdd.length());
 
       assertThat(entries.hasMoreElements()).isFalse();
+    }
+  }
+
+  @Test
+  public void testCreateSupportZip_IncludesClusterLogFiles() throws Exception {
+    File clusterDirectory = tempDir.newFolder();
+    insightConfig.setClusterDirectory(clusterDirectory.getAbsolutePath());
+    File clusterLogFile1 = clusterDirectory.toPath().resolve(Paths.get("log", "a.log")).toFile();
+    File clusterLogFile2 = clusterDirectory.toPath().resolve(Paths.get("log", "b.log")).toFile();
+    File otherFile = clusterDirectory.toPath().resolve(Paths.get("log", "other")).toFile();
+    FileUtils.writeStringToFile(clusterLogFile1, "a", StandardCharsets.UTF_8);
+    FileUtils.writeStringToFile(clusterLogFile2, "b", StandardCharsets.UTF_8);
+    FileUtils.writeStringToFile(otherFile, "c", StandardCharsets.UTF_8);
+
+    File supportZip = supportService.createSupportZip(false, null, false);
+
+    try (ZipFile zipFile = new ZipFile(supportZip)) {
+      List<ZipEntry> entries = EnumerationUtils.toList(zipFile.entries());
+      ZipEntry clusterLogEntry1 = entries.stream().filter(e -> e.getName().endsWith("a.log")).findFirst().orElse(null);
+      ZipEntry clusterLogEntry2 = entries.stream().filter(e -> e.getName().endsWith("b.log")).findFirst().orElse(null);
+      ZipEntry otherEntry = entries.stream().filter(e -> e.getName().endsWith("other")).findFirst().orElse(null);
+      assertThat(clusterLogEntry1).isNotNull();
+      assertThat(IOUtils.toString(zipFile.getInputStream(clusterLogEntry1), StandardCharsets.UTF_8)).isEqualTo("a");
+      assertThat(clusterLogEntry2).isNotNull();
+      assertThat(IOUtils.toString(zipFile.getInputStream(clusterLogEntry2), StandardCharsets.UTF_8)).isEqualTo("b");
+      assertThat(otherEntry).isNull();
     }
   }
 }

@@ -22,25 +22,33 @@ public class ConstraintSection
   private static final String rootSelector = "#policy-edit-constraints";
 
   public ElementsCollection constraintSummaries() {
-    return $$(rootSelector + " .iq-policy-constraint-summaries");
+    return $$(rootSelector + " .constraint-editor__item");
   }
 
   public ConstraintSummary constraintSummary(int i) {
     return new ConstraintSummary(
-        rootSelector + "  .iq-policy-constraint:nth-child(" + (i + 1) + ") .iq-policy-constraint-summaries");
+        rootSelector + " .constraint-editor__item:nth-child(" + (i + 1) + ")");
   }
 
   public ElementsCollection constraintEditors() {
-    return $$(rootSelector + " .iq-policy-constraint-editor");
+    return $$(rootSelector + " .constraint-editor__item--editable");
   }
 
   public ConstraintEditSection constraintEditor(int i) {
     return new ConstraintEditSection(
-        rootSelector + "  .iq-policy-constraint:nth-child(" + (i + 1) + ") .iq-policy-constraint-editor", i);
+        rootSelector + " .constraint-editor__item--editable:nth-child(" + (i + 1) + ")", i);
   }
 
   public SelenideElement addConstraintButton() {
-    return $("#add-constraint-button");
+    return $(".constraint-editor__add-constraint-btn");
+  }
+
+  public SelenideElement header() {
+    return $(rootSelector + " .nx-h2");
+  }
+
+  public SelenideElement getInputValidationElement(SelenideElement element) {
+    return element.closest(".nx-text-input").find(".nx-text-input__invalid-message");
   }
 
   public static class ConstraintSummary
@@ -61,37 +69,35 @@ public class ConstraintSection
     }
 
     public SelenideElement name() {
-      return $(rootSelector + " .iq-policy-constraint-summary__name");
+      return $(rootSelector + " .nx-list__text");
     }
 
     public SelenideElement subheader() {
-      return $(rootSelector + " .iq-policy-constraint-summary__subheader");
+      return $(rootSelector + " .nx-list__subtext");
     }
 
     public SelenideElement editConstraintButton() {
-      return $(rootSelector + " .iq-btn--edit-constraint-button");
+      return $(rootSelector + " .constraint-editor__edit-btn");
     }
 
     public SelenideElement deleteConstraintButton() {
-      return $(rootSelector + " .iq-btn--delete-constraint-button");
+      return $(rootSelector + " .constraint-editor__delete-btn");
     }
 
     public ElementsCollection conditions() {
-      return $$(rootSelector + " .test-constraint-summary-condition .test-constraint-summary-condition-text");
+      return $$(rootSelector + " .nx-list__item");
     }
 
     public SelenideElement condition(int i) {
-      return $(rootSelector + " .test-constraint-summary-condition:nth-child(" + (i + 1) + ")" +
-          " .test-constraint-summary-condition-text");
+      return $(rootSelector + " .nx-list__item:nth-of-type(" + (i + 1) + ")");
     }
 
     public ElementsCollection conditionUnsupportedMessages() {
-      return $$(rootSelector + " .test-summary-condition-type-unsupported-message");
+      return $$(rootSelector + " .nx-alert--error");
     }
 
     public SelenideElement conditionUnsupportedMessage(int i) {
-      return $(rootSelector + " .test-constraint-summary-condition:nth-child(" + (i + 1) + ")" +
-          " .test-summary-condition-type-unsupported-message");
+      return $(rootSelector + " .nx-alert--error .nx-alert__content");
     }
   }
 
@@ -110,50 +116,60 @@ public class ConstraintSection
       return $("#editor-constraint-name-" + index);
     }
 
-    public Dropdown operator() {
-      return new Dropdown("#editor-constraint-operator-" + index);
+    public NxFormSelect operator() {
+      return new NxFormSelect("#editor-constraint-operator-" + index);
     }
 
     public ElementsCollection conditions() {
-      return $$(rootSelector + " .iq-policy-conditions .iq-policy-condition");
+      return $$(rootSelector + " .constraint-editor__conditions .nx-list__item");
     }
 
     public SelenideElement addConditionButton() {
-      return $(rootSelector + " .iq-btn--add-condition-button");
+      return $(rootSelector + " .constraint-editor__add-condition-btn");
     }
 
     public ConditionEditSection<?> condition(int i) {
-      return new ConditionEditSection<>(rootSelector, ".iq-policy-conditions .iq-policy-condition",
-          nthChild(i + 1));
+      return new ConditionEditSection<>(
+          rootSelector,
+          ".constraint-editor__conditions .nx-list__item",
+          nthChild(i + 1)
+      );
     }
 
     public AgeConditionEditSection ageCondition(int i) {
-      return new AgeConditionEditSection(rootSelector, ".iq-policy-conditions .iq-policy-condition",
-          nthChild(i + 1));
+      return new AgeConditionEditSection(
+          rootSelector + " .constraint-editor__conditions .nx-list__item"
+          + nthChild(i + 1)
+      );
     }
 
     public DropdownConditionEditSection dropdownCondition(int i) {
-      return new DropdownConditionEditSection(rootSelector, ".iq-policy-conditions .iq-policy-condition",
-          nthChild(i + 1));
+      return new DropdownConditionEditSection(rootSelector,
+          ".constraint-editor__conditions .nx-list__item", nthChild(i + 1));
     }
 
     public InputConditionEditSection inputCondition(int i) {
-      return new InputConditionEditSection(rootSelector, ".iq-policy-conditions .iq-policy-condition",
-          nthChild(i + 1));
+      return new InputConditionEditSection(
+          rootSelector,
+          ".constraint-editor__conditions .nx-list__item",
+          nthChild(i + 1)
+      );
     }
 
     public CoordinatesCondition coordinatesCondition(int i) {
-      return new CoordinatesCondition(rootSelector, ".iq-policy-conditions .iq-policy-condition",
-          nthChild(i + 1));
+      return new CoordinatesCondition(
+          rootSelector,
+          ".constraint-editor__conditions .nx-list__item",
+          nthChild(i + 1)
+      );
     }
 
     public ElementsCollection conditionUnsupportedMessages() {
-      return $$(rootSelector + " .iq-policy-conditions .test-editor-condition-type-unsupported");
+      return $$(rootSelector + " .nx-alert--error");
     }
 
-    public SelenideElement conditionUnsupportedMessage(int i) {
-      return $(rootSelector + " .iq-policy-conditions .iq-policy-condition:nth-child(" + (i + 1) + ")" +
-          " .test-editor-condition-type-unsupported");
+    public SelenideElement conditionUnsupportedMessage() {
+      return $(rootSelector + " .nx-alert--error");
     }
 
     public static class ConditionEditSection<T>
@@ -163,16 +179,16 @@ public class ConstraintSection
         super(rootSelectors);
       }
 
-      public Dropdown type() {
-        return new Dropdown(childSelector(".iq-policy-editor-condition--type"));
+      public NxFormSelect type() {
+        return new NxFormSelect(childSelector(".constraint-editor__condition-type"));
       }
 
-      public Dropdown operator() {
-        return new Dropdown(childSelector(".iq-policy-editor-condition--operator"));
+      public NxFormSelect operator() {
+        return new NxFormSelect(childSelector(".constraint-editor__condition-operator"));
       }
 
       public SelenideElement deleteConditionButton() {
-        return child(".iq-btn--delete-condition-button");
+        return child(".constraint-editor__delete-condition-btn");
       }
     }
 
@@ -183,20 +199,23 @@ public class ConstraintSection
         super(rootSelector);
       }
 
-      public Dropdown value() {
-        return new Dropdown(childSelector(".iq-policy-editor-condition--value"));
+      public NxFormSelect value() {
+        return new NxFormSelect(childSelector(".constraint-editor__values"));
       }
     }
 
     public static class AgeConditionEditSection
         extends ConditionEditSection<AgeConditionEditSection>
     {
-      public AgeConditionEditSection(final String... rootSelector) {
+      private String rootSelector;
+
+      public AgeConditionEditSection(final String rootSelector) {
         super(rootSelector);
+        this.rootSelector = rootSelector;
       }
 
       public AgeInput value() {
-        return new AgeInput(childSelector(".iq-policy-editor-condition--value"));
+        return new AgeInput(this.rootSelector);
       }
     }
 
@@ -208,7 +227,7 @@ public class ConstraintSection
       }
 
       public SelenideElement value() {
-        return child(".iq-policy-editor-condition--value input");
+        return child(".constraint-editor__values--input input");
       }
     }
 
@@ -221,45 +240,45 @@ public class ConstraintSection
 
       public void setOperator(String op) {
         // this isn't great perf
-        Dropdown typeDropdown = operator();
-        typeDropdown.selectedItem().click();
+        NxFormSelect typeDropdown = operator();
+        typeDropdown.click();
         typeDropdown.listItems().findBy(text(op)).click();
       }
 
-      public Dropdown format() {
-        return new Dropdown(childSelector(".iq-policy-editor-condition--value", "dropdown-selector"));
+      public NxFormSelect format() {
+        return new NxFormSelect(childSelector(".constraint-editor__coordinate-format"));
       }
 
       public SelenideElement groupId() {
-        return child(".iq-policy-editor-condition--value", "input[name*=\"groupid\"]");
+        return child(".constraint-editor__values--input", "input[name*=\"groupId\"]");
       }
 
       public SelenideElement artifactId() {
-        return child(".iq-policy-editor-condition--value", "input[name*=\"artifactid\"]");
+        return child(".constraint-editor__values--input", "input[name*=\"artifactId\"]");
       }
 
       public SelenideElement name() {
-        return child(".iq-policy-editor-condition--value", "input[name*=\"name\"]");
+        return child(".constraint-editor__values--input", "input[name*=\"name\"]");
       }
 
       public SelenideElement qualifier() {
-        return child(".iq-policy-editor-condition--value", "input[name*=\"qualifier\"]");
+        return child(".constraint-editor__values--input", "input[name*=\"qualifier\"]");
       }
 
       public SelenideElement version() {
-        return child(".iq-policy-editor-condition--value", "input[name*=\"version\"]");
+        return child(".constraint-editor__values--input", "input[name*=\"version\"]");
       }
 
       public SelenideElement extension() {
-        return child(".iq-policy-editor-condition--value", "input[name*=\"extension\"]");
+        return child(".constraint-editor__values--input", "input[name*=\"extension\"]");
       }
 
       public SelenideElement classifier() {
-        return child(".iq-policy-editor-condition--value", "input[name*=\"classifier\"]");
+        return child(".constraint-editor__values--input", "input[name*=\"classifier\"]");
       }
 
       public SelenideElement value() {
-        return child(".iq-policy-editor-condition--value", ".iq-policy-editor-condition--value input");
+        return child(".constraint-editor__values--input", ".constraint-editor__values--input input");
       }
     }
   }

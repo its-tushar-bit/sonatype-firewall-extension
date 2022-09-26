@@ -91,7 +91,7 @@ export default function ProductLicenceSummary({ license }) {
               </dd>
 
               <dt className="nx-read-only__label">Days Remaining</dt>
-              <dd className="nx-read-only__data" id="license-days-to-expiration">
+              <dd className="nx-read-only__data visual-testing-ignore" id="license-days-to-expiration">
                 {getDaysFromNow(license.expiryTimestamp)}
               </dd>
             </div>

@@ -99,27 +99,6 @@
   }
 }
 
-#edit-policy-actions-override {
-  .edit-policy-actions-override-title {
-    margin: 16px 0;
-  }
-  .iq-radio {
-    height: auto;
-    margin-left: 24px;
-    padding-left: 24px;
-
-    .iq-radio__circle::before,
-    .iq-radio__circle::after {
-      left: 0;
-      top: 0;
-    }
-
-    i.fa {
-      padding-top: inherit;
-    }
-  }
-}
-
 .iq-cell--continuous-monitoring {
   font-size: 12px;
   line-height: inherit;

@@ -6,14 +6,15 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.testing.functional.elements.AssociationEditor;
-import com.sonatype.clm.testing.functional.elements.AssociationEditor.AssociationEditorElement;
+import com.sonatype.clm.testing.functional.elements.IqAssociationEditor.AssociationEditorElement;
+import com.sonatype.clm.testing.functional.elements.IqAssociationEditor;
 import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -57,8 +58,8 @@ public class ApplicationPolicyEditorTest
     OrganizationNode organizationNode = OwnerTreeView.organization(0);
     organizationNode.treeViewElement().shouldBe(visible).click();
     OwnerSummaryPage.policyTile().localPolicy("policyName").shouldBe(visible).click();
-    PolicyEditorPage.summarySection().policyName().clear();
-    PolicyEditorPage.summarySection().policyName().sendKeys("policyName2");
+    PolicyEditorPage.summarySection().policyName().input().clear();
+    PolicyEditorPage.summarySection().policyName().input().sendKeys("policyName2");
     PolicyEditorPage.savePolicy();
     OwnerDetailTreeView.backLink().shouldBe(visible).click();
     organizationNode.application(0).shouldBe(visible).click();
@@ -89,7 +90,7 @@ public class ApplicationPolicyEditorTest
       refreshOrOpen(PolicyEditorPage.urlToEdit(application, policy.getId()));
       refresh(); // because the page has already loaded the store the policy doesn't exist
 
-      AssociationEditor categoryEditor = PolicyEditorPage.inheritanceSection().associationEditor();
+      IqAssociationEditor categoryEditor = PolicyEditorPage.inheritanceSection().associationEditor();
       categoryEditor.rows().shouldHaveSize(2);
       assertCategory(categoryEditor.item(0), "Checked Tag", true);
       assertCategory(categoryEditor.item(1), "Unchecked Tag", false);
@@ -97,7 +98,7 @@ public class ApplicationPolicyEditorTest
       eyesWatcher.eyesCheck("Summary, inheritance, and constraints states are correct");
 
       // scroll to the actions section
-      PolicyEditorPage.actionsPill().click();
+      ScrollUtil.scrollIntoView(PolicyEditorPage.actionsSection().header());
       PolicyEditorPage.actionsSection().develop().noActionRadio().shouldBe(visible);
 
       eyesWatcher.eyesCheck("Actions and notifications states are correct");
@@ -154,6 +155,5 @@ public class ApplicationPolicyEditorTest
 
   private void assertInheritanceSectionDoesNotExist() {
     PolicyEditorPage.inheritanceSection().shouldBe(hidden);
-    PolicyEditorPage.inhertancePill().shouldBe(hidden);
   }
 }

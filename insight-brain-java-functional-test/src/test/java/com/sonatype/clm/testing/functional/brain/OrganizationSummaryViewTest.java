@@ -12,10 +12,12 @@ import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.elements.*;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.ApplicableLicenseThreatGroupSection;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.utils.NxColor;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
@@ -94,26 +96,29 @@ public class OrganizationSummaryViewTest
   public void testLTGTile_NoLocal() {
     int hierarchySize = getHierarchySize(organization);
 
-    LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
-    ltgTile.subHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(organization.getName()));
-    ltgTile.newButton().shouldBe(visible, enabled);
+    LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
 
-    ltgTile.ltgLists().shouldHaveSize(hierarchySize);
+    ScrollUtil.scrollIntoView(ltgTile.nxHeader());
+    ltgTile.nxHeader().shouldBe(visible).shouldHave(text("License Threat Groups"));
+    ltgTile.nxSubHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(organization.getName()));
+    ltgTile.addLTGButton().shouldBe(visible, enabled);
+
+    ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHaveSize(hierarchySize);
 
     eyesWatcher.eyesCheck("Organization License Threat Group Tile with no local threats");
 
     for (int i = 0; i < hierarchySize; i++) {
-      ThreatGroupTileSimpleList list = ltgTile.ltgList(i);
+      ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(i);
+      ScrollUtil.scrollIntoView(section.getTitle());
 
       if (i == 0) {
-        list.ownerName().shouldBe(visible).shouldHave(text("Local"));
-        list.emptyDescriptor().shouldBe(visible).shouldHave(text("No local threat groups defined"));
-        list.elements().shouldBe(empty);
+        section.getTitle().shouldBe(visible).shouldHave(text("Local"));
+        section.getEmptyDescriptor().shouldBe(visible).shouldHave(text("No local threat groups defined"));
       }
       else {
-        list.ownerName().scrollTo().shouldBe(visible);
-        list.emptyDescriptor().shouldBe(hidden);
-        list.elements().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
+        section.getTitle().shouldBe(visible);
+        section.getEmptyDescriptor().shouldBe(hidden);
+        section.getTableContent().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
       }
     }
   }
@@ -168,11 +173,10 @@ public class OrganizationSummaryViewTest
     // scroll to the ltgs
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
-    LicenseThreatGroupTile ltgTile = OwnerSummaryPage.licenseThreatGroupTile();
-    ThreatGroupTileSimpleList threatGroupTileSimpleList = ltgTile.ltgList(0);
-    threatGroupTileSimpleList.emptyDescriptor().shouldNot(exist);
-    threatGroupTileSimpleList.elements().shouldHaveSize(1);
-    threatGroupTileSimpleList.element(0).name().shouldBe(visible).shouldHave(text("Test LTG"));
+    LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
+    ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
+    section.getEmptyDescriptor().should(exist);
+    section.getTableContent().shouldHaveSize(1);
 
     eyesWatcher.eyesCheck("license threat group tile after policy import");
 

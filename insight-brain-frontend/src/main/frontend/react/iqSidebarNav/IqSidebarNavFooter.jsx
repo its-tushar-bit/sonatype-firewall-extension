@@ -10,7 +10,7 @@ import { NxGlobalSidebarFooter } from '@sonatype/react-shared-components';
 export default function IqSidebarNavFooter({ productName, releaseNumber }) {
   const releaseText = (
     <Fragment>
-      <span className="iq-sidebar-nav-footer__product-name">{productName}</span>
+      <span className="iq-sidebar-nav-footer__product-name visual-testing-ignore">{productName}</span>
       {` `}Release {releaseNumber}
     </Fragment>
   );

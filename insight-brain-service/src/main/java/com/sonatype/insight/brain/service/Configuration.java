@@ -125,6 +125,7 @@ public class Configuration
         SystemConfigurationProperty.HDS_URL,
         SystemConfigurationProperty.CDN_URL,
         SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES,
+        SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX,
         SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE,
         SystemConfigurationProperty.CSRF_PROTECTION,
         SystemConfigurationProperty.USER_AGENT_SUFFIX,
@@ -288,6 +289,10 @@ public class Configuration
 
   public long getSupportReadLimitBytes() {
     return (long) valueByPropertyName.get(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES);
+  }
+
+  public String getSupportClusterLogFileRegex() {
+    return (String) valueByPropertyName.get(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX);
   }
 
   public int getEventBusMaxThreadPoolSize() {

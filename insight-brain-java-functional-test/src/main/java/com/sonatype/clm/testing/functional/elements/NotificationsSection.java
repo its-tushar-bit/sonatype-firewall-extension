@@ -24,7 +24,11 @@ public class NotificationsSection
   }
 
   public static AddNotificationItem addNotification() {
-    return new AddNotificationItem(".iq-policy-editor__add-notification");
+    return new AddNotificationItem("#iq-policy-editor__add-notification");
+  }
+
+  public SelenideElement header() {
+    return $(ROOT_SELECTOR + " thead");
   }
 
   public static ElementsCollection notifications() {
@@ -44,36 +48,36 @@ public class NotificationsSection
           createSelector(NotificationsSection.ROOT_SELECTOR, "tr[data-recipient=\"" + recipient + "\"]");
     }
 
-    public IqCheckbox proxy() {
-      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(2), "iq-checkbox")));
+    public NxCheckbox proxy() {
+      return new NxCheckbox($(createSelector(rootSelector, "td", nthChild(2), ".nx-checkbox")));
     }
 
-    public IqCheckbox develop() {
-      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(3), "iq-checkbox")));
+    public NxCheckbox develop() {
+      return new NxCheckbox($(createSelector(rootSelector, "td", nthChild(3), ".nx-checkbox")));
     }
 
-    public IqCheckbox source() {
-      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(4), "iq-checkbox")));
+    public NxCheckbox source() {
+      return new NxCheckbox($(createSelector(rootSelector, "td", nthChild(4), ".nx-checkbox")));
     }
 
-    public IqCheckbox build() {
-      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(5), "iq-checkbox")));
+    public NxCheckbox build() {
+      return new NxCheckbox($(createSelector(rootSelector, "td", nthChild(5), ".nx-checkbox")));
     }
 
-    public IqCheckbox stageRelease() {
-      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(6), "iq-checkbox")));
+    public NxCheckbox stageRelease() {
+      return new NxCheckbox($(createSelector(rootSelector, "td", nthChild(6), ".nx-checkbox")));
     }
 
-    public IqCheckbox release() {
-      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(7), "iq-checkbox")));
+    public NxCheckbox release() {
+      return new NxCheckbox($(createSelector(rootSelector, "td", nthChild(7), ".nx-checkbox")));
     }
 
-    public IqCheckbox operate() {
-      return new IqCheckbox($(createSelector(rootSelector, "td", nthChild(8), "iq-checkbox")));
+    public NxCheckbox operate() {
+      return new NxCheckbox($(createSelector(rootSelector, "td", nthChild(8), ".nx-checkbox")));
     }
 
-    public IqCheckbox continuousMonitoring() {
-      return new IqCheckbox($(createSelector(rootSelector, "td:nth-last-child(2) iq-checkbox")));
+    public NxCheckbox continuousMonitoring() {
+      return new NxCheckbox($(createSelector(rootSelector, "td:nth-last-child(2) .nx-checkbox")));
     }
 
     public SelenideElement deleteButton() {
@@ -91,28 +95,28 @@ public class NotificationsSection
       this.rootSelector = rootSelector;
     }
 
-    public Dropdown notificationType() {
-      return new Dropdown(rootSelector, ".iq-policy-editor__editor-notification-type");
+    public NxFormSelect notificationType() {
+      return new NxFormSelect(rootSelector, "#recipient-type");
     }
 
     public SelenideElement email() {
-      return $(createSelector(rootSelector, ".iq-policy-editor__editor-notification-email"));
+      return $(createSelector(rootSelector, "#recipient-email"));
     }
 
-    public Dropdown role() {
-      return new Dropdown(rootSelector, "#recipient-role");
+    public NxFormSelect role() {
+      return new NxFormSelect(rootSelector, "#recipient-role");
     }
 
-    public Dropdown webhook() {
-      return new Dropdown(rootSelector, "#recipient-webhook");
+    public NxFormSelect webhook() {
+      return new NxFormSelect(rootSelector, "#recipient-webhook");
     }
 
-    public Dropdown project() {
-      return new Dropdown(rootSelector, "#recipient-jira-project");
+    public NxFormSelect project() {
+      return new NxFormSelect(rootSelector, "#recipient-jira-project");
     }
 
-    public Dropdown issueType() {
-      return new Dropdown(rootSelector, "#recipient-jira-issue-type");
+    public NxFormSelect issueType() {
+      return new NxFormSelect(rootSelector, "#recipient-jira-issue-type");
     }
 
     public SelenideElement addButton() {

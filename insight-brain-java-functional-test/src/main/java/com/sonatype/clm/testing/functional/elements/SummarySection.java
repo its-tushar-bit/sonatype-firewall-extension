@@ -22,11 +22,11 @@ public class SummarySection
     return child("h2");
   }
 
-  public SelenideElement policyName() {
-    return child("#editor-policy-name");
+  public NxTextInput policyName() {
+    return new NxTextInput(child("#editor-policy-name"));
   }
 
-  public IqCheckbox policyViolationGrandfatheringCheckbox() {
-    return new IqCheckbox(child("#editor-policy-violation-grandfathering"));
+  public NxCheckbox policyViolationGrandfatheringCheckbox() {
+    return new NxCheckbox(child("#editor-policy-violation-grandfathering"));
   }
 }

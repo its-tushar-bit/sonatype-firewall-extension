@@ -121,6 +121,26 @@ export function getOrganizationsUrl() {
   return uriTemplate`/rest/organization`;
 }
 
+export function getAllLicensesUrl() {
+  return uriTemplate`/rest/license`;
+}
+
+export function getLicenseGroupsUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/licenseThreatGroup/${ownerType}/${ownerId}`;
+}
+
+export function getApplicableLicenseGroupsUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/licenseThreatGroup/${ownerType}/${ownerId}/applicable`;
+}
+
+export function getDeleteLicenseGroupUrl(ownerType, ownerId, licenseThreatGroupId) {
+  return uriTemplate`/rest/licenseThreatGroup/${ownerType}/${ownerId}/${licenseThreatGroupId}`;
+}
+
+export function getLicenseGroupLicensesUrl(ownerType, ownerId, licenseThreatGroupId) {
+  return uriTemplate`/rest/licenseThreatGroupLicense/${ownerType}/${ownerId}/${licenseThreatGroupId}`;
+}
+
 export function getIsHdsReachable() {
   return uriTemplate`/rest/hdsPing`;
 }
@@ -466,6 +486,12 @@ export function getOwnerHierarchyUrl(ownerType, ownerId) {
   return uriTemplate`/rest/owner/${ownerType}/${ownerId}/hierarchy`;
 }
 
+export function getOwnerDetailsUrl(ownerType, ownerId, isRepositories) {
+  return isRepositories
+    ? uriTemplate`/rest/sidebar/repository_container/details`
+    : uriTemplate`/rest/sidebar/${ownerType}/${ownerId}/details`;
+}
+
 export function getSaveComponentObligationAttributionUrl(orgOrApp, ownerId) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution`;
 }
@@ -579,6 +605,14 @@ export function getWebhookEventTypesUrl() {
   return uriTemplate`/rest/config/webhook/eventTypes`;
 }
 
+export function getIsJiraEnabledUrl() {
+  return uriTemplate`/rest/jira/enabled`;
+}
+
+export function getJiraProjectsUrl() {
+  return uriTemplate`/rest/jira/project`;
+}
+
 export function getWebhooksUrl() {
   return uriTemplate`/rest/config/webhook`;
 }
@@ -657,6 +691,10 @@ export function getFindUsersUrl(query) {
 
 export function getRoleMappingUrl(roleId) {
   return uriTemplate`/rest/membershipMapping/global/global/role/${roleId}`;
+}
+
+export function getRoleMappingForCurrentOwnerUrl(ownerType, ownerId) {
+  return uriTemplate`/rest/membershipMapping/${ownerType}/${ownerId ?? ''}`;
 }
 
 export function getAccessPageRolesUrl(ownerType, ownerId) {
@@ -1003,6 +1041,10 @@ export function getPermissionsTestUrl(ownerType, ownerId) {
 export const getGrandfatheringUrl = (ownerType, ownerId) =>
   uriTemplate`/rest/policyViolationGrandfathering/${ownerType}/${ownerId}`;
 
+export const getNotificationWebhooksUrl = (ownerType, ownerId) => {
+  return uriTemplate`/rest/config/webhook/policy/${ownerType}/${ownerId ? `${ownerId}` : ''}`;
+};
+
 export const getRevokeGrandfatheringUrl = (applicationPublicId) =>
   uriTemplate`/rest/policyViolationGrandfathering/revoke/${applicationPublicId}`;
 
@@ -1221,14 +1263,6 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       },
 
       getRequestWaiverUrl,
-      getIsJiraEnabledUrl: function () {
-        return baseUrl.get() + '/rest/jira/enabled';
-      },
-
-      getJiraProjectsUrl: function () {
-        return baseUrl.get() + '/rest/jira/project';
-      },
-
       getWebhooksUrl,
 
       getWebhookEventTypesUrl,

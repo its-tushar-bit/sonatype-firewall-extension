@@ -101,7 +101,7 @@ public class ConfigurationUtils
     if (values != null) {
       List<String> nullFiltered =
           values.stream().filter(Objects::nonNull)
-          .collect(Collectors.toList());
+              .collect(Collectors.toList());
       if (!nullFiltered.isEmpty()) {
         List<String> result =
             Stream.concat(Stream.of("'self'"), nullFiltered.stream())
@@ -179,6 +179,18 @@ public class ConfigurationUtils
       return migrationEnabled;
     }
     return parseBooleanWithDefault(schemaMigrationEnabledFromDatabase, true);
+  }
+
+  public static String clusterLogFileRegex(String clusterLogFileRegexFromDatabase) {
+    String clusterLogFileRegexFromEnvironmentVariable =
+        System.getenv(InsightConfig.NXIQ_SUPPORT_CLUSTER_LOG_FILE_REGEX);
+    if (clusterLogFileRegexFromEnvironmentVariable != null) {
+      return clusterLogFileRegexFromEnvironmentVariable;
+    }
+    if (clusterLogFileRegexFromDatabase != null) {
+      return clusterLogFileRegexFromDatabase;
+    }
+    return InsightConfig.DEFAULT_SUPPORT_CLUSTER_LOG_FILE_REGEX;
   }
 
   public static String sessionTimeoutToString(Object timeout) {

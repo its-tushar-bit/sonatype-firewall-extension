@@ -3,24 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { pick } from 'ramda';
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectIsRepositories } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectRolesWithoutLocalMembersExist,
+  selectExtendedMembersByRole,
+  selectLoadError,
+  selectLoading,
+} from 'MainRoot/OrgsAndPolicies/access/accessSelectors';
 
-export default function AccessTileController(
-  $scope,
-  RoleMappingService,
-  CLMContextLocations,
-  SameOwnerStateNavigationService,
-  LocalRoleService,
-  EventNameConstant,
-  $ngRedux
-) {
+import { actions as accessActions } from 'MainRoot/OrgsAndPolicies/access/accessSlice';
+
+export default function AccessTileController($scope, SameOwnerStateNavigationService, EventNameConstant, $ngRedux) {
   var vm = this;
 
-  vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
-  vm.isRepositories = CLMContextLocations.isRepositories();
-  vm.membersByRole = undefined;
-  vm.error = undefined;
-  vm.rolesWithoutLocalMembersExist = undefined;
+  const actions = pick(['loadRoles'], accessActions);
+  vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
   vm.addAccess = addAccess;
   vm.editAccess = editAccess;
   vm.doLoad = doLoad;
@@ -36,30 +35,8 @@ export default function AccessTileController(
     doLoad(true);
   });
 
-  function doLoad(reload) {
-    RoleMappingService[reload ? 'refresh' : 'get']().then(
-      function (roleMappings) {
-        vm.membersByRole = roleMappings.membersByRole;
-        vm.membersByRole.forEach(function (role) {
-          role.membersByOwner.forEach(function (memberOwner, index) {
-            memberOwner.inherited = index > 0;
-            if (memberOwner.members.length > 0) {
-              vm.membersByRole[0].membersByOwner[index].hasMembers = true;
-            }
-          });
-        });
-
-        if (vm.isRepositories) {
-          vm.ownerName = vm.membersByRole[0].membersByOwner[0].ownerName;
-        }
-        vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(vm.membersByRole).length > 0;
-      },
-      function (error) {
-        vm.error = error;
-      }
-    );
-
-    delete vm.error;
+  function doLoad() {
+    vm.loadRoles();
   }
 
   function filterRolesWithMembers(index) {
@@ -83,14 +60,11 @@ export default function AccessTileController(
 
 export const mapStateToThis = (state) => ({
   ownerName: selectSelectedOwnerName(state),
+  rolesWithoutLocalMembersExist: selectRolesWithoutLocalMembersExist(state),
+  ownersWithRoles: angular.copy(selectExtendedMembersByRole(state)),
+  loading: selectLoading(state),
+  error: selectLoadError(state),
+  isRepositories: selectIsRepositories(state),
 });
 
-AccessTileController.$inject = [
-  '$scope',
-  'role.mapping.service',
-  'CLMContextLocations',
-  'SameOwnerStateNavigationService',
-  'local.role.service',
-  'event.name.constant',
-  '$ngRedux',
-];
+AccessTileController.$inject = ['$scope', 'SameOwnerStateNavigationService', 'event.name.constant', '$ngRedux'];

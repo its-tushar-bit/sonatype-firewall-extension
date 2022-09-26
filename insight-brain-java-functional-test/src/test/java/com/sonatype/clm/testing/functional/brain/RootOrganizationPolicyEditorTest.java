@@ -14,7 +14,7 @@ import com.sonatype.clm.testing.functional.elements.ConstraintSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection;
 import com.sonatype.clm.testing.functional.elements.ConstraintSection.ConstraintEditSection.AgeConditionEditSection;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
-import com.sonatype.clm.testing.functional.elements.ThreatLevelSelector;
+import com.sonatype.clm.testing.functional.elements.ThreatDropdownSelector;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -68,10 +68,11 @@ public class RootOrganizationPolicyEditorTest
     OwnerSummaryPage.policyTile().addPolicyButton().click();
 
     SummarySection summary = PolicyEditorPage.summarySection();
-    summary.policyName().val("New Policy");
-    ThreatLevelSelector.caretButton().shouldBe(visible, enabled).click();
-    ThreatLevelSelector.threatLevelListItem(1).shouldBe(visible).click();
-    ThreatLevelSelector.selectedThreatLevel().shouldHave(text(String.valueOf(9)));
+    summary.policyName().input().val("New Policy");
+
+    ThreatDropdownSelector.dropdownButton().shouldBe(visible, enabled).click();
+    ThreatDropdownSelector.threatLevelListItem(1).shouldBe(visible).click();
+    ThreatDropdownSelector.selectedThreatLabel().shouldHave(text(String.valueOf(9)));
 
     PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldNotBe(visible);
     PolicyEditorPage.actionsSection().proxy().failRadio().click();

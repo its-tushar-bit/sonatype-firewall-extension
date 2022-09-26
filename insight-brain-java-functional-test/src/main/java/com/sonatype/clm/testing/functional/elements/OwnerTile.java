@@ -13,8 +13,16 @@ import com.codeborne.selenide.SelenideElement;
 public abstract class OwnerTile
     extends BasicElement<OwnerTile>
 {
+  private static final String TILE_HEADER_TITLE_SELECTOR = ".nx-tile-header__title";
+
+  private static final String TILE_HEADER_SUBTITLE_SELECTOR = ".nx-tile-header__subtitle";
+
   public OwnerTile(String... selectors) {
     super(selectors);
+  }
+
+  public SelenideElement nxHeader() {
+    return child(TILE_HEADER_TITLE_SELECTOR);
   }
 
   public SelenideElement header() {
@@ -26,10 +34,10 @@ public abstract class OwnerTile
   }
 
   public SelenideElement nxSubHeader() {
-    return child(".nx-tile-header__subtitle");
+    return child(TILE_HEADER_SUBTITLE_SELECTOR);
   }
 
   public SelenideElement newButton() {
-    return child("button");
+    return getElement().find("button");
   }
 }

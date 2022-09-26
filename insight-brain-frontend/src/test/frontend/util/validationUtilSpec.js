@@ -12,6 +12,7 @@ import {
   validateForm,
   validateNameCharacters,
   validateMinMax,
+  validateDuplicatedValue,
 } from '../../../main/frontend/util/validationUtil';
 
 describe('validationUtil', function () {
@@ -106,6 +107,11 @@ describe('validationUtil', function () {
     it(`returns "${errorMessage}" error if email is invalid`, () => {
       expect(validateEmailPatternMatch(errorMessage, '@.')).toBe(errorMessage);
       expect(validateEmailPatternMatch(errorMessage, '.@')).toBe(errorMessage);
+      expect(validateEmailPatternMatch(errorMessage, 's @s.c')).toBe(errorMessage);
+      expect(validateEmailPatternMatch(errorMessage, 's@ s.com')).toBe(errorMessage);
+      expect(validateEmailPatternMatch(errorMessage, 's@s .com')).toBe(errorMessage);
+      expect(validateEmailPatternMatch(errorMessage, 's@s. com')).toBe(errorMessage);
+      expect(validateEmailPatternMatch(errorMessage, 's@s.c om')).toBe(errorMessage);
     });
   });
 
@@ -170,6 +176,28 @@ describe('validationUtil', function () {
       };
 
       expect(validateForm(inputs)).toBe('Unable to save: fields with invalid or missing data');
+    });
+  });
+
+  describe('validateDuplicatedValue', () => {
+    const dupsArray = [
+      { name: 'name 1' },
+      { name: 'name 2' },
+      { name: 'name 3' },
+      { name: 'name 4' },
+      { name: 'name 5' },
+    ];
+
+    it('returns null for no duplicates', () => {
+      expect(validateDuplicatedValue(dupsArray, 'name 6')).toBeNull();
+    });
+
+    it('returns duplicate', () => {
+      expect(validateDuplicatedValue(dupsArray, 'name 5')).toBe('Name is already in use');
+    });
+
+    it('returns null for current value', () => {
+      expect(validateDuplicatedValue(dupsArray, 'name 5', 'name 5')).toBeNull();
     });
   });
 });

@@ -32,23 +32,23 @@ const goToEditRetention = createAsyncThunk(`${REDUCER_NAME}/goToEditRetention`, 
   dispatch(stateGo(to, params));
 });
 
-const loadRetentionTile = createAsyncThunk(`${REDUCER_NAME}/loadRetentionTile`, (_, { getState, rejectWithValue }) => {
+const loadRetention = createAsyncThunk(`${REDUCER_NAME}/loadRetention`, (_, { getState, rejectWithValue }) => {
   const entityId = selectEntityId(getState());
   return axios.get(getRetentionPoliciesUrl(entityId)).then(prop('data')).catch(rejectWithValue);
 });
 
-const loadRetentionTileRequested = (state) => {
+const loadRetentionRequested = (state) => {
   state.loading = true;
   state.loadError = null;
 };
 
-const loadRetentionTileFulFilled = (state, { payload }) => {
+const loadRetentionFulFilled = (state, { payload }) => {
   state.loading = false;
   state.applicationReports = payload.applicationReports;
   state.successMetrics = payload.successMetrics;
 };
 
-const loadRetentionTileFailed = (state, { payload }) => {
+const loadRetentionFailed = (state, { payload }) => {
   state.loading = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
 };
@@ -58,15 +58,15 @@ const retentionSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: {
-    [loadRetentionTile.pending]: loadRetentionTileRequested,
-    [loadRetentionTile.fulfilled]: loadRetentionTileFulFilled,
-    [loadRetentionTile.rejected]: loadRetentionTileFailed,
+    [loadRetention.pending]: loadRetentionRequested,
+    [loadRetention.fulfilled]: loadRetentionFulFilled,
+    [loadRetention.rejected]: loadRetentionFailed,
   },
 });
 
 export const actions = {
   ...retentionSlice.actions,
-  loadRetentionTile,
+  loadRetention,
   goToEditRetention,
 };
 

@@ -59,7 +59,7 @@ export default function ProductLicenseInfo({ license }) {
           </div>
           <div className="nx-read-only__item iq-product-license__days-remaining">
             <dt className="nx-read-only__label">Days Remaining</dt>
-            <dd className="nx-read-only__data" id="license-days-to-expiration">
+            <dd className="nx-read-only__data visual-testing-ignore" id="license-days-to-expiration">
               {license.daysToExpiration}
             </dd>
           </div>

@@ -557,7 +557,7 @@ public class ComponentInfoService
   }
   
   private Map<String,Integer> maxPolicyThreatLevelToString(Map<PolicyThreatCategory, Integer> maxPolicyThreat) {
-    Map<String,Integer> result = new HashMap<String, Integer>();
+    Map<String,Integer> result = new HashMap<>();
     maxPolicyThreat.forEach((k, v) -> {
       result.put(k.getName(), v);
     });

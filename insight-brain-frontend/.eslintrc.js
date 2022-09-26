@@ -20,7 +20,6 @@ module.exports = {
     Set: false,
     jQuery: false,
     SpecUtil: false,
-    JiraServiceMockData: false,
     ResourceUtils: false,
     StoreMockData: false,
     StoreUtils: false,

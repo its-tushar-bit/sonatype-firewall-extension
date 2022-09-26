@@ -3,7 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { compose, includes, propEq, propOr, find, findIndex, equals, invertObj, ascend, prop, isNil } from 'ramda';
+import {
+  compose,
+  includes,
+  propEq,
+  propOr,
+  find,
+  findIndex,
+  equals,
+  invertObj,
+  sortWith,
+  descend,
+  ascend,
+  prop,
+  isNil,
+} from 'ramda';
 
 export function deriveEditRoute(routerState, to, params = {}) {
   return deriveRouteFromStateParams('edit', routerState, to, params);
@@ -84,6 +98,8 @@ export const getActionsOverride = (ownerHierarchyIds, policy) => {
   return actionsOverride ? { actionsOverride, isCurrentOwnerOverride } : null;
 };
 
+export const sortByThreatLevel = sortWith([descend(prop('threatLevel')), descend(prop('name'))]);
+
 export const rscToAngularColorMap = {
   purple: 'light-purple',
   pink: 'light-red',
@@ -98,3 +114,31 @@ export const rscToAngularColorMap = {
 };
 
 export const angularToRscColorMap = invertObj(rscToAngularColorMap);
+
+/**
+ * @param membersByRoles - array of roles
+ * @returns [membersByRoles] the roles which has members assigned
+ */
+export const getRolesWithLocalMembers = (membersByRoles) => {
+  if (membersByRoles) {
+    return membersByRoles.filter(function (membersByRole) {
+      return membersByRole.membersByOwner[0].members.length > 0;
+    });
+  } else {
+    return [];
+  }
+};
+
+/**
+ * @param membersByRoles - array of roles
+ * @returns [membersByRoles] returns roles with no members
+ */
+export const getRolesWithoutLocalMembers = (membersByRoles) => {
+  if (membersByRoles) {
+    return membersByRoles.filter(function (membersByRole) {
+      return membersByRole.membersByOwner[0].members.length === 0;
+    });
+  } else {
+    return [];
+  }
+};

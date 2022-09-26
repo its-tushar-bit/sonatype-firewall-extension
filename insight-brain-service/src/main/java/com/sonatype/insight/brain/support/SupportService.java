@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -53,6 +55,8 @@ import io.dropwizard.request.logging.RequestLogFactory;
 import io.dropwizard.request.logging.old.LogbackClassicRequestLogFactory;
 import io.dropwizard.server.DefaultServerFactory;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -266,6 +270,8 @@ class SupportService
       addLogFileIfExists(filesToZip, getPolicyViolationLog(config), "policy-violation.log");
     }
 
+    addClusterLogFiles(filesToZip);
+
     addFileIfExists(filesToZip, createFilteredYml(InsightBrainService.getConfigFile(), workDir), "config.yml",
         SupportFileType.CONFIG, true);
 
@@ -427,5 +433,33 @@ class SupportService
     final String keyname = entry.getKey();
     addFileIfExists(filesToZip, writeTextToFile(JsonUtils.format(entry), new File(workDir, keyname + ".json")),
         keyname, SupportFileType.DB, true);
+  }
+
+  private void addClusterLogFiles(List<SupportFile> filesToZip) {
+    if (!config.isClusterDirectorySetByUser()) {
+      return;
+    }
+    File clusterDirectory = config.getClusterDirectory();
+    String clusterLogFileRegex = configuration.getSupportClusterLogFileRegex();
+    RegexFileFilter clusterLogRegexFileFilter = new RegexFileFilter(clusterLogFileRegex)
+    {
+      @Override
+      public boolean accept(File dir, String name) {
+        // RegexFileFilter only matches the name to the regex, override to instead match the full path to the regex
+        return super.accept(dir, dir.toPath().resolve(name).toFile().getAbsolutePath());
+      }
+    };
+    try {
+      Collection<File> clusterLogFiles =
+          FileUtils.listFiles(clusterDirectory, clusterLogRegexFileFilter, TrueFileFilter.INSTANCE);
+      log.debug("Found {} cluster log files matching the regex {}.", clusterLogFiles.size(), clusterLogFileRegex);
+      for (File clusterLogFile : clusterLogFiles) {
+        addFileIfExists(filesToZip, clusterLogFile, clusterLogFile.getName(), SupportFileType.CLUSTER_LOG, false);
+      }
+    }
+    catch (Exception e) {
+      log.error("Unable to add cluster log files matching the regex {} to the support zip {}.", clusterLogFileRegex,
+          e.getMessage(), e);
+    }
   }
 }

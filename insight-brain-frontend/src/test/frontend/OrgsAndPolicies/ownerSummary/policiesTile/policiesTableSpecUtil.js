@@ -8,17 +8,7 @@ import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { policiesComparator } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { fireEvent, screen, within } from 'TestRoot/SpecUtil';
 import { clone, prop, reverse, sortWith } from 'ramda';
-
-export function getNumberOfTables(policiesByOwner = []) {
-  if (isNilOrEmpty(policiesByOwner)) return 0;
-  let numberOfTables = 1;
-  policiesByOwner.forEach((owner, index) => {
-    if (index !== 0 && !isNilOrEmpty(owner.policies)) {
-      numberOfTables++;
-    }
-  });
-  return numberOfTables;
-}
+import { verifyThreatLevelIndicator, verifyHeaderCell } from '../utils/tileAndTableTestingUtils';
 
 export function getNumberOfColumns(actionStages) {
   return actionStages.length + 3; // threatLevel, policyName, one colum for each actionStage and one clickable arrow
@@ -35,34 +25,6 @@ function getSortedPolicies(ownerName, policies, sortingConfig) {
 function isStageDisable(stageTypeId, isFirewallSupported, isEnforcementSupported) {
   return (isFirewallSupported && stageTypeId === 'proxy') || isEnforcementSupported;
 }
-
-export const threatLevelToLabel = (threatLevel) => {
-  switch (threatLevel) {
-    case 10:
-    case 9:
-    case 8:
-      return 'threat level critical';
-
-    case 7:
-    case 6:
-    case 5:
-    case 4:
-      return 'threat level severe';
-
-    case 3:
-    case 2:
-      return 'threat level moderate';
-
-    case 1:
-      return 'threat level low';
-
-    case 0:
-      return 'threat level none';
-
-    default:
-      return 'unspecified';
-  }
-};
 
 export function verifyPoliciesTable(
   table,
@@ -190,41 +152,5 @@ function verifyTableBody(
         }
       }
     }
-  }
-}
-
-function verifyThreatLevelIndicator(row, threatLevel) {
-  const threatLevelLabel = threatLevelToLabel(threatLevel);
-  let threatLevelCell = within(row).getByRole('cell', { name: threatLevel });
-  expect(threatLevelCell).toBeVisible();
-  expect(within(threatLevelCell).getByLabelText(threatLevelLabel)).toBeVisible();
-}
-
-function verifyHeaderCell(
-  cell,
-  sortingEnabled,
-  text = '',
-  isActiveSort = false,
-  dir = '',
-  stageShouldBeDisable = false
-) {
-  let ariaLabel = 'unsorted';
-  let ariaSort = 'none';
-  if (sortingEnabled) {
-    if (isActiveSort) {
-      ariaLabel = dir === 'asc' ? 'ascending' : 'descending';
-      ariaSort = dir === 'asc' ? 'ascending' : 'descending';
-    }
-
-    expect(cell).toHaveAttribute('aria-sort', ariaSort);
-    const sortingButton = within(cell).getByRole('button');
-    expect(sortingButton).toBeVisible();
-    expect(sortingButton).toHaveAttribute('aria-label', `${text} ${ariaLabel}`);
-  }
-  if (!isNilOrEmpty(text)) {
-    expect(within(cell).getByText(text)).toBeVisible();
-  }
-  if (stageShouldBeDisable) {
-    expect(cell).toHaveClass('policy-tile__cell--disabled');
   }
 }

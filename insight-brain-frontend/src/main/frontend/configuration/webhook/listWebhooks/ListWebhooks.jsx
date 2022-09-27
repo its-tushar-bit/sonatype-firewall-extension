@@ -6,8 +6,7 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { NxButton, NxFontAwesomeIcon, NxLoadWrapper } from '@sonatype/react-shared-components';
-import { isNilOrEmpty } from '../../../util/jsUtil';
+import { NxButton, NxFontAwesomeIcon, NxList, NxLoadWrapper } from '@sonatype/react-shared-components';
 import WebhookListItem from './WebhookListItem';
 import webhookPropType from '../webhookPropType';
 
@@ -42,17 +41,11 @@ function ListWebhooks({ isLoading, loadError, loadWebhookListPage, webhooks, isA
             </div>
           </header>
           <div className="nx-tile-content">
-            <ul className="nx-list nx-list--clickable">
+            <NxList emptyMessage="No webhooks are defined">
               {webhooks.map((webhook) => (
                 <WebhookListItem webhook={webhook} isAppWebhooksSupported={isAppWebhooksSupported} key={webhook.id} />
               ))}
-
-              {isNilOrEmpty(webhooks) && (
-                <li className="nx-list__item nx-list__item--empty">
-                  <span className="nx-list__text">No webhooks are defined</span>
-                </li>
-              )}
-            </ul>
+            </NxList>
           </div>
         </section>
       </NxLoadWrapper>

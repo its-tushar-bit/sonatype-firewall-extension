@@ -35,8 +35,7 @@ public class DateUtils
 
   /**
    * Given a start datetime (in the future or the past) and an offset interval (together forming a recurring set of
-   * dates) this method calculates the closest future date in the repeating interval from the from the given 'from'
-   * time.
+   * dates) this method calculates the closest future date in the repeating interval from the given 'from' time.
    *
    * For example, if the interval start date is 6/21 at 1200, the interval is 4 hours and the from time is 0700 on 6/21
    * this method would calculate the closest future date as 0800 on 6/21.  And, if the 'from' time was 1300 this method

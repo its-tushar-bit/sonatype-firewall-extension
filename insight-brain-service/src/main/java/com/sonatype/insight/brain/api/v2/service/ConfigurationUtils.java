@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -44,6 +45,8 @@ public class ConfigurationUtils
 
   public static final String INVALID_CHARACTERS_ERROR_MSG = "The repository list must be comma-separated " +
       "and each repository can only contain alphanumeric characters, underscores, and hyphens. Invalid repository: %s";
+
+  public static final String NONE_VALUE = "'none'";
 
   private ConfigurationUtils() { }
 
@@ -99,6 +102,10 @@ public class ConfigurationUtils
 
   public static String frameAncestorsAllowlistToString(List<String> values) {
     if (values != null) {
+
+      if (values.contains(NONE_VALUE)) {
+        return JsonUtils.writeUnformatted(Collections.singletonList(NONE_VALUE));
+      }
       List<String> nullFiltered =
           values.stream().filter(Objects::nonNull)
               .collect(Collectors.toList());

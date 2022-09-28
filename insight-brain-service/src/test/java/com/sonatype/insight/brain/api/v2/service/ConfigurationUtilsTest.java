@@ -116,6 +116,14 @@ public class ConfigurationUtilsTest
   }
 
   @Test
+  public void frameAncestorsAllowListIgnoreAllValuesIfNoneConfigPresents() {
+    List<String> allowlist = getAllowlist();
+    allowlist.add("'none'");
+    String listToString = ConfigurationUtils.frameAncestorsAllowlistToString(allowlist);
+    assertEquals("[\"'none'\"]", listToString);
+  }
+
+  @Test
   public void frameAncestorsAllowlistToString_RemoveNullValues() {
     List<String> allowlist = getAllowlist();
     allowlist.add(null);

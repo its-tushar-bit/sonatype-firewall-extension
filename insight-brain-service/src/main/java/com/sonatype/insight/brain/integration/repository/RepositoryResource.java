@@ -47,8 +47,6 @@ public class RepositoryResource
 
   static final String EVALUATE_COMPONENTS_ADHOC_PATH = REPOSITORY_PATH + "evaluate/adhoc";
 
-  static final String EVALUATE_COMPONENT_METADATA = REPOSITORY_PATH + "evaluate/componentMetadata";
-
   static final String IGNORE_PATTERNS_PATH = "evaluate/ignorePatterns";
 
   static final String REMOVE_EXTRA_COMPONENTS_PATH = REPOSITORY_PATH + "removeExtraComponents";

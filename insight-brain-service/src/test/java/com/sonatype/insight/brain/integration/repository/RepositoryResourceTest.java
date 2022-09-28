@@ -15,7 +15,6 @@ import java.util.List;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
-import com.sonatype.clm.dto.model.component.ComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
@@ -124,19 +123,6 @@ public class RepositoryResourceTest
     assertResponseStatus(204, response);
 
     assertThat(proprietaryComponentNamePatternDAO.getByFormat("npm")).isEmpty();
-  }
-
-  @Test
-  public void testEvaluateComponentMetadata() throws Exception {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
-    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoPublicId", true, true);
-
-    ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
-
-    HttpResponse response = restRequest().path(RepositoryResource.EVALUATE_COMPONENT_METADATA)
-        .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).body(componentEvaluationDataRequestList)
-        .post();
-    assertResponseStatus(200, response);
   }
 
   @Test

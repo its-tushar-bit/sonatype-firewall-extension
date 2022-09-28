@@ -271,6 +271,7 @@ public abstract class AbstractFunctionalTest
     log.info("Before: {}", testName.getMethodName());
     testCLMServer.getCLMServer().setHdsUrl();
     setEnableDefaultPasswordWarning(false);
+    setBaseUrl(Configuration.baseUrl);
   }
 
   @After

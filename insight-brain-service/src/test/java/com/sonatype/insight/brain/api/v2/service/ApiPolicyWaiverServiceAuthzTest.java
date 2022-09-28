@@ -383,14 +383,14 @@ public class ApiPolicyWaiverServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetApplicableWaiver_Application_Unauthorized() {
+  public void testGetApplicableWaivers_Application_Unauthorized() {
     String policyViolationId = setUpParameterizePolicyViolation(app.getId());
     login();
     apiPolicyWaiverService.getApplicableWaivers(policyViolationId);
   }
 
   @Test
-  public void testGetApplicableWaiver_Application_Authorized() {
+  public void testGetApplicableWaivers_Application_Authorized() {
     grantPermission(app.getId(), Permission.READ);
     String policyViolationId = setUpParameterizePolicyViolation(app.getId());
     apiPolicyWaiverService.getApplicableWaivers(policyViolationId);

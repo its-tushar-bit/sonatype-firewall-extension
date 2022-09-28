@@ -2020,6 +2020,28 @@ public class TemporaryEntity
     return policyViolation;
   }
 
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+      Repository repository,
+      Policy policy,
+      String pathname,
+      ComponentIdentifier componentIdentifier,
+      String hash)
+  {
+    Constraint constraint = policy.getConstraints().get(0);
+    Condition condition = constraint.getConditions().get(0);
+    ConstraintFact constraintFact =
+        new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name());
+    ConditionFact conditionFact =
+        new ConditionFact(condition.getConditionTypeId(), 0 /* conditionIndex */, "summary", "reason");
+    constraintFact.addConditionFact(conditionFact);
+
+    RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation(repository.getId(), pathname,
+        new Date(), policy.getId(), policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), hash,
+        componentIdentifier, Collections.singletonList(constraintFact));
+    repositoryPolicyViolationDAO.insert(repositoryPolicyViolation);
+    return repositoryPolicyViolation;
+  }
+
   public ApplicationComponent newApplicationComponent(
       String applicationId,
       String stageTypeId,

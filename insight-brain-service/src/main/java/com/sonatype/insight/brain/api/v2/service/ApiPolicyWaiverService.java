@@ -398,19 +398,22 @@ public class ApiPolicyWaiverService
    * @since 1.98
    */
   public ApiPolicyWaiversApplicableToViolationDTO getApplicableWaivers(final String violationId) {
-    ApiPolicyWaiversApplicableToViolationDTO apiPolicyWaivers = new ApiPolicyWaiversApplicableToViolationDTO();
-    PolicyViolation policyViolation = new PolicyViolationDAO().getById(violationId);
+    // The violationId may references an application policy violation or a repository policy violation
+    AbstractPolicyViolation policyViolation = new PolicyViolationDAO().getById(violationId);
     if (policyViolation == null) {
-      throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
+      policyViolation = new RepositoryPolicyViolationDAO().getById(violationId);
+      if (policyViolation == null) {
+        throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
+      }
     }
 
     String policyId = policyViolation.getPolicyId();
     String constraintFactsJson = policyViolation.getConstraintFactsJson();
     String hash = policyViolation.getHash();
-    String applicationId = policyViolation.getApplicationId();
+    String ownerId = policyViolation.getOwnerId();
     ComponentIdentifier componentIdentifier = policyViolation.getComponentIdentifier();
 
-    Owner owner = ownerDAO.getById(applicationId);
+    Owner owner = ownerDAO.getById(ownerId);
 
     Map<Boolean, List<ApiPolicyWaiverDTO>> applicableWaivers = getAllApplicableWaiversWithAuthzCheck(owner).stream()
         .filter(policyWaiver -> filterWaiverByCriteria(policyId, constraintFactsJson, componentIdentifier, hash,
@@ -419,8 +422,8 @@ public class ApiPolicyWaiverService
             ApiPolicyWaiverDTO.toDto(policyWaiver, ownerDAO.getById(policyWaiver.getOwnerId()), violationId))
         .collect(partitioningBy(dto -> hasWaiverExpired(dto.expiryTime), toList()));
 
+    ApiPolicyWaiversApplicableToViolationDTO apiPolicyWaivers = new ApiPolicyWaiversApplicableToViolationDTO();
     apiPolicyWaivers.activeWaivers = applicableWaivers.get(Boolean.FALSE);
-
     apiPolicyWaivers.expiredWaivers = applicableWaivers.get(Boolean.TRUE);
 
     return apiPolicyWaivers;

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import { NxTile, NxH2, NxLoadWrapper } from '@sonatype/react-shared-components';
@@ -13,11 +13,24 @@ import {
   selectFirewallComponentDetailsPage,
   selectFirewallComponentDetailsPageRouteParams,
 } from 'MainRoot/firewall/firewallSelectors';
+import {
+  selectWaivers,
+  selectComponentName,
+  selectComponentNameWithoutVersion,
+} from '../firewallPolicyViolationsSelectors';
+import { selectWaiverToDelete } from 'MainRoot/waivers/deleteWaiverModal/deleteWaiverSelector.js';
+import { setWaiverToDelete } from 'MainRoot/waivers/waiverActions';
+import ViewAllPoliciesWaiversButton from './ViewAllPoliciesWaiversButton';
 
 export default function FirewallPolicyViolationsTile({ title, violations, showProxyState = false }) {
+  const [showPolicyWaiversPopover, setShowComponentWaiversPopover] = useState(false);
   const { isLoadingPolicyViolations, policyViolationsError } = useSelector(selectFirewallComponentDetailsPage);
   const dispatch = useDispatch();
   const { pathname, repositoryId } = useSelector(selectFirewallComponentDetailsPageRouteParams);
+  const componentName = useSelector(selectComponentName);
+  const componentNameWithoutVersion = useSelector(selectComponentNameWithoutVersion);
+  const waivers = useSelector(selectWaivers);
+  const waiverToDelete = useSelector(selectWaiverToDelete);
 
   return (
     <NxTile>
@@ -25,6 +38,9 @@ export default function FirewallPolicyViolationsTile({ title, violations, showPr
         <NxTile.HeaderTitle>
           <NxH2>{title}</NxH2>
         </NxTile.HeaderTitle>
+        <div className="nx-tile__actions">
+          <ViewAllPoliciesWaiversButton setShowComponentWaiversPopover={setShowComponentWaiversPopover} />
+        </div>
       </NxTile.Header>
       <NxTile.Content>
         <NxLoadWrapper
@@ -32,7 +48,17 @@ export default function FirewallPolicyViolationsTile({ title, violations, showPr
           error={policyViolationsError}
           retryHandler={() => dispatch(loadComponentPolicyViolations(pathname, repositoryId))}
         >
-          <FirewallPolicyViolationsTable {...{ violations }} showProxyState={showProxyState} />
+          <FirewallPolicyViolationsTable
+            setShowComponentWaiversPopover={setShowComponentWaiversPopover}
+            showPolicyWaiversPopover={showPolicyWaiversPopover}
+            {...{ violations }}
+            showProxyState={showProxyState}
+            componentName={componentName}
+            componentNameWithoutVersion={componentNameWithoutVersion}
+            waivers={waivers}
+            waiverToDelete={waiverToDelete}
+            setWaiverToDelete={setWaiverToDelete}
+          />
         </NxLoadWrapper>
       </NxTile.Content>
     </NxTile>
@@ -43,4 +69,10 @@ FirewallPolicyViolationsTile.propTypes = {
   title: PropTypes.string.isRequired,
   violations: FirewallPolicyViolationsTable.propTypes.violations,
   showProxyState: FirewallPolicyViolationsTable.propTypes.showProxyState,
+  showPolicyWaiversPopover: PropTypes.func,
+  componentName: PropTypes.string,
+  componentNameWithoutVersion: PropTypes.string,
+  waivers: FirewallPolicyViolationsTable.propTypes.waivers,
+  waiverToDelete: FirewallPolicyViolationsTable.propTypes.waiverToDelete,
+  setWaiverToDelete: FirewallPolicyViolationsTable.propTypes.setWaiverToDelete,
 };

@@ -34,6 +34,7 @@ export default function FirewallComponentDetailsPage(props) {
     onComponentDetailsPageTabChange,
     routeParams,
     loadComponentPolicyViolations,
+    loadExistingWaiversData,
   } = props;
   const { tabId } = routeParams;
   const { componentDetails, isLoadingComponentDetails, componentDetailsError } = componentDetailsPageResponseState;
@@ -43,6 +44,7 @@ export default function FirewallComponentDetailsPage(props) {
   useEffect(() => {
     loadComponentDetails(routeParams);
     loadComponentPolicyViolations(routeParams.pathname, routeParams.repositoryId);
+    loadExistingWaiversData('repository', routeParams.repositoryId, routeParams.componentHash);
   }, []);
 
   const handleTabChange = (tabIdToMoveTo) => {
@@ -89,6 +91,7 @@ FirewallComponentDetailsPage.propTypes = {
   loadComponentDetails: PropTypes.func,
   onComponentDetailsPageTabChange: PropTypes.func.isRequired,
   loadComponentPolicyViolations: PropTypes.func.isRequired,
+  loadExistingWaiversData: PropTypes.func.isRequired,
   routeParams: PropTypes.shape({
     repositoryId: PropTypes.string.isRequired,
     componentHash: PropTypes.string.isRequired,

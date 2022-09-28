@@ -46,6 +46,9 @@ import {
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED,
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED,
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED,
+  FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED,
+  FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED,
+  FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED,
   loadAutoUnquarantineData,
   loadConfiguration,
   loadFirewallData,
@@ -73,6 +76,9 @@ import {
   loadComponentPolicyViolationsRequested,
   loadComponentPolicyViolationsFulfilled,
   loadComponentPolicyViolationsFailed,
+  loadExistingWaiversDataRequested,
+  loadExistingWaiversDataFulfilled,
+  loadExistingWaiversDataFailed,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
   getFirewallConfigurationUrl,
@@ -1203,6 +1209,74 @@ describe('firewallActions', function () {
           params: undefined,
         },
       });
+    });
+  });
+
+  describe('loadExistingWaiversDataRequested', () => {
+    it('dispatches an action to indicate the request is being solved but not completed yet', () => {
+      const customState = {
+        firewall: Object.freeze({
+          componentDetailsPage: Object.freeze({
+            policyExistingWaivers: null,
+            isLoadExistingWaivers: false,
+            existingWaiversError: null,
+          }),
+        }),
+      };
+
+      store = SpecUtil.mockReduxStore(customState);
+      store.dispatch(loadExistingWaiversDataRequested());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+  });
+
+  describe('loadExistingWaiversDataFulfilled', () => {
+    it('dispatches an action to indicate the request was solved successfully', () => {
+      const customState = {
+        firewall: Object.freeze({
+          componentDetailsPage: Object.freeze({
+            policyExistingWaivers: null,
+            isLoadExistingWaivers: true,
+            existingWaiversError: null,
+          }),
+        }),
+      };
+
+      const mockResponse = { waivers: 'waivers' };
+      store = SpecUtil.mockReduxStore(customState);
+      store.dispatch(loadExistingWaiversDataFulfilled(mockResponse));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED);
+      expect(actions[0].payload).toBe(mockResponse);
+    });
+  });
+
+  describe('loadExistingWaiversDataFailed', () => {
+    it('dispatches an action to indicate the request failed', () => {
+      const customState = {
+        firewall: Object.freeze({
+          componentDetailsPage: Object.freeze({
+            policyExistingWaivers: null,
+            isLoadExistingWaivers: false,
+            existingWaiversError: null,
+          }),
+        }),
+      };
+
+      const mockResponse = 'error!';
+      store = SpecUtil.mockReduxStore(customState);
+      store.dispatch(loadExistingWaiversDataFailed(mockResponse));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED);
+      expect(actions[0].payload).toBe(mockResponse);
     });
   });
 });

@@ -37,8 +37,10 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemedia
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover.VulnerabilityOverrideForm;
+import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
+import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -325,7 +327,7 @@ public class FirewallComponentDetailsPageTest
       ConstraintFact licenseConstraintFact =
           createConstraintFact("constraint3", "LicensePolicy constraint", "summary", "Found license threat group");
       createRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent.getPathname(),
-          repositoryComponent.getHash(), Collections.singletonList(licenseConstraintFact), false /* isWaived */, "warn",
+          repositoryComponent.getHash(), Collections.singletonList(licenseConstraintFact), true /* isWaived */, "warn",
           licensePolicy.getId(), licensePolicy.getName(), componentIdentifier, date, null /* policyWaiverId */,
           null/* policyWaiverComment */, null/* waiveTime */, PolicyThreatCategory.LICENSE);
     }
@@ -1004,5 +1006,34 @@ public class FirewallComponentDetailsPageTest
     vulnerabilityRowCells.get(2)
         .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
     vulnerabilityOverrideForm.comment().shouldHave(text(overriddenVulnerabilityComment));
+  }
+
+  @Test
+  public void testViolationTabWaiverTable() throws Exception {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
+
+    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
+    firewallComponentDetailsPage.firewallWaiversButton().click();
+
+    componentWaiversPopover.shouldBe(visible);
+    componentWaiversPopover.title().shouldHave(text("Component Waivers"));
+    componentWaiversTable.shouldBe(visible);
+    componentWaiversTable.getRows().shouldHaveSize(1);
+
+    ElementsCollection waiversTableCells = componentWaiversTable.getCellsByNthRow(1);
+
+    waiversTableCells.shouldHaveSize(7);
+    waiversTableCells.get(0).shouldHave(text("Security-Low Security-low constraint"));
+    waiversTableCells.get(1).shouldHave(text("09/28/2022"));
+    waiversTableCells.get(2).shouldHave(text("Organization - Root Organization"));
+    waiversTableCells.get(3).shouldBe(text("com.lingocoder : abi.cli : 0.5.2"));
+    waiversTableCells.get(4).shouldBe(text("Test User"));
+    waiversTableCells.get(5).shouldBe(text("Test comment for waiver"));
   }
 }

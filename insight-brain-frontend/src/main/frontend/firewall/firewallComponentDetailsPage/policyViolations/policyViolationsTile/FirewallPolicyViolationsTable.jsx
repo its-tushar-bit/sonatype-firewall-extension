@@ -7,15 +7,27 @@ import React, { useState } from 'react';
 import * as PropTypes from 'prop-types';
 import { sort } from 'ramda';
 import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
+import { waiverType } from '../../../../util/waiverUtils';
 import FirewallPolicyViolationsTableRow from './FirewallPolicyViolationsTableRow';
 import PolicyViolationDetailsPopover from './FirewallPolicyViolationDetailsPopover';
+import FirewallExistingWaiversPopover from './FirewallExistingWaiversPopover';
 
 // exporting function for testing
 export const sortPolicyByThreat = sort((threatA, threatB) => {
   return threatB.policyThreatLevel - threatA.policyThreatLevel || threatA.policyName.localeCompare(threatB.policyName);
 });
 
-export default function FirewallPolicyViolationsTable({ violations, showProxyState = false }) {
+export default function FirewallPolicyViolationsTable({
+  violations,
+  showProxyState = false,
+  showPolicyWaiversPopover,
+  setShowComponentWaiversPopover,
+  componentName,
+  componentNameWithoutVersion,
+  waivers,
+  waiverToDelete,
+  setWaiverToDelete,
+}) {
   const orderedViolations = violations ? sortPolicyByThreat(violations) : [];
   const [showViolationsDetailPopover, showPopover] = useState(false);
   const [selectPolicyId, savePolicyId] = useState('');
@@ -55,6 +67,16 @@ export default function FirewallPolicyViolationsTable({ violations, showProxySta
           showPopover={showPopover}
         />
       )}
+      {showPolicyWaiversPopover && (
+        <FirewallExistingWaiversPopover
+          componentName={componentName}
+          componentNameWithoutVersion={componentNameWithoutVersion}
+          setShowComponentWaiversPopover={setShowComponentWaiversPopover}
+          waivers={waivers}
+          setWaiverToDelete={setWaiverToDelete}
+          waiverToDelete={waiverToDelete}
+        />
+      )}
     </>
   );
 }
@@ -62,4 +84,11 @@ export default function FirewallPolicyViolationsTable({ violations, showProxySta
 FirewallPolicyViolationsTable.propTypes = {
   violations: PropTypes.arrayOf(FirewallPolicyViolationsTableRow.propTypes.violation),
   showProxyState: FirewallPolicyViolationsTableRow.propTypes.showProxyState,
+  showPolicyWaiversPopover: PropTypes.bool,
+  setShowComponentWaiversPopover: PropTypes.func,
+  componentName: PropTypes.string,
+  componentNameWithoutVersion: PropTypes.string,
+  waivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
+  waiverToDelete: PropTypes.shape(waiverType),
+  setWaiverToDelete: PropTypes.func,
 };

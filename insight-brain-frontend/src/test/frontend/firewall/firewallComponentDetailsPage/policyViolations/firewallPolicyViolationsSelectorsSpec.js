@@ -55,72 +55,6 @@ describe('firewallPolicyViolationsSelectors', () => {
             },
           ],
           website: null,
-          policyAlerts: [
-            {
-              trigger: {
-                policyId: '2b4fafb9e8894e3fba3b12385ff4a2fd',
-                policyName: 'Architecture-Cleanup',
-                threatLevel: 1,
-                componentFacts: [
-                  {
-                    componentIdentifier: {
-                      format: 'maven',
-                      coordinates: {
-                        artifactId: 'ant',
-                        classifier: '',
-                        extension: 'jar',
-                        groupId: 'ant',
-                        version: '1.6',
-                      },
-                    },
-                    hash: '7a3c2521ae0c6f53e044',
-                    constraintFacts: [
-                      {
-                        constraintId: 'b68075cb73814cd0ac2d2828b3658d10',
-                        constraintName: 'Test components',
-                        operatorName: 'OR',
-                        conditionFacts: [
-                          {
-                            conditionTypeId: 'Coordinates',
-                            conditionIndex: 1,
-                            summary: 'Coordinates match maven:ant:ant:*:*:*',
-                            reason: 'Coordinates were ant : ant : 1.6 (match ant : ant : * : * : *)',
-                            reference: null,
-                            triggerJson: null,
-                          },
-                        ],
-                      },
-                    ],
-                    pathnames: [],
-                    displayName: {
-                      parts: [
-                        {
-                          field: 'Group',
-                          value: 'ant',
-                        },
-                        {
-                          value: ' : ',
-                        },
-                        {
-                          field: 'Artifact',
-                          value: 'ant',
-                        },
-                        {
-                          value: ' : ',
-                        },
-                        {
-                          field: 'Version',
-                          value: '1.6',
-                        },
-                      ],
-                      name: 'ant',
-                    },
-                  },
-                ],
-              },
-              actions: [],
-            },
-          ],
           licenseThreatLevel: 0,
           licenseThreatGroupNames: ['Liberal'],
           majorRevisionStep: false,
@@ -187,6 +121,51 @@ describe('firewallPolicyViolationsSelectors', () => {
           observedLicenseIds: ['Apache-1.1'],
         },
         componentDetailsError: null,
+        policyExistingWaivers: {
+          waiversByOwner: [
+            {
+              ownerId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+              ownerName: 'maven-central',
+              ownerType: 'repository',
+              waivers: [
+                {
+                  id: '468e1552699445d48e448bf22740ad8b',
+                  hash: '7a3c2521ae0c6f53e044',
+                  policyId: '6f085a73545f443ab92ce7a109c83935',
+                  ownerId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+                  comment: '',
+                  createTime: 1661928739954,
+                  expiryTime: null,
+                  creatorId: 'admin',
+                  creatorName: 'Admin BuiltIn',
+                  constraintFactsJson:
+                    '[{"constraintId":"d17bd2a78ada49d6b40df2dd596d8e19","constraintName":"older than one day","operatorName":"AND","conditionFacts":[{"conditionTypeId":"License","conditionIndex":0,"summary":"License is \'Apache-1.1\'","reason":"Found \'Apache-1.1\' license","reference":null,"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"id\\":\\"Apache-1.1\\"}}"}]}]',
+                  constraintFacts: [
+                    {
+                      constraintId: 'd17bd2a78ada49d6b40df2dd596d8e19',
+                      constraintName: 'older than one day',
+                      operatorName: 'AND',
+                      conditionFacts: [
+                        {
+                          conditionTypeId: 'License',
+                          conditionIndex: 0,
+                          summary: "License is 'Apache-1.1'",
+                          reason: "Found 'Apache-1.1' license",
+                          reference: null,
+                          triggerJson: '{"conditionIndex":0,"trigger":{"id":"Apache-1.1"}}',
+                        },
+                      ],
+                    },
+                  ],
+                  associatedPackageUrl: null,
+                  componentMatchStrategy: 'EXACT_COMPONENT',
+                  componentIdentifier: null,
+                  policyName: 'test-policy',
+                },
+              ],
+            },
+          ],
+        },
         policyViolations: [
           {
             policyViolationId: '17eca7cca5d64d129c75ca4afb5bf4cc',
@@ -220,16 +199,58 @@ describe('firewallPolicyViolationsSelectors', () => {
             lastReported: '2022-08-01T22:54:16.897-05:00',
           },
         ],
+        waivers: [
+          {
+            id: '468e1552699445d48e448bf22740ad8b',
+            hash: '7a3c2521ae0c6f53e044',
+            policyId: '6f085a73545f443ab92ce7a109c83935',
+            ownerId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+            comment: '',
+            createTime: 1661928739954,
+            expiryTime: null,
+            creatorId: 'admin',
+            creatorName: 'Admin BuiltIn',
+            constraintFactsJson:
+              '[{"constraintId":"d17bd2a78ada49d6b40df2dd596d8e19","constraintName":"older than one day","operatorName":"AND","conditionFacts":[{"conditionTypeId":"License","conditionIndex":0,"summary":"License is \'Apache-1.1\'","reason":"Found \'Apache-1.1\' license","reference":null,"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"id\\":\\"Apache-1.1\\"}}"}]}]',
+            constraintFacts: [
+              {
+                constraintId: 'd17bd2a78ada49d6b40df2dd596d8e19',
+                constraintName: 'older than one day',
+                operatorName: 'AND',
+                conditionFacts: [
+                  {
+                    conditionTypeId: 'License',
+                    conditionIndex: 0,
+                    summary: "License is 'Apache-1.1'",
+                    reason: "Found 'Apache-1.1' license",
+                    reference: null,
+                    triggerJson: '{"conditionIndex":0,"trigger":{"id":"Apache-1.1"}}',
+                  },
+                ],
+              },
+            ],
+            associatedPackageUrl: null,
+            componentMatchStrategy: 'EXACT_COMPONENT',
+            componentIdentifier: null,
+            policyName: 'test-policy',
+            policyWaiverId: '468e1552699445d48e448bf22740ad8b',
+            scopeOwnerId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+            scopeOwnerType: 'repository',
+            scopeOwnerName: 'maven-central',
+          },
+        ],
         isLoadingPolicyViolations: false,
         policyViolationsError: null,
+        componentName: 'ant : ant : 1.6',
+        name: 'ant',
       },
     },
   };
 
   it('selectPolicyViolations', () => {
-    expect(Object.keys(firewallPolicyViolationsSelectors.selectPolicyViolations(minState))).toEqual([
-      ...Object.keys(minState.firewall.componentDetailsPage.componentDetails.policyAlerts.map((trigger) => trigger)),
-    ]);
+    expect(firewallPolicyViolationsSelectors.selectPolicyViolations(minState)).toEqual(
+      minState.firewall.componentDetailsPage.policyViolations
+    );
   });
 
   it('selectSecurityPolicyViolations', () => {
@@ -237,6 +258,36 @@ describe('firewallPolicyViolationsSelectors', () => {
       firewallPolicyViolationsSelectors
         .selectPolicyViolations(minState)
         .filter((violation) => violation.policyThreatCategory === 'SECURITY')
+    );
+  });
+
+  it('selectWaiversByOwner', () => {
+    expect(firewallPolicyViolationsSelectors.selectWaiversByOwner(minState)).toEqual(
+      minState.firewall.componentDetailsPage.policyExistingWaivers.waiversByOwner
+    );
+  });
+
+  it('selectWaivers', () => {
+    expect(firewallPolicyViolationsSelectors.selectWaivers(minState)).toEqual(
+      minState.firewall.componentDetailsPage.waivers
+    );
+  });
+
+  it('selectDisplayName', () => {
+    expect(firewallPolicyViolationsSelectors.selectDisplayName(minState)).toEqual(
+      minState.firewall.componentDetailsPage.componentDetails.displayName
+    );
+  });
+
+  it('selectComponentName', () => {
+    expect(firewallPolicyViolationsSelectors.selectComponentName(minState)).toEqual(
+      minState.firewall.componentDetailsPage.componentName
+    );
+  });
+
+  it('selectComponentNameWithoutVersion', () => {
+    expect(firewallPolicyViolationsSelectors.selectComponentNameWithoutVersion(minState)).toEqual(
+      minState.firewall.componentDetailsPage.name
     );
   });
 });

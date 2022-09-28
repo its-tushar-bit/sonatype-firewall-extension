@@ -20,6 +20,9 @@ describe('firewallReducer', function () {
       policyViolations: null,
       isLoadingPolicyViolations: false,
       policyViolationsError: null,
+      policyExistingWaivers: null,
+      isLoadExistingWaivers: false,
+      existingWaiversError: null,
     }),
     viewState: Object.freeze({
       isShowConfigurationModal: false,
@@ -981,6 +984,77 @@ describe('firewallReducer', function () {
           policyViolations: null,
           isLoadingPolicyViolations: false,
           policyViolationsError: 'Error',
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED action', function () {
+    it('updates the state and sets loadExistingWaiversData to true', () => {
+      let minimumState = {
+        componentDetailsPage: {
+          policyExistingWaivers: null,
+          isLoadExistingWaivers: false,
+          existingWaiversError: null,
+        },
+      };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED' })).toEqual({
+        ...minimumState,
+        componentDetailsPage: {
+          ...minimumState.componentDetailsPage,
+          policyExistingWaivers: null,
+          isLoadExistingWaivers: true,
+          existingWaiversError: null,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED action', function () {
+    it('updates the state and sets existing waivers with the response results', () => {
+      let minimumState = {
+        componentDetailsPage: {
+          policyExistingWaivers: null,
+          isLoadExistingWaivers: false,
+          existingWaiversError: null,
+        },
+      };
+
+      expect(
+        reduce(minimumState, {
+          type: 'FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED',
+          payload: { data: 'payload' },
+        })
+      ).toEqual({
+        ...minimumState,
+        componentDetailsPage: {
+          ...minimumState.componentDetailsPage,
+          policyExistingWaivers: { data: 'payload' },
+          isLoadExistingWaivers: false,
+          existingWaiversError: null,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED action', function () {
+    it('updates the state and sets existing waivers with the request error message', () => {
+      let minimumState = {
+        componentDetailsPage: {
+          policyExistingWaivers: null,
+          isLoadExistingWaivers: true,
+          existingWaiversError: null,
+        },
+      };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED', payload: 'Error' })).toEqual({
+        ...minimumState,
+        componentDetailsPage: {
+          ...minimumState.componentDetailsPage,
+          policyExistingWaivers: null,
+          isLoadExistingWaivers: false,
+          existingWaiversError: 'Error',
         },
       });
     });

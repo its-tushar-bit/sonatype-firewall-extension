@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createSelector } from '@reduxjs/toolkit';
+import { flatten } from 'ramda';
 import { selectFirewallComponentDetailsPage } from '../../firewallSelectors';
 
 export const selectPolicyViolations = createSelector(
@@ -14,3 +15,33 @@ export const selectPolicyViolations = createSelector(
 export const selectSecurityPolicyViolations = createSelector(selectPolicyViolations, (violations) =>
   violations.filter((violation) => violation.policyThreatCategory === 'SECURITY')
 );
+
+export const selectWaiversByOwner = createSelector(
+  selectFirewallComponentDetailsPage,
+  (item) => item.policyExistingWaivers.waiversByOwner
+);
+
+export const selectWaivers = createSelector(selectWaiversByOwner, (items) => {
+  return flatten(
+    items.map((waiversWithOwner) =>
+      waiversWithOwner.waivers.map((waiver) => ({
+        ...waiver,
+        policyWaiverId: waiver.id,
+        scopeOwnerId: waiversWithOwner.ownerId,
+        scopeOwnerType: waiversWithOwner.ownerType,
+        scopeOwnerName: waiversWithOwner.ownerName,
+      }))
+    )
+  );
+});
+
+export const selectDisplayName = createSelector(
+  selectFirewallComponentDetailsPage,
+  (displayName) => displayName.componentDetails.displayName
+);
+
+export const selectComponentName = createSelector(selectDisplayName, (componentName) => {
+  return componentName.parts.reduce((prev, part) => prev + part.value, '') || '';
+});
+
+export const selectComponentNameWithoutVersion = createSelector(selectDisplayName, (name) => name.name);

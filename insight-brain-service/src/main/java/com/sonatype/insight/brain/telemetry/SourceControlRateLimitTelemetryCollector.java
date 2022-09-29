@@ -44,6 +44,11 @@ public class SourceControlRateLimitTelemetryCollector
     return telemetryDataList;
   }
 
+  @Override
+  public boolean isClusterTelemetry() {
+    return false;
+  }
+
   private void addTelemetry(
       final List<TelemetryData> telemetryDataList,
       final String clientId,

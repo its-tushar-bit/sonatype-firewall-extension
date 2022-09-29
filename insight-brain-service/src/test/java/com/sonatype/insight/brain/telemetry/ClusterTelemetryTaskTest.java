@@ -76,6 +76,7 @@ public class ClusterTelemetryTaskTest
                                             TelemetryPurpose.POLICY_STATUS_OVERRIDE, //
                                             TelemetryPurpose.REALM, //
                                             TelemetryPurpose.ROLE_USAGE, //
+                                            TelemetryPurpose.REPOSITORY_CONFIGURATION, //
     };
     verify(telemetrySenderMock, times(expectedPurposes.length)).send(allTelemetryDataCaptor.capture());
     List<TelemetryData> allTelemetryData =

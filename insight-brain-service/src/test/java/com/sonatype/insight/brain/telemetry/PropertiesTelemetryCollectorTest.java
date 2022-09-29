@@ -106,4 +106,9 @@ public class PropertiesTelemetryCollectorTest
     assertThat(telemetryData.getAttributes()).containsEntry(PropertiesTelemetryCollector.ADMIN_CONNECTOR_HTTP, true)
         .containsEntry(PropertiesTelemetryCollector.ADMIN_CONNECTOR_HTTPS, true);
   }
+
+  @Test
+  public void testIsClusterTelemetry() {
+    assertThat(telemetryCollector.isClusterTelemetry()).isFalse();
+  }
 }

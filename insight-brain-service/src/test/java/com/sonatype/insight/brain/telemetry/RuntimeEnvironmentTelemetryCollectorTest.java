@@ -42,4 +42,9 @@ public class RuntimeEnvironmentTelemetryCollectorTest
     assertThat(attributes.get(RuntimeEnvironmentTelemetryCollector.OS_ARCHITECTURE))
         .isEqualTo(System.getProperty("os.arch"));
   }
+
+  @Test
+  public void testIsClusterTelemetry() {
+    assertThat(telemetryCollector.isClusterTelemetry()).isFalse();
+  }
 }

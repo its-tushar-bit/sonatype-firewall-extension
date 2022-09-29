@@ -110,6 +110,11 @@ public class TelemetryContainerRequestFilterTest
         new RestEndpointTelemetry("PUT", createMatchingPath("other", "path"), 1));
   }
 
+  @Test
+  public void testIsClusterTelemetry() {
+    assertThat(telemetryContainerRequestFilter.isClusterTelemetry()).isFalse();
+  }
+
   private String createMatchingPath(String... pathSegments) {
     return "api/" + String.join("/", pathSegments);
   }

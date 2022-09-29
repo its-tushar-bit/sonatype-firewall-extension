@@ -49,4 +49,9 @@ public class RuntimeEnvironmentTelemetryCollector
 
     return telemetryData;
   }
+
+  @Override
+  public boolean isClusterTelemetry() {
+    return false;
+  }
 }

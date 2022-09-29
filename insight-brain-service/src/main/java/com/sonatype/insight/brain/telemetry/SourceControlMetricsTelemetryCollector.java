@@ -30,9 +30,9 @@ public class SourceControlMetricsTelemetryCollector
   public static final String TOTAL_APPLICATION_SC_ENTRIES = "total_source_control_applications";
 
   public static final String TOTAL_APPLICATIONS = "total_applications";
-  
+
   public static final String TOTAL_SC_PR_TIME_SPENT = "total_daily_source_control_pull_request_time_ms";
-  
+
   public static final String TOTAL_SC_PRS_CREATED = "total_daily_source_control_pull_requests_created";
 
   public static final String TOTAL_SC_PRS_SUGGESTED =
@@ -125,5 +125,10 @@ public class SourceControlMetricsTelemetryCollector
     calendar.setTime(origin);
     calendar.add(type, delta);
     return calendar.getTime();
+  }
+
+  @Override
+  public boolean isClusterTelemetry() {
+    return false;
   }
 }

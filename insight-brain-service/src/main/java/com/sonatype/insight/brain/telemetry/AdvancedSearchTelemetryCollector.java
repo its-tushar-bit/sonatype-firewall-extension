@@ -58,4 +58,9 @@ public class AdvancedSearchTelemetryCollector
     }
     return allTelemetryData;
   }
+
+  @Override
+  public boolean isClusterTelemetry() {
+    return false;
+  }
 }

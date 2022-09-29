@@ -89,4 +89,9 @@ public class AdvancedSearchTelemetryCollectorTest
         .containsEntry(IndexService.SEARCH_INDEX_SIZE_BYTES, indexService.getIndexSize())
         .containsEntry(IndexService.SEARCH_INDEX_REINDEX, false);
   }
+
+  @Test
+  public void testIsClusterTelemetry() {
+    assertThat(collector.isClusterTelemetry()).isFalse();
+  }
 }

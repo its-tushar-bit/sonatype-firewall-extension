@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Comparator;
 import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -184,5 +185,10 @@ public class RepositoryConfigurationCollectorTest
     telemetryData = telemetryCollector.collectData();
 
     assertThat(telemetryData).isNotNull();
+  }
+
+  @Test
+  public void testIsClusterTelemetry() {
+    assertThat(telemetryCollector.isClusterTelemetry()).isTrue();
   }
 }

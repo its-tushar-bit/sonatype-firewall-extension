@@ -70,6 +70,11 @@ public class RepositoryConfigurationCollector
     return telemetryData;
   }
 
+  @Override
+  public boolean isClusterTelemetry() {
+    return true;
+  }
+
   private RepositoryTelemetry collectData(final Repository repository) {
     SonatypeUserAgentUtil.UserAgent userAgent = getUserAgent(repository);
 

@@ -34,7 +34,13 @@ public interface TelemetryCollector
     return allTelemetryData;
   }
 
-  default boolean isClusterTelemetry() {
-    return false;
-  }
+  /**
+   * Returns whether the telemetry will be sent either per cluster or per node.
+   * <ul>
+   * <li>If true, the telemetry will be sent from one node in the cluster via {@link ClusterTelemetryTask}.</li>
+   * <li>If false, the telemetry will be sent from each node in the cluster via {@link TelemetryScheduler}.</li>
+   * </ul>
+   * In either case the telemetry is sent periodically.
+   */
+  boolean isClusterTelemetry();
 }

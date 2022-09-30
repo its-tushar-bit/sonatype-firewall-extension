@@ -90,15 +90,34 @@ describe('PoliciesTile', () => {
       expect(screen.getByText('Loading…')).toBeVisible();
     });
 
-    it('renders an alert with retry if something goes wrongs', async () => {
-      axiosMock
-        .onGet(getApplicablePolicies(ownerType, ownerId))
-        .reply(500, { data: { error: 'An error occurred loading data.' } });
+    it('renders an alert with retry if something goes wrong with policiesByOwner request', async () => {
+      axiosMock.onGet(getApplicablePolicies(ownerType, ownerId)).reply(500, 'An error occurred loading data.');
+      axiosMock.onGet(getActionStageUrl()).reply(200, actionStagesPayload);
 
       renderComponent(preloadedState);
       let failureAlert = await screen.findByRole('alert');
       expect(failureAlert).toBeVisible();
       expect(failureAlert).toHaveTextContent('An error occurred loading data.');
+      let retryButton = await within(failureAlert).getByRole('button');
+      expect(retryButton).toBeVisible();
+      fireEvent.click(retryButton);
+
+      expect(await screen.findByText('Loading…')).toBeVisible();
+      failureAlert = await screen.findByRole('alert');
+      expect(failureAlert).toBeVisible();
+      expect(failureAlert).toHaveTextContent('An error occurred loading data.');
+    });
+
+    it('renders an alert with retry if something goes wrong with action stages request', async () => {
+      axiosMock
+        .onGet(getApplicablePolicies(ownerType, ownerId))
+        .reply(200, { policiesByOwner: rootOrganizationPoliciesByOwnerPayload.policiesByOwner });
+      axiosMock.onGet(getActionStageUrl()).reply(500);
+
+      renderComponent(preloadedState);
+      let failureAlert = await screen.findByRole('alert');
+      expect(failureAlert).toBeVisible();
+      expect(failureAlert).toHaveTextContent('An error occurred loading data. Error 500');
       let retryButton = await within(failureAlert).getByRole('button');
       expect(retryButton).toBeVisible();
       fireEvent.click(retryButton);

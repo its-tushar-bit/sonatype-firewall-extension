@@ -589,6 +589,9 @@ public class TemporaryEntity
     repositoryConnections = new ArrayList<>();
     artifactoryConnections = new ArrayList<>();
     repositoryIdentifiedComponents = new ArrayList<>();
+
+    // Disable search
+    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {

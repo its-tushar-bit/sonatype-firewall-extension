@@ -41,18 +41,19 @@ export default function RetentionTable({ stages }) {
   }
 
   const stageNames = keys(stages);
-  const stagesNumber = `retention-tile__stages-num--${stageNames?.length || 7}`;
 
   return (
-    <NxTable className={stagesNumber}>
+    <NxTable>
       <NxTable.Head>
         <NxTable.Row>
           <NxTable.Cell>Max</NxTable.Cell>
           {stageNames?.map((name) => {
             const value = includes(name, ['continuous-monitoring', 'stage-release']) ? (
-              <NxOverflowTooltip>
-                <div className="nx-truncate-ellipsis">{name}</div>
-              </NxOverflowTooltip>
+              <div className="retention-tile__truncate-wrapper">
+                <NxOverflowTooltip>
+                  <div className="nx-truncate-ellipsis">{name}</div>
+                </NxOverflowTooltip>
+              </div>
             ) : (
               name
             );

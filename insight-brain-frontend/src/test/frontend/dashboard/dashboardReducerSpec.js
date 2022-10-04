@@ -64,7 +64,7 @@ describe('dashboardReducer', () => {
 
   describe('APPLY_FILTER_REQUESTED action', () => {
     testResetsResults({
-      type: 'APPLY_FILTER_REQUESTED',
+      type: 'RESET_ALL_TABS',
     });
   });
 

@@ -425,6 +425,20 @@ describe('dashboardFilterReducer', () => {
       expect(applyFilterError).toBe('update filter error');
       expect(other).toBe(otherObject);
     });
+
+    it('sets applyFilterError when an error object is returned', () => {
+      const state = Object.freeze({ applyFilterError: null, other: otherObject });
+
+      expect(state.applyFilterError).toBeNull();
+
+      const { applyFilterError, other } = reduce(state, {
+        type: 'APPLY_FILTER_FAILED',
+        payload: new Error(),
+      });
+
+      expect(applyFilterError).toBe('Error');
+      expect(other).toBe(otherObject);
+    });
   });
 
   describe('APPLY_FILTER_CANCELLED action', () => {

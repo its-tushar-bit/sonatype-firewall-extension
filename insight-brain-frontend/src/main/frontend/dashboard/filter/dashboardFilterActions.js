@@ -7,7 +7,7 @@ import axios from 'axios';
 
 import { fetchStageTypes } from '../../stages/stagesActions';
 import { fetchSavedFilters } from './manageFiltersActions';
-import { loadResults } from '../results/dashboardResultsActions';
+import { loadResults, RESET_ALL_TABS } from '../results/dashboardResultsActions';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import {
   getApplicationsUrl,
@@ -146,6 +146,9 @@ const applySavedFilterFailed = payloadParamActionCreator(APPLY_SAVED_FILTER_FAIL
 
 function applyFilterFulfilled(filter, basedOnFilterName) {
   return (dispatch, getState) => {
+    dispatch({
+      type: RESET_ALL_TABS,
+    });
     dispatch({
       type: APPLY_FILTER_FULFILLED,
       payload: { filter, basedOnFilterName },

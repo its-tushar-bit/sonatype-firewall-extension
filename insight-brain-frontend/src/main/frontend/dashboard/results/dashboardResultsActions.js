@@ -23,6 +23,7 @@ export const LOAD_RESULTS_FULFILLED = 'LOAD_RESULTS_FULFILLED';
 export const LOAD_RESULTS_FAILED = 'LOAD_RESULTS_FAILED';
 export const SORT_RESULTS_REQUESTED = 'SORT_RESULTS_REQUESTED';
 export const SORT_RESULTS_FULFILLED = 'SORT_RESULTS_FULFILLED';
+export const RESET_ALL_TABS = 'RESET_ALL_TABS';
 
 function loadResultsFulfilled(resultsType, results, numResults, classyBrew) {
   return {

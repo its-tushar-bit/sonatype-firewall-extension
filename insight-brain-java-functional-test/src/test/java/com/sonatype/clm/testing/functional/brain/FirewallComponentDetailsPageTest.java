@@ -116,6 +116,10 @@ public class FirewallComponentDetailsPageTest
 
   private Date date;
 
+  static final String dateTimeFormatMask = "yyyy-MM-dd HH:mm:ss";
+
+  static final String dateFormatMask = "MM/dd/yyyy";
+
   @BeforeClass
   public static void startup() {
     refreshOrOpen(FirewallPage.url());
@@ -527,8 +531,8 @@ public class FirewallComponentDetailsPageTest
     table.catalogDateRow().get(2).shouldBe(empty);
   }
 
-  private String getDateString(Date date) {
-    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+  private String getDateString(Date date, String formatDate) {
+    DateFormat dateFormat = new SimpleDateFormat(formatDate);
     dateFormat.setTimeZone(TimeZone.getDefault());
     return dateFormat.format(date);
   }
@@ -619,9 +623,9 @@ public class FirewallComponentDetailsPageTest
     Date quarantineTime = date;
     Date lastEvaluationTime = new Date(date.getTime() + 10000);
     Date unquarantineTime = new Date(date.getTime() + 20000);
-    String unquarantineTimeString = getDateString(unquarantineTime);
-    String lastEvaluationTimeString = getDateString(lastEvaluationTime);
-    String quarantineTimeString = getDateString(quarantineTime);
+    String unquarantineTimeString = getDateString(unquarantineTime, dateTimeFormatMask);
+    String lastEvaluationTimeString = getDateString(lastEvaluationTime, dateTimeFormatMask);
+    String quarantineTimeString = getDateString(quarantineTime, dateTimeFormatMask);
     eyesWatcher.eyesCheck(
         "Firewall Component Details Page - Compare Versions table with a component manually released from quarantine");
     RepositoryComponent component =
@@ -636,9 +640,9 @@ public class FirewallComponentDetailsPageTest
     Date quarantineTime = date;
     Date lastEvaluationTime = new Date(date.getTime() + 10000);
     Date unquarantineTime = new Date(date.getTime() + 20000);
-    String unquarantineTimeString = getDateString(unquarantineTime);
-    String lastEvaluationTimeString = getDateString(lastEvaluationTime);
-    String quarantineTimeString = getDateString(quarantineTime);
+    String unquarantineTimeString = getDateString(unquarantineTime, dateTimeFormatMask);
+    String lastEvaluationTimeString = getDateString(lastEvaluationTime, dateTimeFormatMask);
+    String quarantineTimeString = getDateString(quarantineTime, dateTimeFormatMask);
     RepositoryComponent component =
         setupAllUnquarantinedComponentTestData(lastEvaluationTime, quarantineTime, unquarantineTime, true);
     testCompareVersionsValues_ForUnquarantinedComponent(component, lastEvaluationTimeString, quarantineTimeString,
@@ -1015,6 +1019,9 @@ public class FirewallComponentDetailsPageTest
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
     waitUntilSpinnersGone();
 
+    Date waiverCreateDate = date;
+    String waiverCreateDateString = getDateString(waiverCreateDate, dateFormatMask);
+
     ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
     ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
 
@@ -1030,7 +1037,7 @@ public class FirewallComponentDetailsPageTest
 
     waiversTableCells.shouldHaveSize(7);
     waiversTableCells.get(0).shouldHave(text("Security-Low Security-low constraint"));
-    waiversTableCells.get(1).shouldHave(text("09/28/2022"));
+    waiversTableCells.get(1).shouldHave(text(waiverCreateDateString));
     waiversTableCells.get(2).shouldHave(text("Organization - Root Organization"));
     waiversTableCells.get(3).shouldBe(text("com.lingocoder : abi.cli : 0.5.2"));
     waiversTableCells.get(4).shouldBe(text("Test User"));

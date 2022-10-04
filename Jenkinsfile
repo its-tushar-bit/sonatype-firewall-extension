@@ -217,7 +217,7 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex)
           mvn testConfig, 'install'
         }
         finally {
-          if (jdk == 'Java 8' && stageName == 'Unit & Integration Tests - Java 8 A') {
+          if (jdk == 'Java 8' && stageName == 'Unit and Integration Tests - Java 8 A') {
             sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: !currentBuild.fullProjectName.contains("master"))
           }
           captureResultsAndCleanup()

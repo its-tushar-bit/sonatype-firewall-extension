@@ -117,6 +117,16 @@ export default function PolicyNotificationsEditor() {
     );
   };
 
+  const getCheckboxTooltipMessage = (recipient, stage) => {
+    if (stage.stageTypeId === 'proxy') {
+      if (recipient.webhookId) return 'Webhooks are not available for policy violations at Proxy stage.';
+      if (recipient.projectKey) return 'Jira notifications are not available for policy violations at Proxy stage.';
+    }
+
+    if (!isNotificationsSupportedForStage(stage.stageTypeId)) return 'Notifications are not supported by your license.';
+    else return '';
+  };
+
   useEffect(() => {
     loadNotificationsEditor();
   }, []);
@@ -166,15 +176,7 @@ export default function PolicyNotificationsEditor() {
                   </NxTable.Cell>
                   {actionStages?.map((stage) => (
                     <NxTable.Cell key={stage.stageTypeId}>
-                      <NxTooltip
-                        title={
-                          recipient.webhookId && stage.stageTypeId === 'proxy'
-                            ? 'Webhooks are not available for policy violations at Proxy stage.'
-                            : !isNotificationsSupportedForStage(stage.stageTypeId)
-                            ? 'Notifications are not supported by your license.'
-                            : ''
-                        }
-                      >
+                      <NxTooltip title={getCheckboxTooltipMessage(recipient, stage)}>
                         <NxCheckbox
                           aria-label={`notify ${recipient.displayName} for ${stage.stageTypeId}`}
                           isChecked={hasStage(recipient, stage.stageTypeId)}

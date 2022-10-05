@@ -241,21 +241,15 @@ public class ApplicationSummaryViewTest
     ltgTile.nxSubHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(application.getName()));
     ltgTile.newButton().shouldBe(hidden);
 
-    ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHaveSize(2);
+    ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHaveSize(1);
     ScrollUtil.scrollIntoView(ltgTile.nxHeader());
     eyesWatcher.eyesCheck("Application License Threat Group Tile with no local threats");
 
     ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
     ScrollUtil.scrollIntoView(section.getTitle());
-    section.getTitle().shouldBe(visible).shouldHave(text("LOCAL"));
-    section.getEmptyDescriptor().shouldBe(visible);
-
-    section = ltgTile.getApplicableLicenseThreatGroupSection(1);
-    ScrollUtil.scrollIntoView(section.getTitle());
     section.getTitle().shouldBe(visible).shouldHave(text("INHERITED FROM ROOT ORGANIZATION"));
     section.getEmptyDescriptor().shouldBe(hidden);
     section.getTableContent().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
-
   }
 
   @Override

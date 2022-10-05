@@ -231,14 +231,7 @@ export const applicationWithLtgsByOwnerPayload = {
         ownerId: '1b9c6bb18fbc4824864de00567990b6d',
         ownerName: 'Final Org 1',
         ownerType: 'application',
-        licenseThreatGroups: [
-          {
-            id: '96b97b09ab36100283146990160a3534',
-            name: 'application ltg.1',
-            threatLevel: 1,
-            licenses: [],
-          },
-        ],
+        licenseThreatGroups: [],
       },
       {
         ownerId: 'c01ec9400ccc406caecdf59852395979',

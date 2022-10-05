@@ -847,8 +847,10 @@ public abstract class AbstractSummaryViewTest
       ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(i);
       ScrollUtil.scrollIntoView(section.getTitle());
 
+      boolean notAnApp = !OwnerType.APPLICATION.equals(currentOwner.getType());
+
       if (i == 0) {
-        if (!OwnerType.APPLICATION.equals(currentOwner.getType())) {
+        if (notAnApp) {
           section.getTitle().shouldBe(visible).shouldHave(text("Local"));
           SelenideElement emptyDescriptor = section.getEmptyDescriptor();
           if (section.getEmptyDescriptor() != null ) {
@@ -858,8 +860,8 @@ public abstract class AbstractSummaryViewTest
         }
       }
       else {
-        int element = i - 1;
-        int expectedTestLTGSize = Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(element).getId()) 
+        int element = notAnApp ? i - 1 : i;
+        int expectedTestLTGSize = Organization.ROOT_ORGANIZATION_ID.equals(parentOwners.get(element).getId())
             ? LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT : 0;
         int expectedLTGCount = inheritedLTGs.get(element).size() + expectedTestLTGSize;
         section.getTableContent().shouldHaveSize(expectedLTGCount);
@@ -870,7 +872,7 @@ public abstract class AbstractSummaryViewTest
           LicenseThreatGroupElement actualLTG = section.getLicenseThreatGroupElement(section.getLTG(j));
 
           if (inheritedLTGs.size() < i) {
-            LicenseThreatGroup expectedLTG = inheritedLTGs.get(i - 1).get(j);
+            LicenseThreatGroup expectedLTG = inheritedLTGs.get(element).get(j);
             actualLTG.getName().shouldBe(visible).shouldHave(text(expectedLTG.getName()));
             actualLTG.getThreatLevelValue().shouldBe(visible)
                 .shouldHave(LicenseThreatGroupElement.threatLevel(expectedLTG.getThreatLevel()));

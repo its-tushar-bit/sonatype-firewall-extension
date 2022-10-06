@@ -36,7 +36,9 @@ public class EnhancedPullRequestResult
 
   private boolean exceptionThrown;
 
-  private String reasoning;
+  public EnhancedPullRequestResult() {
+    // for Jackson
+  }
 
   public EnhancedPullRequestResult(
       final PullRequestResult timing,
@@ -50,7 +52,6 @@ public class EnhancedPullRequestResult
     this.target = target;
     this.title = title;
     this.exceptionThrown = exceptionThrown;
-    this.reasoning = intuitReasoning(timing, exceptionThrown);
   }
 
   public PullRequestResult getTiming() {
@@ -74,7 +75,7 @@ public class EnhancedPullRequestResult
   }
 
   public String getReasoning() {
-    return reasoning;
+    return intuitReasoning(timing, exceptionThrown);
   }
 
   @Override
@@ -85,7 +86,7 @@ public class EnhancedPullRequestResult
         ", target=" + target +
         ", title='" + title + '\'' +
         ", exceptionThrown=" + exceptionThrown +
-        ", reasoning='" + reasoning + '\'' +
+        ", reasoning='" + getReasoning() + '\'' +
         '}';
   }
 
@@ -98,7 +99,7 @@ public class EnhancedPullRequestResult
       return EXCEPTION_MESSAGE;
     }
 
-    if (timing.isSuccessful()) {
+    if (timing != null && timing.isSuccessful()) {
       return String.format(SUCCESS_MESSAGE, ComponentDisplayNameUtil.fromIdentifier(target));
     }
 

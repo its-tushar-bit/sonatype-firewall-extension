@@ -129,6 +129,6 @@ public class SourceControlMetricsTelemetryCollector
 
   @Override
   public boolean isClusterTelemetry() {
-    return false;
+    return true;
   }
 }

@@ -93,6 +93,7 @@
     <class>com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration</class>
     <class>com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection</class>
     <class>com.sonatype.insight.brain.model.jira.JiraConfiguration</class>
+    <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

@@ -107,6 +107,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultB
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
@@ -215,6 +216,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranch
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
@@ -457,6 +459,9 @@ public class TemporaryEntity
 
   private final SourceControlConfigurationDAO sourceControlConfigurationDAO = new SourceControlConfigurationDAO();
 
+  private final SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO =
+      new SourceControlPullRequestResultDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -543,6 +548,8 @@ public class TemporaryEntity
 
   private Collection<RepositoryIdentifiedComponent> repositoryIdentifiedComponents;
 
+  private Collection<SourceControlPullRequestResult> sourceControlPullRequestResults;
+
   @Override
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -589,6 +596,7 @@ public class TemporaryEntity
     repositoryConnections = new ArrayList<>();
     artifactoryConnections = new ArrayList<>();
     repositoryIdentifiedComponents = new ArrayList<>();
+    sourceControlPullRequestResults = new ArrayList<>();
 
     // Disable search
     systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
@@ -650,6 +658,7 @@ public class TemporaryEntity
     delete(repositoryConnections, repositoryConnectionDAO);
     delete(artifactoryConnections, artifactoryConnectionDAO);
     delete(repositoryIdentifiedComponents, repositoryIdentifiedComponentDAO);
+    delete(sourceControlPullRequestResults, sourceControlPullRequestResultDAO);
     productLicenseDAO.delete();
     firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
     persistedPolicyEvaluationPollingResultDAO.deleteAll();
@@ -952,6 +961,10 @@ public class TemporaryEntity
 
   public void register(RepositoryIdentifiedComponent... repositoryIdentifiedComponents) {
     Collections.addAll(this.repositoryIdentifiedComponents, repositoryIdentifiedComponents);
+  }
+
+  public void register(SourceControlPullRequestResult... sourceControlPullRequestResults) {
+    Collections.addAll(this.sourceControlPullRequestResults, sourceControlPullRequestResults);
   }
 
   public Application newApplicationWithParent() {
@@ -3706,5 +3719,16 @@ public class TemporaryEntity
       }
       newPolicy(policy);
     }
+  }
+
+  public SourceControlPullRequestResult newSourceControlPullRequestResult(
+      String applicationId,
+      String pullRequestResultJson)
+  {
+    SourceControlPullRequestResult sourceControlPullRequestResult =
+        new SourceControlPullRequestResult(applicationId, pullRequestResultJson);
+    sourceControlPullRequestResultDAO.insert(sourceControlPullRequestResult);
+    sourceControlPullRequestResults.add(sourceControlPullRequestResult);
+    return sourceControlPullRequestResult;
   }
 }

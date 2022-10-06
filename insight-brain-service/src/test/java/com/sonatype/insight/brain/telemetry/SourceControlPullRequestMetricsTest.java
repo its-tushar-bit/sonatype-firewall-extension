@@ -9,23 +9,39 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics.AggregatedPRStats;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics.ApplicationPRStats;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 
+import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SourceControlPullRequestMetricsTest
+    extends AbstractComponentTest
 {
   private static final ComponentIdentifier MAVEN_COORDINATES =
       ComponentIdentifier.createMavenCoordinates("foo", "bar", "1.0");
 
-  private SourceControlPullRequestMetrics metrics = new SourceControlPullRequestMetrics();
-  
+  @Inject
+  private SourceControlPullRequestMetrics metrics;
+
+  @Inject
+  private SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO;
+
+  @After
+  public void after() {
+    sourceControlPullRequestResultDAO.deleteAll();
+  }
+
   @Test
   public void test_computeStatsAndReset_noPRS() {
     AggregatedPRStats stats = metrics.computeStatsAndReset();
@@ -34,7 +50,7 @@ public class SourceControlPullRequestMetricsTest
     assertThat(stats.getSuccessfulPRs()).isEqualTo(0);
     assertThat(stats.getTotalSuggestedPRs()).isEqualTo(0);
   }
-  
+
   @Test
   public void test_computeStatsAndReset_withPrs() {
     PullRequestResult success = new PullRequestResult();
@@ -46,16 +62,18 @@ public class SourceControlPullRequestMetricsTest
     EnhancedPullRequestResult enhancedSuccess = new EnhancedPullRequestResult(success, new Date(),
         ComponentIdentifier.createMavenCoordinates("foo", "bar", "1.0"),
         "Bump bar to 1.1", false);
-    metrics.addResult("foo", enhancedSuccess);
-    
+    Application foo = tempEntity.newApplicationWithParent();
+    Application bar = tempEntity.newApplicationWithParent();
+    metrics.addResult(foo.getId(), enhancedSuccess);
+
     PullRequestResult failure = new PullRequestResult();
     failure.setCheckoutTime(1L);
     failure.setRemediationTime(1L);
-    failure.setPushTime(1L);    
+    failure.setPushTime(1L);
     failure.setSuccessful(false);
     EnhancedPullRequestResult enhancedFailure = new EnhancedPullRequestResult(failure, new Date(),
         MAVEN_COORDINATES, "Bump bar to 1.1", true);
-    metrics.addResult("foo", enhancedFailure);
+    metrics.addResult(foo.getId(), enhancedFailure);
 
     PullRequestResult app2Success = new PullRequestResult();
     app2Success.setCheckoutTime(1L);
@@ -65,7 +83,7 @@ public class SourceControlPullRequestMetricsTest
     app2Success.setSuccessful(true);
     EnhancedPullRequestResult app2EnhancedSuccess = new EnhancedPullRequestResult(app2Success, new Date(),
         MAVEN_COORDINATES, "Bump bar to 1.1", false);
-    metrics.addResult("bar", app2EnhancedSuccess);
+    metrics.addResult(bar.getId(), app2EnhancedSuccess);
 
     AggregatedPRStats stats = metrics.computeStatsAndReset();
     assertThat(stats.getTotalTime()).isEqualTo(11L);
@@ -74,18 +92,18 @@ public class SourceControlPullRequestMetricsTest
     assertThat(stats.getApplicationPRStats()).hasSize(2);
     assertThat(
         stats.getApplicationPRStats().stream().map(ApplicationPRStats::getApplicationId).collect(Collectors.toList()))
-        .contains("foo", "bar");
+        .contains(foo.getId(), bar.getId());
     assertThat(stats.getTotalRaisedExceptions()).isEqualTo(1);
 
     stats.getApplicationPRStats().forEach(applicationPRStats -> {
-      if (applicationPRStats.getApplicationId().equals("foo")) {
+      if (applicationPRStats.getApplicationId().equals(foo.getId())) {
         assertThat(applicationPRStats.getSuccessfulPRs()).isEqualTo(1);
         assertThat(applicationPRStats.getTotalSuggestedPRs()).isEqualTo(2);
         assertThat(applicationPRStats.getTotalTime()).isEqualTo(7);
         assertThat(applicationPRStats.getExceptionsRaised()).isEqualTo(1);
       }
       else {
-        assertThat(applicationPRStats.getApplicationId().equals("bar"));
+        assertThat(applicationPRStats.getApplicationId().equals(bar.getId()));
         assertThat(applicationPRStats.getSuccessfulPRs()).isEqualTo(1);
         assertThat(applicationPRStats.getTotalSuggestedPRs()).isEqualTo(1);
         assertThat(applicationPRStats.getTotalTime()).isEqualTo(4);
@@ -100,7 +118,7 @@ public class SourceControlPullRequestMetricsTest
     assertThat(cleared.getSuccessfulPRs()).isEqualTo(0L);
     assertThat(cleared.getApplicationPRStats()).isEmpty();
   }
-  
+
   @Test
   public void test_metricsForApplication() {
     //given: an application with available metrics
@@ -113,12 +131,12 @@ public class SourceControlPullRequestMetricsTest
     Date start = new Date();
     EnhancedPullRequestResult enhancedSuccess = new EnhancedPullRequestResult(success, start,
         MAVEN_COORDINATES, "Bump bar to 1.1", false);
-    String applicationId = "foo";
+    String applicationId = tempEntity.newApplicationWithParent().getId();
     metrics.addResult(applicationId, enhancedSuccess);
 
     //when: we request metrics for that application
     List<EnhancedPullRequestResult> results = metrics.metricsForApplication(applicationId);
-    
+
     //then: results are returned as expected
     assertThat(results).hasSize(1);
     assertThat(results.get(0)).extracting(EnhancedPullRequestResult::getTarget).isEqualTo(MAVEN_COORDINATES);
@@ -133,5 +151,27 @@ public class SourceControlPullRequestMetricsTest
 
     //then: results are empty as expected
     assertThat(results).isEmpty();
+  }
+
+  @Test
+  public void testMetricsForApplication_Unparsable() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newSourceControlPullRequestResult(application.getId(), "{\"startTime\": true}");
+
+    List<EnhancedPullRequestResult> results = metrics.metricsForApplication(application.getId());
+
+    assertThat(results).isEmpty();
+    assertThat(sourceControlPullRequestResultDAO.getAll()).isEmpty();
+  }
+
+  @Test
+  public void testComputeStats_Unparsable() {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newSourceControlPullRequestResult(application.getId(), "{\"startTime\": true}");
+
+    AggregatedPRStats aggregatedPRStats = metrics.computeStatsAndReset();
+
+    assertThat(aggregatedPRStats).isNotNull();
+    assertThat(sourceControlPullRequestResultDAO.getAll()).isEmpty();
   }
 }

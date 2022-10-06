@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -300,6 +301,9 @@ public class ApplicationDAO
     // that will result in a JPA OptimisticLockException.
     // See https://issues.sonatype.org/browse/INT-4896
     new SourceControlEventDAO().deleteByApplicationId(application.getId());
+
+    // Cascade to source control pull request results
+    new SourceControlPullRequestResultDAO().deleteByApplicationId(tx, application.getId());
 
     // For H2, we do not enroll the policy violation and evaluation deletions in the transaction on purpose.
     // This improves performance and keeps db operations (including commits) reasonably short, which means other

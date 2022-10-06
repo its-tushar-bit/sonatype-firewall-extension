@@ -77,6 +77,7 @@ public class ClusterTelemetryTaskTest
                                             TelemetryPurpose.REALM, //
                                             TelemetryPurpose.ROLE_USAGE, //
                                             TelemetryPurpose.REPOSITORY_CONFIGURATION, //
+                                            TelemetryPurpose.SOURCE_CONTROL_METRICS, //
     };
     verify(telemetrySenderMock, times(expectedPurposes.length)).send(allTelemetryDataCaptor.capture());
     List<TelemetryData> allTelemetryData =

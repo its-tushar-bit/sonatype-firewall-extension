@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
@@ -66,6 +67,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -1152,5 +1154,21 @@ public class ApplicationDAOTest
 
     RepositoryConnectionDAO repositoryConnectionDAO = new RepositoryConnectionDAO();
     assertThat(repositoryConnectionDAO.getById(repositoryConnection.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToSourceControlPullRequestResults() {
+    SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO = new SourceControlPullRequestResultDAO();
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newSourceControlPullRequestResult(application.getId(), "json1");
+    tempEntity.newSourceControlPullRequestResult(application.getId(), "json2");
+    SourceControlPullRequestResult entity =
+        tempEntity.newSourceControlPullRequestResult(tempEntity.newApplicationWithParent().getId(), "json3");
+
+    applicationDAO.delete(application);
+
+    assertThat(sourceControlPullRequestResultDAO.getAll())
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
+        .containsExactly(entity);
   }
 }

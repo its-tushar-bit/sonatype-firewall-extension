@@ -117,7 +117,7 @@ public class SourceControlMetricsTelemetryCollectorTest extends AbstractComponen
 
   @Test
   public void testIsClusterTelemetry() {
-    assertThat(collector.isClusterTelemetry()).isFalse();
+    assertThat(collector.isClusterTelemetry()).isTrue();
   }
 
   private void setupPrBranchTestData() {

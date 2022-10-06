@@ -1053,6 +1053,8 @@ export const getEndpointsUrl = (apiType) => uriTemplate`/api/v2/endpoints/${apiT
 export const getGrandfatheringModalUrl = (appId) =>
   uriTemplate`/rest/policyViolationGrandfathering/grandfather/${appId}`;
 
+export const getImportPoliciesUrl = (appId) => uriTemplate`/rest/policy/organization/${appId}/import`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

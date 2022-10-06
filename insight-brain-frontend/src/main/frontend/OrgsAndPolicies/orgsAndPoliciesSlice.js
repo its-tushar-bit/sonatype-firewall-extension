@@ -25,6 +25,7 @@ import accessSlice from './access/accessSlice';
 import grandfatheringSlice from './grandfatheringModal/grandfatheringSlice';
 import revokeGrandfatheringSlice from './revokeGrandfatheringModal/revokeGrandfatheringSlice';
 import changeApplicationIdSlice from './changeApplicationIdModal/changeApplicationIdSlice';
+import importPoliciesSlice from './importPoliciesModal/importPoliciesSlice';
 import moveApplicationSlice from './moveApplicationModal/moveApplicationSlice';
 import licenseThreatGroupsSlice from './licenseThreatGroupSlice';
 
@@ -44,6 +45,7 @@ export default combineReducers({
   stages: stagesSlice,
   policy: policySlice,
   ownerEditor: combineReducers({
+    importPolicies: importPoliciesSlice,
     deleteOwner: deleteOwnerSlice,
     grandfathering: grandfatheringSlice,
     revokeGrandfathering: revokeGrandfatheringSlice,

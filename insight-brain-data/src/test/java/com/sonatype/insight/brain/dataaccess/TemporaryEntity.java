@@ -121,6 +121,8 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
@@ -232,6 +234,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -350,6 +354,11 @@ public class TemporaryEntity
 
   private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO =
       new SecurityVulnerabilityOverrideDAO();
+
+  private final VulnerabilityGroupDAO vulnerabilityGroupDAO = new VulnerabilityGroupDAO();
+
+  private final VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO =
+      new VulnerabilityGroupVulnerabilityDAO();
 
   private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
 
@@ -508,6 +517,10 @@ public class TemporaryEntity
 
   private Collection<SecurityVulnerabilityOverride> securityVulnerabilityOverrides;
 
+  private Collection<VulnerabilityGroup> vulnerabilityGroups;
+
+  private Collection<VulnerabilityGroupVulnerability> vulnerabilityGroupsVulnerability;
+
   private Collection<MembershipMapping> membershipMappings;
 
   private Collection<Webhook> webhooks;
@@ -574,6 +587,8 @@ public class TemporaryEntity
     repositoryManagers = new ArrayList<>();
     repositories = new ArrayList<>();
     securityVulnerabilityOverrides = new ArrayList<>();
+    vulnerabilityGroups = new ArrayList<>();
+    vulnerabilityGroupsVulnerability = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     webhooks = new ArrayList<>();
     policyViolationAggregations = new ArrayList<>();
@@ -626,6 +641,8 @@ public class TemporaryEntity
     delete(orgs, orgDAO);
     delete(licenseOverrides, entity -> licenseOverrideDAO.getById(entity.getId()), licenseOverrideDAO::delete);
     delete(securityVulnerabilityOverrides, securityVulnerabilityOverrideDAO);
+    delete(vulnerabilityGroupsVulnerability, vulnerabilityGroupVulnerabilityDAO);
+    delete(vulnerabilityGroups, vulnerabilityGroupDAO);
     delete(users, userDAO);
     delete(samlUsers, samlUserDAO);
     delete(usernames, userDAO);
@@ -2615,6 +2632,20 @@ public class TemporaryEntity
     securityVulnerabilityOverrideDAO.insert(override);
     securityVulnerabilityOverrides.add(override);
     return override;
+  }
+
+  public VulnerabilityGroup newVulnerabilityGroup(String ownerId, String groupName) {
+    VulnerabilityGroup group = new VulnerabilityGroup(ownerId, groupName);
+    vulnerabilityGroupDAO.insert(group);
+    vulnerabilityGroups.add(group);
+    return group;
+  }
+
+  public VulnerabilityGroupVulnerability newVulnerabilityGroupVulnerability(String groupId, String refId) {
+    VulnerabilityGroupVulnerability vuln1 = new VulnerabilityGroupVulnerability(groupId, refId);
+    vulnerabilityGroupVulnerabilityDAO.insert(vuln1);
+    vulnerabilityGroupsVulnerability.add(vuln1);
+    return vuln1;
   }
 
   public ProprietaryConfig newProprietaryConfig(String ownerId) {

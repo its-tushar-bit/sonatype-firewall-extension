@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -147,7 +148,7 @@ public class RepositoryResourceTest
         repositoryComponent.getComponentIdentifier());
 
     HttpResponse response =
-        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_VIOLATONS_PATH)
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_VIOLATIONS_PATH)
             .parameter(repo.getId(), repositoryComponent.getPathname()).get();
 
     assertResponseStatus(200, response);
@@ -156,6 +157,47 @@ public class RepositoryResourceTest
     assertThat(repositoryPolicyViolationDTOs).hasSize(1);
     RepositoryPolicyViolationDTO repositoryPolicyViolationDTO = repositoryPolicyViolationDTOs[0];
     assertThat(repositoryPolicyViolationDTO.policyViolationId).isEqualTo(repositoryPolicyViolation.getId());
+    assertThat(repositoryPolicyViolationDTO.componentIdentifier.getFormat())
+        .isEqualTo(repositoryComponent.getComponentIdentifier().getFormat());
+    assertThat(repositoryPolicyViolationDTO.componentIdentifier.getCoordinates())
+        .isEqualTo(repositoryComponent.getComponentIdentifier().getCoordinates());
+    assertThat(repositoryPolicyViolationDTO.componentDisplayName.getName())
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(repositoryComponent.getComponentIdentifier()).getName());
+    assertThat(repositoryPolicyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
+    assertThat(repositoryPolicyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
+    assertThat(repositoryPolicyViolationDTO.policyOwner.ownerId).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(repositoryPolicyViolationDTO.policyOwner.ownerName).isEqualTo(RepositoryContainer.SINGLETON.getName());
+    assertThat(repositoryPolicyViolationDTO.policyOwner.ownerType).isEqualTo(OwnerType.REPOSITORY_CONTAINER.toString());
+    assertThat(repositoryPolicyViolationDTO.policyThreatLevel).isEqualTo(repositoryPolicyViolation.getThreatLevel());
+    assertThat(repositoryPolicyViolationDTO.policyThreatCategory)
+        .isEqualTo(repositoryPolicyViolation.getThreatCategory());
+    assertThat(repositoryPolicyViolationDTO.constraintFactsJson)
+        .isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
+    assertThat(repositoryPolicyViolationDTO.policyActionTypeId).isEqualTo(repositoryPolicyViolation.getActionTypeId());
+    assertThat(repositoryPolicyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
+  }
+
+  @Test
+  public void testGetPolicyViolation() throws Exception {
+    Policy policy = tempEntity.newPolicy(RepositoryContainer.SINGLETON);
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repo.getId(), "testPathname");
+    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repo.getId(), 8,
+        repositoryComponent.getPathname(), false /* isWaived */, Action.ID_FAIL, policy.getId(), policy.getName(),
+        repositoryComponent.getComponentIdentifier());
+
+    HttpResponse response =
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_VIOLATION_PATH)
+            .parameter(repo.getId(), repositoryPolicyViolation.getId()).get();
+
+    assertResponseStatus(200, response);
+    RepositoryPolicyViolationDTO repositoryPolicyViolationDTO = response.getBody(RepositoryPolicyViolationDTO.class);
+    assertThat(repositoryPolicyViolationDTO.policyViolationId).isEqualTo(repositoryPolicyViolation.getId());
+    assertThat(repositoryPolicyViolationDTO.componentIdentifier.getFormat())
+        .isEqualTo(repositoryComponent.getComponentIdentifier().getFormat());
+    assertThat(repositoryPolicyViolationDTO.componentIdentifier.getCoordinates())
+        .isEqualTo(repositoryComponent.getComponentIdentifier().getCoordinates());
+    assertThat(repositoryPolicyViolationDTO.componentDisplayName.getName())
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(repositoryComponent.getComponentIdentifier()).getName());
     assertThat(repositoryPolicyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
     assertThat(repositoryPolicyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
     assertThat(repositoryPolicyViolationDTO.policyOwner.ownerId).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);

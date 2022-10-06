@@ -151,6 +151,31 @@ public class RepositoryServiceAuthzTest
     repositoryService.getPolicyViolations(repo.getId(), "path");
   }
 
+  @Test
+  public void testGetPolicyViolation_Authorized() {
+    Repository repo = createRepository();
+    String path = "path";
+    tempEntity.newRepositoryComponent(repo.getId(), path, new Date(), null);
+
+    grantReadPermission(repo.getId());
+    repositoryService.getPolicyViolation(repo.getId(), tempEntity.newRepositoryPolicyViolation(repo.getId()).getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetPolicyViolation_Unauthenticated() {
+    Repository repo = createRepository();
+
+    repositoryService.getPolicyViolation(repo.getId(), "testRepositoryPolicyViolationId");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetPolicyViolation_Unauthorized() {
+    Repository repo = createRepository();
+
+    login();
+    repositoryService.getPolicyViolation(repo.getId(), "testRepositoryPolicyViolationId");
+  }
+
   private Repository createRepository() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(MANUAL_REPO_MAN_INSTANCE_ID);
     return tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);

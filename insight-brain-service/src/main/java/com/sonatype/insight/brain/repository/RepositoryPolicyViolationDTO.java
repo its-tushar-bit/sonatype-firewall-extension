@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.repository;
 import java.util.Date;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
@@ -22,6 +24,10 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class RepositoryPolicyViolationDTO
 {
   public String policyViolationId;
+
+  public ApiComponentIdentifierDTOV2 componentIdentifier;
+
+  public ComponentDisplayName componentDisplayName;
 
   public String policyId;
 
@@ -48,6 +54,8 @@ public class RepositoryPolicyViolationDTO
 
   public RepositoryPolicyViolationDTO(
       String policyViolationId,
+      ApiComponentIdentifierDTOV2 componentIdentifier,
+      ComponentDisplayName componentDisplayName,
       String policyId,
       String policyName,
       Owner policyOwner,
@@ -59,6 +67,8 @@ public class RepositoryPolicyViolationDTO
       Date lastReported)
   {
     this.policyViolationId = policyViolationId;
+    this.componentIdentifier = componentIdentifier;
+    this.componentDisplayName = componentDisplayName;
     this.policyId = policyId;
     this.policyName = policyName;
     this.policyOwner = new PolicyOwner();

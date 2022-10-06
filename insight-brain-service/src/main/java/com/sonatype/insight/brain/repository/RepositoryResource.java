@@ -49,7 +49,9 @@ public class RepositoryResource
 
   static final String POLICY_EVALUATION_TIMESTAMPS_PATH = REPOSITORY_PATH + "/policyEvaluationTimestamps";
 
-  static final String POLICY_VIOLATONS_PATH = REPOSITORY_PATH + "/policyViolations/{pathname: .+}";
+  static final String POLICY_VIOLATIONS_PATH = REPOSITORY_PATH + "/policyViolations/{pathname: .+}";
+
+  static final String POLICY_VIOLATION_PATH = REPOSITORY_PATH + "/policyViolation/{repositoryPolicyViolationId}";
 
   private RepositoryService repositoryService;
 
@@ -134,7 +136,7 @@ public class RepositoryResource
    * @since 1.143
    */
   @GET
-  @Path(POLICY_VIOLATONS_PATH)
+  @Path(POLICY_VIOLATIONS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
   public List<RepositoryPolicyViolationDTO> getPolicyViolations(
@@ -142,5 +144,19 @@ public class RepositoryResource
       @PathParam("pathname") String pathname)
   {
     return repositoryService.getPolicyViolations(repositoryId, pathname);
+  }
+
+  /**
+   * @since 1.146
+   */
+  @GET
+  @Path(POLICY_VIOLATION_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
+  public RepositoryPolicyViolationDTO getPolicyViolation(
+      @PathParam("repositoryId") String repositoryId,
+      @PathParam("repositoryPolicyViolationId") String repositoryPolicyViolationId)
+  {
+    return repositoryService.getPolicyViolation(repositoryId, repositoryPolicyViolationId);
   }
 }

@@ -20,7 +20,12 @@ import {
 } from 'MainRoot/OrgsAndPolicies/labelsSelectors';
 import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
-import { validateNonEmpty, validateNameCharacters, validateMaxLength } from 'MainRoot/util/validationUtil';
+import {
+  validateNonEmpty,
+  validateNameCharacters,
+  validateMaxLength,
+  validateDoubleWhitespace,
+} from 'MainRoot/util/validationUtil';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { rscToAngularColorMap } from './utility/util';
 
@@ -261,7 +266,7 @@ const saveLabel = createAsyncThunk(`${REDUCER_NAME}/saveLabel`, (_, { getState, 
   const isEditMode = selectLabelsIsEditMode(getState());
   const label = selectLabelsCurrentLabel(state);
 
-  const newLabel = { ...label, description: label.description.value, label: label.label.value };
+  const newLabel = { ...label, description: label.description.trimmedValue, label: label.label.trimmedValue };
 
   return axios[isEditMode ? 'put' : 'post'](getLabelsUrl(ownerType, ownerId), newLabel)
     .then(({ data }) => {
@@ -295,8 +300,8 @@ const computeIsDirty = (state) => {
   const { currentLabel, serverCurrentLabel } = state;
   const computedCurrentLabel = {
     ...currentLabel,
-    description: currentLabel?.description.value,
-    label: currentLabel?.label.value,
+    description: currentLabel?.description.trimmedValue,
+    label: currentLabel?.label.trimmedValue,
   };
   const validatableFields = ['color', 'label', 'description'];
 
@@ -319,9 +324,10 @@ const duplicationValidator = (state, value) => {
 const labelNameValidator = (state, val) =>
   combineValidationErrors(
     validateNameCharacters(val),
-    validateNonEmpty(val),
+    validateNonEmpty(val.trim()),
+    validateDoubleWhitespace(val),
     validateMaxLength(50, val),
-    duplicationValidator(state, val)
+    duplicationValidator(state, val.trim())
   );
 
 const setTextInput = curryN(3, function setTextInput(fieldName, validationFunc, state, { payload }) {

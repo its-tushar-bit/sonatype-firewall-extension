@@ -40,8 +40,12 @@ import { actions as applicationActions } from '../applicationsSlice';
 import { selectOwnerProperties } from '../orgsAndPoliciesSelectors';
 import { deriveEditRoute } from '../utility/util';
 import { actions as rootActions } from '../rootSlice';
-
-import { validateMaxLength, validateNameCharacters, validateNonEmpty } from 'MainRoot/util/validationUtil';
+import {
+  validateMaxLength,
+  validateNameCharacters,
+  validateNonEmpty,
+  validateDoubleWhitespace,
+} from 'MainRoot/util/validationUtil';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { rscToAngularColorMap } from '../utility/util';
 
@@ -289,8 +293,8 @@ const computeIsDirty = (state) => {
   const { currentCategory, serverCategory } = state;
   const computedCurrentCategory = {
     ...currentCategory,
-    description: currentCategory?.description.value,
-    name: currentCategory?.name.value,
+    description: currentCategory?.description.trimmedValue,
+    name: currentCategory?.name.trimmedValue,
   };
 
   const isDirtyObservedProps = ['color', 'name', 'description'];
@@ -311,14 +315,15 @@ const validateDuplicationName = (value, { siblings, currentCategory }) => {
 
 const categoryNameValidator = (val, state) => () =>
   combineValidationErrors(
-    validateNonEmpty(val),
+    validateNonEmpty(val.trim()),
     validateMaxLength(60, val),
-    validateDuplicationName(val, state),
+    validateDoubleWhitespace(val),
+    validateDuplicationName(val.trim(), state),
     validateNameCharacters(val)
   );
 
 const categoryDescriptionValidator = (val) => () =>
-  combineValidationErrors(validateNonEmpty(val), validateMaxLength(255, val));
+  combineValidationErrors(validateNonEmpty(val.trim()), validateMaxLength(255, val));
 
 const setTextInput = curryN(4, function setTextInput(fieldName, validationFunc, state, { payload }) {
   return computeIsDirty(

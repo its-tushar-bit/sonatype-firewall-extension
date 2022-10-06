@@ -104,6 +104,68 @@ describe('labels reducer', () => {
         validationErrors: [],
       });
     });
+
+    it('gets an error from using a label with two or more spaces in a row', () => {
+      const state = Object.freeze({
+        submitError: 'error',
+        isDirty: true,
+        siblings: [
+          {
+            color: 'dark-blue',
+            description: 'description',
+            label: 'Dark Blue',
+            id: '1242345',
+          },
+        ],
+        currentLabel: {
+          color: 'foo',
+          description: rscInitialState(''),
+          label: rscInitialState(''),
+        },
+        serverCurrentLabel: null,
+      });
+
+      const {
+        currentLabel: { label },
+      } = reducer(state, {
+        type: 'labels/setLabelName',
+        payload: ' Dark   Blue ',
+      });
+
+      expect(label.trimmedValue).toEqual('Dark   Blue');
+      expect(label.validationErrors).toEqual(['No leading, trailing or double spaces or tabs']);
+    });
+
+    it('gets an error from using a label with only spaces', () => {
+      const state = Object.freeze({
+        submitError: 'error',
+        isDirty: true,
+        siblings: [
+          {
+            color: 'dark-blue',
+            description: 'description',
+            label: 'Dark Blue',
+            id: '1242345',
+          },
+        ],
+        currentLabel: {
+          color: 'foo',
+          description: rscInitialState(''),
+          label: rscInitialState(''),
+        },
+        serverCurrentLabel: null,
+      });
+
+      const {
+        currentLabel: { label },
+      } = reducer(state, {
+        type: 'labels/setLabelName',
+        payload: ' ',
+      });
+
+      expect(label.trimmedValue).toEqual('');
+      expect(label.validationErrors).toEqual(['Must be non-empty']);
+    });
   });
 
   describe('labels/resetIsDirty', () => {

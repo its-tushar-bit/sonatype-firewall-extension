@@ -85,6 +85,68 @@ describe('orgsAndPoliciesApplicationCategories reducer', () => {
         validationErrors: [],
       });
     });
+
+    it('gets an error from using an app category with two or more spaces in a row', () => {
+      const state = Object.freeze({
+        submitError: 'error',
+        isDirty: true,
+        siblings: [
+          {
+            color: 'dark-blue',
+            description: 'description',
+            name: 'Dark Blue',
+            id: '1242345',
+          },
+        ],
+        currentCategory: {
+          color: 'foo',
+          description: rscInitialState(''),
+          name: rscInitialState(''),
+        },
+        serverCategory: null,
+      });
+
+      const {
+        currentCategory: { name },
+      } = reducer(state, {
+        type: 'applicationCategories/createEdit/setCategoryName',
+        payload: ' Dark   Blue ',
+      });
+
+      expect(name.trimmedValue).toEqual('Dark   Blue');
+      expect(name.validationErrors).toEqual(['No leading, trailing or double spaces or tabs']);
+    });
+
+    it('gets an error from using an app category with only spaces', () => {
+      const state = Object.freeze({
+        submitError: 'error',
+        isDirty: true,
+        siblings: [
+          {
+            color: 'dark-blue',
+            description: 'description',
+            label: 'Dark Blue',
+            id: '1242345',
+          },
+        ],
+        currentCategory: {
+          color: 'foo',
+          description: rscInitialState(''),
+          name: rscInitialState(''),
+        },
+        serverCategory: null,
+      });
+
+      const {
+        currentCategory: { name },
+      } = reducer(state, {
+        type: 'applicationCategories/createEdit/setCategoryName',
+        payload: ' ',
+      });
+
+      expect(name.trimmedValue).toEqual('');
+      expect(name.validationErrors).toEqual(['Must be non-empty']);
+    });
   });
 
   describe('applicationCategories/createEdit/resetIsDirty', () => {

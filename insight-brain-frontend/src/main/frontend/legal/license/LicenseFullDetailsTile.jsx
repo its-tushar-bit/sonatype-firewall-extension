@@ -138,7 +138,7 @@ export default function LicenseFullDetailsTile(props) {
           id="license-full-details-tile__obligations-and-license"
           className="nx-grid-row nx-grid-h-keyline nx-viewport-sized__container"
         >
-          <div className="nx-grid-col nx-scrollable nx-viewport-sized__scrollable" data-testid="obligationsTexts">
+          <div className="nx-grid-col nx-scrollable nx-viewport-sized__scrollable">
             <dl className="nx-read-only" id="license-full-details-tile__obligations-container">
               {obligations.map((obligation, index) => {
                 const texts = obligation.obligationTexts.map((obligationText) =>
@@ -153,8 +153,8 @@ export default function LicenseFullDetailsTile(props) {
               })}
             </dl>
           </div>
-          <div
-            data-testid="licenseText"
+          <section
+            aria-labelledby="license-full-details-tile__license-header"
             className={
               'nx-grid-col nx-scrollable nx-viewport-sized__scrollable ' + 'component-license-details-license-container'
             }
@@ -165,7 +165,7 @@ export default function LicenseFullDetailsTile(props) {
             <p className="nx-p component-license-details-license-preformatted">
               {licenseTextWithHighlights(licenseText)}
             </p>
-          </div>
+          </section>
         </div>
       </div>
     </section>

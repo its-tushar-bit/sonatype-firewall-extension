@@ -46,16 +46,16 @@ export default function RetentionTile() {
 
   function getSuccessMetricsMaxAge() {
     return (
-      <span className="retention-tile__success-metrics" data-testid="success-metrics-value">
+      <div className="retention-tile__success-metrics">
         {successMetrics.enablePurging ? (
           <>
-            <b>Max Age: </b>
+            <span className="retention-tile__max-age">Max Age: </span>
             {successMetrics.maxAge}
           </>
         ) : (
           NOT_ENABLED
         )}
-      </span>
+      </div>
     );
   }
 
@@ -84,9 +84,9 @@ export default function RetentionTile() {
               </NxTile.SubsectionHeader>
               <RetentionTable stages={stages} />
             </NxTile.Subsection>
-            <NxTile.Subsection>
+            <NxTile.Subsection aria-labelledby="sucess-metrics-heading">
               <NxTile.SubsectionHeader>
-                <NxH3>Success Metrics</NxH3>
+                <NxH3 id="sucess-metrics-heading">Success Metrics</NxH3>
               </NxTile.SubsectionHeader>
               <NxDivider />
               {getSuccessMetricsMaxAge()}

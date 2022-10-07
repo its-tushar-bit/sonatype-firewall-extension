@@ -12,7 +12,6 @@ export const NotificationDetails = ({ notification }) => {
       <div className="iq-dropdown-submenu__title">{notification.summaryText}</div>
       <div
         className="iq-dropdown-submenu__container iq-scrollable"
-        data-testid="detail-html-container"
         dangerouslySetInnerHTML={{ __html: notification.detailHtml }}
       />
     </div>

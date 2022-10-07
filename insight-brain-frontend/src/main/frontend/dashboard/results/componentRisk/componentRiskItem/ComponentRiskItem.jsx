@@ -42,7 +42,7 @@ export default function ComponentRiskItem({ totalRisk, application, risk, stageD
   ));
 
   return (
-    <NxTile className="iq-component-risk-item-content" data-testid="iq-component-risk-item">
+    <NxTile className="iq-component-risk-item-content" aria-label={name + ' component risk'}>
       <div className="iq-component-risk-application-block">
         <h3 className="iq-component-risk-application-name nx-h3">{name}</h3>
         <dl className="iq-component-risk-data">

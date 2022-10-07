@@ -25,8 +25,8 @@ describe('SAMLConfigurationDeleteModal', () => {
   it('renders component', () => {
     renderComponent({ ...props, isDeleteModalShown: true });
 
-    const modalCancelButton = screen.getByTestId('saml-modal-cancel');
-    const modalDeleteButton = screen.getByTestId('saml-modal-delete');
+    const modalCancelButton = screen.getByRole('button', { name: 'Cancel' });
+    const modalDeleteButton = screen.getByRole('button', { name: 'Delete' });
 
     expect(
       screen.queryByText(

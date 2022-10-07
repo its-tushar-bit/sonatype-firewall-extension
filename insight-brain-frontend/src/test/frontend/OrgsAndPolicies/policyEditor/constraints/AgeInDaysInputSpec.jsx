@@ -36,7 +36,7 @@ describe('AgeInDaysInput', () => {
     const expectedConvertedValue = (1095 % weeksModifier) * weeksModifier;
     renderComponent();
 
-    fireEvent.change(screen.getByTestId('condition-age-modifier'), { target: { value: weeksModifier } });
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: weeksModifier } });
 
     expect(onChangeSpy).toHaveBeenCalledWith(String(expectedConvertedValue));
   });
@@ -46,7 +46,7 @@ describe('AgeInDaysInput', () => {
     const yearModifier = 365;
     const expectedConvertedValue = yearModifier * 2;
 
-    fireEvent.change(screen.getByTestId('condition-age-input'), { target: { value: '2' } });
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '2' } });
 
     expect(onChangeSpy).toHaveBeenCalledWith(String(expectedConvertedValue));
   });

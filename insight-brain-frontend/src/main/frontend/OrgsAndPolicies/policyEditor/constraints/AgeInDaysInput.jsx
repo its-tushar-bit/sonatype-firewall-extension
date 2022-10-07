@@ -46,7 +46,6 @@ export default function AgeInDaysInput({ id, onChange, ageInDays }) {
     <>
       <NxTextInput
         id={id}
-        data-testid="condition-age-input"
         className="constraint-editor__age-input constraint-editor__150-width"
         isPristine={ageInDays.isPristine}
         trimmedValue={ageInDays.trimmedValue}
@@ -59,7 +58,6 @@ export default function AgeInDaysInput({ id, onChange, ageInDays }) {
       />
       <NxFormSelect
         aria-label="Age modifier"
-        data-testid="condition-age-modifier"
         onChange={onModifierChange}
         value={modifier}
         className="constraint-editor__age-modifier constraint-editor__150-width"

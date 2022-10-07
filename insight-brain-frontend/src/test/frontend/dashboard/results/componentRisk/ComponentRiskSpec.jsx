@@ -65,10 +65,11 @@ describe('ComponentRisk', () => {
   it('render component risk details', () => {
     renderComponent();
 
-    const listItems = screen.getAllByTestId('iq-component-risk-item');
+    // Each component risk item is its own section
+    const listItems = screen.getAllByRole('region');
 
     expect(screen.getByText('Test component name')).toBeVisible();
-    expect(screen.getByTestId('iq-component-total-risk')).toHaveTextContent('50');
+    expect(screen.getByRole('heading', { name: 'Total risk: 50' })).toBeVisible();
     expect(screen.getByText('Risk score by application')).toBeVisible();
     expect(listItems.length).toEqual(1);
   });

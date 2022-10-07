@@ -165,10 +165,9 @@ describe('RetentionTile', () => {
     });
 
     it('renders success metrics data', async () => {
-      expect(await screen.findByText('Success Metrics')).toBeVisible();
-
-      const successMetricsElement = await screen.findByTestId('success-metrics-value');
-      expect(successMetricsElement.textContent).toEqual('Max Age: 1 year');
+      const successMetricsSection = await screen.findByRole('region', { name: /success metrics/i });
+      expect(await successMetricsSection).toBeVisible();
+      expect(await successMetricsSection).toHaveTextContent(/max age: 1 year/i);
     });
 
     it('edit retention button is visible and navigates to edit retention page', async () => {

@@ -4,11 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import * as enzymeUtils from '../../enzymeUtils';
-import LicenseFullDetailsTile from '../../../../main/frontend/legal/license/LicenseFullDetailsTile';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import LicenseFullDetailsTile from 'MainRoot/legal/license/LicenseFullDetailsTile';
 import { licenseState } from './licenseCommonState';
-import { render, screen } from 'TestRoot/SpecUtil';
-import { within } from '@testing-library/react';
+import { render, screen, within } from 'TestRoot/SpecUtil';
 
 describe('LicenseFullDetailsTile component', function () {
   let getShallowComponent;
@@ -53,9 +52,15 @@ describe('LicenseFullDetailsTile component', function () {
     minimalProps.licenseLegalMetadata[1].obligations[1].obligationTexts[0] = 'common text for obligations';
     minimalProps.licenseLegalMetadata[1].licenseText = 'GPL 2.0 long text here including common text for obligations';
     render(<LicenseFullDetailsTile {...minimalProps} />);
-    const licenseText = screen.getByTestId('licenseText');
-    const obligationsTexts = screen.getByTestId('obligationsTexts');
-    expect(within(obligationsTexts).getAllByText('common text for obligations').length).toBe(2);
-    expect(within(licenseText).getAllByText('common text for obligations').length).toBe(1);
+
+    const licenseTextSection = screen.getByRole('region', { name: /Standard License Text: GPL-2/i });
+
+    // Ensure three total appearances
+    expect(screen.getAllByText('common text for obligations').length).toBe(3);
+    // Ensure one of them is in the license text section
+    expect(within(licenseTextSection).getAllByText('common text for obligations').length).toBe(1);
+    // Test license section header and body content
+    expect(within(licenseTextSection).getByRole('heading', { name: /Standard License Text: GPL-2/i })).toBeVisible();
+    expect(licenseTextSection).toHaveTextContent('GPL 2.0 long text here including common text for obligations');
   });
 });

@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
 .retention-tile {
   .nx-divider {
     margin: var(--nx-spacing-4x) 0;
@@ -11,6 +14,10 @@
   &__success-metrics {
     font-size: var(--nx-font-size-s);
     padding-left: var(--nx-spacing-4x);
+  }
+
+  &__max-age {
+    @include nx-text-helpers.bold;
   }
 
   .nx-table {

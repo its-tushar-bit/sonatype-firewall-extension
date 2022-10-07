@@ -49,16 +49,21 @@ describe('SAMLConfigurationPage', () => {
   it('sets default values in all fields', () => {
     renderComponent();
 
-    expect(screen.getByTestId('identityProviderName').value).toBe('identity provider');
-    expect(screen.getByTestId('usernameAttributeName').value).toBe('username');
-    expect(screen.getByTestId('firstNameAttributeName').value).toBe('firstName');
-    expect(screen.getByTestId('lastNameAttributeName').value).toBe('lastName');
-    expect(screen.getByTestId('emailAttributeName').value).toBe('email');
-    expect(screen.getByTestId('groupsAttributeName').value).toBe('groups');
-    expect(screen.getByTestId('entityId').value).toBe(uriTemplate`/api/v2/config/saml/metadata`);
-    expect(screen.getByTestId('identityProviderMetadataXml').value).toBe('');
-    expect(screen.getByTestId('validateResponseSignature')).toHaveTextContent('Default');
-    expect(screen.getByTestId('validateAssertionSignature')).toHaveTextContent('Default');
+    const [idp, idpMetadata, entityId, username, firstName, lastName, email, groups] = screen.getAllByRole('textbox');
+    const [validateResponseSignature, validateAssertionSignature] = screen.getAllByRole('combobox');
+
+    // Check input values in order of their appearance on the page
+    expect(idp.value).toBe('identity provider');
+    expect(idpMetadata.value).toBe('');
+    expect(entityId.value).toBe(uriTemplate`/api/v2/config/saml/metadata`);
+    expect(username.value).toBe('username');
+    expect(firstName.value).toBe('firstName');
+    expect(lastName.value).toBe('lastName');
+    expect(email.value).toBe('email');
+    expect(groups.value).toBe('groups');
+
+    expect(validateResponseSignature).toHaveTextContent('Default');
+    expect(validateAssertionSignature).toHaveTextContent('Default');
 
     expect(loadSAMLConfigurationSpy).toHaveBeenCalled();
   });
@@ -66,7 +71,7 @@ describe('SAMLConfigurationPage', () => {
   it('renders a disabled download IQ server metadata button', () => {
     renderComponent();
 
-    expect(screen.getByTestId('saml-iq-server-metadata')).toHaveClassName('disabled');
+    expect(screen.getByRole('button', { name: 'Download IQ Server Metadata' })).toHaveClassName('disabled');
   });
 
   it('renders the "not configured" message', () => {
@@ -78,9 +83,9 @@ describe('SAMLConfigurationPage', () => {
   it('renders the save, cancel and delete buttons', () => {
     renderComponent();
 
-    const saveButton = screen.getByText('Save');
-    const cancelButton = screen.getByTestId('saml-cancel');
-    const deleteButton = screen.getByTestId('saml-delete');
+    const saveButton = screen.getByRole('button', { name: 'Save' });
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    const deleteButton = screen.getByRole('button', { name: 'Delete Configuration' });
 
     expect(saveButton).toBeVisible();
     expect(saveButton).toHaveClassName('disabled');

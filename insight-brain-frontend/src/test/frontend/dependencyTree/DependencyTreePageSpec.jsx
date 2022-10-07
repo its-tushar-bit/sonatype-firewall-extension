@@ -55,11 +55,11 @@ describe('DependencyTreePage', () => {
     spyOn(componentDetailsSelectors, 'selectComponentMetaData').and.returnValue(reportMetadata);
     spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(true);
     renderComponent();
-    const breadcrumbs = screen.getByTestId('dependency-tree-page-header-breadcrumbs');
+    const header = screen.getByRole('banner');
     const expectedRenderedReportTime = `${reportMetadata.reportTime} 00:00:00`;
-    expect(within(breadcrumbs).getByText(reportMetadata.organizationName)).toBeVisible();
-    expect(within(breadcrumbs).getByText(reportMetadata.applicationName)).toBeVisible();
-    expect(within(breadcrumbs).getByText(`${reportMetadata.reportTitle} ${expectedRenderedReportTime}`)).toBeVisible();
+    expect(within(header).getByText(reportMetadata.organizationName)).toBeVisible();
+    expect(within(header).getByText(reportMetadata.applicationName)).toBeVisible();
+    expect(within(header).getByText(`${reportMetadata.reportTitle} ${expectedRenderedReportTime}`)).toBeVisible();
   });
 
   it('renders NxErrorAlert if an error is thrown', () => {
@@ -75,7 +75,7 @@ describe('DependencyTreePage', () => {
     spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').and.returnValue(false);
     renderComponent();
     expect(screen.getByText('Dependency tree not available.')).toBeVisible();
-    expect(screen.queryByTestId('dependency-tree-tile')).toBeNull();
+    expect(screen.queryByRole('button', { name: /expand all/i })).toBeNull();
   });
 
   it('renders tile if dependency tree is available', () => {

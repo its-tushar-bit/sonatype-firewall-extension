@@ -25,11 +25,10 @@ describe('IqPopover', function () {
   });
 
   it('forwards all extra props to the root .iq-popover element', () => {
-    const component = getShallowComponent({ id: 'thisone', tabIndex: 0, 'data-testid': 'bar' });
+    const component = getShallowComponent({ id: 'thisone', tabIndex: 0 });
     const el = component.find('.iq-popover');
     expect(el).toHaveProp('id', 'thisone');
     expect(el).toHaveProp('tabIndex', 0);
-    expect(el).toHaveProp('data-testid', 'bar');
   });
 
   it('merges the className attribute to the root element if className is passed as props', () => {

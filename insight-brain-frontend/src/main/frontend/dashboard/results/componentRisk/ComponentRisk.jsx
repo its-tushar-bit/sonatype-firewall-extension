@@ -43,10 +43,7 @@ export default function ComponentRiskDetails() {
           <NxPageTitle.Headings>
             <NxH1 id="iq-component-name">{componentName}</NxH1>
             <NxH2 className="iq-component-total-risk">
-              Total risk:{' '}
-              <span id="iq-component-total-risk" data-testid="iq-component-total-risk">
-                {totalRisk}
-              </span>
+              Total risk: <span id="iq-component-total-risk">{totalRisk}</span>
             </NxH2>
           </NxPageTitle.Headings>
           <NxPageTitle.Description>

@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
-import { render, screen, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import SAMLConfigurationForm from 'MainRoot/configuration/saml/SAMLConfigurationForm';
 import { uriTemplate } from 'MainRoot/util/urlUtil';
 
@@ -72,10 +72,10 @@ describe('SAMLConfigurationForm', () => {
     it('renders a download, save and delete buttons', () => {
       renderComponent(props);
 
-      const saveButton = screen.getByText('Save');
-      const cancelButton = screen.getByTestId('saml-cancel');
-      const deleteButton = screen.getByTestId('saml-delete');
-      const download = screen.getByTestId('saml-iq-server-metadata');
+      const saveButton = screen.getByRole('button', { name: 'Save' });
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+      const deleteButton = screen.getByRole('button', { name: 'Delete Configuration' });
+      const download = screen.getByRole('button', { name: 'Download IQ Server Metadata' });
 
       expect(saveButton).toBeVisible();
       expect(saveButton).toHaveClassName('disabled');
@@ -113,10 +113,10 @@ describe('SAMLConfigurationForm', () => {
     it('renders a download, save and delete buttons', () => {
       renderComponent(props);
 
-      const saveButton = screen.getByText('Save');
-      const cancelButton = screen.getByTestId('saml-cancel');
-      const deleteButton = screen.getByTestId('saml-delete');
-      const download = screen.getByTestId('saml-iq-server-metadata');
+      const saveButton = screen.getByRole('button', { name: 'Save' });
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+      const deleteButton = screen.getByRole('button', { name: 'Delete Configuration' });
+      const download = screen.getByRole('button', { name: 'Download IQ Server Metadata' });
 
       expect(saveButton).toBeVisible();
       expect(saveButton).not.toHaveClassName('disabled');
@@ -139,8 +139,9 @@ describe('SAMLConfigurationForm', () => {
     it('renders saml delete modal and calls delete configuration function', () => {
       renderComponent({ ...props, isDeleteModalShown: true });
 
-      const modalCancelButton = screen.getByTestId('saml-modal-cancel');
-      const modalDeleteButton = screen.getByTestId('saml-modal-delete');
+      const deleteModal = screen.getByRole('dialog');
+      const modalCancelButton = within(deleteModal).getByRole('button', { name: 'Cancel' });
+      const modalDeleteButton = within(deleteModal).getByRole('button', { name: 'Delete' });
 
       expect(
         screen.queryByText(

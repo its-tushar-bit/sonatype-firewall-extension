@@ -14,7 +14,7 @@ describe('LoginModalServiceProvider (higher-order component)', function () {
 
   beforeEach(function () {
     TestComponent = function TestComponent() {
-      return <NxButton data-testid="test-component">(component content)</NxButton>;
+      return <NxButton>(component content)</NxButton>;
     };
   });
 

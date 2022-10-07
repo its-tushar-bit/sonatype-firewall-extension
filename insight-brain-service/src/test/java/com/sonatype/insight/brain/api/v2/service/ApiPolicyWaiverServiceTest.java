@@ -312,24 +312,8 @@ public class ApiPolicyWaiverServiceTest
   }
 
   @Test
-  public void testAddPolicyWaiverByPolicyViolationId_WithExpiry_InPast() {
-    Date expiryTime = DateTime.now().minusHours(1).toDate();
-
-    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
-        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_COMPONENTS, expiryTime));
-
-    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
-    assertThat(policyWaivers).isEmpty();
-
-    policyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
-    assertThat(policyWaivers).isNotEmpty().hasSize(1);
-    assertPolicyWaiver(policyWaivers.get(0), app.getId(), "waiver comment", "testuser", "Test User", null,
-        policyViolation.getConstraintFactsJson(), expiryTime, ALL_COMPONENTS, null);
-  }
-
-  @Test
   public void testAddPolicyWaiverByPolicyViolationId_WithExpiry_InFuture() {
-    Date expiryTime = DateTime.now().plusHours(1).toDate();
+    Date expiryTime = DateTime.now().plusDays(1).toDate();
 
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
         policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_COMPONENTS, expiryTime));
@@ -408,6 +392,21 @@ public class ApiPolicyWaiverServiceTest
     assertThat(policyWaivers).isNotEmpty().hasSize(2);
     assertThat(policyWaivers.get(0).getAssociatedPackageUrl())
         .isNotEqualTo(policyWaivers.get(1).getAssociatedPackageUrl());
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void should_not_create_waiver_when_expiry_date_is_in_past() {
+
+    Date yesterday = new Date(System.currentTimeMillis() - 1000L * 60L * 60L * 24L);
+
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, yesterday));
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void should_not_create_waiver_when_expiry_date_is_today() {
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+        policyViolation.getId(), new ApiWaiverOptionsDTO("waiver comment", ALL_VERSIONS, new Date()));
   }
 
   @Test

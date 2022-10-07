@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -41,6 +42,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -330,7 +332,7 @@ public class ApiPolicyWaiverResourceTest
   }
 
   @Test
-  public void testAddPolicyWaiverByPolicyViolationId_Expired() throws Exception {
+  public void testAddPolicyWaiverByPolicyViolationId_Expired() {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app);
 
@@ -338,24 +340,35 @@ public class ApiPolicyWaiverResourceTest
     PolicyViolation policyViolation = tempEntity
         .newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
 
-    ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
-    waiverOptionsDTO.comment = "waiver comment";
+    /*
+       Directly insert into db with expiry date in the past.
+       The api will now not allow creating waiver with expiry date in the past.
+     */
+
+    PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+    AbstractPolicyViolation abstractPolicyViolation = new PolicyViolationDAO().getById(policyViolation.getId());
     Date expiryTime = DateTime.now().minusDays(1).toDate();
-    waiverOptionsDTO.expiryTime = expiryTime;
-    HttpResponse response = restRequest().path(BY_POLICY_VIOLATION_ID_PATH)
-        .parameter(OwnerType.APPLICATION, app.getId(), policyViolation.getId())
-        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
-        .post();
+    String waiverComment = "some comment";
+    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
+      tx.begin();
+
+      PolicyWaiver policyWaiver =
+          new PolicyWaiver("h1", abstractPolicyViolation.getPolicyId(), app.getId(), waiverComment);
+      policyWaiver.setConstraintFactsJson(abstractPolicyViolation.getConstraintFactsJson());
+      policyWaiver.setExpiryTime(expiryTime);
+
+      policyWaiverDAO.insert(tx, policyWaiver);
+      tx.commit();
+    }
 
     // should not return a policy as the one existing is expired
-    assertResponseStatus(204, response);
     List<PolicyWaiver> activePolicyWaivers = new PolicyWaiverDAO().getActiveByOwnerId(app.getId());
     assertThat(activePolicyWaivers).isEmpty();
 
     // getByOwnerId should still return the expired policy
     List<PolicyWaiver> allPolicyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
     assertThat(allPolicyWaivers).hasSize(1);
-    assertPolicyWaiver(app.getId(), policy, policyViolation, allPolicyWaivers.get(0), "waiver comment",
+    assertPolicyWaiver(app.getId(), policy, policyViolation, allPolicyWaivers.get(0), waiverComment,
         policyViolation.getHash(), expiryTime);
   }
 
@@ -413,7 +426,7 @@ public class ApiPolicyWaiverResourceTest
     assertPolicyWaiver(app.getId(), policy, policyViolationTransitive, allPolicyWaivers.get(0),
         waiverOptionsDTO.comment, policyViolationTransitive.getHash(), waiverOptionsDTO.expiryTime);
   }
-  
+
   @Test
   public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_ByComponentIdentifier() throws Exception {
     testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent(request -> request.query("componentIdentifier",

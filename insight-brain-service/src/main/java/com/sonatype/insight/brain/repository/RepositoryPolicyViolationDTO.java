@@ -29,6 +29,8 @@ public class RepositoryPolicyViolationDTO
 
   public ComponentDisplayName componentDisplayName;
 
+  public String hash;
+
   public String policyId;
 
   public String policyName;
@@ -56,6 +58,7 @@ public class RepositoryPolicyViolationDTO
       String policyViolationId,
       ApiComponentIdentifierDTOV2 componentIdentifier,
       ComponentDisplayName componentDisplayName,
+      String hash,
       String policyId,
       String policyName,
       Owner policyOwner,
@@ -69,6 +72,7 @@ public class RepositoryPolicyViolationDTO
     this.policyViolationId = policyViolationId;
     this.componentIdentifier = componentIdentifier;
     this.componentDisplayName = componentDisplayName;
+    this.hash = hash;
     this.policyId = policyId;
     this.policyName = policyName;
     this.policyOwner = new PolicyOwner();

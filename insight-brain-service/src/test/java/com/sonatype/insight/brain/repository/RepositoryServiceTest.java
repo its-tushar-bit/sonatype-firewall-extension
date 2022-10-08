@@ -299,6 +299,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
         .isEqualTo(repositoryComponent1.getComponentIdentifier().getCoordinates());
     assertThat(repositoryPolicyViolationDTO.componentDisplayName.getName())
         .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(repositoryComponent1.getComponentIdentifier()).getName());
+    assertThat(repositoryPolicyViolationDTO.hash).isEqualTo(repositoryPolicyViolation.getHash());
     assertThat(repositoryPolicyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
     assertThat(repositoryPolicyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
     assertThat(repositoryPolicyViolationDTO.policyOwner.ownerId).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
@@ -331,6 +332,13 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(repositoryPolicyViolationDTOs).hasSize(1);
     RepositoryPolicyViolationDTO repositoryPolicyViolationDTO = repositoryPolicyViolationDTOs.get(0);
     assertThat(repositoryPolicyViolationDTO.policyViolationId).isEqualTo(repositoryPolicyViolation.getId());
+    assertThat(repositoryPolicyViolationDTO.componentIdentifier.getFormat())
+        .isEqualTo(repositoryComponent1.getComponentIdentifier().getFormat());
+    assertThat(repositoryPolicyViolationDTO.componentIdentifier.getCoordinates())
+        .isEqualTo(repositoryComponent1.getComponentIdentifier().getCoordinates());
+    assertThat(repositoryPolicyViolationDTO.componentDisplayName.getName())
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(repositoryComponent1.getComponentIdentifier()).getName());
+    assertThat(repositoryPolicyViolationDTO.hash).isEqualTo(repositoryPolicyViolation.getHash());
     assertThat(repositoryPolicyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
     assertThat(repositoryPolicyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
     assertThat(repositoryPolicyViolationDTO.policyOwner.ownerId).isNull();
@@ -374,6 +382,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
         .isEqualTo(repositoryComponent1.getComponentIdentifier().getCoordinates());
     assertThat(repositoryPolicyViolationDTO.componentDisplayName.getName())
         .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(repositoryComponent1.getComponentIdentifier()).getName());
+    assertThat(repositoryPolicyViolationDTO.hash).isEqualTo(repositoryPolicyViolation.getHash());
     assertThat(repositoryPolicyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
     assertThat(repositoryPolicyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
     assertThat(repositoryPolicyViolationDTO.policyOwner.ownerId).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
@@ -428,6 +437,13 @@ public class RepositoryServiceTest extends AbstractComponentTest
         repositoryService.getPolicyViolation(repository.getId(), repositoryPolicyViolation.getId());
 
     assertThat(repositoryPolicyViolationDTO.policyViolationId).isEqualTo(repositoryPolicyViolation.getId());
+    assertThat(repositoryPolicyViolationDTO.componentIdentifier.getFormat())
+        .isEqualTo(repositoryComponent1.getComponentIdentifier().getFormat());
+    assertThat(repositoryPolicyViolationDTO.componentIdentifier.getCoordinates())
+        .isEqualTo(repositoryComponent1.getComponentIdentifier().getCoordinates());
+    assertThat(repositoryPolicyViolationDTO.componentDisplayName.getName())
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(repositoryComponent1.getComponentIdentifier()).getName());
+    assertThat(repositoryPolicyViolationDTO.hash).isEqualTo(repositoryPolicyViolation.getHash());
     assertThat(repositoryPolicyViolationDTO.policyId).isEqualTo(repositoryPolicyViolation.getPolicyId());
     assertThat(repositoryPolicyViolationDTO.policyName).isEqualTo(repositoryPolicyViolation.getPolicyName());
     assertThat(repositoryPolicyViolationDTO.policyOwner.ownerId).isNull();

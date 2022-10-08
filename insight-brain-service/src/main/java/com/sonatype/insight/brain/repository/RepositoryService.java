@@ -513,9 +513,9 @@ public class RepositoryService
     return new RepositoryPolicyViolationDTO(repositoryPolicyViolation.getId(),
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(repositoryPolicyViolation.getComponentIdentifier()),
         ComponentDisplayNameUtil.fromIdentifier(repositoryPolicyViolation.getComponentIdentifier()),
-        repositoryPolicyViolation.getPolicyId(), repositoryPolicyViolation.getPolicyName(), policyOwner,
-        repositoryPolicyViolation.getThreatLevel(), repositoryPolicyViolation.getThreatCategory(), constraints,
-        repositoryPolicyViolation.getConstraintFactsJson(), repositoryPolicyViolation.getActionTypeId(),
-        repositoryPolicyViolation.getTime());
+        repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getPolicyId(),
+        repositoryPolicyViolation.getPolicyName(), policyOwner, repositoryPolicyViolation.getThreatLevel(),
+        repositoryPolicyViolation.getThreatCategory(), constraints, repositoryPolicyViolation.getConstraintFactsJson(),
+        repositoryPolicyViolation.getActionTypeId(), repositoryPolicyViolation.getTime());
   }
 }

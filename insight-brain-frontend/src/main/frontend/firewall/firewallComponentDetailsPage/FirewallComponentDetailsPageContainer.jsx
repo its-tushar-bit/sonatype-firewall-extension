@@ -13,6 +13,7 @@ import {
   loadComponentDetails,
   onComponentDetailsPageTabChange,
   loadComponentPolicyViolations,
+  loadExistingWaiversData,
 } from '../firewallActions';
 
 function mapStateToProps(state) {
@@ -26,6 +27,7 @@ const mapDispatchToProps = {
   loadComponentDetails,
   onComponentDetailsPageTabChange,
   loadComponentPolicyViolations,
+  loadExistingWaiversData,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(FirewallComponentDetailsPage);

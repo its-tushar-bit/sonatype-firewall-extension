@@ -3,12 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as enzymeUtils from '../../../enzymeUtils';
-import ListWebhooks from '../../../../../main/frontend/configuration/webhook/listWebhooks/ListWebhooks';
-import WebhookListItem from '../../../../../main/frontend/configuration/webhook/listWebhooks/WebhookListItem';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import ListWebhooks from 'MainRoot/configuration/webhook/listWebhooks/ListWebhooks';
+import WebhookListItem from 'MainRoot/configuration/webhook/listWebhooks/WebhookListItem';
 
 describe('ListWebhooks', () => {
-  let getShallow, minProps, webhooks;
+  let getShallow, minProps, webhooks, getMounted;
 
   beforeEach(() => {
     webhooks = [
@@ -38,14 +38,16 @@ describe('ListWebhooks', () => {
     minProps = {
       isAppWebhooksSupported: true,
       webhooks,
+      loadWebhookListPage: () => {},
     };
 
     getShallow = enzymeUtils.getShallowComponent(ListWebhooks, minProps);
+    getMounted = enzymeUtils.getMountedComponent(ListWebhooks, minProps);
   });
 
   describe('when no webhooks exist', () => {
     it('renders list with the empty list item', () => {
-      const listItems = getShallow({ webhooks: [] }).find('.nx-list__item');
+      const listItems = getMounted({ webhooks: [] }).find('.nx-list__item');
       expect(listItems.length).toBe(1);
       expect(listItems).toHaveClassName('nx-list__item--empty');
       expect(listItems.find(WebhookListItem)).not.toExist();

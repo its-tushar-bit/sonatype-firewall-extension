@@ -83,7 +83,7 @@ describe('Coordinates', () => {
   it('calls onFormatChange if coordinates format is changed', () => {
     renderComponent();
 
-    fireEvent.change(screen.getByTestId('coordinates-format'), { target: { value: 'a-name' } });
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'a-name' } });
 
     expect(onFormatChangeSpy).toHaveBeenCalled();
   });

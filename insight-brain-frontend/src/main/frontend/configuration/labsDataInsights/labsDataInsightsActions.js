@@ -13,9 +13,11 @@ export const LABS_DATA_INSIGHTS_FAILED = 'LABS_DATA_INSIGHTS_FAILED';
 export function loadLabsDataInsights() {
   return function (dispatch) {
     dispatch(loadLabsDataInsightsRequested());
-
     const script = document.createElement('script');
-    script.src = '/rest/labs?command=getJS&values=bootstrapLab.js';
+    const currentUrl = window.location.href;
+    const basePath = currentUrl.substring(0, currentUrl.indexOf('/assets/'));
+    window.labsBasePath = basePath; // this value is used by data insights
+    script.src = basePath + '/rest/labs?command=getJS&values=bootstrapLab.js';
     script.async = true;
     script.addEventListener('load', success, false);
     script.addEventListener('error', error, false);

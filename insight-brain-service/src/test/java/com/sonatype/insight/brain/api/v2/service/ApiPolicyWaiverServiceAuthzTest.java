@@ -383,17 +383,37 @@ public class ApiPolicyWaiverServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetApplicableWaiver_Application_Unauthorized() {
+  public void testGetApplicableWaivers_Application_Unauthorized() {
     String policyViolationId = setUpParameterizePolicyViolation(app.getId());
     login();
     apiPolicyWaiverService.getApplicableWaivers(policyViolationId);
   }
 
   @Test
-  public void testGetApplicableWaiver_Application_Authorized() {
+  public void testGetApplicableWaivers_Application_Authorized() {
     grantPermission(app.getId(), Permission.READ);
     String policyViolationId = setUpParameterizePolicyViolation(app.getId());
     apiPolicyWaiverService.getApplicableWaivers(policyViolationId);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetApplicableWaivers_Repository_Unauthenticated() {
+    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    apiPolicyWaiverService.getApplicableWaivers(repositoryPolicyViolation.getId());
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetApplicableWaivers_Repository_Unauthorized() {
+    login();
+    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    apiPolicyWaiverService.getApplicableWaivers(repositoryPolicyViolation.getId());
+  }
+
+  @Test
+  public void testGetApplicableWaivers_Repository_Authorized() {
+    grantPermission(repository.getId(), Permission.READ);
+    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+    apiPolicyWaiverService.getApplicableWaivers(repositoryPolicyViolation.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)

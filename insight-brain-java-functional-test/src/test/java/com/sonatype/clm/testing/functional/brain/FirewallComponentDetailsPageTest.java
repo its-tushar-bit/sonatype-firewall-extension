@@ -37,8 +37,10 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemedia
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover.VulnerabilityOverrideForm;
+import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
+import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -113,6 +115,10 @@ public class FirewallComponentDetailsPageTest
   private Policy coordinatesPolicy;
 
   private Date date;
+
+  static final String dateTimeFormatMask = "yyyy-MM-dd HH:mm:ss";
+
+  static final String dateFormatMask = "MM/dd/yyyy";
 
   @BeforeClass
   public static void startup() {
@@ -325,7 +331,7 @@ public class FirewallComponentDetailsPageTest
       ConstraintFact licenseConstraintFact =
           createConstraintFact("constraint3", "LicensePolicy constraint", "summary", "Found license threat group");
       createRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent.getPathname(),
-          repositoryComponent.getHash(), Collections.singletonList(licenseConstraintFact), false /* isWaived */, "warn",
+          repositoryComponent.getHash(), Collections.singletonList(licenseConstraintFact), true /* isWaived */, "warn",
           licensePolicy.getId(), licensePolicy.getName(), componentIdentifier, date, null /* policyWaiverId */,
           null/* policyWaiverComment */, null/* waiveTime */, PolicyThreatCategory.LICENSE);
     }
@@ -525,8 +531,8 @@ public class FirewallComponentDetailsPageTest
     table.catalogDateRow().get(2).shouldBe(empty);
   }
 
-  private String getDateString(Date date) {
-    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+  private String getDateString(Date date, String formatDate) {
+    DateFormat dateFormat = new SimpleDateFormat(formatDate);
     dateFormat.setTimeZone(TimeZone.getDefault());
     return dateFormat.format(date);
   }
@@ -617,9 +623,9 @@ public class FirewallComponentDetailsPageTest
     Date quarantineTime = date;
     Date lastEvaluationTime = new Date(date.getTime() + 10000);
     Date unquarantineTime = new Date(date.getTime() + 20000);
-    String unquarantineTimeString = getDateString(unquarantineTime);
-    String lastEvaluationTimeString = getDateString(lastEvaluationTime);
-    String quarantineTimeString = getDateString(quarantineTime);
+    String unquarantineTimeString = getDateString(unquarantineTime, dateTimeFormatMask);
+    String lastEvaluationTimeString = getDateString(lastEvaluationTime, dateTimeFormatMask);
+    String quarantineTimeString = getDateString(quarantineTime, dateTimeFormatMask);
     eyesWatcher.eyesCheck(
         "Firewall Component Details Page - Compare Versions table with a component manually released from quarantine");
     RepositoryComponent component =
@@ -634,9 +640,9 @@ public class FirewallComponentDetailsPageTest
     Date quarantineTime = date;
     Date lastEvaluationTime = new Date(date.getTime() + 10000);
     Date unquarantineTime = new Date(date.getTime() + 20000);
-    String unquarantineTimeString = getDateString(unquarantineTime);
-    String lastEvaluationTimeString = getDateString(lastEvaluationTime);
-    String quarantineTimeString = getDateString(quarantineTime);
+    String unquarantineTimeString = getDateString(unquarantineTime, dateTimeFormatMask);
+    String lastEvaluationTimeString = getDateString(lastEvaluationTime, dateTimeFormatMask);
+    String quarantineTimeString = getDateString(quarantineTime, dateTimeFormatMask);
     RepositoryComponent component =
         setupAllUnquarantinedComponentTestData(lastEvaluationTime, quarantineTime, unquarantineTime, true);
     testCompareVersionsValues_ForUnquarantinedComponent(component, lastEvaluationTimeString, quarantineTimeString,
@@ -1004,5 +1010,37 @@ public class FirewallComponentDetailsPageTest
     vulnerabilityRowCells.get(2)
         .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
     vulnerabilityOverrideForm.comment().shouldHave(text(overriddenVulnerabilityComment));
+  }
+
+  @Test
+  public void testViolationTabWaiverTable() throws Exception {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    Date waiverCreateDate = date;
+    String waiverCreateDateString = getDateString(waiverCreateDate, dateFormatMask);
+
+    ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
+
+    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
+    firewallComponentDetailsPage.firewallWaiversButton().click();
+
+    componentWaiversPopover.shouldBe(visible);
+    componentWaiversPopover.title().shouldHave(text("Component Waivers"));
+    componentWaiversTable.shouldBe(visible);
+    componentWaiversTable.getRows().shouldHaveSize(1);
+
+    ElementsCollection waiversTableCells = componentWaiversTable.getCellsByNthRow(1);
+
+    waiversTableCells.shouldHaveSize(7);
+    waiversTableCells.get(0).shouldHave(text("Security-Low Security-low constraint"));
+    waiversTableCells.get(1).shouldHave(text(waiverCreateDateString));
+    waiversTableCells.get(2).shouldHave(text("Organization - Root Organization"));
+    waiversTableCells.get(3).shouldBe(text("com.lingocoder : abi.cli : 0.5.2"));
+    waiversTableCells.get(4).shouldBe(text("Test User"));
+    waiversTableCells.get(5).shouldBe(text("Test comment for waiver"));
   }
 }

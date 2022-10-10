@@ -9,9 +9,10 @@ import {
   LOAD_RESULTS_FAILED,
   SORT_RESULTS_REQUESTED,
   SORT_RESULTS_FULFILLED,
+  RESET_ALL_TABS,
 } from './results/dashboardResultsActions';
 
-import { APPLY_FILTER_REQUESTED, LOAD_FILTER_REQUESTED } from './filter/dashboardFilterActions';
+import { LOAD_FILTER_REQUESTED } from './filter/dashboardFilterActions';
 
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
@@ -45,7 +46,6 @@ export default function (state = initState, { type, payload }) {
       return setCurrentTab(state, payload);
 
     case LOAD_FILTER_REQUESTED:
-    case APPLY_FILTER_REQUESTED:
       return resetAllTabs(state);
 
     case LOAD_RESULTS_REQUESTED:
@@ -74,6 +74,9 @@ export default function (state = initState, { type, payload }) {
       const { resultsType, results } = payload;
       return updateResults(state, resultsType, { results });
     }
+
+    case RESET_ALL_TABS:
+      return resetAllTabs(state);
 
     default:
       return state;

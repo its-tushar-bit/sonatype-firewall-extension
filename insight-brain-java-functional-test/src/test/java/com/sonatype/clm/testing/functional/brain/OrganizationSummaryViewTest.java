@@ -138,15 +138,44 @@ public class OrganizationSummaryViewTest
 
   @Test
   public void testImportPolicy() {
-    String filePath = new File(getClass().getResource("/policyExport/samplePolicy.json").getFile()).getAbsolutePath();
+    String filePath = new File(getClass().getResource("/policyExport/sampleNonJsonFile.file")
+            .getFile()).getAbsolutePath();
 
     ActionDropDown.actionButton().click();
     ActionDropDown.importPoliciesButton().shouldBe(visible).click();
 
     ImportPolicyModal.root().shouldBe(visible);
-    ImportPolicyModal.importButton().shouldBe(visible, disabled);
+    ImportPolicyModal.importButton().shouldBe(visible).shouldHave(cssClass("disabled"));
+
+    // ANY file enables the "Import" button
+    ImportPolicyModal.fileInput().shouldBe(visible).sendKeys(filePath);
+    ImportPolicyModal.importButton().shouldBe(visible).shouldNotHave(cssClass("disabled"));
+
+    // Ensure non-JSON file is not accepted by backend validation
+    ImportPolicyModal.importButton().waitUntil(enabled, 2000).click();
+    ImportPolicyModal.errorMessage()
+        .shouldBe(visible)
+        .shouldHave(
+          text(
+            "An error occurred saving data. The file you selected failed to upload correctly, are you certain it " +
+            "is a properly formatted policy import json file?"
+          )
+      );
+
+    // Clear file selection
+    ImportPolicyModal.fileInputClearButton().click();
+    ImportPolicyModal.errorRetryButton().click();
+    ImportPolicyModal.fileInputRequiredFieldError().shouldBe(visible);
+    ImportPolicyModal.importButton().shouldBe(visible).shouldHave(cssClass("disabled")).hover();
+    Tooltip.get().shouldHave(text("Unable to save: fields with invalid or missing data"));
+
+    // Select valid JSON file
+    filePath = new File(getClass().getResource("/policyExport/samplePolicy.json").getFile()).getAbsolutePath();
 
     ImportPolicyModal.fileInput().shouldBe(visible).sendKeys(filePath);
+    ImportPolicyModal.fileInputRequiredFieldError().shouldNotBe(visible);
+    ImportPolicyModal.importButton().shouldBe(visible).shouldNotHave(cssClass("disabled")).hover();
+    Tooltip.get().shouldNotBe(visible);
 
     // Give a maximum of 2 seconds for the file to be loaded
     ImportPolicyModal.importButton().waitUntil(enabled, 2000).click();
@@ -175,7 +204,8 @@ public class OrganizationSummaryViewTest
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
     LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
     ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
-    section.getEmptyDescriptor().should(exist);
+    section.getEmptyDescriptor().shouldNot(exist);
+    section.getLTG(0).shouldHave(text("Test LTG"));
     section.getTableContent().shouldHaveSize(1);
 
     eyesWatcher.eyesCheck("license threat group tile after policy import");

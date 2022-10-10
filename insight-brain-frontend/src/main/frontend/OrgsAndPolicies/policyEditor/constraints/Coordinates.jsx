@@ -21,7 +21,6 @@ export default function Coordinates({ onFormatChange, onInputChange, fields, con
   return (
     <>
       <NxFormSelect
-        data-testid="coordinates-format"
         className="constraint-editor__coordinate-format constraint-editor__150-width"
         onChange={onFormatChange}
         value={fields.format}

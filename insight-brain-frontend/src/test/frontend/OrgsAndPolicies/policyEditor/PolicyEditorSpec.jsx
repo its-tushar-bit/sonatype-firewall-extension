@@ -306,7 +306,7 @@ describe('PolicyEditorSpec', () => {
         updateButton = screen.getByText('Create');
         expect(updateButton).toHaveClassName('disabled');
 
-        const conditionAgeInput = screen.getByTestId('condition-age-input');
+        const conditionAgeInput = screen.getByPlaceholderText('Age');
         fireEvent.change(conditionAgeInput, { target: { value: '2' } });
         updateButton = screen.getByText('Create');
         expect(updateButton).not.toHaveClassName('disabled');

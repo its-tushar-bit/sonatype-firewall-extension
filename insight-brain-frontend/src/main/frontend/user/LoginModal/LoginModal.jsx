@@ -115,7 +115,6 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
                   onChange={onChangeUsername}
                   autoComplete="username"
                   aria-required={true}
-                  data-testid="iq-login-modal-username-input"
                 />
               </NxFormGroup>
               {/* Password */}
@@ -128,16 +127,12 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
                   onChange={onChangePassword}
                   autoComplete="current-password"
                   aria-required={true}
-                  data-testid="iq-login-modal-password-input"
                 />
               </NxFormGroup>
               {renderVulnerabilityLink && (
                 <p className="iq-login-modal-helper-text nx-p">
                   Look up a vulnerability without signing in at{' '}
-                  <NxTextLink href={vulnSearchHref} data-testid="vuln-lookup-link">
-                    Vulnerability Lookup
-                  </NxTextLink>
-                  .
+                  <NxTextLink href={vulnSearchHref}>Vulnerability Lookup</NxTextLink>.
                 </p>
               )}
             </div>

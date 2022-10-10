@@ -73,4 +73,9 @@ public class SourceControlRateLimitTelemetryCollectorTest
       }
     });
   }
+
+  @Test
+  public void testIsClusterTelemetry() {
+    assertThat(new SourceControlRateLimitTelemetryCollector().isClusterTelemetry()).isFalse();
+  }
 }

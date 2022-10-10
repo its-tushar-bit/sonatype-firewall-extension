@@ -404,6 +404,9 @@ public abstract class AbstractPolicyEditorTest
 
     refreshOrOpen(PolicyEditorPage.urlToEdit(currentOwner, policy.getId()));
 
+    NotificationsSection.notificationFor("Project One (Bug)").proxy().hover();
+    Tooltip.get().shouldBe(visible)
+        .shouldHave(text("Jira notifications are not available for policy violations at Proxy stage."));
     NotificationsSection.notificationFor("Project One (Bug)").deleteButton().click();
     NotificationsSection.notifications().shouldHaveSize(1).get(0).shouldHave(text("No notifications configured"));
 

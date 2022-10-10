@@ -273,44 +273,40 @@ const loadCategoriesForPolicyFailed = (state, { payload }) => {
 const loadPolicyTile = createAsyncThunk(`${REDUCER_NAME}/loadPolicyTile`, (_, { rejectWithValue, dispatch }) => {
   const promises = [dispatch(rootActions.loadApplicablePoliciesByOwner()), dispatch(stagesActions.loadActionStages())];
   return Promise.all(promises)
-    .then(
-      ([
-        { payload: policiesByOwner },
-        {
-          payload: { data: actionStages },
-        },
-      ]) => {
-        const ownerIds = policiesByOwner.map(prop('ownerId'));
+    .then(([loadApplicablePoliciesByOwnerPayload, loadActionStagesPayload]) => {
+      const policiesByOwner = unwrapResult(loadApplicablePoliciesByOwnerPayload);
+      const { data: actionStages } = unwrapResult(loadActionStagesPayload);
 
-        const updatedPoliciesByOwner = policiesByOwner.map((policyOwner, index) => {
-          const policies = policyOwner.policies.map((policy) => {
-            const actionsOverrideInfo = getActionsOverride(ownerIds, policy);
-            const actions = actionsOverrideInfo?.actionsOverride || policy.actions;
+      const ownerIds = policiesByOwner.map(prop('ownerId'));
 
-            const enforcementAction = {};
-            actionStages.forEach((actionStage) => {
-              if (actions[actionStage.stageTypeId]) {
-                enforcementAction[actionStage.stageTypeId] = actions[actionStage.stageTypeId];
-              }
-            });
+      const updatedPoliciesByOwner = policiesByOwner.map((policyOwner, index) => {
+        const policies = policyOwner.policies.map((policy) => {
+          const actionsOverrideInfo = getActionsOverride(ownerIds, policy);
+          const actions = actionsOverrideInfo?.actionsOverride || policy.actions;
 
-            return {
-              ...policy,
-              hasLocalActionsOverrides: actionsOverrideInfo?.isCurrentOwnerOverride,
-              enforcementAction,
-            };
+          const enforcementAction = {};
+          actionStages.forEach((actionStage) => {
+            if (actions[actionStage.stageTypeId]) {
+              enforcementAction[actionStage.stageTypeId] = actions[actionStage.stageTypeId];
+            }
           });
 
           return {
-            ...policyOwner,
-            inherited: index > 0,
-            policies,
+            ...policy,
+            hasLocalActionsOverrides: actionsOverrideInfo?.isCurrentOwnerOverride,
+            enforcementAction,
           };
         });
 
-        return updatedPoliciesByOwner;
-      }
-    )
+        return {
+          ...policyOwner,
+          inherited: index > 0,
+          policies,
+        };
+      });
+
+      return updatedPoliciesByOwner;
+    })
     .catch(rejectWithValue);
 });
 

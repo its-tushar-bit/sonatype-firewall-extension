@@ -161,4 +161,8 @@ public class FirewallComponentDetailsPage
   public String getProxyStateIconTypeFromViolationsTableRow(int row) {
     return getVulnerabilitiesTableRows().get(row).find(".iq-policy-violation-row__proxy-state-flag").getText();
   }
+
+  public SelenideElement firewallWaiversButton() {
+    return child("#firewall-details-view-waivers");
+  }
 }

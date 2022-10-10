@@ -86,7 +86,7 @@ describe('LoginModal', () => {
     renderComponent();
 
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
-    expect(screen.queryByTestId('vuln-lookup-link')).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Vulnerability Lookup' })).toBeNull();
   });
 
   it('does not render Vulnerability Lookup link when isUnauthenticatedPagesEnabled false', () => {
@@ -96,16 +96,20 @@ describe('LoginModal', () => {
     });
     renderComponent();
 
-    expect(screen.queryByTestId('vuln-lookup-link')).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Vulnerability Lookup' })).toBeNull();
   });
 
   it('renders Vulnerability Lookup link in index but NOT cancel button when unauthenticated pages is enabled', () => {
+    let hrefSpy = jasmine.createSpy('href').and.callFake((args) => `href-${args}`);
     spyOn(routeSelectors, 'selectRouterState').and.returnValue({ name: 'index' });
+    spyOn(routerContext, 'useRouterState').and.returnValue({
+      href: hrefSpy,
+    });
     useSelectorLoginStateSpy.and.returnValue(loginState);
     renderComponent();
 
     expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
-    expect(screen.getByTestId('vuln-lookup-link')).toBeVisible();
+    expect(screen.queryByRole('link', { name: 'Vulnerability Lookup' })).toBeVisible();
   });
 
   it('gets the href for Vulnerability Link', () => {
@@ -119,7 +123,10 @@ describe('LoginModal', () => {
     });
 
     renderComponent();
-    expect(screen.getByTestId('vuln-lookup-link')).toHaveAttribute('href', 'href-vulnerabilitySearch');
+    expect(screen.queryByRole('link', { name: 'Vulnerability Lookup' })).toHaveAttribute(
+      'href',
+      'href-vulnerabilitySearch'
+    );
   });
 
   it('does not render Vulnerability Lookup link or cancel button if unlicensed, even if on a page that does not require authentication', () => {
@@ -165,9 +172,6 @@ describe('LoginModal', () => {
     const userInputValidator = (val) => {
       return val.length ? null : 'Required field';
     };
-    const changeEventHelper = (testId, targetValue) => {
-      fireEvent.change(screen.getByTestId(testId), { target: { value: targetValue } });
-    };
 
     beforeEach(() => {
       (usernameInput = 'testUser'), (passwordInput = 'testPassword');
@@ -175,15 +179,15 @@ describe('LoginModal', () => {
 
     it('shows validation errors and styles after user input, when required fields are not completed', () => {
       renderComponent();
-      changeEventHelper('iq-login-modal-username-input', usernameInput);
-      changeEventHelper('iq-login-modal-password-input', passwordInput);
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: usernameInput } });
+      fireEvent.change(screen.getByLabelText('Password'), { target: { value: passwordInput } });
 
       // Verify no errors are showing
       expect(screen.queryByText('Required field')).toBeNull();
 
       // Remove input
-      changeEventHelper('iq-login-modal-username-input', '');
-      changeEventHelper('iq-login-modal-password-input', '');
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: '' } });
+      fireEvent.change(screen.getByLabelText('Password'), { target: { value: '' } });
 
       expect(setUsernameSpy).toHaveBeenCalledWith(userInput(userInputValidator, ''));
       expect(setPasswordSpy).toHaveBeenCalledWith(userInput(userInputValidator, ''));
@@ -205,8 +209,8 @@ describe('LoginModal', () => {
     it('submits the login form when submit button is clicked', () => {
       renderComponent();
 
-      changeEventHelper('iq-login-modal-username-input', usernameInput);
-      changeEventHelper('iq-login-modal-password-input', passwordInput);
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: usernameInput } });
+      fireEvent.change(screen.getByLabelText('Password'), { target: { value: passwordInput } });
 
       expect(setUsernameSpy).toHaveBeenCalledWith(userInput(userInputValidator, usernameInput));
       expect(setPasswordSpy).toHaveBeenCalledWith(userInput(userInputValidator, passwordInput));

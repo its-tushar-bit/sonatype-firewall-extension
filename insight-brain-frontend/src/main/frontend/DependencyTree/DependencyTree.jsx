@@ -58,7 +58,7 @@ function TreeNode({ items, treePathToggleAction, hashToMatch, searchTerm }) {
             )}
           </NxTree.ItemLabel>
           {!!item.children && (
-            <NxTree data-testid="tree">
+            <NxTree>
               <MemoizedTreeNode
                 items={item.children}
                 treePathToggleAction={treePathToggleAction}

@@ -38,7 +38,11 @@ export default function LicenseThreatGroupSummaryTile() {
   }, [selectedOwner]);
 
   const renderApplicableLicenseThreatGroup = (props) => {
-    if (isNilOrEmpty(props.licenseThreatGroups) && props.inherited && props.ownerType === 'organization') {
+    const isLocalForApp =
+      !props.inherited && props.ownerType === 'application' && isNilOrEmpty(props.licenseThreatGroups);
+    const isEmptyForOrg =
+      isNilOrEmpty(props.licenseThreatGroups) && props.inherited && props.ownerType === 'organization';
+    if (isLocalForApp || isEmptyForOrg) {
       return null;
     }
 

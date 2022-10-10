@@ -255,4 +255,9 @@ public class RepositoryQueryService
     telemetryData.put(INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY, entry.getValue().intValue());
     return telemetryData;
   }
+
+  @Override
+  public boolean isClusterTelemetry() {
+    return false;
+  }
 }

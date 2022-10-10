@@ -162,7 +162,7 @@ describe('DashboardFilter', function () {
 
   it('renders a DashboardFilterFooter with the correct props', function () {
     const props = {
-        applyFilterError: 'err',
+        applyFilterError: 'Error',
         filtersAreDirty: true,
         needsAcknowledgement: true,
         setDisplaySaveFilterModal: jasmine.createSpy('setDisplaySaveFilterModal'),

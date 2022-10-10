@@ -24,6 +24,7 @@ import DashboardFilterFooter from './DashboardFilterFooter';
 import SaveFilterModalContainer from '../saveFilterModal/SaveFilterModalContainer';
 import ManageFiltersDropdown from '../manageFiltersDropdown/ManageFiltersDropdown';
 import DeleteFilterModalContainer from '../deleteFilterModal/DeleteFilterModalContainer';
+
 export default function DashboardFilter(props) {
   const {
     loading,

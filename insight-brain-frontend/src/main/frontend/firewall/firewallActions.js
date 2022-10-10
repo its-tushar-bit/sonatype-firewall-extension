@@ -17,6 +17,7 @@ import {
   getComponentDetailsUrl,
   getVersionGraphUrl,
   getComponentPolicyViolationsUrl,
+  getComponentWaivers,
 } from '../util/CLMLocation';
 import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
@@ -142,6 +143,16 @@ export const loadComponentPolicyViolationsFailed = payloadParamActionCreator(
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED
 );
 
+export const FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED = 'FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED';
+export const FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED = 'FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED';
+export const FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED = 'FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED';
+
+export const loadExistingWaiversDataRequested = noPayloadActionCreator(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED);
+export const loadExistingWaiversDataFulfilled = payloadParamActionCreator(
+  FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED
+);
+export const loadExistingWaiversDataFailed = payloadParamActionCreator(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED);
+
 export function loadFirewallData() {
   return (dispatch) => {
     dispatch(loadFirewallDataRequested());
@@ -217,6 +228,18 @@ export const loadComponentPolicyViolations = (pathname, repository) => (dispatch
     })
     .catch((error) => {
       dispatch(loadComponentPolicyViolationsFailed(Messages.getHttpErrorMessage(error)));
+    });
+};
+
+export const loadExistingWaiversData = (ownerType, publicId, hash) => (dispatch) => {
+  dispatch(loadExistingWaiversDataRequested());
+  return axios
+    .get(getComponentWaivers(ownerType, publicId, hash))
+    .then(({ data }) => {
+      dispatch(loadExistingWaiversDataFulfilled(data));
+    })
+    .catch((error) => {
+      dispatch(loadExistingWaiversDataFailed(Messages.getHttpErrorMessage(error)));
     });
 };
 

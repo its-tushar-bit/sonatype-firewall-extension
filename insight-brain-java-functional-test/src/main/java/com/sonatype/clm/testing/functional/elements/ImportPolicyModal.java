@@ -18,10 +18,26 @@ public class ImportPolicyModal
   }
 
   public static SelenideElement fileInput() {
-    return $(ROOT_SELECTOR + " #import-file");
+    return $(ROOT_SELECTOR + " .nx-file-upload__input");
+  }
+
+  public static SelenideElement fileInputClearButton() {
+    return $(ROOT_SELECTOR + " .nx-selected-file__dismiss-btn");
+  }
+
+  public static SelenideElement fileInputRequiredFieldError() {
+    return $(ROOT_SELECTOR + " .nx-file-upload__validation-error");
   }
 
   public static SelenideElement importButton() {
-    return $(ROOT_SELECTOR + " #import-policy-upload");
+    return $(ROOT_SELECTOR + " .nx-form__submit-btn");
+  }
+
+  public static SelenideElement errorMessage() {
+    return $(ROOT_SELECTOR + " .nx-load-error__message");
+  }
+
+  public static SelenideElement errorRetryButton() {
+    return $(ROOT_SELECTOR + " .nx-load-error__retry");
   }
 }

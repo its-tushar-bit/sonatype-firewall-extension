@@ -115,6 +115,11 @@ public class SourceControlMetricsTelemetryCollectorTest extends AbstractComponen
             entry(TOTAL_PULL_REQUESTS_UPDATED_6_M_AGO_OR_EARLIER, 1));
   }
 
+  @Test
+  public void testIsClusterTelemetry() {
+    assertThat(collector.isClusterTelemetry()).isTrue();
+  }
+
   private void setupPrBranchTestData() {
     // add 1 record with update time older than 1 week
     Calendar calendar = Calendar.getInstance();

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -12,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -130,8 +133,7 @@ public class ApiPolicyWaiverService
   /**
    * This is currently used in "request waiver"
    *
-   * @deprecated Use {@link #addPolicyWaiverByPolicyViolationId(OwnerType, String, String, String,
-   * ComponentMatcherStrategyForWaiver, Date)}
+   * @deprecated Use {@link #addPolicyWaiverByPolicyViolationId(OwnerType, String, String, ApiWaiverOptionsDTO)}
    */
   @Deprecated
   public void addPolicyWaiver(
@@ -201,6 +203,12 @@ public class ApiPolicyWaiverService
 
     String comment = waiverOptionsDTO == null ? null : waiverOptionsDTO.comment;
     Date expiryTime = waiverOptionsDTO == null ? null : waiverOptionsDTO.expiryTime;
+
+    // validate expiry date
+    if (Objects.nonNull(expiryTime) &&
+        !expiryTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(LocalDate.now())) {
+      throw new BadRequestException("Expiration date must be in the future.");
+    }
 
     addPolicyWaiver(ownerType, internalOwnerId, abstractPolicyViolation, comment, matcherStrategy, expiryTime);
   }
@@ -398,19 +406,22 @@ public class ApiPolicyWaiverService
    * @since 1.98
    */
   public ApiPolicyWaiversApplicableToViolationDTO getApplicableWaivers(final String violationId) {
-    ApiPolicyWaiversApplicableToViolationDTO apiPolicyWaivers = new ApiPolicyWaiversApplicableToViolationDTO();
-    PolicyViolation policyViolation = new PolicyViolationDAO().getById(violationId);
+    // The violationId may references an application policy violation or a repository policy violation
+    AbstractPolicyViolation policyViolation = new PolicyViolationDAO().getById(violationId);
     if (policyViolation == null) {
-      throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
+      policyViolation = new RepositoryPolicyViolationDAO().getById(violationId);
+      if (policyViolation == null) {
+        throw new NotFoundException("Could not find policy violation with ID " + violationId + ".");
+      }
     }
 
     String policyId = policyViolation.getPolicyId();
     String constraintFactsJson = policyViolation.getConstraintFactsJson();
     String hash = policyViolation.getHash();
-    String applicationId = policyViolation.getApplicationId();
+    String ownerId = policyViolation.getOwnerId();
     ComponentIdentifier componentIdentifier = policyViolation.getComponentIdentifier();
 
-    Owner owner = ownerDAO.getById(applicationId);
+    Owner owner = ownerDAO.getById(ownerId);
 
     Map<Boolean, List<ApiPolicyWaiverDTO>> applicableWaivers = getAllApplicableWaiversWithAuthzCheck(owner).stream()
         .filter(policyWaiver -> filterWaiverByCriteria(policyId, constraintFactsJson, componentIdentifier, hash,
@@ -419,8 +430,8 @@ public class ApiPolicyWaiverService
             ApiPolicyWaiverDTO.toDto(policyWaiver, ownerDAO.getById(policyWaiver.getOwnerId()), violationId))
         .collect(partitioningBy(dto -> hasWaiverExpired(dto.expiryTime), toList()));
 
+    ApiPolicyWaiversApplicableToViolationDTO apiPolicyWaivers = new ApiPolicyWaiversApplicableToViolationDTO();
     apiPolicyWaivers.activeWaivers = applicableWaivers.get(Boolean.FALSE);
-
     apiPolicyWaivers.expiredWaivers = applicableWaivers.get(Boolean.TRUE);
 
     return apiPolicyWaivers;

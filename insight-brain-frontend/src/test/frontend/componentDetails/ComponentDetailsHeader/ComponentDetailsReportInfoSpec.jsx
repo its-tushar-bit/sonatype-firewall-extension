@@ -34,11 +34,10 @@ describe('ComponentDetailsReportInfo', () => {
   });
 
   it('forwards all extra props to the root element', () => {
-    const component = getShallowComponent({ id: 'thisone', tabIndex: 0, 'data-testid': 'bar' });
+    const component = getShallowComponent({ id: 'thisone', tabIndex: 0 });
     const el = component.first();
     expect(el).toHaveProp('id', 'thisone');
     expect(el).toHaveProp('tabIndex', 0);
-    expect(el).toHaveProp('data-testid', 'bar');
   });
 
   it('does not render if there is no applicationName, organizationName or reportTime and reportTitle props passed', () => {

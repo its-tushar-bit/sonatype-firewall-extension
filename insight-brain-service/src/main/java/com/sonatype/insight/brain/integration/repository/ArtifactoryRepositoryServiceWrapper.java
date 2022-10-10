@@ -100,6 +100,16 @@ class ArtifactoryRepositoryServiceWrapper
             withQuarantine, clientUserAgent);
   }
 
+  RepositoryComponentEvaluationDataList evaluateComponentMetadata(
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      String clientUserAgent)
+  {
+    return repositoryService.evaluateComponentMetadata(repositoryManagerInstanceId, repositoryPublicId,
+        componentEvaluationDataRequestList, clientUserAgent);
+  }
+
   void setQuarantine(
       final String repositoryManagerInstanceId,
       final String repositoryPublicId,

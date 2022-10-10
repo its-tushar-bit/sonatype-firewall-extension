@@ -20,12 +20,14 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -482,6 +484,25 @@ public class RepositoryService
     return repositoryPolicyViolationDTOs;
   }
 
+  @Authorize(permission = Permission.READ)
+  RepositoryPolicyViolationDTO getPolicyViolation(
+      @AuthzContext(Key.REPOSITORY_ID) String repositoryId,
+      String repositoryPolicyViolationId)
+  {
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        repositoryPolicyViolationDAO.getById(repositoryPolicyViolationId);
+    if (repositoryPolicyViolation == null || !repositoryId.equals(repositoryPolicyViolation.getRepositoryId())) {
+      throw new NotFoundException("Cannot find a repository policy violation with ID " + repositoryPolicyViolationId
+          + " in repository with ID " + repositoryId + ".");
+    }
+
+    auditComponentPath(repositoryPolicyViolation.getPathname());
+    AuditData.get().setComponentIdentifier(repositoryPolicyViolation.getComponentIdentifier())
+        .setComponentHash(repositoryPolicyViolation.getHash());
+
+    return RepositoryService.toRepositoryPolicyViolationDTO(repositoryPolicyViolation);
+  }
+
   public static RepositoryPolicyViolationDTO toRepositoryPolicyViolationDTO(
       RepositoryPolicyViolation repositoryPolicyViolation)
   {
@@ -489,7 +510,10 @@ public class RepositoryService
         PolicyThreatsAdapter.toPolicyThreatsPolicyConstraints(repositoryPolicyViolation.getConstraintFacts());
     Policy policy = policyDAO.getById(repositoryPolicyViolation.getPolicyId());
     Owner policyOwner = policy == null ? null : ownerDAO.getById(policy.getOwnerId());
-    return new RepositoryPolicyViolationDTO(repositoryPolicyViolation.getId(), repositoryPolicyViolation.getPolicyId(),
+    return new RepositoryPolicyViolationDTO(repositoryPolicyViolation.getId(),
+        ApiComponentIdentifierDTOV2.fromComponentIdentifier(repositoryPolicyViolation.getComponentIdentifier()),
+        ComponentDisplayNameUtil.fromIdentifier(repositoryPolicyViolation.getComponentIdentifier()),
+        repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getPolicyId(),
         repositoryPolicyViolation.getPolicyName(), policyOwner, repositoryPolicyViolation.getThreatLevel(),
         repositoryPolicyViolation.getThreatCategory(), constraints, repositoryPolicyViolation.getConstraintFactsJson(),
         repositoryPolicyViolation.getActionTypeId(), repositoryPolicyViolation.getTime());

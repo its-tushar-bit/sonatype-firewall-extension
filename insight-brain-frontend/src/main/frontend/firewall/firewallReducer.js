@@ -43,6 +43,9 @@ import {
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED,
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED,
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED,
+  FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED,
+  FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED,
+  FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED,
 } from './firewallActions';
 import { __, always, assoc, curry, dissoc, lensPath, lensProp, merge, over, prop } from 'ramda';
 import { pathSet } from '../util/jsUtil';
@@ -61,6 +64,9 @@ const initialState = Object.freeze({
     policyViolations: null,
     isLoadingPolicyViolations: false,
     policyViolationsError: null,
+    policyExistingWaivers: null,
+    isLoadExistingWaivers: false,
+    existingWaiversError: null,
   }),
   viewState: Object.freeze({
     isShowConfigurationModal: false,
@@ -536,6 +542,35 @@ function loadComponentDetailsFailed(payload, state) {
   };
 }
 
+const loadExistingWaiversDataRequested = (_, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    policyExistingWaivers: null,
+    isLoadExistingWaivers: true,
+    existingWaiversError: null,
+  },
+});
+
+const loadExistingWaiversDataFulfilled = (payload, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    policyExistingWaivers: payload,
+    isLoadExistingWaivers: false,
+    existingWaiversError: null,
+  },
+});
+
+const loadExistingWaiversDataFailed = (error, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    isLoadExistingWaivers: false,
+    existingWaiversError: error,
+  },
+});
+
 const reducerActionMap = {
   [FIREWALL_LOAD_DATA_REQUESTED]: always(initialState),
   [FIREWALL_SET_SHOW_CONFIGURATION_MODAL]: setShowConfigurationModal,
@@ -574,6 +609,9 @@ const reducerActionMap = {
   [FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED]: loadComponentPolicyViolationsRequested,
   [FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED]: loadComponentPolicyViolationsFulfilled,
   [FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED]: loadComponentPolicyViolationsFailed,
+  [FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED]: loadExistingWaiversDataRequested,
+  [FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED]: loadExistingWaiversDataFulfilled,
+  [FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED]: loadExistingWaiversDataFailed,
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

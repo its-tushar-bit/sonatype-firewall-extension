@@ -445,21 +445,23 @@ describe('dashboardFilterActions: non-angular', function () {
           basedOnFilterName: expectedFilterName,
         });
 
-        expect(store.getActions().length).toBe(4);
+        expect(store.getActions().length).toBe(5);
 
-        expect(store.getActions()[1]).toEqual({
+        expect(store.getActions()[1]).toEqual({ type: 'RESET_ALL_TABS' });
+
+        expect(store.getActions()[2]).toEqual({
           type: 'APPLY_FILTER_FULFILLED',
           payload: {
             filter: 'update filters response',
             basedOnFilterName: expectedFilterName,
           },
         });
-        expect(store.getActions()[2]).toEqual({
+        expect(store.getActions()[3]).toEqual({
           type: 'LOAD_RESULTS_REQUESTED',
           payload: 'violations',
         });
 
-        expect(store.getActions()[3]).toEqual({
+        expect(store.getActions()[4]).toEqual({
           type: 'LOAD_RESULTS_FULFILLED',
           payload: {
             resultsType: 'violations',
@@ -499,9 +501,11 @@ describe('dashboardFilterActions: non-angular', function () {
           basedOnFilterName: expectedFilterName,
         });
 
-        expect(store.getActions().length).toBe(4);
+        expect(store.getActions().length).toBe(5);
 
-        expect(store.getActions()[1]).toEqual({
+        expect(store.getActions()[1]).toEqual({ type: 'RESET_ALL_TABS' });
+
+        expect(store.getActions()[2]).toEqual({
           type: 'APPLY_FILTER_FULFILLED',
           payload: {
             filter: 'update filters response',
@@ -509,12 +513,12 @@ describe('dashboardFilterActions: non-angular', function () {
           },
         });
 
-        expect(store.getActions()[2]).toEqual({
+        expect(store.getActions()[3]).toEqual({
           type: 'LOAD_RESULTS_REQUESTED',
           payload: 'violations',
         });
 
-        expect(store.getActions()[3]).toEqual({
+        expect(store.getActions()[4]).toEqual({
           type: 'LOAD_RESULTS_FAILED',
           payload: {
             error: 'load results error',

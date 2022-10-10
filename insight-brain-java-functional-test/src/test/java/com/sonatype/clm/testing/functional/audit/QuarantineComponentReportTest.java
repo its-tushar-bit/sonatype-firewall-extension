@@ -5,6 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.audit;
 
+import java.io.UncheckedIOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -63,6 +66,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.component.DbQuarantinedComponentAccessManager;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -126,10 +130,10 @@ public class QuarantineComponentReportTest
     quarantineReportPage.getAllLoadingSpinners().shouldHave(size(0));
   }
 
-  private ComponentDetails createComponentDetail(ComponentIdentifier componentIdentifier) {
+  private ComponentDetails createComponentDetail(String hash, ComponentIdentifier componentIdentifier) {
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     ComponentDetails componentDetails = new ComponentDetails(componentIdentifier);
-    componentDetails.setHash("somehash" + Math.floor(Math.random() * 100));
+    componentDetails.setHash(hash);
     componentDetails.setMatchState(MatchState.EXACT.getId());
     componentDetails.setDeclaredLicenses(Collections.singleton(toLicenseDTO(multiLicenseDAO
         .getByIdNotNull("Apache-2.0"))));
@@ -177,12 +181,15 @@ public class QuarantineComponentReportTest
     componentDetailsList.setList(componentDetailsArrayList);
     ComponentDependenciesDTO componentDependenciesDTO = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
 
-    testCLMServer.getHdsServer().respondWith(mainComponentDetail).atUri("/rest/ci/componentDetails/");
-    testCLMServer.getHdsServer().respondWith(mainComponentDetail)
-        .atUri("/rest/ci/componentDetails?" +
-            "componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId" +
-            "%22%3A%22abi.cli%22%2C%22classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId" +
-            "%22%3A%22com.lingocoder%22%2C%22version%22%3A%220.5.2%22%7D%7D&hash=hash");
+    try {
+      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+          .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
+              + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8")
+              + "&hash=" + mainComponentDetail.getHash());
+    }
+    catch (UnsupportedEncodingException e) {
+      throw new UncheckedIOException(e);
+    }
     testCLMServer.getHdsServer().respondWith(componentDetailsList).atUri("/rest/ci/componentDetails/list");
     testCLMServer.getHdsServer().respondWith(componentDependenciesDTO).atUri("/rest/component/dependencies");
   }
@@ -236,11 +243,15 @@ public class QuarantineComponentReportTest
         version, "", "jar");
   }
 
-  private RepositoryComponent createRepositoryComponent(ComponentIdentifier componentIdentifier, Date quarantineTime) {
+  private RepositoryComponent createRepositoryComponent(
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      Date quarantineTime)
+  {
     String componentVersion = componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION);
     return tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
         "com/lingocoder/abi.cli/" + componentVersion + "/abi.cli-" + componentVersion + ".jar",
-        "hash", componentIdentifier, date, quarantineTime);
+        hash, componentIdentifier, date, quarantineTime);
   }
 
   private void createAllTypePolicies() {
@@ -292,12 +303,14 @@ public class QuarantineComponentReportTest
   }
 
   private String setupAllTestDataButPolicyViolationsTable() {
-    componentDetailsArrayList.add(createComponentDetail(createComponentIdentifier("0.5.2")));
-    componentDetailsArrayList.add(createComponentDetail(createComponentIdentifier("0.5.3")));
+    ComponentDetails componentDetails1 = createComponentDetail("hash1", createComponentIdentifier("0.5.2"));
+    ComponentDetails componentDetails2 = createComponentDetail("hash2", createComponentIdentifier("0.5.3"));
+    componentDetailsArrayList.add(componentDetails1);
+    componentDetailsArrayList.add(componentDetails2);
 
     RepositoryComponent repositoryComponent = createRepositoryComponent(
-        componentDetailsArrayList.get(0).getComponentIdentifier(), date);
-    createRepositoryComponent(componentDetailsArrayList.get(1).getComponentIdentifier(), null);
+        componentDetails1.getHash(), componentDetails1.getComponentIdentifier(), date);
+    createRepositoryComponent(componentDetails2.getHash(), componentDetails2.getComponentIdentifier(), null);
 
     riskRemediationSetup(componentDetailsArrayList);
 
@@ -305,29 +318,30 @@ public class QuarantineComponentReportTest
   }
 
   private String setupAllTestDataWithSingleComponentVersion() {
-    ComponentIdentifier mainComponentIdentifier = createComponentIdentifier("0.5.2");
-    componentDetailsArrayList.add(createComponentDetail(mainComponentIdentifier));
+    ComponentDetails componentDetails = createComponentDetail("hash1", createComponentIdentifier("0.5.2"));
+    componentDetailsArrayList.add(componentDetails);
 
     RepositoryComponent repositoryComponent = createRepositoryComponent(
-        mainComponentIdentifier, date);
+        componentDetails.getHash(), componentDetails.getComponentIdentifier(), date);
 
     riskRemediationSetup(componentDetailsArrayList);
-    policyViolationsTableSetup(mainComponentIdentifier, repositoryComponent);
+    policyViolationsTableSetup(componentDetails.getComponentIdentifier(), repositoryComponent);
 
     return getQuarantinedComponentToken(repositoryComponent, VALID_TOKEN_CONDITION);
   }
 
   private String setupAllTestData(String tokenCondition) {
-    ComponentIdentifier mainComponentIdentifier = createComponentIdentifier("0.5.2");
-    componentDetailsArrayList.add(createComponentDetail(mainComponentIdentifier));
-    componentDetailsArrayList.add(createComponentDetail(createComponentIdentifier("0.5.3")));
+    ComponentDetails componentDetails1 = createComponentDetail("hash1", createComponentIdentifier("0.5.2"));
+    ComponentDetails componentDetails2 = createComponentDetail("hash2", createComponentIdentifier("0.5.3"));
+    componentDetailsArrayList.add(componentDetails1);
+    componentDetailsArrayList.add(componentDetails2);
 
-    RepositoryComponent repositoryComponent = createRepositoryComponent(
-        mainComponentIdentifier, date);
-    createRepositoryComponent(componentDetailsArrayList.get(1).getComponentIdentifier(), null);
+    RepositoryComponent repositoryComponent =
+        createRepositoryComponent(componentDetails1.getHash(), componentDetails1.getComponentIdentifier(), date);
+    createRepositoryComponent(componentDetails2.getHash(), componentDetails2.getComponentIdentifier(), null);
 
     riskRemediationSetup(componentDetailsArrayList);
-    policyViolationsTableSetup(mainComponentIdentifier, repositoryComponent);
+    policyViolationsTableSetup(componentDetails1.getComponentIdentifier(), repositoryComponent);
 
     return getQuarantinedComponentToken(repositoryComponent, tokenCondition);
   }
@@ -395,8 +409,7 @@ public class QuarantineComponentReportTest
   @Test
   public void testReportExpirationAlert() {
     ComponentIdentifier mainComponentIdentifier = createComponentIdentifier("0.5.2");
-    RepositoryComponent repositoryComponent = createRepositoryComponent(
-        mainComponentIdentifier, date);
+    RepositoryComponent repositoryComponent = createRepositoryComponent("hash1", mainComponentIdentifier, date);
 
     QuarantinedComponentAccess quarantinedComponentAccess =
         tempEntity

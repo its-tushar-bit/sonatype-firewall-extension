@@ -33,6 +33,15 @@ describe('waiverUtils', function () {
       expect(result).toEqual('Application - App X');
     });
 
+    it('returns a readable label with name if the scopeOwnerType is `repository`', () => {
+      const waiver = {
+        scopeOwnerType: 'repository',
+        scopeOwnerName: 'Repo X',
+      };
+      const result = displayWaiverScope(waiver);
+      expect(result).toEqual('Repository - repository');
+    });
+
     it('returns null if the scopeOwnerType is not valid', () => {
       let waiver = {
         scopeOwnerType: 'weird',

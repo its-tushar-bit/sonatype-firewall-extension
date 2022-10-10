@@ -107,6 +107,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultB
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
@@ -120,6 +121,8 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
@@ -215,6 +218,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranch
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReportData;
@@ -230,6 +234,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability;
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -349,6 +355,11 @@ public class TemporaryEntity
   private final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO =
       new SecurityVulnerabilityOverrideDAO();
 
+  private final VulnerabilityGroupDAO vulnerabilityGroupDAO = new VulnerabilityGroupDAO();
+
+  private final VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO =
+      new VulnerabilityGroupVulnerabilityDAO();
+
   private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
 
   private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
@@ -457,6 +468,9 @@ public class TemporaryEntity
 
   private final SourceControlConfigurationDAO sourceControlConfigurationDAO = new SourceControlConfigurationDAO();
 
+  private final SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO =
+      new SourceControlPullRequestResultDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -503,6 +517,10 @@ public class TemporaryEntity
 
   private Collection<SecurityVulnerabilityOverride> securityVulnerabilityOverrides;
 
+  private Collection<VulnerabilityGroup> vulnerabilityGroups;
+
+  private Collection<VulnerabilityGroupVulnerability> vulnerabilityGroupsVulnerability;
+
   private Collection<MembershipMapping> membershipMappings;
 
   private Collection<Webhook> webhooks;
@@ -543,6 +561,8 @@ public class TemporaryEntity
 
   private Collection<RepositoryIdentifiedComponent> repositoryIdentifiedComponents;
 
+  private Collection<SourceControlPullRequestResult> sourceControlPullRequestResults;
+
   @Override
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -567,6 +587,8 @@ public class TemporaryEntity
     repositoryManagers = new ArrayList<>();
     repositories = new ArrayList<>();
     securityVulnerabilityOverrides = new ArrayList<>();
+    vulnerabilityGroups = new ArrayList<>();
+    vulnerabilityGroupsVulnerability = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     webhooks = new ArrayList<>();
     policyViolationAggregations = new ArrayList<>();
@@ -589,6 +611,10 @@ public class TemporaryEntity
     repositoryConnections = new ArrayList<>();
     artifactoryConnections = new ArrayList<>();
     repositoryIdentifiedComponents = new ArrayList<>();
+    sourceControlPullRequestResults = new ArrayList<>();
+
+    // Disable search
+    systemConfigurationPropertyDAO.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "false"));
   }
 
   private MigrationTracker copyMigrationTracker(MigrationTracker migrationTracker) {
@@ -615,6 +641,8 @@ public class TemporaryEntity
     delete(orgs, orgDAO);
     delete(licenseOverrides, entity -> licenseOverrideDAO.getById(entity.getId()), licenseOverrideDAO::delete);
     delete(securityVulnerabilityOverrides, securityVulnerabilityOverrideDAO);
+    delete(vulnerabilityGroupsVulnerability, vulnerabilityGroupVulnerabilityDAO);
+    delete(vulnerabilityGroups, vulnerabilityGroupDAO);
     delete(users, userDAO);
     delete(samlUsers, samlUserDAO);
     delete(usernames, userDAO);
@@ -647,6 +675,7 @@ public class TemporaryEntity
     delete(repositoryConnections, repositoryConnectionDAO);
     delete(artifactoryConnections, artifactoryConnectionDAO);
     delete(repositoryIdentifiedComponents, repositoryIdentifiedComponentDAO);
+    delete(sourceControlPullRequestResults, sourceControlPullRequestResultDAO);
     productLicenseDAO.delete();
     firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
     persistedPolicyEvaluationPollingResultDAO.deleteAll();
@@ -949,6 +978,10 @@ public class TemporaryEntity
 
   public void register(RepositoryIdentifiedComponent... repositoryIdentifiedComponents) {
     Collections.addAll(this.repositoryIdentifiedComponents, repositoryIdentifiedComponents);
+  }
+
+  public void register(SourceControlPullRequestResult... sourceControlPullRequestResults) {
+    Collections.addAll(this.sourceControlPullRequestResults, sourceControlPullRequestResults);
   }
 
   public Application newApplicationWithParent() {
@@ -2020,6 +2053,28 @@ public class TemporaryEntity
     return policyViolation;
   }
 
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+      Repository repository,
+      Policy policy,
+      String pathname,
+      ComponentIdentifier componentIdentifier,
+      String hash)
+  {
+    Constraint constraint = policy.getConstraints().get(0);
+    Condition condition = constraint.getConditions().get(0);
+    ConstraintFact constraintFact =
+        new ConstraintFact(constraint.getId(), constraint.getName(), constraint.getOperator().name());
+    ConditionFact conditionFact =
+        new ConditionFact(condition.getConditionTypeId(), 0 /* conditionIndex */, "summary", "reason");
+    constraintFact.addConditionFact(conditionFact);
+
+    RepositoryPolicyViolation repositoryPolicyViolation = new RepositoryPolicyViolation(repository.getId(), pathname,
+        new Date(), policy.getId(), policy.getName(), policy.getThreatLevel(), policy.getThreatCategory(), hash,
+        componentIdentifier, Collections.singletonList(constraintFact));
+    repositoryPolicyViolationDAO.insert(repositoryPolicyViolation);
+    return repositoryPolicyViolation;
+  }
+
   public ApplicationComponent newApplicationComponent(
       String applicationId,
       String stageTypeId,
@@ -2577,6 +2632,20 @@ public class TemporaryEntity
     securityVulnerabilityOverrideDAO.insert(override);
     securityVulnerabilityOverrides.add(override);
     return override;
+  }
+
+  public VulnerabilityGroup newVulnerabilityGroup(String ownerId, String groupName) {
+    VulnerabilityGroup group = new VulnerabilityGroup(ownerId, groupName);
+    vulnerabilityGroupDAO.insert(group);
+    vulnerabilityGroups.add(group);
+    return group;
+  }
+
+  public VulnerabilityGroupVulnerability newVulnerabilityGroupVulnerability(String groupId, String refId) {
+    VulnerabilityGroupVulnerability vuln1 = new VulnerabilityGroupVulnerability(groupId, refId);
+    vulnerabilityGroupVulnerabilityDAO.insert(vuln1);
+    vulnerabilityGroupsVulnerability.add(vuln1);
+    return vuln1;
   }
 
   public ProprietaryConfig newProprietaryConfig(String ownerId) {
@@ -3681,5 +3750,16 @@ public class TemporaryEntity
       }
       newPolicy(policy);
     }
+  }
+
+  public SourceControlPullRequestResult newSourceControlPullRequestResult(
+      String applicationId,
+      String pullRequestResultJson)
+  {
+    SourceControlPullRequestResult sourceControlPullRequestResult =
+        new SourceControlPullRequestResult(applicationId, pullRequestResultJson);
+    sourceControlPullRequestResultDAO.insert(sourceControlPullRequestResult);
+    sourceControlPullRequestResults.add(sourceControlPullRequestResult);
+    return sourceControlPullRequestResult;
   }
 }

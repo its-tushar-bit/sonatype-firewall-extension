@@ -5,7 +5,7 @@
  */
 import React from 'react';
 
-import { render, screen, fireEvent, axiosMockAdapter, waitFor } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, axiosMockAdapter, waitFor, within } from 'TestRoot/SpecUtil';
 import { initialState } from 'MainRoot/OrgsAndPolicies/policySlice';
 import PolicyNotificationsEditor from 'MainRoot/OrgsAndPolicies/policyEditor/policyNotificationsEditor';
 import {
@@ -326,5 +326,97 @@ describe('PolicyNotificationsEditor', () => {
     });
 
     expect(screen.getByText('http://sdf.com')).toBeVisible();
+  });
+
+  it('renders disabled proxy stage for webhook notifications', async () => {
+    state.orgsAndPolicies.policy.currentPolicy.notifications = {
+      ...notifications,
+      webhookNotifications: [{ webhookId: 'webhook1', stageIds: [] }],
+    };
+    renderComponent();
+    await waitFor(() => screen.getByRole('table'));
+
+    expect(screen.getByRole('checkbox', { name: 'notify Webhook: webhook1name for develop' })).not.toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'notify Webhook: webhook1name for source' })).not.toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'notify Webhook: webhook1name for stage' })).not.toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'notify Webhook: webhook1name for release' })).not.toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'notify Webhook: webhook1name for operate' })).not.toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'notify Webhook: webhook1name for proxy' })).toBeDisabled();
+  });
+
+  it('renders disabled proxy stage tooltip message for webhook notifications', async () => {
+    state.orgsAndPolicies.policy.currentPolicy.notifications = {
+      ...notifications,
+      webhookNotifications: [{ webhookId: 'webhook1', stageIds: [] }],
+    };
+    SpecUtil.requestIdleCallbackInvokeImmediate();
+    renderComponent();
+    await waitFor(() => screen.getByRole('table'));
+
+    const checkbox = screen.getByRole('checkbox', { name: 'notify Webhook: webhook1name for proxy' });
+    expect(checkbox).toBeDisabled();
+    fireEvent.mouseOver(checkbox);
+    const tooltip = await screen.findByRole('tooltip');
+
+    expect(
+      within(tooltip).getByText('Webhooks are not available for policy violations at Proxy stage.', {
+        exact: false,
+      })
+    ).toBeInTheDocument();
+  });
+
+  it('renders disabled proxy stage for jira notifications', async () => {
+    state.orgsAndPolicies.policy.currentPolicy.notifications = {
+      ...notifications,
+      jiraNotifications: [{ projectKey: 'key1', issueTypeId: 'Task', stageIds: [] }],
+    };
+    renderComponent();
+    await waitFor(() => screen.getByRole('table'));
+
+    expect(screen.getByRole('checkbox', { name: 'notify key1 (Issue Type ID: Task) for develop' })).not.toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'notify key1 (Issue Type ID: Task) for source' })).not.toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'notify key1 (Issue Type ID: Task) for stage' })).not.toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'notify key1 (Issue Type ID: Task) for release' })).not.toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'notify key1 (Issue Type ID: Task) for operate' })).not.toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'notify key1 (Issue Type ID: Task) for proxy' })).toBeDisabled();
+  });
+
+  it('renders disabled proxy stage tooltip message for jira notifications', async () => {
+    state.orgsAndPolicies.policy.currentPolicy.notifications = {
+      ...notifications,
+      jiraNotifications: [{ projectKey: 'key1', issueTypeId: 'Task', stageIds: [] }],
+    };
+    SpecUtil.requestIdleCallbackInvokeImmediate();
+    renderComponent();
+    await waitFor(() => screen.getByRole('table'));
+
+    const checkbox = screen.getByRole('checkbox', { name: 'notify key1 (Issue Type ID: Task) for proxy' });
+    expect(checkbox).toBeDisabled();
+    fireEvent.mouseOver(checkbox);
+    const tooltip = await screen.findByRole('tooltip');
+
+    expect(
+      within(tooltip).getByText('Jira notifications are not available for policy violations at Proxy stage.', {
+        exact: false,
+      })
+    ).toBeInTheDocument();
+  });
+
+  it('renders "notifications are not supported" tooltip message when notifications are not supported', async () => {
+    state.productFeatures.productFeatures.notifications = false;
+    SpecUtil.requestIdleCallbackInvokeImmediate();
+
+    renderComponent();
+    await waitFor(() => screen.getByRole('table'));
+
+    const checkbox = screen.getByRole('checkbox', { name: 'notify user@email.com for develop' });
+    fireEvent.mouseOver(checkbox);
+
+    const tooltip = await screen.findByRole('tooltip');
+    expect(
+      within(tooltip).getByText('Notifications are not supported by your license.', {
+        exact: false,
+      })
+    ).toBeInTheDocument();
   });
 });

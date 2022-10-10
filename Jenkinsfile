@@ -179,7 +179,7 @@ Map<String, Closure> createGebTests() {
 
 Map<String, Closure> createFunctionalTests(String stageName, String regex) {
   return ["${stageName}": {
-    node(InsightConstants.AGENT_LABEL) {
+    node('ubuntu-zion-legacy') {
       stage(stageName) {
         try {
           withEnv(["APPLITOOLS_BATCH_ID=${env.GIT_COMMIT}"]) {
@@ -206,7 +206,7 @@ Map<String, Closure> createFunctionalTests(String stageName, String regex) {
 
 Map<String, Closure> createUnitTests(String stageName, String jdk, String regex) {
   return ["${stageName}": {
-    node(InsightConstants.AGENT_LABEL){
+    node('ubuntu-zion-legacy'){
       stage(stageName) {
         try {
           copyRepo()
@@ -217,7 +217,7 @@ Map<String, Closure> createUnitTests(String stageName, String jdk, String regex)
           mvn testConfig, 'install'
         }
         finally {
-          if (jdk == 'Java 8' && stageName == 'Unit & Integration Tests - Java 8 A') {
+          if (jdk == 'Java 8' && stageName == 'Unit and Integration Tests - Java 8 A') {
             sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: !currentBuild.fullProjectName.contains("master"))
           }
           captureResultsAndCleanup()

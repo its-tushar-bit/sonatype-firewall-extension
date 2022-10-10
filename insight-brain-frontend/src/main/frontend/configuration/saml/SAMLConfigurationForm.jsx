@@ -56,18 +56,11 @@ export default function SAMLConfigurationForm({
 
   const additionalFooterBtns = (
     <>
-      <NxButton
-        disabled={!isConfigured}
-        data-testid="saml-delete"
-        id="saml-delete"
-        onClick={toggleDeleteModal}
-        type="button"
-        variant="tertiary"
-      >
+      <NxButton disabled={!isConfigured} id="saml-delete" onClick={toggleDeleteModal} type="button" variant="tertiary">
         <NxFontAwesomeIcon icon={faTrash} />
         <span>Delete Configuration</span>
       </NxButton>
-      <NxButton type="button" id="saml-cancel" data-testid="saml-cancel" onClick={onCancel}>
+      <NxButton type="button" id="saml-cancel" onClick={onCancel}>
         Cancel
       </NxButton>
     </>
@@ -77,7 +70,6 @@ export default function SAMLConfigurationForm({
     <NxFormSelect
       value={configurationValues[name]}
       onChange={(event) => onChangeSelect(event.currentTarget.value, name)}
-      data-testid={name}
     >
       <option key="Default" value={'null'}>
         Default
@@ -94,7 +86,6 @@ export default function SAMLConfigurationForm({
   const getInputTextProps = (name, otherProps = {}) => ({
     ...configurationValues[name],
     ...otherProps,
-    'data-testid': name,
     'aria-required': true,
     onChange: (value) => onChange(value, name),
     onBlur: () => onBlur(name),
@@ -142,12 +133,13 @@ export default function SAMLConfigurationForm({
             <NxTooltip title={getDownloadServerMetadataTooltip(isConfigured)}>
               <a
                 href={metaDataUrl}
+                role="button"
                 download
                 className={classNames('iq-saml-configuration-metadata nx-btn nx-btn--tertiary', {
                   disabled: !isConfigured,
                 })}
                 id="saml-iq-server-metadata"
-                data-testid="saml-iq-server-metadata"
+                aria-disabled={!isConfigured}
               >
                 <NxFontAwesomeIcon icon={faDownload} />
                 <span>Download IQ Server Metadata</span>

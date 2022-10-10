@@ -117,7 +117,7 @@ export const violationPageTypes = {
     get: PropTypes.func.isRequired,
     href: PropTypes.func.isRequired,
   }).isRequired,
-  selectedViolationId: PropTypes.string.isRequired,
+  selectedViolationId: PropTypes.string,
   loadViolation: PropTypes.func.isRequired,
   loadVulnerabilityDetails: PropTypes.func.isRequired,
   fetchStageTypes: PropTypes.func.isRequired,

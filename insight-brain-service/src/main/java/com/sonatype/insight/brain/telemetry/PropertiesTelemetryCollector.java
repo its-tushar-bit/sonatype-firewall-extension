@@ -65,4 +65,9 @@ public class PropertiesTelemetryCollector
     telemetryData.getAttributes().put(ADMIN_CONNECTOR_HTTPS, https);
     return telemetryData;
   }
+
+  @Override
+  public boolean isClusterTelemetry() {
+    return false;
+  }
 }

@@ -1763,10 +1763,11 @@ describe('EditableConstraint', () => {
   }
 
   function validateAgeInDaysInput(conditionElement) {
-    const ageInput = within(conditionElement).getByTestId('condition-age-input');
+    const ageInput = within(conditionElement).getByPlaceholderText('Age');
     expect(ageInput).toBeVisible();
-    const ageModifier = within(conditionElement).getByTestId('condition-age-modifier');
-    expect(ageModifier).toBeVisible();
+
+    const ageModifierSelect = within(conditionElement).getByRole('combobox', { name: /age modifier/i });
+    expect(ageModifierSelect).toBeVisible();
   }
 
   function validateCoordinatesInput(conditionElement, actualValues) {

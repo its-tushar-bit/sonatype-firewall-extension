@@ -363,4 +363,17 @@ public abstract class AbstractRepositoryResourceTest
     assertThat(response.getBody(QuarantinedComponentReport.class).getReportUrl())
         .matches("ui/links/repositories/quarantinedComponent/.+");
   }
+
+  @Test
+  public void testEvaluateComponentMetadata() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "testRepoPublicId", true, true);
+
+    ComponentEvaluationDataRequestList componentEvaluationDataRequestList = new ComponentEvaluationDataRequestList();
+
+    HttpResponse response = restRequest().path(AbstractRepositoryResource.EVALUATE_COMPONENT_METADATA)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId()).body(componentEvaluationDataRequestList)
+        .post();
+    assertResponseStatus(200, response);
+  }
 }

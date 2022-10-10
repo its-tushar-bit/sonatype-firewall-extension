@@ -27,11 +27,10 @@ describe('ComponentDetailsHeader', () => {
   });
 
   it('forwards all extra props to the root element', () => {
-    const component = getShallowComponent({ id: 'thisone', tabIndex: 0, 'data-testid': 'bar' });
+    const component = getShallowComponent({ id: 'thisone', tabIndex: 0 });
     const el = component.first();
     expect(el).toHaveProp('id', 'thisone');
     expect(el).toHaveProp('tabIndex', 0);
-    expect(el).toHaveProp('data-testid', 'bar');
   });
 
   describe('ComponentDetailsHeader.Title', () => {
@@ -54,11 +53,10 @@ describe('ComponentDetailsHeader', () => {
     });
 
     it('forwards all extra props to the root element', () => {
-      const component = getShallowComponent({ id: 'thisone', tabIndex: 0, 'data-testid': 'bar' });
+      const component = getShallowComponent({ id: 'thisone', tabIndex: 0 });
       const el = component.first();
       expect(el).toHaveProp('id', 'thisone');
       expect(el).toHaveProp('tabIndex', 0);
-      expect(el).toHaveProp('data-testid', 'bar');
     });
   });
 });

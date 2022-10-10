@@ -493,6 +493,11 @@ public class RepositoryQueryServiceTest
     testGetAllVersions_BadRequestException_Npm(ComponentIdentifier.VERSION, false);
   }
 
+  @Test
+  public void testIsClusterTelemetry() {
+    assertThat(repositoryQueryService.isClusterTelemetry()).isFalse();
+  }
+
   private void testGetAllVersions_BadRequestException_Npm(
       String missingCoordinate,
       boolean expectBadRequestException)

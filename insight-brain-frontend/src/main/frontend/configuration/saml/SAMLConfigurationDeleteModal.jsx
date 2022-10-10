@@ -30,10 +30,8 @@ export default function SAMLConfigurationDeleteModal({ deleteConfiguration, togg
       </div>
       <footer className="nx-footer">
         <div className="nx-btn-bar">
-          <NxButton onClick={toggleDeleteModal} data-testid="saml-modal-cancel">
-            Cancel
-          </NxButton>
-          <NxButton variant="primary" onClick={deleteConfiguration} data-testid="saml-modal-delete">
+          <NxButton onClick={toggleDeleteModal}>Cancel</NxButton>
+          <NxButton variant="primary" onClick={deleteConfiguration}>
             Delete
           </NxButton>
         </div>

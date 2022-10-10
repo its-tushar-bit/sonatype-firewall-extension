@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -153,6 +154,24 @@ public class RepositoryResourceAuditTest
     assertRepositoryData(auditDTO, repository);
   }
 
+  @Test
+  public void testGetPolicyViolation() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId());
+
+    policyViolationRequest(repository.getId(), repositoryPolicyViolation.getId()).get();
+    assertComponentData(repository, repositoryPolicyViolation.getComponentIdentifier(),
+        repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getPathname());
+  }
+
+  @Test
+  public void testGetPolicyViolation_Unauthorized() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    policyViolationRequest(repository.getId(), "testRepositoryPolicyViolationId").with(unauthorizedUser()).get();
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_INFORMATION, "unauthorized");
+    assertRepositoryData(auditDTO, repository);
+  }
+
   private HttpRequest repositoryRequest(String repositoryId) {
     return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.REPOSITORY_PATH)
         .parameter(repositoryId);
@@ -174,8 +193,13 @@ public class RepositoryResourceAuditTest
   }
 
   private HttpRequest policyViolationsRequest(String repositoryId, String pathname) {
-    return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_VIOLATONS_PATH)
+    return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_VIOLATIONS_PATH)
         .parameter(repositoryId, pathname);
+  }
+
+  private HttpRequest policyViolationRequest(String repositoryId, String repositoryPolicyViolationId) {
+    return restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.POLICY_VIOLATION_PATH)
+        .parameter(repositoryId, repositoryPolicyViolationId);
   }
 
   private Repository repositoryWithComponents(int componentCount) {

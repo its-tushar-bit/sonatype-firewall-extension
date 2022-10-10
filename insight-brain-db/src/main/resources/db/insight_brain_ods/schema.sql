@@ -1227,3 +1227,32 @@ CREATE TABLE jira_configuration (
   custom_fields_json varchar(8192),
   CONSTRAINT jira_configuration_pk PRIMARY KEY (jira_configuration_id)
 );
+
+-- Since 1.146
+CREATE TABLE source_control_pull_request_result (
+  source_control_pull_request_result_id varchar(50) NOT NULL,
+  application_id varchar(50) NOT NULL,
+  pull_request_result_json text NOT NULL,
+  CONSTRAINT source_control_pull_request_result_pk PRIMARY KEY (source_control_pull_request_result_id),
+  CONSTRAINT source_control_pull_request_result_application_fk FOREIGN KEY (application_id) REFERENCES application (application_id)
+);
+CREATE INDEX source_control_pull_request_result_application_id_idx ON source_control_pull_request_result(application_id);
+
+-- Since 1.146
+CREATE TABLE vulnerability_group (
+  vulnerability_group_id varchar(50) NOT NULL,
+  owner_id varchar(50) NOT NULL,
+  vulnerability_group_name varchar(60) NOT NULL,
+  CONSTRAINT vulnerability_group_pk PRIMARY KEY (vulnerability_group_id),
+  CONSTRAINT vulnerability_group_uk UNIQUE (owner_id, vulnerability_group_name)
+);
+
+-- Since 1.146
+CREATE TABLE vulnerability_group_vulnerability (
+  vulnerability_group_vulnerability_id varchar(50) NOT NULL,
+  vulnerability_group_id varchar(50) NOT NULL,
+  vulnerability_refid varchar(100) NOT NULL,
+  CONSTRAINT vulnerability_group_vulnerability_pk PRIMARY KEY (vulnerability_group_vulnerability_id),
+  CONSTRAINT vulnerability_group_vulnerability_fk FOREIGN KEY (vulnerability_group_id) REFERENCES vulnerability_group (vulnerability_group_id),
+  CONSTRAINT vulnerability_group_vulnerability_uk UNIQUE (vulnerability_group_id, vulnerability_refid)
+);

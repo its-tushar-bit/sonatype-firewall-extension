@@ -71,11 +71,7 @@ export default function DependencyTreePage() {
       <MenuBarBackButton stateName="applicationReport.policy" />
       <header className="nx-page-title">
         <h1 className="nx-h1 iq-dependency-tree__title">Dependency Tree</h1>
-        <ComponentDetailsReportInfo
-          data-testid="dependency-tree-page-header-breadcrumbs"
-          className="nx-page-title__description"
-          {...(metadata || {})}
-        />
+        <ComponentDetailsReportInfo className="nx-page-title__description" {...(metadata || {})} />
       </header>
       <NxP>
         Only supported ecosystem components are displayed in dependency tree.{' '}
@@ -84,7 +80,7 @@ export default function DependencyTreePage() {
         </NxTextLink>
       </NxP>
       {dependencyTreeIsAvailable || error || loading ? (
-        <NxTile data-testid="dependency-tree-tile">
+        <NxTile>
           <NxLoadWrapper loading={loading} retryHandler={loadReport} error={error}>
             <NxTile.Header>
               <IqStatefulFilterInput

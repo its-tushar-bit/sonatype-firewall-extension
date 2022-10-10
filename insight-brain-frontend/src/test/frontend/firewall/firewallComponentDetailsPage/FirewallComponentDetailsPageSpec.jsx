@@ -28,7 +28,8 @@ describe('FirewallComponentDetailsPage', function () {
     getMountedComponent,
     loadComponentDetailsSpy,
     onTabChangeSpy,
-    loadComponentPolicyViolationsSpy;
+    loadComponentPolicyViolationsSpy,
+    loadExistingWaiversDataSpy;
 
   const setCustomComponentDetailsPageResponseStateParamsOnMinimalProps = (key, value) => ({
     ...minimalProps,
@@ -39,6 +40,7 @@ describe('FirewallComponentDetailsPage', function () {
     loadComponentDetailsSpy = jasmine.createSpy('loadComponentDetails');
     onTabChangeSpy = jasmine.createSpy('onTabChange');
     loadComponentPolicyViolationsSpy = jasmine.createSpy('loadComponentPolicyViolations');
+    loadExistingWaiversDataSpy = jasmine.createSpy('loadExistingWaiversData');
 
     spyOn(ComponentDetailsTabsFile, 'default').and.returnValue(<div>Tabs</div>);
 
@@ -60,6 +62,7 @@ describe('FirewallComponentDetailsPage', function () {
         componentDetailsError: null,
       },
       loadComponentPolicyViolations: loadComponentPolicyViolationsSpy,
+      loadExistingWaiversData: loadExistingWaiversDataSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(FirewallComponentDetailsPage, minimalProps);
@@ -193,11 +196,22 @@ describe('FirewallComponentDetailsPage', function () {
 
   describe('loadComponentPolicyViolations', () => {
     it('calls loadComponentPolicyViolations only when mounted', () => {
-      // mount component loading to avoid having to supply a `componentDetailsProp`.
       let component = getMountedComponent({
         ...minimalProps,
         CDPResponseState: { ...minimalProps.CDPResponseState, isLoadingComponentDetails: false },
       });
+      expect(loadComponentPolicyViolationsSpy).toHaveBeenCalledTimes(1);
+
+      component.update();
+
+      expect(loadComponentPolicyViolationsSpy).toHaveBeenCalledTimes(1);
+      component.unmount();
+    });
+  });
+
+  describe('loadExistingWaiversData', () => {
+    it('calls loadExistingWaiversData only when mounted', () => {
+      let component = getMountedComponent();
       expect(loadComponentPolicyViolationsSpy).toHaveBeenCalledTimes(1);
 
       component.update();

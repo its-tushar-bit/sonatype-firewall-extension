@@ -13,6 +13,7 @@ import { actions as moveApplicationActions } from 'MainRoot/OrgsAndPolicies/move
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { actions as changeApplicationIdActions } from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSlice';
+import { actions as importPoliciesActions } from 'MainRoot/OrgsAndPolicies/importPoliciesModal/importPoliciesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import {
@@ -30,6 +31,7 @@ import {
   selectCalculatedEnabled,
   selectGrandfatheringStatusMessage,
 } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
+import { selectImportPoliciesSlice } from 'MainRoot/OrgsAndPolicies/importPoliciesModal/importPoliciesSelectors';
 import { selectMoveApplicationSlice } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSelectors';
 
 export default function OwnerSummaryController(
@@ -43,7 +45,6 @@ export default function OwnerSummaryController(
   CLMContextLocations,
   SelectApplicationContactService,
   EvaluateApplicationModalService,
-  ImportPolicyModalService,
   ownerConstant,
   EventNameConstant,
   PermissionService,
@@ -91,6 +92,7 @@ export default function OwnerSummaryController(
     openGrandfatheringModal: grandfatheringActions.openModal,
     openChangeApplicationIdModal: changeApplicationIdActions.openModal,
     openRevokeGrandfatheringModal: revokeGrandfatheringActions.openModal,
+    openImportPoliciesModal: importPoliciesActions.openModal,
     openMoveApplicationModal: moveApplicationActions.openMoveAppModal,
   })(vm);
 
@@ -117,6 +119,13 @@ export default function OwnerSummaryController(
       }
     });
   }
+
+  $scope.$watch('vm.isShowSuccessImportPoliciesModal', (currentValue, oldValue) => {
+    // triggers doLoad func only when modal closes, i.e. mask going from true to null
+    if (!currentValue && oldValue) {
+      vm.doLoad();
+    }
+  });
 
   $scope.$on('$destroy', function () {
     vm.unsubscribe();
@@ -192,7 +201,7 @@ export default function OwnerSummaryController(
   }
 
   function importPolicy() {
-    ImportPolicyModalService.open();
+    vm.openImportPoliciesModal();
   }
 
   function selectContact(owner) {
@@ -276,6 +285,7 @@ const mapStateToThis = (state) => ({
   loadError: selectLoadError(state),
   isGrandfatheringEnabled: selectCalculatedEnabled(state),
   grandfatheringStatusMessage: selectGrandfatheringStatusMessage(state),
+  isShowSuccessImportPoliciesModal: selectImportPoliciesSlice(state).submitMaskState,
   isShowSuccessMoveAppModal: selectMoveApplicationSlice(state).isShowSuccessModal,
 });
 
@@ -290,7 +300,6 @@ OwnerSummaryController.$inject = [
   'CLMContextLocations',
   'SelectApplicationContactService',
   'evaluate.application.modal.service',
-  'import.policy.modal.service',
   'owner.constant',
   'event.name.constant',
   'PermissionService',

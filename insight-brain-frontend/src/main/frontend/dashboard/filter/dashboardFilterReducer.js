@@ -30,6 +30,7 @@ import {
   SET_DISPLAY_SAVE_FILTER_MODAL,
   TOGGLE_FILTER_SIDEBAR,
 } from './dashboardFilterActions';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 import { UI_ROUTER_ON_FINISH } from '../../reduxUiRouter/routerActions';
 
@@ -94,7 +95,7 @@ export default function dashboardFilterReducer(state = initState, { type, payloa
     }
 
     case APPLY_FILTER_FAILED:
-      return { ...state, applyFilterError: payload };
+      return { ...state, applyFilterError: Messages.getHttpErrorMessage(payload) };
 
     case APPLY_SAVED_FILTER_FAILED:
       return { ...state, loadErrorFilterName: payload };

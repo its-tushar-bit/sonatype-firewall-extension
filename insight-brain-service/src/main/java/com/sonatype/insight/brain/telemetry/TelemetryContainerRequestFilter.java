@@ -70,6 +70,11 @@ public class TelemetryContainerRequestFilter
     return telemetryData;
   }
 
+  @Override
+  public boolean isClusterTelemetry() {
+    return false;
+  }
+
   private TelemetryData createTelemetryData(Entry<String, LongAdder> entry) {
     String[] methodAndPath = entry.getKey().split(" ");
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REST_ENDPOINT_USAGE);

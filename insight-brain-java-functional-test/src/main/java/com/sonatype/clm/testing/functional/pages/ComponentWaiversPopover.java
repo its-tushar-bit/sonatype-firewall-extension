@@ -59,6 +59,10 @@ public class ComponentWaiversPopover
       return child("tbody > tr:nth-child(" + rowIndex + ")");
     }
 
+    public ElementsCollection getCellsByNthRow(int rowIndex) {
+      return children("tbody > tr:nth-child(" + rowIndex + ") .nx-cell");
+    }
+
     public SelenideElement deleteWaiverButton(int rowIndex) {
       return getRow(rowIndex).find(".iq-component-violations-waivers-table__delete-btn");
     }

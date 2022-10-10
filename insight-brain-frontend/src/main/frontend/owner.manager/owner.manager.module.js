@@ -29,10 +29,8 @@ import OwnerImageDirective from './summary/owner.image.directive';
 import SelectApplicationContactService from './summary/select.application.contact.service';
 import OwnerSummaryController from './summary/owner.summary.controller';
 import EvaluateApplicationModalService from './utility/services/evaluate.application.modal.service';
-import ImportPolicyModalService from './utility/services/import.policy.modal.service';
 import SelectApplicationContactController from './summary/select.application.contact.controller';
 import EvaluateApplicationModalController from './utility/services/evaluate.application.modal.controller';
-import ImportPolicyModalController from './utility/services/import.policy.modal.controller';
 import NumberInputWithStringValue from './utility/number.input.with.string.value';
 import SameOwnerEditSref from './utility/same.owner.edit.sref.directive';
 import SameOwnerViewSref from './utility/same.owner.view.sref.directive';
@@ -64,6 +62,7 @@ import PolicyViolationGrandfatheringEditor from 'MainRoot/OrgsAndPolicies/policy
 import GrandfatheringModal from 'MainRoot/OrgsAndPolicies/grandfatheringModal/GrandfatheringModal';
 import ChangeApplicationIdModal from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/ChangeApplicationIdModal';
 import RevokeGrandfatheringModal from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/RevokeGrandfatheringModal';
+import ImportPoliciesModal from 'MainRoot/OrgsAndPolicies/importPoliciesModal/ImportPoliciesModal';
 import RetentionTile from 'MainRoot/OrgsAndPolicies/ownerSummary/retentionTile/RetentionTile';
 import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
 import MoveApplicationModal from 'MainRoot/OrgsAndPolicies/moveApplicationModal/MoveApplicationModal';
@@ -102,10 +101,8 @@ export default angular
   .controller('OwnerSummaryController', OwnerSummaryController)
   .controller('OwnerSummaryTilesContainerController', OwnerSummaryTilesContainerController)
   .service('evaluate.application.modal.service', EvaluateApplicationModalService)
-  .service('import.policy.modal.service', ImportPolicyModalService)
   .controller('select.application.contact.controller', SelectApplicationContactController)
   .controller('evaluate.application.modal.controller', EvaluateApplicationModalController)
-  .controller('import.policy.modal.controller', ImportPolicyModalController)
   .service('SourceControlService', SourceControlService)
   .directive('numberInputWithStringValue', NumberInputWithStringValue)
   .directive('sameOwnerEditSref', SameOwnerEditSref)
@@ -137,6 +134,7 @@ export default angular
   .component('createEditApplicationCategory', iqReact2Angular(CreateEditApplicationCategory, [], ['$ngRedux']))
   .component('grandfatheringModal', iqReact2Angular(GrandfatheringModal, [], ['$ngRedux']))
   .component('assignAppCategory', iqReact2Angular(AssignAppCategory, [], ['$ngRedux']))
+  .component('importPoliciesModal', iqReact2Angular(ImportPoliciesModal, [], ['$ngRedux']))
   .component(
     'policyViolationGrandfatheringEditor',
     iqReact2Angular(PolicyViolationGrandfatheringEditor, [], ['$ngRedux'])

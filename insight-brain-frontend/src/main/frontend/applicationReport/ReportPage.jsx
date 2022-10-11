@@ -29,9 +29,11 @@ import {
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportActions from './applicationReportActions';
+import { NxStatefulErrorAlert } from '@sonatype/react-shared-components';
 
 export default function ReportPage() {
   const applicationReport = useSelector(selectApplicationReportSlice);
+  const reevaluationError = applicationReport.reevaluationError;
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
   const isPolicyTypeFilterEnabled = useSelector(selectIsPolicyTypeFilterEnabled);
   const isOldReportWithNoDependencyInfo = useSelector(selectDependencyTreeIsOldReport);
@@ -114,6 +116,9 @@ export default function ReportPage() {
             <NxWarningAlert id="application-report-no-dependency-info-warning">
               This report was generated with an older version of IQ. Please re-scan the application.
             </NxWarningAlert>
+          )}
+          {reevaluationError === 'Insufficient permissions' && (
+            <NxStatefulErrorAlert>Insufficient Permissions to Re-Evaluate</NxStatefulErrorAlert>
           )}
           <ReportStatusBar />
           <ReportContent />

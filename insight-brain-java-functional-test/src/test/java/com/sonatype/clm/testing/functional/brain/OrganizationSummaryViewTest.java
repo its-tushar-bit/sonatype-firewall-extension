@@ -145,7 +145,8 @@ public class OrganizationSummaryViewTest
     ActionDropDown.importPoliciesButton().shouldBe(visible).click();
 
     ImportPolicyModal.root().shouldBe(visible);
-    ImportPolicyModal.importButton().shouldBe(visible).shouldHave(cssClass("disabled"));
+    ImportPolicyModal.importButton().shouldBe(visible).shouldHave(cssClass("disabled")).hover();
+    Tooltip.get().shouldHave(text("Unable to save: fields with invalid or missing data"));
 
     // ANY file enables the "Import" button
     ImportPolicyModal.fileInput().shouldBe(visible).sendKeys(filePath);
@@ -164,21 +165,16 @@ public class OrganizationSummaryViewTest
 
     // Clear file selection
     ImportPolicyModal.fileInputClearButton().click();
-    ImportPolicyModal.errorRetryButton().click();
     ImportPolicyModal.fileInputRequiredFieldError().shouldBe(visible);
-    ImportPolicyModal.importButton().shouldBe(visible).shouldHave(cssClass("disabled")).hover();
-    Tooltip.get().shouldHave(text("Unable to save: fields with invalid or missing data"));
 
     // Select valid JSON file
     filePath = new File(getClass().getResource("/policyExport/samplePolicy.json").getFile()).getAbsolutePath();
 
     ImportPolicyModal.fileInput().shouldBe(visible).sendKeys(filePath);
     ImportPolicyModal.fileInputRequiredFieldError().shouldNotBe(visible);
-    ImportPolicyModal.importButton().shouldBe(visible).shouldNotHave(cssClass("disabled")).hover();
-    Tooltip.get().shouldNotBe(visible);
 
     // Give a maximum of 2 seconds for the file to be loaded
-    ImportPolicyModal.importButton().waitUntil(enabled, 2000).click();
+    ImportPolicyModal.errorRetryButton().waitUntil(enabled, 2000).click();
 
     eyesWatcher.eyesCheck("Import policy modal");
 

@@ -163,13 +163,24 @@ describe('FirewallConfigurationModal', function () {
     expect(submitMask).toHaveText('Success!');
   });
 
-  it('renders an error if something went wrong', function () {
-    const component = getMountedComponent({ saveConfigurationError: 'err!' }),
-      err = component.find(NxLoadError);
+  it('renders an error if something went wrong during load', function () {
+    const component = getMountedComponent({ loadConfigurationError: 'err!' }),
+      err = component.find(NxLoadError),
+      retryButton = err.find('button');
 
     expect(err).toExist();
     expect(err).toHaveProp('error', 'err!');
-    expect(err).toHaveProp('titleMessage', 'An error occurred saving data.');
-    expect(err).toHaveProp('retryHandler', saveConfigurationSpy);
+    retryButton.simulate('click');
+    expect(loadConfigurationSpy).toHaveBeenCalled();
+  });
+
+  it('renders an error if something went wrong during saves', function () {
+    const component = getMountedComponent({ saveConfigurationError: 'err!' }),
+      err = component.find(NxLoadError),
+      retryButton = err.find('button');
+
+    expect(err).toExist();
+    expect(err).toHaveProp('error', 'err!');
+    expect(retryButton).toExist();
   });
 });

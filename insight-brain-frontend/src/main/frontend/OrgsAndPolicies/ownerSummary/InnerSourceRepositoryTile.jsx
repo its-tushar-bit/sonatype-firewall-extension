@@ -25,22 +25,20 @@ import {
   selectLoading,
   selectRepositoryConnections,
 } from 'MainRoot/innerSourceRepositoryConfiguration/innerSourceRepositoryBaseConfigurationsSelectors';
-import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function InnerSourceRepositoryTile() {
   const dispatch = useDispatch();
   const isInnerSourceRepositorySupported = useSelector(selectIsInnerSourceRepositorySupported);
-  const ownerId = useSelector(selectSelectedOwnerId);
+  const currentOwner = useSelector(selectSelectedOwner);
 
-  const load = () => {
-    if (isInnerSourceRepositorySupported) {
-      dispatch(actions.load({ ownerId, inherit: true }));
-    }
-  };
+  const load = () => dispatch(actions.load({ inherit: true }));
 
   useEffect(() => {
-    load();
-  }, []);
+    if (isInnerSourceRepositorySupported) {
+      load();
+    }
+  }, [currentOwner, isInnerSourceRepositorySupported]);
 
   const isLoading = useSelector(selectLoading);
   const loadError = useSelector(selectLoadError);

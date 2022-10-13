@@ -10,6 +10,7 @@ import { actions as deleteOwnerActions } from 'MainRoot/OrgsAndPolicies/deleteOw
 import { actions as grandfatheringActions } from 'MainRoot/OrgsAndPolicies/grandfatheringModal/grandfatheringSlice';
 import { actions as revokeGrandfatheringActions } from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/revokeGrandfatheringSlice';
 import { actions as moveApplicationActions } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSlice';
+import copyIdToClipboardAction from 'MainRoot/OrgsAndPolicies/copyIdToClipboardToast/copyIdToClipboardSlice';
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 import { actions as changeApplicationIdActions } from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSlice';
@@ -94,6 +95,7 @@ export default function OwnerSummaryController(
     openRevokeGrandfatheringModal: revokeGrandfatheringActions.openModal,
     openImportPoliciesModal: importPoliciesActions.openModal,
     openMoveApplicationModal: moveApplicationActions.openMoveAppModal,
+    copyToClipboard: copyIdToClipboardAction,
   })(vm);
 
   vm.doLoad();

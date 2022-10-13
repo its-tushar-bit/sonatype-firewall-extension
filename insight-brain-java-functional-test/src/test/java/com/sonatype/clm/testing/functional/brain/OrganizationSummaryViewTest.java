@@ -137,6 +137,18 @@ public class OrganizationSummaryViewTest
   }
 
   @Test
+  public void testCopyOrganizationIdToClipboard() {
+    // open the action dropdown
+    ActionDropDown.actionButton().click();
+    ActionDropDown.copyOrgIdButton().shouldBe(visible).click();
+    NxToast toast = new NxToast("success");
+    toast.shouldBe(visible);
+    toast.shouldHave(text("Copied!"));
+    toast.closeButton().shouldBe(visible).click();
+    toast.shouldNotBe(visible);
+  }
+
+  @Test
   public void testImportPolicy() {
     String filePath = new File(getClass().getResource("/policyExport/sampleNonJsonFile.file")
             .getFile()).getAbsolutePath();

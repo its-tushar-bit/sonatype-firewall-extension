@@ -162,6 +162,18 @@ public class ApplicationSummaryViewTest
   }
 
   @Test
+  public void testCopyApplicationIdToClipboard() {
+    // open the action dropdown
+    ActionDropDown.actionButton().click();
+    ActionDropDown.copyAppIdButton().shouldBe(visible).click();
+    NxToast toast = new NxToast("success");
+    toast.shouldBe(visible);
+    toast.shouldHave(text("Copied!"));
+    toast.closeButton().shouldBe(visible).click();
+    toast.shouldNotBe(visible);
+  }
+
+  @Test
   public void testActionsDropdownOptions() {
     ActionDropDown.actionButton().click();
     ActionDropDown.copyAppIdButton().shouldBe(visible);

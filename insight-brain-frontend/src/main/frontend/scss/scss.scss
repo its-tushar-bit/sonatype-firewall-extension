@@ -136,6 +136,7 @@
 @use '../firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';
 @use '../api/apiPage';
 @use '../OrgsAndPolicies/policyViolationGrandfatheringEditor/policyViolationGrandfatheringEditor';
+@use '../toastContainer/toastContainer';
 
 // CIP
 @use '../version-graph/icons' as version-graph-icons;

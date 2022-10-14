@@ -6,13 +6,15 @@
 
 import { createSelector } from '@reduxjs/toolkit';
 import { pick, prop } from 'ramda';
+import { selectIsAdvancedLegalPackSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export const selectComponentDetailsLicenseDetectionsTileSlice = prop('componentDetailsLicenseDetectionsTile');
 
 export const selectLicenseDetectionsTileDataSlice = createSelector(
   selectComponentDetailsLicenseDetectionsTileSlice,
-  (data) =>
-    pick(
+  selectIsAdvancedLegalPackSupported,
+  (data, isAdvancedLegalPackSupported) => ({
+    ...pick(
       [
         'licenseOverride',
         'declaredLicenses',
@@ -22,10 +24,11 @@ export const selectLicenseDetectionsTileDataSlice = createSelector(
         'allLicenses',
         'loading',
         'loadError',
-        'reviewObligationsButtonIsVisible',
       ],
       data
-    )
+    ),
+    reviewObligationsButtonIsVisible: isAdvancedLegalPackSupported,
+  })
 );
 
 export const selectShowEditLicensesPopover = createSelector(

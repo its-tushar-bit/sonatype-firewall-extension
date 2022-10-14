@@ -16,10 +16,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TimeZone;
 
 import com.sonatype.clm.dto.model.License;
@@ -27,20 +25,21 @@ import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
+import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover.VulnerabilityOverrideForm;
+import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
+import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
-import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -116,6 +115,18 @@ public class FirewallComponentDetailsPageTest
 
   private Date date;
 
+  // declared and observed licenses are not the same
+  private final String multiLicensed = "multiLicensed";
+
+  // declared and observed licenses are the same
+  private final String singleLicense = "singleLicense";
+
+  // no declared or observed licenses are provided
+  private final String nonLicensed = "nonLicensed";
+
+  // overriden licenses by the user in IQ
+  private final String overriddenLicense = "overriddenLicense";
+
   static final String dateTimeFormatMask = "yyyy-MM-dd HH:mm:ss";
 
   static final String dateFormatMask = "MM/dd/yyyy";
@@ -143,25 +154,30 @@ public class FirewallComponentDetailsPageTest
     firewallComponentDetailsPage.getAllLoadingSpinners().shouldHave(size(0));
   }
 
-  private void waitUntilElementAppears(SelenideElement element) {
-    Wait<WebDriver> wait = getWebDriverAwait();
-    wait.until(ExpectedConditions.visibilityOf(element));
-  }
-
-  private ComponentDetails createComponentDetail(String hash, ComponentIdentifier componentIdentifier) {
+  private ComponentDetails createComponentDetail(
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String licenseCondition)
+  {
     MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
     ComponentDetails componentDetails = new ComponentDetails(componentIdentifier);
     componentDetails.setHash(hash);
     componentDetails.setMatchState(MatchState.EXACT.getId());
-    componentDetails.setDeclaredLicenses(
-        Collections.singleton(toLicenseDTO(multiLicenseDAO.getByIdNotNull("Apache-2.0"))));
-    componentDetails.setObservedLicenses(
-        Collections.singleton(toLicenseDTO(multiLicenseDAO.getByIdNotNull("EPL-1.0"))));
-    componentDetails.setOverriddenLicenses(
-        Collections.singleton(toLicenseDTO(multiLicenseDAO.getByIdNotNull("GPL-1.0"))));
-    componentDetails.setEffectiveLicenses(
-        Collections.singleton(toLicenseDTO(multiLicenseDAO.getByIdNotNull("GPL-1.0"))));
-    componentDetails.setEffectiveLicenseStatus(LicenseStatus.Overridden);
+
+    if (licenseCondition != nonLicensed) {
+      // default license condition is singleLicense
+      componentDetails
+          .setDeclaredLicenses(Collections.singleton(toLicenseDTO(multiLicenseDAO.getByIdNotNull("Apache-2.0"))));
+
+      componentDetails.setObservedLicenses(Collections.singleton(
+          toLicenseDTO(multiLicenseDAO.getByIdNotNull(licenseCondition == multiLicensed ? "EPL-1.0" : "Apache-2.0"))));
+
+      if (licenseCondition == overriddenLicense) {
+        tempEntity.newLicenseOverride(Organization.ROOT_ORGANIZATION_ID, componentDetails.getComponentIdentifier(),
+            LicenseOverrideStatus.OVERRIDDEN, "GPL-1.0");
+      }
+    }
+
     componentDetails.setCatalogDate(new Date().getTime());
     componentDetails.setWebsite("http://www.example.com");
     componentDetails.setLicenseThreatLevel(2);
@@ -192,24 +208,21 @@ public class FirewallComponentDetailsPageTest
 
     addComponentDetailSecurityVulnerability(mainComponentDetail, (float) 9.1);
     addComponentDetailSecurityVulnerability(mainComponentDetail, (float) 4.3);
-
-    Set<License> effectiveLicenses = new HashSet<>();
-    tempEntity.newLicenseOverride(Organization.ROOT_ORGANIZATION_ID, mainComponentDetail.getComponentIdentifier(),
-        LicenseOverrideStatus.OVERRIDDEN, "MIT");
-    effectiveLicenses.add(new License("MIT", "MIT"));
-    mainComponentDetail.setEffectiveLicenses(effectiveLicenses);
-
-    mainComponentDetail.setLicenseThreatLevel(10);
     mainComponentDetail.setCatalogDate(new Date().getTime());
 
     componentDetailsList.setList(componentDetailsArrayList);
     ComponentDependenciesDTO componentDependenciesDTO = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
 
     try {
+      // Used when componentDetails are requested
       testCLMServer.getHdsServer().respondWith(mainComponentDetail)
           .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
               + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8") + "&hash="
               + mainComponentDetail.getHash());
+      // Used when multi license details are requested
+      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+          .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
+              + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8"));
     }
     catch (UnsupportedEncodingException e) {
       throw new UncheckedIOException(e);
@@ -219,7 +232,12 @@ public class FirewallComponentDetailsPageTest
   }
 
   private Policy createPolicy(
-      String ownerId, int threatLevel, String name, String conditionType, String operator, String value)
+      String ownerId,
+      int threatLevel,
+      String name,
+      String conditionType,
+      String operator,
+      String value)
   {
     Policy policy = new Policy(null, name);
     policy.setThreatLevel(threatLevel);
@@ -290,9 +308,8 @@ public class FirewallComponentDetailsPageTest
       Date waiveTime,
       PolicyThreatCategory policyThreatCategory)
   {
-    RepositoryPolicyViolation policyViolation =
-        new RepositoryPolicyViolation(repositoryId, pathname, time, policyId, policyName, threatLevel,
-            policyThreatCategory, hash, componentIdentifier, constraintFacts);
+    RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, time, policyId,
+        policyName, threatLevel, policyThreatCategory, hash, componentIdentifier, constraintFacts);
     policyViolation.setWaived(isWaived);
     policyViolation.setActionTypeId(actionId);
     policyViolation.setPolicyWaiverId(policyWaiverId);
@@ -373,28 +390,47 @@ public class FirewallComponentDetailsPageTest
     createOtherPolicies();
   }
 
-  private RepositoryComponent setupAllTestData() {
-    ComponentDetails componentDetails1 = createComponentDetail("hash1", createComponentIdentifier("0.5.2"));
-    ComponentDetails componentDetails2 = createComponentDetail("hash2", createComponentIdentifier("0.5.3"));
+  private RepositoryComponent setupBaseTestData(String mainComponentLicenseCondition) {
+    ComponentDetails componentDetails1 =
+        createComponentDetail("hash1", createComponentIdentifier("0.5.2"), mainComponentLicenseCondition);
+    ComponentDetails componentDetails2 =
+        createComponentDetail("hash2", createComponentIdentifier("0.5.3"), mainComponentLicenseCondition);
     componentDetailsArrayList.add(componentDetails1);
     componentDetailsArrayList.add(componentDetails2);
 
-    RepositoryComponent repositoryComponent =
+    RepositoryComponent mainRepositoryComponent =
         createRepositoryComponent(componentDetails1.getHash(), componentDetails1.getComponentIdentifier(), date, date);
     createRepositoryComponent(componentDetails2.getHash(), componentDetails2.getComponentIdentifier(), date, null);
 
-    riskRemediationSetup(componentDetailsArrayList);
-    policyViolationsTableSetup(repositoryComponent);
+    return mainRepositoryComponent;
+  }
 
-    return repositoryComponent;
+  private RepositoryComponent setupAllTestData() {
+    RepositoryComponent mainRepositoryComponent = setupBaseTestData(singleLicense);
+
+    riskRemediationSetup(componentDetailsArrayList);
+    policyViolationsTableSetup(mainRepositoryComponent);
+
+    return mainRepositoryComponent;
+  }
+
+  private RepositoryComponent setupAllTestData(String mainComponentLicenseCondition) {
+    RepositoryComponent mainRepositoryComponent = setupBaseTestData(mainComponentLicenseCondition);
+
+    riskRemediationSetup(componentDetailsArrayList);
+    policyViolationsTableSetup(mainRepositoryComponent);
+
+    return mainRepositoryComponent;
   }
 
   private ConstraintFact createConstraintFact(
-      String constraintId, String constraintName, String summary, String reason)
+      String constraintId,
+      String constraintName,
+      String summary,
+      String reason)
   {
-    com.sonatype.insight.brain.model.policy.Condition condition =
-        new com.sonatype.insight.brain.model.policy.Condition(MatchStateConditionType.ID, "is",
-            MatchState.EXACT.toString());
+    com.sonatype.insight.brain.model.policy.Condition condition = new com.sonatype.insight.brain.model.policy.Condition(
+        MatchStateConditionType.ID, "is", MatchState.EXACT.toString());
     ConstraintFact constraintFact = new ConstraintFact(constraintId, constraintName, LogicalOperator.AND.name());
     ConditionFact conditionFact = new ConditionFact(condition.getConditionTypeId(), 0, summary, reason);
     constraintFact.addConditionFact(conditionFact);
@@ -521,7 +557,7 @@ public class FirewallComponentDetailsPageTest
     table.highestCvssScoreRow().get(2).shouldBe(empty);
     table.highestLicenseThreatRow().get(1).shouldHave(text("5"));
     table.highestLicenseThreatRow().get(2).shouldBe(empty);
-    table.effectiveLicenseRow().get(1).shouldHave(text("MIT, GPL-1.0 Overridden"));
+    table.effectiveLicenseRow().get(1).shouldHave(text("Apache-2.0"));
     table.effectiveLicenseRow().get(2).shouldBe(empty);
     table.highestQualityThreatRow().get(1).shouldHave(text("2"));
     table.highestQualityThreatRow().get(2).shouldBe(empty);
@@ -538,10 +574,15 @@ public class FirewallComponentDetailsPageTest
   }
 
   private RepositoryComponent setupAllUnquarantinedComponentTestData(
-      Date lastEvaluationTime, Date quarantineTime, Date unquarantineTime, Boolean autoUnquarantined)
+      Date lastEvaluationTime,
+      Date quarantineTime,
+      Date unquarantineTime,
+      Boolean autoUnquarantined)
   {
-    ComponentDetails componentDetails1 = createComponentDetail("hash1", createComponentIdentifier("0.5.2"));
-    ComponentDetails componentDetails2 = createComponentDetail("hash2", createComponentIdentifier("0.5.3"));
+    ComponentDetails componentDetails1 =
+        createComponentDetail("hash1", createComponentIdentifier("0.5.2"), singleLicense);
+    ComponentDetails componentDetails2 =
+        createComponentDetail("hash2", createComponentIdentifier("0.5.3"), singleLicense);
     componentDetailsArrayList.add(componentDetails1);
     componentDetailsArrayList.add(componentDetails2);
 
@@ -579,13 +620,9 @@ public class FirewallComponentDetailsPageTest
   {
     refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
     waitUntilSpinnersGone();
-    waitUntilElementAppears(firewallComponentDetailsPage.getNextVersionInVersionExplorer());
-    firewallComponentDetailsPage.getNextVersionInVersionExplorer().click();
-    waitUntilSpinnersGone();
-
+    firewallComponentDetailsPage.getClickableVersionsInVersionExplorer().get(1).hover().click();
     RiskRemediationTile riskRemediation = firewallComponentDetailsPage.getRiskRemediationTile();
     riskRemediation.compareVersionsTitle().shouldBe(visible).shouldHave(text("Compare Versions"));
-    ScrollUtil.scrollIntoView(riskRemediation.compareVersionsTitle());
     RiskRemediationTile.CompareVersionsTable table = riskRemediation.compareVersionsTable();
     table.shouldBe(visible);
     table.versionRow().get(1).shouldHave(text("0.5.2"));
@@ -598,7 +635,7 @@ public class FirewallComponentDetailsPageTest
     table.highestCvssScoreRow().get(2).shouldHave(text("None"));
     table.highestLicenseThreatRow().get(1).shouldHave(text("5"));
     table.highestLicenseThreatRow().get(2).shouldHave(text("5"));
-    table.effectiveLicenseRow().get(1).shouldHave(text("MIT, GPL-1.0 Overridden"));
+    table.effectiveLicenseRow().get(1).shouldHave(text("Apache-2.0"));
     table.effectiveLicenseRow().get(2).shouldHave(text("Not Provided"));
     table.highestQualityThreatRow().get(1).shouldHave(text("2"));
     table.highestQualityThreatRow().get(2).shouldHave(text("None"));
@@ -808,8 +845,8 @@ public class FirewallComponentDetailsPageTest
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
     waitUntilSpinnersGone();
 
-    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
-        .getFirewallPolicyViolationsTable();
+    FirewallPolicyViolationsTable policyViolationsTable =
+        FirewallComponentDetailsPage.getFirewallPolicyViolationsTable();
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHaveSize(6);
 
@@ -1013,7 +1050,7 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void testViolationTabWaiverTable() throws Exception {
+  public void testViolationTabWaiverTable() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
@@ -1042,5 +1079,136 @@ public class FirewallComponentDetailsPageTest
     waiversTableCells.get(3).shouldBe(text("com.lingocoder : abi.cli : 0.5.2"));
     waiversTableCells.get(4).shouldBe(text("Test User"));
     waiversTableCells.get(5).shouldBe(text("Test comment for waiver"));
+  }
+
+  private void testLegalTabPolicyViolationsTable() {
+    PolicyViolationsTable policyViolationsTable =
+        PolicyViolationsTable.getPolicyViolationsTableForParent(FirewallComponentDetailsPage.ROOT);
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(1);
+
+    ElementsCollection policyViolationsRow1 = policyViolationsTable.getCellsByNthRow(1);
+
+    policyViolationsRow1.shouldHaveSize(6);
+    policyViolationsRow1.get(0).shouldHave(text("5"));
+    policyViolationsRow1.get(1).shouldHave(text("LicensePolicy Proxy Warning"));
+    policyViolationsRow1.get(2).shouldHave(text("LicensePolicy constraint"));
+    policyViolationsRow1.get(3).shouldHave(text("Found license threat group"));
+  }
+
+  @Test
+  public void testLegalTab_singleLicenseComponent() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+    waitUntilSpinnersGone();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("Apache-2.0"));
+
+    licenseDetectionsTile.status().shouldHave(text("Open"));
+
+    testLegalTabPolicyViolationsTable();
+  }
+
+  @Test
+  public void testLegalTab_multipleLicenseComponent() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(multiLicensed);
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+    waitUntilSpinnersGone();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(2);
+    effectiveLicenses.first().shouldHave(text("Apache-2.0"));
+    effectiveLicenses.get(1).shouldHave(text("EPL-1.0"));
+
+    ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("EPL-1.0"));
+
+    licenseDetectionsTile.status().shouldHave(text("Open"));
+
+    testLegalTabPolicyViolationsTable();
+  }
+
+  @Test
+  public void testLegalTab_nonLicensedComponent() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(nonLicensed);
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+    waitUntilSpinnersGone();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Not Provided"));
+
+    ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("Not Provided"));
+
+    ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("Not Provided"));
+
+    licenseDetectionsTile.status().shouldHave(text("Open"));
+
+    testLegalTabPolicyViolationsTable();
+  }
+
+  @Test
+  public void testLegalTab_overridenLicenseComponent() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(overriddenLicense);
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+    waitUntilSpinnersGone();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("GPL-1.0"));
+
+    ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("Apache-2.0"));
+
+    licenseDetectionsTile.status().shouldHave(text("Overridden"));
+
+    testLegalTabPolicyViolationsTable();
   }
 }

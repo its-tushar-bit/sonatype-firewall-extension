@@ -4,16 +4,57 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment } from 'react';
-import { ViolationsTableTileContainer } from '../ViolationsTableTile/ViolationsTableTileContainer';
-import { policyTypes } from '../../dashboard/filter/staticFilterEntries';
-import { LicenseDetectionsTileContainer } from './LicenseDetectionsTile';
-import EditLicensesPopoverContainer from './EditLicensesPopover/EditLicensesPopoverContainer';
+import { useSelector, useDispatch } from 'react-redux';
+import { ViolationsTableTileContainer } from 'MainRoot/componentDetails/ViolationsTableTile/ViolationsTableTileContainer';
+import { policyTypes } from 'MainRoot/dashboard/filter/staticFilterEntries';
+import EditLicensesPopoverContainer from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesPopoverContainer';
+import LicenseDetectionsTile from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/LicenseDetectionsTile';
+import { selectLicenseDetectionsTileDataSlice } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSelectors';
+import { actions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
+import { actions as componentDetailsActions } from 'MainRoot/componentDetails/componentDetailsSlice';
+import {
+  selectComponentDetailsLoading,
+  selectComponentDetailsLoadErrors,
+  selectComponentIdentificationSource,
+  selectComponentDetails,
+  selectApplicationInfo,
+} from 'MainRoot/componentDetails/componentDetailsSelectors';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 
 export default function ComponentDetailsLegalTab() {
   const LEGAL = policyTypes[1].id;
+  const { applicationId, stageId } = useSelector(selectApplicationInfo) ?? { applicationId: null, stageId: null };
+  const { hash } = useSelector(selectComponentDetails) ?? { hash: null };
+  const isLoadingComponentDetails = useSelector(selectComponentDetailsLoading);
+  const componentDetailsLoadError = useSelector(selectComponentDetailsLoadErrors);
+  const identificationSource = useSelector(selectComponentIdentificationSource);
+  const dispatch = useDispatch();
+  const reviewObligationsClickHandler = () =>
+    dispatch(
+      stateGo('legal.applicationStageTypeComponentOverview', {
+        applicationPublicId: applicationId,
+        stageTypeId: stageId,
+        hash: hash,
+      })
+    );
+
   return (
     <Fragment>
-      <LicenseDetectionsTileContainer />
+      <LicenseDetectionsTile
+        {...{
+          ...useSelector(selectLicenseDetectionsTileDataSlice),
+          isLoadingComponentDetails,
+          componentDetailsLoadError,
+          identificationSource,
+          applicationId,
+          stageId,
+          componentHash: hash,
+          reviewObligationsClickHandler,
+          loadComponentDetails: () => dispatch(componentDetailsActions.loadComponentDetails()),
+          loadLicenses: () => dispatch(actions.load()),
+          toggleShowEditLicensesPopover: () => dispatch(actions.toggleShowEditLicensesPopover()),
+        }}
+      />
       <ViolationsTableTileContainer title="Legal Policy Violations" violationType={LEGAL} />
       <EditLicensesPopoverContainer />
     </Fragment>

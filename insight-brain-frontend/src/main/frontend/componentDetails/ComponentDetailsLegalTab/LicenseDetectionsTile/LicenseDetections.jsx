@@ -20,16 +20,11 @@ export default function LicenseDetections({
   loadError,
   toggleShowEditLicensesPopover,
   identificationSource,
-  applicationId,
-  stageId,
-  componentHash,
-  stateGo,
-  fetchAdvanceLegalPackFeatures,
+  reviewObligationsClickHandler,
   reviewObligationsButtonIsVisible,
 }) {
   useEffect(() => {
     loadLicenses();
-    fetchAdvanceLegalPackFeatures();
   }, []);
 
   const isClaimed = identificationSource === 'Manual';
@@ -39,14 +34,6 @@ export default function LicenseDetections({
       ?.find((override) => !!override.licenseOverride?.status)
       ?.licenseOverride.status.toLowerCase();
     return status ?? 'open';
-  };
-
-  const reviewObligations = () => {
-    stateGo('legal.applicationStageTypeComponentOverview', {
-      applicationPublicId: applicationId,
-      stageTypeId: stageId,
-      hash: componentHash,
-    });
   };
 
   return (
@@ -71,7 +58,11 @@ export default function LicenseDetections({
                 </NxButton>
 
                 {reviewObligationsButtonIsVisible && (
-                  <NxButton id="component-details-review-obligations" variant="primary" onClick={reviewObligations}>
+                  <NxButton
+                    id="component-details-review-obligations"
+                    variant="primary"
+                    onClick={reviewObligationsClickHandler}
+                  >
                     <span>Review Obligations</span>
                   </NxButton>
                 )}
@@ -180,10 +171,7 @@ LicenseDetections.propTypes = {
   loadError: PropTypes.string,
   toggleShowEditLicensesPopover: PropTypes.func.isRequired,
   identificationSource: PropTypes.string,
-  applicationId: PropTypes.string,
-  stageId: PropTypes.string,
-  componentHash: PropTypes.string,
-  stateGo: PropTypes.func.isRequired,
-  fetchAdvanceLegalPackFeatures: PropTypes.func.isRequired,
+
+  reviewObligationsClickHandler: PropTypes.func,
   reviewObligationsButtonIsVisible: PropTypes.bool,
 };

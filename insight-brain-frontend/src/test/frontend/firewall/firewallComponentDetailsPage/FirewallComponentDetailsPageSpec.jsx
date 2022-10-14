@@ -209,6 +209,22 @@ describe('FirewallComponentDetailsPage', function () {
     });
   });
 
+  describe('loadComponentPolicyViolations', () => {
+    it('calls loadComponentPolicyViolations only when mounted', () => {
+      // mount component loading to avoid having to supply a `componentDetailsProp`.
+      let component = getMountedComponent({
+        ...minimalProps,
+        CDPResponseState: { ...minimalProps.CDPResponseState, isLoadingComponentDetails: false },
+      });
+      expect(loadComponentPolicyViolationsSpy).toHaveBeenCalledTimes(1);
+
+      component.update();
+
+      expect(loadComponentPolicyViolationsSpy).toHaveBeenCalledTimes(1);
+      component.unmount();
+    });
+  });
+
   describe('loadExistingWaiversData', () => {
     it('calls loadExistingWaiversData only when mounted', () => {
       let component = getMountedComponent();

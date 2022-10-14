@@ -5,17 +5,13 @@
  */
 import { omit } from 'ramda';
 
-import {
-  actions,
-  fetchAdvanceLegalPackFeatures,
-} from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
+import { actions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
 import {
   getBaseLicenseOverrideUrl,
   getComponentMultiLicensesUrl,
   getDeleteLicenseOverrideUrl,
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
-  getProductFeaturesUrl,
 } from 'MainRoot/util/CLMLocation';
 import * as licenseDetectionTileSelectors from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSelectors';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
@@ -456,54 +452,6 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
         expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/deleteLicenseOverride/fulfilled');
         expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/resetSubmitMaskState');
         expect(actions).toHaveActionType('componentDetailsLicenseDetectionsTile/load/pending');
-
-        done();
-      });
-    });
-  });
-
-  describe('fetchAdvanceLegalPackFeatures', () => {
-    let store;
-    beforeEach(() => {
-      const editWebhookState = {
-        reviewObligationsButtonIsVisible: false,
-      };
-
-      store = SpecUtil.mockReduxStore({ webhooks: editWebhookState });
-      jasmine.clock().install();
-    });
-
-    afterEach(() => {
-      jasmine.clock().uninstall();
-    });
-
-    it('retrieves from backend features and found that Advance Legal Pack feature is enabled', (done) => {
-      mock.onGet(getProductFeaturesUrl()).reply(200, ['advanced-legal-pack']);
-
-      store.dispatch(fetchAdvanceLegalPackFeatures()).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-
-        const actions = store.getActions();
-        expect(actions).toHaveAction({
-          type: 'componentDetailsLicenseDetectionsTile/fetchAdvanceLegalPackFeatures/fulfilled',
-          payload: true,
-        });
-
-        done();
-      });
-    });
-
-    it('retrieves from backend features and found that Advance Legal Pack feature is NOT enabled', (done) => {
-      mock.onGet(getProductFeaturesUrl()).reply(200, []);
-
-      store.dispatch(fetchAdvanceLegalPackFeatures()).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-
-        const actions = store.getActions();
-        expect(actions).toHaveAction({
-          type: 'componentDetailsLicenseDetectionsTile/fetchAdvanceLegalPackFeatures/fulfilled',
-          payload: false,
-        });
 
         done();
       });

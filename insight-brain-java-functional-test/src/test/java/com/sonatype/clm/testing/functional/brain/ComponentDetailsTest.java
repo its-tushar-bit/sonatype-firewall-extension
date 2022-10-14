@@ -71,6 +71,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -949,6 +950,8 @@ public class ComponentDetailsTest
   @Test
   public void testLegalTab_licenseDetectionTileAlpDisabled() {
     setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
+    // we need to refresh the browser to load the product features again
+    WebDriverRunner.getWebDriver().navigate().refresh();
     refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "fa78f54738ccf77379d1"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
     componentDetailsPage.legalTabContent().shouldBe(visible);

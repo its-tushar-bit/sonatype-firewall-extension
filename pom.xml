@@ -39,7 +39,7 @@
     <hds.version>2.50.12</hds.version>
     <slf4j.version>1.7.31</slf4j.version>
     <logback.version>1.2.10</logback.version>
-    <jackson.version>2.13.4</jackson.version>
+    <jackson.version>2.13.4.20221013</jackson.version>
     <openjpa.version>3.2.0</openjpa.version>
     <shiro.version>1.9.1</shiro.version>
     <keycloak.version>12.0.4</keycloak.version>
@@ -227,7 +227,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-text</artifactId>
-        <version>1.9</version>
+        <version>1.10.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>

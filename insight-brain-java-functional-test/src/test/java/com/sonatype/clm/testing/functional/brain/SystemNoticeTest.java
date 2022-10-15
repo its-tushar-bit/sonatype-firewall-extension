@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.configuration.SystemNotice;
 
 import com.codeborne.selenide.Condition;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.hidden;
@@ -66,6 +67,7 @@ public class SystemNoticeTest
   private SystemNoticeDAO systemNoticeDAO = new SystemNoticeDAO();
 
   @Test
+  @Ignore
   public void systemNoticeTest() throws Exception {
     disabledSystemNotice_NotShownOnLogin();
     enabledSystemNotice_ShownOnLogin();

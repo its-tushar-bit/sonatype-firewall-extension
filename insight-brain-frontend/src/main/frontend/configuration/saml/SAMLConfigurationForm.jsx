@@ -93,11 +93,7 @@ export default function SAMLConfigurationForm({
   });
 
   const getTextInput = (name, otherProps = {}) => {
-    return (
-      <NxTooltip title={getInputTooltipMessage(name)}>
-        <NxTextInput {...getInputTextProps(name, otherProps)} />
-      </NxTooltip>
-    );
+    return <NxTextInput {...getInputTextProps(name, otherProps)} />;
   };
 
   const getDownloadServerMetadataTooltip = (isDisabled) =>
@@ -165,17 +161,19 @@ export default function SAMLConfigurationForm({
             </NxTextLink>
           </p>
 
-          <NxFormGroup
-            label="Identity Provider Name"
-            sublabel="This will be displayed at the login screen."
-            id="saml-identity-provider-name"
-            isRequired
-          >
-            {getTextInput('identityProviderName', { maxLength: '200' })}
-          </NxFormGroup>
+          <NxTooltip title={getInputTooltipMessage('identityProviderName')}>
+            <NxFormGroup
+              label="Identity Provider Name"
+              sublabel="This will be displayed at the login screen."
+              id="saml-identity-provider-name"
+              isRequired
+            >
+              {getTextInput('identityProviderName', { maxLength: '200' })}
+            </NxFormGroup>
+          </NxTooltip>
 
           <div className="nx-form-group">
-            <label htmlFor="identityProviderMetadataXml" className="nx-label">
+            <label for="saml-identity-provider-metadata-xml" className="nx-label">
               <span className="nx-label__text">Identity Provider Metadata XML</span>
               <div className="nx-sub-label">
                 Your identity provider metadata XML must contain a signing key to use validation. Validation set to
@@ -216,28 +214,40 @@ export default function SAMLConfigurationForm({
             </NxFormGroup>
           </div>
           <div className="nx-form-row">
-            <NxFormGroup label="Entity ID" id="saml-entity-id" isRequired>
-              {getTextInput('entityId')}
-            </NxFormGroup>
-            <NxFormGroup label="Username Attribute" id="saml-username-attribute-name" isRequired>
-              {getTextInput('usernameAttributeName')}
-            </NxFormGroup>
+            <NxTooltip title={getInputTooltipMessage('entityId')}>
+              <NxFormGroup label="Entity ID" id="saml-entity-id" isRequired>
+                {getTextInput('entityId')}
+              </NxFormGroup>
+            </NxTooltip>
+            <NxTooltip title={getInputTooltipMessage('usernameAttributeName')}>
+              <NxFormGroup label="Username Attribute" id="saml-username-attribute-name" isRequired>
+                {getTextInput('usernameAttributeName')}
+              </NxFormGroup>
+            </NxTooltip>
           </div>
           <div className="nx-form-row">
-            <NxFormGroup label="First Name Attribute" id="saml-first-name-attribute-name" isRequired>
-              {getTextInput('firstNameAttributeName')}
-            </NxFormGroup>
-            <NxFormGroup label="Last Name Attribute" id="saml-last-name-attribute-name" isRequired>
-              {getTextInput('lastNameAttributeName')}
-            </NxFormGroup>
+            <NxTooltip title={getInputTooltipMessage('firstNameAttributeName')}>
+              <NxFormGroup label="First Name Attribute" id="saml-first-name-attribute-name" isRequired>
+                {getTextInput('firstNameAttributeName')}
+              </NxFormGroup>
+            </NxTooltip>
+            <NxTooltip title={getInputTooltipMessage('lastNameAttributeName')}>
+              <NxFormGroup label="Last Name Attribute" id="saml-last-name-attribute-name" isRequired>
+                {getTextInput('lastNameAttributeName')}
+              </NxFormGroup>
+            </NxTooltip>
           </div>
           <div className="nx-form-row">
-            <NxFormGroup label="Email Attribute" id="saml-email-attribute-name" isRequired>
-              {getTextInput('emailAttributeName')}
-            </NxFormGroup>
-            <NxFormGroup label="Groups Attribute" id="saml-groups-attribute-name" isRequired>
-              {getTextInput('groupsAttributeName')}
-            </NxFormGroup>
+            <NxTooltip title={getInputTooltipMessage('emailAttributeName')}>
+              <NxFormGroup label="Email Attribute" id="saml-email-attribute-name" isRequired>
+                {getTextInput('emailAttributeName')}
+              </NxFormGroup>
+            </NxTooltip>
+            <NxTooltip title={getInputTooltipMessage('groupsAttributeName')}>
+              <NxFormGroup label="Groups Attribute" id="saml-groups-attribute-name" isRequired>
+                {getTextInput('groupsAttributeName')}
+              </NxFormGroup>
+            </NxTooltip>
           </div>
         </div>
       </NxForm>

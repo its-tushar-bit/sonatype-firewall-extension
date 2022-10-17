@@ -49,21 +49,18 @@ describe('SAMLConfigurationPage', () => {
   it('sets default values in all fields', () => {
     renderComponent();
 
-    const [idp, idpMetadata, entityId, username, firstName, lastName, email, groups] = screen.getAllByRole('textbox');
-    const [validateResponseSignature, validateAssertionSignature] = screen.getAllByRole('combobox');
-
     // Check input values in order of their appearance on the page
-    expect(idp.value).toBe('identity provider');
-    expect(idpMetadata.value).toBe('');
-    expect(entityId.value).toBe(uriTemplate`/api/v2/config/saml/metadata`);
-    expect(username.value).toBe('username');
-    expect(firstName.value).toBe('firstName');
-    expect(lastName.value).toBe('lastName');
-    expect(email.value).toBe('email');
-    expect(groups.value).toBe('groups');
+    expect(screen.getByRole('textbox', { name: /identity provider name/i }).value).toBe('identity provider');
+    expect(screen.getByRole('textbox', { name: /identity provider metadata xml/i }).value).toBe('');
+    expect(screen.getByRole('textbox', { name: /entity id/i }).value).toBe(uriTemplate`/api/v2/config/saml/metadata`);
+    expect(screen.getByRole('textbox', { name: /username/i }).value).toBe('username');
+    expect(screen.getByRole('textbox', { name: /first name/i }).value).toBe('firstName');
+    expect(screen.getByRole('textbox', { name: /last name/i }).value).toBe('lastName');
+    expect(screen.getByRole('textbox', { name: /email/i }).value).toBe('email');
+    expect(screen.getByRole('textbox', { name: /groups/i }).value).toBe('groups');
 
-    expect(validateResponseSignature).toHaveTextContent('Default');
-    expect(validateAssertionSignature).toHaveTextContent('Default');
+    expect(screen.getByRole('combobox', { name: /validate response signature/i })).toHaveTextContent('Default');
+    expect(screen.getByRole('combobox', { name: /validate assertion signature/i })).toHaveTextContent('Default');
 
     expect(loadSAMLConfigurationSpy).toHaveBeenCalled();
   });

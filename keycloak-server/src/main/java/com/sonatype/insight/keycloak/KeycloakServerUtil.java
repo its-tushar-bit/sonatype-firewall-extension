@@ -24,6 +24,8 @@ import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.idm.UserSessionRepresentation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // Exposes utility methods per https://www.keycloak.org/docs-api/6.0/rest-api/ for a running Keycloak on a given url.
 // For using in tests, please see KeycloakTestUtilTest for reference which is responsible for
@@ -31,6 +33,8 @@ import org.keycloak.representations.idm.UserSessionRepresentation;
 // Call #clean whenever you need to reset the server to original state.
 public class KeycloakServerUtil
 {
+  private final Logger log = LoggerFactory.getLogger(getClass());
+
   static final Integer ADMIN_TOKEN_LIFESPAN_IN_SECONDS = 600;
 
   private final String url;
@@ -68,17 +72,23 @@ public class KeycloakServerUtil
    * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_clientrepresentation">Client Representation</a>
    */
   public void createClient(ClientRepresentation client) {
+    log.info("KeycloakServerUtil.createClient() start clientId:{}", client.getClientId());
+
     Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/clients").request()
         .header("Authorization", "Bearer " + adminToken)
         .post(Entity.entity(client, MediaType.APPLICATION_JSON));
 
     if (response.getStatus() == Status.CREATED.getStatusCode()) {
-      createdClientIds.add(
-          Arrays.stream(getClients()).filter(c -> c.getClientId().equals(client.getClientId())).findAny().get()
-              .getId());
+      String newId =
+          Arrays.stream(getClients()).filter(c -> c.getClientId().equals(client.getClientId())).findAny().get().getId();
+      createdClientIds.add(newId);
+
+      log.info("KeycloakServerUtil.createClient() end clientId:{}, new id:{}", client.getClientId(), newId);
     }
     else {
-      throw new RuntimeException("Client creation failed.");
+      log.error("KeycloakServerUtil.createClient() end clientId:{} failed", client.getClientId());
+      throw new RuntimeException(
+          "Client creation failed with status code: " + response.getStatus() + " for clientId:" + client.getClientId());
     }
   }
 
@@ -98,18 +108,25 @@ public class KeycloakServerUtil
    * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_userrepresentation">User Representation</a>
    */
   public String createUser(UserRepresentation user) {
+    log.info("KeycloakServerUtil.createUser() start username:{}", user.getUsername());
+
     Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/users").request()
         .header("Authorization", "Bearer " + adminToken)
         .post(Entity.entity(user, MediaType.APPLICATION_JSON));
 
     if (response.getStatus() == Status.CREATED.getStatusCode()) {
-      String id =
+      String newId =
           Arrays.stream(getUsers()).filter(u -> u.getUsername().equals(user.getUsername())).findAny().get().getId();
-      createdUserIds.add(id);
-      return id;
+      createdUserIds.add(newId);
+
+      log.info("KeycloakServerUtil.createUser() end username:{}, new id:{}", user.getUsername(), newId);
+
+      return newId;
     }
     else {
-      throw new RuntimeException("User creation failed with status code: " + response.getStatus());
+      log.error("KeycloakServerUtil.createUser() end username:{} failed", user.getUsername());
+      throw new RuntimeException(
+          "User creation failed with status code: " + response.getStatus() + " for username:" + user.getUsername());
     }
   }
 
@@ -145,6 +162,8 @@ public class KeycloakServerUtil
   }
 
   public String createGroup(String groupName) {
+    log.info("KeycloakServerUtil.createGroup() start groupName:{}", groupName);
+
     GroupRepresentation groupRepresentation = new GroupRepresentation();
     groupRepresentation.setName(groupName);
     groupRepresentation.setPath(groupName);
@@ -154,12 +173,17 @@ public class KeycloakServerUtil
         .post(Entity.entity(groupRepresentation, MediaType.APPLICATION_JSON));
 
     if (response.getStatus() == Status.CREATED.getStatusCode()) {
-      String id = Arrays.stream(getGroups()).filter(g -> g.getName().equals(groupName)).findAny().get().getId();
-      createdGroupIds.add(id);
-      return id;
+      String newId = Arrays.stream(getGroups()).filter(g -> g.getName().equals(groupName)).findAny().get().getId();
+      createdGroupIds.add(newId);
+
+      log.info("KeycloakServerUtil.createGroup() end groupName:{}, new id:{}", groupName, newId);
+
+      return newId;
     }
     else {
-      throw new RuntimeException("Group creation failed.");
+      log.error("KeycloakServerUtil.createGroup() end groupName:{} failed", groupName);
+      throw new RuntimeException(
+          "Group creation failed with status code: " + response.getStatus() + " for groupName:" + groupName);
     }
   }
 
@@ -214,35 +238,51 @@ public class KeycloakServerUtil
   }
 
   public void clean() {
+    log.info("KeycloakServerUtil.clean() start");
+
     for (String clientId : createdClientIds) {
+      log.info("KeycloakServerUtil.clean() deleting clientId:{}", clientId);
       Response response =
           ClientBuilder.newClient().target(url).path("admin/realms/master/clients").path(clientId).request()
               .header("Authorization", "Bearer " + adminToken).delete();
       if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-        throw new IllegalStateException("Client clean failed with Status Code: " + response.getStatus());
+        throw new IllegalStateException(
+            "Client clean failed with Status Code: " + response.getStatus() + " for clientId:" + clientId);
       }
+      log.info("KeycloakServerUtil.clean() deleted clientId:{}", clientId);
     }
+    log.info("KeycloakServerUtil.clean() deleted {} clientIds", createdClientIds.size());
     createdClientIds.clear();
 
     for (String userId : createdUserIds) {
+      log.info("KeycloakServerUtil.clean() deleting userId:{}", userId);
       Response response =
           ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId).request()
               .header("Authorization", "Bearer " + adminToken).delete();
       if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-        throw new IllegalStateException("User clean failed with Status Code: " + response.getStatus());
+        throw new IllegalStateException(
+            "User clean failed with Status Code: " + response.getStatus() + " for userId:" + userId);
       }
+      log.info("KeycloakServerUtil.clean() deleted userId:{}", userId);
     }
+    log.info("KeycloakServerUtil.clean() deleted {} userIds", createdUserIds.size());
     createdUserIds.clear();
 
     for (String groupId : createdGroupIds) {
+      log.info("KeycloakServerUtil.clean() deleting groupId:{}", groupId);
       Response response =
           ClientBuilder.newClient().target(url).path("admin/realms/master/groups").path(groupId).request()
               .header("Authorization", "Bearer " + adminToken).delete();
       if (response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
-        throw new IllegalStateException("Group clean failed with Status Code: " + response.getStatus());
+        throw new IllegalStateException(
+            "Group clean failed with Status Code: " + response.getStatus() + " for groupId:" + groupId);
       }
+      log.info("KeycloakServerUtil.clean() deleted groupId:{}", groupId);
     }
+    log.info("KeycloakServerUtil.clean() deleted {} groupIds", createdGroupIds.size());
     createdGroupIds.clear();
+
+    log.info("KeycloakServerUtil.clean() end");
   }
 
   ClientRepresentation[] getClients() {

@@ -15,11 +15,16 @@ import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.Response;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllBytes;
@@ -33,14 +38,26 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class KeycloakServerUtilTest
 {
+  private final Logger log = LoggerFactory.getLogger(getClass());
+
   @ClassRule
   public static KeycloakServerRule rule = new KeycloakServerRule();
 
+  @Rule
+  public TestName testName = new TestName();
+
   private KeycloakServerUtil keycloak = rule.getServerUtil();
+
+  @Before
+  public void before() {
+    log.info("******************* Before test: {}", testName.getMethodName());
+  }
 
   @After
   public void after() {
+    log.info("******************* After test start: {}", testName.getMethodName());
     keycloak.clean();
+    log.info("******************* After test end: {}", testName.getMethodName());
   }
 
   @Test
@@ -124,7 +141,7 @@ public class KeycloakServerUtilTest
 
     keycloak.createClient(clientRepresentation);
     assertThatThrownBy(() -> keycloak.createClient(clientRepresentation)).isInstanceOf(RuntimeException.class)
-        .hasMessage("Client creation failed.");
+        .hasMessage("Client creation failed with status code: 409 for clientId:a-new-client");
   }
 
   @Test
@@ -161,7 +178,7 @@ public class KeycloakServerUtilTest
   public void testCreateUser_UsingUserRepresentationDuplicate() {
     testCreateUser_UsingUserRepresentation();
     assertThatExceptionOfType(RuntimeException.class).isThrownBy(this::testCreateUser_UsingUserRepresentation)
-        .withMessage("User creation failed with status code: 409");
+        .withMessageContaining("User creation failed with status code: 409");
   }
 
   @Test
@@ -185,7 +202,7 @@ public class KeycloakServerUtilTest
   public void testCreateUser_UsingUserAttributesDuplicate() {
     testCreateUser_UsingUserAttributes();
     assertThatExceptionOfType(RuntimeException.class).isThrownBy(this::testCreateUser_UsingUserAttributes)
-        .withMessage("User creation failed with status code: 409");
+        .withMessageContaining("User creation failed with status code: 409");
   }
 
   @Test

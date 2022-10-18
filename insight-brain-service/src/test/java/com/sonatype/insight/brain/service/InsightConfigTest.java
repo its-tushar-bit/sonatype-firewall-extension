@@ -181,7 +181,6 @@ public class InsightConfigTest
             "enableDefaultPasswordWarning",
             "eventBus",
             "exitOnFatalError",
-            "experimentalFeatures",
             "externalHyperlinksAllowed",
             "features",
             "forceBaseUrl",

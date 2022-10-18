@@ -74,27 +74,6 @@ public class InsightConfigTest
     assertThat(config.isFeatureEnabled("featureOne")).isFalse();
   }
 
-  @Test
-  public void testExperimentalFeatures() {
-    InsightConfig config = new InsightConfig();
-
-    // test unspecified experimental feature is disabled
-    assertThat(config.getExperimentalFeatures()).isNull();
-    assertThat(config.isExperimentalFeatureEnabled("unspecifiedFeature")).isFalse();
-
-    // test experimental feature is enabled, when feature flag is set to true
-    Map<String, Boolean> features = new HashMap<>();
-    features.put("featureTwo", true);
-    config.setExperimentalFeatures(features);
-    assertThat(config.getExperimentalFeatures()).isNotNull();
-    assertThat(config.isExperimentalFeatureEnabled("featureTwo")).isTrue();
-
-    // test experimental feature is disabled, when feature flag is set to false
-    features.put("featureTwo", false);
-    assertThat(config.getExperimentalFeatures()).isNotNull();
-    assertThat(config.isExperimentalFeatureEnabled("featureTwo")).isFalse();
-  }
-
   /**
    * @deprecated The tested method is deprecated.
    */

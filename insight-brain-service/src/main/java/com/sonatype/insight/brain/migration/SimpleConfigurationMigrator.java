@@ -26,7 +26,6 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -84,9 +83,6 @@ public class SimpleConfigurationMigrator
     for (Feature feature : Feature.values()) {
       nameToGetter.put(feature.getFlag(), config -> getFeature(config, feature));
     }
-    for (ExperimentalFeature feature : ExperimentalFeature.values()) {
-      nameToGetter.put(feature.getFlag(), config -> getExperimentalFeature(config, feature));
-    }
     NAME_TO_GETTER = Collections.unmodifiableMap(nameToGetter);
   }
 
@@ -94,18 +90,11 @@ public class SimpleConfigurationMigrator
     return config.getFeatures() == null ? null : config.getFeatures().get(feature.getFlag());
   }
 
-  private static Boolean getExperimentalFeature(InsightConfig config, ExperimentalFeature experimentalFeature) {
-    return config.getExperimentalFeatures() == null ? null : config.getExperimentalFeatures()
-        .get(experimentalFeature.getFlag());
-  }
-
   // Visible for testing
   static final Set<String> FEATURE_FLAGS = new HashSet<>();
 
   static {
     FEATURE_FLAGS.addAll(Arrays.stream(Feature.values()).map(Feature::getFlag).collect(Collectors.toSet()));
-    FEATURE_FLAGS.addAll(
-        Arrays.stream(ExperimentalFeature.values()).map(ExperimentalFeature::getFlag).collect(Collectors.toSet()));
   }
 
   private static final String ALL_TO_MIGRATE = String.join(", ", NAME_TO_GETTER.keySet());

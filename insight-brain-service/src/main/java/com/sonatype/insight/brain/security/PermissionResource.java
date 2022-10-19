@@ -33,7 +33,7 @@ public class PermissionResource
 {
   public static final String RESOURCE_PATH = "rest/user/permissions";
 
-  public static final String OWNER_CONTEXT_PATH = "{ownerType: global|application|organization}/{ownerId}";
+  public static final String OWNER_CONTEXT_PATH = "{ownerType: global|application|organization|repository}/{ownerId}";
 
   public static final String SINGLETON_OWNER_CONTEXT_PATH = "{ownerType: repository_container}";
 

@@ -1,0 +1,16 @@
+<module formatVersion="1.0" id="org.example:test2:jar:1.0-SNAPSHOT" idKind="maven" pathname="test2/test/modulePath2"
+parentId="org.example:test:jar:1.0-SNAPSHOT">
+  <builderInfo>
+    <property name="clm.tool" value="maven"/>
+    <property name="clm.version" value="2.24.0-01"/>
+  </builderInfo>
+  <consumedArtifacts>
+    <artifact id="com.novell.ldap:jldap:jar:2009-10-07" pathname="path2\com\novell\ldap\jldap\2009-10-07\jldap-2009-10-07.jar" monitored="true"/>
+  </consumedArtifacts>
+  <producedArtifacts>
+    <artifact id="org.example:test2:jar:1.0-SNAPSHOT" pathname="path3\test2-1.0-SNAPSHOT.jar"/>
+  </producedArtifacts>
+  <dependencies>
+    <dependency id="com.novell.ldap:jldap:jar:2009-10-07" pathname="path2\com\novell\ldap\jldap\2009-10-07\jldap-2009-10-07.jar" direct="true"/>
+  </dependencies>
+</module>

@@ -158,7 +158,6 @@ public class Scanner
           childrenByDependencyId.put(dependency.getId(), childIds);
         }
       }
-
       fileScanner.scan(scanRequest);
     }
   }
@@ -171,13 +170,22 @@ public class Scanner
   private List<Module> getModules(List<File> moduleIndexes) throws IOException {
     List<Module> modules = new ArrayList<>();
     ModuleIoManager moduleIoManager = new ModuleIoManager();
-    for (File moduleIndex : moduleIndexes) {
+    List<Integer> rootIndexes = new ArrayList<>();
+    for (int i = 0; i < moduleIndexes.size(); i++) {
+      File moduleIndex = moduleIndexes.get(i);
       Module module = moduleIoManager.readModule(moduleIndex);
       if (!MODULE_XML_FORMAT.equals(module.getFormatVersion())) {
         log.warn("Unexpected file format in {}, scan might be inaccurate," +
             " please ensure the employed IQ client tools are compatible", moduleIndex);
       }
       modules.add(module);
+      if (module.getParentId() == null) {
+        log.debug("Module {} has no parent id set and may be the root module.", module.getId());
+        rootIndexes.add(i);
+      }
+    }
+    if (rootIndexes.size() == 1) {
+      Collections.swap(modules, 0, rootIndexes.get(0));
     }
     return modules;
   }

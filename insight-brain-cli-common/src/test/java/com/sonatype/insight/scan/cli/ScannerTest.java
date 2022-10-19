@@ -73,8 +73,8 @@ public class ScannerTest
     File baseDirectory = new File("baseDirectory");
     List<File> targets = Collections.singletonList(new File("src/test/resources/ScannerTest/app.ear"));
     List<File> moduleIndices = Arrays.asList(
-        new File("src/test/resources/ScannerTest/module1.xml"),
-        new File("src/test/resources/ScannerTest/module2.xml")
+        new File("src/test/resources/ScannerTest/test1/module1.xml"),
+        new File("src/test/resources/ScannerTest/test1/module2.xml")
     );
 
     scannerSpy.scan(tmpDir.newFile("scan-test.xml.gz"), baseDirectory, targets, moduleIndices, new Properties(), null,
@@ -88,8 +88,8 @@ public class ScannerTest
   public void testScanModules() throws Exception {
     Scanner scannerSpy = spy(scanner);
     List<File> moduleIndices = Arrays.asList(
-        new File("src/test/resources/ScannerTest/module1.xml"),
-        new File("src/test/resources/ScannerTest/module2.xml")
+        new File("src/test/resources/ScannerTest/test1/module1.xml"),
+        new File("src/test/resources/ScannerTest/test1/module2.xml")
     );
     ScanSession scanSession = new ScanSession(null, null);
     File baseDirectory = new File("baseDirectory");
@@ -151,6 +151,92 @@ public class ScannerTest
     assertThat(moduleScanRequest2Spy.getScanSession()).isEqualTo(scanSession);
     verify(moduleScanRequest2Spy).setBasedir(baseDirectory);
     verify(moduleScanRequest2Spy).setModule("org.example:test2:jar:1.0-SNAPSHOT", "maven", "modulePath2");
+    verify(moduleScanRequest2Spy).addConsumedFile(
+        new File("path2\\com\\novell\\ldap\\jldap\\2009-10-07\\jldap-2009-10-07.jar"),
+        "com.novell.ldap:jldap:jar:2009-10-07"
+    );
+    verify(moduleScanRequest2Spy, times(1)).addConsumedFile(any(), any());
+    verify(moduleScanRequest2Spy).addDependency(
+        "com.novell.ldap:jldap:jar:2009-10-07",
+        true,
+        Collections.emptyList()
+    );
+    verify(mockFileScanner).scan(moduleScanRequest2Spy);
+  }
+
+  @Test
+  public void testScanModules_multimodule() throws Exception {
+    Scanner scannerSpy = spy(scanner);
+    List<File> moduleIndices = Arrays.asList(
+        new File("src/test/resources/ScannerTest/test2/test/target-test/module.xml"),
+        new File("src/test/resources/ScannerTest/test2/target-test/module.xml")
+    );
+    ScanSession scanSession = new ScanSession(null, null);
+    File baseDirectory = new File("baseDirectory");
+    FileScanner mockFileScanner = mock(FileScanner.class);
+    List<ModuleScanRequest> scanRequests = new ArrayList<>();
+    doAnswer(invocationOnMock -> {
+      ModuleScanRequest moduleScanRequestSpy = spy(new ModuleScanRequest(invocationOnMock.getArgument(0)));
+      scanRequests.add(moduleScanRequestSpy);
+      return moduleScanRequestSpy;
+    }).when(scannerSpy).createModuleScanRequest(any(ScanSession.class));
+
+    scannerSpy.scanModules(moduleIndices, scanSession, baseDirectory, mockFileScanner);
+
+    assertThat(scanRequests).hasSize(2);
+    ModuleScanRequest moduleScanRequest1Spy = scanRequests.get(0);
+    assertThat(moduleScanRequest1Spy.getScanSession()).isEqualTo(scanSession);
+    verify(moduleScanRequest1Spy).setBasedir(baseDirectory);
+    verify(moduleScanRequest1Spy).setModule("org.example:test:jar:1.0-SNAPSHOT", "maven", "test2/modulePath1");
+
+    verify(mockFileScanner).scan(moduleScanRequest1Spy);
+    ModuleScanRequest moduleScanRequest2Spy = scanRequests.get(1);
+    assertThat(moduleScanRequest2Spy.getScanSession()).isEqualTo(scanSession);
+    verify(moduleScanRequest2Spy).setBasedir(baseDirectory);
+    verify(moduleScanRequest2Spy).setModule("org.example:test2:jar:1.0-SNAPSHOT", "maven", "test2/test/modulePath2");
+    verify(moduleScanRequest2Spy).addConsumedFile(
+        new File("path2\\com\\novell\\ldap\\jldap\\2009-10-07\\jldap-2009-10-07.jar"),
+        "com.novell.ldap:jldap:jar:2009-10-07"
+    );
+    verify(moduleScanRequest2Spy, times(1)).addConsumedFile(any(), any());
+    verify(moduleScanRequest2Spy).addDependency(
+        "com.novell.ldap:jldap:jar:2009-10-07",
+        true,
+        Collections.emptyList()
+    );
+    verify(mockFileScanner).scan(moduleScanRequest2Spy);
+  }
+
+  @Test
+  public void testScanModules_multimodule_order() throws Exception {
+    Scanner scannerSpy = spy(scanner);
+    List<File> moduleIndices = Arrays.asList(
+        new File("src/test/resources/ScannerTest/test2/target-test/module.xml"),
+        new File("src/test/resources/ScannerTest/test2/test/target-test/module.xml")
+    );
+    ScanSession scanSession = new ScanSession(null, null);
+    File baseDirectory = new File("baseDirectory");
+    FileScanner mockFileScanner = mock(FileScanner.class);
+    List<ModuleScanRequest> scanRequests = new ArrayList<>();
+    doAnswer(invocationOnMock -> {
+      ModuleScanRequest moduleScanRequestSpy = spy(new ModuleScanRequest(invocationOnMock.getArgument(0)));
+      scanRequests.add(moduleScanRequestSpy);
+      return moduleScanRequestSpy;
+    }).when(scannerSpy).createModuleScanRequest(any(ScanSession.class));
+
+    scannerSpy.scanModules(moduleIndices, scanSession, baseDirectory, mockFileScanner);
+
+    assertThat(scanRequests).hasSize(2);
+    ModuleScanRequest moduleScanRequest1Spy = scanRequests.get(0);
+    assertThat(moduleScanRequest1Spy.getScanSession()).isEqualTo(scanSession);
+    verify(moduleScanRequest1Spy).setBasedir(baseDirectory);
+    verify(moduleScanRequest1Spy).setModule("org.example:test:jar:1.0-SNAPSHOT", "maven", "test2/modulePath1");
+
+    verify(mockFileScanner).scan(moduleScanRequest1Spy);
+    ModuleScanRequest moduleScanRequest2Spy = scanRequests.get(1);
+    assertThat(moduleScanRequest2Spy.getScanSession()).isEqualTo(scanSession);
+    verify(moduleScanRequest2Spy).setBasedir(baseDirectory);
+    verify(moduleScanRequest2Spy).setModule("org.example:test2:jar:1.0-SNAPSHOT", "maven", "test2/test/modulePath2");
     verify(moduleScanRequest2Spy).addConsumedFile(
         new File("path2\\com\\novell\\ldap\\jldap\\2009-10-07\\jldap-2009-10-07.jar"),
         "com.novell.ldap:jldap:jar:2009-10-07"

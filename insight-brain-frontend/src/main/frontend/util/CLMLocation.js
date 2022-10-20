@@ -761,6 +761,14 @@ export function getComponentWaivers(ownerType, ownerId, hash) {
   return uriTemplate`/rest/policyWaiver/${ownerType}/${ownerId}/component/${hash}`;
 }
 
+export function getRobotUrl(isApp, hashcode) {
+  return uriTemplate`/rest/${isApp ? 'application' : 'organization'}/services/generateIcon/${hashcode}`;
+}
+
+export function getAddIconUrl(isApp, ownerId) {
+  return uriTemplate`/rest/${isApp ? 'application' : 'organization'}/icon/${encodeURIComponent(ownerId)}`;
+}
+
 export const getVersionGraphUrl = ({
   clientType,
   ownerType,

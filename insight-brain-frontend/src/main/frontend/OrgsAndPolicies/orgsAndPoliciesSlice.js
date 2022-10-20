@@ -17,6 +17,7 @@ import stagesSlice from './stagesSlice';
 import policySlice from './policySlice';
 import retentionSlice from './retentionSlice';
 import deleteOwnerSlice from './deleteOwnerModal/deleteOwnerSlice';
+import ownerModalSlice from './ownerModal/ownerModalSlice';
 import sourceControlSlice from './sourceControlSlice';
 import ownerSummarySlice from './ownerSummarySlice';
 import ownerDetailTreeSlice from './ownerDetailTreeSlice';
@@ -51,6 +52,7 @@ export default combineReducers({
     revokeGrandfathering: revokeGrandfatheringSlice,
     changeAppId: changeApplicationIdSlice,
     moveApplication: moveApplicationSlice,
+    ownerModal: ownerModalSlice,
   }),
   sourceControl: sourceControlSlice,
   ownerSummary: ownerSummarySlice,

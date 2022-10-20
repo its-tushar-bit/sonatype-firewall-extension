@@ -7,6 +7,8 @@ import { selectIsSourceControlSupported } from 'MainRoot/productFeatures/product
 import { selectDeleteOwnerSlice } from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/deleteOwnerSelectors';
 import { selectChangeApplicationIdSlice } from '../../OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSelectors';
 import { selectMoveApplicationSlice } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSelectors';
+import { selectOwnerModalSlice } from 'MainRoot/OrgsAndPolicies/ownerModal/ownerModalSelectors';
+import { actions as ownerModalActions } from 'MainRoot/OrgsAndPolicies/ownerModal/ownerModalSlice';
 import template from './owner.tree.view.directive.html';
 
 function OwnerTreeViewController(
@@ -17,7 +19,6 @@ function OwnerTreeViewController(
   $http,
   $ngRedux,
   CLMLocations,
-  OwnerEditor,
   PermissionService,
   ownerConstant,
   EventNameConstant,
@@ -33,8 +34,7 @@ function OwnerTreeViewController(
   vm.rootOrganization = undefined;
   vm.organizations = undefined;
 
-  vm.createApplication = createApplication;
-  vm.createOrganization = createOrganization;
+  vm.createOwner = createOwner;
   vm.doLoad = doLoad;
   vm.goToOrganizationIfNotSynthetic = goToOrganizationIfNotSynthetic;
   vm.handleOrganizationTwistyClick = handleOrganizationTwistyClick;
@@ -42,6 +42,7 @@ function OwnerTreeViewController(
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
     ...scmOnboardingActions,
+    openOwnerModal: ownerModalActions.openModal,
   })(vm);
 
   $scope.$watch('vm.filter.value', filter, function (error) {
@@ -79,7 +80,12 @@ function OwnerTreeViewController(
   });
 
   $scope.$watchGroup(
-    ['vm.isShowSuccessMoveAppModal', 'vm.submitDeleteMaskState', 'vm.submitChangeAppIdMaskState'],
+    [
+      'vm.isShowSuccessMoveAppModal',
+      'vm.submitDeleteMaskState',
+      'vm.submitChangeAppIdMaskState',
+      'vm.submitOwnerModalMaskState',
+    ],
     function (newValues, oldValues) {
       newValues.forEach((currentValue, index) => {
         // triggers doLoad func only when modal closes, i.e. mask going from true to null/false
@@ -209,31 +215,8 @@ function OwnerTreeViewController(
     });
   }
 
-  function createApplication(parent) {
-    const application = {
-      id: null,
-      publicId: null,
-      name: null,
-      organizationId: parent.id,
-      organizationName: parent.name,
-      contact: null,
-      isNew: true,
-    };
-    let applications = vm.organizations.map(function (organization) {
-      return organization.applications;
-    });
-    applications = [].concat.apply([], applications);
-    OwnerEditor.open(application, ownerConstant.APPLICATION_TYPE, applications);
-  }
-
-  function createOrganization() {
-    const organization = {
-      id: null,
-      name: null,
-      isNew: true,
-    };
-    var organizations = vm.organizations.concat(vm.rootOrganization);
-    OwnerEditor.open(organization, ownerConstant.ORGANIZATION_TYPE, organizations);
+  function createOwner() {
+    vm.openOwnerModal();
   }
 
   function filter() {
@@ -322,6 +305,7 @@ function OwnerTreeViewController(
       submitDeleteMaskState: selectDeleteOwnerSlice(state).submitMaskState,
       submitChangeAppIdMaskState: selectChangeApplicationIdSlice(state).submitMaskState,
       isShowSuccessMoveAppModal: selectMoveApplicationSlice(state).isShowSuccessModal,
+      submitOwnerModalMaskState: selectOwnerModalSlice(state).submitMaskState,
     };
   }
 }
@@ -334,7 +318,6 @@ OwnerTreeViewController.$inject = [
   '$http',
   '$ngRedux',
   'CLMLocations',
-  'OwnerEditorService',
   'PermissionService',
   'owner.constant',
   'event.name.constant',

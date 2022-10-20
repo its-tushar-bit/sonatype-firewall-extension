@@ -16,6 +16,7 @@ import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organi
 import { actions as changeApplicationIdActions } from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSlice';
 import { actions as importPoliciesActions } from 'MainRoot/OrgsAndPolicies/importPoliciesModal/importPoliciesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
+import { actions as ownerModalActions } from 'MainRoot/OrgsAndPolicies/ownerModal/ownerModalSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import {
   selectIsGrandfatheringSupported,
@@ -41,7 +42,6 @@ export default function OwnerSummaryController(
   $q,
   $http,
   $window,
-  OwnerEditor,
   CLMLocations,
   CLMContextLocations,
   SelectApplicationContactService,
@@ -95,6 +95,7 @@ export default function OwnerSummaryController(
     openRevokeGrandfatheringModal: revokeGrandfatheringActions.openModal,
     openImportPoliciesModal: importPoliciesActions.openModal,
     openMoveApplicationModal: moveApplicationActions.openMoveAppModal,
+    openOwnerModal: ownerModalActions.openEditModal,
     copyToClipboard: copyIdToClipboardAction,
   })(vm);
 
@@ -189,7 +190,7 @@ export default function OwnerSummaryController(
   }
 
   function edit() {
-    OwnerEditor.open(vm.owner, type, siblings);
+    vm.openOwnerModal();
   }
 
   function moveApplication() {
@@ -297,7 +298,6 @@ OwnerSummaryController.$inject = [
   '$q',
   '$http',
   '$window',
-  'OwnerEditorService',
   'CLMLocations',
   'CLMContextLocations',
   'SelectApplicationContactService',

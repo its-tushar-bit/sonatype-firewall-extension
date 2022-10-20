@@ -1,0 +1,682 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import { getApplicationsUrl, getOrganizationsUrl, getAddIconUrl } from 'MainRoot/util/CLMLocation';
+import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
+import { fireEvent, render, screen, axiosMockAdapter, waitFor } from 'TestRoot/SpecUtil';
+import { nxTextInputStateHelpers, nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
+import { validateNonEmpty } from 'MainRoot/util/validationUtil';
+
+const { initialState: rscInitialState } = nxTextInputStateHelpers;
+const { initialState: rscInitialFileUploadState } = nxFileUploadStateHelpers;
+
+const disabledButtonText = 'Submit disabled: Unable to save: fields with invalid or missing data';
+
+const APPS = [
+  {
+    id: 'applicationOneID',
+    publicId: 'applicationOnePublicID',
+    organizationId: 'organizationOneID',
+    name: 'ApplicationOneName',
+  },
+  {
+    id: 'applicationTwoID',
+    publicId: 'applicationTwoPublicID',
+    organizationId: 'organizationOneID',
+    name: 'ApplicationTwoName',
+  },
+  {
+    id: 'applicationThreeID',
+    publicId: 'applicationThreePublicID',
+    organizationId: 'organizationTwoID',
+    name: 'ApplicationThreeName',
+  },
+];
+
+const ORGS = [
+  {
+    id: 'organizationOneID',
+    name: 'OrganizationOneName',
+  },
+  {
+    id: 'organizationTwoID',
+    name: 'OrganizationTwoName',
+  },
+];
+
+const defaultPreloadedState = {
+  router: {
+    currentState: {
+      name: 'management.view.organization',
+    },
+    currentParams: {
+      organizationId: 'ROOT_ORGANIZATION_ID',
+    },
+  },
+  orgsAndPolicies: {
+    applications: {
+      applications: APPS,
+    },
+    organizations: {
+      organizations: ORGS,
+    },
+    root: {
+      selectedOwner: {
+        id: 'ROOT_ORGANIZATION_ID',
+        name: 'Root Organization',
+      },
+    },
+    ownerEditor: {
+      ownerModal: {
+        submitError: null,
+        submitMaskState: null,
+        isModalOpen: true,
+        isEditMode: false,
+        ownerIconType: '',
+        ownerIcon: rscInitialFileUploadState(null),
+        robotHash: '',
+        validationErrors: [null],
+        ownerName: rscInitialState('', validateNonEmpty),
+        appId: rscInitialState('', validateNonEmpty),
+        isDirty: false,
+        isUnsavedChangesModalOpen: false,
+      },
+    },
+  },
+};
+
+const createAppState = {
+  router: {
+    currentState: {
+      name: 'management.view.organization',
+    },
+    currentParams: {
+      organizationId: 'organizationOneID',
+    },
+  },
+  orgsAndPolicies: {
+    applications: {
+      applications: APPS,
+    },
+    organizations: {
+      organizations: ORGS,
+    },
+    root: {
+      selectedOwner: ORGS[0],
+    },
+    ownerEditor: {
+      ownerModal: {
+        submitError: null,
+        submitMaskState: null,
+        isModalOpen: true,
+        isEditMode: false,
+        ownerIconType: '',
+        ownerIcon: rscInitialFileUploadState(null),
+        robotHash: '',
+        validationErrors: [null],
+        ownerName: rscInitialState('', validateNonEmpty),
+        appId: rscInitialState('', validateNonEmpty),
+        isDirty: false,
+        isUnsavedChangesModalOpen: false,
+      },
+    },
+  },
+};
+
+const editOrgState = {
+  router: {
+    currentState: {
+      name: 'management.view.organization',
+    },
+    currentParams: {
+      organizationId: 'organizationOneID',
+    },
+  },
+  orgsAndPolicies: {
+    applications: {
+      applications: APPS,
+    },
+    organizations: {
+      organizations: ORGS,
+    },
+    root: {
+      selectedOwner: ORGS[0],
+    },
+    ownerEditor: {
+      ownerModal: {
+        submitError: null,
+        submitMaskState: null,
+        isModalOpen: true,
+        isEditMode: true,
+        ownerIconType: '',
+        ownerIcon: rscInitialFileUploadState(null),
+        robotHash: '',
+        validationErrors: [null],
+        ownerName: rscInitialState('OrganizationOneName', validateNonEmpty),
+        appId: rscInitialState('', validateNonEmpty),
+        isDirty: false,
+        isUnsavedChangesModalOpen: false,
+      },
+    },
+  },
+};
+
+const editAppState = {
+  router: {
+    currentState: {
+      name: 'management.view.application',
+    },
+    currentParams: {
+      applicationPublicId: 'applicationOneID',
+    },
+  },
+  orgsAndPolicies: {
+    applications: {
+      applications: APPS,
+    },
+    organizations: {
+      organizations: ORGS,
+    },
+    root: {
+      selectedOwner: APPS[0],
+    },
+    ownerEditor: {
+      ownerModal: {
+        submitError: null,
+        submitMaskState: null,
+        isModalOpen: true,
+        isEditMode: true,
+        ownerIconType: '',
+        ownerIcon: rscInitialFileUploadState(null),
+        robotHash: '',
+        validationErrors: [null],
+        ownerName: rscInitialState('ApplicationOneName', validateNonEmpty),
+        appId: rscInitialState('applicationOnePublicID', validateNonEmpty),
+        isDirty: false,
+        isUnsavedChangesModalOpen: false,
+      },
+    },
+  },
+};
+
+describe('OwnerModal', () => {
+  let mock, renderComponent;
+
+  beforeEach(() => {
+    mock = axiosMockAdapter();
+    renderComponent = (preloadedState) =>
+      render(<OwnerModal />, { preloadedState: preloadedState || defaultPreloadedState });
+  });
+
+  it('does not render modal without being open', () => {
+    const state = defaultPreloadedState;
+    state.orgsAndPolicies.ownerEditor.ownerModal.isModalOpen = false;
+    renderComponent(state);
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('close modal on cancel', () => {
+    const state = defaultPreloadedState;
+    state.orgsAndPolicies.ownerEditor.ownerModal.isModalOpen = true;
+    renderComponent();
+
+    const closeButton = screen.getByRole('button', { name: 'Cancel' });
+    expect(closeButton).toBeVisible();
+    expect(closeButton).not.toHaveClassName('disabled');
+    fireEvent.click(closeButton);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  describe('Create Organization', () => {
+    it('renders modal with the correct page title', () => {
+      renderComponent();
+
+      expect(screen.getByText('New Organization')).toBeVisible();
+    });
+
+    it('renders modal with correct content', () => {
+      renderComponent();
+      expect(screen.getByText(`Organization Name`)).toBeVisible();
+      expect(screen.getByText(`Use a default icon`)).toBeVisible();
+      expect(screen.getByText(`Upload a custom icon`)).toBeVisible();
+      expect(screen.getByText(`Get a robot`)).toBeVisible();
+
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
+
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      expect(submitButton).toHaveTextContent('Create');
+    });
+
+    it('triggers createNewOwner', () => {
+      const newOwnerNameValue = 'qwerty';
+      mock.onPost(getOrganizationsUrl()).reply(200, {
+        data: {
+          id: 'organizationThreeID',
+          name: newOwnerNameValue,
+        },
+      });
+      renderComponent();
+
+      const ownerNameInput = screen.getByRole('textbox');
+      fireEvent.change(ownerNameInput, { target: { value: newOwnerNameValue } });
+
+      expect(ownerNameInput.value).toBe(newOwnerNameValue);
+
+      const submitButton = screen.getByRole('button', { name: 'Create' });
+      expect(submitButton).toHaveTextContent('Create');
+      expect(submitButton).not.toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(1);
+      expect(mock.history.put.length).toBe(0);
+    });
+
+    it('can not trigger createNewOwner when there are invalid characters in name input', () => {
+      renderComponent();
+
+      const ownerNameInput = screen.getByRole('textbox');
+      fireEvent.change(ownerNameInput, { target: { value: 'some%text' } });
+
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      expect(submitButton).toHaveTextContent('Create');
+      expect(submitButton).toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(0);
+      expect(mock.history.put.length).toBe(0);
+      const errorText = screen.getByText('Use valid characters: alphanumeric, "_", ".", "-", or spaces');
+      expect(errorText).toBeVisible();
+    });
+
+    it('can not trigger createNewOwner when there is duplicate organization', () => {
+      renderComponent();
+
+      const ownerNameInput = screen.getByRole('textbox');
+      fireEvent.change(ownerNameInput, { target: { value: ORGS[0].name } });
+
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      expect(ownerNameInput.value).toBe(ORGS[0].name);
+      expect(submitButton).toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(0);
+      expect(mock.history.put.length).toBe(0);
+      const errorText = screen.getByText('Name is already in use');
+      expect(errorText).toBeVisible();
+    });
+
+    it('can not trigger createNewOwner when there are more than 200 characters in name input', () => {
+      renderComponent();
+
+      const ownerNameInput = screen.getByRole('textbox');
+      fireEvent.change(ownerNameInput, { target: { value: 'a'.repeat(201) } });
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+
+      expect(submitButton).toHaveTextContent('Create');
+      expect(submitButton).toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(0);
+      expect(mock.history.put.length).toBe(0);
+      const errorText = screen.getByText('Please enter less than 200 characters');
+      expect(errorText).toBeVisible();
+    });
+
+    it('can not trigger createNewOwner when name input is empty', () => {
+      renderComponent();
+
+      const ownerNameInput = screen.getByRole('textbox');
+      fireEvent.change(ownerNameInput, { target: { value: 'someText' } });
+      fireEvent.change(ownerNameInput, { target: { value: '' } });
+
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      expect(ownerNameInput.value).toBe('');
+      expect(submitButton).toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(0);
+      expect(mock.history.put.length).toBe(0);
+      const errorText = screen.getByText('Must be non-empty');
+      expect(errorText).toBeVisible();
+    });
+
+    it('can not trigger createNewOwner when custom file input is empty', () => {
+      const newNameValue = 'someText';
+      renderComponent();
+
+      const ownerNameInput = screen.getByRole('textbox');
+      fireEvent.change(ownerNameInput, { target: { value: newNameValue } });
+
+      const submitButton = screen.getByRole('button', { name: 'Create' });
+      expect(submitButton).not.toHaveClassName('disabled');
+
+      const ownerIconRadio = screen.getByRole('radio', { name: 'Upload a custom icon' });
+      fireEvent.click(ownerIconRadio);
+
+      const reselectSubmitButton = screen.getByRole('button', { name: disabledButtonText });
+      expect(ownerIconRadio).toBeChecked();
+      expect(reselectSubmitButton).toHaveClassName('disabled');
+
+      fireEvent.click(reselectSubmitButton);
+      expect(mock.history.post.length).toBe(0);
+      expect(mock.history.put.length).toBe(0);
+      const errorText = screen.getByText('No file selected');
+      expect(errorText).toBeVisible();
+    });
+  });
+
+  describe('Create Application', () => {
+    it('renders modal with the correct page title', () => {
+      renderComponent(createAppState);
+
+      expect(screen.getByText('New Application')).toBeVisible();
+    });
+
+    it('renders modal with correct content', () => {
+      renderComponent(createAppState);
+      expect(screen.getByText(`Application Name`)).toBeVisible();
+      expect(screen.getByText(`Application ID`)).toBeVisible();
+      expect(screen.getByText(`Use a default icon`)).toBeVisible();
+      expect(screen.getByText(`Upload a custom icon`)).toBeVisible();
+      expect(screen.getByText(`Get a robot`)).toBeVisible();
+
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
+
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      expect(submitButton).toHaveTextContent('Create');
+    });
+
+    it('triggers createNewOwner', () => {
+      const newOwnerNameValue = 'qwerty';
+      const newOwnerIdValue = '12345';
+      mock.onPost(getApplicationsUrl()).reply(200, {
+        data: {
+          id: 'applicationFourID',
+          name: newOwnerNameValue,
+          publicId: newOwnerIdValue,
+          organizationId: 'organizationOneID',
+        },
+      });
+      renderComponent(createAppState);
+
+      const ownerNameInput = screen.getAllByRole('textbox')[0];
+      fireEvent.change(ownerNameInput, { target: { value: newOwnerNameValue } });
+
+      expect(ownerNameInput.value).toBe(newOwnerNameValue);
+
+      const ownerIdInput = screen.getAllByRole('textbox')[1];
+      fireEvent.change(ownerIdInput, { target: { value: newOwnerIdValue } });
+
+      expect(ownerIdInput.value).toBe(newOwnerIdValue);
+
+      const submitButton = screen.getByRole('button', { name: 'Create' });
+      expect(submitButton).toHaveTextContent('Create');
+      expect(submitButton).not.toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(1);
+      expect(mock.history.put.length).toBe(0);
+    });
+
+    it('can not trigger createNewOwner when there are invalid characters in id input', () => {
+      renderComponent(createAppState);
+
+      const ownerIdInput = screen.getAllByRole('textbox')[1];
+      fireEvent.change(ownerIdInput, { target: { value: 'some text' } });
+
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      expect(submitButton).toHaveTextContent('Create');
+      expect(submitButton).toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(0);
+      expect(mock.history.put.length).toBe(0);
+      const errorText = screen.getByText('Use valid characters: alphanumeric, "_", "." or "-"');
+      expect(errorText).toBeVisible();
+    });
+
+    it('can not trigger createNewOwner when there is duplicate application', () => {
+      renderComponent(createAppState);
+
+      const ownerIdInput = screen.getAllByRole('textbox')[1];
+      fireEvent.change(ownerIdInput, { target: { value: APPS[0].publicId } });
+
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+
+      expect(ownerIdInput.value).toBe(APPS[0].publicId);
+      expect(submitButton).toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(0);
+      expect(mock.history.put.length).toBe(0);
+
+      const errorText = screen.getByText('ID is already in use');
+      expect(errorText).toBeVisible();
+    });
+
+    it('can not trigger createNewOwner when there are more than 200 characters in id input', () => {
+      renderComponent(createAppState);
+
+      const ownerIdInput = screen.getAllByRole('textbox')[1];
+      fireEvent.change(ownerIdInput, { target: { value: 'a'.repeat(201) } });
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+
+      expect(submitButton).toHaveTextContent('Create');
+      expect(submitButton).toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(0);
+      expect(mock.history.put.length).toBe(0);
+      const errorText = screen.getByText('Please enter less than 200 characters');
+      expect(errorText).toBeVisible();
+    });
+
+    it('can not trigger createNewOwner when id input is empty', () => {
+      renderComponent(createAppState);
+
+      const ownerIdInput = screen.getAllByRole('textbox')[1];
+      fireEvent.change(ownerIdInput, { target: { value: 'someText' } });
+      fireEvent.change(ownerIdInput, { target: { value: '' } });
+
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      expect(ownerIdInput.value).toBe('');
+      expect(submitButton).toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(0);
+      expect(mock.history.put.length).toBe(0);
+      const errorText = screen.getByText('Must be non-empty');
+      expect(errorText).toBeVisible();
+    });
+  });
+
+  describe('Edit Organization', () => {
+    it('renders modal with the correct page title', () => {
+      renderComponent(editOrgState);
+
+      expect(screen.getByText('Edit Organization')).toBeVisible();
+    });
+
+    it('renders modal with correct content', () => {
+      renderComponent(editOrgState);
+      expect(screen.getByText(`Organization Name`)).toBeVisible();
+      expect(screen.getByText(`Use a default icon`)).toBeVisible();
+      expect(screen.getByText(`Upload a custom icon`)).toBeVisible();
+      expect(screen.getByText(`Get a robot`)).toBeVisible();
+
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
+      expect(screen.getByText(`Update`)).toBeVisible();
+    });
+
+    it('triggers editCurrentOwner', async () => {
+      const newOwnerNameValue = 'qwerty';
+
+      mock.onPost(getAddIconUrl(false, 'organizationOneID')).reply(200, {});
+      mock.onPut(getOrganizationsUrl()).reply(200, {
+        data: {
+          id: 'organizationOneID',
+          name: newOwnerNameValue,
+        },
+      });
+      renderComponent(editOrgState);
+
+      const ownerNameInput = screen.getByRole('textbox');
+      fireEvent.change(ownerNameInput, { target: { value: newOwnerNameValue } });
+
+      expect(ownerNameInput.value).toBe(newOwnerNameValue);
+
+      const submitButton = screen.getByRole('button', { name: 'Update' });
+      expect(submitButton).toHaveTextContent('Update');
+      expect(submitButton).not.toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      await waitFor(() => expect(mock.history.put.length).toBe(1));
+      expect(mock.history.post.length).toBe(1);
+    });
+
+    it('triggers editCurrentOwner on same value as was before in current name value, and request only icon change, not owner', () => {
+      const newOwnerNameValue = 'qwerty';
+      const oldOwnerNameValue = 'OrganizationOneName';
+      mock.onPost(getAddIconUrl(false, 'organizationOneID')).reply(200, {});
+      renderComponent(editOrgState);
+
+      const ownerNameInput = screen.getByRole('textbox');
+      fireEvent.change(ownerNameInput, { target: { value: newOwnerNameValue } });
+      fireEvent.change(ownerNameInput, { target: { value: oldOwnerNameValue } });
+
+      expect(ownerNameInput.value).toBe(oldOwnerNameValue);
+
+      const submitButton = screen.getByRole('button', { name: 'Update' });
+      expect(submitButton).toHaveTextContent('Update');
+      expect(submitButton).not.toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.put.length).toBe(0);
+      expect(mock.history.post.length).toBe(1);
+    });
+
+    it('can not trigger editCurrentOwner when there is duplicate organization', () => {
+      renderComponent(editOrgState);
+
+      const ownerNameInput = screen.getByRole('textbox');
+      fireEvent.change(ownerNameInput, { target: { value: ORGS[1].name } });
+
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      expect(ownerNameInput.value).toBe(ORGS[1].name);
+      expect(submitButton).toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(0);
+      expect(mock.history.put.length).toBe(0);
+      const errorText = screen.getByText('Name is already in use');
+      expect(errorText).toBeVisible();
+    });
+
+    it('can not trigger editCurrentOwner when name input is empty', () => {
+      renderComponent(editOrgState);
+
+      const ownerNameInput = screen.getByRole('textbox');
+      fireEvent.change(ownerNameInput, { target: { value: '' } });
+
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      expect(ownerNameInput.value).toBe('');
+      expect(submitButton).toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(0);
+      expect(mock.history.put.length).toBe(0);
+      const errorText = screen.getByText('Must be non-empty');
+      expect(errorText).toBeVisible();
+    });
+
+    it('can not trigger editCurrentOwner when custom file input is empty', () => {
+      renderComponent(editOrgState);
+
+      const ownerIconRadio = screen.getByRole('radio', { name: 'Upload a custom icon' });
+      fireEvent.click(ownerIconRadio);
+
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      expect(ownerIconRadio).toBeChecked();
+      expect(submitButton).toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(0);
+      expect(mock.history.put.length).toBe(0);
+      const errorText = screen.getByText('No file selected');
+      expect(errorText).toBeVisible();
+    });
+  });
+
+  describe('Edit Application', () => {
+    it('renders modal with the correct page title', () => {
+      renderComponent(editAppState);
+
+      expect(screen.getByText('Edit Application')).toBeVisible();
+    });
+
+    it('renders modal with correct content', () => {
+      renderComponent(editAppState);
+      expect(screen.getByText(`Application Name`)).toBeVisible();
+      expect(screen.queryAllByText(`Application ID`).length).toBe(0);
+      expect(screen.getByText(`Use a default icon`)).toBeVisible();
+      expect(screen.getByText(`Upload a custom icon`)).toBeVisible();
+      expect(screen.getByText(`Get a robot`)).toBeVisible();
+
+      expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
+      expect(screen.getByText(`Update`)).toBeVisible();
+    });
+
+    it('triggers editCurrentOwner', async () => {
+      const newOwnerNameValue = 'qwerty';
+      mock.onPost(getAddIconUrl(true, 'applicationOneID')).reply(200, {});
+      mock.onPut(getApplicationsUrl()).reply(200, {
+        data: {
+          id: 'applicationOneID',
+          name: newOwnerNameValue,
+          publicId: 'applicationOnePublicID',
+          organizationId: 'organizationOneID',
+        },
+      });
+      renderComponent(editAppState);
+
+      const ownerNameInput = screen.getByRole('textbox');
+      fireEvent.change(ownerNameInput, { target: { value: newOwnerNameValue } });
+
+      expect(ownerNameInput.value).toBe(newOwnerNameValue);
+
+      const submitButton = screen.getByRole('button', { name: 'Update' });
+      expect(submitButton).toHaveTextContent('Update');
+      expect(submitButton).not.toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      await waitFor(() => expect(mock.history.put.length).toBe(1));
+      expect(mock.history.post.length).toBe(1);
+    });
+
+    it('triggers editCurrentOwner on same value as was before in current name value, and request only icon change, not owner', () => {
+      const newOwnerNameValue = 'qwerty';
+      const oldOwnerNameValue = 'ApplicationOneName';
+      mock.onPost(getAddIconUrl(true, 'applicationOneID')).reply(200, {});
+      renderComponent(editAppState);
+
+      const ownerNameInput = screen.getByRole('textbox');
+      fireEvent.change(ownerNameInput, { target: { value: newOwnerNameValue } });
+      fireEvent.change(ownerNameInput, { target: { value: oldOwnerNameValue } });
+
+      expect(ownerNameInput.value).toBe(oldOwnerNameValue);
+
+      const submitButton = screen.getByRole('button', { name: 'Update' });
+      expect(submitButton).toHaveTextContent('Update');
+      expect(submitButton).not.toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.put.length).toBe(0);
+      expect(mock.history.post.length).toBe(1);
+    });
+
+    it('can not trigger editCurrentOwner when there is duplicate application', () => {
+      renderComponent(editAppState);
+
+      const ownerNameInput = screen.getByRole('textbox');
+      fireEvent.change(ownerNameInput, { target: { value: APPS[1].name } });
+
+      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+
+      expect(ownerNameInput.value).toBe(APPS[1].name);
+      expect(submitButton).toHaveClassName('disabled');
+      fireEvent.click(submitButton);
+      expect(mock.history.post.length).toBe(0);
+      expect(mock.history.put.length).toBe(0);
+
+      const errorText = screen.getByText('Name is already in use');
+      expect(errorText).toBeVisible();
+    });
+  });
+});

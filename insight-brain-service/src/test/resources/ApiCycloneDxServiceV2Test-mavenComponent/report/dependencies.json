@@ -1,0 +1,189 @@
+{
+  "dependencyGraph" : [],
+  "gavDepths" : {},
+  "componentDepths" : [],
+  "dependencyTree" : {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "insight-scanner",
+        "classifier" : "",
+        "extension" : "pom",
+        "groupId" : "com.sonatype.insight.scan",
+        "version" : "2.36.19-SNAPSHOT"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.sonatype.insight.scan/insight-scanner@2.36.19-SNAPSHOT?type=pom",
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "insight-test-networking",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.sonatype.insight.scan",
+          "version" : "2.36.19-SNAPSHOT"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar",
+      "direct" : true,
+      "module" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "insight-test-reverse-proxy",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "com.sonatype.insight.scan",
+          "version" : "2.36.19-SNAPSHOT"
+        }
+      },
+      "packageUrl" : "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar",
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jcl-over-slf4j",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.36"
+          }
+        },
+        "packageUrl" : "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar",
+        "direct" : true
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "slf4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.36"
+          }
+        },
+        "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar",
+        "direct" : true
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "httpclient",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.apache.httpcomponents",
+            "version" : "4.5.13"
+          }
+        },
+        "packageUrl" : "pkg:maven/org.apache.httpcomponents/httpclient@4.5.13?type=jar",
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "httpcore",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.apache.httpcomponents",
+              "version" : "4.4.13"
+            }
+          },
+          "packageUrl" : "pkg:maven/org.apache.httpcomponents/httpcore@4.4.13?type=jar"
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "commons-codec",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "commons-codec",
+              "version" : "1.15"
+            }
+          },
+          "packageUrl" : "pkg:maven/commons-codec/commons-codec@1.15?type=jar"
+        } ],
+        "direct" : true
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "insight-test-networking",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.sonatype.insight.scan",
+            "version" : "2.36.19-SNAPSHOT"
+          }
+        },
+        "packageUrl" : "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar",
+        "direct" : true
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jetty-server",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.eclipse.jetty",
+            "version" : "9.4.46.v20220331"
+          }
+        },
+        "packageUrl" : "pkg:maven/org.eclipse.jetty/jetty-server@9.4.46.v20220331?type=jar",
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "javax.servlet-api",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "javax.servlet",
+              "version" : "3.1.0"
+            }
+          },
+          "packageUrl" : "pkg:maven/javax.servlet/javax.servlet-api@3.1.0?type=jar"
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "jetty-http",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.eclipse.jetty",
+              "version" : "9.4.46.v20220331"
+            }
+          },
+          "packageUrl" : "pkg:maven/org.eclipse.jetty/jetty-http@9.4.46.v20220331?type=jar",
+          "children" : [ {
+            "componentIdentifier" : {
+              "format" : "maven",
+              "coordinates" : {
+                "artifactId" : "jetty-util",
+                "classifier" : "",
+                "extension" : "jar",
+                "groupId" : "org.eclipse.jetty",
+                "version" : "9.4.46.v20220331"
+              }
+            },
+            "packageUrl" : "pkg:maven/org.eclipse.jetty/jetty-util@9.4.46.v20220331?type=jar"
+          } ]
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "jetty-io",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "org.eclipse.jetty",
+              "version" : "9.4.46.v20220331"
+            }
+          },
+          "packageUrl" : "pkg:maven/org.eclipse.jetty/jetty-io@9.4.46.v20220331?type=jar"
+        } ],
+        "direct" : true
+      } ],
+      "direct" : true,
+      "module" : true
+    } ],
+    "module" : true
+  }
+}

@@ -9,9 +9,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,6 +27,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.sonatype.insight.brain.api.v2.dto.ApiDependencyTreeNodeDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
@@ -52,6 +55,7 @@ import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.BomGeneratorFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
@@ -61,6 +65,7 @@ import org.cyclonedx.generators.xml.BomXmlGenerator;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
+import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.ExternalReference;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.License;
@@ -149,15 +154,6 @@ public class ApiCycloneDxServiceV2
 
       Bom bom = new Bom();
       bom.setSerialNumber(toUuid(scanId));
-      if (version.getVersion() >= 1.2) {
-        PolicyEvaluation policyEvaluation =
-            policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
-        if (policyEvaluation != null) {
-          Metadata metadata = new Metadata();
-          metadata.setTimestamp(policyEvaluation.getTime());
-          bom.setMetadata(metadata);
-        }
-      }
 
       String url;
       try {
@@ -174,6 +170,17 @@ public class ApiCycloneDxServiceV2
       //New vulnerability information is available from SBoM 1.4
       if (CollectionUtils.isNotEmpty(bom.getComponents()) &&  version.getVersion() >= 1.4) {
         bom.setVulnerabilities(getVulnerabilityInformation(data.components, components));
+      }
+
+      if (version.getVersion() >= 1.2) {
+        PolicyEvaluation policyEvaluation =
+            policyEvaluationDAO.getLastByApplicationIdAndScanId(application.getId(), scanId);
+        ApiDependencyTreeNodeDTO dependenciesData = null;
+        if (CollectionUtils.isNotEmpty(components)) {
+          dependenciesData = apiReportDataServiceV2.getDependencyTreeNoAuth(application.getPublicId(), scanId);
+          addDependencyTree(dependenciesData, bom, new HashSet<>(components));
+        }
+        addMetadata(policyEvaluation, dependenciesData, bom);
       }
 
       if (MediaType.APPLICATION_JSON.equals(acceptType)) {
@@ -193,6 +200,55 @@ public class ApiCycloneDxServiceV2
     catch (IOException | ParserConfigurationException | GeneratorException e) {
       throw new InternalServerException("An error occurred generating report", e);
     }
+  }
+
+  private void addDependencyTree(
+      ApiDependencyTreeNodeDTO dependenciesData, Bom bom, Set<String> components) throws IOException
+  {
+    if (ObjectUtils.allNotNull(dependenciesData, dependenciesData.getPackageUrl())) {
+      List<Dependency> dependencies = convert(dependenciesData, components);
+      if (dependencies.size() > 0) {
+        bom.setDependencies(new ArrayList<>(dependencies));
+      }
+    }
+  }
+
+  private void addMetadata(
+      PolicyEvaluation policyEvaluation,
+      ApiDependencyTreeNodeDTO dependenciesData,
+      Bom bom)
+  {
+    if (policyEvaluation != null) {
+      Metadata metadata = new Metadata();
+      metadata.setTimestamp(policyEvaluation.getTime());
+      if (ObjectUtils.allNotNull(dependenciesData, dependenciesData.getPackageUrl())) {
+        ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
+        component.packageUrl = dependenciesData.getPackageUrl();
+        Component parentComponent = createComponent(dependenciesData.getPackageUrl(), Type.APPLICATION);
+        metadata.setComponent(parentComponent);
+      }
+      bom.setMetadata(metadata);
+    }
+  }
+
+  List<Dependency> convert(ApiDependencyTreeNodeDTO node, Set<String> components) {
+    Set<Dependency> dependencies = new LinkedHashSet<>();
+    convert(dependencies, node, components);
+    return new ArrayList<>(dependencies);
+  }
+
+  Dependency convert(Set<Dependency> dependencies, ApiDependencyTreeNodeDTO node, Set<String> components) {
+    Dependency dependency = new Dependency(node.getPackageUrl());
+    dependencies.add(dependency);
+    if (node.getChildren() != null) {
+      for (ApiDependencyTreeNodeDTO childNode : node.getChildren()) {
+        Dependency childDependency = convert(dependencies, childNode, components);
+        if (components.contains(childNode.getPackageUrl())) {
+          dependency.addDependency(new Dependency(childDependency.getRef()));
+        }
+      }
+    }
+    return dependency;
   }
 
   //Visible for testing
@@ -347,7 +403,7 @@ public class ApiCycloneDxServiceV2
     List<String> components = new ArrayList<>();
     for (ApiReportComponentDTOV2 reportComponent : reportComponents) {
       if (!MatchState.UNKNOWN.getId().equals(reportComponent.matchState)) {
-        Component component = createComponent(version, reportComponent, components);
+        Component component = createComponent(version, reportComponent, components, Type.LIBRARY);
         if (component != null) {
           bom.addComponent(component);
         }
@@ -386,12 +442,10 @@ public class ApiCycloneDxServiceV2
   private static Component createComponent(
       final Version version,
       final ApiReportComponentDTOV2 reportComponent,
-      final List<String> components)
+      final List<String> components,
+      final Type type)
   {
     try {
-      Component bomComponent = new Component();
-      bomComponent.setType(Type.LIBRARY);
-
       PackageUrlIdentifier purl;
       if (StringUtils.isNotBlank(reportComponent.packageUrl)) {
         purl = new PackageUrlIdentifier(reportComponent.packageUrl);
@@ -401,27 +455,39 @@ public class ApiCycloneDxServiceV2
             PackageUrlIdentifier.fromComponentIdentifier(reportComponent.componentIdentifier.toComponentIdentifier());
       }
 
-      PackageURL packageUrl = new PackageURL(purl.getPackageUrl());
+      Component bomComponent = createComponent(purl.getPackageUrl(), type);
+      components.add(purl.getPackageUrl());
+
+      if (Objects.nonNull(bomComponent)) {
+        bomComponent.setModified(MatchState.SIMILAR.getId().equals(reportComponent.matchState));
+        setProperties(version, reportComponent, bomComponent);
+        setLicenseInformation(reportComponent, bomComponent);
+        setSha256(reportComponent, bomComponent);
+      }
+      return bomComponent;
+    }
+    catch (Exception e) {
+      log.warn("There was an error creating SBoM component", e);
+    }
+    return null;
+  }
+
+  private static Component createComponent(final String purl, final Type type) {
+    try {
+      Component bomComponent = new Component();
+      bomComponent.setType(type);
+
+      PackageURL packageUrl = new PackageURL(purl);
       bomComponent.setPurl(packageUrl);
       bomComponent.setGroup(packageUrl.getNamespace());
       bomComponent.setName(packageUrl.getName());
       bomComponent.setVersion(packageUrl.getVersion());
 
-      bomComponent.setBomRef(purl.getPackageUrl());
-      components.add(purl.getPackageUrl());
-
-      bomComponent.setModified(MatchState.SIMILAR.getId().equals(reportComponent.matchState));
-      setProperties(version, reportComponent, bomComponent);
-      setLicenseInformation(reportComponent, bomComponent);
-      setSha256(reportComponent, bomComponent);
-
+      bomComponent.setBomRef(purl);
       return bomComponent;
     }
     catch (MalformedPackageURLException e) {
-      log.debug("Failed to create PackageURL for {}", reportComponent.packageUrl, e);
-    }
-    catch (Exception e) {
-      log.warn("There was an error creating SBoM component", e);
+      log.debug("Failed to create PackageURL for {}", purl, e);
     }
     return null;
   }

@@ -6,7 +6,10 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
@@ -140,6 +143,30 @@ public class ApiCycloneDxResourceV2Test
         getHttpRequestByReportId(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_12,
             MediaType.APPLICATION_XML).get();
     assertValidResponse(response, Version.VERSION_12, MediaType.APPLICATION_XML);
+  }
+
+  @Test
+  public void testGetByReportId_Maven_With_Version_1_2_Xml() throws Exception {
+    String sourceReportDir = "/" + getClass().getSimpleName() + "-mavenComponent/report";
+    HttpResponse response =
+        getHttpRequestByReportId(
+            ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION,
+            Version.VERSION_12,
+            MediaType.APPLICATION_XML,
+            sourceReportDir).get();
+    assertValidMavenResponse(response, "xml");
+  }
+
+  @Test
+  public void testGetByReportId_Maven_With_Version_1_2_Json() throws Exception {
+    String sourceReportDir = "/" + getClass().getSimpleName() + "-mavenComponent/report";
+    HttpResponse response =
+        getHttpRequestByReportId(
+            ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION,
+            Version.VERSION_12,
+            MediaType.APPLICATION_JSON,
+            sourceReportDir).get();
+    assertValidMavenResponse(response, "json");
   }
 
   @Test
@@ -278,8 +305,34 @@ public class ApiCycloneDxResourceV2Test
     assertThat(response.getHeader(HttpHeaders.CONTENT_TYPE)).isEqualTo(contentType);
   }
 
-  private HttpRequest getHttpRequest(final String path, final String mediaType) throws IOException {
-    createReportFile(app.getId(), scanId);
+  private void assertValidMavenResponse(HttpResponse response, String format)
+      throws URISyntaxException, IOException, ParseException
+  {
+    assertResponseStatus(200, response);
+    byte[] actualBytes = response.getBodyText().getBytes(StandardCharsets.UTF_8);
+    Parser parser = BomParserFactory.createParser(actualBytes);
+    Bom actualBom = parser.parse(actualBytes);
+    byte[] expectedBytes =
+        Files.readAllBytes(Paths.get(getClass().getResource(
+            "/" + getClass().getSimpleName() + "-mavenComponent/sbom/sbom." + format).toURI()));
+    parser = BomParserFactory.createParser(expectedBytes);
+    Bom expectedBom = parser.parse(expectedBytes);
+    assertThat(actualBom).usingRecursiveComparison()
+        .ignoringFieldsMatchingRegexes("(externalReferences|serialNumber|metadata.timestamp)")
+        .isEqualTo(expectedBom);
+  }
+
+  private HttpRequest getHttpRequest(
+      final String path,
+      final String mediaType,
+      final String... sourceReportDir) throws IOException
+  {
+    if (sourceReportDir.length > 0) {
+      createReportFile(app.getId(), scanId, sourceReportDir[0]);
+    }
+    else {
+      createReportFile(app.getId(), scanId);
+    }
 
     HttpRequest request = restRequest().path(path);
     if (mediaType != null) {
@@ -294,6 +347,7 @@ public class ApiCycloneDxResourceV2Test
 
   private HttpRequest getHttpRequestLatest(String path, Version version, String mediaType) throws Exception {
     HttpRequest request = getHttpRequest(path, mediaType);
+
     if (version != null) {
       request.parameter(version.getVersionString(), app.getId(), Stage.ID_BUILD);
     }
@@ -307,8 +361,14 @@ public class ApiCycloneDxResourceV2Test
     return getHttpRequestByReportId(path, null, null);
   }
 
-  private HttpRequest getHttpRequestByReportId(String path, Version version, String mediaType) throws Exception {
-    HttpRequest request = getHttpRequest(path, mediaType);
+  private HttpRequest getHttpRequestByReportId(
+      String path,
+      Version version,
+      String mediaType,
+      String... sourceReportDir) throws Exception
+  {
+    HttpRequest request = getHttpRequest(path, mediaType, sourceReportDir);
+
     if (version != null) {
       request.parameter(version.getVersionString(), app.getId(), scanId);
     }

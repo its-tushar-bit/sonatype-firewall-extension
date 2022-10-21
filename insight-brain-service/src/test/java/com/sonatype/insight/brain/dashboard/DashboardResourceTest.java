@@ -9,13 +9,18 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.ws.rs.core.HttpHeaders;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -23,10 +28,13 @@ import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
+import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
 import com.sonatype.insight.brain.model.security.Role;
@@ -35,6 +43,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.Sets;
 import org.junit.Test;
@@ -42,6 +51,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_APPLICATION_RISKS_EXPORT_PATH;
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_COMPONENT_RISKS_EXPORT_PATH;
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_NEWEST_RISKS_EXPORT_PATH;
+import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_POLICY_WAIVERS_EXPORT_PATH;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -51,7 +61,7 @@ public class DashboardResourceTest
   private final SimpleDateFormat csvTimestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
   private final SimpleDateFormat filenameTimestampFormatter = new SimpleDateFormat("yyyyMMdd-HHmmss");
-
+  
   {
     csvTimestampFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
@@ -171,7 +181,9 @@ public class DashboardResourceTest
     dashboardFilterDTO.organizationFilters.add(application.getOrganizationId());
 
     dashboardFilterDTO.tagFilters = new ArrayList<>();
-    dashboardFilterDTO.tagFilters.add(tag.getId());
+    if (tag != null) {
+      dashboardFilterDTO.tagFilters.add(tag.getId());
+    }
 
     dashboardFilterDTO.policyThreatCategoryFilters = new ArrayList<>();
     dashboardFilterDTO.policyThreatCategoryFilters.add(PolicyThreatCategory.SECURITY);
@@ -181,13 +193,13 @@ public class DashboardResourceTest
 
     return dashboardFilterDTO;
   }
-  
+
   private NamedDashboardFilterDTO createNamedDashboardFilter(Application application, Tag tag) {
     NamedDashboardFilterDTO namedDashboardFilterDTO = new NamedDashboardFilterDTO();
     namedDashboardFilterDTO.filter = createDashboardFilter(application, tag);
     return namedDashboardFilterDTO;
   }
-
+  
   @Test
   public void testGetNewestRisksExport() throws Exception {
     Application app = tempEntity.newApplicationWithParent("app1", "test application", "test organization");
@@ -437,7 +449,7 @@ public class DashboardResourceTest
     long millisSinceFirstSeen = policyViolation.getOpenTime().getTime();
     return dateFirstSeen + "," + millisSinceFirstSeen;
   }
-  
+
   @Test
   public void testCreateOrUpdateDashboardFilterForCurrentUser_Insert() throws Exception {
     User tempUser = tempEntity.newUser();
@@ -462,7 +474,7 @@ public class DashboardResourceTest
     // verify what was saved in the db is what's expected
     verifyDbState(tempUser, filterName, namedDashboardFilterDTO);
   }
-
+  
   @Test
   public void testGetNamedDashboardFiltersForCurrentUser() throws Exception {
     User tempUser = tempEntity.newUser();
@@ -483,7 +495,7 @@ public class DashboardResourceTest
     // creating a new active filter (without a name)
     tempEntity.newDashboardFilter(tempUser.getUsername(), InternalRealm.ID, "",
         JsonUtils.format(namedDashboardFilterDTO.filter));
-    
+
     HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.NAMED_FILTERS_PATH);
     HttpResponse response = request.get();
     assertResponseStatus(200, response);
@@ -491,7 +503,7 @@ public class DashboardResourceTest
     NamedDashboardFilterDTO[] result = response.getBody(NamedDashboardFilterDTO[].class);
     assertThat(result).hasSize(1);
     assertThat(result[0].name).isEqualTo(filterName);
-    
+
     // verify what was saved in the db is what's expected
     verifyDbState(tempUser, filterName, namedDashboardFilterDTO);
   }
@@ -523,7 +535,7 @@ public class DashboardResourceTest
     assertThat(result.name).isEqualTo(namedDashboardFilterDTO.name);
     assertThat(result.filter.minPolicyThreatLevel).isEqualTo(3);
     assertThat(result.filter.maxPolicyThreatLevel).isEqualTo(7);
-    
+
     // verify what was saved in the db is what's expected
     verifyDbState(tempUser, filterName, namedDashboardFilterDTO);
   }
@@ -561,6 +573,116 @@ public class DashboardResourceTest
     assertResponseStatus(404, response);
     String errorMessage = response.getBodyText();
     assertThat(errorMessage).isEqualTo("Cannot find a filter with name NotFoundFilter for user " + username + ".");
+  }
+
+  @Test
+  public void testGetPolicyWaivers() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
+    Policy policy = tempEntity.newPolicy();
+    PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), app.getId(), "comment");
+    tempEntity.newWaiver("hash1", policy.getId(), org.getId(), "comment");
+
+    HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
+        .body(new RisksFilterDTO()).post();
+
+    assertResponseStatus(200, response);
+    DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
+    assertThat(dto.dashboardResults).hasSize(2);
+    // Due to type erasures at runtime this is the current best way to try to assert the properties of the inner objects
+    LinkedHashMap<String, Object> resultAsMap = (LinkedHashMap<String, Object>) dto.dashboardResults.get(0);
+    assertThat(resultAsMap.get("id")).isEqualTo(policyWaiver.getId());
+  }
+
+  @Test
+  public void testGetPolicyWaivers_InvalidOrderBy() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
+    Policy policy = tempEntity.newPolicy();
+    tempEntity.newWaiver("hash", policy.getId(), app.getId(), "comment");
+
+    RisksFilterDTO filter = new RisksFilterDTO();
+    filter.orderBy = "Invalid";
+    HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
+        .body(filter).post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Invalid orderBy property.");
+  }
+
+  @Test
+  public void testGetPolicyWaivers_EmptyFilter() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
+    Policy policy = tempEntity.newPolicy();
+    tempEntity.newWaiver("hash", policy.getId(), app.getId(), "comment");
+
+    HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
+        .body(null).post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).isEqualTo("Invalid filter supplied for request.");
+  }
+
+  @Test
+  public void testGetPolicyWaiversExport() throws Exception {
+    Organization org = tempEntity.newOrganization("Main organization");
+    Application app = tempEntity.newApplication("New-App", org.getId());
+
+    Policy policy = tempEntity.newPolicy();
+    Constraint sourceConstraint = policy.getConstraints().get(0);
+    ConstraintFact sourceConstraintFact =
+        new ConstraintFact(sourceConstraint.getId(), sourceConstraint.getName(), sourceConstraint.getOperator().name());
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("GroupId", "ArtifactId", "Version1.0.0");
+    PolicyWaiver policyWaiver =
+        tempEntity.newWaiver("hash", policy.getId(), app.getId(), Collections.singletonList(sourceConstraintFact),
+            PackageUrlIdentifier.toPackageUrl(identifier), ComponentMatcherStrategyForWaiver.EXACT_COMPONENT,
+            "comment");
+    PolicyWaiver secondPolicyWaiver =
+        tempEntity.newWaiver("hash2", policy.getId(), org.getId(), "waiver at org level");
+
+    RisksFilterDTO filter = new RisksFilterDTO();
+    HttpResponse response = restRequest().path(GET_POLICY_WAIVERS_EXPORT_PATH).part("filter", filter).post();
+    assertResponseOkAndCsvHeadersSet(response, "results-waivers");
+
+    final String expectedConstraints = "\"" + policyWaiver.getConstraintFactsJson().replace("\"", "\"\"") + "\"";
+    final ComponentDisplayName expectedComponentName =
+        ComponentDisplayNameUtil.fromIdentifier(policyWaiver.getComponentIdentifier());
+    String[] lines = response.getBodyText().split("\r\n");
+    String expectedFirstLine = format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,comment",
+        policyWaiver.getId(), csvTimestampFormatter.format(policyWaiver.getCreateTime()),/*no expiry*/"",
+        policy.getId(), policy.getName(), expectedConstraints, app.getId(), app.getName(), expectedComponentName,
+        policyWaiver.getCreatorId(), policyWaiver.getCreatorName());
+    String expectedSecondLine = format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s",
+        secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()),/*no expiry*/"",
+        policy.getId(), policy.getName(), "", org.getId(), org.getName(), "",
+        secondPolicyWaiver.getCreatorId(), secondPolicyWaiver.getCreatorName(), secondPolicyWaiver.getComment());
+
+    assertThat(lines).containsExactly(DashboardPolicyWaiverDTO.getCsvHeader(), expectedFirstLine, expectedSecondLine);
+  }
+
+  @Test
+  public void testGetPolicyWaiversExport_fileNamePrefix() throws Exception {
+    User tempUser = tempEntity.newUser();
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+
+    NamedDashboardFilterDTO namedDashboardFilterDTO = createNamedDashboardFilter(app, null);
+    namedDashboardFilterDTO.name = "test policy waivers non dirty";
+
+    createNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
+    HttpResponse exportResponse = restRequest().auth(tempUser).path(GET_POLICY_WAIVERS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO()).post();
+    assertResponseOkAndCsvHeadersSet(exportResponse, "test_policy_waivers_non_dirty-waivers");
+
+    dirtyNamedFilterForUserAndAssertResponseOk(namedDashboardFilterDTO, tempUser);
+    exportResponse = restRequest().auth(tempUser).path(GET_POLICY_WAIVERS_EXPORT_PATH)
+        .part("filter", new RisksFilterDTO()).post();
+    assertResponseOkAndCsvHeadersSet(exportResponse, "results-waivers");
   }
 
   private void verifyDbState(final User tempUser, final String filterName, final NamedDashboardFilterDTO expected)

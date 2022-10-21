@@ -43,6 +43,7 @@ describe('dashboardReducer', () => {
         violations: { results: [], numResults: 3, error: 'foo' },
         components: { results: [], numResults: 3, error: 'foo' },
         applications: { results: [], numResults: 3, error: 'foo' },
+        waivers: { results: [], numResults: 3, error: 'foo' },
         other: otherObject,
       });
       const newState = reduce(state, action);
@@ -50,6 +51,7 @@ describe('dashboardReducer', () => {
         violations: { results: null, numResults: null, error: null },
         components: { results: null, numResults: null, error: null },
         applications: { results: null, numResults: null, error: null },
+        waivers: { results: null, numResults: null, error: null },
         other: otherObject,
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
@@ -74,9 +76,10 @@ describe('dashboardReducer', () => {
         violations: { results: [], numResults: 0, error: 'foo' },
         components: { results: [], error: 'foo' },
         applications: { results: [], error: 'foo' },
+        waivers: { results: [], error: 'foo' },
         other: otherObject,
       });
-      const { violations, components, applications, other } = reduce(state, {
+      const { violations, components, applications, waivers, other } = reduce(state, {
         type: 'LOAD_RESULTS_REQUESTED',
         payload: 'violations',
       });
@@ -86,6 +89,7 @@ describe('dashboardReducer', () => {
       expect(violations.error).toBeNull();
       expect(components).toBe(state.components);
       expect(applications).toBe(state.applications);
+      expect(waivers).toBe(state.waivers);
       expect(other).toBe(otherObject); // other properties are not modified
     });
 
@@ -94,9 +98,10 @@ describe('dashboardReducer', () => {
         violations: { results: [], error: 'foo' },
         components: { results: [], error: 'foo' },
         applications: { results: [], numResults: 0, error: 'foo' },
+        waivers: { results: [], error: 'foo' },
         other: otherObject,
       });
-      const { applications, components, violations, other } = reduce(state, {
+      const { applications, components, violations, waivers, other } = reduce(state, {
         type: 'LOAD_RESULTS_REQUESTED',
         payload: 'applications',
       });
@@ -106,6 +111,7 @@ describe('dashboardReducer', () => {
       expect(applications.error).toBeNull();
       expect(components).toBe(state.components);
       expect(violations).toBe(state.violations);
+      expect(waivers).toBe(state.waivers);
       expect(other).toBe(otherObject); // other properties are not modified
     });
 
@@ -114,9 +120,10 @@ describe('dashboardReducer', () => {
         violations: { results: [], error: 'foo' },
         components: { results: [], numResults: 0, error: 'foo' },
         applications: { results: [], error: 'foo' },
+        waivers: { results: [], error: 'foo' },
         other: otherObject,
       });
-      const { components, applications, violations, other } = reduce(state, {
+      const { components, applications, violations, waivers, other } = reduce(state, {
         type: 'LOAD_RESULTS_REQUESTED',
         payload: 'components',
       });
@@ -124,6 +131,29 @@ describe('dashboardReducer', () => {
       expect(components.results).toBeNull();
       expect(components.numResults).toBe(0);
       expect(components.error).toBeNull();
+      expect(applications).toBe(state.applications);
+      expect(violations).toBe(state.violations);
+      expect(waivers).toBe(state.waivers);
+      expect(other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('resets waivers state', () => {
+      const state = Object.freeze({
+        violations: { results: [], error: 'foo' },
+        components: { results: [], error: 'foo' },
+        applications: { results: [], error: 'foo' },
+        waivers: { results: [], numResults: 0, error: 'foo' },
+        other: otherObject,
+      });
+      const { components, applications, violations, waivers, other } = reduce(state, {
+        type: 'LOAD_RESULTS_REQUESTED',
+        payload: 'waivers',
+      });
+
+      expect(waivers.results).toBeNull();
+      expect(waivers.numResults).toBe(0);
+      expect(waivers.error).toBeNull();
+      expect(components).toBe(state.components);
       expect(applications).toBe(state.applications);
       expect(violations).toBe(state.violations);
       expect(other).toBe(otherObject); // other properties are not modified
@@ -136,6 +166,7 @@ describe('dashboardReducer', () => {
         violations: { results: null, numResults: null },
         components: { results: [] },
         applications: { results: [] },
+        waivers: { results: [] },
         other: otherObject,
       });
       const action = {
@@ -146,13 +177,14 @@ describe('dashboardReducer', () => {
           numResults: 0,
         },
       };
-      const { violations, components, applications, other } = reduce(state, action);
+      const { violations, components, applications, waivers, other } = reduce(state, action);
 
       expect(violations.results).toBe(action.payload.results);
       expect(violations.numResults).toBe(action.payload.numResults);
       expect(violations.classyBrew).toBeUndefined();
       expect(components).toBe(state.components);
       expect(applications).toBe(state.applications);
+      expect(waivers).toBe(state.waivers);
       expect(other).toBe(otherObject); // other properties are not modified
     });
 
@@ -161,6 +193,7 @@ describe('dashboardReducer', () => {
         violations: { results: [] },
         components: { results: null, numResults: 0, classyBrew: null },
         applications: { results: [] },
+        waivers: { results: [] },
         other: otherObject,
       });
       const action = {
@@ -172,13 +205,14 @@ describe('dashboardReducer', () => {
           classyBrew: {},
         },
       };
-      const { components, violations, applications, other } = reduce(state, action);
+      const { components, violations, applications, waivers, other } = reduce(state, action);
 
       expect(components.results).toBe(action.payload.results);
       expect(components.numResults).toBe(action.payload.numResults);
       expect(components.classyBrew).toBe(action.payload.classyBrew);
       expect(violations).toBe(state.violations);
       expect(applications).toBe(state.applications);
+      expect(waivers).toBe(state.waivers);
       expect(other).toBe(otherObject); // other properties are not modified
     });
 
@@ -187,6 +221,7 @@ describe('dashboardReducer', () => {
         violations: { results: [] },
         components: { results: [] },
         applications: { results: null, numResults: null, classyBrew: null },
+        waivers: { results: [] },
         other: otherObject,
       });
       const action = {
@@ -198,13 +233,48 @@ describe('dashboardReducer', () => {
           classyBrew: {},
         },
       };
-      const { components, violations, applications, other } = reduce(state, action);
+      const { components, violations, applications, waivers, other } = reduce(state, action);
 
       expect(applications.results).toBe(action.payload.results);
       expect(applications.numResults).toBe(action.payload.numResults);
       expect(applications.classyBrew).toBe(action.payload.classyBrew);
       expect(violations).toBe(state.violations);
       expect(components).toBe(state.components);
+      expect(waivers).toBe(state.waivers);
+      expect(other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('updates waivers results without classyBrew', () => {
+      const state = Object.freeze({
+        violations: { results: [] },
+        components: { results: [] },
+        applications: { results: [] },
+        waivers: { results: null, numResults: null },
+        other: otherObject,
+      });
+      const action = {
+        type: 'LOAD_RESULTS_FULFILLED',
+        payload: {
+          resultsType: 'waivers',
+          results: [
+            {
+              id: 'id',
+              ownerName: 'ownerName',
+              ownerType: 'application',
+            },
+          ],
+          numResults: 0,
+          classyBrew: {},
+        },
+      };
+      const { components, violations, applications, waivers, other } = reduce(state, action);
+      const expectedWaiversResults = [{ ...action.payload.results[0], scope: 'Application - ownerName' }];
+
+      expect(waivers.results).toEqual(expectedWaiversResults);
+      expect(waivers.numResults).toBe(action.payload.numResults);
+      expect(violations).toBe(state.violations);
+      expect(components).toBe(state.components);
+      expect(applications).toBe(state.applications);
       expect(other).toBe(otherObject); // other properties are not modified
     });
   });
@@ -215,6 +285,7 @@ describe('dashboardReducer', () => {
         violations: { error: null },
         components: { error: {} },
         applications: { error: {} },
+        waivers: { error: {} },
         currentTab: 'violations',
         other: otherObject,
       });
@@ -225,11 +296,12 @@ describe('dashboardReducer', () => {
           error: 'error',
         },
       };
-      const { components, violations, applications, other } = reduce(state, action);
+      const { components, violations, applications, waivers, other } = reduce(state, action);
 
       expect(violations.error).toBe(action.payload.error);
       expect(components).toBe(state.components);
       expect(applications).toBe(state.applications);
+      expect(waivers).toBe(state.waivers);
       expect(other).toBe(otherObject); // other properties are not modified
     });
 
@@ -238,6 +310,7 @@ describe('dashboardReducer', () => {
         violations: { error: {} },
         components: { error: null },
         applications: { error: {} },
+        waivers: { error: {} },
         currentTab: 'components',
         other: otherObject,
       });
@@ -248,11 +321,12 @@ describe('dashboardReducer', () => {
           error: 'error',
         },
       };
-      const { components, violations, applications, other } = reduce(state, action);
+      const { components, violations, applications, waivers, other } = reduce(state, action);
 
       expect(components.error).toBe(action.payload.error);
       expect(violations).toBe(state.violations);
       expect(applications).toBe(state.applications);
+      expect(waivers).toBe(state.waivers);
       expect(other).toBe(otherObject); // other properties are not modified
     });
 
@@ -261,6 +335,7 @@ describe('dashboardReducer', () => {
         violations: { error: {} },
         components: { error: {} },
         applications: { error: null },
+        waivers: { error: {} },
         currentTab: 'applications',
         other: otherObject,
       });
@@ -271,11 +346,37 @@ describe('dashboardReducer', () => {
           error: 'error',
         },
       };
-      const { components, violations, applications, other } = reduce(state, action);
+      const { components, violations, applications, waivers, other } = reduce(state, action);
 
       expect(applications.error).toBe(action.payload.error);
       expect(violations).toBe(state.violations);
       expect(components).toBe(state.components);
+      expect(waivers).toBe(state.waivers);
+      expect(other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets error in waivers state', () => {
+      const state = Object.freeze({
+        violations: { error: {} },
+        components: { error: {} },
+        applications: { error: {} },
+        waivers: { error: null },
+        currentTab: 'waivers',
+        other: otherObject,
+      });
+      const action = {
+        type: 'LOAD_RESULTS_FAILED',
+        payload: {
+          resultsType: 'waivers',
+          error: 'error',
+        },
+      };
+      const { components, violations, applications, waivers, other } = reduce(state, action);
+
+      expect(waivers.error).toBe(action.payload.error);
+      expect(violations).toBe(state.violations);
+      expect(components).toBe(state.components);
+      expect(applications).toBe(state.applications);
       expect(other).toBe(otherObject); // other properties are not modified
     });
   });
@@ -474,6 +575,36 @@ describe('dashboardReducer', () => {
       });
 
       expect(currentTab).toEqual('applications');
+      expect(other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets currentTab when navigating to waivers tab', () => {
+      const state = Object.freeze({ currentTab: 'foo', other: otherObject });
+      const { currentTab, other } = reduce(state, {
+        type: '@@reduxUiRouter/onFinish',
+        payload: {
+          toState: {
+            name: 'dashboard.overview.waivers',
+          },
+        },
+      });
+
+      expect(currentTab).toEqual('waivers');
+      expect(other).toBe(otherObject); // other properties are not modified
+    });
+
+    it('sets currentTab when navigating to waivers details page', () => {
+      const state = Object.freeze({ currentTab: 'foo', other: otherObject });
+      const { currentTab, other } = reduce(state, {
+        type: '@@reduxUiRouter/onFinish',
+        payload: {
+          toState: {
+            name: 'waiver.details',
+          },
+        },
+      });
+
+      expect(currentTab).toEqual('waivers');
       expect(other).toBe(otherObject); // other properties are not modified
     });
 

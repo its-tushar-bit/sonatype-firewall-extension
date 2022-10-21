@@ -18,6 +18,7 @@ import DashboardViolationsContainer from './results/violations/DashboardViolatio
 import DashboardComponentsContainer from './results/components/DashboardComponentsContainer';
 import ComponentRisk from './results/componentRisk/ComponentRisk';
 import DashboardApplicationsContainer from './results/applications/DashboardApplicationsContainer';
+import DashboardWaivers from './results/waivers/DashboardWaivers';
 
 var dashboardModule = angular
   .module('dashboard.module', [
@@ -33,6 +34,7 @@ var dashboardModule = angular
   .component('violations', iqReact2Angular(DashboardViolationsContainer, [], ['$ngRedux']))
   .component('components', iqReact2Angular(DashboardComponentsContainer, [], ['$ngRedux']))
   .component('applications', iqReact2Angular(DashboardApplicationsContainer, [], ['$ngRedux', '$state']))
+  .component('waivers', iqReact2Angular(DashboardWaivers, [], ['$ngRedux', '$state']))
   .component('component', iqReact2Angular(ComponentRisk, [], ['$ngRedux', '$state']));
 
 export default dashboardModule;
@@ -79,6 +81,14 @@ dashboardModule.config([
         data: {
           title: 'Dashboard - Applications',
           exportTitle: 'Applications',
+        },
+      })
+      .state('dashboard.overview.waivers', {
+        url: '/waivers',
+        component: 'waivers',
+        data: {
+          title: 'Dashboard - Waivers',
+          exportTitle: 'Waivers',
         },
       })
       .state('dashboard.component', {

@@ -1,0 +1,93 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import * as PropTypes from 'prop-types';
+import moment from 'moment';
+import ComponentDisplay from 'MainRoot/ComponentDisplay/ReactComponentDisplay';
+import { NxTable, NxThreatIndicator, NxOverflowTooltip } from '@sonatype/react-shared-components';
+import { isWaiverAllVersionsOrExact } from 'MainRoot/util/waiverUtils';
+
+export default function DashboardWaiversTableRow({ stateGo, waiver }) {
+  const {
+    id: waiverId,
+    threatLevel,
+    createTime,
+    expiryTime,
+    policyName,
+    ownerId,
+    ownerType,
+    scope,
+    componentMatchStrategy,
+  } = waiver;
+
+  const goToWaiverDetails = () => {
+    stateGo('waiver.details', {
+      waiverId,
+      ownerId,
+      ownerType,
+      type: 'waiver',
+      sidebarReference: 'filter',
+    });
+  };
+
+  const waiverCreateTime = moment(createTime).format('YYYY-MM-DD');
+  const waiverExpiryTime = expiryTime ? moment(expiryTime).format('YYYY-MM-DD') : 'Never';
+
+  return (
+    <NxTable.Row key={waiverId} onClick={goToWaiverDetails} className="iq-dashboard-waiver" isClickable>
+      <NxTable.Cell className="iq-threat-cell">
+        <NxThreatIndicator policyThreatLevel={threatLevel} />
+        <span className="nx-threat-number">{threatLevel}</span>
+      </NxTable.Cell>
+      <NxTable.Cell>
+        <NxOverflowTooltip>
+          <div className="nx-truncate-ellipsis">{waiverCreateTime}</div>
+        </NxOverflowTooltip>
+      </NxTable.Cell>
+      <NxTable.Cell>
+        <NxOverflowTooltip>
+          <div className="nx-truncate-ellipsis">{waiverExpiryTime}</div>
+        </NxOverflowTooltip>
+      </NxTable.Cell>
+      <NxTable.Cell>
+        <NxOverflowTooltip>
+          <div className="nx-truncate-ellipsis">{policyName}</div>
+        </NxOverflowTooltip>
+      </NxTable.Cell>
+      <NxTable.Cell>
+        <NxOverflowTooltip>
+          <div className="nx-truncate-ellipsis">{scope}</div>
+        </NxOverflowTooltip>
+      </NxTable.Cell>
+      <NxTable.Cell>
+        {isWaiverAllVersionsOrExact(waiver) ? (
+          <ComponentDisplay component={waiver} truncate={true} matcherStrategy={componentMatchStrategy} />
+        ) : (
+          'All Components'
+        )}
+      </NxTable.Cell>
+      <NxTable.Cell chevron />
+    </NxTable.Row>
+  );
+}
+
+export const waiverPropTypes = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  threatLevel: PropTypes.number.isRequired,
+  createTime: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  expiryTime: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  policyName: PropTypes.string.isRequired,
+  ownerId: PropTypes.string.isRequired,
+  ownerName: PropTypes.string,
+  ownerType: PropTypes.string.isRequired,
+  scope: PropTypes.string.isRequired,
+  componentMatchStrategy: PropTypes.string.isRequired,
+});
+
+DashboardWaiversTableRow.propTypes = {
+  stateGo: PropTypes.func.isRequired,
+  waiver: waiverPropTypes,
+};

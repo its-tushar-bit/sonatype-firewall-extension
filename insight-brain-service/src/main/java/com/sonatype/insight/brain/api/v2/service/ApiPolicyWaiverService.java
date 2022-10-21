@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -291,9 +292,9 @@ public class ApiPolicyWaiverService
         .forEach(ownerInHierarchy -> ownerById.put(ownerInHierarchy.getId(), ownerInHierarchy));
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       components.forEach(component -> {
-        String purl = null;
+        PackageUrlIdentifier purl = null;
         if (component.getComponentIdentifier() != null) {
-          purl = PackageUrlIdentifier.fromComponentIdentifier(component.getComponentIdentifier()).getPackageUrl();
+          purl = PackageUrlIdentifier.fromComponentIdentifier(component.getComponentIdentifier());
         }
         for (Owner ownerInHierarchy : ownerById.values()) {
           // For the given owner, add policy waivers that apply to the component (i.e. they match its hash)
@@ -303,8 +304,8 @@ public class ApiPolicyWaiverService
             waivers = policyWaiverDAO.getActiveByOwnerIdAndHash(tx, ownerInHierarchy.getId(), component.getHash(),
                 ALL_COMPONENTS);
             if (purl != null) {
-              waivers.addAll(policyWaiverDAO.getActiveByOwnerIdAndHash(tx, ownerInHierarchy.getId(),
-                  component.getHash(), ALL_VERSIONS, purl));
+              waivers.addAll(
+                  policyWaiverDAO.getApplicableToComponentOnlyAllVersions(tx, ownerInHierarchy.getId(), purl));
             }
           }
           else {
@@ -585,12 +586,38 @@ public class ApiPolicyWaiverService
     policyWaiver.setCreatorId(currentUser.getUserPrincipal().getUsername());
     policyWaiver.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
     policyWaiver.setComponentMatchStrategy(matcherStrategy);
-    if (matcherStrategy == ALL_VERSIONS) {
-      String packageUrl = toPackageUrl(abstractPolicyViolation.getComponentIdentifier().createAlternativeVersion("*"));
-      policyWaiver.setAssociatedPackageUrl(packageUrl);
+    if (matcherStrategy != ALL_COMPONENTS && abstractPolicyViolation.getComponentIdentifier() != null) {
+      policyWaiver.setAssociatedPackageUrl(toPackageUrl(abstractPolicyViolation.getComponentIdentifier()));
     }
 
     policyWaiverDAO.insert(tx, policyWaiver);
     return policyWaiver;
+  }
+
+  public ApiPolicyWaiverDTO getPolicyWaiver(OwnerType ownerType, String ownerId, String policyWaiverId) {
+    return getPolicyWaiverWithAuthzCheck(IdUtils.getOwnerNotNull(ownerType, ownerId), policyWaiverId);
+  }
+
+  @Authorize(permission = Permission.READ)
+  ApiPolicyWaiverDTO getPolicyWaiverWithAuthzCheck(
+      @AuthzContext(Key.OWNER) Owner owner, String policyWaiverId)
+  {
+    PolicyWaiver policyWaiver = policyWaiverDAO.getByIdAndOwnerIdNotNull(policyWaiverId, owner.getId());
+    ApiPolicyWaiverDTO apiPolicyWaiverDTO = ApiPolicyWaiverDTO.toDto(policyWaiver, owner);
+    augmentPolicyWaiverDtoWithExtraInformation(apiPolicyWaiverDTO, policyWaiver);
+    auditPolicyWaiver(policyWaiver);
+    return apiPolicyWaiverDTO;
+  }
+
+  private void augmentPolicyWaiverDtoWithExtraInformation(
+      ApiPolicyWaiverDTO apiPolicyWaiverDTO,
+      PolicyWaiver policyWaiver)
+  {
+    Policy policy = policyDAO.getById(policyWaiver.getPolicyId());
+
+    apiPolicyWaiverDTO.policyName = policy.getName();
+    apiPolicyWaiverDTO.threatLevel = policy.getThreatLevel();
+    apiPolicyWaiverDTO.constraintFactsJson = policyWaiver.getConstraintFactsJson();
+    apiPolicyWaiverDTO.constraintFacts = policyWaiver.getConstraintFacts();
   }
 }

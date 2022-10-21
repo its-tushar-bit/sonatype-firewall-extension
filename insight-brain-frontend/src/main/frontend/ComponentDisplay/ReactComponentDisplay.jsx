@@ -51,4 +51,5 @@ export const componentPropTypes = {
 ComponentDisplay.propTypes = {
   truncate: PropTypes.bool,
   component: PropTypes.shape(componentPropTypes),
+  matcherStrategy: PropTypes.string,
 };

@@ -32,7 +32,7 @@ describe('DashboardTabs', () => {
       expect(component.find(NxTabList)).toExist();
     });
     it('renders all NxTab', () => {
-      expect(component.find(NxTab).length).toBe(3);
+      expect(component.find(NxTab).length).toBe(4);
     });
   });
 
@@ -49,6 +49,10 @@ describe('DashboardTabs', () => {
       const component = getShallow({ currentTab: 'applications' });
       expect(component.find(NxTabs)).toHaveProp('activeTab', 2);
     });
+    it('has activeTab equals 5 when currentTab is equals "waivers', () => {
+      const component = getShallow({ currentTab: 'waivers' });
+      expect(component.find(NxTabs)).toHaveProp('activeTab', 3);
+    });
   });
 
   describe('Counters', () => {
@@ -57,11 +61,13 @@ describe('DashboardTabs', () => {
         violations: { numResults: 42 },
         components: { numResults: 42 },
         applications: { numResults: null },
+        waivers: { numResults: 42 },
       });
       const tabs = component.find(NxTab);
       expect(tabs.at(0).find('span.nx-counter')).toExist();
       expect(tabs.at(1).find('span.nx-counter')).toExist();
       expect(tabs.at(2).find('span.nx-counter')).not.toExist();
+      expect(tabs.at(3).find('span.nx-counter')).toExist();
     });
   });
 

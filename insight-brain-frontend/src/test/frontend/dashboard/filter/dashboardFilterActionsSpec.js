@@ -72,6 +72,7 @@ describe('dashboardFilterActions: non-angular', function () {
     policyViolationStates: undefined,
     maxDaysOld: undefined,
     policyThreatLevelRange: undefined,
+    expirationDate: undefined,
   };
 
   describe('loadFilter', function () {

@@ -68,6 +68,7 @@
 @use '../report/report/report' as legacy-report;
 @use '../configuration/scmOnboarding/scmOnboarding';
 @use '../violation/violationPage';
+@use '../waivers/waiverDetails/waiverDetailsPage';
 @use '../waivers/addWaiver';
 @use '../waivers/listWaivers';
 @use '../waivers/requestWaiver';
@@ -82,6 +83,7 @@
 @use '../legal/legalFileTile';
 @use '../legal/copyright/copyrightOverrideForm';
 @use '../dashboard/results/violations/dashboard-violations';
+@use '../dashboard/results/waivers/dashboard-waivers';
 @use '../legal/dashboard/legalDashboard';
 @use '../legal/dashboard/filter/legalDashboard-filter';
 @use '../legal/application/legalApplicationDetails';

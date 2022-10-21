@@ -218,6 +218,7 @@ describe('dashboardFilterReducer', () => {
         policyViolationStates: { OPEN: true },
         maxDaysOld: 30,
         policyThreatLevels: [2, 10],
+        expirationDate: 'ALL',
       });
       filterJson = {
         organizationFilters: ['orgId1', 'orgId2', 'org3'],
@@ -256,6 +257,10 @@ describe('dashboardFilterReducer', () => {
         categories: [
           { id: null, name: 'uncategorized applications' },
           { id: 'tagId1', name: 'TagOne' },
+        ],
+        expirationDates: [
+          { id: 'ALL', name: 'all' },
+          { id: 'IN_24_HOURS', name: 'in 24 hours' },
         ],
         appliedFilter: initSelected,
         selected: initSelected,
@@ -632,6 +637,54 @@ describe('dashboardFilterReducer', () => {
     });
   });
 
+  describe('SELECT_EXPIRATION_DATE action', () => {
+    let initState;
+
+    beforeEach(() => {
+      initState = {
+        other: otherObject,
+        filtersAreDirty: false,
+        expirationDates: [
+          {
+            id: 'ALL',
+            name: 'all',
+          },
+          {
+            id: 'IN_7_DAYS',
+            name: 'in 7 days',
+          },
+        ],
+        selected: {
+          expirationDate: 'ALL',
+        },
+      };
+    });
+
+    it('sets selected expirationDate and sets filtersAreDirty to true', () => {
+      const state = Object.freeze(initState);
+      const { selected, filtersAreDirty, other } = reduce(state, {
+        type: 'SELECT_EXPIRATION_DATE',
+        payload: 'IN_7_DAYS',
+      });
+
+      expect(selected.expirationDate).toBe('IN_7_DAYS');
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
+    });
+
+    it('sets selected expirationDate to "all" sets filtersAreDirty to true', () => {
+      const state = Object.freeze(initState);
+      const { selected, filtersAreDirty, other } = reduce(state, {
+        type: 'SELECT_EXPIRATION_DATE',
+        payload: null,
+      });
+
+      expect(selected.expirationDate).toBe('ALL');
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
+    });
+  });
+
   describe('TOGGLE_FILTER action', () => {
     let initState;
 
@@ -739,6 +792,7 @@ describe('dashboardFilterReducer', () => {
           policyViolationStates: new Set(['OPEN', 'WAIVED']),
           maxDaysOld: 365,
           policyThreatLevels: [3, 8],
+          expirationDate: 'ALL',
         },
         selected: {},
         other: otherObject,

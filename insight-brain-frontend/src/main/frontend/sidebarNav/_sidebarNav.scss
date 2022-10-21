@@ -6,6 +6,8 @@
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 
+$sidebar-width: calc((1 - var(--nx-width-content-proportion)) * 100vw - var(--nx-spacing-6x));
+
 sidebar-view {
   display: contents;
 }
@@ -27,5 +29,14 @@ sidebar-view {
 
 .nx-page .nx-page-sidebar {
   padding-right: 0;
-  width: calc((1 - var(--nx-width-content-proportion)) * 100vw - var(--nx-spacing-6x));
+  width: $sidebar-width;
+}
+
+.iq-waivers-list-item-info.nx-list__subtext {
+  display: flex;
+  flex-flow: column;
+  max-width: calc($sidebar-width - (var(--nx-spacing-16x) * 2));
+  > span:last-child {
+    text-transform: capitalize;
+  }
 }

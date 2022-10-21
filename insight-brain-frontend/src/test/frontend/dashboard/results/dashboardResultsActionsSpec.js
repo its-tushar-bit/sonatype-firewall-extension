@@ -9,9 +9,11 @@ import {
   loadApplicationResults,
   loadComponentResults,
   loadViolationResults,
+  loadWaiverResults,
   sortApplicationResults,
   sortComponentResults,
   sortViolationResults,
+  sortWaiversResults,
 } from 'MainRoot/dashboard/results/dashboardResultsActions';
 import * as dashboardDataServices from 'MainRoot/dashboard/services/dashboard.data.service';
 
@@ -20,7 +22,8 @@ describe('dashboardResultsActions', function () {
 
   const newRisksSpy = jasmine.createSpy('getNewestRisks'),
     applicationsRiskSpy = jasmine.createSpy('getApplicationRisks'),
-    componentRisksSpy = jasmine.createSpy('getComponentRisks');
+    componentRisksSpy = jasmine.createSpy('getComponentRisks'),
+    getWaiversSpy = jasmine.createSpy('getWaivers');
 
   const tabs = [
     {
@@ -35,6 +38,10 @@ describe('dashboardResultsActions', function () {
       resultsType: 'applications',
       serviceMethod: applicationsRiskSpy,
     },
+    {
+      resultsType: 'waivers',
+      serviceMethod: getWaiversSpy,
+    },
   ];
 
   beforeEach(function () {
@@ -43,6 +50,7 @@ describe('dashboardResultsActions', function () {
         getNewestRisks: newRisksSpy,
         getApplicationRisks: applicationsRiskSpy,
         getComponentRisks: componentRisksSpy,
+        getWaivers: getWaiversSpy,
         MAX_RESULTS: 100,
       },
     });
@@ -57,6 +65,7 @@ describe('dashboardResultsActions', function () {
       violations: { sortFields: ['-time', '-threatLevel'] },
       components: { sortFields: ['-score'] },
       applications: { sortFields: ['-totalApplicationRisk.totalRisk'] },
+      waivers: { sortFields: ['expiryTime'] },
     },
   };
 
@@ -221,6 +230,36 @@ describe('dashboardResultsActions', function () {
     });
   });
 
+  describe('loadWaiverResults', () => {
+    it('calls loadResults with the applications resultsType', (done) => {
+      spyOn(dashboardDataServices, 'getWaivers').and.returnValue(
+        Promise.resolve({
+          results: 'waiversResults',
+          numResults: 3,
+        })
+      );
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(loadWaiverResults()).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'waivers',
+          },
+          {
+            type: 'LOAD_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'waivers',
+              results: 'waiversResults',
+              numResults: 3,
+            },
+          },
+        ]);
+        done();
+      });
+    });
+  });
+
   describe('sortResults', function () {
     it('updates sortFields and sorts on front end if results < 100', function () {
       initialState.dashboard.applications.results = [
@@ -369,6 +408,137 @@ describe('dashboardResultsActions', function () {
         payload: 'components',
       });
     });
+
+    it('updates sortFields and sorts on back end if numResults > MAX_RESULTS (100)', function (done) {
+      initialState.dashboard.waivers.results = ['-foo', 'bar'];
+      initialState.dashboard.waivers.numResults = 101;
+
+      const expectedSortFields = initialState.dashboard.waivers.sortFields;
+
+      spyOn(dashboardDataServices, 'getWaivers').and.returnValue(
+        Promise.resolve({
+          results: 'sorted results',
+          numResults: 3,
+        })
+      );
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(dashboardActions.sortWaiversResults(initialState.dashboard.waivers.results)).then(() => {
+        expect(getWaiversSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
+        expect(store.getActions().length).toBe(3);
+        expect(store.getActions()[2]).toEqual({
+          type: 'LOAD_RESULTS_FULFILLED',
+          payload: {
+            classyBrew: undefined,
+            resultsType: 'waivers',
+            results: 'sorted results',
+            numResults: 3,
+          },
+        });
+        done();
+      });
+
+      // this action will update sortFields in the state
+      expect(store.getActions()[0]).toEqual({
+        type: 'SORT_RESULTS_REQUESTED',
+        payload: {
+          resultsType: 'waivers',
+          sortFields: ['-foo', 'bar'],
+        },
+      });
+
+      expect(store.getActions()[1]).toEqual({
+        type: 'LOAD_RESULTS_REQUESTED',
+        payload: 'waivers',
+      });
+    });
+
+    it('updates sortFields and sorts on back end if results is not defined', function (done) {
+      initialState.dashboard.waivers.results = null;
+      const expectedSortFields = initialState.dashboard.waivers.sortFields;
+
+      spyOn(dashboardDataServices, 'getWaivers').and.returnValue(
+        Promise.resolve({
+          results: 'sorted results',
+          numResults: 3,
+        })
+      );
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(dashboardActions.sortWaiversResults(['-foo', 'bar'])).then(() => {
+        expect(getWaiversSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
+        expect(store.getActions().length).toBe(3);
+        expect(store.getActions()[2]).toEqual({
+          type: 'LOAD_RESULTS_FULFILLED',
+          payload: {
+            classyBrew: undefined,
+            resultsType: 'waivers',
+            results: 'sorted results',
+            numResults: 3,
+          },
+        });
+        done();
+      });
+
+      // this action will update sortFields in the state
+      expect(store.getActions()[0]).toEqual({
+        type: 'SORT_RESULTS_REQUESTED',
+        payload: {
+          resultsType: 'waivers',
+          sortFields: ['-foo', 'bar'],
+        },
+      });
+
+      expect(store.getActions()[1]).toEqual({
+        type: 'LOAD_RESULTS_REQUESTED',
+        payload: 'waivers',
+      });
+    });
+
+    it('updates sortFields and sorts on back end if doBackendSort is set to true', function (done) {
+      const doBESort = true;
+      const expectedSortFields = initialState.dashboard.waivers.sortFields;
+
+      initialState.dashboard.waivers.results = ['-foo', 'bar'];
+      initialState.dashboard.waivers.numResults = 1;
+
+      spyOn(dashboardDataServices, 'getWaivers').and.returnValue(
+        Promise.resolve({
+          results: 'sorted results',
+          numResults: 3,
+        })
+      );
+
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(dashboardActions.sortWaiversResults(['-foo', 'bar'], doBESort)).then(() => {
+        expect(getWaiversSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
+        expect(store.getActions().length).toBe(3);
+        expect(store.getActions()[2]).toEqual({
+          type: 'LOAD_RESULTS_FULFILLED',
+          payload: {
+            classyBrew: undefined,
+            resultsType: 'waivers',
+            results: 'sorted results',
+            numResults: 3,
+          },
+        });
+        done();
+      });
+
+      // this action will update sortFields in the state
+      expect(store.getActions()[0]).toEqual({
+        type: 'SORT_RESULTS_REQUESTED',
+        payload: {
+          resultsType: 'waivers',
+          sortFields: ['-foo', 'bar'],
+        },
+      });
+
+      expect(store.getActions()[1]).toEqual({
+        type: 'LOAD_RESULTS_REQUESTED',
+        payload: 'waivers',
+      });
+    });
   });
 
   describe('sortViolationResults', () => {
@@ -434,6 +604,30 @@ describe('dashboardResultsActions', function () {
             type: 'SORT_RESULTS_FULFILLED',
             payload: {
               resultsType: 'applications',
+              results: ['-foo', 'bar'],
+            },
+          },
+        ]);
+        done();
+      });
+    });
+  });
+
+  describe('sortWaiversResults', () => {
+    it('calls sortResults with the applications resultType', (done) => {
+      initialState.dashboard.waivers.results = ['-foo', 'bar'];
+      initialState.dashboard.waivers.numResults = 10;
+      const store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(sortWaiversResults(['createTime'])).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          {
+            type: 'SORT_RESULTS_REQUESTED',
+            payload: { resultsType: 'waivers', sortFields: ['createTime'] },
+          },
+          {
+            type: 'SORT_RESULTS_FULFILLED',
+            payload: {
+              resultsType: 'waivers',
               results: ['-foo', 'bar'],
             },
           },

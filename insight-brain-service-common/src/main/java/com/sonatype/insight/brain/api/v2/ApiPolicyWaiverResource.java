@@ -23,6 +23,8 @@ public interface ApiPolicyWaiverResource
                                           String policyViolationId,
                                           ApiWaiverOptionsDTO waiverOptionsDTO);
 
+  ApiPolicyWaiverDTO getPolicyWaiver(OwnerType ownerType, String ownerId, String policyWaiverId);
+
   void deletePolicyWaiver(OwnerType ownerType, String ownerId, String policyWaiverId);
 
   List<ApiPolicyWaiverDTO> getPolicyWaivers(OwnerType ownerType, String ownerId);

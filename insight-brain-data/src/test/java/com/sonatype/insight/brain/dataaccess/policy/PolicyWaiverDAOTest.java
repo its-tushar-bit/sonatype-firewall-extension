@@ -43,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class PolicyWaiverDAOTest
     extends AbstractDbDAOTest
 {
-  private final String associatedPackagedUrl = "pkg:maven/group/artifact@*?classifier=c1&type=jar";
+  private final String associatedPackagedUrl = "pkg:maven/group/artifact@2.0?classifier=c1&type=jar";
 
   @Test
   public void testGetByIdNotNull() {
@@ -577,11 +577,10 @@ public class PolicyWaiverDAOTest
     dao.insert(policyWaiver2);
 
     PolicyWaiver policyWaiver3 = new PolicyWaiver(policyId, ownerId, comment);
-    String purl = PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier
-        .createMavenCoordinates("g1", "a1", "v1", "c1", "jar"))
-        .getPackageUrl();
+    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier
+        .createMavenCoordinates("g1", "a1", "v1", "c1", "jar"));
     policyWaiver3.setComponentMatchStrategy(ALL_VERSIONS);
-    policyWaiver3.setAssociatedPackageUrl(purl);
+    policyWaiver3.setAssociatedPackageUrl(purl.getPackageUrl());
     dao.insert(policyWaiver3);
 
     List<PolicyWaiver> waivers = dao.getApplicableToComponentIncludingAllVersions(ownerId, hash, purl);
@@ -591,6 +590,62 @@ public class PolicyWaiverDAOTest
 
     assertThat(waivers).extracting(PolicyWaiver::getId)
         .containsExactly(policyWaiver1.getId(), policyWaiver2.getId(), policyWaiver3.getId());
+  }
+
+  @Test
+  public void testGetApplicableToComponentOnlyAllVersions_noPurl() throws Exception {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyWaiver policyWaiver = new PolicyWaiver(policy.getId(), organization.getId(), null);
+    PackageUrlIdentifier purl = PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier
+        .createMavenCoordinates("g1", "a1", "v1", "c1", "jar"));
+    policyWaiver.setComponentMatchStrategy(ALL_VERSIONS);
+    policyWaiver.setAssociatedPackageUrl(purl.getPackageUrl());
+    dao.insert(policyWaiver);
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyWaiver> waivers = dao.getApplicableToComponentOnlyAllVersions(tx, organization.getId(), purl);
+      assertThat(waivers).isNotEmpty();
+
+      List<PolicyWaiver> waiversNoPurl = dao.getApplicableToComponentOnlyAllVersions(tx, organization.getId(), null);
+      assertThat(waiversNoPurl).isEmpty();
+    }
+  }
+
+  @Test
+  public void testGetApplicableToComponentOnlyAllVersions_OnlySomeApply() throws Exception {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+    Policy policy1 = tempEntity.newPolicy(organization);
+    Policy policy2 = tempEntity.newPolicy(organization);
+    Policy policy3 = tempEntity.newPolicy(organization);
+
+    PolicyWaiver policyWaiverExpected = new PolicyWaiver(policy1.getId(), application.getId(), null);
+    PackageUrlIdentifier expectedPurl1 = PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier
+        .createMavenCoordinates("g1", "a1", "v1", "c1", "jar"));
+    policyWaiverExpected.setComponentMatchStrategy(ALL_VERSIONS);
+    policyWaiverExpected.setAssociatedPackageUrl(expectedPurl1.getPackageUrl());
+    dao.insert(policyWaiverExpected);
+
+    PolicyWaiver policyWaiverExpected2 = new PolicyWaiver(policy2.getId(), application.getId(), null);
+    PackageUrlIdentifier expectedPurl2 = PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier
+        .createMavenCoordinates("g1", "a1", "v2", "c1", "jar"));
+    policyWaiverExpected2.setComponentMatchStrategy(ALL_VERSIONS);
+    policyWaiverExpected2.setAssociatedPackageUrl(expectedPurl2.getPackageUrl());
+    dao.insert(policyWaiverExpected2);
+
+    PolicyWaiver policyWaiverWrongPurl = new PolicyWaiver(policy3.getId(), application.getId(), null);
+    PackageUrlIdentifier wrongPurl = PackageUrlIdentifier.fromComponentIdentifier(ComponentIdentifier
+        .createMavenCoordinates("gw", "aw", "vw", "c1", "jar"));
+    policyWaiverWrongPurl.setComponentMatchStrategy(ALL_VERSIONS);
+    policyWaiverWrongPurl.setAssociatedPackageUrl(wrongPurl.getPackageUrl());
+    dao.insert(policyWaiverWrongPurl);
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      List<PolicyWaiver> waivers = dao.getApplicableToComponentOnlyAllVersions(tx, application.getId(), expectedPurl1);
+      assertThat(waivers).hasSize(2);
+      assertThat(waivers).extracting(PolicyWaiver::getId)
+          .containsExactly(policyWaiverExpected.getId(), policyWaiverExpected2.getId());
+    }
   }
 
   @Test
@@ -646,7 +701,7 @@ public class PolicyWaiverDAOTest
     String ownerId = organization.getId();
     List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
     String comment = "My comment";
-    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(hash, policyId, ownerId, constraintFacts, comment);
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(hash, policyId, ownerId, constraintFacts, null, comment);
     tempEntity.newWaiver(hash, policyId, ownerId, createRandomConstraintFacts(), comment);
 
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
@@ -705,7 +760,8 @@ public class PolicyWaiverDAOTest
     String policyId = policy.getId();
     String ownerId = organization.getId();
     String comment = "My comment";
-    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(hash, policyId, ownerId, null /* constraintFacts */, comment);
+    PolicyWaiver policyWaiver1 =
+        tempEntity.newWaiver(hash, policyId, ownerId, null /* constraintFacts */, null, comment);
 
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     try (TransactionContext tx = dao.createTransactionContext()) {
@@ -760,11 +816,11 @@ public class PolicyWaiverDAOTest
           ownerId, constraintFacts, null /* associatedPackagedUrl */, componentMatchStrategy);
       assertThat(foundPolicyWaiver.getId()).isEqualTo(policyWaiver1.getId());
 
-      // Get using not null associated packaged url
+      // Get using not null associated packaged url, ignores purl when not for all versions match strategy
       foundPolicyWaiver =
           dao.getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(tx, hash, policyId, ownerId, constraintFacts,
               associatedPackagedUrl, componentMatchStrategy);
-      assertThat(foundPolicyWaiver).isNull();
+      assertThat(foundPolicyWaiver.getId()).isEqualTo(policyWaiver1.getId());
     }
   }
 
@@ -804,5 +860,41 @@ public class PolicyWaiverDAOTest
         LogicalOperator.AND.toString());
     constraintFact.addConditionFact(conditionFact);
     return Collections.singletonList(constraintFact);
+  }
+
+  @Test
+  public void getByIdAndOwnerIdNotNull() {
+    Policy policy = tempEntity.newPolicy(organization);
+    String hash = "hash";
+    String policyId = policy.getId();
+    String comment = "My comment";
+    ComponentMatcherStrategyForWaiver componentMatchStrategy = ComponentMatcherStrategyForWaiver.DEFAULT;
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
+    PolicyWaiver policyWaiver =
+        tempEntity.newWaiver(hash, policyId, application.getId(), constraintFacts, componentMatchStrategy, comment);
+
+    PolicyWaiver databaseWaiver =
+        new PolicyWaiverDAO().getByIdAndOwnerIdNotNull(policyWaiver.getId(), application.getId());
+
+    assertPolicyWaiver(policyWaiver, databaseWaiver);
+  }
+
+  @Test
+  public void getByIdAndOwnerIdNotNull_throwsNotFound_whenNoWaiver() {
+    assertThatThrownBy(() -> {
+      new PolicyWaiverDAO().getByIdAndOwnerIdNotNull("fake id", application.getId());
+    }).isInstanceOf(NotFoundException.class)
+        .hasMessage("Cannot find a waiver with ID fake id for owner " + application.getId() + ".");
+  }
+
+  @Test
+  public void getByIdAndOwnerIdNotNull_throwsNotFound_whenWrongOwner() {
+    Policy policy = tempEntity.newPolicy(organization);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
+
+    assertThatThrownBy(() -> {
+      new PolicyWaiverDAO().getByIdAndOwnerIdNotNull(policyWaiver.getId(), "ownerId");
+    }).isInstanceOf(NotFoundException.class)
+        .hasMessage("Cannot find a waiver with ID " + policyWaiver.getId() + " for owner ownerId.");
   }
 }

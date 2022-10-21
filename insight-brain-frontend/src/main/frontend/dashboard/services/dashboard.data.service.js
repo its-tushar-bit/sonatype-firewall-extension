@@ -9,9 +9,10 @@ import {
   translateViolationsSortFields,
   translateComponentsSortFields,
   translateApplicationsSortFields,
+  translateWaiversSortFields,
 } from './sortFieldsUtils';
 
-import { getNewestRisksUrl, getApplicationRisksUrl, getComponentRisksUrl } from '../../util/CLMLocation';
+import { getNewestRisksUrl, getApplicationRisksUrl, getComponentRisksUrl, getWaiversUrl } from '../../util/CLMLocation';
 
 import { createDashboardDataRequestPayload } from '../utils/dashboard.utils.module';
 import { createClassyBrew } from '../utils/classybrew.factory';
@@ -20,26 +21,12 @@ export const MAX_RESULTS = 100;
 
 export function getNewestRisks(filters, sortFields) {
   const request = createDashboardDataRequestPayload(filters, MAX_RESULTS, translateViolationsSortFields(sortFields));
-  return axios.post(getNewestRisksUrl(), request).then(({ data }) => {
-    const { dashboardResults, numResults } = data;
-    return {
-      results: dashboardResults,
-      numResults,
-    };
-  });
+  return axios.post(getNewestRisksUrl(), request).then(dashboardRespopnseHandler());
 }
 
 export function getApplicationRisks(filters, sortFields) {
   const request = createDashboardDataRequestPayload(filters, MAX_RESULTS, translateApplicationsSortFields(sortFields));
-  return axios.post(getApplicationRisksUrl(), request).then(({ data }) => {
-    const { dashboardResults, numResults } = data;
-    const series = generateApplicationsSeries(dashboardResults);
-    return {
-      results: dashboardResults,
-      classyBrew: createClassyBrew(series),
-      numResults,
-    };
-  });
+  return axios.post(getApplicationRisksUrl(), request).then(dashboardRespopnseHandler(generateApplicationsSeries));
 }
 
 const applicationsScoreFields = ['totalRisk', 'criticalRisk', 'severeRisk', 'moderateRisk', 'lowRisk'];
@@ -59,17 +46,14 @@ function generateApplicationsSeries(applications) {
   });
 }
 
+export function getWaivers(filters, sortFields) {
+  const request = createDashboardDataRequestPayload(filters, MAX_RESULTS, translateWaiversSortFields(sortFields));
+  return axios.post(getWaiversUrl(), request).then(dashboardRespopnseHandler());
+}
+
 export function getComponentRisks(filters, sortFields) {
   const request = createDashboardDataRequestPayload(filters, MAX_RESULTS, translateComponentsSortFields(sortFields));
-  return axios.post(getComponentRisksUrl(), request).then(({ data }) => {
-    const { dashboardResults, numResults } = data;
-    const series = generateComponentsSeries(dashboardResults);
-    return {
-      results: dashboardResults,
-      classyBrew: createClassyBrew(series),
-      numResults,
-    };
-  });
+  return axios.post(getComponentRisksUrl(), request).then(dashboardRespopnseHandler(generateComponentsSeries));
 }
 
 const componentsScoreFields = ['score', 'scoreCritical', 'scoreSevere', 'scoreModerate', 'scoreLow'];
@@ -84,4 +68,19 @@ function generateComponentsSeries(components) {
     });
   });
   return series;
+}
+
+function dashboardRespopnseHandler(seriesGenerator) {
+  return ({ data }) => {
+    const { dashboardResults, numResults } = data;
+    let series = undefined;
+    if (typeof seriesGenerator === 'function') {
+      series = seriesGenerator(dashboardResults);
+    }
+    return {
+      results: dashboardResults,
+      ...(series && { classyBrew: createClassyBrew(series) }),
+      numResults,
+    };
+  };
 }

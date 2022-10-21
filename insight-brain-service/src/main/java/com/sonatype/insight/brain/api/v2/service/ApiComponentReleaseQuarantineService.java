@@ -182,9 +182,10 @@ public class ApiComponentReleaseQuarantineService
       Date now,
       String comment, Repository repository)
   {
+    String componentPurl = PackageUrlIdentifier.toPackageUrl(repositoryPolicyViolation.getComponentIdentifier());
     PolicyWaiver policyWaiver =
         new PolicyWaiver(repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getPolicyId(),
-            repositoryPolicyViolation.getRepositoryId(), null, EXACT_COMPONENT, comment);
+            repositoryPolicyViolation.getRepositoryId(), componentPurl, EXACT_COMPONENT, comment);
     policyWaiver.setCreateTime(now);
     policyWaiver.setConstraintFactsJson(repositoryPolicyViolation.getConstraintFactsJson());
 

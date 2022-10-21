@@ -563,6 +563,8 @@ public class TemporaryEntity
 
   private Collection<SourceControlPullRequestResult> sourceControlPullRequestResults;
 
+  private Collection<PolicyWaiver> waivers;
+
   @Override
   public void before() {
     migrationTrackers = migrationTrackerDAO.getAll().stream().map(this::copyMigrationTracker).collect(toList());
@@ -592,6 +594,7 @@ public class TemporaryEntity
     membershipMappings = new ArrayList<>();
     webhooks = new ArrayList<>();
     policyViolationAggregations = new ArrayList<>();
+    waivers = new ArrayList<>();
     successMetricsReports = new ArrayList<>();
     successMetricsReportDatas = new ArrayList<>();
     sourceControls = new ArrayList<>();
@@ -676,6 +679,7 @@ public class TemporaryEntity
     delete(artifactoryConnections, artifactoryConnectionDAO);
     delete(repositoryIdentifiedComponents, repositoryIdentifiedComponentDAO);
     delete(sourceControlPullRequestResults, sourceControlPullRequestResultDAO);
+    delete(waivers, waiverDAO);
     productLicenseDAO.delete();
     firewallIgnorePatternsDAO.update(new FirewallIgnorePatterns());
     persistedPolicyEvaluationPollingResultDAO.deleteAll();
@@ -1293,8 +1297,9 @@ public class TemporaryEntity
   public PolicyWaiver newWaiver(String hash, String policyId, String ownerId, String comment, Date expiryTime) {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, comment);
     waiver.setExpiryTime(expiryTime);
-    addCreatorDataToWaiver(waiver);
+    fillAdditionalFixedData(hash, waiver);
     waiverDAO.insert(waiver);
+    waivers.add(waiver);
     return waiver;
   }
 
@@ -1306,9 +1311,17 @@ public class TemporaryEntity
       String comment)
   {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
-    addCreatorDataToWaiver(waiver);
+    fillAdditionalFixedData(hash, waiver);
     waiverDAO.insert(waiver);
+    waivers.add(waiver);
     return waiver;
+  }
+
+  private void fillAdditionalFixedData(final String hash, final PolicyWaiver waiver) {
+    addCreatorDataToWaiver(waiver);
+    ComponentMatcherStrategyForWaiver strategyForWaiver = hash !=
+        null ? ComponentMatcherStrategyForWaiver.EXACT_COMPONENT : ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
+    waiver.setComponentMatchStrategy(strategyForWaiver);
   }
 
   public PolicyWaiver newWaiver(
@@ -1393,7 +1406,14 @@ public class TemporaryEntity
     waiver.setExpiryTime(expiryTime);
     addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
+    waivers.add(waiver);
     return waiver;
+  }
+
+  public PolicyWaiver newWaiver(PolicyWaiver policyWaiver) {
+    waiverDAO.insert(policyWaiver);
+    waivers.add(policyWaiver);
+    return policyWaiver;
   }
 
   public PolicyWaiver newWaiver(String hash, String policyId, String ownerId, List<ConstraintFact> constraintFacts) {
@@ -1401,6 +1421,7 @@ public class TemporaryEntity
     waiver.setConstraintFacts(constraintFacts);
     addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
+    waivers.add(waiver);
     return waiver;
   }
 
@@ -1416,6 +1437,7 @@ public class TemporaryEntity
     waiver.setCreateTime(createTime);
     addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
+    waivers.add(waiver);
     return waiver;
   }
 
@@ -1433,6 +1455,7 @@ public class TemporaryEntity
     waiver.setExpiryTime(expiryTime);
     addCreatorDataToWaiver(waiver);
     waiverDAO.insert(waiver);
+    waivers.add(waiver);
     return waiver;
   }
 
@@ -3763,3 +3786,4 @@ public class TemporaryEntity
     return sourceControlPullRequestResult;
   }
 }
+

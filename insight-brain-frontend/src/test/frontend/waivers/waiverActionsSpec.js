@@ -33,6 +33,7 @@ import {
   setWaiverComment,
   setWaiverScope,
   setWaiverToDelete,
+  filterDataByIdAndRedirectToNextWaiverOrDashboard,
   WAIVERS_ADD_WAIVER_SET_COMPONENT_MATCHER_STRATEGY,
   WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME,
   WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT,
@@ -70,6 +71,8 @@ import {
   TRANSITIVE_VIOLATION_WAIVERS_LOAD_REQUESTED,
 } from '../../../main/frontend/violation/transitiveViolationsActions';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import { SET_SIDEBAR_NAV_LIST_DATA } from 'MainRoot/sidebarNav/sidebarNavListActions';
+import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 
 describe('waiverActions', function () {
   let store, mockAxiosCalls;
@@ -967,6 +970,7 @@ describe('waiverActions', function () {
           },
         },
         router: { currentState: { name: 'some state' } },
+        sidebarNavList: { data: [] },
       };
       store = SpecUtil.mockReduxStore(state);
     });
@@ -1131,6 +1135,45 @@ describe('waiverActions', function () {
         expect(store.getActions().length).toBe(1);
         expect(store.getActions()[0].type).toBe(WAIVERS_DELETE_WAIVER_REQUESTED);
       });
+
+      it('calls filterDataByIdAndRedirectToNextWaiverOrDashboard if we are on the waiver url', function (done) {
+        state = {
+          ...state,
+          router: {
+            currentState: { name: 'waiver.details' },
+            currentParams: { ownerId: 'ownerId', scanId: 'scanId', hash: 'hash' },
+          },
+          componentDetailsPolicyViolations: {
+            reloadComponentWaivers: false,
+          },
+          sidebarNavList: { data: [] },
+        };
+        store = SpecUtil.mockReduxStore(state);
+
+        const requestUrl = deleteWaiverUrl('application', 'ownerId', 'waiverId');
+
+        mockAxiosCalls({
+          del: {
+            [requestUrl]: Promise.resolve(),
+          },
+        });
+        jasmine.clock().install();
+
+        store.dispatch(deleteWaiver('application', 'ownerId', 'waiverId')).then(() => {
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
+          expect(axios.delete).toHaveBeenCalledWith(requestUrl);
+          expect(store.getActions()).toHaveActionTypesInOrder([
+            WAIVERS_DELETE_WAIVER_REQUESTED,
+            WAIVERS_DELETE_WAIVER_FULFILLED,
+            '@@reduxUiRouter/stateGo',
+            SET_SIDEBAR_NAV_LIST_DATA,
+            WAIVERS_DELETE_MASK_TIMER_DONE,
+          ]);
+          done();
+        });
+      });
     });
 
     describe('after a failed DELETE', function () {
@@ -1206,6 +1249,58 @@ describe('waiverActions', function () {
         expect(store.getActions()[1].payload).toEqual('ERR');
         done();
       });
+    });
+  });
+
+  describe('filterDataByIdAndRedirectToNextWaiverOrDashboard', () => {
+    it('redirects to next waiver and dispatches SET_SIDEBAR_NAV_LIST_DATA after delete the item', () => {
+      const data = [
+        {
+          id: '35513cecc0214e0cb0207238dc1fba6e',
+          ownerId: '79e2b6864a4d4f5fbce461cf930c3f2c',
+          ownerType: 'application',
+        },
+        {
+          id: 'bbb045cb733d4868bd6d30e4384e19f4',
+          ownerId: '79e2b6864a4d4f5fbce461cf930c3f2c',
+          ownerType: 'application',
+        },
+      ];
+      const stateGoSpy = spyOn(RouterActions, 'stateGo').and.returnValue(Promise.resolve());
+
+      store.dispatch(filterDataByIdAndRedirectToNextWaiverOrDashboard(data, '35513cecc0214e0cb0207238dc1fba6e'));
+
+      expect(stateGoSpy).toHaveBeenCalledWith('waiver.details', {
+        ownerId: '79e2b6864a4d4f5fbce461cf930c3f2c',
+        ownerType: 'application',
+        waiverId: 'bbb045cb733d4868bd6d30e4384e19f4',
+      });
+      expect(store.getActions()).toHaveActionType(SET_SIDEBAR_NAV_LIST_DATA);
+    });
+
+    it('redirects to dashboard page and dispatches SET_SIDEBAR_NAV_LIST_DATA after delete the item', () => {
+      const data = [
+        {
+          id: 'bbb045cb733d4868bd6d30e4384e19f4',
+          ownerId: '79e2b6864a4d4f5fbce461cf930c3f2c',
+          ownerType: 'application',
+        },
+      ];
+      const stateGoSpy = spyOn(RouterActions, 'stateGo').and.returnValue(Promise.resolve());
+
+      store.dispatch(filterDataByIdAndRedirectToNextWaiverOrDashboard(data, '35513cecc0214e0cb0207238dc1fba6e'));
+
+      expect(stateGoSpy).toHaveBeenCalledWith('dashboard.overview.waivers');
+      expect(store.getActions()).toHaveActionType(SET_SIDEBAR_NAV_LIST_DATA);
+    });
+
+    it('redirects to dashboard page if there are no elements in data list', () => {
+      const stateGoSpy = spyOn(RouterActions, 'stateGo').and.returnValue(Promise.resolve());
+
+      store.dispatch(filterDataByIdAndRedirectToNextWaiverOrDashboard([], '35513cecc0214e0cb0207238dc1fba6e'));
+
+      expect(stateGoSpy).toHaveBeenCalledWith('dashboard.overview.waivers');
+      expect(store.getActions()).toHaveActionType(SET_SIDEBAR_NAV_LIST_DATA);
     });
   });
 });

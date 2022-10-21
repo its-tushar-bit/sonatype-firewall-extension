@@ -67,6 +67,10 @@ public class DashboardFilters
     return new AgeFilter("#age-filter");
   }
 
+  public static ExpirationDateFilter expirationDateFilter() {
+    return new ExpirationDateFilter("#expiration-date-filter");
+  }
+
   public static NxPolicyThreatLevelFilter policyThreatLevelFilter() {
     return new NxPolicyThreatLevelFilter("#threat-level-filter");
   }
@@ -286,6 +290,42 @@ public class DashboardFilters
 
     public NxRadio past90days() {
       return super.radioItem(4);
+    }
+  }
+
+  public static class ExpirationDateFilter
+      extends NxTreeViewMultiSelect
+  {
+    public ExpirationDateFilter(final String selector) {
+      super(selector);
+    }
+
+    public NxRadio all() {
+      return super.radioItem(1);
+    }
+
+    public NxRadio in24hours() {
+      return super.radioItem(2);
+    }
+
+    public NxRadio in7days() {
+      return super.radioItem(3);
+    }
+
+    public NxRadio in30days() {
+      return super.radioItem(4);
+    }
+
+    public NxRadio in90days() {
+      return super.radioItem(5);
+    }
+
+    public NxRadio inOver90days() {
+      return super.radioItem(6);
+    }
+
+    public NxRadio never() {
+      return super.radioItem(7);
     }
   }
 

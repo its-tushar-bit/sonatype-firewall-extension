@@ -97,6 +97,18 @@ export function getComponentRisksExportUrl() {
   return uriTemplate`/rest/dashboard/export/componentRisks`;
 }
 
+/**
+ * Retrieve the list of waivers.  Supports filters
+ * @since 1.45
+ */
+export function getWaiversUrl() {
+  return uriTemplate`/rest/dashboard/policy/policyWaivers`;
+}
+
+export function getWaiversExportUrl() {
+  return uriTemplate`/rest/dashboard/export/policyWaivers`;
+}
+
 export function getApplicationsUrl() {
   return uriTemplate`/rest/application`;
 }
@@ -448,6 +460,17 @@ export function getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViola
  */
 export function getOwnerContextHierarchyUrl(ownerType, ownerId, policyId) {
   return uriTemplate`/rest/policyWaiver/${ownerType}/${ownerId}/applicable/context/${policyId}`;
+}
+
+/**
+ * Get detailed information for a single waiver
+ * @param ownerType {string} application|organization
+ * @param ownerId {string}
+ * @param waiverId {string}
+ * @returns {object}
+ */
+export function getWaiverDetailsUrl(ownerType, ownerId, policyWaiverId) {
+  return uriTemplate`/api/v2/policyWaivers/${ownerType}/${ownerId}/${policyWaiverId}`;
 }
 
 export function userTokenUrl() {

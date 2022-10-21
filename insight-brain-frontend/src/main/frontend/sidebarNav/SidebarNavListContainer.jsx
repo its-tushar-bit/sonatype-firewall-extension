@@ -3,31 +3,34 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { pick } from 'ramda';
+import { always, pick } from 'ramda';
 import { connect } from 'react-redux';
 
-import { gotoNewVulnerability, loadSidebarNav } from './sidebarNavListActions';
+import { gotoNewVulnerability, gotoWaiver, loadSidebarNav } from './sidebarNavListActions';
 import SidebarNavList from './SidebarNavList';
 
-function mapStateToProps({ sidebarNavList, router, violation }) {
+function mapStateToProps({ sidebarNavList, router, violation, waiverDetails }) {
   let props = pick(['data', 'error', 'loading', 'contentType', 'backButtonStateName'], sidebarNavList);
 
-  if (!props.contentType) {
+  const whenCond = (cond, fn) => (cond ? fn() : props);
+
+  const whenNoContentType = (fn) => whenCond(!props.contentType, fn);
+  const getProps = (data, contentType, backButtonStateName, loading = false, error = null) =>
+    whenCond(data, always({ data: [data], loading, contentType, backButtonStateName, error }));
+  const getWaiverProps = (data) => getProps(data, 'waivers', 'dashboard.overview.waivers');
+  const getViolationProps = (data) => getProps(data, 'violations', 'dashboard.overview.violations');
+
+  props = whenNoContentType(() => {
     const currentStateName = router.currentState.name;
     switch (currentStateName) {
+      case 'waiver.details':
+        return getWaiverProps(waiverDetails.waiverDetails);
       case 'sidebarView.violation':
-        if (violation.violationDetails) {
-          props = {
-            data: [violation.violationDetails],
-            loading: false,
-            contentType: 'violations',
-            backButtonStateName: 'dashboard.overview.violations',
-            error: null,
-          };
-        }
-        break;
+        return getViolationProps(violation.violationDetails);
+      default:
+        return props;
     }
-  }
+  });
   return {
     ...props,
     stateParams: router.currentParams,
@@ -39,6 +42,7 @@ function mapStateToProps({ sidebarNavList, router, violation }) {
 const mapDispatchToProps = {
   loadSidebarNav,
   gotoNewVulnerability,
+  gotoWaiver,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(SidebarNavList);

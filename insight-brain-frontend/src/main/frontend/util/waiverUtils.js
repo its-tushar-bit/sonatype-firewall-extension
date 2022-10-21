@@ -3,7 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { map, prop } from 'ramda';
 import { getFutureDate } from './jsUtil';
+import { STANDARD_DATE_FORMAT, formatDate } from './dateUtils';
 import * as PropTypes from 'prop-types';
 
 export const waiverMatcherStrategy = {
@@ -48,6 +50,16 @@ export const displayWaiverScope = (waiver) => {
   return null;
 };
 
+export const mapWaiversScopeProp = (waiver) => ({
+  ...waiver,
+  scope: displayWaiverScope({
+    scopeOwnerType: waiver.ownerType,
+    scopeOwnerName: waiver.ownerName,
+  }),
+});
+
+export const addWaiversScopeProp = (waivers) => map(mapWaiversScopeProp, waivers);
+
 export const isWaiverAllVersions = (waiver) =>
   [waiver?.componentMatchStrategy, waiver?.matcherStrategy].some(
     (field) => field === waiverMatcherStrategy.ALL_VERSIONS
@@ -56,6 +68,51 @@ export const isWaiverAllVersionsOrExact = (waiver) =>
   [waiver?.componentMatchStrategy, waiver?.matcherStrategy].some(
     (field) => field === waiverMatcherStrategy.ALL_VERSIONS || field === waiverMatcherStrategy.EXACT_COMPONENT
   );
+
+// Process details about a single waiver
+export const formatWaiverDetails = (waiver) => {
+  if (!waiver) {
+    return {};
+  }
+
+  const {
+    policyName,
+    constraintFacts,
+    expiryTime,
+    creatorName,
+    createTime,
+    comment,
+    vulnerabilityId,
+    associatedPackageUrl,
+    componentIdentifier,
+    displayName,
+    matcherStrategy,
+  } = waiver;
+
+  const { constraintName, conditionFacts } = constraintFacts[0],
+    waiverScope = displayWaiverScope(waiver),
+    expiration = formatDate(expiryTime, STANDARD_DATE_FORMAT) || 'Does not expire',
+    dateCreated = formatDate(createTime, STANDARD_DATE_FORMAT),
+    component = {
+      associatedPackageUrl,
+      componentIdentifier,
+      displayName,
+      matcherStrategy,
+    };
+
+  return {
+    policyName,
+    constraintName,
+    reasons: map(prop('reason'), conditionFacts),
+    waiverScope,
+    expiration,
+    comment: comment || 'None',
+    creatorName,
+    dateCreated,
+    vulnerabilityId,
+    component,
+  };
+};
 
 export const waiverType = {
   policyId: PropTypes.string,

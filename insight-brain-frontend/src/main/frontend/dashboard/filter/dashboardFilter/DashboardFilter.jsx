@@ -35,6 +35,9 @@ export default function DashboardFilter(props) {
     filtersAreDirty,
     needsAcknowledgement,
     showAgeFilter,
+    showStagesFilter,
+    showViolationStateFilter,
+    showExpirationDateFilter,
     showSaveFilterModal,
     savedFilters,
 
@@ -45,6 +48,7 @@ export default function DashboardFilter(props) {
     stages,
     ages,
     policyTypes,
+    expirationDates,
     policyViolationStates,
 
     // selected items
@@ -58,6 +62,7 @@ export default function DashboardFilter(props) {
     loadFilter,
     revert,
     selectAge,
+    selectExpirationDate: onExpirationDatesChange,
     toggleFilter,
     toggleAppsAndOrgs,
     applyDefaultFilter,
@@ -170,16 +175,18 @@ export default function DashboardFilter(props) {
                 <span>Application Categories</span>
               </NxStatefulTreeViewMultiSelect>
 
-              <NxStatefulTreeViewMultiSelect
-                options={stages}
-                selectedIds={selected.stages}
-                onChange={onStagesChange}
-                filterPlaceholder="Stage"
-                name="stages"
-                id="stage-filter"
-              >
-                <span>Stages</span>
-              </NxStatefulTreeViewMultiSelect>
+              {showStagesFilter && (
+                <NxStatefulTreeViewMultiSelect
+                  options={stages}
+                  selectedIds={selected.stages}
+                  onChange={onStagesChange}
+                  filterPlaceholder="Stage"
+                  name="stages"
+                  id="stage-filter"
+                >
+                  <span>Stages</span>
+                </NxStatefulTreeViewMultiSelect>
+              )}
 
               <NxStatefulTreeViewMultiSelect
                 options={policyTypes}
@@ -192,16 +199,30 @@ export default function DashboardFilter(props) {
                 <span>Policy Types</span>
               </NxStatefulTreeViewMultiSelect>
 
-              <NxStatefulTreeViewMultiSelect
-                options={policyViolationStates}
-                selectedIds={selected.policyViolationStates}
-                onChange={onPolicyViolationStatesChange}
-                filterPlaceholder="Violation State"
-                name="violation states"
-                id="policy-violation-state-filter"
-              >
-                <span>Violation State</span>
-              </NxStatefulTreeViewMultiSelect>
+              {showViolationStateFilter && (
+                <NxStatefulTreeViewMultiSelect
+                  options={policyViolationStates}
+                  selectedIds={selected.policyViolationStates}
+                  onChange={onPolicyViolationStatesChange}
+                  filterPlaceholder="Violation State"
+                  name="violation states"
+                  id="policy-violation-state-filter"
+                >
+                  <span>Violation State</span>
+                </NxStatefulTreeViewMultiSelect>
+              )}
+
+              {showExpirationDateFilter && (
+                <NxStatefulTreeViewRadioSelect
+                  id="expiration-date-filter"
+                  options={expirationDates}
+                  name="expiration date"
+                  onChange={onExpirationDatesChange}
+                  selectedId={selected.expirationDate}
+                >
+                  <span>Expiration Date</span>
+                </NxStatefulTreeViewRadioSelect>
+              )}
 
               {showAgeFilter && (
                 <NxStatefulTreeViewRadioSelect
@@ -253,6 +274,11 @@ export const dashboardFilterPropTypes = {
   needsAcknowledgement: PropTypes.bool,
   showAgeFilter: PropTypes.bool,
   showSaveFilterModal: PropTypes.bool,
+  showStagesFilter: PropTypes.bool,
+  showViolationStateFilter: PropTypes.bool,
+  showExpirationDateFilter: PropTypes.bool,
+  selectExpirationDate: PropTypes.func,
+  expirationDates: PropTypes.array,
   organizations: PropTypes.array,
   applications: PropTypes.array,
   categories: PropTypes.array,
@@ -269,6 +295,7 @@ export const dashboardFilterPropTypes = {
     policyViolationStates: PropTypes.instanceOf(Set).isRequired,
     maxDaysOld: PropTypes.number,
     policyThreatLevels: PropTypes.arrayOf(PropTypes.number).isRequired,
+    expirationDate: PropTypes.string.isRequired,
   }),
   applyFilter: PropTypes.func.isRequired,
   setDisplaySaveFilterModal: PropTypes.func.isRequired,

@@ -51,6 +51,7 @@ export function createDashboardDataRequestPayload(filter, maxResults, sortFields
     params.policyViolationStates = setToArray(filter.policyViolationStates);
     params.maxDaysOld = filter.maxDaysOld;
     params.policyThreatLevelRange = filter.policyThreatLevels && filter.policyThreatLevels.join(',');
+    params.expirationDate = filter.expirationDate;
 
     if (filter.policyTypes && filter.policyTypes.size > 0) {
       params.policyThreatCategories = setToArray(filter.policyTypes).join(',');

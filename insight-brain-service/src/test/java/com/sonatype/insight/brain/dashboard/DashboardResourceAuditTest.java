@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -22,6 +23,7 @@ import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -224,6 +226,121 @@ public class DashboardResourceAuditTest
   public void testGetApplicationRisksExport_EmptyFilter() throws Exception {
     testGetRisks_EmptyFilter(DashboardResource.GET_APPLICATION_RISKS_EXPORT_PATH,
         AuditEvent.EXPORT_DASHBOARD_APPLICATION_LIST);
+  }
+
+  @Test
+  public void testGetPolicyWaivers() throws Exception {
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplication(org1.getId());
+    Application app2 = tempEntity.newApplication(org2.getId());
+
+    Policy policyOrg1 = tempEntity.newPolicy(org1);
+    tempEntity.newWaiver(policyOrg1.getId(), app1.getId());
+    tempEntity.newWaiver(policyOrg1.getId(), org1.getId());
+    Policy policyOrg2 = tempEntity.newPolicy(org1);
+    tempEntity.newWaiver(policyOrg2.getId(), app2.getId());
+    tempEntity.newWaiver(policyOrg2.getId(), org2.getId());
+
+    String unknownOrgId = "unknownOrgId";
+    String unknownAppId = "unknownAppId";
+
+    RisksFilterDTO risksFilterDTO = new RisksFilterDTO();
+    risksFilterDTO.organizationIds = new HashSet<>(Arrays.asList(org1.getId(), unknownOrgId));
+    risksFilterDTO.applicationIds = new HashSet<>(Arrays.asList(app1.getId(), app2.getId(), unknownAppId));
+
+    dashboardRequest(DashboardResource.GET_POLICY_WAIVERS_PATH, risksFilterDTO);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_DASHBOARD_WAIVER_LIST, null);
+    assertCustomData(auditDTO, "resultRecordCount", 4);
+    assertCustomData(auditDTO, "filteredOwnersCount", 5);
+  }
+
+  @Test
+  public void testGetPolicyWaivers_EmptyFilter() throws Exception {
+    createDashboardWaivers();
+
+    RisksFilterDTO risksFilterDTO = new RisksFilterDTO();
+
+    dashboardRequest(DashboardResource.GET_POLICY_WAIVERS_PATH, risksFilterDTO);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_DASHBOARD_WAIVER_LIST, null);
+    assertCustomData(auditDTO, "resultRecordCount", 4);
+    assertCustomData(auditDTO, "filteredOwnersCount", 5);
+  }
+
+  private void createDashboardWaivers() {
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplication(org1.getId());
+    Application app2 = tempEntity.newApplication(org2.getId());
+
+    Policy policyOrg1 = tempEntity.newPolicy(org1);
+    tempEntity.newWaiver(policyOrg1.getId(), app1.getId());
+    tempEntity.newWaiver(policyOrg1.getId(), org1.getId());
+    Policy policyOrg2 = tempEntity.newPolicy(org1);
+    tempEntity.newWaiver(policyOrg2.getId(), app2.getId());
+    tempEntity.newWaiver(policyOrg2.getId(), org2.getId());
+  }
+
+  @Test
+  public void testGetPolicyWaivers_RootOrgFilter() throws Exception {
+    createDashboardWaivers();
+
+    tempEntity.newRepository();
+    Policy policyRepository = tempEntity.newPolicy(RepositoryContainer.SINGLETON);
+    tempEntity.newWaiver(policyRepository.getId(), Organization.ROOT_ORGANIZATION_ID);
+
+    RisksFilterDTO risksFilterDTO = new RisksFilterDTO();
+    risksFilterDTO.organizationIds = Collections.singleton(Organization.ROOT_ORGANIZATION_ID);
+
+    dashboardRequest(DashboardResource.GET_POLICY_WAIVERS_PATH, risksFilterDTO);
+
+    // Should only have information regarding the repositories and the root org
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_DASHBOARD_WAIVER_LIST, null);
+    assertCustomData(auditDTO, "resultRecordCount", 1);
+    assertCustomData(auditDTO, "filteredOwnersCount", 1);
+  }
+
+  @Test
+  public void testGetPolicyWaiversExport() throws Exception {
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplication(org1.getId());
+    Application app2 = tempEntity.newApplication(org2.getId());
+
+    Policy policyOrg1 = tempEntity.newPolicy(org1);
+    tempEntity.newWaiver(policyOrg1.getId(), app1.getId());
+    tempEntity.newWaiver(policyOrg1.getId(), org1.getId());
+    Policy policyOrg2 = tempEntity.newPolicy(org1);
+    tempEntity.newWaiver(policyOrg2.getId(), app2.getId());
+    tempEntity.newWaiver(policyOrg2.getId(), org2.getId());
+
+    String unknownOrgId = "unknownOrgId";
+    String unknownAppId = "unknownAppId";
+
+    RisksFilterDTO risksFilterDTO = new RisksFilterDTO();
+    risksFilterDTO.organizationIds = new HashSet<>(Arrays.asList(org1.getId(), unknownOrgId));
+    risksFilterDTO.applicationIds = new HashSet<>(Arrays.asList(app1.getId(), app2.getId(), unknownAppId));
+
+    dashboardRequest(DashboardResource.GET_POLICY_WAIVERS_EXPORT_PATH, risksFilterDTO);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_DASHBOARD_WAIVER_LIST, null);
+    assertCustomData(auditDTO, "resultRecordCount", 4);
+    assertCustomData(auditDTO, "filteredOwnersCount", 5);
+  }
+
+  @Test
+  public void testGetPolicyWaiversExport_EmptyFilter() throws Exception {
+    createDashboardWaivers();
+
+    RisksFilterDTO risksFilterDTO = new RisksFilterDTO();
+
+    dashboardRequest(DashboardResource.GET_POLICY_WAIVERS_EXPORT_PATH, risksFilterDTO);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_DASHBOARD_WAIVER_LIST, null);
+    assertCustomData(auditDTO, "resultRecordCount", 4);
+    assertCustomData(auditDTO, "filteredOwnersCount", 5);
   }
 
   private void dashboardRequest(String restPath, RisksFilterDTO risksFilterDTO) throws Exception {

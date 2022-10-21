@@ -5,6 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -16,6 +19,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.CategoryFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.DeleteFilterDialog;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.ExpirationDateFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFiltersDropdown;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyTypeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyViolationStateFilter;
@@ -24,6 +28,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters.StageFilter
 import com.sonatype.clm.testing.functional.elements.DashboardViolations;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationTile;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
+import com.sonatype.clm.testing.functional.elements.DashboardWaivers.WaiverTile;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxPolicyThreatLevelFilter;
@@ -32,6 +37,7 @@ import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
@@ -75,6 +81,7 @@ import static com.sonatype.clm.testing.functional.elements.DashboardFilters.SELE
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.applicationsTab;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.componentsTab;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.violationsTab;
+import static com.sonatype.clm.testing.functional.pages.DashboardPage.waiversTab;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DashboardFilterTest
@@ -84,6 +91,10 @@ public class DashboardFilterTest
       "Version1");
 
   private static ApplicationDAO appDAO = new ApplicationDAO();
+
+  private static OrganizationDAO orgDAO = new OrganizationDAO();
+
+  private static Organization rootOrg;
 
   private static Organization org;
 
@@ -120,6 +131,7 @@ public class DashboardFilterTest
   }
 
   private static void setupData() {
+    rootOrg = orgDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     org = staticTempEntity.newOrganization("DashboardTest");
     staticTempEntity.newOrganization("DashboardTestEmptyOrg");
     firstApp = staticTempEntity.newApplication("DashboardTestAppOne", "DashboardTestAppOne", org.getId());
@@ -133,6 +145,7 @@ public class DashboardFilterTest
     policy = staticTempEntity.newPolicy(org.getId(), "DashboardTestPolicy");
 
     DateTime now = DateTime.now();
+    Instant seeDate = Instant.now();
 
     //first evaluation dated a week ago
     PolicyEvaluation firstPolicyEvaluation = staticTempEntity
@@ -179,6 +192,14 @@ public class DashboardFilterTest
     staticTempEntity.newPolicyViolation(secondPolicyEvaluation, policy, 10, PolicyThreatCategory.QUALITY);
 
     PolicyWaiver policyWaiver = staticTempEntity.newWaiver("hash-waived", policy.getId(), secondApp.getId());
+    staticTempEntity.newWaiver("hash-waived-2", policy.getId(), secondApp.getId(), "",
+        Date.from(seeDate.plus(5, ChronoUnit.DAYS)));
+    staticTempEntity.newWaiver("hash-waived-3", policy.getId(), Organization.ROOT_ORGANIZATION_ID, "",
+        Date.from(seeDate.plus(6, ChronoUnit.DAYS)));
+    staticTempEntity.newWaiver("hash-waived-3", policy.getId(), org.getId(), "",
+        Date.from(seeDate.plus(7, ChronoUnit.DAYS)));
+    staticTempEntity.newWaiver("hash-waived-4", policy.getId(), firstApp.getId(), "",
+        Date.from(seeDate.plus(8, ChronoUnit.DAYS)));
     staticTempEntity.newWaivedPolicyViolation(secondPolicyEvaluation, policy, 3, PolicyThreatCategory.QUALITY,
         ComponentIdentifier.createMavenCoordinates("Group2", "Artifact2", "Version2"), "hash-waived", policyWaiver);
 
@@ -198,6 +219,9 @@ public class DashboardFilterTest
     ageFilter.shouldBe(hidden);
 
     refreshOrOpen(DashboardPage.urlToComponents());
+    ageFilter.shouldBe(hidden);
+
+    refreshOrOpen(DashboardPage.urlToWaivers());
     ageFilter.shouldBe(hidden);
 
     refreshOrOpen(DashboardPage.urlToViolations());
@@ -227,6 +251,73 @@ public class DashboardFilterTest
     DashboardFilters.apply();
     ageFilter.twisty().click();
     ageFilter.singleSelectList().forEach(selenideElement -> selenideElement.shouldBe(hidden));
+  }
+
+  /**
+   * Expiration date filter only appears in waivers tab and defaults to 'all'.
+   */
+  @Test
+  public void testExpirationDateFilter() {
+    refreshOrOpen(DashboardPage.urlToApplications());
+    DashboardPage.filterToggle().shouldBe(visible).click();
+    ExpirationDateFilter expirationDateFilter = DashboardFilters.expirationDateFilter();
+    expirationDateFilter.shouldBe(hidden);
+
+    refreshOrOpen(DashboardPage.urlToComponents());
+    expirationDateFilter.shouldBe(hidden);
+
+    refreshOrOpen(DashboardPage.urlToViolations());
+    expirationDateFilter.shouldBe(hidden);
+
+    refreshOrOpen(DashboardPage.urlToWaivers());
+    expirationDateFilter.shouldBe(visible).shouldHave(text("all"));
+    expirationDateFilter.twisty().click();
+    expirationDateFilter.singleSelectList().shouldHaveSize(7).shouldHave(
+        texts("all", "in 24 hours", "in 7 days", "in 30 days", "in 90 days", "in over 90 days", "never"));
+    expirationDateFilter.all().shouldBe(selected);
+    expirationDateFilter.in24hours().shouldNotBe(selected).click();
+    expirationDateFilter.in24hours().shouldBe(selected);
+    expirationDateFilter.in7days().shouldNotBe(selected).click();
+    expirationDateFilter.in7days().shouldBe(selected);
+    expirationDateFilter.in30days().shouldNotBe(selected).click();
+    expirationDateFilter.in30days().shouldBe(selected);
+    expirationDateFilter.in90days().shouldNotBe(selected).click();
+    expirationDateFilter.in90days().shouldBe(selected);
+    expirationDateFilter.inOver90days().shouldNotBe(selected).click();
+    expirationDateFilter.inOver90days().shouldBe(selected);
+    expirationDateFilter.never().shouldNotBe(selected).click();
+    expirationDateFilter.never().shouldBe(selected);
+
+    // make sure the tabs are updated
+    violationsTab().counter().shouldBe(visible).shouldHave(text("3"));
+    componentsTab().counter().shouldBe(visible).shouldHave(text("1"));
+    applicationsTab().counter().shouldBe(visible).shouldHave(text("2"));
+    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+
+    // check waiver results change
+    DashboardFilters.apply();
+    waiversTab().counter().shouldBe(visible).shouldHave(text("1"));
+
+    expirationDateFilter.in30days().shouldNotBe(selected).click();
+    DashboardFilters.apply();
+    waiversTab().counter().shouldBe(visible).shouldHave(text("4"));
+
+    expirationDateFilter.all().shouldNotBe(selected).click();
+    DashboardFilters.apply();
+    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+
+    refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.filterToggle().shouldBe(visible).click();
+    expirationDateFilter.twisty().click();
+    expirationDateFilter.in30days().shouldNotBe(selected).click();
+
+    // check that revert button restores previously applied value
+    DashboardFilters.revertButton().shouldNotBe(DISABLED).click();
+    expirationDateFilter.all().shouldBe(selected);
+
+    DashboardFilters.saveButton();
+    expirationDateFilter.twisty().click();
+    expirationDateFilter.singleSelectList().forEach(selenideElement -> selenideElement.shouldBe(hidden));
   }
 
   @Test
@@ -319,7 +410,8 @@ public class DashboardFilterTest
         "  \"policyThreatCategoryFilters\" : [ \"QUALITY\" ],\n" +
         "  \"stageTypeFilters\" : [ \"release\" ],\n" +
         "  \"maxDaysOld\" : 30,\n" +
-        "  \"policyViolationStates\" : [ \"OPEN\", \"WAIVED\", \"GRANDFATHERED\" ]\n" +
+        "  \"policyViolationStates\" : [ \"OPEN\", \"WAIVED\", \"GRANDFATHERED\" ],\n" +
+        "  \"expirationDate\" : \"ALL\"\n" +
         "}");
 
     // assert applied filters
@@ -847,6 +939,98 @@ public class DashboardFilterTest
     appDAO.delete(thirdApp);
     refreshOrOpen(DashboardPage.urlToApplications());
     results.applications().shouldHaveSize(2);
+  }
+
+  @Test
+  public void testWaiverAppFilterIncludesParentOrgs() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.filterToggle().shouldBe(visible).click();
+
+    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+
+    WaiverTile firstWaiver = DashboardPage.waiversView().results().firstWaiver();
+    firstWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+    WaiverTile lastWaiver = DashboardPage.waiversView().results().lastWaiver();
+    lastWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+
+    DashboardFilters.applicationFilter().twisty().click();
+    DashboardFilters.applicationFilter().checkboxItem(1).click();
+    DashboardFilters.apply();
+
+    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+
+    firstWaiver = DashboardPage.waiversView().results().firstWaiver();
+    firstWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+    lastWaiver = DashboardPage.waiversView().results().lastWaiver();
+    lastWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+
+    DashboardFilters.applicationFilter().checkboxItem(1).click();
+    DashboardFilters.applicationFilter().checkboxItem(2).click();
+    DashboardFilters.apply();
+
+    waiversTab().counter().shouldBe(visible).shouldHave(text("3"));
+
+    firstWaiver = DashboardPage.waiversView().results().firstWaiver();
+    firstWaiver.scope().shouldHave(text(rootOrg.getType().toString() + " - " + rootOrg.getName()));
+    lastWaiver = DashboardPage.waiversView().results().lastWaiver();
+    lastWaiver.scope().shouldHave(text(firstApp.getType().toString() + " - " + firstApp.getName()));
+
+    DashboardFilters.applicationFilter().checkboxItem(2).click();
+    DashboardFilters.applicationFilter().checkboxItem(3).click();
+    DashboardFilters.apply();
+
+    waiversTab().counter().shouldBe(visible).shouldHave(text("4"));
+
+    firstWaiver = DashboardPage.waiversView().results().firstWaiver();
+    firstWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+    lastWaiver = DashboardPage.waiversView().results().lastWaiver();
+    lastWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+
+    DashboardFilters.applicationFilter().checkboxItem(3).click();
+    DashboardFilters.applicationFilter().twisty().click();
+    DashboardFilters.applicationCategoryFilter().twisty().click();
+    DashboardFilters.applicationCategoryFilter().allItems().click();
+    DashboardFilters.apply();
+
+    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+
+    firstWaiver = DashboardPage.waiversView().results().firstWaiver();
+    firstWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+    lastWaiver = DashboardPage.waiversView().results().lastWaiver();
+    lastWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+
+    DashboardFilters.applicationCategoryFilter().allItems().click();
+    DashboardFilters.applicationCategoryFilter().noCategory().click();
+    DashboardFilters.apply();
+
+    waiversTab().counter().shouldBe(visible).shouldHave(text("4"));
+
+    firstWaiver = DashboardPage.waiversView().results().firstWaiver();
+    firstWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+    lastWaiver = DashboardPage.waiversView().results().lastWaiver();
+    lastWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+
+    DashboardFilters.applicationCategoryFilter().noCategory().click();
+    DashboardFilters.applicationCategoryFilter().checkboxItem(3).click();
+    DashboardFilters.apply();
+
+    waiversTab().counter().shouldBe(visible).shouldHave(text("3"));
+
+    firstWaiver = DashboardPage.waiversView().results().firstWaiver();
+    firstWaiver.scope().shouldHave(text(rootOrg.getType().toString() + " - " + rootOrg.getName()));
+    lastWaiver = DashboardPage.waiversView().results().lastWaiver();
+    lastWaiver.scope().shouldHave(text(firstApp.getType().toString() + " - " + firstApp.getName()));
+
+    DashboardFilters.applicationCategoryFilter().checkboxItem(3).click();
+    DashboardFilters.applicationCategoryFilter().checkboxItem(4).click();
+    DashboardFilters.apply();
+
+    waiversTab().counter().shouldBe(visible).shouldHave(text("3"));
+
+    firstWaiver = DashboardPage.waiversView().results().firstWaiver();
+    firstWaiver.scope().shouldHave(text(rootOrg.getType().toString() + " - " + rootOrg.getName()));
+    lastWaiver = DashboardPage.waiversView().results().lastWaiver();
+    lastWaiver.scope().shouldHave(text(firstApp.getType().toString() + " - " + firstApp.getName()));
   }
 
   @Test

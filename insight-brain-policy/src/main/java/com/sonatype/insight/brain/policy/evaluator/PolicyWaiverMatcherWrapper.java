@@ -27,10 +27,27 @@ public class PolicyWaiverMatcherWrapper
   // Exposed to the same package for testing purposes
   final PolicyWaiver policyWaiver;
 
+  final ComponentIdentifier waiverAllVersionsIdentifier;
+
   private static final Logger log = LoggerFactory.getLogger(PolicyWaiverMatcherWrapper.class);
 
   public PolicyWaiverMatcherWrapper(PolicyWaiver waiver) {
     this.policyWaiver = waiver;
+    this.waiverAllVersionsIdentifier =
+        policyWaiver.getComponentIdentifier() != null ? policyWaiver.getComponentIdentifier()
+            .createAlternativeVersion("*") : null;
+    if (this.waiverAllVersionsIdentifier != null) {
+      // It seems at one point some identifiers where introduced that don't have all required coordinates, which
+      // would make the call that is done to ensureComplete to fail. We'll log this occurrence for future reference
+      // FIXME After CLM-22252 an additional database migrator should be implemented to update these
+      try {
+        this.waiverAllVersionsIdentifier.ensureComplete();
+      }
+      catch (InvalidComponentIdentifierException e) {
+        log.warn("Failed to ensureComplete for purl {} with the following error: ",
+            PackageUrlIdentifier.toPackageUrl(this.waiverAllVersionsIdentifier), e);
+      }
+    }
   }
 
   public boolean matchesPolicyId(String policyId) {
@@ -72,7 +89,7 @@ public class PolicyWaiverMatcherWrapper
   }
 
   private boolean isDifferentFormat(ComponentIdentifier compIdentif, ComponentIdentifier waiverIdentif) {
-    return ! waiverIdentif.getFormat().equals(compIdentif.getFormat());
+    return !waiverIdentif.getFormat().equals(compIdentif.getFormat());
   }
 
   private boolean matchesAllVersionsOfComponent(ComponentFact componentFact) {
@@ -84,9 +101,6 @@ public class PolicyWaiverMatcherWrapper
 
     ComponentIdentifier componentFactAllVersionsIdentifier =
         componentFact.getComponentIdentifier().createAlternativeVersion("*");
-    // The stored version in the waiver should already be the wildcard version so no need to create
-    // an alternative version
-    ComponentIdentifier waiverAllVersionsIdentifier = policyWaiver.getComponentIdentifier();
 
     // FIXME This code block was introduced in CLM-22177 and it is dependant on the resolution of CLM-22252
     // FIXME After CLM-22252 task is done remove the try catch block and leave only the ensureComplete call

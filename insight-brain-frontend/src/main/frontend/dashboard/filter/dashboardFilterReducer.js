@@ -11,7 +11,9 @@ import {
   defaultMaxDaysOld,
   policyTypes,
   policyViolationStates,
+  expirationDates,
   uncategorizedCategory,
+  defaultMinExpiration,
 } from './staticFilterEntries';
 import {
   LOAD_FILTER_REQUESTED,
@@ -26,6 +28,7 @@ import {
   TOGGLE_FILTER,
   TOGGLE_APPS_AND_ORGS,
   SELECT_AGE,
+  SELECT_EXPIRATION_DATE,
   REVERT_FILTER,
   SET_DISPLAY_SAVE_FILTER_MODAL,
   TOGGLE_FILTER_SIDEBAR,
@@ -44,7 +47,11 @@ const initState = Object.freeze({
   needsAcknowledgement: false,
   isViolationsTab: false,
   showAgeFilter: false,
+  showStagesFilter: false,
+  showViolationStateFilter: false,
+  showExpirationDateFilter: false,
   showSaveFilterModal: false,
+  isWaiversTab: false,
 
   // available filter items
   organizations: null,
@@ -54,6 +61,7 @@ const initState = Object.freeze({
   ages,
   policyTypes,
   policyViolationStates,
+  expirationDates,
 
   // selected filter items
   appliedFilter: defaultFilter,
@@ -66,7 +74,8 @@ export default function dashboardFilterReducer(state = initState, { type, payloa
   switch (type) {
     case UI_ROUTER_ON_FINISH: {
       const isViolationsTab = payload.toState.name === 'dashboard.overview.violations';
-      const newState = { ...state, isViolationsTab };
+      const isWaiversTab = payload.toState.name === 'dashboard.overview.waivers';
+      const newState = { ...state, isViolationsTab, isWaiversTab };
       return setShowAgeFilter(newState);
     }
 
@@ -112,6 +121,9 @@ export default function dashboardFilterReducer(state = initState, { type, payloa
     case SELECT_AGE:
       return compose(setFiltersAreDirty, selectAge(payload))(state);
 
+    case SELECT_EXPIRATION_DATE:
+      return compose(setFiltersAreDirty, selectExpirationDate(payload))(state);
+
     case REVERT_FILTER:
       return compose(revertFilter, resetProps(['filtersAreDirty', 'loadErrorFilterName']))(state);
 
@@ -137,6 +149,10 @@ function revertFilter(state) {
 
 const selectAge = (maxDaysOld) => (state) => {
   return pathSet(['selected', 'maxDaysOld'], getAge(state, maxDaysOld), state);
+};
+
+const selectExpirationDate = (expirationDate) => (state) => {
+  return pathSet(['selected', 'expirationDate'], expirationDate || defaultMinExpiration, state);
 };
 
 const toggleFilter = ({ filterName, selectedIds }) => (state) => {
@@ -221,6 +237,7 @@ const applyFilter = ({ filter }) => (state) => {
   const stages = new Set(filter.stageTypeFilters);
   const policyTypes = new Set(filter.policyThreatCategoryFilters);
   const policyViolationStates = new Set(filter.policyViolationStates);
+  const expirationDate = getExpiration(state, filter.expirationDate);
   const maxDaysOld = getAge(state, filter.maxDaysOld);
   const policyThreatLevels = [filter.minPolicyThreatLevel, filter.maxPolicyThreatLevel];
 
@@ -233,6 +250,7 @@ const applyFilter = ({ filter }) => (state) => {
     policyViolationStates,
     maxDaysOld,
     policyThreatLevels,
+    expirationDate,
   });
   return setShowAgeFilter({
     ...state,
@@ -247,7 +265,15 @@ function getAge(state, maxDaysOld) {
   return current ? current.id : defaultMaxDaysOld;
 }
 
+function getExpiration(state, selectedExpiration) {
+  const current = find(propEq('id', selectedExpiration), state.expirationDates);
+  return current ? current.id : defaultMinExpiration;
+}
+
 function setShowAgeFilter(state) {
   const showAgeFilter = state.isViolationsTab;
-  return { ...state, showAgeFilter };
+  const showStagesFilter = !state.isWaiversTab;
+  const showViolationStateFilter = !state.isWaiversTab;
+  const showExpirationDateFilter = state.isWaiversTab;
+  return { ...state, showAgeFilter, showStagesFilter, showViolationStateFilter, showExpirationDateFilter };
 }

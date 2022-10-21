@@ -62,15 +62,15 @@ export default function SidebarNavViolationList(props) {
   return <ul className="nx-list nx-list--clickable">{listItems}</ul>;
 }
 
+export const SidebarViolationDataType = PropTypes.shape({
+  policyName: PropTypes.string.isRequired,
+  policyViolationId: PropTypes.string.isRequired,
+  threatLevel: PropTypes.number.isRequired,
+});
+
 SidebarNavViolationList.propTypes = {
   currentViolationId: PropTypes.string,
-  violations: PropTypes.arrayOf(
-    PropTypes.shape({
-      policyName: PropTypes.string.isRequired,
-      policyViolationId: PropTypes.string.isRequired,
-      threatLevel: PropTypes.number.isRequired,
-    })
-  ),
+  violations: PropTypes.arrayOf(SidebarViolationDataType),
   onClick: PropTypes.func.isRequired,
   scrollToSelection: PropTypes.bool.isRequired,
 };

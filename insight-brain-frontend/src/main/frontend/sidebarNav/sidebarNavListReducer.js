@@ -8,6 +8,7 @@ import {
   LOAD_SIDEBAR_NAV_LIST_FAILED,
   LOAD_SIDEBAR_NAV_LIST_FULFILLED,
   LOAD_SIDEBAR_NAV_LIST_REQUESTED,
+  SET_SIDEBAR_NAV_LIST_DATA,
 } from './sidebarNavListActions';
 
 const initialState = Object.freeze({
@@ -23,6 +24,7 @@ const reducerActionMap = {
   [LOAD_SIDEBAR_NAV_LIST_REQUESTED]: loadRequested,
   [LOAD_SIDEBAR_NAV_LIST_FULFILLED]: loadFulfilled,
   [LOAD_SIDEBAR_NAV_LIST_FAILED]: loadFailed,
+  [SET_SIDEBAR_NAV_LIST_DATA]: setSidebarNavListData,
 };
 
 function loadFulfilled(payload, state) {
@@ -45,6 +47,13 @@ function loadRequested({ contentType, sidebarReference, sidebarId }, state) {
     sidebarReference,
     sidebarId,
     loading: true,
+  };
+}
+
+function setSidebarNavListData(data, state) {
+  return {
+    ...state,
+    data,
   };
 }
 

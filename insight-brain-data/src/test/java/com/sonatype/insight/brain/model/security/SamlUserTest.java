@@ -38,6 +38,10 @@ public class SamlUserTest
     groups = new LinkedHashSet<>(Arrays.asList("group1", "group2", "group3"));
     samlUser.setGroups(groups);
     assertThat(samlUser.getGroups()).isEqualTo(groups);
+
+    groups = new LinkedHashSet<>(Arrays.asList("aa=foo,bb=bar,cc=baz", "group2", "group3"));
+    samlUser.setGroups(groups);
+    assertThat(samlUser.getGroups()).isEqualTo(groups);
   }
 
   @Test

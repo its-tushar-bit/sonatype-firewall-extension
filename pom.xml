@@ -41,7 +41,7 @@
     <logback.version>1.2.10</logback.version>
     <jackson.version>2.13.4.20221013</jackson.version>
     <openjpa.version>3.2.0</openjpa.version>
-    <shiro.version>1.9.1</shiro.version>
+    <shiro.version>1.10.0</shiro.version>
     <keycloak.version>12.0.4</keycloak.version>
     <sisu-inject.version>0.3.4</sisu-inject.version>
     <clm.dto.model.version>1.50.1-01</clm.dto.model.version>

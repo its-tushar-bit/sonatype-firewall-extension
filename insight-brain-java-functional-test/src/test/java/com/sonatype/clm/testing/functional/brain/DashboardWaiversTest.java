@@ -383,7 +383,6 @@ public class DashboardWaiversTest
     // sort by threat desc
     headers.threatHeader().click();
     headers.threatHeader().sortArrows().shouldBeDown();
-    eyesWatcher.eyesCheck();
 
     table.firstWaiver().threatNumber().shouldHave(text("10"));
     table.firstWaiver().scope().shouldHave(text("Application - App Test Scroll"));
@@ -457,7 +456,6 @@ public class DashboardWaiversTest
     // sort by creation date asc
     headers.dateHeader().click();
     headers.dateHeader().sortArrows().shouldBeUp();
-    eyesWatcher.eyesCheck();
 
     table.firstWaiver().createTime().shouldHave(text(dateFormat.format(Date.from(fiveDaysAgo))));
     table.waiver(52).createTime().shouldHave(text(dateFormat.format(Date.from(threeDaysAgo))));
@@ -527,7 +525,6 @@ public class DashboardWaiversTest
     // sort by expiration date desc
     headers.expirationHeader().click();
     headers.expirationHeader().sortArrows().shouldBeDown();
-    eyesWatcher.eyesCheck();
 
     table.firstWaiver().expiryTime().shouldHave(text("Never"));
     table.waiver(26).expiryTime().shouldHave(text(dateFormat.format(Date.from(lastExpiryDate))));
@@ -586,7 +583,7 @@ public class DashboardWaiversTest
     table.maxResultsMessage().shouldBe(visible);
     table.waivers().shouldHaveSize(100);
 
-    // sort by threat asc
+    // sort by policy asc
     headers.policyHeader().click();
     headers.policyHeader().sortArrows().shouldBeUp();
     eyesWatcher.eyesCheck();
@@ -603,7 +600,7 @@ public class DashboardWaiversTest
     table.lastWaiver().policy().shouldHave(text("Dashboard Policy 8"));
     table.lastWaiver().scope().shouldHave(text("Application - App Test Scroll"));
 
-    // sort by threat desc
+    // sort by policy desc
     headers.policyHeader().click();
     headers.policyHeader().sortArrows().shouldBeDown();
 
@@ -663,10 +660,9 @@ public class DashboardWaiversTest
     table.maxResultsMessage().shouldBe(visible);
     table.waivers().shouldHaveSize(100);
 
-    // sort by threat asc
+    // sort by scope asc
     headers.scopeHeader().click();
     headers.scopeHeader().sortArrows().shouldBeUp();
-    eyesWatcher.eyesCheck();
 
     table.firstWaiver().scope().shouldHave(text("Application - App Test Scroll A"));
 
@@ -677,7 +673,7 @@ public class DashboardWaiversTest
 
     table.lastWaiver().scope().shouldHave(text("Organization - Org 2"));
 
-    // sort by threat desc
+    // sort by scope desc
     headers.scopeHeader().click();
     headers.scopeHeader().sortArrows().shouldBeDown();
 

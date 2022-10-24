@@ -9,6 +9,7 @@ import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -24,6 +25,8 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
+import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -43,6 +46,7 @@ import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -571,6 +575,12 @@ public class FirewallComponentDetailsPageTest
     DateFormat dateFormat = new SimpleDateFormat(formatDate);
     dateFormat.setTimeZone(TimeZone.getDefault());
     return dateFormat.format(date);
+  }
+
+  private Date getDate(String date, String formatDate) throws ParseException {
+    DateFormat dateFormat = new SimpleDateFormat(formatDate);
+    dateFormat.setTimeZone(TimeZone.getDefault());
+    return dateFormat.parse(date);
   }
 
   private RepositoryComponent setupAllUnquarantinedComponentTestData(
@@ -1210,5 +1220,75 @@ public class FirewallComponentDetailsPageTest
     licenseDetectionsTile.status().shouldHave(text("Overridden"));
 
     testLegalTabPolicyViolationsTable();
+  }
+
+  @Test
+  public void testComponentReEvaluation() throws Exception {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+
+    refreshOrOpen(FirewallComponentDetailsPage.overviewTab(component));
+    waitUntilSpinnersGone();
+
+    RiskRemediationTile riskRemediation = firewallComponentDetailsPage.getRiskRemediationTile();
+    ScrollUtil.scrollIntoView(riskRemediation.compareVersionsTitle());
+    RiskRemediationTile.CompareVersionsTable table = riskRemediation.compareVersionsTable();
+    String firstEvaluation = table.latestEvaluationRow().get(1).getText();
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    // Sanity check
+    PolicyViolationsTable policyViolationsTable =
+        PolicyViolationsTable.getPolicyViolationsTableForParent(FirewallComponentDetailsPage.ROOT);
+    policyViolationsTable.getRows().shouldHaveSize(6);
+
+    // Mock HDS response for firewall component policy evaluation
+    ComponentDetails componentDetails = componentDetailsArrayList.get(0);
+    ComponentEvaluationDataList hdsResponse = new ComponentEvaluationDataList();
+    hdsResponse.components.add(toComponentEvaluationData(componentDetails));
+    testCLMServer.getHdsServer().respondWith(hdsResponse).atUri("/rest/component/details/firewall");
+
+    new PolicyDAO().delete(securityLowPolicy);
+
+    firewallComponentDetailsPage.reevaluateButton().click();
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    // One policy was deleted, so we expect one policy violation less than before
+    PolicyViolationsTable policyViolationsTableReevaluation =
+        PolicyViolationsTable.getPolicyViolationsTableForParent(FirewallComponentDetailsPage.ROOT);
+    policyViolationsTableReevaluation.getRows().shouldHaveSize(5);
+
+    refreshOrOpen(FirewallComponentDetailsPage.overviewTab(component));
+
+    RiskRemediationTile riskRemediationRevaluation = firewallComponentDetailsPage.getRiskRemediationTile();
+    ScrollUtil.scrollIntoView(riskRemediationRevaluation.compareVersionsTitle());
+    RiskRemediationTile.CompareVersionsTable tableReevaluation = riskRemediationRevaluation.compareVersionsTable();
+    String latestEvaluation = tableReevaluation.latestEvaluationRow().get(1).getText();
+
+    Date firstEvaluationDate = getDate(firstEvaluation, dateTimeFormatMask);
+    Date latestEvaluationDate = getDate(latestEvaluation, dateTimeFormatMask);
+    assertEvaluationDates(firstEvaluationDate, latestEvaluationDate);
+  }
+
+  private void assertEvaluationDates(Date firstEvaluation, Date latestEvaluation) {
+    assertThat(firstEvaluation).isBefore(latestEvaluation);
+  }
+
+  private ComponentEvaluationData toComponentEvaluationData(ComponentDetails componentDetails) {
+    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
+    componentEvaluationData.hash = componentDetails.getHash();
+    componentEvaluationData.componentIdentifier = componentDetails.getComponentIdentifier();
+    componentEvaluationData.matchState = componentDetails.getMatchState();
+    componentEvaluationData.declaredLicenses = componentDetails.getDeclaredLicenses();
+    componentEvaluationData.observedLicenses = componentDetails.getObservedLicenses();
+    componentEvaluationData.catalogDate = componentDetails.getCatalogDate();
+    componentEvaluationData.relativePopularity = componentDetails.getRelativePopularity();
+    componentEvaluationData.securityVulnerabilities = componentDetails.getSecurityVulnerabilities();
+
+    return componentEvaluationData;
+
   }
 }

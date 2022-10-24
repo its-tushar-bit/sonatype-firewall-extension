@@ -30,6 +30,8 @@ public class FirewallComponentDetailsPage
 
   private static final String NO_TAB_ID = "";
 
+  private static final String OVERVIEW_TAB_ID = "overview";
+
   private static final String VIOLATIONS_TAB_ID = "violations";
 
   private static final String SECURITY_TAB_ID = "security";
@@ -63,6 +65,10 @@ public class FirewallComponentDetailsPage
     return getBaseUrl(component, VIOLATIONS_TAB_ID);
   }
 
+  public static String overviewTab(RepositoryComponent component) {
+    return getBaseUrl(component, OVERVIEW_TAB_ID);
+  }
+
   public static String urlSecurityTab(RepositoryComponent component) {
     return getBaseUrl(component, SECURITY_TAB_ID);
   }
@@ -73,6 +79,10 @@ public class FirewallComponentDetailsPage
 
   public SelenideElement title() {
     return child(FIREWALL_COMPONENT_DETAILS_PAGE_TITLE);
+  }
+
+  public SelenideElement reevaluateButton() {
+    return child("#firewall-component-details-page__reevaluate-button");
   }
 
   public SelenideElement formatTag() {

@@ -49,6 +49,9 @@ import {
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED,
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED,
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED,
+  FIREWALL_REEVALUATE_COMPONENT_REQUESTED,
+  FIREWALL_REEVALUATE_COMPONENT_FULFILLED,
+  FIREWALL_REEVALUATE_COMPONENT_FAILED,
 } from './firewallActions';
 import { __, always, assoc, curry, dissoc, lensPath, lensProp, merge, over, prop } from 'ramda';
 import { pathSet } from '../util/jsUtil';
@@ -613,6 +616,33 @@ const loadExistingWaiversDataFailed = (error, state) => ({
   },
 });
 
+const reevaluateComponentRequested = (_, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    componentReevaluated: false,
+    errorReevaluatingComponent: null,
+  },
+});
+
+const reevaluateComponentFulfilled = (_, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    componentReevaluated: true,
+    errorReevaluatingComponent: null,
+  },
+});
+
+const reevaluateComponentFailed = (error, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    componentReevaluated: false,
+    errorReevaluatingComponent: error,
+  },
+});
+
 const reducerActionMap = {
   [FIREWALL_LOAD_DATA_REQUESTED]: always(initialState),
   [FIREWALL_SET_SHOW_CONFIGURATION_MODAL]: setShowConfigurationModal,
@@ -657,6 +687,9 @@ const reducerActionMap = {
   [FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED]: loadExistingWaiversDataRequested,
   [FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED]: loadExistingWaiversDataFulfilled,
   [FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED]: loadExistingWaiversDataFailed,
+  [FIREWALL_REEVALUATE_COMPONENT_REQUESTED]: reevaluateComponentRequested,
+  [FIREWALL_REEVALUATE_COMPONENT_FULFILLED]: reevaluateComponentFulfilled,
+  [FIREWALL_REEVALUATE_COMPONENT_FAILED]: reevaluateComponentFailed,
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

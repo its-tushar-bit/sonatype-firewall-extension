@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import { NxLoadError, NxLoadWrapper } from '@sonatype/react-shared-components';
 
@@ -29,7 +30,8 @@ describe('FirewallComponentDetailsPage', function () {
     loadComponentDetailsSpy,
     onTabChangeSpy,
     loadComponentPolicyViolationsSpy,
-    loadExistingWaiversDataSpy;
+    loadExistingWaiversDataSpy,
+    reevaluateComponentSpy;
 
   const setCustomComponentDetailsPageResponseStateParamsOnMinimalProps = (key, value) => ({
     ...minimalProps,
@@ -41,6 +43,7 @@ describe('FirewallComponentDetailsPage', function () {
     onTabChangeSpy = jasmine.createSpy('onTabChange');
     loadComponentPolicyViolationsSpy = jasmine.createSpy('loadComponentPolicyViolations');
     loadExistingWaiversDataSpy = jasmine.createSpy('loadExistingWaiversData');
+    reevaluateComponentSpy = jasmine.createSpy('reevaluateComponent');
 
     spyOn(ComponentDetailsTabsFile, 'default').and.returnValue(<div>Tabs</div>);
 
@@ -63,6 +66,7 @@ describe('FirewallComponentDetailsPage', function () {
       },
       loadComponentPolicyViolations: loadComponentPolicyViolationsSpy,
       loadExistingWaiversData: loadExistingWaiversDataSpy,
+      reevaluateComponent: reevaluateComponentSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(FirewallComponentDetailsPage, minimalProps);
@@ -191,6 +195,23 @@ describe('FirewallComponentDetailsPage', function () {
         setCustomComponentDetailsPageResponseStateParamsOnMinimalProps('isLoadingComponentDetails', true)
       ).find(NxLoadWrapper);
       expect(el).toExist();
+    });
+
+    it('renders re-evaluate button', () => {
+      let component = getMountedComponent();
+      expect(component.find('#firewall-component-details-page__reevaluate-button')).toExist();
+    });
+
+    it('should re-evaluate component when click on button', () => {
+      let component = getMountedComponent({
+        ...minimalProps,
+        CDPResponseState: { ...minimalProps.CDPResponseState, isLoadingComponentDetails: false },
+      });
+      component.find('#firewall-component-details-page__reevaluate-button').first().simulate('click');
+
+      component.update();
+      expect(reevaluateComponentSpy).toHaveBeenCalledTimes(1);
+      component.unmount();
     });
   });
 

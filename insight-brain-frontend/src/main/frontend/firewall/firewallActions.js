@@ -21,9 +21,11 @@ import {
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
   getComponentWaivers,
+  getReevaluateComponentUrl,
 } from '../util/CLMLocation';
 import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
+import { selectHash, selectRepositoryId } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';
 
@@ -163,6 +165,14 @@ export const loadExistingWaiversDataFulfilled = payloadParamActionCreator(
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED
 );
 export const loadExistingWaiversDataFailed = payloadParamActionCreator(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED);
+
+export const FIREWALL_REEVALUATE_COMPONENT_REQUESTED = 'FIREWALL_REEVALUATE_COMPONENT_REQUESTED';
+export const FIREWALL_REEVALUATE_COMPONENT_FULFILLED = 'FIREWALL_REEVALUATE_COMPONENT_FULFILLED';
+export const FIREWALL_REEVALUATE_COMPONENT_FAILED = 'FIREWALL_REEVALUATE_COMPONENT_FAILED';
+
+export const reevaluateComponentRequested = noPayloadActionCreator(FIREWALL_REEVALUATE_COMPONENT_REQUESTED);
+export const reevaluateComponentFulfilled = noPayloadActionCreator(FIREWALL_REEVALUATE_COMPONENT_FULFILLED);
+export const reevaluateComponentFailed = noPayloadActionCreator(FIREWALL_REEVALUATE_COMPONENT_FAILED);
 
 export function loadFirewallData() {
   return (dispatch) => {
@@ -349,6 +359,24 @@ export function loadQuarantineList() {
       })
       .catch((error) => {
         dispatch(loadQuarantineListFailed(Messages.getHttpErrorMessage(error)));
+      });
+  };
+}
+
+export function reevaluateComponent() {
+  return function (dispatch, getState) {
+    const repositoryId = selectRepositoryId(getState());
+    const hash = selectHash(getState());
+
+    dispatch(reevaluateComponentRequested());
+    return axios
+      .post(getReevaluateComponentUrl(repositoryId, hash))
+      .then(() => {
+        dispatch(reevaluateComponentFulfilled());
+        window.location.reload();
+      })
+      .catch((error) => {
+        dispatch(reevaluateComponentFailed(Messages.getHttpErrorMessage(error)));
       });
   };
 }

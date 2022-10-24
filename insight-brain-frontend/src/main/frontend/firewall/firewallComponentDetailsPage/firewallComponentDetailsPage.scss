@@ -32,6 +32,11 @@ firewall-component-details-page {
           color: var(--nx-color-alert-error);
         }
       }
+
+      .component-details-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
     }
   }
 }

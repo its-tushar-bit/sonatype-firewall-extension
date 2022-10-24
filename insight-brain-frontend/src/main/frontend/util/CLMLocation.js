@@ -273,6 +273,10 @@ export function getRetentionPoliciesUrl(orgId) {
   return uriTemplate`/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(orgId)}`;
 }
 
+export function getReevaluateComponentUrl(repositoryId, hash) {
+  return uriTemplate`/rest/repositories/${repositoryId}/evaluate/${hash}`;
+}
+
 export const getComponentLicensesUrl = ({
   clientType,
   ownerType,

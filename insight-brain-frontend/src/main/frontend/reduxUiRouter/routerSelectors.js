@@ -28,6 +28,8 @@ export const selectIsRepositories = createSelector(selectCurrentRouteName, nameI
 
 export const selectOrganizationId = createSelector(selectRouterCurrentParams, propOr('', 'organizationId'));
 export const selectApplicationId = createSelector(selectRouterCurrentParams, propOr('', 'applicationPublicId'));
+export const selectRepositoryId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryId'));
+export const selectHash = createSelector(selectRouterCurrentParams, propOr('', 'componentHash'));
 
 export const selectIsRootOrganization = createSelector(
   selectRouterCurrentParams,

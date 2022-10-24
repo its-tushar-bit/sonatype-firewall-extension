@@ -13,12 +13,14 @@ import {
   ComponentDetailsTags,
   Title,
 } from '../../componentDetails/ComponentDetailsHeader';
-import { NxLoadWrapper } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxLoadWrapper, NxTooltip } from '@sonatype/react-shared-components';
 import { createTabConfiguration } from '../../componentDetails/componentDetailsUtils';
 import FirewallOverview from './overview/FirewallOverview';
 import FirewallPolicyViolations from './policyViolations/FirewallPolicyViolations';
 import FirewallSecurityTab from 'MainRoot/firewall/firewallComponentDetailsPage/security/FirewallSecurityTab';
 import FirewallLegalTab from 'MainRoot/firewall/firewallComponentDetailsPage/legal/FirewallLegalTab';
+
+import { faSync } from '@fortawesome/pro-solid-svg-icons';
 
 export const tabsConfiguration = [
   createTabConfiguration('overview', 'Overview', <FirewallOverview />),
@@ -36,6 +38,7 @@ export default function FirewallComponentDetailsPage(props) {
     routeParams,
     loadComponentPolicyViolations,
     loadExistingWaiversData,
+    reevaluateComponent,
   } = props;
   const { tabId } = routeParams;
   const { componentDetails, isLoadingComponentDetails, componentDetailsError } = componentDetailsPageResponseState;
@@ -66,6 +69,23 @@ export default function FirewallComponentDetailsPage(props) {
           {() => (
             <ComponentDetailsHeader>
               <Title id="component-details-title">{componentCoordinates}</Title>
+              <div className="nx-btn-bar">
+                <NxTooltip
+                  id="firewall-component-details-page--reevalaute-tooltip"
+                  title="Re-evaluating will check for policy violations. Quarantined components will be released from quarantine if no policy violations causing quarantine are found."
+                  placement="bottom"
+                >
+                  <NxButton
+                    id="firewall-component-details-page__reevaluate-button"
+                    name="re-evaluate"
+                    variant="tertiary"
+                    onClick={reevaluateComponent}
+                  >
+                    <NxFontAwesomeIcon icon={faSync} />
+                    <span>Re-evaluate Component</span>
+                  </NxButton>
+                </NxTooltip>
+              </div>
               <ComponentDetailsReportInfo {...componentDetails?.metadata} />
               <ComponentDetailsTags
                 format={componentDetails?.componentIdentifier?.format}
@@ -109,4 +129,5 @@ FirewallComponentDetailsPage.propTypes = {
     isLoadingComponentDetails: PropTypes.bool.isRequired,
     componentDetailsError: PropTypes.string,
   }).isRequired,
+  reevaluateComponent: PropTypes.func,
 };

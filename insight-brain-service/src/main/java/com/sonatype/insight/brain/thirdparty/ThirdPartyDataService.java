@@ -160,6 +160,7 @@ public class ThirdPartyDataService
     ComponentIdentifier componentIdentifier = null;
     if (StringUtils.isNotBlank(coord.getPackageUrl())) {
       componentIdentifier = ComponentIdentifierAdapter.toComponentIdentifier(coord.getPackageUrl());
+      componentIdentifier.ensureComplete();
     }
     else {
       componentIdentifier =

@@ -74,7 +74,7 @@ public class ThirdPartyDataServiceTest
     ThirdPartyFileCoordinate coord2 =
         tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "f2", "n2", "v2", "hash2", null);
     ThirdPartyFileCoordinate coord3 =
-        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "maven", "a", "v2", "hash3", "pkg:maven/g/a@v2");
+        tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "maven", "a", "v2", "hash3", "pkg:maven/g/a@v2?type=jar");
     ThirdPartyFileCoordinate coord4 =
         tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", "nuget", "p", "v2", "hash4", "pkg:nuget/p@v2");
     ThirdPartyFileCoordinate coord5 =
@@ -146,7 +146,7 @@ public class ThirdPartyDataServiceTest
     tempEntity.newThirdPartyScan(SCAN_REQUEST_ID, SCAN_ID, file);
     ThirdPartyFileCoordinate coord1 =
         tempEntity.newThirdPartyFileCoordinate(file, "CLAIR", ComponentIdentifier.FORMAT_MAVEN, "n1", "v1", "hash1",
-            "pkg:maven/ns1/n1@v1");
+            "pkg:maven/ns1/n1@v1?type=jar");
 
     final ThirdPartyCoordinateSecurity sec1coord1 =
         tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, "Medium", null);

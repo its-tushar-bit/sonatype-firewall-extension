@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -170,17 +171,25 @@ public class Scanner
   private List<Module> getModules(List<File> moduleIndexes) throws IOException {
     List<Module> modules = new ArrayList<>();
     ModuleIoManager moduleIoManager = new ModuleIoManager();
-    List<Integer> rootIndexes = new ArrayList<>();
-    for (int i = 0; i < moduleIndexes.size(); i++) {
-      File moduleIndex = moduleIndexes.get(i);
+    Set<String> moduleIds = new HashSet<>();
+    for (File moduleIndex : moduleIndexes) {
       Module module = moduleIoManager.readModule(moduleIndex);
       if (!MODULE_XML_FORMAT.equals(module.getFormatVersion())) {
         log.warn("Unexpected file format in {}, scan might be inaccurate," +
             " please ensure the employed IQ client tools are compatible", moduleIndex);
       }
       modules.add(module);
-      if (module.getParentId() == null) {
-        log.debug("Module {} has no parent id set and may be the root module.", module.getId());
+      if (StringUtils.isNotBlank(module.getId())) {
+        moduleIds.add(module.getId());
+      }
+    }
+    List<Integer> rootIndexes = new ArrayList<>();
+    for (int i = 0; i < modules.size(); i++) {
+      Module module = modules.get(i);
+      if (!moduleIds.contains(module.getParentId())) {
+        log.debug(
+            "Module {} has parent {} which matches no other modules in this project and so may be the root module.",
+            module.getId(), module.getParentId());
         rootIndexes.add(i);
       }
     }

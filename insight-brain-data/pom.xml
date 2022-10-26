@@ -181,7 +181,7 @@
       <plugin>
         <groupId>org.apache.openjpa</groupId>
         <artifactId>openjpa-maven-plugin</artifactId>
-        <version>3.0.0</version>
+        <version>${openjpa.version}</version>
         <configuration>
           <includes>com/sonatype/insight/*/dto/*.class</includes>
           <addDefaultConstructor>true</addDefaultConstructor>

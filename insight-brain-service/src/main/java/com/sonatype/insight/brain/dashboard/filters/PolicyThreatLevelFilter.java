@@ -52,6 +52,14 @@ public class PolicyThreatLevelFilter
     initialize(min, max);
   }
 
+  public int getMinPolicyThreatLevel() {
+    return minPolicyThreatLevel;
+  }
+
+  public int getMaxPolicyThreatLevel() {
+    return maxPolicyThreatLevel;
+  }
+
   private void initialize(Integer min, Integer max) {
     if (min != null) {
       minPolicyThreatLevel = min.intValue();

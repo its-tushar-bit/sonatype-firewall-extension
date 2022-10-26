@@ -90,28 +90,41 @@ public class PolicyViolationDAO
     return getList(sQuery, applicationId, stageTypeId, hash);
   }
 
-  public List<PolicyViolation> getUnfixedByApplicationIdsOpenedAfterDate(Collection<String> applicationIds,
-                                                                         Date minDate)
+  public List<PolicyViolation> getUnfixedByApplicationIdsOpenedAfterDate(
+      Collection<String> applicationIds,
+      Date minDate,
+      Integer minThreatLevel,
+      Integer maxThreatLevel)
   {
-    return getUnfixedByApplicationIdsOpenedAfterDate(applicationIds, minDate, false);
+    return getUnfixedByApplicationIdsOpenedAfterDate(applicationIds, minDate, false, minThreatLevel, maxThreatLevel);
   }
 
-  public List<PolicyViolation> getActiveByApplicationIdsOpenedAfterDate(Collection<String> applicationIds,
-                                                                        Date minDate)
+  public List<PolicyViolation> getActiveByApplicationIdsOpenedAfterDate(
+      Collection<String> applicationIds,
+      Date minDate,
+      Integer minThreatLevel,
+      Integer maxThreatLevel)
   {
-    return getUnfixedByApplicationIdsOpenedAfterDate(applicationIds, minDate, true);
+    return getUnfixedByApplicationIdsOpenedAfterDate(applicationIds, minDate, true, minThreatLevel, maxThreatLevel);
   }
 
   private List<PolicyViolation> getUnfixedByApplicationIdsOpenedAfterDate(Collection<String> applicationIds,
                                                                           Date minDate,
-                                                                          boolean onlyActiveViolations)
+                                                                          boolean onlyActiveViolations,
+                                                                          Integer minThreatLevel,
+                                                                          Integer maxThreatLevel)
   {
+    minThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
+    maxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
+
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1" + //
         " AND entity.openTime >= ?2" + //
+        " AND entity.threatLevel >= ?3" + //
+        " AND entity.threatLevel <= ?4" + //
         " AND entity.fixTime IS NULL" + //
         (onlyActiveViolations ? " AND entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL " : "");
-    return getUnfixed(sQuery, applicationIds, minDate);
+    return getUnfixed(sQuery, applicationIds, minDate, minThreatLevel, maxThreatLevel);
   }
 
   public List<PolicyViolation> getUnfixedByApplicationIds(Collection<String> applicationIds) {
@@ -140,55 +153,85 @@ public class PolicyViolationDAO
     return getList(tx, sQuery, applicationId);
   }
 
-  public List<PolicyViolation> getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(Collection<String> applicationIds,
-                                                                                    Collection<String> stageTypeIds,
-                                                                                    Date minDate)
+  public List<PolicyViolation> getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(
+      Collection<String> applicationIds,
+      Collection<String> stageTypeIds,
+      Date minDate,
+      Integer minThreatLevel,
+      Integer maxThreatLevel)
   {
-    return getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds, stageTypeIds, minDate, false);
+    return getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds, stageTypeIds, minDate, false,
+        minThreatLevel, maxThreatLevel);
   }
 
-  public List<PolicyViolation> getActiveByApplicationIdsAndStageIdsOpenedAfterDate(Collection<String> applicationIds,
-                                                                                   Collection<String> stageTypeIds,
-                                                                                   Date minDate)
+  public List<PolicyViolation> getActiveByApplicationIdsAndStageIdsOpenedAfterDate(
+      Collection<String> applicationIds,
+      Collection<String> stageTypeIds,
+      Date minDate,
+      Integer minThreatLevel,
+      Integer maxThreatLevel)
   {
-    return getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds, stageTypeIds, minDate, true);
+    return getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds, stageTypeIds, minDate, true,
+        minThreatLevel, maxThreatLevel);
   }
 
-  private List<PolicyViolation> getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(Collection<String> applicationIds,
-                                                                                     Collection<String> stageTypeIds,
-                                                                                     Date minDate,
-                                                                                     boolean onlyActiveViolations)
+  private List<PolicyViolation> getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(
+      Collection<String> applicationIds,
+      Collection<String> stageTypeIds,
+      Date minDate,
+      boolean onlyActiveViolations,
+      Integer minThreatLevel,
+      Integer maxThreatLevel)
   {
+    minThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
+    maxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
+
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId IN (?2)" + //
         " AND entity.openTime >= ?3" + //
+        " AND entity.threatLevel >= ?4" + //
+        " AND entity.threatLevel <= ?5" + //
         " AND entity.fixTime IS NULL" + //
         (onlyActiveViolations ? " AND entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL " : "");
-    return getUnfixed(sQuery, applicationIds, stageTypeIds, minDate);
+    return getUnfixed(sQuery, applicationIds, stageTypeIds, minDate, minThreatLevel, maxThreatLevel);
   }
 
-  public List<PolicyViolation> getUnfixedByApplicationIdsAndStageIds(Collection<String> applicationIds,
-                                                                     Collection<String> stageTypeIds)
+  public List<PolicyViolation> getUnfixedByApplicationIdsAndStageIds(
+      Collection<String> applicationIds,
+      Collection<String> stageTypeIds,
+      Integer minThreatLevel,
+      Integer maxThreatLevel)
   {
-    return getUnfixedByApplicationIdsAndStageIds(applicationIds, stageTypeIds, false);
+    return getUnfixedByApplicationIdsAndStageIds(applicationIds, stageTypeIds, false, minThreatLevel, maxThreatLevel);
   }
 
-  public List<PolicyViolation> getActiveByApplicationIdsAndStageIds(Collection<String> applicationIds,
-                                                                    Collection<String> stageTypeIds)
+  public List<PolicyViolation> getActiveByApplicationIdsAndStageIds(
+      Collection<String> applicationIds,
+      Collection<String> stageTypeIds,
+      Integer minThreatLevel,
+      Integer maxThreatLevel)
   {
-    return getUnfixedByApplicationIdsAndStageIds(applicationIds, stageTypeIds, true);
+    return getUnfixedByApplicationIdsAndStageIds(applicationIds, stageTypeIds, true, minThreatLevel, maxThreatLevel);
   }
 
-  private List<PolicyViolation> getUnfixedByApplicationIdsAndStageIds(Collection<String> applicationIds,
-                                                                      Collection<String> stageTypeIds,
-                                                                      boolean onlyActiveViolations)
+  private List<PolicyViolation> getUnfixedByApplicationIdsAndStageIds(
+      Collection<String> applicationIds,
+      Collection<String> stageTypeIds,
+      boolean onlyActiveViolations,
+      Integer minThreatLevel,
+      Integer maxThreatLevel)
   {
+    minThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
+    maxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
+
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId IN (?2)" + //
         " AND entity.fixTime IS NULL" + //
+        " AND entity.threatLevel >= ?3" + //
+        " AND entity.threatLevel <= ?4" + //
         (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "") + //
         (onlyActiveViolations ? " AND entity.grandfatherTime IS NULL " : "");
-    return getUnfixed(sQuery, applicationIds, stageTypeIds);
+    return getUnfixed(sQuery, applicationIds, stageTypeIds, minThreatLevel, maxThreatLevel);
   }
 
   public List<PolicyViolation> getActiveByApplicationIdsAndPolicyIds(

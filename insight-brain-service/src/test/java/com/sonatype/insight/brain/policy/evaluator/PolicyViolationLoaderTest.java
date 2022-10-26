@@ -280,7 +280,7 @@ public class PolicyViolationLoaderTest
     Application app = createApplication(StageTypes.BUILD);
 
     Collection<ApplicationView> appViewsFilteredWithBeforeDate = loader.getViolations(Collections.singletonList(app),
-        Collections.singletonList(StageTypes.BUILD), false, violation -> true, beforeAppCreation);
+        Collections.singletonList(StageTypes.BUILD), false, violation -> true, beforeAppCreation, null);
 
     assertThat(appViewsFilteredWithBeforeDate).hasSize(1);
     ApplicationView appViewBefore = appViewsFilteredWithBeforeDate.iterator().next();
@@ -292,7 +292,7 @@ public class PolicyViolationLoaderTest
 
     Date afterAppCreation = new Date(Instant.now().plus(Duration.ofMinutes(1)).toEpochMilli());
     Collection<ApplicationView> appViewsFilteredWithAfterDate = loader.getViolations(Collections.singletonList(app),
-        Collections.singletonList(StageTypes.BUILD), false, violation -> true, afterAppCreation);
+        Collections.singletonList(StageTypes.BUILD), false, violation -> true, afterAppCreation, null);
     assertThat(appViewsFilteredWithAfterDate).hasSize(1);
     ApplicationView appViewAfter = appViewsFilteredWithAfterDate.iterator().next();
     assertThat(appViewAfter.getApplication()).isEqualTo(app);

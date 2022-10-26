@@ -78,7 +78,9 @@ public class DashboardPolicyWaiverDTO
     final String constraintFactsJsonCsv = getConstraintFactsJsonCsv();
     final String componentHashCsv = StringUtils.defaultString(hash);
     final String displayNameCsv = ObjectUtils.defaultIfNull(getDisplayName(), "").toString();
-    final String creatorNameCsv = CsvWritable.quoteFieldWhenSpecialCsvCharactersPresent(creatorName);
+    final String creatorIdCsv = StringUtils.defaultString(creatorId);
+    final String creatorNameCsv =
+        CsvWritable.quoteFieldWhenSpecialCsvCharactersPresent(StringUtils.defaultString(creatorName));
 
     final String commentsCsv =
         CsvWritable.quoteFieldWhenSpecialCsvCharactersPresent(
@@ -86,7 +88,7 @@ public class DashboardPolicyWaiverDTO
 
     return CsvWritable.joiner.join(id, threatLevel, createTimeCsv, expiryTimeCsv, policyId, policyName,
         constraintFactsJsonCsv, ownerType, ownerId, ownerName, componentMatchStrategy, componentHashCsv, displayNameCsv,
-        creatorId, creatorNameCsv, commentsCsv);
+        creatorIdCsv, creatorNameCsv, commentsCsv);
   }
 
   private String getConstraintFactsJsonCsv() {

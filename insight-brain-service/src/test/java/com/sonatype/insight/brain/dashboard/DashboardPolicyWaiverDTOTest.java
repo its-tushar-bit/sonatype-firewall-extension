@@ -77,6 +77,50 @@ public class DashboardPolicyWaiverDTOTest
   }
 
   @Test
+  public void testToCsvLine_TurnsNullFieldsToEmptyString() {
+    // here we are checking that fields added without a default value into the waiver table can also be exported
+    DashboardPolicyWaiverDTO testDto = getTestDto();
+    testDto.creatorId = null;
+    testDto.creatorName = null;
+
+    String dtoAsCSV = testDto.toCsvLine();
+    StringBuilder expectedLine = new StringBuilder();
+    expectedLine.append("waiverId");
+    addJoiner(expectedLine);
+    expectedLine.append("7");
+    addJoiner(expectedLine);
+    expectedLine.append(csvDateFormatter.format(Instant.now()));
+    addJoiner(expectedLine);
+    expectedLine.append(""); /* expiry time */
+    addJoiner(expectedLine);
+    expectedLine.append("policyId");
+    addJoiner(expectedLine);
+    expectedLine.append("test policy");
+    addJoiner(expectedLine);
+    expectedLine.append(""); /* constraints */
+    addJoiner(expectedLine);
+    expectedLine.append("organization");
+    addJoiner(expectedLine);
+    expectedLine.append("ownerId");
+    addJoiner(expectedLine);
+    expectedLine.append("ownerName");
+    addJoiner(expectedLine);
+    expectedLine.append("ALL_COMPONENTS");
+    addJoiner(expectedLine);
+    expectedLine.append("hash");
+    addJoiner(expectedLine);
+    expectedLine.append(""); /* component name */
+    addJoiner(expectedLine);
+    expectedLine.append(""); /* creador Id */
+    addJoiner(expectedLine);
+    expectedLine.append(""); /* creator name */
+    addJoiner(expectedLine);
+    expectedLine.append(""); /* comments */
+
+    assertThat(dtoAsCSV).isEqualTo(expectedLine.toString());
+  }
+
+  @Test
   public void testToCsvLine_EscapesCommaAndQuotesInConstraints() {
     DashboardPolicyWaiverDTO testDto = getTestDto();
 

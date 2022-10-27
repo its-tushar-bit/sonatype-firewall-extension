@@ -87,3 +87,36 @@ export const uncategorizedCategory = {
   name: 'uncategorized applications',
   nameLowercaseNoWhitespace: 'uncategorizedapplications',
 };
+
+export const dashboardFilterOptionsTab = {
+  'dashboard.overview.violations': {
+    showAgeFilter: true,
+    showStagesFilter: true,
+    showViolationStateFilter: true,
+    showExpirationDateFilter: false,
+  },
+  'dashboard.overview.components': {
+    showAgeFilter: false,
+    showStagesFilter: true,
+    showViolationStateFilter: true,
+    showExpirationDateFilter: false,
+  },
+  'dashboard.overview.applications': {
+    showAgeFilter: false,
+    showStagesFilter: true,
+    showViolationStateFilter: true,
+    showExpirationDateFilter: false,
+  },
+  'dashboard.overview.waivers': {
+    showAgeFilter: false,
+    showStagesFilter: false,
+    showViolationStateFilter: false,
+    showExpirationDateFilter: true,
+  },
+  default: {
+    showAgeFilter: true,
+    showStagesFilter: true,
+    showViolationStateFilter: true,
+    showExpirationDateFilter: true,
+  },
+};

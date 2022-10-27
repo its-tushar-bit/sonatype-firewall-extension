@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reduce from '../../../../main/frontend/dashboard/filter/dashboardFilterReducer';
+import { dashboardFilterOptionsTab } from 'MainRoot/dashboard/filter/staticFilterEntries';
 
 describe('dashboardFilterReducer', () => {
   let otherObject;
@@ -278,27 +279,6 @@ describe('dashboardFilterReducer', () => {
         expect(other).toBe(otherObject);
       });
 
-      describe('showAgeFilter', () => {
-        it('is set to true if isViolationsTab', () => {
-          initState.isViolationsTab = true;
-          const state = Object.freeze(initState);
-          expect(state.showAgeFilter).toBe(false);
-
-          const { showAgeFilter, other } = reduce(state, action);
-          expect(showAgeFilter).toBe(true);
-          expect(other).toBe(otherObject);
-        });
-
-        it('is set to false if not isViolationsTab', () => {
-          initState.isViolationsTab = false;
-          const state = Object.freeze(initState);
-          const { showAgeFilter, other } = reduce(state, action);
-
-          expect(showAgeFilter).toBe(false);
-          expect(other).toBe(otherObject);
-        });
-      });
-
       it('sets selected and appliedFilter', () => {
         const state = Object.freeze(initState);
         const { other, selected, appliedFilter } = reduce(state, action);
@@ -498,10 +478,13 @@ describe('dashboardFilterReducer', () => {
 
   describe('@@reduxUiRouter/onFinish action', () => {
     let initState;
+    const NxTabs = Object.entries(dashboardFilterOptionsTab);
     beforeEach(() => {
       initState = {
-        isViolationsTab: false,
         showAgeFilter: false,
+        showStagesFilter: false,
+        showViolationStateFilter: false,
+        showExpirationDateFilter: false,
         selected: {
           maxDaysOld: 30,
         },
@@ -509,64 +492,36 @@ describe('dashboardFilterReducer', () => {
       };
     });
 
-    describe('isViolationsTab', () => {
-      it('is set to true if router state is violations', () => {
-        const state = Object.freeze(initState);
+    describe('showAgeFilter, showStagesFilter, showViolationStateFilter, showExpirationDateFilter', () => {
+      NxTabs.forEach((tab) => {
+        const [route, filterValues] = tab;
+        it(`is set to ${filterValues.showAgeFilter}, ${filterValues.showStagesFilter}, ${filterValues.showViolationStateFilter} and ${filterValues.showExpirationDateFilter} if the route is ${route}`, () => {
+          const state = Object.freeze(initState);
 
-        expect(state.isViolationsTab).toBe(false);
+          expect(state.showAgeFilter).toBe(false);
+          expect(state.showStagesFilter).toBe(false);
+          expect(state.showViolationStateFilter).toBe(false);
+          expect(state.showExpirationDateFilter).toBe(false);
 
-        const { isViolationsTab, other } = reduce(state, {
-          type: '@@reduxUiRouter/onFinish',
-          payload: {
-            toState: {
-              name: 'dashboard.overview.violations',
-            },
-            toParams: {},
-          },
+          const { showAgeFilter, showStagesFilter, showViolationStateFilter, showExpirationDateFilter, other } = reduce(
+            state,
+            {
+              type: '@@reduxUiRouter/onFinish',
+              payload: {
+                toState: {
+                  name: route,
+                },
+                toParams: {},
+              },
+            }
+          );
+
+          expect(showAgeFilter).toBe(filterValues.showAgeFilter);
+          expect(showStagesFilter).toBe(filterValues.showStagesFilter);
+          expect(showViolationStateFilter).toBe(filterValues.showViolationStateFilter);
+          expect(showExpirationDateFilter).toBe(filterValues.showExpirationDateFilter);
+          expect(other).toBe(otherObject);
         });
-        expect(isViolationsTab).toBe(true);
-        expect(other).toBe(otherObject);
-      });
-
-      it('is set to false if router state is not violations', () => {
-        initState.isViolationsTab = true;
-        const state = Object.freeze(initState);
-
-        expect(state.isViolationsTab).toBe(true);
-
-        const { isViolationsTab, other } = reduce(state, {
-          type: '@@reduxUiRouter/onFinish',
-          payload: {
-            toState: {
-              name: 'dashboard.overview.applications',
-            },
-            toParams: {},
-          },
-        });
-
-        expect(isViolationsTab).toBe(false);
-        expect(other).toBe(otherObject);
-      });
-    });
-
-    describe('showAgeFilter', () => {
-      it('is set to true if isViolationsTab', () => {
-        const state = Object.freeze(initState);
-
-        expect(state.showAgeFilter).toBe(false);
-
-        const { showAgeFilter, other } = reduce(state, {
-          type: '@@reduxUiRouter/onFinish',
-          payload: {
-            toState: {
-              name: 'dashboard.overview.violations',
-            },
-            toParams: {},
-          },
-        });
-
-        expect(showAgeFilter).toBe(true);
-        expect(other).toBe(otherObject);
       });
     });
   });

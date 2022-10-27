@@ -14,6 +14,7 @@ import {
   expirationDates,
   uncategorizedCategory,
   defaultMinExpiration,
+  dashboardFilterOptionsTab,
 } from './staticFilterEntries';
 import {
   LOAD_FILTER_REQUESTED,
@@ -45,7 +46,6 @@ const initState = Object.freeze({
   loadErrorFilterName: null,
   filtersAreDirty: false,
   needsAcknowledgement: false,
-  isViolationsTab: false,
   showAgeFilter: false,
   showStagesFilter: false,
   showViolationStateFilter: false,
@@ -73,10 +73,10 @@ const resetProps = curry((propNames, state) => merge(state, pick(propNames, init
 export default function dashboardFilterReducer(state = initState, { type, payload }) {
   switch (type) {
     case UI_ROUTER_ON_FINISH: {
-      const isViolationsTab = payload.toState.name === 'dashboard.overview.violations';
-      const isWaiversTab = payload.toState.name === 'dashboard.overview.waivers';
-      const newState = { ...state, isViolationsTab, isWaiversTab };
-      return setShowAgeFilter(newState);
+      const filterOptions = dashboardFilterOptionsTab[payload.toState.name]
+        ? { ...dashboardFilterOptionsTab[payload.toState.name] }
+        : { ...dashboardFilterOptionsTab.default };
+      return { ...state, ...filterOptions };
     }
 
     case LOAD_FILTER_REQUESTED:
@@ -252,12 +252,12 @@ const applyFilter = ({ filter }) => (state) => {
     policyThreatLevels,
     expirationDate,
   });
-  return setShowAgeFilter({
+  return {
     ...state,
     selected,
     appliedFilter: selected,
     filtersAreDirty: false,
-  });
+  };
 };
 
 function getAge(state, maxDaysOld) {
@@ -268,12 +268,4 @@ function getAge(state, maxDaysOld) {
 function getExpiration(state, selectedExpiration) {
   const current = find(propEq('id', selectedExpiration), state.expirationDates);
   return current ? current.id : defaultMinExpiration;
-}
-
-function setShowAgeFilter(state) {
-  const showAgeFilter = state.isViolationsTab;
-  const showStagesFilter = !state.isWaiversTab;
-  const showViolationStateFilter = !state.isWaiversTab;
-  const showExpirationDateFilter = state.isWaiversTab;
-  return { ...state, showAgeFilter, showStagesFilter, showViolationStateFilter, showExpirationDateFilter };
 }

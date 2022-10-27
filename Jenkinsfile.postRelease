@@ -19,18 +19,49 @@ pipeline {
   stages {
     stage('Update IQ Server Test Instance') {
       steps {
-        build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging',
-            parameters: [string(name: 'IQ_VERSION', value: 'latest')])
+        script {
+          String fullImage = "${sonatypeDockerRegistryId()}/sonatype/nexus-iq-server:${params.releaseVersion}"
+          String targetImage = "${sonatypeDockerRegistryId()}/iq/staging:${params.releaseVersion}"
 
-        build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging')
+         build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging',
+          parameters: [
+            string(name: 'BASE_IMAGE', value: fullImage),
+            string(name: 'TARGET_IMAGE', value: targetImage),
+          ],
+          propagate: true)
+
+
+          build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging',
+                    parameters: [
+                      string(name: 'environment', value: 'Staging'),
+                      string(name:'imageUrl', value: targetImage)
+                    ],
+                    propagate: true
+          )
+        }
       }
     }
     stage('Update IQ Server Production Instance') {
       steps {
-        build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/production',
-            parameters: [string(name: 'IQ_VERSION', value: 'latest')])
+        script {
+          String fullImage = "${sonatypeDockerRegistryId()}/sonatype/nexus-iq-server:${params.releaseVersion}"
+          String targetImage = "${sonatypeDockerRegistryId()}/iq/prod:${params.releaseVersion}"
 
-        build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/production')
+          build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/production',
+            parameters: [
+              string(name: 'BASE_IMAGE', value: fullImage),
+              string(name: 'TARGET_IMAGE', value: targetImage),
+            ],
+            propagate: true)
+
+          build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/production',
+                    parameters: [
+                      string(name: 'environment', value: 'Production'),
+                      string(name:'imageUrl', value: targetImage)
+                    ],
+                    propagate: true
+          )
+        }
       }
     }
     stage('Publish IQ Server Helm Chart') {
@@ -51,3 +82,4 @@ pipeline {
     }
   }
 }
+

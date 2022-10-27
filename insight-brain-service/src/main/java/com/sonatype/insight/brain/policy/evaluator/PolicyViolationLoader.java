@@ -145,6 +145,7 @@ public class PolicyViolationLoader
       maximumThreatLevel = policyThreatLevelFilter.getMaxPolicyThreatLevel();
     }
 
+    log.debug("Loading violations with policy threat level between:{} - {}", minimumThreatLevel, maximumThreatLevel);
     Collection<PolicyViolation> violations = minDate != null
         ? loadViolationsAfter(applicationIds, stageTypeIds, minDate, activeViolationsOnly, minimumThreatLevel,
         maximumThreatLevel)

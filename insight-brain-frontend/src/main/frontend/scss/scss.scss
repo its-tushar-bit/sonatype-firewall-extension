@@ -57,7 +57,6 @@
 @use '../applicationReport/applicationReport';
 @use '../role.membership/role.membership.view';
 @use '../security/users/user-list';
-@use '../owner.manager/utility/services/evaluateApplicationModal';
 @use '../owner.manager/retention/retentionEditor';
 @use '../vulnerabilitySearch/vulnerabilitySearch';
 @use '../configuration/saml/samlConfiguration';
@@ -139,6 +138,7 @@
 @use '../firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';
 @use '../api/apiPage';
 @use '../OrgsAndPolicies/policyViolationGrandfatheringEditor/policyViolationGrandfatheringEditor';
+@use '../OrgsAndPolicies/evaluateApplicationModal/evaluateApplication';
 @use '../toastContainer/toastContainer';
 
 // CIP

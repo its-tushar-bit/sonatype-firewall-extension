@@ -64,7 +64,6 @@ describe('owner.summary.controller', function () {
         },
       ],
     };
-    let mockEvaluateAppModalService;
     let setSelectedOwnerSpy;
     let setSelectedOwnerContactSpy;
     let mockApplicationSummary;
@@ -93,7 +92,6 @@ describe('owner.summary.controller', function () {
         },
       };
       mockRevokeGrandfatheringModalService = jasmine.createSpyObj('mockRevokeGrandfatheringModalService', ['open']);
-      mockEvaluateAppModalService = jasmine.createSpyObj('mockEvaluateAppModalService', ['open']);
       mockPermissionService = {
         isContextAuthorized: jasmine.createSpy().and.returnValue(isContextAuthorizedDefer.promise),
       };
@@ -141,7 +139,6 @@ describe('owner.summary.controller', function () {
           PermissionService: mockPermissionService,
           'change.application.id.service': mockChangeApplicationIdService,
           RevokeGrandfatheringModalService: mockRevokeGrandfatheringModalService,
-          'evaluate.application.modal.service': mockEvaluateAppModalService,
         });
         localVm.isGrandfatheringSupported = true;
         localVm.isEvaluateApplicationAvailable = true;
@@ -420,27 +417,6 @@ describe('owner.summary.controller', function () {
           $timeout.flush();
 
           expect(vm.getDisabledEvaluateTooltipMessage()).toBe('Evaluate application is not supported by your license.');
-        });
-      });
-
-      describe('evaluateApp()', function () {
-        beforeEach(() => (vm = getVm()));
-        it('Does not open modal when evaluate app is not supported', function () {
-          createEvaluateAppMocks(false, true);
-
-          $timeout.flush();
-
-          vm.evaluateApp();
-          expect(mockEvaluateAppModalService.open).not.toHaveBeenCalled();
-        });
-
-        it('opens modal when evaluate app is supported', function () {
-          createEvaluateAppMocks(true, true);
-
-          $timeout.flush();
-
-          vm.evaluateApp();
-          expect(mockEvaluateAppModalService.open).toHaveBeenCalled();
         });
       });
     }

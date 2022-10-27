@@ -1059,6 +1059,18 @@ export const getDestinationOrganizationsUrl = (applicationId) => {
   return uriTemplate`/rest/move/application/${applicationId}/destinations`;
 };
 
+export const getBundleUploadUrl = (applicationPublicId, stageId, sendNotifications) => {
+  return uriTemplate`/rest/scan/${applicationPublicId}?stageId=${stageId}&sendNotifications=${sendNotifications}${
+    !window.FormData ? '&noFormData=true' : ''
+  }`;
+};
+
+export const getEvaluationStatusUrl = (applicationPublicId, ticketId) =>
+  uriTemplate`/rest/scan/${applicationPublicId}/${ticketId}`;
+
+export const getApplicationReportUrl = (applicationPublicId, scanId) =>
+  `#/applicationReport/${applicationPublicId}/${scanId}/policy`;
+
 export const getMoveApplicationUrl = (applicationId, organizationId) =>
   uriTemplate`/api/v2/applications/${applicationId}/move/organization/${organizationId}`;
 

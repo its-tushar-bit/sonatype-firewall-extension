@@ -444,38 +444,47 @@ public class ApplicationSummaryViewTest
 
         EvaluateApplicationModal modal = new EvaluateApplicationModal();
         modal.shouldBe(visible);
+        modal.dismissSelectedFileButton().shouldNot(visible);
         modal.fileInput().shouldBe(visible).sendKeys(tempFile.getAbsolutePath());
 
-        Dropdown stageDropdown = modal.stageDropdown();
-        stageDropdown.selectedItem().shouldHave(text(EvaluateApplicationModal.SELECT_STAGE_TEXT)).click();
-        stageDropdown.listItems().shouldHaveSize(4).shouldHave(texts(StageTypes.BUILD.getName(),
-            StageTypes.STAGE_RELEASE.getName(), StageTypes.RELEASE.getName(), StageTypes.OPERATE.getName()));
+        //Check for NxFileUpload validation if no file is selected
+        modal.dismissSelectedFileButton().shouldBe(visible).click();
+        modal.fileUploadError().shouldBe(visible);
+        modal.fileInput().shouldBe(visible).sendKeys(tempFile.getAbsolutePath());
 
-        stageDropdown.listItem(2).shouldHave(textCaseSensitive(StageTypes.RELEASE.getName())).click();
-        stageDropdown.selectedItem().shouldBe(textCaseSensitive(StageTypes.RELEASE.getName()));
+        NxFormSelect stageSelect = modal.stageSelect();
+        assertThat(stageSelect.selectedItem().getText()).isEqualTo(EvaluateApplicationModal.SELECT_STAGE_TEXT);
+        stageSelect.click();
+        stageSelect.listItems().shouldHaveSize(5).shouldHave(texts(EvaluateApplicationModal.SELECT_STAGE_TEXT,
+                StageTypes.BUILD.getName(), StageTypes.STAGE_RELEASE.getName(), StageTypes.RELEASE.getName(),
+                StageTypes.OPERATE.getName()));
+
+        stageSelect.listItem(3).shouldHave(textCaseSensitive(StageTypes.RELEASE.getName())).click();
+        assertThat(stageSelect.selectedItem().getText()).isEqualTo(StageTypes.RELEASE.getName());
 
         if (!isNotificationsAllowed) {
-          EvaluateApplicationModal.disabledNotificationsMessage()
-              .shouldBe(text("Notifications are not supported by your license."));
+          modal.notificationsContainer().shouldNot(exist);
         }
         else {
+          modal.notificationsContainer().should(exist);
           EvaluateApplicationModal.disabledNotificationsMessage().shouldBe(hidden);
+          modal.notifyRadioButtons().yes().shouldBe(visible, selected);
+          modal.notifyRadioButtons().no().shouldBe(visible).shouldNotBe(selected);
         }
-        Condition disabledOrEnabled = !isNotificationsAllowed ? disabled : enabled;
-        modal.notifyRadioButtons().yes().shouldBe(visible, selected, disabledOrEnabled);
-        modal.notifyRadioButtons().no().shouldBe(visible, disabledOrEnabled).shouldNotBe(selected);
 
         modal.cancelButton().shouldBe(visible, enabled);
         modal.uploadButton().shouldBe(visible, enabled).click();
 
-        modal.bundleFileName().shouldBe(text(tempFile.getName()));
-        modal.bundleAppName().shouldBe(text(application.getName()));
-        modal.bundleStageName().shouldBe(textCaseSensitive(StageTypes.RELEASE.getName()));
+        EvaluationStatusModal evaluationStatusModal = new EvaluationStatusModal();
+        evaluationStatusModal.shouldBe(visible);
+        evaluationStatusModal.bundleFileName().shouldBe(text(tempFile.getName()));
+        evaluationStatusModal.bundleAppName().shouldBe(text(application.getName()));
+        evaluationStatusModal.bundleStageName().shouldBe(textCaseSensitive(StageTypes.RELEASE.getName()));
 
         // Give a maximum of 1 minute for the file to be uploaded
-        modal.evaluateBundleStatus().waitUntil(text("Done"), 60000);
+        evaluationStatusModal.evaluateBundleStatus().waitUntil(text("Done"), 60000);
 
-        modal.closeButton().shouldBe(visible, enabled);
+        evaluationStatusModal.closeButton().shouldBe(visible, enabled);
 
         PolicyEvaluation policyEvaluations = new PolicyEvaluationDAO().getLastByApplicationIdAndStageId(
             application.getId(), StageTypes.RELEASE.getId());
@@ -484,7 +493,7 @@ public class ApplicationSummaryViewTest
 
         eyesWatcher.eyesCheck("evaluate file dialog");
 
-        modal.viewReportButton().shouldBe(visible, enabled).click();
+        evaluationStatusModal.viewReportButton().shouldBe(visible, enabled).click();
 
         Selenide.switchTo().window(1);
 

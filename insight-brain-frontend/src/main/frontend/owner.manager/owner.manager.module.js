@@ -26,9 +26,7 @@ import ConfigurationTileController from './repositories/repositories.configurati
 import OwnerImageDirective from './summary/owner.image.directive';
 import SelectApplicationContactService from './summary/select.application.contact.service';
 import OwnerSummaryController from './summary/owner.summary.controller';
-import EvaluateApplicationModalService from './utility/services/evaluate.application.modal.service';
 import SelectApplicationContactController from './summary/select.application.contact.controller';
-import EvaluateApplicationModalController from './utility/services/evaluate.application.modal.controller';
 import NumberInputWithStringValue from './utility/number.input.with.string.value';
 import SameOwnerEditSref from './utility/same.owner.edit.sref.directive';
 import SameOwnerViewSref from './utility/same.owner.view.sref.directive';
@@ -66,6 +64,7 @@ import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/Inn
 import MoveApplicationModal from 'MainRoot/OrgsAndPolicies/moveApplicationModal/MoveApplicationModal';
 import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
 import LicenseThreatGroupSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/LicenseThreatGroupSummaryTile';
+import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/EvaluateApplicationModal';
 
 export default angular
   .module('owner.manager.module', [
@@ -97,9 +96,7 @@ export default angular
   .service('SelectApplicationContactService', SelectApplicationContactService)
   .controller('OwnerSummaryController', OwnerSummaryController)
   .controller('OwnerSummaryTilesContainerController', OwnerSummaryTilesContainerController)
-  .service('evaluate.application.modal.service', EvaluateApplicationModalService)
   .controller('select.application.contact.controller', SelectApplicationContactController)
-  .controller('evaluate.application.modal.controller', EvaluateApplicationModalController)
   .service('SourceControlService', SourceControlService)
   .directive('numberInputWithStringValue', NumberInputWithStringValue)
   .directive('sameOwnerEditSref', SameOwnerEditSref)
@@ -142,6 +139,7 @@ export default angular
     'licenseThreatGroupSummaryTile',
     iqReact2Angular(LicenseThreatGroupSummaryTile, [], ['$ngRedux', '$state'])
   )
+  .component('evaluateApplicationModal', iqReact2Angular(EvaluateApplicationModal, [], ['$ngRedux']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

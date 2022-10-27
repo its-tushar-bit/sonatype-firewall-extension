@@ -29,6 +29,7 @@ import changeApplicationIdSlice from './changeApplicationIdModal/changeApplicati
 import importPoliciesSlice from './importPoliciesModal/importPoliciesSlice';
 import moveApplicationSlice from './moveApplicationModal/moveApplicationSlice';
 import licenseThreatGroupsSlice from './licenseThreatGroupSlice';
+import evaluateApplicationSlice from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/evaluateApplicationSlice';
 
 export default combineReducers({
   root: rootSlice,
@@ -53,6 +54,7 @@ export default combineReducers({
     changeAppId: changeApplicationIdSlice,
     moveApplication: moveApplicationSlice,
     ownerModal: ownerModalSlice,
+    evaluateApplication: evaluateApplicationSlice,
   }),
   sourceControl: sourceControlSlice,
   ownerSummary: ownerSummarySlice,

@@ -11,25 +11,33 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
+import static com.codeborne.selenide.Selenide.$$;
 
 public class EvaluateApplicationModal
     extends BasicElement<EvaluateApplicationModal>
 {
   private static final String ROOT = "#evaluate-application-modal";
 
-  public static final String SELECT_STAGE_TEXT = "-- Select Stage --";
+  public static final String SELECT_STAGE_TEXT = "Select Stage";
 
   public EvaluateApplicationModal() {
     super(ROOT);
   }
 
   public SelenideElement fileInput() {
-    return $("#bundle-file");
+    return $(" .nx-file-upload__input");
   }
 
-  public Dropdown stageDropdown() {
-    return new Dropdown(ROOT, "dropdown-selector");
+  public SelenideElement dismissSelectedFileButton() {
+    return $(".nx-selected-file__dismiss-btn");
+  }
+
+  public SelenideElement fileUploadError() {
+    return $(".nx-file-upload__no-file-message");
+  }
+
+  public NxFormSelect stageSelect() {
+    return new NxFormSelect(ROOT, ".nx-form-select");
   }
 
   public NotifyRadioButtons notifyRadioButtons() {
@@ -37,39 +45,19 @@ public class EvaluateApplicationModal
   }
 
   public SelenideElement uploadButton() {
-    return $("#evaluate-bundle-upload");
+    return $(" .nx-form__submit-btn");
   }
 
   public SelenideElement cancelButton() {
-    return $("#evaluate-bundle-cancel");
+    return $(" .nx-form__cancel-btn");
   }
 
-  public SelenideElement bundleFileName() {
-    return $("#bundle-file-name");
-  }
-
-  public SelenideElement bundleAppName() {
-    return $("#bundle-app-name");
-  }
-
-  public SelenideElement bundleStageName() {
-    return $("#bundle-stage-name");
-  }
-
-  public SelenideElement evaluateBundleStatus() {
-    return $("#evaluate-bundle-status");
-  }
-
-  public SelenideElement viewReportButton() {
-    return $("#evaluate-bundle-view");
-  }
-
-  public SelenideElement closeButton() {
-    return $("#evaluate-bundle-close");
+  public SelenideElement notificationsContainer() {
+    return $$(".nx-fieldset").get(1);
   }
 
   public static SelenideElement disabledNotificationsMessage() {
-    return $("#eval-notifications-disabled-message");
+    return $(".nx-alert__content");
   }
 
   public static class NotifyRadioButtons
@@ -80,12 +68,12 @@ public class EvaluateApplicationModal
       this.root = root;
     }
 
-    public IqRadio yes() {
-      return new IqRadio($(createSelector(root, "iq-radio", "[value=\"'true'\"]")));
+    public NxRadio yes() {
+      return new NxRadio($$(".nx-radio-checkbox").get(0));
     }
 
-    public IqRadio no() {
-      return new IqRadio($(createSelector(root, "iq-radio", "[value=\"'false'\"]")));
+    public NxRadio no() {
+      return new NxRadio($$(".nx-radio-checkbox").get(1));
     }
   }
 }

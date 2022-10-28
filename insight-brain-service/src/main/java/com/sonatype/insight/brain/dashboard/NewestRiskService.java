@@ -144,7 +144,7 @@ public class NewestRiskService
     Date minDate = (maxDaysOld == null) ? null
         : new Date(Instant.now().minus(Duration.ofDays(maxDaysOld)).toEpochMilli());
     return policyViolationLoader.getViolations(applications, stageTypes, false, filter, minDate,
-        policyThreatLevelFilter);
+        policyThreatLevelFilter, policyThreatCategoryFilter);
   }
 
   private List<NewestRiskDTO> buildRiskDTOs(Collection<ApplicationView> appViews) {

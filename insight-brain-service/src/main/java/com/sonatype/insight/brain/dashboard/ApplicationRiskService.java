@@ -97,7 +97,8 @@ public class ApplicationRiskService
         policyThreatLevelFilter, policyViolationStateFilter);
 
     Collection<ApplicationView> appViews =
-        policyViolationLoader.getViolations(appsToSearch, stageTypes, false, filter, policyThreatLevelFilter);
+        policyViolationLoader.getViolations(appsToSearch, stageTypes, false, filter, policyThreatLevelFilter,
+            policyThreatCategoryFilter);
 
     List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = createApplicationRiskScores(appViews);
     applicationRiskScoreDTOs.sort(applicationRiskComparator);

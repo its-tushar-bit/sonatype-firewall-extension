@@ -62,6 +62,10 @@ public class PolicyThreatCategoryFilter
     return policyThreatCategories.contains(policyThreatCategory);
   }
 
+  public Set<PolicyThreatCategory> getPolicyThreatCategories() {
+    return policyThreatCategories;
+  }
+
   /**
    * Transforms this predicate into one that applies the same filtering to policy violations.
    */

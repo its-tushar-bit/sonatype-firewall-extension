@@ -136,7 +136,7 @@ public class ComponentRiskService
         policyThreatLevelFilter, policyViolationStateFilter);
 
     Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, stageTypes, false, filter,
-        policyThreatLevelFilter);
+        policyThreatLevelFilter, policyThreatCategoryFilter);
 
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
 

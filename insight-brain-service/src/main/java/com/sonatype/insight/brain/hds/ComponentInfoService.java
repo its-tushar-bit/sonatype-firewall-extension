@@ -81,6 +81,7 @@ import com.sonatype.insight.scan.util.HashUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -379,7 +380,7 @@ public class ComponentInfoService
       ComponentIdentifier componentIdentifier)
   {
     auditComponentAccess(componentIdentifier, null);
-    return getComponentVersionInfoNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier,
+    return getComponentVersionInfoNoAuth(OwnerType.APPLICATION, applicationPublicId, componentIdentifier, null, null,
         null, null);
   }
 
@@ -406,16 +407,29 @@ public class ComponentInfoService
     return componentDetailsList;
   }
 
-  /**
-   * Returns a list of component details for the given application and component identifier.
-   * It also evaluates policies and returns max threat levels per category, as well as count of violated policies.
-   *
-   * This method is called by the CIP, so it needs to check the READ permission.
-   */
   @Authorize(permission = Permission.READ)
-  public ComponentVersionInfoDTO getComponentVersionInfo_ReadPermission(
-      @AuthzContext(Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(Key.ID) final String ownerId,
+  void checkReadPermission(
+      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.ID) String ownerId)
+  {
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  void checkEvaluateComponentPermission(
+      @SuppressWarnings("unused") @AuthzContext(Key.TYPE) OwnerType ownerType,
+      @SuppressWarnings("unused") @AuthzContext(Key.ID) String ownerId)
+  {
+  }
+
+  /**
+   * Returns a list of component details for the given owner and component identifier.
+   * It also evaluates policies and returns max threat levels per category, as well as count of violated policies.
+   * 
+   * Requires READ or EVALUATE_COMPONENT permissions.
+   */
+  ComponentVersionInfoDTO getComponentVersionInfo(
+      OwnerType ownerType,
+      String ownerId,
       ComponentIdentifier componentIdentifier,
       String stageId,
       String identificationSource,
@@ -423,19 +437,16 @@ public class ComponentInfoService
       DependencyType dependencyType)
   {
     auditComponentAccess(componentIdentifier, null);
-    return getComponentVersionInfoNoAuth(ownerType, ownerId, componentIdentifier, stageId, identificationSource,
-        scanId, dependencyType);
-  }
 
-  public ComponentVersionInfoDTO getComponentVersionInfoNoAuth(
-      OwnerType ownerType,
-      String ownerId,
-      ComponentIdentifier componentIdentifier,
-      String identificationSource,
-      String scanId)
-  {
-    return getComponentVersionInfoNoAuth(ownerType, ownerId, componentIdentifier, null, identificationSource,
-        scanId, null);
+    try {
+      checkReadPermission(ownerType, ownerId);
+    }
+    catch (UnauthorizedException e) {
+      checkEvaluateComponentPermission(ownerType, ownerId);
+    }
+
+    return getComponentVersionInfoNoAuth(ownerType, ownerId, componentIdentifier, stageId, identificationSource, scanId,
+        dependencyType);
   }
 
   public ComponentVersionInfoDTO getComponentVersionInfoNoAuth(

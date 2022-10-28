@@ -3,11 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { sortItemsByFields } from '../../util/sortUtils';
+import { sortItemsByFields, sortItemsByFieldsWithNull } from '../../util/sortUtils';
 import {
   getApplicationRisks,
   getComponentRisks,
   getNewestRisks,
+  getWaivers,
   MAX_RESULTS,
 } from '../services/dashboard.data.service';
 import dashboardServicesModule from '../services/module';
@@ -16,6 +17,7 @@ import {
   APPLICATIONS_RESULTS_TYPE,
   COMPONENTS_RESULTS_TYPE,
   VIOLATIONS_RESULTS_TYPE,
+  WAIVERS_RESULTS_TYPE,
 } from 'MainRoot/dashboard/results/dashboardResultsTypes';
 
 export const LOAD_RESULTS_REQUESTED = 'LOAD_RESULTS_REQUESTED';
@@ -61,8 +63,9 @@ export function loadResults(resultsType) {
 export const loadViolationResults = partial(loadResults, [VIOLATIONS_RESULTS_TYPE]);
 export const loadComponentResults = partial(loadResults, [COMPONENTS_RESULTS_TYPE]);
 export const loadApplicationResults = partial(loadResults, [APPLICATIONS_RESULTS_TYPE]);
+export const loadWaiverResults = partial(loadResults, [WAIVERS_RESULTS_TYPE]);
 
-function sortResults(resultsType, sortFields) {
+function sortResults(resultsType, sortFields, doBackendSort = false) {
   return (dispatch, getState) => {
     dispatch({
       type: SORT_RESULTS_REQUESTED,
@@ -72,11 +75,25 @@ function sortResults(resultsType, sortFields) {
     const dashboardState = getState().dashboard;
     const results = dashboardState[resultsType].results;
     const numResults = dashboardState[resultsType].numResults;
-    if (!results || numResults > MAX_RESULTS) {
+    if (!results || numResults > MAX_RESULTS || doBackendSort) {
       return dispatch(loadResults(resultsType));
     } else {
+      // use sortItemsByFieldsWithNull only for waivers in case expiryTime prop is null
+      const sortByType = {
+        waivers: sortItemsByFieldsWithNull,
+        default: sortItemsByFields,
+      };
+
+      // if type is waiver add expiryTime a second sort field column
+      let sortFieldsWithExpiryTime = [];
+      if (resultsType === 'waivers') {
+        sortFieldsWithExpiryTime = [...sortFields, 'expiryTime'];
+      }
+
       // sort results in frontend
-      const sorted = sortItemsByFields(sortFields, results);
+      const sorted = sortByType[resultsType]
+        ? sortByType[resultsType](sortFieldsWithExpiryTime, results)
+        : sortByType.default(sortFields, results);
       dispatch(sortResultsFulfilled(resultsType, sorted));
       return Promise.resolve();
     }
@@ -86,6 +103,7 @@ function sortResults(resultsType, sortFields) {
 export const sortViolationResults = partial(sortResults, [VIOLATIONS_RESULTS_TYPE]);
 export const sortComponentResults = partial(sortResults, [COMPONENTS_RESULTS_TYPE]);
 export const sortApplicationResults = partial(sortResults, [APPLICATIONS_RESULTS_TYPE]);
+export const sortWaiversResults = partial(sortResults, [WAIVERS_RESULTS_TYPE]);
 
 function sortResultsFulfilled(resultsType, results) {
   return {
@@ -110,6 +128,9 @@ function getServiceMethod(resultsType) {
 
     case 'applications':
       return getApplicationRisks;
+
+    case 'waivers':
+      return getWaivers;
 
     default:
       throw new Error('dashboard results is not supported for ' + resultsType);

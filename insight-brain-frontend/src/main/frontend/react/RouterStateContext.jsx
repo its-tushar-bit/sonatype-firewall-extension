@@ -9,12 +9,13 @@ import * as PropTypes from 'prop-types';
 /*
  * Context to propagate the angular ui router inside deep nested components, without propagating this as props
  */
-const RouterStateContext = React.createContext({ href: () => null, includes: () => false });
+const RouterStateContext = React.createContext({ href: () => null, includes: () => false, get: () => null });
 export default RouterStateContext;
 
 export const routerPropType = PropTypes.shape({
   href: PropTypes.func.isRequired,
   includes: PropTypes.func.isRequired,
+  get: PropTypes.func.isRequired,
 });
 
 export function RouterStateProvider({ value, children }) {

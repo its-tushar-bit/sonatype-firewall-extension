@@ -30,9 +30,13 @@ public class FirewallComponentDetailsPage
 
   private static final String NO_TAB_ID = "";
 
+  private static final String OVERVIEW_TAB_ID = "overview";
+
   private static final String VIOLATIONS_TAB_ID = "violations";
 
   private static final String SECURITY_TAB_ID = "security";
+
+  private static final String LEGAL_TAB_ID = "legal";
 
   public FirewallComponentDetailsPage() {
     super(ROOT);
@@ -43,10 +47,9 @@ public class FirewallComponentDetailsPage
     try {
       String componentIdentifierJSONString =
           URLEncoder.encode(toJson(componentIdentifier), String.valueOf(StandardCharsets.UTF_8));
-      String url =
-          "/firewall/repository/" + component.getRepositoryId() + "/component/" + componentIdentifierJSONString + "/" +
-              component.getHash() + "/" + component.getMatchStateId() + (tabId.isEmpty() ? NO_TAB_ID : "/" + tabId) +
-              "?proprietary=false&pathname=" + component.getPathname();
+      String url = "/firewall/repository/" + component.getRepositoryId() + "/component/" + componentIdentifierJSONString
+          + "/" + component.getHash() + "/" + component.getMatchStateId() + (tabId.isEmpty() ? NO_TAB_ID : "/" + tabId)
+          + "?proprietary=false&pathname=" + component.getPathname();
       return BaseUrl.resolvePageUrl(url);
     }
     catch (UnsupportedEncodingException e) {
@@ -62,12 +65,24 @@ public class FirewallComponentDetailsPage
     return getBaseUrl(component, VIOLATIONS_TAB_ID);
   }
 
+  public static String overviewTab(RepositoryComponent component) {
+    return getBaseUrl(component, OVERVIEW_TAB_ID);
+  }
+
   public static String urlSecurityTab(RepositoryComponent component) {
     return getBaseUrl(component, SECURITY_TAB_ID);
   }
 
+  public static String urlLegalTab(RepositoryComponent component) {
+    return getBaseUrl(component, LEGAL_TAB_ID);
+  }
+
   public SelenideElement title() {
     return child(FIREWALL_COMPONENT_DETAILS_PAGE_TITLE);
+  }
+
+  public SelenideElement reevaluateButton() {
+    return child("#firewall-component-details-page__reevaluate-button");
   }
 
   public SelenideElement formatTag() {
@@ -138,8 +153,8 @@ public class FirewallComponentDetailsPage
     return FirewallPolicyViolationsTable.getPolicyViolationsTableForParent(ROOT);
   }
 
-  public SelenideElement getNextVersionInVersionExplorer() {
-    return child("#aiVersionChartViz > svg > g > g:nth-child(24) > g:nth-child(1) > rect:nth-child(2)");
+  public ElementsCollection getClickableVersionsInVersionExplorer() {
+    return children("#aiVersionChartViz > svg:nth-child(1) > g:nth-child(1) > g:nth-child(24) > g:nth-child(1) > rect");
   }
 
   public SelenideElement getSecurityTabContainer() {

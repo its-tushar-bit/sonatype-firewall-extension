@@ -22,6 +22,7 @@ describe('LicenseDetectionsTile', function () {
       loading: false,
       loadError: null,
       toggleShowEditLicensesPopover: () => {},
+      reviewObligationsClickHandler: () => {},
     };
     minimalProps = {
       ...licenseDetectionsProps,

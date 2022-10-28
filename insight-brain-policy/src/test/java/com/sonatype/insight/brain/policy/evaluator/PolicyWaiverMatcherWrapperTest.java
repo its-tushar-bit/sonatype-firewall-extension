@@ -38,7 +38,7 @@ public class PolicyWaiverMatcherWrapperTest
 {
   private final String notNullComponentFactErrorMessage = "componentFact is required but got null instead";
 
-  private final String associatedPackagedUrl = "pkg:maven/group/artifact@*?classifier=c1&type=jar";
+  private final String associatedPackagedUrl = "pkg:maven/group/artifact@2.0?classifier=c1&type=jar";
 
   @Test
   public void testMatcherWrapper_PolicyWaiverMatcherWrapperConstructor() {
@@ -153,7 +153,7 @@ public class PolicyWaiverMatcherWrapperTest
   @Test
   public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS() {
     String hash = "hash";
-    String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@*?type=jar";
+    String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@2.0?type=jar";
     PolicyWaiver policyWaiver =
         new PolicyWaiverBuilder().setHash(hash).setComponentMatchStrategy(ALL_VERSIONS)
             .setAssociatedPackagedUrl(associatedPackagedUrlAllVersions).build();
@@ -174,7 +174,7 @@ public class PolicyWaiverMatcherWrapperTest
   @Test
   public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS_UnknownComponent() {
     String hash = "hash";
-    String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@*?type=jar";
+    String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@2.0?type=jar";
     PolicyWaiver policyWaiver =
         new PolicyWaiverBuilder().setHash(hash).setComponentMatchStrategy(ALL_VERSIONS)
             .setAssociatedPackagedUrl(associatedPackagedUrlAllVersions).build();
@@ -188,7 +188,7 @@ public class PolicyWaiverMatcherWrapperTest
   @Test
   public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS_missingRequiredCoordinates() {
     String hash = "hash";
-    String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@*?type=jar";
+    String associatedPackagedUrlAllVersions = "pkg:maven/group/artifact@2.0?type=jar";
     PolicyWaiver policyWaiver =
         new PolicyWaiverBuilder().setHash(hash).setComponentMatchStrategy(ALL_VERSIONS)
             .setAssociatedPackagedUrl(associatedPackagedUrlAllVersions).build();
@@ -207,6 +207,7 @@ public class PolicyWaiverMatcherWrapperTest
 
   @Test
   public void testMatcherWrapper_CompareWhenMissingRequiredCoordinates() {
+    // compareWhenMissingRequiredCoordinates method expects the coordinates already have the version as a wildcard (*)
     ComponentIdentifier componentIdentifierSame =
         new ComponentIdentifier(FORMAT_MAVEN, new TreeMap<String, String>() {{
             this.put("artifactId", "artifact");

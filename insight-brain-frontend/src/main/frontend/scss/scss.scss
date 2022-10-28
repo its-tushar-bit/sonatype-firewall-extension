@@ -57,7 +57,6 @@
 @use '../applicationReport/applicationReport';
 @use '../role.membership/role.membership.view';
 @use '../security/users/user-list';
-@use '../owner.manager/utility/services/evaluateApplicationModal';
 @use '../owner.manager/retention/retentionEditor';
 @use '../vulnerabilitySearch/vulnerabilitySearch';
 @use '../configuration/saml/samlConfiguration';
@@ -68,6 +67,7 @@
 @use '../report/report/report' as legacy-report;
 @use '../configuration/scmOnboarding/scmOnboarding';
 @use '../violation/violationPage';
+@use '../waivers/waiverDetails/waiverDetailsPage';
 @use '../waivers/addWaiver';
 @use '../waivers/listWaivers';
 @use '../waivers/requestWaiver';
@@ -82,6 +82,7 @@
 @use '../legal/legalFileTile';
 @use '../legal/copyright/copyrightOverrideForm';
 @use '../dashboard/results/violations/dashboard-violations';
+@use '../dashboard/results/waivers/dashboard-waivers';
 @use '../legal/dashboard/legalDashboard';
 @use '../legal/dashboard/filter/legalDashboard-filter';
 @use '../legal/application/legalApplicationDetails';
@@ -133,9 +134,12 @@
 @use '../OrgsAndPolicies/ownerSummary/retentionTile/retentionTile';
 @use '../OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/applicableLicenseThreatGroupTable';
 @use '../OrgsAndPolicies/сontinuousMonitoringEditor/continuousMonitoringEditor';
+@use '../OrgsAndPolicies/ownerModal/ownerModal';
 @use '../firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';
 @use '../api/apiPage';
 @use '../OrgsAndPolicies/policyViolationGrandfatheringEditor/policyViolationGrandfatheringEditor';
+@use '../OrgsAndPolicies/evaluateApplicationModal/evaluateApplication';
+@use '../toastContainer/toastContainer';
 
 // CIP
 @use '../version-graph/icons' as version-graph-icons;

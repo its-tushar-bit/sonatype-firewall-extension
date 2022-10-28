@@ -17,7 +17,6 @@ import {
   getDeleteLicenseOverrideUrl,
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
-  getProductFeaturesUrl,
 } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { propSet } from 'MainRoot/util/jsUtil';
@@ -52,7 +51,6 @@ export const initialState = {
     fieldsPristineState: null,
     showUnsavedChangesModal: false,
   },
-  reviewObligationsButtonIsVisible: false,
 };
 
 const getInitialFormFieldsFromLicenseOverride = (licenseOverride) => {
@@ -290,28 +288,6 @@ const setShowUnsavedChangesModal = (state, { payload }) => {
   state.editLicensesForm.showUnsavedChangesModal = payload;
 };
 
-export const fetchAdvanceLegalPackFeatures = createAsyncThunk(
-  `${REDUCER_NAME}/fetchAdvanceLegalPackFeatures`,
-  async () => {
-    return axios
-      .get(getProductFeaturesUrl())
-      .then(prop('data'))
-      .then((productFeatures) => {
-        const isAlpSupported = productFeatures.includes('advanced-legal-pack');
-
-        if (!isAlpSupported) {
-          throw new Error('ALP feature is not supported by your license.');
-        }
-        return isAlpSupported;
-      })
-      .catch(() => false);
-  }
-);
-
-const ALPIsSupported = (state, action) => {
-  state.reviewObligationsButtonIsVisible = action.payload;
-};
-
 const componentDetailsLicenseDetectionsTileSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -336,8 +312,6 @@ const componentDetailsLicenseDetectionsTileSlice = createSlice({
     [deleteLicenseOverride.fulfilled]: saveEditLicensesFormFulfilled,
     [deleteLicenseOverride.rejected]: saveEditLicensesFormFailed,
     [SELECT_COMPONENT]: always(initialState),
-    [fetchAdvanceLegalPackFeatures.fulfilled]: ALPIsSupported,
-    [fetchAdvanceLegalPackFeatures.rejected]: propSet('reviewObligationsButtonIsVisible', false),
   },
 });
 

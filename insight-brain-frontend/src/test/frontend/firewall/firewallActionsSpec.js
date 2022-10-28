@@ -46,6 +46,9 @@ import {
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED,
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED,
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED,
+  FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED,
+  FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED,
+  FIREWALL_LOAD_COMPONENT_LICENSES_FAILED,
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED,
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED,
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED,
@@ -76,6 +79,7 @@ import {
   loadComponentPolicyViolationsRequested,
   loadComponentPolicyViolationsFulfilled,
   loadComponentPolicyViolationsFailed,
+  loadComponentLicenses,
   loadExistingWaiversDataRequested,
   loadExistingWaiversDataFulfilled,
   loadExistingWaiversDataFailed,
@@ -88,6 +92,9 @@ import {
   getFirewallReleaseQuarantineSummaryUrl,
   getPoliciesUrl,
   getComponentDetailsUrl,
+  getLicensesWithSyntheticFilterUrl,
+  getComponentMultiLicensesUrl,
+  getLicenseOverrideUrl,
 } from '../../../main/frontend/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from '../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
@@ -99,7 +106,16 @@ describe('firewallActions', function () {
     firewallReleaseQuarantineListUrl = getFirewallReleaseQuarantineListUrl(),
     firewallQuarantineSummaryUrl = getFirewallQuarantineSummaryUrl(),
     firewallQuarantineListUrl = getFirewallQuarantineListUrl(),
-    policiesUrl = getPoliciesUrl();
+    policiesUrl = getPoliciesUrl(),
+    allLicensesUrl = getLicensesWithSyntheticFilterUrl(),
+    componentMultiLicensesUrl = getComponentMultiLicensesUrl({
+      clientType: 'ci',
+      ownerType: 'repository',
+      ownerId: 'repositoryId',
+      componentIdentifier: 'componentIdentifier',
+    }),
+    licensesOverrideUrl = getLicenseOverrideUrl('repository', 'repositoryId', 'componentIdentifier'),
+    erroneusLicensesOverrideUrl = getLicenseOverrideUrl('repository', 'repositoryId', 'erroneusComponentIdentifier');
 
   let store, state;
 
@@ -175,6 +191,67 @@ describe('firewallActions', function () {
     };
 
     store = SpecUtil.mockReduxStore(state);
+  });
+
+  describe('loadComponentLicenses', function () {
+    beforeEach(function () {
+      mockAxiosCalls({
+        get: {
+          [allLicensesUrl]: Promise.resolve({
+            data: [],
+          }),
+          [componentMultiLicensesUrl]: Promise.resolve({
+            data: { multiLicensesData: [] },
+          }),
+          [licensesOverrideUrl]: Promise.resolve({
+            data: { licenseOverridesByOwner: [] },
+          }),
+          [erroneusLicensesOverrideUrl]: Promise.reject('error'),
+        },
+      });
+    });
+
+    it('immediately dispatches a FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED action', function () {
+      store.dispatch(loadComponentLicenses('repositoryId', 'componentIdentifier'));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    it('dispatches FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED action after succesfull requests', function (done) {
+      store.dispatch(loadComponentLicenses('repositoryId', 'componentIdentifier')).then(() => {
+        actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe(FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED);
+        expect(actions[0].payload).toBeUndefined();
+        expect(actions[1].type).toBe(FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED);
+        expect(actions[1].payload).toEqual({
+          multiLicensesData: [],
+          licenseOverride: [],
+          allLicenses: [],
+        });
+        done();
+      });
+
+      let actions = store.getActions();
+      expect(actions.length).toBe(1);
+    });
+
+    it('dispatches a FIREWALL_LOAD_COMPONENT_LICENSES_FAILED action after one of all of the requests failed', function (done) {
+      store.dispatch(loadComponentLicenses('repositoryId', 'erroneusComponentIdentifier')).then(() => {
+        actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe(FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED);
+        expect(actions[0].payload).toBeUndefined();
+        expect(actions[1].type).toBe(FIREWALL_LOAD_COMPONENT_LICENSES_FAILED);
+        expect(actions[1].payload).toBe('error');
+        done();
+      });
+      let actions = store.getActions();
+      expect(actions.length).toBe(1);
+    });
   });
 
   describe('loadConfiguration', function () {

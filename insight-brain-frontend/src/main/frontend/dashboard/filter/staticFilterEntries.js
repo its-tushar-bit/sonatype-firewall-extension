@@ -49,8 +49,74 @@ export const policyViolationStates = [
   },
 ];
 
+export const expirationDates = [
+  {
+    id: 'ALL',
+    name: 'all',
+  },
+  {
+    id: 'IN_24_HOURS',
+    name: 'in 24 hours',
+  },
+  {
+    id: 'IN_7_DAYS',
+    name: 'in 7 days',
+  },
+  {
+    id: 'IN_30_DAYS',
+    name: 'in 30 days',
+  },
+  {
+    id: 'IN_90_DAYS',
+    name: 'in 90 days',
+  },
+  {
+    id: 'IN_OVER_90_DAYS',
+    name: 'in over 90 days',
+  },
+  {
+    id: 'NEVER',
+    name: 'never',
+  },
+];
+
+export const defaultMinExpiration = expirationDates[0].id;
+
 export const uncategorizedCategory = {
   id: null, // NOTE that in this case null specifically means include uncategorized apps
   name: 'uncategorized applications',
   nameLowercaseNoWhitespace: 'uncategorizedapplications',
+};
+
+export const dashboardFilterOptionsTab = {
+  'dashboard.overview.violations': {
+    showAgeFilter: true,
+    showStagesFilter: true,
+    showViolationStateFilter: true,
+    showExpirationDateFilter: false,
+  },
+  'dashboard.overview.components': {
+    showAgeFilter: false,
+    showStagesFilter: true,
+    showViolationStateFilter: true,
+    showExpirationDateFilter: false,
+  },
+  'dashboard.overview.applications': {
+    showAgeFilter: false,
+    showStagesFilter: true,
+    showViolationStateFilter: true,
+    showExpirationDateFilter: false,
+  },
+  'dashboard.overview.waivers': {
+    showAgeFilter: false,
+    showStagesFilter: false,
+    showViolationStateFilter: false,
+    showExpirationDateFilter: true,
+  },
+  default: {
+    showAgeFilter: true,
+    showStagesFilter: true,
+    showViolationStateFilter: true,
+    showExpirationDateFilter: true,
+  },
 };

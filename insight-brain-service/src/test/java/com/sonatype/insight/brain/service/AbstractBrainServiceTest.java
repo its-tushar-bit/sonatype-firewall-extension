@@ -243,7 +243,6 @@ public abstract class AbstractBrainServiceTest
       InsightConfig insightConfig = getCLMServer().getConfiguration();
       if (insightConfig != null) {
         getCLMServer().getConfiguration().setFeatures(Collections.emptyMap());
-        getCLMServer().getConfiguration().setExperimentalFeatures(Collections.emptyMap());
       }
       resetProperties(SystemConfigurationProperty.BASE_URL,
           SystemConfigurationProperty.FORCE_BASE_URL,

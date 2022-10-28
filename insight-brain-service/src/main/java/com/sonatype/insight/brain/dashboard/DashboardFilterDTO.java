@@ -43,6 +43,11 @@ public class DashboardFilterDTO
 
   public List<String> policyViolationStates = Collections.singletonList(DEFAULT_POLICY_VIOLATION_STATE.name());
 
+  /**
+   * @since 1.147
+   */
+  public ExpirationDate expirationDate = ExpirationDate.ALL;
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -78,6 +83,9 @@ public class DashboardFilterDTO
     if (!policyViolationStates.equals(that.policyViolationStates)) {
       return false;
     }
+    if (!expirationDate.equals(that.expirationDate)) {
+      return false;
+    }
     return stageTypeFilters.equals(that.stageTypeFilters);
   }
 
@@ -92,6 +100,7 @@ public class DashboardFilterDTO
     result = 31 * result + stageTypeFilters.hashCode();
     result = 31 * result + Objects.hashCode(maxDaysOld);
     result = 31 * result + policyViolationStates.hashCode();
+    result = 31 * result + expirationDate.hashCode();
     return result;
   }
 }

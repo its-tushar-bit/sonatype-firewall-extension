@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,6 +42,8 @@ import org.cyclonedx.BomParserFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Component.Type;
+import org.cyclonedx.model.Dependency;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
@@ -91,6 +94,15 @@ public class ApiCycloneDxServiceV2Test
   private void createNpmComponentReportAndPolicyEvaluation() throws IOException {
     File reportFile = work.getReportFile(application.getId(), scanId);
     FileUtils.copyURLToFile(ReportHelper.zipReport("/" + getClass().getSimpleName() + "-npmComponent/report", tempDir),
+        reportFile);
+
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+  }
+
+  private void createMavenComponentReportAndPolicyEvaluation() throws IOException {
+    File reportFile = work.getReportFile(application.getId(), scanId);
+    FileUtils.copyURLToFile(
+        ReportHelper.zipReport("/" + getClass().getSimpleName() + "-mavenComponent/report", tempDir),
         reportFile);
 
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
@@ -177,6 +189,33 @@ public class ApiCycloneDxServiceV2Test
   }
 
   @Test
+  public void testGetByScanId_mavenComponent_json_12() throws Exception {
+    testGetByScanId_mavenComponent(MediaType.APPLICATION_JSON, Version.VERSION_12);
+  }
+
+  @Test
+  public void testGetByScanId_mavenComponent_xml_12() throws Exception {
+    testGetByScanId_mavenComponent(MediaType.APPLICATION_XML, Version.VERSION_12);
+  }
+
+  public void testGetByScanId_mavenComponent(String contentType, Version version) throws Exception {
+    createMavenComponentReportAndPolicyEvaluation();
+    Response response = service.getByScanId(application.getId(), scanId, contentType, version);
+    assertBomMaven(response);
+  }
+
+  @Test
+  public void testGetByScanId_mavenComponent_minorVersion() throws Exception {
+    createMavenComponentReportAndPolicyEvaluation();
+    Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_11);
+    byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
+    Parser parser = BomParserFactory.createParser(bytes);
+    Bom bom = parser.parse(bytes);
+    assertThat(bom.getMetadata()).isNull();
+    assertThat(bom.getDependencies()).isNull();
+  }
+
+  @Test
   public void testGetLatest_unknownApplicationId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> service.getLatest("fake-app", ReleaseStageType.ID, "application/xml", Version.VERSION_11))
@@ -209,6 +248,66 @@ public class ApiCycloneDxServiceV2Test
     createReportAndPolicyEvaluation();
     Response response = service.getLatest(application.getId(), BuildStageType.ID, contentType, version);
     assertBom(response, version, false);
+  }
+
+  private void assertBomMaven(Response response) throws Exception {
+    byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
+    Parser parser = BomParserFactory.createParser(bytes);
+    Bom bom = parser.parse(bytes);
+
+    Component metadataComponent = new Component();
+    metadataComponent.setName("insight-scanner");
+    metadataComponent.setGroup("com.sonatype.insight.scan");
+    metadataComponent.setVersion("2.36.19-SNAPSHOT");
+    metadataComponent.setPurl("pkg:maven/com.sonatype.insight.scan/insight-scanner@2.36.19-SNAPSHOT?type=pom");
+    metadataComponent.setBomRef("pkg:maven/com.sonatype.insight.scan/insight-scanner@2.36.19-SNAPSHOT?type=pom");
+    metadataComponent.setType(Type.APPLICATION);
+
+    Dependency parentDependency = new Dependency(
+        "pkg:maven/com.sonatype.insight.scan/insight-scanner@2.36.19-SNAPSHOT?type=pom");
+    Dependency directDependencyA = new Dependency(
+        "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar");
+    Dependency directDependencyB = new Dependency(
+        "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.36.19-SNAPSHOT?type=jar");
+    parentDependency.setDependencies(Arrays.asList(directDependencyA, directDependencyB));
+
+    assertThat(bom.getDependencies().size()).isEqualTo(13);
+    assertThat(bom.getDependencies().get(0)).isEqualTo(parentDependency);
+    assertThat(bom.getDependencies().get(1)).isEqualTo(directDependencyA);
+
+    Dependency transitiveDependencyA = new Dependency("pkg:maven/org.slf4j/jcl-over-slf4j@1.7.36?type=jar");
+    Dependency transitiveDependencyB = new Dependency("pkg:maven/org.slf4j/slf4j-api@1.7.36?type=jar");
+    Dependency transitiveDependencyC = new Dependency("pkg:maven/org.apache.httpcomponents/httpclient@4.5.13?type=jar");
+    Dependency transitiveDependencyD = new Dependency(
+        "pkg:maven/com.sonatype.insight.scan/insight-test-networking@2.36.19-SNAPSHOT?type=jar");
+    Dependency transitiveDependencyE = new Dependency(
+        "pkg:maven/org.eclipse.jetty/jetty-server@9.4.46.v20220331?type=jar");
+    directDependencyB.setDependencies(
+        Arrays.asList(
+            transitiveDependencyA,
+            transitiveDependencyB,
+            transitiveDependencyC,
+            transitiveDependencyD,
+            transitiveDependencyE));
+
+    assertThat(bom.getDependencies().get(2)).isEqualTo(directDependencyB);
+    assertThat(bom.getDependencies()).containsAll(Arrays.asList(transitiveDependencyA, transitiveDependencyB));
+    //The metadata component is the first dependency
+    assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo(bom.getDependencies().get(0).getRef());
+    assertComponentsVsDependencies(bom);
+  }
+
+  private void assertComponentsVsDependencies(Bom bom) {
+    List<Component> components = new ArrayList<>();
+    bom.getDependencies().forEach(dependency -> {
+      bom.getComponents().stream().filter(component -> component.getPurl().equals(dependency.getRef()))
+          .findFirst()
+          .ifPresent(component -> components.add(component));
+    });
+    assertThat(components.size()).isEqualTo(bom.getDependencies().size() - 1);
+    //The parent component is not in the components list
+    assertThat(components.stream().filter(
+        component -> component.getPurl().equals(bom.getDependencies().get(0).getRef())).count()).isEqualTo(0);
   }
 
   private void assertBom(Response response, Version version, boolean hasVulnerabilities) throws Exception {

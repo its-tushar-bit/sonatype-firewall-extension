@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.eventbus.EventBusConfig;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.ExperimentalFeature;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.SupportConfig;
 import com.sonatype.insight.test.LogOutput;
@@ -136,12 +135,6 @@ public class SimpleConfigurationMigratorTest
       assertThat(
           Arrays.stream(SystemConfigurationPropertyFeature.values()).filter(p -> p.name().equals(f.name())).findFirst()
               .orElseThrow(RuntimeException::new).isEnabled()).isFalse();
-    });
-    Arrays.stream(ExperimentalFeature.values()).forEach(f -> {
-      verify(mockConfigFeaturesService).enableFeatureNoAuthz(f.getFlag());
-      assertThat(
-          Arrays.stream(SystemConfigurationPropertyFeature.values()).filter(p -> p.name().equals(f.name())).findFirst()
-              .orElseThrow(RuntimeException::new).isEnabled()).isTrue();
     });
     assertThat(migrationTrackerDAO.isTrackerPresent(SimpleConfigurationMigrator.MIGRATION_ID)).isTrue();
   }
@@ -860,7 +853,5 @@ public class SimpleConfigurationMigratorTest
     matcherConfiguration.put("disableConanNamespaceMatching", "true");
     insightConfig.setMatcherConfiguration(matcherConfiguration);
     insightConfig.setFeatures(Arrays.stream(Feature.values()).collect(Collectors.toMap(Feature::getFlag, f -> false)));
-    insightConfig.setExperimentalFeatures(
-        Arrays.stream(ExperimentalFeature.values()).collect(Collectors.toMap(ExperimentalFeature::getFlag, f -> true)));
   }
 }

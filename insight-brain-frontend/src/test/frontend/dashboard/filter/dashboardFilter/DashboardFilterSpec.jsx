@@ -4,24 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxErrorAlert } from '@sonatype/react-shared-components';
 
-import DashboardFilterFooter from '../../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilterFooter';
 import {
   ages,
   defaultMaxDaysOld,
   policyTypes,
   policyViolationStates,
   uncategorizedCategory,
+  expirationDates,
 } from '../../../../../main/frontend/dashboard/filter/staticFilterEntries';
-import * as enzymeUtils from '../../../enzymeUtils';
-import LoadWrapper from '../../../../../main/frontend/react/LoadWrapper';
-import ManageFiltersDropdown from '../../../../../main/frontend/dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
-import DeleteFilterModalContainer from '../../../../../main/frontend/dashboard/filter/deleteFilterModal/DeleteFilterModalContainer';
-import { IqPopoverHeader } from '../../../../../main/frontend/react/IqPopover';
+import { render, screen, within, fireEvent } from 'TestRoot/SpecUtil';
 
 describe('DashboardFilter', function () {
-  let getShallowComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock, DashboardFilter;
+  let renderComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock, DashboardFilter;
 
   const filterData = {
     organizations: [
@@ -48,9 +43,10 @@ describe('DashboardFilter', function () {
       { id: 'release', name: 'Release' },
       { id: 'operate', name: 'Operate' },
     ],
-    ages: [...ages],
-    policyTypes: [...policyTypes],
-    policyViolationStates: [...policyViolationStates],
+    ages,
+    policyTypes,
+    policyViolationStates,
+    expirationDates,
     selected: {
       organizations: new Set(),
       applications: new Set(),
@@ -60,6 +56,7 @@ describe('DashboardFilter', function () {
       policyViolationStates: new Set(),
       maxDaysOld: defaultMaxDaysOld,
       policyThreatLevels: [2, 10],
+      expirationDate: 'ALL',
     },
   };
 
@@ -92,200 +89,319 @@ describe('DashboardFilter', function () {
       }
     ).default;
 
-    getShallowComponent = enzymeUtils.getShallowComponent(DashboardFilter, minimalProps);
+    renderComponent = (props) => render(<DashboardFilter {...minimalProps} {...props} />);
   });
+
+  function getFilter() {
+    return screen.getByRole('complementary');
+  }
+
+  function getHeader() {
+    const filter = getFilter();
+    return filter.children[0];
+  }
+
+  function getFooter() {
+    const filter = getFilter();
+    return filter.children[2];
+  }
 
   describe('apply named filter error', function () {
     it('is rendered within the header if loadErrorFilterName is not null', function () {
-      const props = { loadErrorFilterName: 'filter 1234' },
-        shallowRender = getShallowComponent(props),
-        header = shallowRender.find('.dashboard-filter-header');
+      const props = { loadErrorFilterName: 'filter 1234' };
+      renderComponent(props);
+      const error = screen.getByRole('alert');
 
-      expect(header).toContainReact(<NxErrorAlert>Failed to load filter 1234</NxErrorAlert>);
+      expect(error).toHaveTextContent('Failed to load filter 1234');
     });
 
     it('is not rendered if loadErrorFilterName is null', function () {
-      const props = { loadErrorFilterName: null },
-        shallowRender = getShallowComponent(props),
-        error = shallowRender.find('.nx-alert');
-      expect(error).not.toExist();
+      const props = { loadErrorFilterName: null };
+      renderComponent(props);
+      const findError = () => {
+        return screen.getByRole('alert');
+      };
+
+      expect(findError).toThrowError();
     });
   });
 
   describe('filter header', function () {
+    const findFilterDropdown = () => {
+      within(getHeader().children[1]).getByRole('button');
+    };
+
     it('renders ManageFiltersDropdown outside of header element', function () {
       const props = {
-          appliedFilterName: 'some filter',
-          showDirtyAsterisk: true,
-        },
-        shallowRender = getShallowComponent(props),
-        header = shallowRender.find(IqPopoverHeader);
+        appliedFilterName: 'some filter',
+        showDirtyAsterisk: true,
+      };
+      renderComponent(props);
+      const header = getHeader();
 
-      expect(header).toHaveProp('headerTitle', 'Filter');
+      expect(header).toHaveTextContent('Filter');
 
-      expect(header.dive().childAt(1)).toContainReact(
-        <ManageFiltersDropdown
-          appliedFilterName="some filter"
-          showDirtyAsterisk={true}
-          savedFilters={savedFilters}
-          applyDefaultFilter={minimalProps.applyDefaultFilter}
-          applySavedFilter={minimalProps.applySavedFilter}
-          DeleteFilterModal={DeleteFilterModalContainer}
-        />
-      );
+      const dropdown = within(header.children[1]).getByRole('button');
+      expect(dropdown).toHaveTextContent('*some filter');
     });
 
     it('does not render ManageFiltersDropdown if loading', function () {
       const props = {
-          appliedFilterName: 'some filter',
-          showDirtyAsterisk: true,
-          loading: true,
-        },
-        shallowRender = getShallowComponent(props),
-        header = shallowRender.find('.dashboard-filter-header');
+        appliedFilterName: 'some filter',
+        showDirtyAsterisk: true,
+        loading: true,
+      };
+      renderComponent(props);
+      const filter = getFilter();
 
-      expect(header).not.toContainMatchingElement(ManageFiltersDropdown);
+      const loading = within(filter).getByText('Loading…');
+      expect(loading).toBeVisible();
+      expect(findFilterDropdown).toThrowError();
     });
 
     it('does not render ManageFiltersDropdown if loadError', function () {
       const props = {
-          appliedFilterName: 'some filter',
-          showDirtyAsterisk: true,
-          loadError: 'Error',
-        },
-        shallowRender = getShallowComponent(props),
-        header = shallowRender.find('.dashboard-filter-header');
+        appliedFilterName: 'some filter',
+        showDirtyAsterisk: true,
+        loadError: 'Error',
+      };
+      renderComponent(props);
 
-      expect(header).not.toContainMatchingElement(ManageFiltersDropdown);
+      expect(findFilterDropdown).toThrowError();
     });
   });
 
   it('renders a DashboardFilterFooter with the correct props', function () {
     const props = {
-        applyFilterError: 'Error',
-        filtersAreDirty: true,
-        needsAcknowledgement: true,
-        setDisplaySaveFilterModal: jasmine.createSpy('setDisplaySaveFilterModal'),
-        revert: jasmine.createSpy('revert'),
-        applyFilterCancelled: () => {},
-      },
-      fullFilter = getShallowComponent(props),
-      filterFooter = fullFilter.find(DashboardFilterFooter);
+      applyFilterError: 'err',
+      filtersAreDirty: true,
+      needsAcknowledgement: true,
+      setDisplaySaveFilterModal: jasmine.createSpy('setDisplaySaveFilterModal'),
+      revert: jasmine.createSpy('revert'),
+      applyFilter: jasmine.createSpy('applyFilter'),
+      applyFilterCancelled: jasmine.createSpy('applyFilterCancel'),
+    };
+    renderComponent(props);
+    const footer = getFooter();
+    const error = within(footer).getByRole('alert');
 
-    expect(filterFooter).toExist();
-    expect(filterFooter).toHaveProp('applyFilterError', props.applyFilterError);
-    expect(filterFooter).toHaveProp('filtersAreDirty', props.filtersAreDirty);
-    expect(filterFooter).toHaveProp('needsAcknowledgement', props.needsAcknowledgement);
-    expect(filterFooter).toHaveProp('revert', props.revert);
-    expect(filterFooter).toHaveProp('setDisplaySaveFilterModal', props.setDisplaySaveFilterModal);
-    expect(filterFooter).toHaveProp('onApplyCurrentFilter', jasmine.any(Function));
-    expect(filterFooter).toHaveProp('onCancelApplyFilter', jasmine.any(Function));
+    expect(error).toBeVisible();
+    expect(error).toHaveTextContent('err');
+
+    const [cancel, retry] = within(error).getAllByRole('button');
+    fireEvent.click(cancel);
+    expect(props.applyFilterCancelled).toHaveBeenCalled();
+    fireEvent.click(retry);
+    expect(props.applyFilter).toHaveBeenCalled();
   });
 
   describe('DashboardFilter filter contents', function () {
-    it('renders the filters if loading is false', function () {
-      const toggleAppsAndOrgsSpy = jasmine.createSpy('toggleAppsAndOrgs'),
-        toggleFilterSpy = jasmine.createSpy('toggleFilter'),
-        filterContent = enzymeUtils.getLoadWrapperChildren(
-          getShallowComponent({
-            ...filterData,
-            loading: false,
-            toggleAppsAndOrgs: toggleAppsAndOrgsSpy,
-            toggleFilter: toggleFilterSpy,
-          })
-        ),
-        orgAppFilter = filterContent.find('#org-app-filters'),
-        categoryFilter = filterContent.find('#category-filter'),
-        stageFilter = filterContent.find('#stage-filter'),
-        policyTypeFilter = filterContent.find('#policy-type-filter'),
-        policyViolationStateFilter = filterContent.find('#policy-violation-state-filter'),
-        threatLevelFiler = filterContent.find('#threat-level-filter');
+    let toggleAppsAndOrgsSpy, toggleFilterSpy;
 
-      expect(orgAppFilter).toHaveProp('organizations', minimalProps.organizations);
-      expect(orgAppFilter).toHaveProp('applications', minimalProps.applications);
-      expect(orgAppFilter).toHaveProp('selectedApplications', minimalProps.selected.applications);
-      expect(orgAppFilter).toHaveProp('selectedOrganizations', minimalProps.selected.organizations);
-      expect(orgAppFilter).toHaveProp('onChange', toggleAppsAndOrgsSpy);
-      orgAppFilter.simulate('change');
-      expect(toggleAppsAndOrgsSpy).toHaveBeenCalled();
+    function getInnerFilters() {
+      return getFilter().children[1].children[0].children;
+    }
 
-      expect(categoryFilter).toHaveProp('options', minimalProps.categories);
-      expect(categoryFilter).toHaveProp('selectedIds', minimalProps.selected.categories);
-      expect(categoryFilter).toHaveProp('onChange');
-      expect(categoryFilter).toHaveProp('optionTooltipGenerator');
-      const selectedCategories = [null];
-      categoryFilter.simulate('change', selectedCategories);
-      expect(toggleFilterSpy).toHaveBeenCalledWith('categories', selectedCategories);
+    beforeEach(() => {
+      toggleAppsAndOrgsSpy = jasmine.createSpy('toggleAppsAndOrgs');
+      toggleFilterSpy = jasmine.createSpy('toggleFilter');
+    });
 
-      const noTooltipForUncategorizedApplications = categoryFilter.prop('optionTooltipGenerator')(
-        minimalProps.categories[0]
-      );
-      const generatedTooltip = categoryFilter.prop('optionTooltipGenerator')(minimalProps.categories[1]);
-      expect(noTooltipForUncategorizedApplications).toBe('');
-      expect(generatedTooltip).toBe('in Org1');
+    it('renders the organization and application filter when loading prop is false', function () {
+      renderComponent({
+        ...filterData,
+        loading: false,
+        toggleAppsAndOrgs: toggleAppsAndOrgsSpy,
+        toggleFilter: toggleFilterSpy,
+      });
 
-      expect(stageFilter).toHaveProp('options', minimalProps.stages);
-      expect(stageFilter).toHaveProp('selectedIds', minimalProps.selected.stages);
-      expect(stageFilter).toHaveProp('onChange');
-      const selectedStages = ['build'];
-      stageFilter.simulate('change', selectedStages);
-      expect(toggleFilterSpy).toHaveBeenCalledWith('stages', selectedStages);
+      const [orgAppFilter] = getInnerFilters();
 
-      expect(policyTypeFilter).toHaveProp('options', minimalProps.policyTypes);
-      expect(policyTypeFilter).toHaveProp('selectedIds', minimalProps.selected.policyTypes);
-      expect(policyTypeFilter).toHaveProp('onChange');
-      const selectedPolicyTypes = ['SECURITY'];
-      policyTypeFilter.simulate('change', selectedPolicyTypes);
-      expect(toggleFilterSpy).toHaveBeenCalledWith('policyTypes', selectedPolicyTypes);
+      const [orgGroup, appGroup] = within(orgAppFilter).getAllByRole('group');
+      expect(orgGroup.children[0]).toHaveTextContent('all/none');
+      expect(orgGroup.children[1]).toHaveTextContent('Org1');
+      expect(appGroup.children[0]).toHaveTextContent('all/none');
+      expect(appGroup.children[1]).toHaveTextContent('App1');
+      fireEvent.click(orgGroup.children[0]);
+      fireEvent.click(orgGroup.children[1]);
+      fireEvent.click(appGroup.children[0]);
+      fireEvent.click(appGroup.children[1]);
+      expect(toggleAppsAndOrgsSpy).toHaveBeenCalledTimes(4);
+    });
 
-      expect(policyViolationStateFilter).toHaveProp('options', minimalProps.policyViolationStates);
-      expect(policyViolationStateFilter).toHaveProp('selectedIds', minimalProps.selected.policyViolationStates);
-      expect(policyViolationStateFilter).toHaveProp('onChange');
-      const selectedPolicyViolationStates = ['OPEN', 'WAIVED'];
-      policyViolationStateFilter.simulate('change', selectedPolicyViolationStates);
-      expect(toggleFilterSpy).toHaveBeenCalledWith('policyViolationStates', selectedPolicyViolationStates);
+    it('renders the category filter when loading prop is false', function () {
+      renderComponent({
+        ...filterData,
+        loading: false,
+        toggleAppsAndOrgs: toggleAppsAndOrgsSpy,
+        toggleFilter: toggleFilterSpy,
+      });
 
-      expect(threatLevelFiler).toHaveProp('value', minimalProps.selected.policyThreatLevels);
-      expect(threatLevelFiler).toHaveProp('onChange');
-      const selectedThreatLevels = [5, 8];
-      threatLevelFiler.simulate('change', selectedThreatLevels);
-      expect(toggleFilterSpy).toHaveBeenCalledWith('policyThreatLevels', selectedThreatLevels);
+      const [, categoryFilter] = getInnerFilters();
+
+      const categoryGroup = within(categoryFilter).getByRole('group');
+      expect(categoryGroup.children[0]).toHaveTextContent('all/none');
+      expect(categoryGroup.children[1]).toHaveTextContent('uncategorized applications');
+      expect(categoryGroup.children[2]).toHaveTextContent('Cat');
+      fireEvent.click(categoryGroup.children[0]);
+      fireEvent.click(categoryGroup.children[1]);
+      fireEvent.click(categoryGroup.children[2]);
+      expect(toggleFilterSpy).toHaveBeenCalledTimes(3);
+    });
+
+    it('renders the stage filter when loading prop is false', function () {
+      renderComponent({
+        ...filterData,
+        showStagesFilter: true,
+        loading: false,
+        toggleAppsAndOrgs: toggleAppsAndOrgsSpy,
+        toggleFilter: toggleFilterSpy,
+      });
+
+      const [, , stageFilter] = getInnerFilters();
+
+      const stagesGroup = within(stageFilter).getByRole('group');
+      expect(stagesGroup.children[0]).toHaveTextContent('all/none');
+      expect(stagesGroup.children[1]).toHaveTextContent('Build');
+      expect(stagesGroup.children[2]).toHaveTextContent('Stage Release');
+      expect(stagesGroup.children[3]).toHaveTextContent('Release');
+      expect(stagesGroup.children[4]).toHaveTextContent('Operate');
+      fireEvent.click(stagesGroup.children[0]);
+      fireEvent.click(stagesGroup.children[1]);
+      fireEvent.click(stagesGroup.children[2]);
+      fireEvent.click(stagesGroup.children[3]);
+      fireEvent.click(stagesGroup.children[4]);
+      expect(toggleFilterSpy).toHaveBeenCalledTimes(5);
+    });
+
+    it('renders the policy type filter when loading prop is false', function () {
+      renderComponent({
+        ...filterData,
+        loading: false,
+        toggleAppsAndOrgs: toggleAppsAndOrgsSpy,
+        toggleFilter: toggleFilterSpy,
+      });
+
+      const [, , policyTypeFilter] = getInnerFilters();
+
+      const policyTypeGroup = within(policyTypeFilter).getByRole('group');
+      expect(policyTypeGroup.children[0]).toHaveTextContent('all/none');
+      expect(policyTypeGroup.children[1]).toHaveTextContent('Security');
+      expect(policyTypeGroup.children[2]).toHaveTextContent('License');
+      expect(policyTypeGroup.children[3]).toHaveTextContent('Quality');
+      expect(policyTypeGroup.children[4]).toHaveTextContent('Other');
+      fireEvent.click(policyTypeGroup.children[0]);
+      fireEvent.click(policyTypeGroup.children[1]);
+      fireEvent.click(policyTypeGroup.children[2]);
+      fireEvent.click(policyTypeGroup.children[3]);
+      fireEvent.click(policyTypeGroup.children[4]);
+      expect(toggleFilterSpy).toHaveBeenCalledTimes(5);
+    });
+
+    it('renders the policy violation state filter when loading prop is false', function () {
+      renderComponent({
+        ...filterData,
+        showViolationStateFilter: true,
+        loading: false,
+        toggleAppsAndOrgs: toggleAppsAndOrgsSpy,
+        toggleFilter: toggleFilterSpy,
+      });
+
+      const [, , , policyViolationStateFilter] = getInnerFilters();
+
+      const policyViolationStateGroup = within(policyViolationStateFilter).getByRole('group');
+      expect(policyViolationStateGroup.children[0]).toHaveTextContent('all/none');
+      expect(policyViolationStateGroup.children[1]).toHaveTextContent('Open');
+      expect(policyViolationStateGroup.children[2]).toHaveTextContent('Waived');
+      expect(policyViolationStateGroup.children[3]).toHaveTextContent('Grandfathered');
+      fireEvent.click(policyViolationStateGroup.children[0]);
+      fireEvent.click(policyViolationStateGroup.children[1]);
+      fireEvent.click(policyViolationStateGroup.children[2]);
+      fireEvent.click(policyViolationStateGroup.children[3]);
+      expect(toggleFilterSpy).toHaveBeenCalledTimes(4);
+    });
+
+    it('renders the threat level filter when loading prop is false', function () {
+      renderComponent({
+        ...filterData,
+        loading: false,
+        toggleAppsAndOrgs: toggleAppsAndOrgsSpy,
+        toggleFilter: toggleFilterSpy,
+      });
+
+      const [, , , threatLevelFiler] = getInnerFilters();
+
+      const threatLevelGroup = within(threatLevelFiler).getByRole('group');
+      const [minSlider, maxSlider] = within(threatLevelGroup).getAllByRole('slider');
+      expect(minSlider).toHaveTextContent('2');
+      expect(maxSlider).toHaveTextContent('10');
     });
 
     it('renders a loading loadWrapper if it is loading', function () {
-      const fullFilter = getShallowComponent({ loading: true }),
-        loadWrapperElement = fullFilter.find(LoadWrapper);
+      renderComponent({ loading: true });
+      const loading = screen.getByText('Loading…');
 
-      expect(loadWrapperElement).toHaveProp('loading', true);
-    });
-
-    it('passes retryHandler to LoadWrapper that calls loadFilter with no args', function () {
-      const fullFilter = getShallowComponent({ loading: true }),
-        loadWrapperElement = fullFilter.find(LoadWrapper);
-
-      expect(loadWrapperElement).toHaveProp('loading', true);
-      loadWrapperElement.prop('retryHandler')();
-      expect(loadFilterSpy).toHaveBeenCalled();
-      expect(loadFilterSpy.calls.count()).toEqual(1);
-      expect(loadFilterSpy.calls.argsFor(0)).toEqual([]);
+      expect(loading).toBeVisible();
     });
 
     it('renders the age filter based on showAgeFilter prop', function () {
-      let fullFilter, filterContent;
-
-      fullFilter = getShallowComponent({
+      const { unmount } = renderComponent({
         ...filterData,
         showAgeFilter: true,
       });
-      filterContent = enzymeUtils.getLoadWrapperChildren(fullFilter);
-      expect(filterContent.find('#age-filter')).toExist();
+      let filters = within(getFilter()).getAllByRole('menu');
+      expect(filters.length).toBe(5);
+      expect(filters[4].id).toBe('age-filter');
+      unmount();
 
-      fullFilter = getShallowComponent({
+      renderComponent({
         ...filterData,
         showAgeFilter: false,
       });
-      filterContent = enzymeUtils.getLoadWrapperChildren(fullFilter);
-      expect(filterContent.find('#age-filter')).not.toExist();
+      filters = within(getFilter()).getAllByRole('menu');
+      expect(filters.length).toBe(4);
+    });
+
+    it('renders the expiration date filter based on showExpirationDateFilter prop', function () {
+      const selectExpirationDateSpy = jasmine.createSpy('selectExpirationDate');
+      const { unmount } = renderComponent({
+        ...filterData,
+        selectExpirationDate: selectExpirationDateSpy,
+        showExpirationDateFilter: true,
+      });
+      let filters = within(getFilter()).getAllByRole('menu');
+      expect(filters.length).toBe(5);
+      expect(filters[4].id).toBe('expiration-date-filter');
+      const expirationDatesGroup = within(filters[4]).getByRole('group');
+      expect(expirationDatesGroup.children.length).toBe(7);
+      expect(expirationDatesGroup.children[0]).toHaveTextContent('all');
+      expect(expirationDatesGroup.children[1]).toHaveTextContent('in 24 hours');
+      expect(expirationDatesGroup.children[2]).toHaveTextContent('in 7 days');
+      expect(expirationDatesGroup.children[3]).toHaveTextContent('in 30 days');
+      expect(expirationDatesGroup.children[4]).toHaveTextContent('in 90 days');
+      expect(expirationDatesGroup.children[5]).toHaveTextContent('in over 90 days');
+      expect(expirationDatesGroup.children[6]).toHaveTextContent('never');
+      fireEvent.click(expirationDatesGroup.children[1]);
+      expect(selectExpirationDateSpy).toHaveBeenCalledWith('IN_24_HOURS');
+      fireEvent.click(expirationDatesGroup.children[2]);
+      expect(selectExpirationDateSpy).toHaveBeenCalledWith('IN_7_DAYS');
+      fireEvent.click(expirationDatesGroup.children[3]);
+      expect(selectExpirationDateSpy).toHaveBeenCalledWith('IN_30_DAYS');
+      fireEvent.click(expirationDatesGroup.children[4]);
+      expect(selectExpirationDateSpy).toHaveBeenCalledWith('IN_90_DAYS');
+      fireEvent.click(expirationDatesGroup.children[5]);
+      expect(selectExpirationDateSpy).toHaveBeenCalledWith('IN_OVER_90_DAYS');
+      fireEvent.click(expirationDatesGroup.children[6]);
+      expect(selectExpirationDateSpy).toHaveBeenCalledWith('NEVER');
+      expect(selectExpirationDateSpy).toHaveBeenCalledTimes(6);
+      unmount();
+
+      renderComponent({
+        ...filterData,
+        showExpirationDateFilter: false,
+      });
+      filters = within(getFilter()).getAllByRole('menu');
+      expect(filters.length).toBe(4);
     });
   });
 
@@ -299,6 +415,7 @@ describe('DashboardFilter', function () {
       policyViolationStates: new Set(['OPEN', 'WAIVED']),
       maxDaysOld: 90,
       policyThreatLevels: [3, 6],
+      expirationDate: 'ALL',
     };
     const expectedJsonFilter = {
       organizationFilters: ['666hell666'],
@@ -310,123 +427,135 @@ describe('DashboardFilter', function () {
       maxDaysOld: 90,
       minPolicyThreatLevel: 3,
       maxPolicyThreatLevel: 6,
+      expirationDate: 'ALL',
     };
 
     it('calls applyFilter action', function () {
-      const applySpy = jasmine.createSpy('applyFilter'),
-        shallowRender = getShallowComponent({
-          applyFilter: applySpy,
-          selected: selectedItems,
-          appliedFilterName: 'foo filter',
-        });
-
-      shallowRender.find(DashboardFilterFooter).simulate('applyCurrentFilter');
+      const applySpy = jasmine.createSpy('applyFilter');
+      renderComponent({
+        applyFilter: applySpy,
+        selected: selectedItems,
+        appliedFilterName: 'foo filter',
+        filtersAreDirty: true,
+      });
+      const footer = getFooter();
+      const [, , apply] = within(footer).getAllByRole('button');
+      fireEvent.click(apply);
       expect(applySpy).toHaveBeenCalledWith(expectedJsonFilter, 'foo filter');
     });
   });
 
   describe('SaveFilterModal', function () {
     it('is rendered when showSaveFilterModal is true', function () {
-      const shallowRender = getShallowComponent({
+      renderComponent({
         showSaveFilterModal: true,
       });
+      const filter = getFilter();
 
-      expect(shallowRender).toContainReact(<SaveFilterModalContainerMock />);
+      expect(filter).toHaveTextContent('Save Filter Modal');
     });
 
     it('is not rendered when showSaveFilterModal is false', function () {
-      const shallowRender = getShallowComponent({
+      renderComponent({
         showSaveFilterModal: false,
       });
+      const filter = getFilter();
 
-      expect(shallowRender).not.toContainReact(<SaveFilterModalContainerMock />);
+      expect(filter).not.toHaveTextContent('Save Filter Modal');
     });
   });
 
   describe('Close button', function () {
     it('is not disabled and closes sidebar when filtersAreDirty and needsAcknowledgement are false', function () {
-      const toggleFilterSidebarSpy = jasmine.createSpy('toggleFilterSidebar'),
-        shallowRender = getShallowComponent({
-          toggleFilterSidebar: toggleFilterSidebarSpy,
-        });
+      const toggleFilterSidebarSpy = jasmine.createSpy('toggleFilterSidebar');
+      renderComponent({
+        toggleFilterSidebar: toggleFilterSidebarSpy,
+      });
+      const header = getHeader();
 
-      const header = shallowRender.find(IqPopoverHeader).dive();
-      const closeButton = header.find('#dashboard-filter-close-btn');
-      expect(closeButton).not.toHaveClassName('disabled');
-      closeButton.simulate('click');
+      const [close] = within(header).getAllByRole('button');
+      fireEvent.click(close);
       expect(toggleFilterSidebarSpy).toHaveBeenCalledWith(false);
     });
 
-    it('sets the tooltip to "Close" when filtersAreDirty and needsAcknowledgement are false', function () {
-      const shallowRender = getShallowComponent();
+    it('sets the tooltip to "Close" when filtersAreDirty and needsAcknowledgement are false', async function () {
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+      renderComponent();
+      const header = getHeader();
 
-      const header = shallowRender.find(IqPopoverHeader).dive();
-      const btn = header.find('#dashboard-filter-close-btn');
-      expect(btn).toHaveProp('title', 'Close');
+      fireEvent.mouseEnter(within(header).getAllByRole('button')[0]);
+      const tooltip = await screen.findByRole('tooltip');
+      expect(tooltip).toHaveTextContent('Close');
     });
 
     describe('when filtersAreDirty', function () {
       it('is disabled', function () {
-        const toggleFilterSidebarSpy = jasmine.createSpy('toggleFilterSidebar'),
-          shallowRender = getShallowComponent({
-            toggleFilterSidebar: toggleFilterSidebarSpy,
-            filtersAreDirty: true,
-          });
+        const toggleFilterSidebarSpy = jasmine.createSpy('toggleFilterSidebar');
+        renderComponent({
+          toggleFilterSidebar: toggleFilterSidebarSpy,
+          filtersAreDirty: true,
+        });
+        const header = getHeader();
 
-        const header = shallowRender.find(IqPopoverHeader).dive();
-        const closeButton = header.find('#dashboard-filter-close-btn');
-        expect(closeButton).toHaveClassName('disabled');
-        closeButton.simulate('click');
+        const [close] = within(header).getAllByRole('button');
+        expect(close).toHaveClassName('disabled');
+        fireEvent.click(close);
         expect(toggleFilterSidebarSpy).not.toHaveBeenCalled();
       });
 
-      it('renders tooltip', function () {
-        const shallowRender = getShallowComponent({
+      it('renders tooltip', async function () {
+        SpecUtil.requestIdleCallbackInvokeImmediate();
+        renderComponent({
           filtersAreDirty: true,
         });
+        const header = getHeader();
 
-        const header = shallowRender.find(IqPopoverHeader).dive();
-        const btn = header.find('#dashboard-filter-close-btn');
-        expect(btn).toHaveProp('title', 'Please apply or revert filter');
+        fireEvent.mouseEnter(within(header).getAllByRole('button')[0]);
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toHaveTextContent('Please apply or revert filter');
       });
     });
 
     describe('when needsAcknowledgement', function () {
       it('is disabled', function () {
-        const toggleFilterSidebarSpy = jasmine.createSpy('toggleFilterSidebar'),
-          shallowRender = getShallowComponent({
-            toggleFilterSidebar: toggleFilterSidebarSpy,
-            needsAcknowledgement: true,
-          });
+        const toggleFilterSidebarSpy = jasmine.createSpy('toggleFilterSidebar');
+        renderComponent({
+          toggleFilterSidebar: toggleFilterSidebarSpy,
+          needsAcknowledgement: true,
+        });
+        const header = getHeader();
 
-        const header = shallowRender.find(IqPopoverHeader).dive();
-        const closeButton = header.find('#dashboard-filter-close-btn');
-        expect(closeButton).toHaveClassName('disabled');
-        closeButton.simulate('click');
+        const [close] = within(header).getAllByRole('button');
+        expect(close).toHaveClassName('disabled');
+        fireEvent.click(close);
         expect(toggleFilterSidebarSpy).not.toHaveBeenCalled();
       });
 
-      it('renders tooltip', function () {
-        const shallowRender = getShallowComponent({
+      it('renders tooltip', async function () {
+        SpecUtil.requestIdleCallbackInvokeImmediate();
+        renderComponent({
           needsAcknowledgement: true,
         });
+        const header = getHeader();
 
-        const header = shallowRender.find(IqPopoverHeader).dive();
-        const btn = header.find('#dashboard-filter-close-btn');
-        expect(btn).toHaveProp('title', 'Please apply a filter');
+        fireEvent.mouseEnter(within(header).getAllByRole('button')[0]);
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toHaveTextContent('Please apply a filter');
       });
     });
 
     describe('when both needsAcknowledgement and filtersAreDirty', function () {
-      it('renders needsAcknowledgement tooltip', function () {
-        const shallowRender = getShallowComponent({
+      it('renders needsAcknowledgement tooltip', async function () {
+        SpecUtil.requestIdleCallbackInvokeImmediate();
+        renderComponent({
           needsAcknowledgement: true,
           filtersAreDirty: true,
         });
+        const header = getHeader();
 
-        const header = shallowRender.find(IqPopoverHeader).dive();
-        const btn = header.find('#dashboard-filter-close-btn');
-        expect(btn).toHaveProp('title', 'Please apply a filter');
+        fireEvent.mouseEnter(within(header).getAllByRole('button')[0]);
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toHaveTextContent('Please apply a filter');
       });
     });
   });

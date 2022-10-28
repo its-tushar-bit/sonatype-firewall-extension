@@ -23,14 +23,10 @@ import OwnerDetailTreeViewDirective from './navigation/owner.detail.tree.view.di
 import ownerTreeView from './navigation/owner.tree.view.directive';
 import MonitoredStageService from './utility/monitored.stage.service';
 import ConfigurationTileController from './repositories/repositories.configuration.tile.controller';
-import OwnerEditorController from './summary/owner.editor.controller';
-import OwnerEditorService from './summary/owner.editor.service';
 import OwnerImageDirective from './summary/owner.image.directive';
 import SelectApplicationContactService from './summary/select.application.contact.service';
 import OwnerSummaryController from './summary/owner.summary.controller';
-import EvaluateApplicationModalService from './utility/services/evaluate.application.modal.service';
 import SelectApplicationContactController from './summary/select.application.contact.controller';
-import EvaluateApplicationModalController from './utility/services/evaluate.application.modal.controller';
 import NumberInputWithStringValue from './utility/number.input.with.string.value';
 import SameOwnerEditSref from './utility/same.owner.edit.sref.directive';
 import SameOwnerViewSref from './utility/same.owner.view.sref.directive';
@@ -66,7 +62,9 @@ import ImportPoliciesModal from 'MainRoot/OrgsAndPolicies/importPoliciesModal/Im
 import RetentionTile from 'MainRoot/OrgsAndPolicies/ownerSummary/retentionTile/RetentionTile';
 import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
 import MoveApplicationModal from 'MainRoot/OrgsAndPolicies/moveApplicationModal/MoveApplicationModal';
+import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
 import LicenseThreatGroupSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/LicenseThreatGroupSummaryTile';
+import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/EvaluateApplicationModal';
 
 export default angular
   .module('owner.manager.module', [
@@ -94,15 +92,11 @@ export default angular
   .service('SameOwnerStateNavigationService', SameOwnerStateNavigationService)
   .service('monitored.stage.service', MonitoredStageService)
   .controller('repositories.configuration.tile.controller', ConfigurationTileController)
-  .controller('owner.editor.controller', OwnerEditorController)
-  .service('OwnerEditorService', OwnerEditorService)
   .directive('ownerImage', OwnerImageDirective)
   .service('SelectApplicationContactService', SelectApplicationContactService)
   .controller('OwnerSummaryController', OwnerSummaryController)
   .controller('OwnerSummaryTilesContainerController', OwnerSummaryTilesContainerController)
-  .service('evaluate.application.modal.service', EvaluateApplicationModalService)
   .controller('select.application.contact.controller', SelectApplicationContactController)
-  .controller('evaluate.application.modal.controller', EvaluateApplicationModalController)
   .service('SourceControlService', SourceControlService)
   .directive('numberInputWithStringValue', NumberInputWithStringValue)
   .directive('sameOwnerEditSref', SameOwnerEditSref)
@@ -131,6 +125,7 @@ export default angular
   .component('deleteOwnerModal', iqReact2Angular(DeleteOwnerModal, [], ['$ngRedux']))
   .component('changeApplicationIdModal', iqReact2Angular(ChangeApplicationIdModal, [], ['$ngRedux']))
   .component('revokeGrandfatheringModal', iqReact2Angular(RevokeGrandfatheringModal, [], ['$ngRedux']))
+  .component('ownerModal', iqReact2Angular(OwnerModal, [], ['$ngRedux']))
   .component('createEditApplicationCategory', iqReact2Angular(CreateEditApplicationCategory, [], ['$ngRedux']))
   .component('grandfatheringModal', iqReact2Angular(GrandfatheringModal, [], ['$ngRedux']))
   .component('assignAppCategory', iqReact2Angular(AssignAppCategory, [], ['$ngRedux']))
@@ -144,6 +139,7 @@ export default angular
     'licenseThreatGroupSummaryTile',
     iqReact2Angular(LicenseThreatGroupSummaryTile, [], ['$ngRedux', '$state'])
   )
+  .component('evaluateApplicationModal', iqReact2Angular(EvaluateApplicationModal, [], ['$ngRedux']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

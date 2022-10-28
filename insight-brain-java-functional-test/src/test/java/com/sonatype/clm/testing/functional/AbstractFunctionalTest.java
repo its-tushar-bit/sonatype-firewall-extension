@@ -280,7 +280,6 @@ public abstract class AbstractFunctionalTest
     InsightConfig insightConfig = testCLMServer.getCLMServer().getConfiguration();
     if (insightConfig != null) {
       insightConfig.setFeatures(Collections.emptyMap());
-      insightConfig.setExperimentalFeatures(Collections.emptyMap());
     }
     tryOpenSidebarNav();
     TaskScheduler taskScheduler = testCLMServer.getCLMServer().getInstance(TaskScheduler.class);

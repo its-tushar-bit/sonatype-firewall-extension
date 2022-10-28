@@ -18,7 +18,7 @@ import {
 import { pathSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectIsOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectSelectedOwnerId, selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export const SUBMIT_MASK_SAVING_CONFIGURATION_MESSAGE = 'Saving Configuration';
 export const SUBMIT_MASK_TESTING_CONFIGURATION_MESSAGE = 'Testing Configuration';
@@ -49,18 +49,16 @@ function resetFormState(state) {
   };
 }
 
-const load = createAsyncThunk(
-  `${REDUCER_NAME}/load`,
-  //when the ownerId in the router slice is the publicApplicationID then the applicationId must be passed as a param
-  (data, { getState, rejectWithValue }) => {
-    const state = getState();
-    const { ownerType, ownerId } = selectOwnerTypeAndOwnerId(state);
-    return axios
-      .get(getRepositoryConnectionUrl(ownerType, data?.ownerId || ownerId, null, data?.inherit))
-      .then(({ data }) => data)
-      .catch(rejectWithValue);
-  }
-);
+const load = createAsyncThunk(`${REDUCER_NAME}/load`, (data, { getState, rejectWithValue }) => {
+  const state = getState();
+  const { ownerType, ownerId } = selectOwnerProperties(state);
+  const selectedOwnerId = selectSelectedOwnerId(state);
+
+  return axios
+    .get(getRepositoryConnectionUrl(ownerType, selectedOwnerId || ownerId, null, data?.inherit))
+    .then(({ data }) => data)
+    .catch(rejectWithValue);
+});
 
 function loadRequested(state) {
   return {

@@ -3,7 +3,3 @@ features:
   enabledFeature: true
   disabledFeature: false
 
-# unspecified experimental features are disabled by default. e.g. 'unspecifiedExperimentalFeature' is disabled
-experimentalFeatures:
-  enabledExperimentalFeature: true
-  disabledExperimentalFeature: false

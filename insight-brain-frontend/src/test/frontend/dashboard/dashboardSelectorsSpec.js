@@ -21,12 +21,14 @@ describe('dashboardSelectors', function () {
           policyViolationStates: new Set(['OPEN']),
           maxDaysOld: 30,
           policyThreatLevels: [2, 10],
+          expirationDate: 'ALL',
         },
       },
       dashboard: {
         applications: { sortFields: [] },
         components: { sortFields: [] },
         violations: { sortFields: [] },
+        waivers: { sortFields: [] },
       },
     };
   });
@@ -41,6 +43,7 @@ describe('dashboardSelectors', function () {
         policyViolationStates: ['OPEN'],
         maxDaysOld: 30,
         policyThreatLevelRange: '2,10',
+        expirationDate: 'ALL',
       };
       const actual = selectExportRequestData(state);
       expect(actual).toEqual(expected);
@@ -65,6 +68,7 @@ describe('dashboardSelectors', function () {
         policyViolationStates: ['OPEN'],
         stageIds: [],
         tagIds: [],
+        expirationDate: 'ALL',
       };
 
       const actual = selectExportRequestData(state);
@@ -85,6 +89,7 @@ describe('dashboardSelectors', function () {
         policyViolationStates: ['OPEN'],
         stageIds: [],
         tagIds: [],
+        expirationDate: 'ALL',
       };
 
       const actual = selectExportRequestData(state);
@@ -104,6 +109,27 @@ describe('dashboardSelectors', function () {
         policyViolationStates: ['OPEN'],
         stageIds: [],
         tagIds: [],
+        expirationDate: 'ALL',
+      };
+
+      const actual = selectExportRequestData(state);
+      expect(actual).toEqual(expected);
+    });
+
+    it('converts filters to json string with default waivers sortFields', function () {
+      state.router.currentState.name = 'dashboard.overview.waivers';
+      state.dashboard.waivers.sortFields = ['-scope'];
+
+      const expected = {
+        applicationIds: [],
+        maxDaysOld: 30,
+        orderBy: '-OWNER_SCOPE',
+        organizationIds: [],
+        policyThreatLevelRange: '2,10',
+        policyViolationStates: ['OPEN'],
+        stageIds: [],
+        tagIds: [],
+        expirationDate: 'ALL',
       };
 
       const actual = selectExportRequestData(state);
@@ -135,6 +161,12 @@ describe('dashboardSelectors', function () {
       state.router.currentState.name = 'dashboard.overview.applications';
       const actual = selectExportUrl(state);
       expect(actual).toBe(CLMLocations.getApplicationRisksExportUrl());
+    });
+
+    it('uses applications export URL when on waivers view', () => {
+      state.router.currentState.name = 'dashboard.overview.waivers';
+      const actual = selectExportUrl(state);
+      expect(actual).toBe(CLMLocations.getWaiversExportUrl());
     });
   });
 });

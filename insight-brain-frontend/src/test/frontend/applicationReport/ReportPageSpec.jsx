@@ -336,6 +336,18 @@ describe('Report Page component', () => {
     ).toBeVisible();
   });
 
+  it('renders an alert if there is an issue reevaluating report', () => {
+    applicationReport.reevaluationError = 'Insufficient permissions';
+    renderComponent();
+    expect(screen.getByText('Insufficient Permissions to Re-Evaluate')).toBeVisible();
+  });
+
+  it('does not render an alert if there is no issue reevaluating report', () => {
+    applicationReport.reevaluationError = null;
+    renderComponent();
+    expect(screen.queryByText('Insufficient Permissions to Re-Evaluate')).not.toBeInTheDocument();
+  });
+
   describe('when unscannable components exist in the report', () => {
     it('renders an error alert if the report contains unscannable components', () => {
       applicationReportSelectors.selectHasUnscannedComponents.and.returnValue(true);

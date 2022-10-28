@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.elements.DashboardApplications;
 import com.sonatype.clm.testing.functional.elements.DashboardComponents;
 import com.sonatype.clm.testing.functional.elements.DashboardTab;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations;
+import com.sonatype.clm.testing.functional.elements.DashboardWaivers;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
@@ -39,6 +40,10 @@ public class DashboardPage
     return BaseUrl.resolvePageUrl("/dashboard/applications");
   }
 
+  public static String urlToWaivers() {
+    return BaseUrl.resolvePageUrl("/dashboard/waivers");
+  }
+
   public static String urlToNewestRisk() {
     return BaseUrl.resolvePageUrl("/dashboard/newest-risk");
   }
@@ -64,6 +69,10 @@ public class DashboardPage
     return new DashboardTab(createSelector(".nx-tab", nthChild(3)));
   }
 
+  public static DashboardTab waiversTab() {
+    return new DashboardTab(createSelector(".nx-tab", nthChild(4)));
+  }
+
   public static SelenideElement exportResultsLink() {
     return $("#export-results");
   }
@@ -86,6 +95,10 @@ public class DashboardPage
 
   public static DashboardApplications applicationsView() {
     return new DashboardApplications();
+  }
+
+  public static DashboardWaivers waiversView() {
+    return new DashboardWaivers();
   }
 
   public static SelenideElement needsAcknowledgementMessage() {

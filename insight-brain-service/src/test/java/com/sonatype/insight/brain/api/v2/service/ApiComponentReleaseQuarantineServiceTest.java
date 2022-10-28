@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -374,6 +375,19 @@ public class ApiComponentReleaseQuarantineServiceTest
     assertThat(policyWaiverDTO.comment).isEqualTo(waiver.getComment());
     assertThat(policyWaiverDTO.createTime).isEqualTo(waiver.getCreateTime());
     assertThat(policyWaiverDTO.policyWaiverId).isEqualTo(waiver.getId());
+    assertThat(policyWaiverDTO.associatedPackageUrl).isEqualTo(waiver.getAssociatedPackageUrl());
+
+    if (waiver.getComponentIdentifier() != null) {
+      assertThat(policyWaiverDTO.componentIdentifier.toComponentIdentifier())
+          .isEqualTo(waiver.getComponentIdentifier());
+      assertThat(policyWaiverDTO.getDisplayName().toString())
+          .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(waiver.getComponentIdentifier()).toString());
+    }
+
+    if (waiver.getComponentIdentifier() != null &&
+        !ComponentMatcherStrategyForWaiver.ALL_COMPONENTS.equals(waiver.getComponentMatchStrategy())) {
+      assertThat(policyWaiverDTO.associatedPackageUrl).isNotNull();
+    }
   }
 
   private void assertPolicyViolationsLogged(

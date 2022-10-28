@@ -14,15 +14,13 @@
             <div class="iq-dropdown-menu__actions">
               <a ng-if="vm.isApp"
                  id="copy-app-id-link"
-                 copy-to-clipboard="vm.owner.publicId"
-                 copied-tooltip
+                 ng-click="vm.copyToClipboard()"
                  class="iq-btn iq-btn--dropdown">
                 <i class="fa fa-clipboard fa-fw"></i>App ID to Clipboard
               </a>
               <a ng-if="vm.isOrg || vm.isRootOrg"
                  id="copy-org-id-link"
-                 copy-to-clipboard="vm.owner.id"
-                 copied-tooltip
+                 ng-click="vm.copyToClipboard()"
                  class="iq-btn iq-btn--dropdown">
                 <i class="fa fa-clipboard fa-fw"></i>Org ID to Clipboard
               </a>
@@ -227,6 +225,8 @@ class="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-
       <revoke-grandfathering-modal></revoke-grandfathering-modal>
       <import-policies-modal></import-policies-modal>
       <move-application-modal></move-application-modal>
+      <owner-modal></owner-modal>
+      <evaluate-application-modal></evaluate-application-modal>
     </div>
   </div>
 </div>

@@ -31,9 +31,9 @@ export const selectPoliciesByOwner = createSelector(selectRootSlice, prop('polic
 
 export const selectOwnerProperties = createSelector(
   selectRouterCurrentParams,
-  ({ applicationPublicId, organizationId }) => ({
-    ownerType: applicationPublicId ? 'application' : 'organization',
-    ownerId: applicationPublicId || organizationId,
+  ({ applicationPublicId, organizationId, applicationId }) => ({
+    ownerType: organizationId ? 'organization' : 'application',
+    ownerId: organizationId ?? applicationId ?? applicationPublicId,
   })
 );
 

@@ -72,6 +72,22 @@ public class DefaultApiPolicyWaiverResource
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(ownerType, ownerId, policyViolationId, waiverOptionsDTO);
   }
 
+  /**
+   * @since 1.147
+   */
+  @Override
+  @GET
+  @Audited(AuditEvent.VIEW_WAIVER)
+  @Path(BY_POLICY_WAIVER_ID_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public ApiPolicyWaiverDTO getPolicyWaiver(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("policyWaiverId") String policyWaiverId)
+  {
+    return apiPolicyWaiverService.getPolicyWaiver(ownerType, ownerId, policyWaiverId);
+  }
+
   @Override
   @DELETE
   @Audited(AuditEvent.DELETE_WAIVER)

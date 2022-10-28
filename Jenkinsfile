@@ -146,16 +146,16 @@ void runAllTests(Map<String, ?> mavenCommon, String keystoreCredId, boolean depl
 Map<String, Closure> getParallelTests() {
   Map<String, Closure> testStages = [:]
   testStages << createGebTests()
-  testStages << createFunctionalTests('Java Functional Tests A', '.*/[A-C].*Test.class')
-  testStages << createFunctionalTests('Java Functional Tests B', '.*/[D-H].*Test.class')
-  testStages << createFunctionalTests('Java Functional Tests C', '.*/[I-R].*Test.class')
-  testStages << createFunctionalTests('Java Functional Tests D', '.*/[S-Z].*Test.class')
-  testStages << createUnitTests('Unit and Integration Tests - Java 8 A', 'Java 8', '.*/[A-H].*Test.class')
-  testStages << createUnitTests('Unit and Integration Tests - Java 8 B', 'Java 8', '.*/[I-P].*Test.class')
-  testStages << createUnitTests('Unit and Integration Tests - Java 8 C', 'Java 8', '.*/[Q-Z].*Test.class')
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 A', 'OpenJDK 11', '.*/[A-H].*Test.class')
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 B', 'OpenJDK 11', '.*/[I-P].*Test.class')
-  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 C', 'OpenJDK 11', '.*/[Q-Z].*Test.class')
+  testStages << createFunctionalTests('Java Functional Tests A', '.*/[A-B].*Test.class')
+  testStages << createFunctionalTests('Java Functional Tests B', '.*/[C-H].*Test.class')
+  testStages << createFunctionalTests('Java Functional Tests C', '.*/[I-Q].*Test.class')
+  testStages << createFunctionalTests('Java Functional Tests D', '.*/[R-Z].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - Java 8 A', 'Java 8', '.*/[A-D].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - Java 8 B', 'Java 8', '.*/[E-O].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - Java 8 C', 'Java 8', '.*/[P-Z].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 A', 'OpenJDK 11', '.*/[A-D].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 B', 'OpenJDK 11', '.*/[E-O].*Test.class')
+  testStages << createUnitTests('Unit and Integration Tests - OpenJDK 11 C', 'OpenJDK 11', '.*/[P-Z].*Test.class')
   return testStages
 }
 
@@ -179,7 +179,7 @@ Map<String, Closure> createGebTests() {
 
 Map<String, Closure> createFunctionalTests(String stageName, String regex) {
   return ["${stageName}": {
-    node('ubuntu-zion-legacy') {
+    node(InsightConstants.AGENT_LABEL) {
       stage(stageName) {
         try {
           withEnv(["APPLITOOLS_BATCH_ID=${env.GIT_COMMIT}"]) {
@@ -206,7 +206,7 @@ Map<String, Closure> createFunctionalTests(String stageName, String regex) {
 
 Map<String, Closure> createUnitTests(String stageName, String jdk, String regex) {
   return ["${stageName}": {
-    node('ubuntu-zion-legacy'){
+    node(InsightConstants.AGENT_LABEL){
       stage(stageName) {
         try {
           copyRepo()

@@ -97,6 +97,18 @@ export function getComponentRisksExportUrl() {
   return uriTemplate`/rest/dashboard/export/componentRisks`;
 }
 
+/**
+ * Retrieve the list of waivers.  Supports filters
+ * @since 1.45
+ */
+export function getWaiversUrl() {
+  return uriTemplate`/rest/dashboard/policy/policyWaivers`;
+}
+
+export function getWaiversExportUrl() {
+  return uriTemplate`/rest/dashboard/export/policyWaivers`;
+}
+
 export function getApplicationsUrl() {
   return uriTemplate`/rest/application`;
 }
@@ -259,6 +271,10 @@ export function getFirewallReleaseQuarantineSummaryUrl() {
 
 export function getRetentionPoliciesUrl(orgId) {
   return uriTemplate`/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(orgId)}`;
+}
+
+export function getReevaluateComponentUrl(repositoryId, hash) {
+  return uriTemplate`/rest/repositories/${repositoryId}/evaluate/${hash}`;
 }
 
 export const getComponentLicensesUrl = ({
@@ -448,6 +464,17 @@ export function getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViola
  */
 export function getOwnerContextHierarchyUrl(ownerType, ownerId, policyId) {
   return uriTemplate`/rest/policyWaiver/${ownerType}/${ownerId}/applicable/context/${policyId}`;
+}
+
+/**
+ * Get detailed information for a single waiver
+ * @param ownerType {string} application|organization
+ * @param ownerId {string}
+ * @param waiverId {string}
+ * @returns {object}
+ */
+export function getWaiverDetailsUrl(ownerType, ownerId, policyWaiverId) {
+  return uriTemplate`/api/v2/policyWaivers/${ownerType}/${ownerId}/${policyWaiverId}`;
 }
 
 export function userTokenUrl() {
@@ -761,6 +788,14 @@ export function getComponentWaivers(ownerType, ownerId, hash) {
   return uriTemplate`/rest/policyWaiver/${ownerType}/${ownerId}/component/${hash}`;
 }
 
+export function getRobotUrl(isApp, hashcode) {
+  return uriTemplate`/rest/${isApp ? 'application' : 'organization'}/services/generateIcon/${hashcode}`;
+}
+
+export function getAddIconUrl(isApp, ownerId) {
+  return uriTemplate`/rest/${isApp ? 'application' : 'organization'}/icon/${encodeURIComponent(ownerId)}`;
+}
+
 export const getVersionGraphUrl = ({
   clientType,
   ownerType,
@@ -1023,6 +1058,18 @@ export const getCrowdConfigurationTestUrl = () => {
 export const getDestinationOrganizationsUrl = (applicationId) => {
   return uriTemplate`/rest/move/application/${applicationId}/destinations`;
 };
+
+export const getBundleUploadUrl = (applicationPublicId, stageId, sendNotifications) => {
+  return uriTemplate`/rest/scan/${applicationPublicId}?stageId=${stageId}&sendNotifications=${sendNotifications}${
+    !window.FormData ? '&noFormData=true' : ''
+  }`;
+};
+
+export const getEvaluationStatusUrl = (applicationPublicId, ticketId) =>
+  uriTemplate`/rest/scan/${applicationPublicId}/${ticketId}`;
+
+export const getApplicationReportUrl = (applicationPublicId, scanId) =>
+  `#/applicationReport/${applicationPublicId}/${scanId}/policy`;
 
 export const getMoveApplicationUrl = (applicationId, organizationId) =>
   uriTemplate`/api/v2/applications/${applicationId}/move/organization/${organizationId}`;

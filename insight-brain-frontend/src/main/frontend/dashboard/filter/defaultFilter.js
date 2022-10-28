@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { defaultMaxDaysOld } from './staticFilterEntries';
+import { defaultMaxDaysOld, defaultMinExpiration } from './staticFilterEntries';
 
 export default Object.freeze({
   organizations: new Set(),
@@ -13,6 +13,7 @@ export default Object.freeze({
   policyTypes: new Set(),
   policyViolationStates: new Set(['OPEN']),
   maxDaysOld: defaultMaxDaysOld,
+  expirationDate: defaultMinExpiration,
   policyThreatLevels: [2, 10],
 });
 

@@ -167,3 +167,17 @@ export const capitalizeFirstLetter = (string) => {
  * @returns Boolean
  */
 export const allEqual = (arr) => arr.every((val) => val === arr[0]);
+
+export function copyToClipboard(textToCopy) {
+  const selection = window.document.getSelection();
+  const node = window.document.createElement('textarea');
+  node.style.position = 'absolute';
+  node.style.left = '-10000px';
+  node.textContent = textToCopy;
+  window.document.body.appendChild(node);
+  selection.removeAllRanges();
+  node.select();
+  window.document.execCommand('copy');
+  selection.removeAllRanges();
+  window.document.body.removeChild(node);
+}

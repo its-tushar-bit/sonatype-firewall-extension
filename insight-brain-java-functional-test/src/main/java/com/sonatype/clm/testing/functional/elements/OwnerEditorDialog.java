@@ -9,48 +9,70 @@ import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 
 public class OwnerEditorDialog
 {
+  public static String INVALID_NAME_MESSAGE = "Use valid characters: alphanumeric, \"_\", \".\", \"-\", or spaces";
+
+  public static String INVALID_PUBLICID_MESSAGE = "Use valid characters: alphanumeric, \"_\", \".\" or \"-\"\n";
+
   public static SelenideElement root() {
     return $("#owner-editor");
   }
 
   public static SelenideElement title() {
-    return root().find(".iq-modal-header h2");
+    return root().find("h2");
   }
 
-  public static SelenideElement titleIcon() {
-    return root().find(".iq-modal-header .fa");
+  public static SelenideElement nameDiv() {
+    return root().find("#editor-owner-name .nx-text-input");
   }
 
   public static SelenideElement name() {
-    return root().find(".iq-modal-content input[name=name]");
+    return root().find("#editor-owner-name .nx-text-input .nx-text-input__input");
+  }
+
+  public static SelenideElement nameInvalidMessage() {
+    return root().find("#editor-owner-name > .nx-text-input > .nx-text-input__invalid-message");
+  }
+
+  public static SelenideElement publicIdDiv() {
+    return root().find("#editor-new-id .nx-text-input");
   }
 
   public static SelenideElement publicId() {
-    return root().find(".iq-modal-content input[name=publicId]");
+    return root().find("#editor-new-id .nx-text-input .nx-text-input__input");
+  }
+
+  public static SelenideElement publicIdInvalidMessage() {
+    return root().find("#editor-new-id > .nx-text-input > .nx-text-input__invalid-message");
   }
 
   public static SelenideElement saveButton() {
-    return root().find(".iq-modal-footer .iq-btn--primary");
+    return root().find(".nx-form__submit-btn");
   }
 
   public static SelenideElement cancelButton() {
-    return root().find(".iq-modal-footer button[type=button]");
+    return root().find(".nx-form__cancel-btn");
   }
 
-  public static IqRadio defaultIcon() {
-    return new IqRadio($("#owner-editor-icon-default"));
+  public static SelenideElement defaultIcon() {
+    return iconRadioButton("Use a default icon");
   }
 
-  public static IqRadio customIcon() {
-    return new IqRadio($("#owner-editor-icon-custom"));
+  public static SelenideElement customIcon() {
+    return iconRadioButton("Upload a custom icon");
   }
 
-  public static IqRadio robotIcon() {
-    return new IqRadio($("#owner-editor-icon-robot"));
+  public static SelenideElement robotIcon() {
+    return iconRadioButton("Get a robot");
+  }
+
+  private static SelenideElement iconRadioButton(String name) {
+    return $$(".nx-radio__content").findBy(text(name)).parent();
   }
 
   public static class RobotIconSelector
@@ -58,7 +80,7 @@ public class OwnerEditorDialog
     public static final String ROOT = "#robot-icon-selector";
 
     public static SelenideElement button() {
-      return $(SelectorUtils.createSelector(ROOT, "button"));
+      return $(SelectorUtils.createSelector(ROOT, ".nx-btn"));
     }
 
     public static SelenideElement icon() {

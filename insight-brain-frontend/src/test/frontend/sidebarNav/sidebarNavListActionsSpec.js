@@ -5,6 +5,7 @@
  */
 import {
   gotoNewVulnerability,
+  gotoWaiver,
   LOAD_SIDEBAR_NAV_LIST_FAILED,
   LOAD_SIDEBAR_NAV_LIST_FULFILLED,
   LOAD_SIDEBAR_NAV_LIST_REQUESTED,
@@ -24,6 +25,18 @@ describe('sidebarNavListActions', function () {
     });
   });
 
+  describe('gotoWaiver', function () {
+    it('calls stateGo with the correct parameters', function () {
+      const waiverId = '12345';
+      const ownerId = 'owner-id';
+      const ownerType = 'Owner';
+      const stateGoSpy = spyOn(RouterActions, 'stateGo');
+
+      gotoWaiver(ownerId, ownerType, waiverId);
+      expect(stateGoSpy).toHaveBeenCalledWith('waiver.details', { ownerId, ownerType, waiverId });
+    });
+  });
+
   describe('loadSidebarNav', function () {
     let store;
     const stateParams = {
@@ -37,6 +50,10 @@ describe('sidebarNavListActions', function () {
       },
       dashboard: {
         violations: {
+          sortFields: ['firstOccurrenceTime'],
+          results: { foo: 'bar' },
+        },
+        waivers: {
           sortFields: ['firstOccurrenceTime'],
           results: { foo: 'bar' },
         },
@@ -103,6 +120,30 @@ describe('sidebarNavListActions', function () {
             data: { foo: 'bar' },
             contentType: 'violations',
             backButtonStateName: 'dashboard.overview.violations',
+          });
+
+          done();
+        });
+    });
+
+    it('dispatches LOAD_SIDEBAR_NAV_LIST_FULFILLED with waivers results data', function (done) {
+      spyOn(DashboardFilterActions, 'loadFilter').and.returnValue(Promise.resolve({}));
+
+      store
+        .dispatch(
+          loadSidebarNav({
+            type: 'waiver',
+            sidebarReference: 'filter',
+            sidebarId: '423',
+          })
+        )
+        .then(() => {
+          expect(DashboardFilterActions.loadFilter).toHaveBeenCalledWith('waivers');
+          expect(store.getActions()[2].type).toEqual(LOAD_SIDEBAR_NAV_LIST_FULFILLED);
+          expect(store.getActions()[2].payload).toEqual({
+            data: { foo: 'bar' },
+            contentType: 'waivers',
+            backButtonStateName: 'dashboard.overview.waivers',
           });
 
           done();

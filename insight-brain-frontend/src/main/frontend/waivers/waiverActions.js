@@ -21,6 +21,7 @@ import { getExpiryTime } from '../util/waiverUtils';
 import { actions as policyViolationsActions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { loadTransitiveViolationWaivers } from '../violation/transitiveViolationsActions';
 import { selectPreviousRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
 
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
@@ -239,11 +240,30 @@ const deleteWaiverFulfilled = noPayloadActionCreator(WAIVERS_DELETE_WAIVER_FULFI
 const deleteWaiverFailed = payloadParamActionCreator(WAIVERS_DELETE_WAIVER_FAILED);
 const deleteWaiverMaskTimerDone = noPayloadActionCreator(WAIVERS_DELETE_MASK_TIMER_DONE);
 
+export const filterDataByIdAndRedirectToNextWaiverOrDashboard = (waiverList, waiverId) => {
+  return (dispatch) => {
+    let idIndex = -1;
+    const newWaiverList = waiverList.filter(({ id }, index) => {
+      const itemFound = id === waiverId;
+      idIndex = itemFound ? index : idIndex;
+      return !itemFound;
+    });
+
+    if (waiverList.length === 1 || idIndex === -1) {
+      dispatch(stateGo('dashboard.overview.waivers'));
+    } else {
+      const nextItem = idIndex + 1 === waiverList.length ? waiverList[0] : waiverList[idIndex + 1];
+      dispatch(gotoWaiver(nextItem.ownerId, nextItem.ownerType, nextItem.id));
+    }
+    dispatch(setSidebarNavListData(newWaiverList));
+  };
+};
+
 export function deleteWaiver(ownerType, ownerId, waiverId) {
   return (dispatch, getState) => {
     dispatch(deleteWaiverRequested());
 
-    const { violation, componentDetailsPolicyViolations, router } = getState();
+    const { violation, componentDetailsPolicyViolations, router, sidebarNavList } = getState();
     const { reloadComponentWaivers } = componentDetailsPolicyViolations;
     const policyViolationId = path(['violationDetails', 'policyViolationId'], violation);
     const endpointUrl = deleteWaiverUrl(ownerType, ownerId, waiverId);
@@ -253,7 +273,9 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
       .then(() => {
         dispatch(deleteWaiverFulfilled());
         const currentState = router.currentState;
-        if (currentState.name === 'transitiveViolations') {
+        if (currentState.name === 'waiver.details') {
+          dispatch(filterDataByIdAndRedirectToNextWaiverOrDashboard(sidebarNavList.data, waiverId));
+        } else if (currentState.name === 'transitiveViolations') {
           const ownerId = router.currentParams.ownerId;
           const scanId = router.currentParams.scanId;
           const hash = router.currentParams.hash;

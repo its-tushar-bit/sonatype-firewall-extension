@@ -14,14 +14,14 @@ describe('LicenseDetections', function () {
     mountedComponent,
     toggleShowEditLicensesPopoverSpy,
     loadLicenses,
-    fetchAdvanceLegalPackFeaturesSpy,
-    stateGoSpy;
+    stateGoSpy,
+    reviewObligationsClickHandlerSpy;
 
   beforeEach(function () {
-    fetchAdvanceLegalPackFeaturesSpy = jasmine.createSpy('fetchAdvanceLegalPackFeatures');
     loadLicenses = jasmine.createSpy('loadLicenses');
     toggleShowEditLicensesPopoverSpy = jasmine.createSpy('toggleShowEditLicensesPopover');
     stateGoSpy = jasmine.createSpy('stateGo');
+    reviewObligationsClickHandlerSpy = jasmine.createSpy('reviewObligationsClickHandler');
     minimalProps = {
       declaredLicenses: null,
       effectiveLicenses: null,
@@ -32,7 +32,6 @@ describe('LicenseDetections', function () {
       toggleShowEditLicensesPopover: toggleShowEditLicensesPopoverSpy,
       identificationSource: 'Sonatype',
       reviewObligationsButtonIsVisible: false,
-      fetchAdvanceLegalPackFeatures: fetchAdvanceLegalPackFeaturesSpy,
       stateGo: stateGoSpy,
     };
     getShallow = enzymeUtils.getShallowComponent(LicenseDetections, minimalProps);
@@ -46,12 +45,6 @@ describe('LicenseDetections', function () {
   it('calls loadLicenses on mount', function () {
     mountedComponent = getMounted();
     expect(loadLicenses).toHaveBeenCalledTimes(1);
-    mountedComponent.unmount();
-  });
-
-  it('calls fetchAdvanceLegalPackFeatures on mount', function () {
-    mountedComponent = getMounted();
-    expect(fetchAdvanceLegalPackFeaturesSpy).toHaveBeenCalled();
     mountedComponent.unmount();
   });
 
@@ -85,11 +78,11 @@ describe('LicenseDetections', function () {
   });
 
   it('will navigate to ALP after clicking `Review Obligations`', () => {
-    const applicationReportMetadataProps = { applicationId: 'test', stageId: 'test', componentHash: 'abc' };
-    const expectedStateGoParams = {
-      applicationPublicId: applicationReportMetadataProps.applicationId,
-      stageTypeId: applicationReportMetadataProps.stageId,
-      hash: applicationReportMetadataProps.componentHash,
+    const applicationReportMetadataProps = {
+      applicationId: 'test',
+      stageId: 'test',
+      componentHash: 'abc',
+      reviewObligationsClickHandler: reviewObligationsClickHandlerSpy,
     };
     const loadWrapperContents = getShallow({
       reviewObligationsButtonIsVisible: true,
@@ -101,7 +94,7 @@ describe('LicenseDetections', function () {
     expect(button.exists()).toBe(true);
 
     button.simulate('click');
-    expect(stateGoSpy).toHaveBeenCalledOnceWith('legal.applicationStageTypeComponentOverview', expectedStateGoParams);
+    expect(reviewObligationsClickHandlerSpy).toHaveBeenCalledTimes(1);
   });
 
   it('calls `toggleShowEditLicensesPopoverSpy` when `Edit` button clicked', () => {

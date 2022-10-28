@@ -169,6 +169,8 @@ public class DashboardTabNavigationTest
     waitUntilUrl(DashboardPage.urlToViolations());
     DashboardPage.violationsTab().shouldBe(ACTIVE);
     DashboardPage.applicationsTab().shouldNotBe(ACTIVE);
+    DashboardPage.waiversTab().shouldNotBe(ACTIVE);
+
     DashboardPage.componentsTab().shouldNotBe(ACTIVE).click();
     waitUntilUrl(DashboardPage.urlToComponents());
     DashboardPage.componentsTab().shouldBe(ACTIVE);
@@ -177,9 +179,17 @@ public class DashboardTabNavigationTest
     waitUntilUrl(DashboardPage.urlToApplications());
     DashboardPage.applicationsTab().shouldBe(ACTIVE);
 
+    DashboardPage.waiversTab().shouldNotBe(ACTIVE).click();
+    waitUntilUrl(DashboardPage.urlToWaivers());
+    DashboardPage.waiversTab().shouldBe(ACTIVE);
+
     DashboardPage.violationsTab().shouldNotBe(ACTIVE).click();
     waitUntilUrl(DashboardPage.urlToViolations());
     DashboardPage.violationsTab().shouldBe(ACTIVE);
+
+    Selenide.back();
+    waitUntilUrl(DashboardPage.urlToWaivers());
+    DashboardPage.waiversTab().shouldBe(ACTIVE);
 
     Selenide.back();
     waitUntilUrl(DashboardPage.urlToApplications());

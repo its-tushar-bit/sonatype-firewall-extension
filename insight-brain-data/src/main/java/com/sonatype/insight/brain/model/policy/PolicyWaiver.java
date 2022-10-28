@@ -271,7 +271,6 @@ public class PolicyWaiver
         return null;
       }
       componentIdentifier = ComponentIdentifierAdapter.toComponentIdentifier(associatedPackageUrl);
-      componentIdentifier.ensureComplete();
     }
     return componentIdentifier;
   }

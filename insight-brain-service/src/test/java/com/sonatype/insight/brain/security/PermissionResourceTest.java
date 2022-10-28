@@ -9,7 +9,10 @@ import java.util.EnumSet;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
@@ -47,7 +50,7 @@ public class PermissionResourceTest
   }
 
   @Test
-  public void testValidatePermission_NonSingletonContext() throws Exception {
+  public void testValidatePermission_GlobalContext() throws Exception {
     HttpResponse response = validateRequest(OwnerType.GLOBAL, "global").body(
         EnumSet.of(Permission.READ, Permission.WRITE)).put();
     assertResponseStatus(200, response);
@@ -55,7 +58,37 @@ public class PermissionResourceTest
   }
 
   @Test
-  public void testValidatePermission_SingletonContext() throws Exception {
+  public void testValidatePermission_ApplicationContext() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    HttpResponse response =
+        validateRequest(OwnerType.APPLICATION, app.getId()).body(EnumSet.of(Permission.READ, Permission.WRITE)).put();
+    assertResponseStatus(200, response);
+    assertThat(response.getBody(Permission[].class)).containsExactlyInAnyOrder(Permission.READ);
+  }
+
+  @Test
+  public void testValidatePermission_OrganizationContext() throws Exception {
+    Organization org = tempEntity.newOrganization();
+
+    HttpResponse response =
+        validateRequest(OwnerType.ORGANIZATION, org.getId()).body(EnumSet.of(Permission.READ, Permission.WRITE)).put();
+    assertResponseStatus(200, response);
+    assertThat(response.getBody(Permission[].class)).containsExactlyInAnyOrder(Permission.READ);
+  }
+
+  @Test
+  public void testValidatePermission_RepositoryContext() throws Exception {
+    Repository repo = tempEntity.newRepository();
+
+    HttpResponse response =
+        validateRequest(OwnerType.REPOSITORY, repo.getId()).body(EnumSet.of(Permission.READ, Permission.WRITE)).put();
+    assertResponseStatus(200, response);
+    assertThat(response.getBody(Permission[].class)).containsExactlyInAnyOrder(Permission.READ);
+  }
+
+  @Test
+  public void testValidatePermission_RepositoryContainerContext() throws Exception {
     HttpResponse response = validateRequest(OwnerType.REPOSITORY_CONTAINER).body(
         EnumSet.of(Permission.READ, Permission.WRITE)).put();
     assertResponseStatus(200, response);

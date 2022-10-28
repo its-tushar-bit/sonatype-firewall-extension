@@ -28,12 +28,15 @@ import utilityServicesModule from './utility/services/utility.services.module';
 import unsavedChangesModalModule from './unsavedChangesModal/module';
 import loginModalModule from './user/LoginModal/module';
 import legalModule from './legal/legal.module';
-import { contains, not, path } from 'ramda';
+import toastContainerModule from './toastContainer/module';
+import { contains, isEmpty, not, path } from 'ramda';
 import { attachAxiosInterceptors } from './utility/axiosConfig';
 import { requestNotificationPermission } from './utility/services/notificationService';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { selectIsAllowExternalHyperlinksSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { unwrapResult } from '@reduxjs/toolkit';
+import { actions as toastSliceActions } from 'MainRoot/toastContainer/toastSlice';
+import { selectToastSlice } from 'MainRoot/toastContainer/toastSelectors';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -76,6 +79,7 @@ export const InitModule = angular
       reduxConfigModule.name,
       configurationModule.name,
       loginModalModule.name,
+      toastContainerModule.name,
     ],
     [
       '$stateProvider',
@@ -200,7 +204,6 @@ export const InitModule = angular
       var savedState = null,
         cancelPreLoginStateHandler,
         cancelUnlicensedStateChangeHandler;
-
       /**
        * Before login, prevent navigation to pages that require authentication, and trigger the login modal
        * when access to one is attempted
@@ -383,7 +386,9 @@ export const InitModule = angular
       }
 
       function doStart() {
-        const unsubscribe = $ngRedux.connect(mapStateToThis)($rootScope);
+        const unsubscribe = $ngRedux.connect(mapStateToThis, {
+          removeAllToasts: toastSliceActions.removeAllToasts,
+        })($rootScope);
         $rootScope.$on('$destroy', unsubscribe);
 
         $q.all([currentUser.waitForLogin(), checkLicenseInfo()])
@@ -442,6 +447,9 @@ export const InitModule = angular
         }
 
         $rootScope.$on('$stateChangeStart', function (event, toState, toParams) {
+          if (!isEmpty($rootScope.toast.toasts)) {
+            $rootScope.removeAllToasts();
+          }
           if (!isProcessingStateChange) {
             var e = $rootScope.$broadcast('pageChangeStarted');
             if (e.defaultPrevented || isPageDirty()) {
@@ -507,6 +515,7 @@ export const InitModule = angular
 
 export const mapStateToThis = (state) => ({
   isAllowExternalHyperlinks: selectIsAllowExternalHyperlinksSupported(state),
+  toast: selectToastSlice(state),
 });
 
 export const MainModule = angular.module('MainModule', [InitModule.name]).run([

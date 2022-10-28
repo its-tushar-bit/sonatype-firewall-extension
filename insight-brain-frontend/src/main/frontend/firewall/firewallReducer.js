@@ -43,14 +43,20 @@ import {
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED,
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED,
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED,
+  FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED,
+  FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED,
+  FIREWALL_LOAD_COMPONENT_LICENSES_FAILED,
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED,
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED,
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED,
+  FIREWALL_REEVALUATE_COMPONENT_REQUESTED,
+  FIREWALL_REEVALUATE_COMPONENT_FULFILLED,
+  FIREWALL_REEVALUATE_COMPONENT_FAILED,
 } from './firewallActions';
 import { __, always, assoc, curry, dissoc, lensPath, lensProp, merge, over, prop } from 'ramda';
 import { pathSet } from '../util/jsUtil';
 
-const initialState = Object.freeze({
+export const initialState = Object.freeze({
   cip: Object.freeze({
     showCipModal: false,
     selectedComponent: null,
@@ -61,9 +67,19 @@ const initialState = Object.freeze({
     isLoadingComponentDetails: false,
     componentDetails: null,
     componentDetailsError: null,
-    policyViolations: null,
+    policyViolations: [],
     isLoadingPolicyViolations: false,
     policyViolationsError: null,
+    componentLicenses: {
+      declaredLicenses: [],
+      observedLicenses: [],
+      effectiveLicenses: [],
+      selectableLicenses: [],
+      licenseOverride: [],
+      allLicenses: [],
+    },
+    isLoadingComponentLicenses: false,
+    componentLicensesError: null,
     policyExistingWaivers: null,
     isLoadExistingWaivers: false,
     existingWaiversError: null,
@@ -239,7 +255,6 @@ const loadComponentPolicyViolationsRequested = (_, state) => ({
   ...state,
   componentDetailsPage: {
     ...state.componentDetailsPage,
-    policyViolations: null,
     isLoadingPolicyViolations: true,
     policyViolationsError: null,
   },
@@ -261,6 +276,36 @@ const loadComponentPolicyViolationsFailed = (error, state) => ({
     ...state.componentDetailsPage,
     isLoadingPolicyViolations: false,
     policyViolationsError: error,
+  },
+});
+
+const loadComponentLicensesRequested = (_, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    isLoadingComponentLicenses: true,
+    componentLicensesError: null,
+  },
+});
+
+const loadComponentLicensesFulfilled = function (payload, state) {
+  return {
+    ...state,
+    componentDetailsPage: {
+      ...state.componentDetailsPage,
+      componentLicenses: payload,
+      isLoadingComponentLicenses: false,
+      componentLicensesError: null,
+    },
+  };
+};
+
+const loadComponentLicensesFailed = (error, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    isLoadingComponentLicenses: false,
+    componentLicensesError: error,
   },
 });
 
@@ -571,6 +616,33 @@ const loadExistingWaiversDataFailed = (error, state) => ({
   },
 });
 
+const reevaluateComponentRequested = (_, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    componentReevaluated: false,
+    errorReevaluatingComponent: null,
+  },
+});
+
+const reevaluateComponentFulfilled = (_, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    componentReevaluated: true,
+    errorReevaluatingComponent: null,
+  },
+});
+
+const reevaluateComponentFailed = (error, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    componentReevaluated: false,
+    errorReevaluatingComponent: error,
+  },
+});
+
 const reducerActionMap = {
   [FIREWALL_LOAD_DATA_REQUESTED]: always(initialState),
   [FIREWALL_SET_SHOW_CONFIGURATION_MODAL]: setShowConfigurationModal,
@@ -609,9 +681,15 @@ const reducerActionMap = {
   [FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_REQUESTED]: loadComponentPolicyViolationsRequested,
   [FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED]: loadComponentPolicyViolationsFulfilled,
   [FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED]: loadComponentPolicyViolationsFailed,
+  [FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED]: loadComponentLicensesRequested,
+  [FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED]: loadComponentLicensesFulfilled,
+  [FIREWALL_LOAD_COMPONENT_LICENSES_FAILED]: loadComponentLicensesFailed,
   [FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED]: loadExistingWaiversDataRequested,
   [FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED]: loadExistingWaiversDataFulfilled,
   [FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED]: loadExistingWaiversDataFailed,
+  [FIREWALL_REEVALUATE_COMPONENT_REQUESTED]: reevaluateComponentRequested,
+  [FIREWALL_REEVALUATE_COMPONENT_FULFILLED]: reevaluateComponentFulfilled,
+  [FIREWALL_REEVALUATE_COMPONENT_FAILED]: reevaluateComponentFailed,
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

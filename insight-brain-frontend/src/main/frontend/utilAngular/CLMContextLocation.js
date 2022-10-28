@@ -187,10 +187,6 @@ locationModule.factory('CLMContextLocations', [
         return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';
       },
 
-      getRobotUrl: function (ownerType, hashcode) {
-        return baseUrl.get() + '/rest/' + ownerType + '/services/generateIcon/' + hashcode;
-      },
-
       getRoleMappingUrl: function (roleId) {
         return baseUrl.get() + '/rest/membershipMapping/' + getServicePathWithId() + (roleId ? '/role/' + roleId : '');
       },

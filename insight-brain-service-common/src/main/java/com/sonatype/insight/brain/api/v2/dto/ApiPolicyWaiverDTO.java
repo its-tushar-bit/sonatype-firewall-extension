@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
@@ -20,9 +22,11 @@ import com.sonatype.insight.json.store.ApiDateFormat;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 
 /**
  * @since 1.76
@@ -126,6 +130,26 @@ public class ApiPolicyWaiverDTO
    */
   public String associatedPackageUrl;
 
+  /**
+   * @since 1.147
+   */
+  public ApiComponentIdentifierDTOV2 componentIdentifier;
+
+  /**
+   * @since 1.147
+   */
+  @JsonInclude(Include.NON_NULL)
+  public Integer threatLevel;
+
+  /**
+   * @since 1.147
+   */
+  @JsonProperty(access = Access.READ_ONLY)
+  public ComponentDisplayName getDisplayName() {
+    return this.componentIdentifier == null
+        ? null : ComponentDisplayNameUtil.fromIdentifier(this.componentIdentifier.toComponentIdentifier());
+  }
+
   public static ApiPolicyWaiverDTO toDto(PolicyWaiver policyWaiver, Owner owner) {
     ApiPolicyWaiverDTO dto = new ApiPolicyWaiverDTO();
 
@@ -138,6 +162,11 @@ public class ApiPolicyWaiverDTO
     dto.creatorId = policyWaiver.getCreatorId();
     dto.creatorName = policyWaiver.getCreatorName();
 
+    if (policyWaiver.getComponentIdentifier() != null) {
+      dto.componentIdentifier = ApiComponentIdentifierDTOV2
+          .fromComponentIdentifier(policyWaiver.getComponentIdentifier());
+    }
+
     if (owner != null) {
       dto.scopeOwnerId = owner.getId();
       dto.scopeOwnerType = ScopeOwnerUtils.getScopeOwnerType(owner.getType(), owner.getId());
@@ -146,7 +175,7 @@ public class ApiPolicyWaiverDTO
 
     if (policyWaiver.getComponentMatchStrategy() != null) {
       dto.matcherStrategy = policyWaiver.getComponentMatchStrategy();
-      if (policyWaiver.getComponentMatchStrategy() == ALL_VERSIONS) {
+      if (policyWaiver.getComponentMatchStrategy() != ALL_COMPONENTS) {
         dto.associatedPackageUrl = policyWaiver.getAssociatedPackageUrl();
       }
     }

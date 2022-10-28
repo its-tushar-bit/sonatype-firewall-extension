@@ -27,7 +27,7 @@
     </a>
     <div class="iq-owner-tree-view__new-organization"
          ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }">
-      <button class="iq-btn iq-btn--text-only" ng-click="vm.createOrganization()">
+      <button class="iq-btn iq-btn--text-only" ng-click="vm.createOwner()">
         <i class="fa fa-plus"></i>Add New Org
       </button>
     </div>
@@ -71,7 +71,7 @@
         <div class="iq-owner-tree-view__new-application"
              ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: organization.id}) }">
           <button class="iq-btn iq-btn--text-only"
-                  ng-click="$event.preventDefault(); $event.stopPropagation(); vm.createApplication(organization);">
+                  ng-click="$event.preventDefault(); $event.stopPropagation(); vm.createOwner();">
             <i class="fa fa-plus"></i> Add New App
           </button>
         </div>

@@ -17,8 +17,9 @@ import javax.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -29,7 +30,10 @@ public class SamlUser
 {
   public static final String SAML_REALM_ID = "SAML";
 
+  // Keeping for backwards compatibility: CLM-22868
   private static final String GROUPS_DELIMITER = ",";
+
+  private static final Gson gson = new Gson();
 
   @Id
   @Column(name = "saml_user_id")
@@ -117,13 +121,20 @@ public class SamlUser
     if (StringUtils.isEmpty(groupsString)) {
       return Collections.emptySet();
     }
-    return Sets.newLinkedHashSet(Arrays.asList(groupsString.split(GROUPS_DELIMITER)));
+    try {
+      return Sets.newLinkedHashSet(Arrays.asList(gson.fromJson(groupsString, String[].class)));
+    }
+    catch (JsonSyntaxException jsonSyntaxException) {
+      // This happens if the user is using tokens and their groups were never updated due to not logging in
+      // after implementation change.This user needs to refresh their groups by logging in via SAML.
+      return Sets.newLinkedHashSet(Arrays.asList(groupsString.split(GROUPS_DELIMITER)));
+    }
   }
 
   public void setGroups(Set<String> groups) {
     groupsString = null;
     if (CollectionUtils.isNotEmpty(groups)) {
-      groupsString = Joiner.on(GROUPS_DELIMITER).join(groups);
+      groupsString = gson.toJson(groups);
     }
   }
 

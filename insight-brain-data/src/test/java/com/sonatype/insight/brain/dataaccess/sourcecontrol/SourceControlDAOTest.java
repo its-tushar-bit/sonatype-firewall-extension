@@ -1309,7 +1309,8 @@ public class SourceControlDAOTest
 
       // then: source control is retrieved only for some trigger types
       if (scanTriggerType == ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING
-          || scanTriggerType == ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING) {
+          || scanTriggerType == ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING
+          || scanTriggerType == ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST) {
         assertThat(sourceControlList).withFailMessage("Expected 1 result for scanTriggerType=%s", scanTriggerType)
             .hasSize(1);
         assertSourceControl(sourceControlList.get(0), expectedSourceControl);

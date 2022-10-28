@@ -8,7 +8,11 @@ import * as PropTypes from 'prop-types';
 
 import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
 import LoadWrapper from '../react/LoadWrapper';
-import SidebarNavViolationList from './SidebarNavViolationList';
+import SidebarNavViolationList, { SidebarViolationDataType } from './SidebarNavViolationList';
+import SidebarNavWaiversList, {
+  SidebarWaiverDetailsDataType,
+  SidebarWaiverFilterDataType,
+} from './SidebarNavWaiversList';
 
 export default function SidebarNavList(props) {
   const {
@@ -16,6 +20,7 @@ export default function SidebarNavList(props) {
     loading,
     error,
     gotoNewVulnerability,
+    gotoWaiver,
     data,
     contentType,
     backButtonStateName,
@@ -23,7 +28,7 @@ export default function SidebarNavList(props) {
     scrollToSelection,
   } = props;
 
-  const { id, sidebarId, sidebarReference, type } = stateParams;
+  const { id, sidebarId, sidebarReference, type, waiverId } = stateParams;
 
   function load() {
     loadSidebarNav(stateParams);
@@ -39,6 +44,15 @@ export default function SidebarNavList(props) {
             currentViolationId={id}
             violations={data}
             onClick={gotoNewVulnerability}
+            scrollToSelection={scrollToSelection}
+          />
+        );
+      case 'waivers':
+        return (
+          <SidebarNavWaiversList
+            currentWaiverId={waiverId}
+            waivers={data}
+            onClick={gotoWaiver}
             scrollToSelection={scrollToSelection}
           />
         );
@@ -63,22 +77,22 @@ export default function SidebarNavList(props) {
 SidebarNavList.propTypes = {
   loadSidebarNav: PropTypes.func.isRequired,
   gotoNewVulnerability: PropTypes.func.isRequired,
+  gotoWaiver: PropTypes.func.isRequired,
   backButtonStateName: PropTypes.string,
   contentType: PropTypes.string,
   loading: PropTypes.bool.isRequired,
   error: LoadWrapper.propTypes.error,
   data: PropTypes.arrayOf(
-    PropTypes.shape({
-      policyName: PropTypes.string.isRequired,
-      policyViolationId: PropTypes.string.isRequired,
-      threatLevel: PropTypes.number.isRequired,
-    })
+    PropTypes.oneOfType(SidebarViolationDataType, SidebarWaiverDetailsDataType, SidebarWaiverFilterDataType)
   ),
   stateParams: PropTypes.shape({
     id: PropTypes.string,
     type: PropTypes.string,
     sidebarReference: PropTypes.string,
     sidebarId: PropTypes.string,
+    ownerType: PropTypes.string,
+    ownerId: PropTypes.string,
+    waiverId: PropTypes.string,
   }).isRequired,
   scrollToSelection: PropTypes.bool.isRequired,
 };

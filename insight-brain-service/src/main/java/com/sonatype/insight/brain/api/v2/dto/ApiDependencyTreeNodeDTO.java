@@ -19,6 +19,8 @@ public class ApiDependencyTreeNodeDTO
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<ApiDependencyTreeNodeDTO> children;
 
+  private boolean direct;
+
   public String getPackageUrl() {
     return packageUrl;
   }
@@ -41,5 +43,13 @@ public class ApiDependencyTreeNodeDTO
 
   public void setChildren(List<ApiDependencyTreeNodeDTO> children) {
     this.children = children;
+  }
+
+  public boolean isDirect() {
+    return direct;
+  }
+
+  public void setDirect(boolean direct) {
+    this.direct = direct;
   }
 }

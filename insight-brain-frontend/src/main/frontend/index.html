@@ -25,6 +25,7 @@
         <system-notice id="system-notice" ng-if="!error"></system-notice>
         <change-default-admin-password-notice ng-if="!error"></change-default-admin-password-notice>
       </div>
+      <toast-container></toast-container>
       <navigation-container
         ng-if="!$state.params.embeddable"
         product-edition="{{productEdition}}"

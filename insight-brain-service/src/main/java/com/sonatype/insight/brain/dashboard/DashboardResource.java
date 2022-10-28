@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -22,6 +21,7 @@ import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.codahale.metrics.annotation.ExceptionMetered;
 import com.codahale.metrics.annotation.Timed;
@@ -46,10 +46,14 @@ public class DashboardResource
 
   public static final String GET_APPLICATION_RISKS_EXPORT_PATH = "export/applicationRisks";
 
+  public static final String GET_POLICY_WAIVERS_PATH = "policy/policyWaivers";
+
+  public static final String GET_POLICY_WAIVERS_EXPORT_PATH = "export/policyWaivers";
+
   public static final String FILTERS_PATH = "filters/active";
 
   public static final String NAMED_FILTERS_PATH = "filters/named";
-  
+
   public static final String DELETE_NAMED_FILTER_PATH = NAMED_FILTERS_PATH + "/delete";
 
   private final ApplicationRiskService applicationRiskService;
@@ -60,16 +64,21 @@ public class DashboardResource
 
   private final NewestRiskService newestRiskService;
 
+  private final DashboardPolicyWaiverService dashboardPolicyWaiverService;
+
   @Inject
-  public DashboardResource(ApplicationRiskService applicationRiskService,
-                           DashboardFilterService dashboardFilterService,
-                           ComponentRiskService componentRiskService,
-                           NewestRiskService newestRiskService)
+  public DashboardResource(
+      ApplicationRiskService applicationRiskService,
+      DashboardFilterService dashboardFilterService,
+      ComponentRiskService componentRiskService,
+      NewestRiskService newestRiskService,
+      DashboardPolicyWaiverService dashboardPolicyWaiverService)
   {
     this.applicationRiskService = applicationRiskService;
     this.componentRiskService = componentRiskService;
     this.dashboardFilterService = dashboardFilterService;
     this.newestRiskService = newestRiskService;
+    this.dashboardPolicyWaiverService = dashboardPolicyWaiverService;
   }
 
   @POST
@@ -174,8 +183,8 @@ public class DashboardResource
   }
 
   /**
-   * Export the violations as CSV.
-   * Use of FormDataMultiPart facilitates downloading results as file.
+   * Export the violations as CSV. Use of FormDataMultiPart facilitates downloading results as file.
+   *
    * @since 1.24.0
    */
   @POST
@@ -196,8 +205,8 @@ public class DashboardResource
   }
 
   /**
-   * Export the components as CSV.
-   * Use of FormDataMultiPart facilitates downloading results as file.
+   * Export the components as CSV. Use of FormDataMultiPart facilitates downloading results as file.
+   *
    * @since 1.24.0
    */
   @POST
@@ -217,8 +226,8 @@ public class DashboardResource
   }
 
   /**
-   * Export the applications as CSV.
-   * Use of FormDataMultiPart facilitates downloading results as file.
+   * Export the applications as CSV. Use of FormDataMultiPart facilitates downloading results as file.
+   *
    * @since 1.24.0
    */
   @POST
@@ -236,6 +245,41 @@ public class DashboardResource
 
     String fileNamePrefix = calculateFileNamePrefixForView("applications");
     return Csv.generate(Response.ok(), fileNamePrefix, ApplicationRiskScoreDTO.getCsvHeader(), results).build();
+  }
+
+  /**
+   * @since 1.147
+   */
+  @POST
+  @Path(GET_POLICY_WAIVERS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_DASHBOARD_WAIVER_LIST)
+  @ExceptionMetered(name = "getPolicyWaiversExceptionMeter")
+  public DashboardResultsDTO<DashboardPolicyWaiverDTO> getPolicyWaivers(RisksFilterDTO risksFilterDTO) {
+    if (risksFilterDTO == null) {
+      throw new BadRequestException("Invalid filter supplied for request.");
+    }
+    return dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTO);
+  }
+
+  /**
+   * @since 1.147
+   */
+  @POST
+  @Path(GET_POLICY_WAIVERS_EXPORT_PATH)
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Produces("text/csv")
+  @ExceptionMetered(name = "getPolicyWaiversExportExceptionMeter")
+  @Audited(AuditEvent.EXPORT_DASHBOARD_WAIVER_LIST)
+  public Response getPolicyWaiversExport(@FormDataParam("filter") RisksFilterDTO risksFilterDTO) throws IOException {
+    risksFilterDTO.maxResults = Integer.MAX_VALUE;
+
+    final List<DashboardPolicyWaiverDTO> results = dashboardPolicyWaiverService
+        .getDashboardPolicyWaiversForExport(risksFilterDTO).dashboardResults;
+
+    String fileNamePrefix = calculateFileNamePrefixForView("waivers");
+    return Csv.generate(Response.ok(), fileNamePrefix, DashboardPolicyWaiverDTO.getCsvHeader(), results).build();
   }
 
   private String calculateFileNamePrefixForView(final String viewName) throws IOException {

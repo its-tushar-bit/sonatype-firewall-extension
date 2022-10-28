@@ -31,6 +31,15 @@ export const componentsSortFields = {
   LOW_RISK: 'LOW_RISK',
 };
 
+export const waiversSortFields = {
+  COMPONENT_SCOPE: 'COMPONENT_SCOPE',
+  CREATION_DATE: 'CREATION_DATE',
+  EXPIRATION_DATE: 'EXPIRATION_DATE',
+  OWNER_SCOPE: 'OWNER_SCOPE',
+  POLICY_NAME: 'POLICY_NAME',
+  THREAT_LEVEL: 'THREAT_LEVEL',
+};
+
 const translateSortFields = (fieldsMap) => (sortFields) => {
   return sortFields.map((field) => {
     if (field.substr(0, 1) === '-') {
@@ -65,4 +74,13 @@ export const translateComponentsSortFields = translateSortFields({
   scoreSevere: componentsSortFields.SEVERE_RISK,
   scoreModerate: componentsSortFields.MODERATE_RISK,
   scoreLow: componentsSortFields.LOW_RISK,
+});
+
+export const translateWaiversSortFields = translateSortFields({
+  component: waiversSortFields.COMPONENT_SCOPE,
+  createTime: waiversSortFields.CREATION_DATE,
+  expiryTime: waiversSortFields.EXPIRATION_DATE,
+  scope: waiversSortFields.OWNER_SCOPE,
+  policyName: waiversSortFields.POLICY_NAME,
+  threatLevel: waiversSortFields.THREAT_LEVEL,
 });

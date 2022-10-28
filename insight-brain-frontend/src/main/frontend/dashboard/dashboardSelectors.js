@@ -6,17 +6,24 @@
 import { prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 
-import { getApplicationRisksExportUrl, getComponentRisksExportUrl, getNewestRisksExportUrl } from '../util/CLMLocation';
+import {
+  getApplicationRisksExportUrl,
+  getComponentRisksExportUrl,
+  getNewestRisksExportUrl,
+  getWaiversExportUrl,
+} from '../util/CLMLocation';
 import {
   translateApplicationsSortFields,
   translateComponentsSortFields,
   translateViolationsSortFields,
+  translateWaiversSortFields,
 } from './services/sortFieldsUtils';
 import { createDashboardDataRequestPayload } from './utils/dashboard.utils.module';
 import {
   APPLICATIONS_RESULTS_TYPE,
   COMPONENTS_RESULTS_TYPE,
   VIOLATIONS_RESULTS_TYPE,
+  WAIVERS_RESULTS_TYPE,
 } from 'MainRoot/dashboard/results/dashboardResultsTypes';
 
 export const selectExportTitle = (state) => state.router.currentState.data.exportTitle;
@@ -28,6 +35,7 @@ export const selectExportRequestData = (state) => {
   const applicationsSortFields = state.dashboard.applications.sortFields;
   const componentsSortFields = state.dashboard.components.sortFields;
   const violationsSortFields = state.dashboard.violations.sortFields;
+  const waiversSortFields = state.dashboard.waivers.sortFields;
 
   switch (routeStateName) {
     case 'dashboard.overview.violations':
@@ -38,6 +46,9 @@ export const selectExportRequestData = (state) => {
 
     case 'dashboard.overview.applications':
       return createDashboardDataRequestPayload(filters, null, translateApplicationsSortFields(applicationsSortFields));
+
+    case 'dashboard.overview.waivers':
+      return createDashboardDataRequestPayload(filters, null, translateWaiversSortFields(waiversSortFields));
 
     default:
       return {};
@@ -56,6 +67,9 @@ export const selectExportUrl = (state) => {
     case 'dashboard.overview.applications':
       return getApplicationRisksExportUrl();
 
+    case 'dashboard.overview.waivers':
+      return getWaiversExportUrl();
+
     default:
       return '';
   }
@@ -65,3 +79,6 @@ const selectDashboardSlice = prop('dashboard');
 export const selectViolationResults = createSelector(selectDashboardSlice, prop(VIOLATIONS_RESULTS_TYPE));
 export const selectComponentResults = createSelector(selectDashboardSlice, prop(COMPONENTS_RESULTS_TYPE));
 export const selectApplicationResults = createSelector(selectDashboardSlice, prop(APPLICATIONS_RESULTS_TYPE));
+export const selectWaiversResults = createSelector(selectDashboardSlice, prop(WAIVERS_RESULTS_TYPE));
+
+export const selectDashboardFilter = prop('dashboardFilter');

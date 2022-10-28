@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reduce from '../../../../main/frontend/dashboard/filter/dashboardFilterReducer';
+import { dashboardFilterOptionsTab } from 'MainRoot/dashboard/filter/staticFilterEntries';
 
 describe('dashboardFilterReducer', () => {
   let otherObject;
@@ -218,6 +219,7 @@ describe('dashboardFilterReducer', () => {
         policyViolationStates: { OPEN: true },
         maxDaysOld: 30,
         policyThreatLevels: [2, 10],
+        expirationDate: 'ALL',
       });
       filterJson = {
         organizationFilters: ['orgId1', 'orgId2', 'org3'],
@@ -257,6 +259,10 @@ describe('dashboardFilterReducer', () => {
           { id: null, name: 'uncategorized applications' },
           { id: 'tagId1', name: 'TagOne' },
         ],
+        expirationDates: [
+          { id: 'ALL', name: 'all' },
+          { id: 'IN_24_HOURS', name: 'in 24 hours' },
+        ],
         appliedFilter: initSelected,
         selected: initSelected,
         other: otherObject,
@@ -271,27 +277,6 @@ describe('dashboardFilterReducer', () => {
 
         expect(filtersAreDirty).toBe(false);
         expect(other).toBe(otherObject);
-      });
-
-      describe('showAgeFilter', () => {
-        it('is set to true if isViolationsTab', () => {
-          initState.isViolationsTab = true;
-          const state = Object.freeze(initState);
-          expect(state.showAgeFilter).toBe(false);
-
-          const { showAgeFilter, other } = reduce(state, action);
-          expect(showAgeFilter).toBe(true);
-          expect(other).toBe(otherObject);
-        });
-
-        it('is set to false if not isViolationsTab', () => {
-          initState.isViolationsTab = false;
-          const state = Object.freeze(initState);
-          const { showAgeFilter, other } = reduce(state, action);
-
-          expect(showAgeFilter).toBe(false);
-          expect(other).toBe(otherObject);
-        });
       });
 
       it('sets selected and appliedFilter', () => {
@@ -493,10 +478,13 @@ describe('dashboardFilterReducer', () => {
 
   describe('@@reduxUiRouter/onFinish action', () => {
     let initState;
+    const NxTabs = Object.entries(dashboardFilterOptionsTab);
     beforeEach(() => {
       initState = {
-        isViolationsTab: false,
         showAgeFilter: false,
+        showStagesFilter: false,
+        showViolationStateFilter: false,
+        showExpirationDateFilter: false,
         selected: {
           maxDaysOld: 30,
         },
@@ -504,64 +492,36 @@ describe('dashboardFilterReducer', () => {
       };
     });
 
-    describe('isViolationsTab', () => {
-      it('is set to true if router state is violations', () => {
-        const state = Object.freeze(initState);
+    describe('showAgeFilter, showStagesFilter, showViolationStateFilter, showExpirationDateFilter', () => {
+      NxTabs.forEach((tab) => {
+        const [route, filterValues] = tab;
+        it(`is set to ${filterValues.showAgeFilter}, ${filterValues.showStagesFilter}, ${filterValues.showViolationStateFilter} and ${filterValues.showExpirationDateFilter} if the route is ${route}`, () => {
+          const state = Object.freeze(initState);
 
-        expect(state.isViolationsTab).toBe(false);
+          expect(state.showAgeFilter).toBe(false);
+          expect(state.showStagesFilter).toBe(false);
+          expect(state.showViolationStateFilter).toBe(false);
+          expect(state.showExpirationDateFilter).toBe(false);
 
-        const { isViolationsTab, other } = reduce(state, {
-          type: '@@reduxUiRouter/onFinish',
-          payload: {
-            toState: {
-              name: 'dashboard.overview.violations',
-            },
-            toParams: {},
-          },
+          const { showAgeFilter, showStagesFilter, showViolationStateFilter, showExpirationDateFilter, other } = reduce(
+            state,
+            {
+              type: '@@reduxUiRouter/onFinish',
+              payload: {
+                toState: {
+                  name: route,
+                },
+                toParams: {},
+              },
+            }
+          );
+
+          expect(showAgeFilter).toBe(filterValues.showAgeFilter);
+          expect(showStagesFilter).toBe(filterValues.showStagesFilter);
+          expect(showViolationStateFilter).toBe(filterValues.showViolationStateFilter);
+          expect(showExpirationDateFilter).toBe(filterValues.showExpirationDateFilter);
+          expect(other).toBe(otherObject);
         });
-        expect(isViolationsTab).toBe(true);
-        expect(other).toBe(otherObject);
-      });
-
-      it('is set to false if router state is not violations', () => {
-        initState.isViolationsTab = true;
-        const state = Object.freeze(initState);
-
-        expect(state.isViolationsTab).toBe(true);
-
-        const { isViolationsTab, other } = reduce(state, {
-          type: '@@reduxUiRouter/onFinish',
-          payload: {
-            toState: {
-              name: 'dashboard.overview.applications',
-            },
-            toParams: {},
-          },
-        });
-
-        expect(isViolationsTab).toBe(false);
-        expect(other).toBe(otherObject);
-      });
-    });
-
-    describe('showAgeFilter', () => {
-      it('is set to true if isViolationsTab', () => {
-        const state = Object.freeze(initState);
-
-        expect(state.showAgeFilter).toBe(false);
-
-        const { showAgeFilter, other } = reduce(state, {
-          type: '@@reduxUiRouter/onFinish',
-          payload: {
-            toState: {
-              name: 'dashboard.overview.violations',
-            },
-            toParams: {},
-          },
-        });
-
-        expect(showAgeFilter).toBe(true);
-        expect(other).toBe(otherObject);
       });
     });
   });
@@ -627,6 +587,54 @@ describe('dashboardFilterReducer', () => {
       });
 
       expect(selected.maxDaysOld).toBe(null);
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe('SELECT_EXPIRATION_DATE action', () => {
+    let initState;
+
+    beforeEach(() => {
+      initState = {
+        other: otherObject,
+        filtersAreDirty: false,
+        expirationDates: [
+          {
+            id: 'ALL',
+            name: 'all',
+          },
+          {
+            id: 'IN_7_DAYS',
+            name: 'in 7 days',
+          },
+        ],
+        selected: {
+          expirationDate: 'ALL',
+        },
+      };
+    });
+
+    it('sets selected expirationDate and sets filtersAreDirty to true', () => {
+      const state = Object.freeze(initState);
+      const { selected, filtersAreDirty, other } = reduce(state, {
+        type: 'SELECT_EXPIRATION_DATE',
+        payload: 'IN_7_DAYS',
+      });
+
+      expect(selected.expirationDate).toBe('IN_7_DAYS');
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
+    });
+
+    it('sets selected expirationDate to "all" sets filtersAreDirty to true', () => {
+      const state = Object.freeze(initState);
+      const { selected, filtersAreDirty, other } = reduce(state, {
+        type: 'SELECT_EXPIRATION_DATE',
+        payload: null,
+      });
+
+      expect(selected.expirationDate).toBe('ALL');
       expect(filtersAreDirty).toBe(true);
       expect(other).toBe(otherObject);
     });
@@ -739,6 +747,7 @@ describe('dashboardFilterReducer', () => {
           policyViolationStates: new Set(['OPEN', 'WAIVED']),
           maxDaysOld: 365,
           policyThreatLevels: [3, 8],
+          expirationDate: 'ALL',
         },
         selected: {},
         other: otherObject,

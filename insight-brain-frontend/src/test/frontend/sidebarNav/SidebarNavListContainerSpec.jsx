@@ -8,18 +8,27 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 
 describe('SidebarNavListContainer', function () {
-  let SidebarNavListContainer, loadSidebarNavMock, gotoNewVulnerabilityMock, state, store, vdom, mock$State;
+  let SidebarNavListContainer,
+    loadSidebarNavMock,
+    gotoNewVulnerabilityMock,
+    gotoWaiverMock,
+    state,
+    store,
+    vdom,
+    mock$State;
 
   beforeEach(function () {
     loadSidebarNavMock = jasmine.createSpy('loadSidebarNav').and.returnValue({ type: 'LOAD_LEFT_NAV' });
     gotoNewVulnerabilityMock = jasmine
       .createSpy('gotoNewVulnerability')
       .and.returnValue({ type: 'GOTO_NEW_VULNERABILITY' });
+    gotoWaiverMock = jasmine.createSpy('gotoNewVulnerability').and.returnValue({ type: 'GOTO_WAIVER' });
 
     SidebarNavListContainer = require('inject-loader!../../../main/frontend/sidebarNav/SidebarNavListContainer')({
       './sidebarNavListActions': {
         loadSidebarNav: loadSidebarNavMock,
         gotoNewVulnerability: gotoNewVulnerabilityMock,
+        gotoWaiver: gotoWaiverMock,
       },
     }).default;
 
@@ -54,78 +63,100 @@ describe('SidebarNavListContainer', function () {
     vdom = <SidebarNavListContainer store={store} $state={mock$State} />;
   });
 
-  it('maps the state slice ("sidebarNavList") to SidebarNavListContainer props', () => {
-    let wrapper = shallow(vdom).dive();
+  describe('violations', function () {
+    it('maps the state slice ("sidebarNavList") to SidebarNavListContainer props', () => {
+      let wrapper = shallow(vdom).dive();
 
-    expect(wrapper).toHaveProp('loading', false);
-    expect(wrapper).toHaveProp('error', null);
+      expect(wrapper).toHaveProp('loading', false);
+      expect(wrapper).toHaveProp('error', null);
 
-    state = {
-      ...state,
-      sidebarNavList: {
-        loading: true,
-        error: 'foo',
-        backButtonStateName: 'foo.bar.baz',
-        contentType: 'violations',
-        data: [{ foo: 'bar' }],
-      },
-    };
+      state = {
+        ...state,
+        sidebarNavList: {
+          loading: true,
+          error: 'foo',
+          backButtonStateName: 'foo.bar.baz',
+          contentType: 'violations',
+          data: [{ foo: 'bar' }],
+        },
+      };
 
-    // force state update
-    store.dispatch({ type: 'BLAH' });
-    wrapper = shallow(vdom).dive();
+      // force state update
+      store.dispatch({ type: 'BLAH' });
+      wrapper = shallow(vdom).dive();
 
-    expect(wrapper).toHaveProp('loading', true);
-    expect(wrapper).toHaveProp('error', 'foo');
-    expect(wrapper).toHaveProp('contentType', 'violations');
-    expect(wrapper).toHaveProp('backButtonStateName', 'foo.bar.baz');
-    expect(wrapper).toHaveProp('data', [{ foo: 'bar' }]);
+      expect(wrapper).toHaveProp('loading', true);
+      expect(wrapper).toHaveProp('error', 'foo');
+      expect(wrapper).toHaveProp('contentType', 'violations');
+      expect(wrapper).toHaveProp('backButtonStateName', 'foo.bar.baz');
+      expect(wrapper).toHaveProp('data', [{ foo: 'bar' }]);
+    });
+
+    it('sets data from violationDetails if contentType is not defined and stateName is sidebarView.violation', () => {
+      let wrapper = shallow(vdom).dive();
+
+      expect(wrapper).toHaveProp('loading', false);
+      expect(wrapper).toHaveProp('error', null);
+
+      state = {
+        ...state,
+        sidebarNavList: {
+          loading: true,
+          error: 'foo',
+          backButtonStateName: 'foo.bar.baz',
+          contentType: undefined,
+          data: [{ foo: 'bar' }],
+        },
+      };
+
+      // force state update
+      store.dispatch({ type: 'BLAH' });
+      wrapper = shallow(vdom).dive();
+
+      expect(wrapper).toHaveProp('data', [{ policyViolationId: 'idFromDetailsPage' }]);
+      expect(wrapper).toHaveProp('contentType', 'violations');
+      expect(wrapper).toHaveProp('backButtonStateName', 'dashboard.overview.violations');
+      expect(wrapper).toHaveProp('loading', false);
+      expect(wrapper).toHaveProp('error', null);
+    });
+
+    it('maps action creators to SidebarNavListContainer props', function () {
+      const wrapper = shallow(vdom).dive(),
+        loadSidebarNavCreator = wrapper.prop('loadSidebarNav'),
+        gotoNewVulnerabilityCreator = wrapper.prop('gotoNewVulnerability');
+
+      expect(loadSidebarNavCreator).toEqual(jasmine.any(Function));
+      expect(gotoNewVulnerabilityCreator).toEqual(jasmine.any(Function));
+
+      expect(store.getActions()).toEqual([]);
+
+      loadSidebarNavCreator();
+      expect(store.getActions()).toEqual([{ type: 'LOAD_LEFT_NAV' }]);
+
+      gotoNewVulnerabilityCreator();
+
+      expect(store.getActions()).toEqual([{ type: 'LOAD_LEFT_NAV' }, { type: 'GOTO_NEW_VULNERABILITY' }]);
+    });
   });
 
-  it('sets data from violationDetails if contentType is not defined and stateName is sidebarView.violation', () => {
-    let wrapper = shallow(vdom).dive();
+  describe('waivers', function () {
+    it('maps action creators to SidebarNavListContainer props', function () {
+      const wrapper = shallow(vdom).dive(),
+        loadSidebarNavCreator = wrapper.prop('loadSidebarNav'),
+        gotoWaiverCreator = wrapper.prop('gotoWaiver');
 
-    expect(wrapper).toHaveProp('loading', false);
-    expect(wrapper).toHaveProp('error', null);
+      expect(loadSidebarNavCreator).toEqual(jasmine.any(Function));
+      expect(gotoWaiverCreator).toEqual(jasmine.any(Function));
 
-    state = {
-      ...state,
-      sidebarNavList: {
-        loading: true,
-        error: 'foo',
-        backButtonStateName: 'foo.bar.baz',
-        contentType: undefined,
-        data: [{ foo: 'bar' }],
-      },
-    };
+      expect(store.getActions()).toEqual([]);
 
-    // force state update
-    store.dispatch({ type: 'BLAH' });
-    wrapper = shallow(vdom).dive();
+      loadSidebarNavCreator();
+      expect(store.getActions()).toEqual([{ type: 'LOAD_LEFT_NAV' }]);
 
-    expect(wrapper).toHaveProp('data', [{ policyViolationId: 'idFromDetailsPage' }]);
-    expect(wrapper).toHaveProp('contentType', 'violations');
-    expect(wrapper).toHaveProp('backButtonStateName', 'dashboard.overview.violations');
-    expect(wrapper).toHaveProp('loading', false);
-    expect(wrapper).toHaveProp('error', null);
-  });
+      gotoWaiverCreator();
 
-  it('maps action creators to SidebarNavListContainer props', function () {
-    const wrapper = shallow(vdom).dive(),
-      loadSidebarNavCreator = wrapper.prop('loadSidebarNav'),
-      gotoNewVulnerabilityCreator = wrapper.prop('gotoNewVulnerability');
-
-    expect(loadSidebarNavCreator).toEqual(jasmine.any(Function));
-    expect(gotoNewVulnerabilityCreator).toEqual(jasmine.any(Function));
-
-    expect(store.getActions()).toEqual([]);
-
-    loadSidebarNavCreator();
-    expect(store.getActions()).toEqual([{ type: 'LOAD_LEFT_NAV' }]);
-
-    gotoNewVulnerabilityCreator();
-
-    expect(store.getActions()).toEqual([{ type: 'LOAD_LEFT_NAV' }, { type: 'GOTO_NEW_VULNERABILITY' }]);
+      expect(store.getActions()).toEqual([{ type: 'LOAD_LEFT_NAV' }, { type: 'GOTO_WAIVER' }]);
+    });
   });
 
   it('sets the scrollToSelection prop according on the previous state', function () {

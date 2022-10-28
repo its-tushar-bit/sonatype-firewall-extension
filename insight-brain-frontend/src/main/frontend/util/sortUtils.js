@@ -53,6 +53,31 @@ export const defaultComparator = (a, b) => {
 };
 
 /**
+ * Compares parameters a and b using the JavaScript greater-than and less-than operators and taking null/undefined as infinity value.
+ */
+export const defaultComparatorWithNull = (a, b) => {
+  const isAinfinity = a === null || a === undefined,
+    isBinfinity = b === null || b === undefined;
+
+  if (isAinfinity && isBinfinity) {
+    return 0;
+  }
+  if (a && isBinfinity) {
+    return -1;
+  }
+  if (isAinfinity && b) {
+    return 1;
+  }
+  if (a < b) {
+    return -1;
+  }
+  if (a > b) {
+    return 1;
+  }
+  return 0;
+};
+
+/**
  * Same as defaultComparator but case insensitive.
  */
 export const caseInsensitiveComparator = (a, b) => defaultComparator(a.toLowerCase(), b.toLowerCase());
@@ -61,6 +86,11 @@ export const caseInsensitiveComparator = (a, b) => defaultComparator(a.toLowerCa
  * Returns sorted fields compared using the JavaScript greater-than and less-than operators.
  */
 export const sortItemsByFields = sortItemsByFieldsWithComparator(defaultComparator);
+
+/**
+ * Returns sorted fields compared using the JavaScript greater-than and less-than operators and taking null as a infinity.
+ */
+export const sortItemsByFieldsWithNull = sortItemsByFieldsWithComparator(defaultComparatorWithNull);
 
 export const extractSortFieldName = (orderedField) => {
   if (orderedField && orderedField.indexOf('-') === 0) {

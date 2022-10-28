@@ -17,10 +17,15 @@ import {
   getComponentDetailsUrl,
   getVersionGraphUrl,
   getComponentPolicyViolationsUrl,
+  getComponentMultiLicensesUrl,
+  getLicenseOverrideUrl,
+  getLicensesWithSyntheticFilterUrl,
   getComponentWaivers,
+  getReevaluateComponentUrl,
 } from '../util/CLMLocation';
 import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
+import { selectHash, selectRepositoryId } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';
 
@@ -143,6 +148,14 @@ export const loadComponentPolicyViolationsFailed = payloadParamActionCreator(
   FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FAILED
 );
 
+export const FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED = 'FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED';
+export const FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED = 'FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED';
+export const FIREWALL_LOAD_COMPONENT_LICENSES_FAILED = 'FIREWALL_LOAD_COMPONENT_LICENSES_FAILED';
+
+export const loadComponentLicensesRequested = noPayloadActionCreator(FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED);
+export const loadComponentLicensesFulfilled = payloadParamActionCreator(FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED);
+export const loadComponentLicensesFailed = payloadParamActionCreator(FIREWALL_LOAD_COMPONENT_LICENSES_FAILED);
+
 export const FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED = 'FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED';
 export const FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED = 'FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED';
 export const FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED = 'FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED';
@@ -152,6 +165,14 @@ export const loadExistingWaiversDataFulfilled = payloadParamActionCreator(
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED
 );
 export const loadExistingWaiversDataFailed = payloadParamActionCreator(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED);
+
+export const FIREWALL_REEVALUATE_COMPONENT_REQUESTED = 'FIREWALL_REEVALUATE_COMPONENT_REQUESTED';
+export const FIREWALL_REEVALUATE_COMPONENT_FULFILLED = 'FIREWALL_REEVALUATE_COMPONENT_FULFILLED';
+export const FIREWALL_REEVALUATE_COMPONENT_FAILED = 'FIREWALL_REEVALUATE_COMPONENT_FAILED';
+
+export const reevaluateComponentRequested = noPayloadActionCreator(FIREWALL_REEVALUATE_COMPONENT_REQUESTED);
+export const reevaluateComponentFulfilled = noPayloadActionCreator(FIREWALL_REEVALUATE_COMPONENT_FULFILLED);
+export const reevaluateComponentFailed = noPayloadActionCreator(FIREWALL_REEVALUATE_COMPONENT_FAILED);
 
 export function loadFirewallData() {
   return (dispatch) => {
@@ -342,6 +363,24 @@ export function loadQuarantineList() {
   };
 }
 
+export function reevaluateComponent() {
+  return function (dispatch, getState) {
+    const repositoryId = selectRepositoryId(getState());
+    const hash = selectHash(getState());
+
+    dispatch(reevaluateComponentRequested());
+    return axios
+      .post(getReevaluateComponentUrl(repositoryId, hash))
+      .then(() => {
+        dispatch(reevaluateComponentFulfilled());
+        window.location.reload();
+      })
+      .catch((error) => {
+        dispatch(reevaluateComponentFailed(Messages.getHttpErrorMessage(error)));
+      });
+  };
+}
+
 export function loadComponentDetails(componentDetailsParams) {
   return function (dispatch) {
     dispatch(loadComponentDetailsRequested());
@@ -477,5 +516,42 @@ export function selectComponent(componentIndex) {
 export function onComponentDetailsPageTabChange(tabId) {
   return (dispatch) => {
     return dispatch(stateGo(`firewall.componentDetailsPage.${tabId}`));
+  };
+}
+
+export function loadComponentLicenses(repositoryId, componentIdentifier) {
+  return (dispatch) => {
+    dispatch(loadComponentLicensesRequested());
+    return axios
+      .all([
+        axios.get(getLicensesWithSyntheticFilterUrl()),
+        axios.get(
+          getComponentMultiLicensesUrl({
+            clientType: 'ci',
+            ownerType: 'repository',
+            ownerId: repositoryId,
+            componentIdentifier,
+          })
+        ),
+        axios.get(getLicenseOverrideUrl('repository', repositoryId, componentIdentifier)),
+      ])
+      .then(
+        ([
+          { data: allLicensesData },
+          { data: multiLicensesData },
+          {
+            data: { licenseOverridesByOwner: overridenLicensesData },
+          },
+        ]) => {
+          dispatch(
+            loadComponentLicensesFulfilled({
+              ...multiLicensesData,
+              licenseOverride: overridenLicensesData,
+              allLicenses: allLicensesData.map(({ id, shortDisplayName }) => ({ id, displayName: shortDisplayName })),
+            })
+          );
+        }
+      )
+      .catch((error) => dispatch(loadComponentLicensesFailed(Messages.getHttpErrorMessage(error))));
   };
 }

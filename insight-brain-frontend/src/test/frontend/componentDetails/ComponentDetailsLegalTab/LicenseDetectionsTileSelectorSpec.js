@@ -31,14 +31,22 @@ describe('LicenseDetectionsTile Selectors', () => {
       allLicenses: [{ license1: { id: 'id1' } }, { license2: { id: 'id2' } }, { license3: { id: 'id3' } }],
       loading: true,
       loadError: 'error',
+      reviewObligationsButtonIsVisible: true,
     };
     componentDetailsLicenseDetectionsTile = {
       ...LicenseDetectionsTileData,
       editLicensesForm,
       showEditLicensesPopover: false,
+      reviewObligationsButtonIsVisible: true,
     };
+
     mockState = {
       componentDetailsLicenseDetectionsTile,
+      productFeatures: {
+        productFeatures: {
+          'advanced-legal-pack': true,
+        },
+      },
     };
   });
 

@@ -29,7 +29,7 @@ public class RisksFilterDTO
   public PolicyThreatLevelFilter policyThreatLevelRange;
 
   public PolicyViolationStateFilter policyViolationStates;
-  
+
   public String orderBy;
 
   /**
@@ -38,6 +38,11 @@ public class RisksFilterDTO
    * @since 1.27.0
    */
   public Integer maxDaysOld = DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD;
+
+  /**
+   * @since 1.147
+   */
+  public ExpirationDate expirationDate = ExpirationDate.ALL;
 
   public int maxResults = 1000;
 }

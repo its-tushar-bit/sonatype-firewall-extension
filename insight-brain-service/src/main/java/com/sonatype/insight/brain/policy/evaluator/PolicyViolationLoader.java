@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,10 +22,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
+import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -65,19 +69,33 @@ public class PolicyViolationLoader
     this.configuration = configuration;
   }
 
+  public Collection<ApplicationView> getViolations(
+      Collection<Application> applications,
+      Collection<StageType> stageTypes,
+      boolean activeViolationsOnly,
+      Predicate<? super PolicyViolation> violationFilter,
+      PolicyThreatLevelFilter policyThreatLevelFilter,
+      PolicyThreatCategoryFilter policyThreatCategoryFilter)
+  {
+    return getViolations(applications, stageTypes, activeViolationsOnly, violationFilter, null,
+        policyThreatLevelFilter, policyThreatCategoryFilter);
+  }
+
   public Collection<ApplicationView> getViolations(Collection<Application> applications,
                                                    Collection<StageType> stageTypes,
                                                    boolean activeViolationsOnly,
                                                    Predicate<? super PolicyViolation> violationFilter)
   {
-    return getViolations(applications, stageTypes, activeViolationsOnly, violationFilter, null);
+    return getViolations(applications, stageTypes, activeViolationsOnly, violationFilter, null, null, null);
   }
 
   public Collection<ApplicationView> getViolations(Collection<Application> applications,
                                                    Collection<StageType> stageTypes,
                                                    boolean activeViolationsOnly,
                                                    Predicate<? super PolicyViolation> violationFilter,
-                                                   Date minDate)
+                                                   Date minDate,
+                                                   PolicyThreatLevelFilter policyThreatLevelFilter,
+                                                   PolicyThreatCategoryFilter policyThreatCategoryFilter)
   {
     long start = System.currentTimeMillis();
 
@@ -124,9 +142,29 @@ public class PolicyViolationLoader
       }
       return appViewsByAppId;
     }, getThreadPool(ThreadPools.GENERAL));
-    Collection<PolicyViolation> violations = minDate != null
-        ? loadViolationsAfter(applicationIds, stageTypeIds, minDate, activeViolationsOnly)
-        : loadViolations(applicationIds, stageTypeIds, activeViolationsOnly);
+
+    Integer minimumThreatLevel = null;
+    Integer maximumThreatLevel = null;
+    if (policyThreatLevelFilter != null) {
+      minimumThreatLevel = policyThreatLevelFilter.getMinPolicyThreatLevel();
+      maximumThreatLevel = policyThreatLevelFilter.getMaxPolicyThreatLevel();
+    }
+
+    log.debug("Loading violations with policy threat level between:{} - {}", minimumThreatLevel, maximumThreatLevel);
+
+    Set<PolicyThreatCategory> policyThreatCategories = null;
+    if (policyThreatCategoryFilter != null) {
+      policyThreatCategories = policyThreatCategoryFilter.getPolicyThreatCategories();
+      log.debug("Loading violations with policy threat level categories:{}",
+          Arrays.toString(policyThreatCategories.toArray()));
+    }
+    else {
+      log.debug("Loading violations without a filter on policy threat level categories.");
+    }
+    Collection<PolicyViolation> violations =
+        minDate != null ? loadViolationsAfter(applicationIds, stageTypeIds, minDate, activeViolationsOnly,
+            minimumThreatLevel, maximumThreatLevel, policyThreatCategories) : loadViolations(applicationIds,
+            stageTypeIds, activeViolationsOnly, minimumThreatLevel, maximumThreatLevel, policyThreatCategories);
 
     Map<String, ApplicationView> appViewsByAppId = appViewsByAppIdFuture.join();
 
@@ -176,9 +214,13 @@ public class PolicyViolationLoader
     return evaluations;
   }
 
-  private Collection<PolicyViolation> loadViolations(Set<String> applicationIds,
-                                                     Set<String> stageTypeIds,
-                                                     boolean activeViolationsOnly)
+  private Collection<PolicyViolation> loadViolations(
+      Set<String> applicationIds,
+      Set<String> stageTypeIds,
+      boolean activeViolationsOnly,
+      Integer minThreatLevel,
+      Integer maxThreatLevel,
+      Collection<PolicyThreatCategory> policyThreatCategories)
   {
     long start = System.currentTimeMillis();
     Collection<PolicyViolation> violations;
@@ -192,39 +234,51 @@ public class PolicyViolationLoader
     }
     else {
       if (activeViolationsOnly) {
-        violations = policyViolationDAO.getActiveByApplicationIdsAndStageIds(applicationIds, stageTypeIds);
+        violations =
+            policyViolationDAO.getActiveByApplicationIdsAndStageIds(applicationIds, stageTypeIds, minThreatLevel,
+                maxThreatLevel, policyThreatCategories);
       }
       else {
-        violations = policyViolationDAO.getUnfixedByApplicationIdsAndStageIds(applicationIds, stageTypeIds);
+        violations =
+            policyViolationDAO.getUnfixedByApplicationIdsAndStageIds(applicationIds, stageTypeIds, minThreatLevel,
+                maxThreatLevel, policyThreatCategories);
       }
     }
     log.debug("Loaded {} policy violations in {} ms", violations.size(), System.currentTimeMillis() - start);
     return violations;
   }
 
-  private Collection<PolicyViolation> loadViolationsAfter(Set<String> applicationIds,
-                                                          Set<String> stageTypeIds,
-                                                          Date minDate,
-                                                          boolean activeViolationsOnly)
+  private Collection<PolicyViolation> loadViolationsAfter(
+      Set<String> applicationIds,
+      Set<String> stageTypeIds,
+      Date minDate,
+      boolean activeViolationsOnly,
+      Integer minThreatLevel,
+      Integer maxThreatLevel,
+      Collection<PolicyThreatCategory> policyThreatCategories)
   {
     long start = System.currentTimeMillis();
     Collection<PolicyViolation> violations;
     if (stageTypeIds.isEmpty()) {
       if (activeViolationsOnly) {
-        violations = policyViolationDAO.getActiveByApplicationIdsOpenedAfterDate(applicationIds, minDate);
+        violations =
+            policyViolationDAO.getActiveByApplicationIdsOpenedAfterDate(applicationIds, minDate, minThreatLevel,
+                maxThreatLevel, policyThreatCategories);
       }
       else {
-        violations = policyViolationDAO.getUnfixedByApplicationIdsOpenedAfterDate(applicationIds, minDate);
+        violations =
+            policyViolationDAO.getUnfixedByApplicationIdsOpenedAfterDate(applicationIds, minDate, minThreatLevel,
+                maxThreatLevel, policyThreatCategories);
       }
     }
     else {
       if (activeViolationsOnly) {
         violations = policyViolationDAO.getActiveByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds,
-            stageTypeIds, minDate);
+            stageTypeIds, minDate, minThreatLevel, maxThreatLevel, policyThreatCategories);
       }
       else {
         violations = policyViolationDAO.getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds,
-            stageTypeIds, minDate);
+            stageTypeIds, minDate, minThreatLevel, maxThreatLevel, policyThreatCategories);
       }
     }
     log.debug("Loaded {} policy violations after date in {} ms", violations.size(), System.currentTimeMillis() - start);

@@ -16,9 +16,13 @@ export const selectSecurityPolicyViolations = createSelector(selectPolicyViolati
   violations.filter((violation) => violation.policyThreatCategory === 'SECURITY')
 );
 
+export const selectLegalPolicyViolations = createSelector(selectPolicyViolations, (violations) =>
+  violations.filter((violation) => violation.policyThreatCategory === 'LICENSE')
+);
+
 export const selectWaiversByOwner = createSelector(
   selectFirewallComponentDetailsPage,
-  (item) => item.policyExistingWaivers.waiversByOwner
+  (componentDetailsPage) => componentDetailsPage.policyExistingWaivers?.waiversByOwner || []
 );
 
 export const selectWaivers = createSelector(selectWaiversByOwner, (items) => {
@@ -37,7 +41,7 @@ export const selectWaivers = createSelector(selectWaiversByOwner, (items) => {
 
 export const selectDisplayName = createSelector(
   selectFirewallComponentDetailsPage,
-  (displayName) => displayName.componentDetails.displayName
+  (componentDetailsPage) => componentDetailsPage.componentDetails.displayName
 );
 
 export const selectComponentName = createSelector(selectDisplayName, (componentName) => {

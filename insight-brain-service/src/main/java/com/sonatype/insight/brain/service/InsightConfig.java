@@ -255,23 +255,6 @@ public class InsightConfig
   private Map<String, Boolean> features;
 
   /**
-   * This section will be used for experimental features, which are disabled by default. If nothing is specified, or the
-   * feature flag is set to {@code false}, the feature is disabled. To enable it, explicitly set it to {@code true}.
-   * <p>
-   * For example:
-   * <pre>
-   * # features are disabled by default - set to true if you want to enable them
-   * experimentalFeatures:
-   *   prLineCommenting: true
-   * }
-   * </pre>
-   *
-   * @since 1.90
-   */
-  @JsonProperty
-  private Map<String, Boolean> experimentalFeatures;
-
-  /**
    * This configuration blocks requests containing semicolons in the path to avoid malicious attacks.
    *
    * @since 1.98
@@ -828,41 +811,6 @@ public class InsightConfig
     this.features = features;
   }
 
-  /**
-   * Returns a map of declared experimental feature flags and their states i.e. enabled or disabled.
-   *
-   * @see InsightConfig#experimentalFeatures for details on how experimental feature flags are specified
-   */
-  public Map<String, Boolean> getExperimentalFeatures() {
-    return experimentalFeatures;
-  }
-
-  /**
-   * Returns {@code true} if an experimental feature flag, identified by name, is enabled; returns {@code false}
-   * otherwise.
-   * <p>If the experimental feature flag is not explicitly declared it is considered disabled by default.
-   *
-   * @see InsightConfig#experimentalFeatures for details on how experimental feature flags are specified
-   */
-  public boolean isExperimentalFeatureEnabled(String feature) {
-    return experimentalFeatures != null && experimentalFeatures.containsKey(feature) &&
-        experimentalFeatures.get(feature);
-  }
-
-  /**
-   * Returns {@code true} if an experimental feature flag is enabled; returns {@code false} otherwise.
-   * <p>If the experimental feature flag is not explicitly declared it is considered disabled by default.
-   *
-   * @see InsightConfig#experimentalFeatures for details on how experimental feature flags are specified
-   */
-  public boolean isExperimentalFeatureEnabled(ExperimentalFeature feature) {
-    return isExperimentalFeatureEnabled(feature.flag);
-  }
-
-  public void setExperimentalFeatures(final Map<String, Boolean> experimentalFeatures) {
-    this.experimentalFeatures = experimentalFeatures;
-  }
-
   public Boolean isBlockSemicolonInPath() {
     return blockSemicolonInPath;
   }
@@ -947,36 +895,6 @@ public class InsightConfig
     private final String flag;
 
     Feature(final String flag) {
-      this.flag = flag;
-    }
-
-    public String getFlag() {
-      return flag;
-    }
-  }
-
-  /**
-   * This enumeration contains experimental features, which are disabled by default. If nothing is specified, or the
-   * feature flag is set to {@code false}, the feature is disabled. To enable it, explicitly set it to {@code true}.
-   * <p>
-   * For example:
-   * <pre>
-   * # experimental features are disabled by default - set to true if you want to enable them
-   * experimentalFeatures:
-   *   prLineCommenting: true
-   * }
-   * </pre>
-   * <p>
-   * To turn an experimental feature into a feature move the value from this class to {@link Feature} and
-   * use {@link #isFeatureEnabled(Feature)} to check its status.
-   */
-  public enum ExperimentalFeature
-      implements com.sonatype.insight.license.model.Feature
-  {
-    ;
-    private final String flag;
-
-    ExperimentalFeature(final String flag) {
       this.flag = flag;
     }
 

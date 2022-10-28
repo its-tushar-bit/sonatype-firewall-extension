@@ -11,6 +11,7 @@ import { stateGo } from '../reduxUiRouter/routerActions';
 export const LOAD_SIDEBAR_NAV_LIST_REQUESTED = 'LOAD_SIDEBAR_NAV_LIST_REQUESTED';
 export const LOAD_SIDEBAR_NAV_LIST_FULFILLED = 'LOAD_SIDEBAR_NAV_LIST_FULFILLED';
 export const LOAD_SIDEBAR_NAV_LIST_FAILED = 'LOAD_SIDEBAR_NAV_LIST_FAILED';
+export const SET_SIDEBAR_NAV_LIST_DATA = 'SET_SIDEBAR_NAV_LIST_DATA';
 
 export function loadSidebarNav({ type = null, sidebarReference = null, sidebarId = null }) {
   return function (dispatch, getState) {
@@ -26,6 +27,8 @@ export function loadSidebarNav({ type = null, sidebarReference = null, sidebarId
       switch (type) {
         case 'violation':
           return loadViolations(dispatch, getState, sidebarReference, sidebarId);
+        case 'waiver':
+          return loadWaivers(dispatch, getState, sidebarReference, sidebarId);
         default:
           return dispatch(loadSidebarNavListFailed(`Unknown type: ${type}`));
       }
@@ -58,9 +61,40 @@ function loadViolations(dispatch, getState, sidebarReference) {
     .catch((err) => dispatch(loadSidebarNavListFailed(err)));
 }
 
+function loadWaivers(dispatch, getState, sidebarReference) {
+  let filterPromise = null;
+
+  switch (sidebarReference) {
+    case 'filter':
+      filterPromise = dispatch(loadFilter('waivers'));
+      break;
+    default:
+      return dispatch(loadSidebarNavListFailed(`Unknown sidebarReference: ${sidebarReference}`));
+  }
+
+  return filterPromise
+    .then(() => {
+      const { dashboard } = getState();
+      return dispatch(
+        loadSidebarNavListFulfilled({
+          data: dashboard.waivers.results,
+          contentType: 'waivers',
+          backButtonStateName: 'dashboard.overview.waivers',
+        })
+      );
+    })
+    .catch((err) => dispatch(loadSidebarNavListFailed(err)));
+}
+
 export function gotoNewVulnerability(id) {
   return stateGo('sidebarView.violation', { id });
 }
+
+export function gotoWaiver(ownerId, ownerType, waiverId) {
+  return stateGo('waiver.details', { ownerId, ownerType, waiverId });
+}
+
+export const setSidebarNavListData = payloadParamActionCreator(SET_SIDEBAR_NAV_LIST_DATA);
 
 const loadSidebarNavListRequested = payloadParamActionCreator(LOAD_SIDEBAR_NAV_LIST_REQUESTED);
 const loadSidebarNavListFulfilled = payloadParamActionCreator(LOAD_SIDEBAR_NAV_LIST_FULFILLED);

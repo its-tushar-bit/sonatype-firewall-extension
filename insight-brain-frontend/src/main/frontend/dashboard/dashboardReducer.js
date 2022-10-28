@@ -11,10 +11,9 @@ import {
   SORT_RESULTS_FULFILLED,
   RESET_ALL_TABS,
 } from './results/dashboardResultsActions';
-
 import { LOAD_FILTER_REQUESTED } from './filter/dashboardFilterActions';
-
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
+import { addWaiversScopeProp } from 'MainRoot/util/waiverUtils';
 
 const initState = {
   currentTab: 'violations',
@@ -38,6 +37,12 @@ const initState = {
     error: null,
     sortFields: ['-totalApplicationRisk.totalRisk'],
   },
+  waivers: {
+    results: null,
+    numResults: null,
+    error: null,
+    sortFields: ['expiryTime'],
+  },
 };
 
 export default function (state = initState, { type, payload }) {
@@ -53,8 +58,10 @@ export default function (state = initState, { type, payload }) {
 
     case LOAD_RESULTS_FULFILLED: {
       const { resultsType, results, numResults, classyBrew } = payload;
+      // map results if type is waivers
+      const mapResults = resultsType === 'waivers' && results ? addWaiversScopeProp(results) : results;
       return updateResults(state, resultsType, {
-        results,
+        results: mapResults,
         numResults,
         classyBrew,
       });
@@ -97,7 +104,8 @@ function resetAllTabs(state) {
   const violations = resetTabState(state.violations, true);
   const components = resetTabState(state.components, true);
   const applications = resetTabState(state.applications, true);
-  return { ...state, violations, components, applications };
+  const waivers = resetTabState(state.waivers, true);
+  return { ...state, violations, components, applications, waivers };
 }
 
 function updateResults(state, resultsType, props) {
@@ -117,6 +125,10 @@ function setCurrentTab(state, { toState }) {
 
     case 'dashboard.overview.applications':
       return { ...state, currentTab: 'applications' };
+
+    case 'waiver.details':
+    case 'dashboard.overview.waivers':
+      return { ...state, currentTab: 'waivers' };
 
     default:
       return state;

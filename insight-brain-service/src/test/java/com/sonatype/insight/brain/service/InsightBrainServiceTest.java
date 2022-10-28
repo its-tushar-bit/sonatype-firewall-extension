@@ -516,9 +516,6 @@ public class InsightBrainServiceTest
     assertThat(config.isFeatureEnabled("unspecifiedFeature")).isTrue();
     assertThat(config.isFeatureEnabled("enabledFeature")).isTrue();
     assertThat(config.isFeatureEnabled("disabledFeature")).isFalse();
-    assertThat(config.isExperimentalFeatureEnabled("unspecifiedExperimentalFeature")).isFalse();
-    assertThat(config.isExperimentalFeatureEnabled("enabledExperimentalFeature")).isTrue();
-    assertThat(config.isExperimentalFeatureEnabled("disabledExperimentalFeature")).isFalse();
   }
 
   private void temporarilyEnableQuartzTelemetry() throws Exception {

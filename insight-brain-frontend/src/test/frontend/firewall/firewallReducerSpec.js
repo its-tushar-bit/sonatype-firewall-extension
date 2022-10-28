@@ -17,9 +17,19 @@ describe('firewallReducer', function () {
       isLoadingComponentDetails: false,
       componentDetails: null,
       componentDetailsError: null,
-      policyViolations: null,
+      policyViolations: [],
       isLoadingPolicyViolations: false,
       policyViolationsError: null,
+      componentLicenses: {
+        declaredLicenses: [],
+        observedLicenses: [],
+        effectiveLicenses: [],
+        selectableLicenses: [],
+        licenseOverride: [],
+        allLicenses: [],
+      },
+      isLoadingComponentLicenses: false,
+      componentLicensesError: null,
       policyExistingWaivers: null,
       isLoadExistingWaivers: false,
       existingWaiversError: null,
@@ -920,7 +930,7 @@ describe('firewallReducer', function () {
     it('updates the state and sets isLoadingPolicyViolations to true', () => {
       let minimumState = {
         componentDetailsPage: {
-          policyViolations: null,
+          policyViolations: [],
           isLoadingPolicyViolations: false,
           policyViolationsError: null,
         },
@@ -930,7 +940,7 @@ describe('firewallReducer', function () {
         ...minimumState,
         componentDetailsPage: {
           ...minimumState.componentDetailsPage,
-          policyViolations: null,
+          policyViolations: [],
           isLoadingPolicyViolations: true,
           policyViolationsError: null,
         },
@@ -942,7 +952,7 @@ describe('firewallReducer', function () {
     it('updates the state and sets componentDetails with the response results', () => {
       let minimumState = {
         componentDetailsPage: {
-          policyViolations: null,
+          policyViolations: [],
           isLoadingPolicyViolations: false,
           policyViolationsError: null,
         },
@@ -951,13 +961,13 @@ describe('firewallReducer', function () {
       expect(
         reduce(minimumState, {
           type: 'FIREWALL_LOAD_COMPONENT_POLICY_VIOLATIONS_FULFILLED',
-          payload: { data: 'payload' },
+          payload: [{ policyViolationId: 'policyViolationId' }],
         })
       ).toEqual({
         ...minimumState,
         componentDetailsPage: {
           ...minimumState.componentDetailsPage,
-          policyViolations: { data: 'payload' },
+          policyViolations: [{ policyViolationId: 'policyViolationId' }],
           isLoadingPolicyViolations: false,
           policyViolationsError: null,
         },
@@ -969,7 +979,7 @@ describe('firewallReducer', function () {
     it('updates the state and sets componentDetailsError with the request error message', () => {
       let minimumState = {
         componentDetailsPage: {
-          policyViolations: null,
+          policyViolations: [],
           isLoadingPolicyViolations: true,
           policyViolationsError: null,
         },
@@ -981,9 +991,35 @@ describe('firewallReducer', function () {
         ...minimumState,
         componentDetailsPage: {
           ...minimumState.componentDetailsPage,
-          policyViolations: null,
+          policyViolations: [],
           isLoadingPolicyViolations: false,
           policyViolationsError: 'Error',
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED', function () {
+    it('updates the state and sets isLoadingComponentLicenses to true', () => {
+      let minimumState = {
+        componentDetailsPage: {
+          isLoadingComponentLicenses: false,
+          componentLicensesError: null,
+          componentLicenses: {
+            declaredLicenses: [],
+            observedLicenses: [],
+            effectiveLicenses: [],
+            selectableLicenses: [],
+            licenseOverride: [],
+            allLicenses: [],
+          },
+        },
+      };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED', payload: 'Error' })).toEqual({
+        componentDetailsPage: {
+          ...minimumState.componentDetailsPage,
+          isLoadingComponentLicenses: true,
         },
       });
     });
@@ -1011,6 +1047,47 @@ describe('firewallReducer', function () {
     });
   });
 
+  describe('FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED action', function () {
+    it('updates the state and sets componentLicenses with the response results', () => {
+      let minimumState = {
+        componentDetailsPage: {
+          isLoadingComponentLicenses: true,
+          componentLicensesError: null,
+          componentLicenses: {
+            declaredLicenses: [],
+            observedLicenses: [],
+            effectiveLicenses: [],
+            selectableLicenses: [],
+            licenseOverride: [],
+            allLicenses: [],
+          },
+        },
+      };
+
+      const payload = {
+        declaredLicenses: [{ licenseId: 'licenseId' }],
+        observedLicenses: [{ licenseId: 'licenseId' }],
+        effectiveLicenses: [{ licenseId: 'licenseId' }],
+        selectableLicenses: [{ licenseId: 'licenseId' }],
+        licenseOverride: [{ licenseId: 'licenseId' }],
+        allLicenses: [{ licenseId: 'licenseId' }],
+      };
+
+      expect(
+        reduce(minimumState, {
+          type: 'FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED',
+          payload,
+        })
+      ).toEqual({
+        componentDetailsPage: {
+          isLoadingComponentLicenses: false,
+          componentLicensesError: null,
+          componentLicenses: payload,
+        },
+      });
+    });
+  });
+
   describe('FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED action', function () {
     it('updates the state and sets existing waivers with the response results', () => {
       let minimumState = {
@@ -1033,6 +1110,24 @@ describe('firewallReducer', function () {
           policyExistingWaivers: { data: 'payload' },
           isLoadExistingWaivers: false,
           existingWaiversError: null,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_COMPONENT_LICENSES_FAILED action', function () {
+    it('updates the state and sets componentLicensesError with the request error message', () => {
+      let minimumState = {
+        componentDetailsPage: {
+          isLoadingComponentLicenses: false,
+          componentLicensesError: null,
+        },
+      };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_COMPONENT_LICENSES_FAILED', payload: 'Error' })).toEqual({
+        componentDetailsPage: {
+          isLoadingComponentLicenses: false,
+          componentLicensesError: 'Error',
         },
       });
     });

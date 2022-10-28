@@ -46,17 +46,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.WebElement;
 
-import static com.codeborne.selenide.Condition.appear;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.disappear;
-import static com.codeborne.selenide.Condition.empty;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.focused;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CreateOwnerTest
@@ -120,38 +110,43 @@ public class CreateOwnerTest
     testIconDirtyState();
 
     // open application
-    OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
-    OwnerEditorDialog.publicId().shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
-    OwnerEditorDialog.saveButton().shouldBe(disabled);
+    OwnerEditorDialog.nameDiv().shouldBe(visible).shouldHave(cssClass("pristine"));
+    OwnerEditorDialog.name().shouldBe(visible, empty);
+    OwnerEditorDialog.publicIdDiv().shouldBe(visible).shouldHave(cssClass("pristine"));
+    OwnerEditorDialog.publicId().shouldBe(visible, empty);
+    OwnerEditorDialog.saveButton().shouldHave(cssClass("disabled"));
 
     // check invalid name
     OwnerEditorDialog.name().val("$$$");
-    popoverViolations(OwnerEditorDialog.name()).shouldBe(visible).shouldHave(text("Use valid characters"));
+    OwnerEditorDialog.nameInvalidMessage()
+            .shouldBe(visible).shouldHave(text(OwnerEditorDialog.INVALID_NAME_MESSAGE));
 
     // should not be able to proceed w/ name error
     OwnerEditorDialog.publicId().val(APP_PUBLIC_ID);
-    OwnerEditorDialog.saveButton().shouldBe(disabled);
+    OwnerEditorDialog.saveButton().shouldHave(cssClass("disabled"));
+
     // take focus off the input to prevent blinking cursor
-    OwnerEditorDialog.titleIcon().click();
+    OwnerEditorDialog.title().click();
     eyesWatcher.eyesCheck("Create owner with validation error");
 
     // Error should get removed
     OwnerEditorDialog.name().val(NAME);
-    popoverViolations(OwnerEditorDialog.name()).shouldNot(exist);
+    OwnerEditorDialog.nameInvalidMessage().shouldNotBe(visible);
     OwnerEditorDialog.saveButton().shouldBe(enabled);
 
     // invalid id
     OwnerEditorDialog.publicId().val("a c d $$");
-    OwnerEditorDialog.saveButton().shouldBe(disabled);
-    popoverViolations(OwnerEditorDialog.publicId()).shouldBe(visible).shouldHave(text("Use valid characters"));
+    OwnerEditorDialog.saveButton().shouldHave(cssClass("disabled"));
+    OwnerEditorDialog.publicIdInvalidMessage()
+            .shouldBe(visible).shouldHave(text(OwnerEditorDialog.INVALID_PUBLICID_MESSAGE));
 
     // check error goes away
     OwnerEditorDialog.publicId().val(APP_PUBLIC_ID);
-    popoverViolations(OwnerEditorDialog.publicId()).shouldNot(exist);
+    OwnerEditorDialog.publicIdInvalidMessage().shouldNotBe(visible);
     OwnerEditorDialog.saveButton().shouldBe(enabled);
 
-    OwnerEditorDialog.name().shouldNotHave(CLM.PRISTINE);
-    OwnerEditorDialog.publicId().shouldNotHave(CLM.PRISTINE);
+    OwnerEditorDialog.nameDiv().shouldNotHave(cssClass("pristine"));
+    OwnerEditorDialog.publicIdDiv().shouldNotHave(cssClass("pristine"));
 
     OwnerEditorDialog.saveButton().click();
     OwnerEditorDialog.root().should(disappear);
@@ -476,20 +471,21 @@ public class CreateOwnerTest
 
     testIconDirtyState();
 
-    OwnerEditorDialog.name().shouldBe(visible, empty).shouldHave(CLM.PRISTINE);
-    OwnerEditorDialog.publicId().shouldNot(exist);
-    OwnerEditorDialog.saveButton().shouldBe(disabled);
+    OwnerEditorDialog.nameDiv().shouldBe(visible).shouldHave(cssClass("pristine"));
+    OwnerEditorDialog.name().shouldBe(visible, empty);
+    OwnerEditorDialog.publicIdDiv().shouldNot(exist);
+    OwnerEditorDialog.saveButton().shouldHave(cssClass("disabled"));
 
     // check invalid name
     OwnerEditorDialog.name().val("$$$");
-    popoverViolations(OwnerEditorDialog.name()).shouldBe(visible).shouldHave(text("Use valid characters"));
+    OwnerEditorDialog.nameInvalidMessage().shouldBe(visible).shouldHave(text(OwnerEditorDialog.INVALID_NAME_MESSAGE));
 
     // should not be able to proceed w/ name error
-    OwnerEditorDialog.saveButton().shouldBe(disabled);
+    OwnerEditorDialog.saveButton().shouldHave(cssClass("disabled"));
 
     // Error should get removed
     OwnerEditorDialog.name().val(NAME);
-    popoverViolations(OwnerEditorDialog.name()).shouldNot(exist);
+    OwnerEditorDialog.nameInvalidMessage().shouldNotBe(visible);
     OwnerEditorDialog.saveButton().shouldBe(enabled);
 
     OwnerEditorDialog.saveButton().click();
@@ -509,14 +505,14 @@ public class CreateOwnerTest
     OwnerEditorDialog.robotIcon().click();
 
     UnsavedModal unsavedModal = new UnsavedModal();
-    refreshOrOpen(ReportListPage.url());
+    OwnerEditorDialog.cancelButton().click();
     unsavedModal.cancelButton().shouldBe(visible).click();
 
     OwnerEditorDialog.defaultIcon().click();
   }
 
   private void testNoDirtyState() {
-    OwnerEditorDialog.defaultIcon().shouldBe(visible).shouldBe(selected);
+    OwnerEditorDialog.defaultIcon().shouldBe(visible).shouldBe(CLM.NX_RADIO_SELECTED);
 
     UnsavedModal unsavedModal = new UnsavedModal();
     refreshOrOpen(ReportListPage.url());

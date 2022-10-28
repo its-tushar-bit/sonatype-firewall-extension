@@ -7,17 +7,22 @@
 import { connect } from 'react-redux';
 import ListWaiversPage from './ListWaiversPage';
 import { pick } from 'ramda';
-import { loadManageWaiversData } from './waiverActions';
-import { setWaiverToDelete, loadApplicableWaivers } from './waiverActions';
+import { setWaiverToDelete, loadApplicableWaivers, loadManageWaiversData } from './waiverActions';
 import { stateGo } from '../reduxUiRouter/routerActions';
+import { selectIsFirewall } from '../reduxUiRouter/routerSelectors';
 
 function mapStateToProps(state) {
-  const { violation, manageWaivers, router, deleteWaiver } = state;
+  const { violation, manageWaivers, router, deleteWaiver, firewall } = state;
+  const { showManageWaiverPage } = firewall.componentDetailsPage;
+  const selectViolationDetails = showManageWaiverPage ? firewall.componentDetailsPage : violation;
   return {
-    ...pick(['activeWaivers', 'expiredWaivers', 'violationDetails'], violation),
+    ...pick(['activeWaivers', 'expiredWaivers'], violation),
+    ...pick(['violationDetails'], selectViolationDetails),
     ...pick(['violationId', 'sidebarReference', 'type', 'hash', 'scanId', 'publicId'], router.currentParams),
     ...manageWaivers,
     ...pick(['waiverToDelete'], deleteWaiver),
+    ...pick(['showManageWaiverPage'], firewall.componentDetailsPage),
+    isCurrentRouteName: selectIsFirewall(state),
   };
 }
 

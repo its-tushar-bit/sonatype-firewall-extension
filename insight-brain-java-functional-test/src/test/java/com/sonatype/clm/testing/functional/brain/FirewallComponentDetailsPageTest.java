@@ -37,12 +37,14 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViola
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover.VulnerabilityOverrideForm;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -935,6 +937,29 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
+  public void testPolicyViolationTabVulnerabilitiesRowClick() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+    violationRow1Cells.get(0).shouldHave(text(policyViolationDetailPopover.popoverThreatLevel().getText()));
+    violationRow1Cells.get(1).shouldHave(text(policyViolationDetailPopover.popoverHeaderTitle().getText()));
+    violationRow1Cells.get(2).shouldHave(text(policyViolationDetailPopover.policyViolationText().getText()));
+    violationRow1Cells.get(3).shouldHave(text(policyViolationDetailPopover.popoverList().getText()));
+    policyViolationDetailPopover.getCloseButton().click();
+  }
+
+  @Test
   public void testSecurityTabSecurityViolationsTable() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
@@ -1223,6 +1248,34 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
+  public void testPolicyViolationTabManageWaiversButtonClick() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getManageWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
+    waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
+    waiversForViolationPage.backButton().shouldHave(text("Back to Violation Details"));
+    waiversForViolationPage.componentName().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
+    waiversForViolationPage.waiverListTable().rows().shouldHaveSize(1);
+  }
+  
   public void testComponentReEvaluation() throws Exception {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();

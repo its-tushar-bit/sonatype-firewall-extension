@@ -1102,6 +1102,9 @@ export const getGrandfatheringModalUrl = (appId) =>
 
 export const getImportPoliciesUrl = (appId) => uriTemplate`/rest/policy/organization/${appId}/import`;
 
+export const getRepositoryPolicyViolationUrl = (repositoryId, repositoryPolicyId) =>
+  uriTemplate`/rest/repositories/${repositoryId}/policyViolation/${repositoryPolicyId}`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

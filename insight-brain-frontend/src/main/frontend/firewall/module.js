@@ -84,6 +84,10 @@ function routes($stateProvider) {
       params: {
         tabId: 'labels',
       },
+    })
+    .state('firewall.violationWaivers', {
+      url: '/firewall/repository/{repositoryPolicyId}/{hash}/waivers/{violationId}',
+      component: 'listWaiversPage',
     });
 }
 

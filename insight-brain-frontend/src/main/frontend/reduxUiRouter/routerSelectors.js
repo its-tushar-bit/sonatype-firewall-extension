@@ -21,15 +21,19 @@ const includesNamePart = curryN(2, (part, str) => contains(part, split('.', str)
 const nameIncludesOrganization = includesNamePart('organization');
 const nameIncludesApplication = includesNamePart('application');
 const nameIncludesRepositories = includesNamePart('repositories');
+const nameIncludesFirewall = includesNamePart('firewall');
 
 export const selectIsOrganization = createSelector(selectCurrentRouteName, nameIncludesOrganization);
 export const selectIsApplication = createSelector(selectCurrentRouteName, nameIncludesApplication);
 export const selectIsRepositories = createSelector(selectCurrentRouteName, nameIncludesRepositories);
+export const selectIsFirewall = createSelector(selectCurrentRouteName, nameIncludesFirewall);
+export const selectIsPrevFirewall = createSelector(selectPreviousRouteName, nameIncludesFirewall);
 
 export const selectOrganizationId = createSelector(selectRouterCurrentParams, propOr('', 'organizationId'));
 export const selectApplicationId = createSelector(selectRouterCurrentParams, propOr('', 'applicationPublicId'));
 export const selectRepositoryId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryId'));
 export const selectHash = createSelector(selectRouterCurrentParams, propOr('', 'componentHash'));
+export const selectRepositoryPolicyId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryPolicyId'));
 
 export const selectIsRootOrganization = createSelector(
   selectRouterCurrentParams,

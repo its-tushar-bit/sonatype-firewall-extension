@@ -20,7 +20,7 @@ import { getExpiryTime } from '../util/waiverUtils';
 
 import { actions as policyViolationsActions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { loadTransitiveViolationWaivers } from '../violation/transitiveViolationsActions';
-import { selectPreviousRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectPreviousRouteName, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
 
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
@@ -154,7 +154,11 @@ export function loadManageWaiversData(violationId) {
     }
 
     return dispatch(fetchCrossStageViolation(violationId))
-      .then(() => loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId))
+      .then(() =>
+        selectIsFirewall(getState())
+          ? getAddWaiverPermissionForRepository(getState().router.currentParams.repositoryPolicyId)
+          : loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId)
+      )
       .then(compose(dispatch, loadManageWaiversDataFulfilled))
       .catch(compose(dispatch, loadManageWaiversDataFailed));
   };
@@ -219,6 +223,11 @@ function loadPermissionForAppWaivers(applicationPublicId) {
 
 export const getAddWaiverPermissionForApplicationPromiseBuilder = (internalApplicationId) =>
   axios.put(getPermissionContextTestUrl('application', internalApplicationId), ['WAIVE_POLICY_VIOLATIONS']);
+
+const getAddWaiverPermissionForRepository = (repositoryId) =>
+  axios
+    .put(getPermissionContextTestUrl('repository', repositoryId), ['WAIVE_POLICY_VIOLATIONS'])
+    .then(({ data }) => data.length === 1);
 
 /**
  * Flattens the Org/Apps hierarchy

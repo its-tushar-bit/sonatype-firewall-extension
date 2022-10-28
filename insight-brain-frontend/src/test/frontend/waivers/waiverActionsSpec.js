@@ -85,10 +85,20 @@ describe('waiverActions', function () {
           policyId: 'policyId',
         },
       },
-      router: { currentParams: { violationId: 'policyViolationId' } },
+      router: { currentParams: { violationId: 'policyViolationId', repositoryPolicyId: 'repositoryPolicyId' } },
+      firewall: {
+        componentDetailsPage: {
+          showManageWaiverPage: false,
+          violationDetails: {
+            policyViolationId: 'policyViolationId',
+          },
+        },
+      },
+      isFromFirewallPage: false,
     };
     store = SpecUtil.mockReduxStore(state);
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+    spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
   });
 
   describe('saveWaiverAndRedirect', function () {
@@ -589,7 +599,7 @@ describe('waiverActions', function () {
         applicationSummaryUrl = getApplicationSummaryUrl('appPublicId');
         permissionContextTestUrl = getPermissionContextTestUrl('application', 'applicationPrivateId');
         violationDetails = {
-          applicationPublicId: '',
+          violationDetails: '',
         };
         applicationSummary = {
           id: 'applicationPrivateId',

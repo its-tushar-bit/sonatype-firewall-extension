@@ -19,13 +19,15 @@ describe('ViolationPage', function () {
     stateGoSpy,
     getShallowComponent,
     getMountedComponent,
-    loadFirewallPolicyVulnerabilityDetailsSpy;
+    loadFirewallPolicyVulnerabilityDetailsSpy,
+    loadFirewallViolationDetailsSpy;
 
   beforeEach(function () {
     loadViolationSpy = jasmine.createSpy('loadViolation');
     fetchStageTypesSpy = jasmine.createSpy('fetchStageTypes');
     stateGoSpy = jasmine.createSpy('stateGo');
     loadFirewallPolicyVulnerabilityDetailsSpy = jasmine.createSpy('loadFirewallPolicyVulnerabilityDetails');
+    loadFirewallViolationDetailsSpy = jasmine.createSpy('loadFirewallViolationDetails');
 
     minimalProps = {
       $state: {
@@ -160,6 +162,7 @@ describe('ViolationPage', function () {
       ],
       selectPolicyId: '02a6107559a94c39b04d4ec8374b9508',
       loadFirewallPolicyVulnerabilityDetails: loadFirewallPolicyVulnerabilityDetailsSpy,
+      loadFirewallViolationDetails: loadFirewallViolationDetailsSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ViolationPage, minimalProps);
@@ -309,5 +312,11 @@ describe('ViolationPage', function () {
       .find(SecurityVulnerabilityDetailsTile);
 
     expect(tile).not.toExist();
+  });
+
+  it('calls loadFirewallViolationDetails with params', function () {
+    const component = getMountedComponent();
+    component.setProps({ isPolicyPopoverShown: true });
+    expect(loadFirewallViolationDetailsSpy).toHaveBeenCalledWith('02a6107559a94c39b04d4ec8374b9508');
   });
 });

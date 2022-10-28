@@ -22,6 +22,7 @@ import {
   VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED,
   loadVulnerabilityDetails,
 } from '../../../main/frontend/violation/violationActions';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('violationActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -45,8 +46,17 @@ describe('violationActions', function () {
             { policyViolationId: 'foo2', waived: true },
           ],
         },
+        firewall: {
+          componentDetailsPage: {
+            showManageWaiverPage: false,
+            violationDetails: {
+              policyViolationId: 'policyViolationId',
+            },
+          },
+        },
       };
       store = SpecUtil.mockReduxStore(state);
+      spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
     });
 
     describe('when violation is already loaded', function () {

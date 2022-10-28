@@ -34,6 +34,7 @@ export default function ListWaiversPage(props) {
     setWaiverToDelete,
     loadApplicableWaivers,
     stateGo,
+    isCurrentRouteName,
     ...backButtonProps
   } = props;
 
@@ -113,13 +114,15 @@ export default function ListWaiversPage(props) {
                 <h2 className="nx-h2">Applicable Waivers</h2>
               </div>
               <div className="nx-tile__actions">
-                <NxButton
-                  variant="tertiary"
-                  onClick={() => stateGo('requestWaiver', { violationId })}
-                  id="request-waiver-btn"
-                >
-                  <span>Request Waiver</span>
-                </NxButton>
+                {!isCurrentRouteName && (
+                  <NxButton
+                    variant="tertiary"
+                    onClick={() => stateGo('requestWaiver', { violationId })}
+                    id="request-waiver-btn"
+                  >
+                    <span>Request Waiver</span>
+                  </NxButton>
+                )}
                 <NxTooltip
                   id="add-waiver-btn-tooltip"
                   title={hasPermissionForAppWaivers ? '' : 'Insufficient permissions to Add Waiver'}

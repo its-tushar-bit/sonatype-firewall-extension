@@ -36,11 +36,14 @@ export default function ViolationDetailsTile(props) {
       isFromPolicyViolations,
       isPolicyPopoverShown,
       policyDetail,
+      selectPolicyId,
+      onGoToFirewallWaiversPage,
     } = props,
     applicationPublicId = isPolicyPopoverShown ? null : violationDetails.applicationPublicId,
     policyName = isPolicyPopoverShown ? policyDetail.policyName : violationDetails.policyName,
     policyExists = isPolicyPopoverShown ? policyDetail.policyOwner.ownerId : !!violationDetails.policyOwner.ownerId,
     threatLevel = isPolicyPopoverShown ? policyDetail.policyThreatLevel : violationDetails.threatLevel,
+    selectedId = isPolicyPopoverShown ? selectPolicyId : selectedViolationId,
     stageData = isPolicyPopoverShown
       ? { release: { mostRecentEvaluationTime: policyDetail.lastReported } }
       : violationDetails.stageData,
@@ -73,10 +76,10 @@ export default function ViolationDetailsTile(props) {
     ),
     onManageWaiversClick = () => {
       if (isFromPolicyViolations) {
-        goToWaivers(selectedViolationId);
+        isPolicyPopoverShown ? onGoToFirewallWaiversPage(selectedId) : goToWaivers(selectedId);
       } else {
         stateGo('listWaivers', {
-          violationId: selectedViolationId,
+          violationId: selectedId,
           type: $state.params.type,
           sidebarReference: $state.params.sidebarReference,
         });
@@ -265,6 +268,8 @@ ViolationDetailsTile.propTypes = {
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(applicableWaiverPropTypes)),
   goToWaivers: PropTypes.func.isRequired,
   isFromPolicyViolations: PropTypes.bool,
-  isPolicyPopoverShown: PropTypes.bool.isRequired,
+  isPolicyPopoverShown: PropTypes.bool,
   policyDetail: PropTypes.object,
+  selectPolicyId: PropTypes.string,
+  onGoToFirewallWaiversPage: PropTypes.func.isRequired,
 };

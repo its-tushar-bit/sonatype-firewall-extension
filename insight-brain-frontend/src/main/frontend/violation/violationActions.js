@@ -7,9 +7,16 @@ import axios from 'axios';
 import { both, complement, compose, find, isNil, prop, propEq, propSatisfies } from 'ramda';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
-import { getViolationDetailsUrl, getVulnerabilityJsonDetailUrl, getApplicableWaiversUrl } from '../util/CLMLocation';
+import {
+  getViolationDetailsUrl,
+  getVulnerabilityJsonDetailUrl,
+  getApplicableWaiversUrl,
+  getRepositoryPolicyViolationUrl,
+} from '../util/CLMLocation';
 import { isNilOrEmpty } from '../util/jsUtil';
+import { convertToWaiverViolationFormat } from '../util/waiverUtils';
 import { selectComponentViolations } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
+import { selectRepositoryPolicyId, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED = 'VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED';
 export const VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED = 'VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED';
@@ -50,20 +57,35 @@ export function fetchApplicableWaivers(id) {
 export function fetchCrossStageViolation(id) {
   return function (dispatch, getState) {
     const state = getState();
-    const { violationDetails, selectedViolationId } = state.violation;
+    const { showManageWaiverPage } = state.firewall.componentDetailsPage;
 
-    if (selectedViolationId === id) {
+    if (!showManageWaiverPage) {
+      const { selectedViolationId, violationDetails } = state.violation;
+      if (selectedViolationId === id) {
+        return Promise.resolve(violationDetails);
+      }
+    }
+
+    const { violationDetails } = state.firewall.componentDetailsPage;
+    const { policyViolationId } = violationDetails;
+    if (policyViolationId === id) {
       return Promise.resolve(violationDetails);
     }
 
-    return axios.get(getViolationDetailsUrl(id)).then(({ data }) => {
+    const repositoryId = selectIsFirewall(state) ? selectRepositoryPolicyId(state) : null;
+    const getDataUrl = selectIsFirewall(state)
+      ? getRepositoryPolicyViolationUrl(repositoryId, id)
+      : getViolationDetailsUrl(id);
+
+    return axios.get(getDataUrl).then(({ data }) => {
+      const violationData = selectIsFirewall(state) ? convertToWaiverViolationFormat(data) : data;
       const violations = selectComponentViolations(state);
       const waived = violations
-        ? prop('waived', find(propEq('policyViolationId', data.policyViolationId), violations))
+        ? prop('waived', find(propEq('policyViolationId', violationData.policyViolationId), violations))
         : true;
       return dispatch(
         payloadParamActionCreator(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED)({
-          violationDetails: { ...data, waived },
+          violationDetails: { ...violationData, waived },
           selectedViolationId: id,
         })
       );

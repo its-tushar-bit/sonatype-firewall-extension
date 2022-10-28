@@ -33,6 +33,8 @@ export default function ViolationPage(props) {
     policyViolations,
     selectPolicyId,
     loadFirewallPolicyVulnerabilityDetails,
+    onGoToFirewallWaiversPage,
+    loadFirewallViolationDetails,
   } = props;
 
   const error = props.violationDetailsError || props.stageTypesError;
@@ -62,12 +64,13 @@ export default function ViolationPage(props) {
 
   useEffect(() => {
     load();
-  }, [selectedViolationId, conditionTriggerReference]);
+  }, [selectedViolationId, conditionTriggerReference, selectPolicyId]);
 
   function load() {
     if (!isPolicyPopoverShown) {
       loadViolation(selectedViolationId);
     } else {
+      loadFirewallViolationDetails(selectPolicyId);
       if (conditionTriggerReference) {
         loadFirewallPolicyVulnerabilityDetails(conditionTriggerReference.value);
       }
@@ -92,6 +95,7 @@ export default function ViolationPage(props) {
             policyViolations,
             selectPolicyId,
             policyDetail,
+            onGoToFirewallWaiversPage,
           }}
         />
         <PolicyViolationConstraintInfoTile
@@ -135,6 +139,8 @@ export const violationPageTypes = {
   vulnerabilityDetailsError: LoadWrapper.propTypes.error,
   activeWaivers: ViolationDetailsTile.propTypes.activeWaivers,
   goToWaivers: PropTypes.func.isRequired,
+  onGoToFirewallWaiversPage: PropTypes.func.isRequired,
+  loadFirewallViolationDetails: PropTypes.func.isRequired,
   isFromPolicyViolations: PropTypes.bool,
   isPolicyPopoverShown: PropTypes.bool,
   policyViolations: PropTypes.array,

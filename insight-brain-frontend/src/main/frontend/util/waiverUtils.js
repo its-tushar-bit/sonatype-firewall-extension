@@ -69,6 +69,54 @@ export const isWaiverAllVersionsOrExact = (waiver) =>
     (field) => field === waiverMatcherStrategy.ALL_VERSIONS || field === waiverMatcherStrategy.EXACT_COMPONENT
   );
 
+export const convertToWaiverViolationFormat = (data) => {
+  const {
+    policyId,
+    policyName,
+    policyViolationId,
+    policyThreatLevel,
+    constraints,
+    lastReported,
+    hash,
+    policyThreatCategory,
+    componentDisplayName,
+    componentIdentifier,
+    policyOwner,
+  } = data;
+  return {
+    ...data,
+    policyId,
+    policyName,
+    policyViolationId,
+    threatLevel: policyThreatLevel,
+    constraintViolations: [
+      {
+        constraintId: constraints[0].constraintId,
+        constraintName: constraints[0].constraintName,
+        reasons: [
+          {
+            reason: constraints[0].conditions[0].conditionReason,
+            reference: null,
+          },
+        ],
+      },
+    ],
+    applicationPublicId: '',
+    applicationName: '',
+    organizationName: '',
+    openTime: lastReported,
+    fixTime: null,
+    hash,
+    policyThreatCategory,
+    displayName: componentDisplayName,
+    componentIdentifier: componentIdentifier,
+    filename: null,
+    stageData: {},
+    policyOwner,
+    waived: false,
+  };
+};
+
 // Process details about a single waiver
 export const formatWaiverDetails = (waiver) => {
   if (!waiver) {

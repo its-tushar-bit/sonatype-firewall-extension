@@ -86,7 +86,7 @@ public class DefaultHdsClient
   private final TelemetryId telemetryId;
 
   private final VersionService versionService;
-  
+
   private final Configuration configuration;
 
   private static volatile String version;
@@ -102,6 +102,9 @@ public class DefaultHdsClient
   static final String TELEMETRY_ID_HEADER = "X-CLM-Instance-Id";
 
   public static final String CLIENT_INSTANCE_ID_HEADER = "X-CLM-Client-Instance-Id";
+
+  // VisibleForTesting
+  public static boolean waitToCloseOldClients = true;
 
   @Inject
   public DefaultHdsClient(
@@ -160,7 +163,11 @@ public class DefaultHdsClient
         @Override
         public void run() {
           try {
-            Thread.sleep(TimeUnit.MINUTES.toMillis(15));
+            // If we wait in a unit test then this leads to the thread count increasing massively as each test
+            // ultimately triggers a reset of the client.
+            if (waitToCloseOldClients) {
+              Thread.sleep(TimeUnit.MINUTES.toMillis(15));
+            }
             // hopefully by now, the old connections are unused
             oldClient.close();
           }
@@ -289,7 +296,7 @@ public class DefaultHdsClient
     }
     catch (IOException e) {
       log.error("Failed to read response entity: {}", e.getMessage(), e);
-      throw new BadGatewayException("Failed to read response entity received from Sonatype Data Services, please " + 
+      throw new BadGatewayException("Failed to read response entity received from Sonatype Data Services, please " +
           "retry in a bit.");
     }
     finally {

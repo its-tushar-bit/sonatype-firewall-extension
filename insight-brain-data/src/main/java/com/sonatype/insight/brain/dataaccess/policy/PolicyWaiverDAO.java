@@ -325,6 +325,21 @@ public class PolicyWaiverDAO
     super.update(tx, entity);
   }
 
+  /**
+   * This method should only be used when you want to perform update without any validations. Please be very careful
+   * when using this method.
+   *
+   * @deprecated Use {@link #update(TransactionContext, PolicyWaiver)}
+   */
+  @Deprecated
+  public void updateWithNoChecks(PolicyWaiver entity) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      super.update(tx, entity);
+      tx.commit();
+    }
+  }
+
   public PolicyWaiver getByIdAndOwnerIdNotNull(String policyWaiverId, String ownerId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByIdAndOwnerIdNotNull(tx, policyWaiverId, ownerId);

@@ -30,6 +30,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -896,5 +897,97 @@ public class PolicyWaiverDAOTest
       new PolicyWaiverDAO().getByIdAndOwnerIdNotNull(policyWaiver.getId(), "ownerId");
     }).isInstanceOf(NotFoundException.class)
         .hasMessage("Cannot find a waiver with ID " + policyWaiver.getId() + " for owner ownerId.");
+  }
+
+  @Test
+  public void testUpdate_dontAllowUpdatingExpiredWaiverWhenThereIsAnIdenticalActiveWaiver() {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
+    String hash1 = RandomStringUtils.randomAlphabetic(8);
+
+    PolicyWaiver expiredPolicyWaiver =
+        new PolicyWaiver(hash1, policyId, ownerId, constraintFacts, RandomStringUtils.randomAlphabetic(8));
+    expiredPolicyWaiver.setExpiryTime(Date.from(Instant.now().minus(5, ChronoUnit.DAYS)));
+    tempEntity.newWaiver(expiredPolicyWaiver);
+
+    PolicyWaiver activePolicyWaiver =
+        new PolicyWaiver(hash1, policyId, ownerId, constraintFacts, RandomStringUtils.randomAlphabetic(5));
+    activePolicyWaiver.setExpiryTime(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
+    tempEntity.newWaiver(activePolicyWaiver);
+
+    String associatedPackagedUrl = RandomStringUtils.randomAlphabetic(10);
+    expiredPolicyWaiver.setAssociatedPackageUrl(associatedPackagedUrl);
+
+    assertThatThrownBy(() -> {
+      dao.update(expiredPolicyWaiver);
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("A policy waiver for the same policy violation already exists.");
+  }
+
+  @Test
+  public void testUpdate_throwExceptionWhenAttemptingToHaveMultipleIdenticalActiveWaivers() {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
+    String hash1 = RandomStringUtils.randomAlphabetic(8);
+
+    // initially add expiredPolicyWaiver with expiry date in the past.
+    // Doing so will allow us to add second waiver with future expiry date.
+    PolicyWaiver expiredPolicyWaiver =
+        new PolicyWaiver(hash1, policyId, ownerId, constraintFacts, RandomStringUtils.randomAlphabetic(5));
+    expiredPolicyWaiver.setExpiryTime(Date.from(Instant.now().minus(5, ChronoUnit.DAYS)));
+    tempEntity.newWaiver(expiredPolicyWaiver);
+
+    PolicyWaiver activePolicyWaiver =
+        new PolicyWaiver(hash1, policyId, ownerId, constraintFacts, RandomStringUtils.randomAlphabetic(5));
+    activePolicyWaiver.setExpiryTime(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
+    tempEntity.newWaiver(activePolicyWaiver);
+
+    // now try to set expiry date with future value.
+    // note that there is already an active waiver. i.e. expiring in future.
+    expiredPolicyWaiver.setExpiryTime(Date.from(Instant.now().plus(21, ChronoUnit.DAYS)));
+
+    assertThatThrownBy(() -> {
+      dao.update(expiredPolicyWaiver);
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("A policy waiver for the same policy violation already exists.");
+  }
+
+  @Test
+  public void testUpdateWithNoChecks() {
+    // setup
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    Policy policy = tempEntity.newPolicy(organization);
+    String policyId = policy.getId();
+    String ownerId = application.getId();
+    List<ConstraintFact> constraintFacts = createRandomConstraintFacts();
+    String hash = RandomStringUtils.randomAlphabetic(8);
+
+    PolicyWaiver policyWaiver =
+        new PolicyWaiver(hash, policyId, ownerId, constraintFacts, RandomStringUtils.randomAlphabetic(5));
+    policyWaiver.setExpiryTime(Date.from(Instant.now().plus(5, ChronoUnit.DAYS)));
+
+    tempEntity.newWaiver(policyWaiver);
+
+    // act
+    String newComment = RandomStringUtils.randomAlphabetic(10);
+    policyWaiver.setComment(newComment);
+    dao.updateWithNoChecks(policyWaiver);
+
+    // verify
+    PolicyWaiver updatedWaiver =
+        new PolicyWaiverDAO().getByIdAndOwnerIdNotNull(policyWaiver.getId(), application.getId());
+
+    assertThat(updatedWaiver.getComment())
+        .as("The waiver should have updated comment.")
+        .isEqualTo(newComment);
   }
 }

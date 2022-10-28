@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -107,7 +106,7 @@ public class PolicyWaiverComponentPurlMigrator
     String purlFromDBComponent = getPurlForPolicyWaiverFromDB(policyWaiver, owner.getType());
     if (purlFromDBComponent != null) {
       policyWaiver.setAssociatedPackageUrl(purlFromDBComponent);
-      policyWaiverDAO.update(policyWaiver);
+      policyWaiverDAO.updateWithNoChecks(policyWaiver);
     }
   }
 

@@ -1,6 +1,6 @@
 {
-  "name": "insight-brain-service",
-  "version": "1.16.0-SNAPSHOT",
+  "name": "insight-brain-frontend",
+  "version": "1.149.0-SNAPSHOT",
   "scripts": {
     "start": "webpack-dev-server --env brainOnly",
     "start-all": "webpack-dev-server",

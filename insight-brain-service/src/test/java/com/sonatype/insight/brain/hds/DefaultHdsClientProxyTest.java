@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.utils.AbstractHttpClientTest;
+import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 
@@ -91,7 +93,7 @@ public class DefaultHdsClientProxyTest
     ProductLicense productLicense = mock(ProductLicense.class);
     lenient().when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
     client = new DefaultHdsClient(new InsightProxy(configuration, passwordHandler), productLicense, configuration,
-        new VersionService(), telemetryId);
+        new VersionService(), telemetryId, 20, name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
   }
 
   @After

@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.networking.PortAllocator;
@@ -130,7 +132,7 @@ public class DefaultHdsClientKeepConnectionAliveTest
   @Test
   public void testConnectTimeoutMustNotAffectRequestConfigSocketTimeout() throws InterruptedException {
     HdsClient client = new DefaultHdsClient(insightProxy, productLicense, configuration, new VersionService(),
-        telemetryId, 20);
+        telemetryId, 20, name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
 
     stallingServerThread.start();
 

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.File;
-import java.time.Duration;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -16,7 +15,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.error.exception.BadGatewayException;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
@@ -25,12 +23,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ScanUploaderTest
@@ -40,17 +35,17 @@ public class ScanUploaderTest
   private ScanUploader scanUploader;
 
   @Mock
-  private HdsClient hdsClient;
+  private HdsClient mockHdsClient;
 
   @Mock
   private InsightConfig insightConfig;
-  
+
   @Mock
   private Configuration mockConfiguration;
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(hdsClient);
+    binder.bind(HdsClient.class).toInstance(mockHdsClient);
     binder.bind(InsightConfig.class).toInstance(insightConfig);
     binder.bind(Configuration.class).toInstance(mockConfiguration);
     super.configure(binder);
@@ -77,7 +72,7 @@ public class ScanUploaderTest
     HdsClientAnalytics expectedAnalyticsData = HdsClientAnalytics.forOwner(app);
 
     ArgumentCaptor<HdsClientAnalytics> analyticsArg = ArgumentCaptor.forClass(HdsClientAnalytics.class);
-    when(hdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), eq(null), any(String.class),
+    when(mockHdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), eq(null), any(String.class),
         any(File.class), anyMap(), any(String[].class))).thenReturn(receipt);
 
     scanUploader.upload(tempDir.newFile(), app, null, null);
@@ -93,54 +88,12 @@ public class ScanUploaderTest
     String testClientUserAgent = "client_user_agent";
 
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), clientUserAgentArgCaptor.capture(),
+    when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), clientUserAgentArgCaptor.capture(),
         any(String.class), any(File.class), anyMap(), any(String[].class))) //
-            .thenReturn(receipt);
+        .thenReturn(receipt);
 
     scanUploader.upload(tempDir.newFile(), app, null, testClientUserAgent);
     assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
-  }
-
-  @Test
-  public void testUpload_RetryOnBadGatewayCanSucceed() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("test-app-id");
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan id");
-
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
-        any(File.class), anyMap(), any(String[].class))) //
-            .thenThrow(new BadGatewayException("oops")) //
-            .thenReturn(receipt);
-
-    scanUploader.upload(tempDir.newFile(), app, Duration.ZERO, null, null);
-    verify(hdsClient, times(2))
-        .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class), any(File.class),
-            anyMap(), any(String[].class));
-  }
-
-  @Test
-  public void testUpload_RetryOnBadGatewayErrorsOutEventually() throws Exception {
-    Application app = tempEntity.newApplicationWithParent("test-app-id");
-    ScanReceipt receipt = new ScanReceipt();
-    receipt.setScanId("scan id");
-    @SuppressWarnings("unchecked")
-    ArgumentCaptor<Map<String, String>> queryParamsCaptor = ArgumentCaptor.forClass(Map.class);
-
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
-        any(File.class), queryParamsCaptor.capture(), any(String[].class)))//
-            .thenThrow(new BadGatewayException("oops"));
-
-    assertThatThrownBy(() -> scanUploader.upload(tempDir.newFile(), app, Duration.ZERO, null, null))
-        .isInstanceOf(BadGatewayException.class);
-    verify(hdsClient, times(ScanUploader.BAD_GATEWAY_ATTEMPT_LIMIT))
-        .put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class), any(File.class),
-            anyMap(), any(String[].class));
-
-    assertThat(queryParamsCaptor.getAllValues()).hasSize(ScanUploader.BAD_GATEWAY_ATTEMPT_LIMIT);
-    for (int i = 1; i < ScanUploader.BAD_GATEWAY_ATTEMPT_LIMIT; i++) {
-      assertThat(queryParamsCaptor.getAllValues().get(i)).as("retry " + i).containsEntry("retryCount",
-          Integer.toString(i));
-    }
   }
 
   @Test
@@ -152,9 +105,9 @@ public class ScanUploaderTest
     when(mockConfiguration.getMatcherConfiguration()).thenReturn(matcherConfigs);
     ArgumentCaptor<Map<String, String>> metadataArgs = ArgumentCaptor.forClass(Map.class);
 
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
+    when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
         any(File.class), metadataArgs.capture(), any(String[].class))) //
-            .thenReturn(receipt);
+        .thenReturn(receipt);
 
     scanUploader.upload(tempDir.newFile(), app, null, null);
 
@@ -169,9 +122,9 @@ public class ScanUploaderTest
     @SuppressWarnings("unchecked")
     ArgumentCaptor<Map<String, String>> queryParamsCaptor = ArgumentCaptor.forClass(Map.class);
 
-    when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
+    when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
         any(File.class), queryParamsCaptor.capture(), any(String[].class))) //
-            .thenReturn(receipt);
+        .thenReturn(receipt);
 
     scanUploader.upload(tempDir.newFile(), app, null, null);
 

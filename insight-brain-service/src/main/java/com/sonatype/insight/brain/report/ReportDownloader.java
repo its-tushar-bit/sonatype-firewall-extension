@@ -7,10 +7,10 @@ package com.sonatype.insight.brain.report;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.time.Duration;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -19,6 +19,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -34,8 +35,6 @@ public class ReportDownloader
 
   static final String HDS_PATH = "rest/application/analysis/{scanId}";
 
-  static final int BAD_GATEWAY_RETRY_LIMIT = 5;
-
   private final HdsClient client;
 
   private final FileCleaner fileCleaner;
@@ -48,54 +47,38 @@ public class ReportDownloader
 
   /**
    * Downloads a report for a scan.
-   * @param scanId of the report
-   * @param reportFile to save report to
+   *
+   * @param scanId                 of the report
+   * @param reportFile             to save report to
    * @param reportTimeoutInSeconds time to wait before the report times out - 0 will not make retry attempts
    * @return true if the report was downloaded, false otherwise.
    */
-  public boolean downloadReport(final String scanId,
-                                final File reportFile,
-                                final int reportTimeoutInSeconds,
-                                final int retryIntervalInSeconds)
+  public boolean downloadReport(
+      final String scanId,
+      final File reportFile,
+      final int reportTimeoutInSeconds,
+      final int retryIntervalInSeconds)
   {
     log.debug("Downloading report for scan {} with timeout {} s", scanId, reportTimeoutInSeconds);
-    final long endTime = System.currentTimeMillis() + reportTimeoutInSeconds * 1000;
-    int badGatewayRetryCount = 0;
     try {
-      do {
-        InputStream is = null;
-        OutputStream os = null;
-
-        try {
-          is = client.get(InputStream.class, HDS_PATH, null, scanId);
-          // Create the parent dir after the client returns with success
-          // to ensure dir is not created for unknown scanId (or other errors)
-          Files.createDirectories(reportFile.getAbsoluteFile().getParentFile().toPath());
-          os = new BufferedOutputStream(new FileOutputStream(reportFile));
+      try (InputStream is = client.get(
+          new Retry(HDS_PATH, 4, Duration.ofSeconds(reportTimeoutInSeconds), BadGatewayException.class::isInstance,
+              NotFoundException.class::isInstance, i -> Duration.ofSeconds(retryIntervalInSeconds)),
+          InputStream.class,
+          HDS_PATH, null, scanId)) {
+        // Create the parent dir after the client returns with success
+        // to ensure dir is not created for unknown scanId (or other errors)
+        Files.createDirectories(reportFile.getAbsoluteFile().getParentFile().toPath());
+        try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(reportFile.toPath()))) {
           IOUtil.copy(is, os);
           return true;
         }
-        catch (NotFoundException e) {
-          long currentTime = System.currentTimeMillis();
-          if (currentTime >= endTime) {
-            throw new NotFoundException(timeoutExceptionMessage(scanId));
-          }
-          Thread.sleep(Math.min(retryIntervalInSeconds * 1000, endTime - currentTime));
-        }
-        catch (BadGatewayException e) {
-          if (++badGatewayRetryCount >= BAD_GATEWAY_RETRY_LIMIT) {
-            throw e;
-          }
-          Thread.sleep(retryIntervalInSeconds * 1000);
-        }
-        finally {
-          IOUtil.close(is);
-          IOUtil.close(os);
-        }
       }
-      while (true);
+      catch (NotFoundException e) {
+        throw new NotFoundException(timeoutExceptionMessage(scanId));
+      }
     }
-    catch (final Exception e) {
+    catch (Exception e) {
       // don't leave an incomplete file around
       log.error(e.getMessage(), e);
       try {
@@ -105,7 +88,6 @@ public class ReportDownloader
         log.error("Could not delete incomplete report: {}", reportFile, fde);
       }
     }
-
     return false;
   }
 

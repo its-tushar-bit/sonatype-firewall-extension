@@ -988,6 +988,10 @@ public class TemporaryEntity
     Collections.addAll(this.sourceControlPullRequestResults, sourceControlPullRequestResults);
   }
 
+  public void register(VulnerabilityGroup... vulnerabilityGroup) {
+    Collections.addAll(this.vulnerabilityGroups, vulnerabilityGroup);
+  }
+
   public Application newApplicationWithParent() {
     return newApplicationWithParent("DUMMY-PUBLIC-ID-" + uuid(), "DUMMY-NAME-" + uuid(), "ORG-DUMMY-NAME-" + uuid());
   }

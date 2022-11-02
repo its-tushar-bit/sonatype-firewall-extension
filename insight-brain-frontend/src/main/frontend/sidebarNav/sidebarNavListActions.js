@@ -41,7 +41,7 @@ function loadViolations(dispatch, getState, sidebarReference) {
 
   switch (sidebarReference) {
     case 'filter':
-      filterPromise = dispatch(loadFilter('violations'));
+      filterPromise = dispatch(loadFilter('violations', true));
       break;
     default:
       return dispatch(loadSidebarNavListFailed(`Unknown sidebarReference: ${sidebarReference}`));
@@ -66,7 +66,7 @@ function loadWaivers(dispatch, getState, sidebarReference) {
 
   switch (sidebarReference) {
     case 'filter':
-      filterPromise = dispatch(loadFilter('waivers'));
+      filterPromise = dispatch(loadFilter('waivers', true));
       break;
     default:
       return dispatch(loadSidebarNavListFailed(`Unknown sidebarReference: ${sidebarReference}`));

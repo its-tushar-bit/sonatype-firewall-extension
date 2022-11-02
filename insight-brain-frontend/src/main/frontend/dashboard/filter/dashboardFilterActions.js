@@ -37,7 +37,7 @@ export const REVERT_FILTER = 'REVERT_FILTER';
 export const SET_DISPLAY_SAVE_FILTER_MODAL = 'SET_DISPLAY_SAVE_FILTER_MODAL';
 export const TOGGLE_FILTER_SIDEBAR = 'TOGGLE_FILTER_SIDEBAR';
 
-export function loadFilter(resultsType = null) {
+export function loadFilter(resultsType = null, isLoadResults = false) {
   return (dispatch, getState) => {
     dispatch({ type: LOAD_FILTER_REQUESTED });
 
@@ -65,7 +65,7 @@ export function loadFilter(resultsType = null) {
             dashboard.stageTypes
           )
         );
-        return dispatch(fetchCurrentFilterFulfilled(filterData.data, resultsType));
+        return dispatch(fetchCurrentFilterFulfilled(filterData.data, resultsType, isLoadResults));
       })
       .catch((error) => {
         dispatch(loadFilterFailed(error));
@@ -86,14 +86,14 @@ function fetchAvailableFilterOptionsFulfilled(applications, organizations, categ
   };
 }
 
-function fetchCurrentFilterFulfilled(filter, resultsType) {
+function fetchCurrentFilterFulfilled(filter, resultsType, isLoadResults) {
   return (dispatch, getState) => {
     resultsType = resultsType || getState().dashboard.currentTab;
     dispatch({
       type: FETCH_CURRENT_FILTER_FULFILLED,
       payload: filter,
     });
-    if (!filter.needsAcknowledgement) {
+    if (isLoadResults && !filter.needsAcknowledgement) {
       return dispatch(loadResults(resultsType));
     }
     return Promise.resolve();

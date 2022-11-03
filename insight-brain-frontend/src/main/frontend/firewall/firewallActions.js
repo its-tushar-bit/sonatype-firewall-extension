@@ -27,6 +27,7 @@ import {
 } from '../util/CLMLocation';
 import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
+import { actions as componentDetailsLicenseDetectionsTileActions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
 import { selectHash, selectRepositoryId } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';
@@ -587,15 +588,18 @@ export function loadComponentLicenses(repositoryId, componentIdentifier) {
             data: { licenseOverridesByOwner: overridenLicensesData },
           },
         ]) => {
-          dispatch(
-            loadComponentLicensesFulfilled({
-              ...multiLicensesData,
-              licenseOverride: overridenLicensesData,
-              allLicenses: allLicensesData.map(({ id, shortDisplayName }) => ({ id, displayName: shortDisplayName })),
-            })
-          );
+          const licensesData = {
+            ...multiLicensesData,
+            licenseOverride: overridenLicensesData,
+            allLicenses: allLicensesData.map(({ id, shortDisplayName }) => ({ id, displayName: shortDisplayName })),
+          };
+
+          dispatch(loadComponentLicensesFulfilled(licensesData));
+          dispatch(componentDetailsLicenseDetectionsTileActions.load.fulfilled(licensesData));
         }
       )
-      .catch((error) => dispatch(loadComponentLicensesFailed(Messages.getHttpErrorMessage(error))));
+      .catch((error) => {
+        return dispatch(loadComponentLicensesFailed(Messages.getHttpErrorMessage(error)));
+      });
   };
 }

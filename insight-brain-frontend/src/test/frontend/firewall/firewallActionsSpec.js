@@ -238,11 +238,17 @@ describe('firewallActions', function () {
     it('dispatches FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED action after succesfull requests', function (done) {
       store.dispatch(loadComponentLicenses('repositoryId', 'componentIdentifier')).then(() => {
         actions = store.getActions();
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(3);
         expect(actions[0].type).toBe(FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED);
         expect(actions[0].payload).toBeUndefined();
         expect(actions[1].type).toBe(FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED);
         expect(actions[1].payload).toEqual({
+          multiLicensesData: [],
+          licenseOverride: [],
+          allLicenses: [],
+        });
+        expect(actions[2].type).toBe('componentDetailsLicenseDetectionsTile/load/fulfilled');
+        expect(actions[2].payload).toEqual({
           multiLicensesData: [],
           licenseOverride: [],
           allLicenses: [],

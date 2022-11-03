@@ -31,6 +31,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
@@ -75,6 +77,7 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
@@ -93,6 +96,7 @@ import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -1245,6 +1249,211 @@ public class FirewallComponentDetailsPageTest
     licenseDetectionsTile.status().shouldHave(text("Overridden"));
 
     testLegalTabPolicyViolationsTable();
+  }
+
+  private void setOverriddenLicensesStatus(EditLicensesPopover editPopover, int scope, String comment) {
+    waitUntilSpinnersGone();
+    editPopover.scope(scope).click();
+    editPopover.status().click();
+    editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.OVERRIDDEN.ordinal()).click();
+    waitUntilSpinnersGone();
+    editPopover.availableLicensesTransferListItems().shouldBe(sizeGreaterThan(1));
+    editPopover.selectedLicensesTransferListItems().shouldHaveSize(0);
+    editPopover.availableLicensesTransferListItems().get(0).click();
+    editPopover.availableLicensesTransferListItems().get(0).click();
+    editPopover.selectedLicensesTransferListItems().shouldHaveSize(2);
+    
+    editPopover.comment().setValue(comment);
+    editPopover.saveButton().click();
+    waitUntilSpinnersGone();
+    NxSubmitMask.seeAndWaitForDismissal();
+  }
+
+  @Test
+  public void testLegalTab_overridenLicensesStatus() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(overriddenLicense);
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+    waitUntilSpinnersGone();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("GPL-1.0"));
+
+    ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("Apache-2.0"));
+
+    licenseDetectionsTile.status().shouldHave(text("Overridden"));
+    
+    licenseDetectionsTile.editLicenseButton().click();
+
+    EditLicensesPopover editPopover = new EditLicensesPopover();
+    String testComment = "test comment";
+    setOverriddenLicensesStatus(editPopover, EditLicensesPopover.RepositoryComponentLicensesScopes.REPOSITORY.ordinal(),
+        testComment);
+    editPopover.getCloseButton().click();
+
+    licenseDetectionsTile.editLicenseButton().click();
+    editPopover.selectedLicensesTransferListItems().shouldHaveSize(2);
+    editPopover.comment().shouldHave(text(testComment));
+
+    effectiveLicenses.shouldHaveSize(2);
+    effectiveLicenses.first().shouldHave(text("0BSD"));
+    effectiveLicenses.get(1).shouldHave(text("10tec-Company-License-Agreement"));
+    
+    licenseDetectionsTile.status().shouldHave(text("Overridden"));
+  }
+
+  @Test
+  public void testLegalTab_inheritedLicensesStatus() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(overriddenLicense);
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+    waitUntilSpinnersGone();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("GPL-1.0"));
+
+    ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("Apache-2.0"));
+
+    licenseDetectionsTile.status().shouldHave(text("Overridden")); 
+    
+    licenseDetectionsTile.editLicenseButton().click();
+
+    EditLicensesPopover editPopover = new EditLicensesPopover();
+
+    String testComment = "test comment";
+    setOverriddenLicensesStatus(editPopover, EditLicensesPopover.RepositoryComponentLicensesScopes.REPOSITORY.ordinal(),
+        testComment);
+    
+    editPopover.status().click();
+    editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.INHERITED.ordinal()).click();
+    editPopover.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    waitUntilSpinnersGone();
+    editPopover.availableScopes().get(EditLicensesPopover.RepositoryComponentLicensesScopes.ORGANIZATION.ordinal())
+        .shouldHave(Condition.attribute("className", "nx-radio-checkbox nx-radio tm-checked"));
+    String inherietedScope = editPopover.scopeStatuses().last().getText().replaceAll("[()]", "");
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("GPL-1.0"));
+    licenseDetectionsTile.status().shouldHave(text(inherietedScope));
+  }
+
+  @Test
+  public void testLegalTab_selectedLicensesStatus() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(overriddenLicense);
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+    waitUntilSpinnersGone();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("GPL-1.0"));
+
+    ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("Apache-2.0"));
+
+    licenseDetectionsTile.status().shouldHave(text("Overridden")); 
+    
+    licenseDetectionsTile.editLicenseButton().click();
+
+    EditLicensesPopover editPopover = new EditLicensesPopover();
+
+    editPopover.status().click();
+    editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.SELECTED.ordinal()).click();
+    editPopover.selectedLicensesCheckBoxElements().get(0).click();
+    editPopover.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    waitUntilSpinnersGone();
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("Apache-2.0"));
+    licenseDetectionsTile.status().shouldHave(text("Selected"));
+  }
+
+  @Test
+  public void testLegalTab_openAcknowledgeAndConfirmedLicensesStatus() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(overriddenLicense);
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+    waitUntilSpinnersGone();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("GPL-1.0"));
+
+    ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("Apache-2.0"));
+
+    licenseDetectionsTile.status().shouldHave(text("Overridden")); 
+    
+    licenseDetectionsTile.editLicenseButton().click();
+
+    EditLicensesPopover editPopover = new EditLicensesPopover();
+
+    editPopover.status().click();
+    editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.OPEN.ordinal()).click();
+    editPopover.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    licenseDetectionsTile.status().shouldHave(text("Open"));
+
+    editPopover.status().click();
+    editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.ACKNOWLEDGED.ordinal()).click();
+    editPopover.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    licenseDetectionsTile.status().shouldHave(text("Acknowledged"));
+
+    editPopover.status().click();
+    editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.CONFIRMED.ordinal()).click();
+    editPopover.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    licenseDetectionsTile.status().shouldHave(text("Confirmed"));
+
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("Apache-2.0"));
   }
 
   @Test

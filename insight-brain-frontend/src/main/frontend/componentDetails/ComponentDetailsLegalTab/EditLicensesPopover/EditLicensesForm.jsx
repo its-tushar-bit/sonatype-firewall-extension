@@ -144,10 +144,10 @@ export default function EditLicensesForm({
   };
 
   const inheritStatusOption = () =>
-    !!availableLicenseScopes.length &&
+    !!availableLicenseScopes?.length &&
     canInheritStatus() && <option value="DELETE">Inherit Status ({getInheritableStatus()})</option>;
 
-  const licenseStatuses = getLicenseStatuses(!!selectableLicenses.length);
+  const licenseStatuses = getLicenseStatuses(!!selectableLicenses?.length);
   const statusField = (
     <NxFieldset className="iq-edit-licenses-form__status" label="Status" isRequired>
       <select id="status-select" className="nx-form-select" onChange={onStatusChange} value={status || ''}>
@@ -220,6 +220,8 @@ export default function EditLicensesForm({
     </div>
   );
 
+  const formatOwnerType = (ownerType) => (ownerType === 'repository_container' ? '' : capitalize(ownerType) + ' - ');
+
   const scopeField = (
     <NxFieldset className="iq-edit-licenses-form__scope" label="Scope" isRequired>
       {availableLicenseScopes?.map(({ ownerId, ownerName, ownerType, licenseOverride }) => (
@@ -230,7 +232,8 @@ export default function EditLicensesForm({
           key={ownerId}
           onChange={handleScopeChange}
         >
-          {capitalize(ownerType)} - {ownerName}
+          {formatOwnerType(ownerType)}
+          {ownerName}
           {!isNilOrEmpty(licenseOverride) && (
             <span className="iq-edit-licenses-form__scope-status"> ({getStatusName(licenseOverride.status)})</span>
           )}

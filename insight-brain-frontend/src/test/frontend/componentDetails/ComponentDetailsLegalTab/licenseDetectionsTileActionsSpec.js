@@ -310,7 +310,21 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
 
     beforeEach(() => {
       spyOn(applicationReportSelectors, 'selectSelectedComponent').and.returnValue(selectedComponent);
-      store = SpecUtil.mockReduxStore({});
+      state = {
+        router: {
+          currentParams: {
+            publicId: 'appPublicId',
+            scanId: 'currentScanId',
+            hash: 'currentComponentHash',
+          },
+          currentState: {
+            name: 'applicationReport.componentDetails.legal',
+            url: '/legal',
+            data: {},
+          },
+        },
+      };
+      store = SpecUtil.mockReduxStore(state);
       jasmine.clock().install();
     });
 
@@ -405,7 +419,21 @@ describe('componentDetailsLicenseDetectionsTileActions', () => {
       };
 
     beforeEach(() => {
-      store = SpecUtil.mockReduxStore({});
+      state = {
+        router: {
+          currentParams: {
+            publicId: 'appPublicId',
+            scanId: 'currentScanId',
+            hash: 'currentComponentHash',
+          },
+          currentState: {
+            name: 'applicationReport.componentDetails.legal',
+            url: '/legal',
+            data: {},
+          },
+        },
+      };
+      store = SpecUtil.mockReduxStore(state);
       jasmine.clock().install();
     });
 

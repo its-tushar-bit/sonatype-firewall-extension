@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, axiosMockAdapter, waitFor, fireEvent } from 'TestRoot/SpecUtil';
+import { render, screen, axiosMockAdapter, waitFor, fireEvent, queryByTextWithin } from 'TestRoot/SpecUtil';
 import FirewallLegalTab from 'MainRoot/firewall/firewallComponentDetailsPage/legal/FirewallLegalTab';
 import {
   getComponentMultiLicensesUrl,
@@ -13,6 +13,8 @@ import {
   getComponentPolicyViolationsUrl,
   getComponentDetailsUrl,
   getOrganizationsUrl,
+  getBaseLicenseOverrideUrl,
+  getDeleteLicenseOverrideUrl,
 } from 'MainRoot/util/CLMLocation';
 import { initialState } from 'MainRoot/firewall/firewallReducer';
 
@@ -26,7 +28,8 @@ describe('FirewallLegalTab', () => {
     hash = '7a3c2521ae0c6f53e044',
     matchState = 'exact',
     proprietary = 'propietary',
-    pathname = 'ant/ant/1.6/ant-1.6.jar';
+    pathname = 'ant/ant/1.6/ant-1.6.jar',
+    newComment = 'adding a new comment';
 
   let preloadedState = {
     firewall: {
@@ -139,6 +142,11 @@ describe('FirewallLegalTab', () => {
         pathname,
         tabId: 'legal',
       },
+      currentState: {
+        name: 'firewall.componentDetailsPage.legal',
+        url: '/legal',
+        data: {},
+      },
     },
     productFeatures: {
       'advanced-legal-pack': 'advanced-legal-pack',
@@ -163,6 +171,7 @@ describe('FirewallLegalTab', () => {
       matchState,
       proprietary,
     });
+  let baseLicenseOverrideUrl = getBaseLicenseOverrideUrl(ownerType, ownerId);
 
   beforeEach(() => {
     mock = axiosMockAdapter();
@@ -192,9 +201,19 @@ describe('FirewallLegalTab', () => {
     });
     mock.onGet(licensesWithSyntheticFilterUrl).reply(200, [
       {
+        id: 'Apache-1.0',
+        shortDisplayName: 'Apache-1.0',
+        longDisplayName: 'Apache License 1.0',
+      },
+      {
         id: 'Apache-1.1',
         shortDisplayName: 'Apache-1.1',
         longDisplayName: 'Apache License 1.1',
+      },
+      {
+        id: 'Apache-2.0',
+        shortDisplayName: 'Apache-2.0',
+        longDisplayName: 'Apache License 2.0',
       },
     ]);
     mock.onGet(licenseOverrideUrl).reply(200, {
@@ -207,7 +226,7 @@ describe('FirewallLegalTab', () => {
             id: 'b0cb960552734a5d9b00c1d44a7635fa',
             ownerId: '603ac500381f48cba8433df1bc916991',
             status: 'OVERRIDDEN',
-            comment: 'another thest',
+            comment: 'another test',
             licenseIds: ['Apache-1.1'],
             componentIdentifier: {
               format: 'maven',
@@ -438,6 +457,116 @@ describe('FirewallLegalTab', () => {
       observedLicenseIds: ['Apache-1.1'],
     });
     mock.onGet(getOrganizationsUrl() + '/icon/ROOT_ORGANIZATION_ID').reply(307);
+
+    mock
+      .onPost(baseLicenseOverrideUrl, {
+        id: null,
+        ownerId,
+        status: 'OVERRIDDEN',
+        comment: newComment,
+        licenseIds: ['Apache-1.1', 'Apache-1.0'],
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'ant',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'ant',
+            version: '1.6',
+          },
+        },
+      })
+      .reply(200, {
+        id: 'b0cb960552734a5d9b00c1d44a7635fa',
+        ownerId,
+        status: 'OVERRIDDEN',
+        comment: newComment,
+        licenseIds: ['Apache-1.1', 'Apache-1.0'],
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'ant',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'ant',
+            version: '1.6',
+          },
+        },
+      });
+
+    mock
+      .onPost(baseLicenseOverrideUrl, {
+        id: null,
+        licenseIds: ['Apache-1.1'],
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'ant',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'ant',
+            version: '1.6',
+          },
+        },
+        status: 'SELECTED',
+        comment: 'adding a new comment',
+        ownerId,
+      })
+      .reply(200, {
+        id: 'b0cb960552734a5d9b00c1d44a7635fa',
+        licenseIds: ['Apache-1.1'],
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'ant',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'ant',
+            version: '1.6',
+          },
+        },
+        status: 'SELECTED',
+        comment: 'adding a new comment',
+        ownerId,
+      });
+    mock.onDelete(getDeleteLicenseOverrideUrl(ownerType, ownerId, 'b0cb960552734a5d9b00c1d44a7635fa')).reply(204);
+    ['OPEN', 'ACKNOWLEDGED', 'CONFIRMED'].forEach((status) =>
+      mock
+        .onPost(baseLicenseOverrideUrl, {
+          id: null,
+          licenseIds: [],
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'ant',
+              classifier: '',
+              extension: 'jar',
+              groupId: 'ant',
+              version: '1.6',
+            },
+          },
+          status,
+          comment: 'adding a new comment',
+          ownerId,
+        })
+        .reply(200, {
+          id: 'b0cb960552734a5d9b00c1d44a7635fa',
+          licenseIds: [],
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'ant',
+              classifier: '',
+              extension: 'jar',
+              groupId: 'ant',
+              version: '1.6',
+            },
+          },
+          status,
+          comment: 'adding a new comment',
+          ownerId,
+        })
+    );
   });
 
   it('renders the FirewallPolicyViolationsTile and VulnerabilitiesTableTile', async () => {
@@ -505,5 +634,238 @@ describe('FirewallLegalTab', () => {
     expect(screen.queryByText(/is in violation for the following reason\(s\)/)).toBeVisible();
     expect(screen.queryByText(/Policy Constraint/)).toBeVisible();
     expect(screen.queryAllByText(/Found 'Apache-1.1' license/)[1]).toBeVisible();
+  });
+
+  it('will show "Edit Licenses" popover on Edit button click', async () => {
+    render(<FirewallLegalTab />, { preloadedState });
+    let editButton;
+    await waitFor(() => {
+      editButton = screen.queryByText(/Edit/);
+      expect(editButton).toBeVisible();
+    });
+    fireEvent.click(editButton);
+    expect(screen.queryByText(/Edit Licenses/)).toBeVisible();
+
+    const popover = document.getElementById('edit-licenses-popover');
+
+    expect(queryByTextWithin(/Effective Licenses/, popover).first).toBeVisible();
+    expect(queryByTextWithin(/Declared Licenses/, popover).first).toBeVisible();
+    expect(queryByTextWithin(/Observed Licenses/, popover).first).toBeVisible();
+    expect(queryByTextWithin(/Apache-1.1/, '.iq-license-info-section').all.length).toBe(3);
+
+    expect(queryByTextWithin(/Scope/, popover).first).toBeVisible();
+    expect(queryByTextWithin(/Repository - maven-central/, popover).first).toBeVisible();
+    expect(queryByTextWithin(/All Repositories/, popover).first).toBeVisible();
+    expect(queryByTextWithin(/Organization - Root Organization/, popover).first).toBeVisible();
+
+    const statusDropDown = document.querySelector('#status-select');
+    expect(statusDropDown).toBeVisible();
+    expect(queryByTextWithin(/Open/, statusDropDown).first).toBeVisible();
+    expect(queryByTextWithin(/Acknowledged/, statusDropDown).first).toBeVisible();
+    expect(queryByTextWithin(/Overridden/, statusDropDown).first).toBeVisible();
+    expect(queryByTextWithin(/Selected/, statusDropDown).first).toBeVisible();
+    expect(queryByTextWithin(/Confirmed/, statusDropDown).first).toBeVisible();
+    expect(queryByTextWithin(/Inherit Status/, statusDropDown).first).toBeVisible();
+
+    expect(queryByTextWithin(/Comment/, popover).first).toBeVisible();
+
+    expect(queryByTextWithin(/Save/, popover).first).toBeVisible();
+    expect(queryByTextWithin(/Cancel/, popover).first).toBeVisible();
+  });
+
+  describe('"Edit Licenses" popover', () => {
+    it('will show a transfer list with "Available Licenses" and "Selected Licenses" collections whitin "Edit Licenses" when Status Overriden is selected', async () => {
+      render(<FirewallLegalTab />, { preloadedState });
+      let editButton;
+      await waitFor(() => {
+        editButton = screen.queryByText(/Edit/);
+        expect(editButton).toBeVisible();
+      });
+      fireEvent.click(editButton);
+      expect(screen.queryByText(/Edit Licenses/)).toBeVisible();
+
+      const popover = document.getElementById('edit-licenses-popover');
+
+      const repositoryRadio = queryByTextWithin(/Repository - maven-central/, popover).first;
+      expect(repositoryRadio).toBeVisible();
+      fireEvent.click(repositoryRadio);
+
+      const statusDropDown = document.querySelector('#status-select');
+      expect(statusDropDown).toBeVisible();
+      fireEvent.click(statusDropDown);
+      fireEvent.click(queryByTextWithin(/Overridden/, statusDropDown).first);
+
+      await waitFor(() => {
+        expect(queryByTextWithin(/Available Licenses/, popover).first).toBeVisible();
+      });
+      expect(queryByTextWithin(/Selected Licenses/, popover).first).toBeVisible();
+
+      expect(
+        document.querySelectorAll('.nx-transfer-list__half:nth-child(1) .nx-transfer-list__item').length
+      ).toBeGreaterThan(1);
+      expect(document.querySelectorAll('.nx-transfer-list__half:nth-child(2) .nx-transfer-list__item').length).toBe(1);
+      expect(document.querySelector('.nx-transfer-list__half:nth-child(2) .nx-transfer-list__item').textContent).toBe(
+        'Apache-1.1'
+      );
+    });
+
+    it('will set license status as OVERRIDDEN', async () => {
+      render(<FirewallLegalTab />, { preloadedState });
+      let editButton;
+
+      await waitFor(() => {
+        editButton = screen.queryByText(/Edit/);
+        expect(editButton).toBeVisible();
+      });
+
+      fireEvent.click(editButton);
+      expect(screen.queryByText(/Edit Licenses/)).toBeVisible();
+
+      const popover = document.getElementById('edit-licenses-popover');
+
+      const repositoryRadio = queryByTextWithin(/Repository - maven-central/, popover).first;
+      expect(repositoryRadio).toBeVisible();
+      fireEvent.click(repositoryRadio);
+
+      const statusDropDown = document.querySelector('#status-select');
+      expect(statusDropDown).toBeVisible();
+      fireEvent.click(statusDropDown);
+      fireEvent.click(queryByTextWithin(/Overridden/, statusDropDown).first);
+
+      await waitFor(() => {
+        expect(queryByTextWithin(/Available Licenses/, popover).first).toBeVisible();
+      });
+      expect(queryByTextWithin(/Selected Licenses/, popover).first).toBeVisible();
+
+      const firstAvailableLicense = document.querySelector(
+        '.nx-transfer-list__half:nth-child(1) .nx-transfer-list__item:nth-child(1) label'
+      );
+
+      expect(
+        document.querySelectorAll('#license-detections-tile #effective-licenses-container .nx-list__item').length
+      ).toBe(1);
+
+      fireEvent.click(firstAvailableLicense);
+
+      await waitFor(() => {
+        expect(document.querySelectorAll('.nx-transfer-list__half:nth-child(2) .nx-transfer-list__item').length).toBe(
+          2
+        );
+      });
+
+      const commentBox = document.querySelector('.nx-text-input__box textarea');
+      fireEvent.change(commentBox, { target: { value: newComment } });
+
+      await waitFor(() => {
+        expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBeFalse();
+      });
+
+      fireEvent.submit(document.querySelector('.nx-form'));
+
+      await waitFor(() => {
+        expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBeFalse();
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByText('Success!')).toBeVisible();
+      });
+    });
+
+    it('will set license status as SELECTED', async () => {
+      render(<FirewallLegalTab />, { preloadedState });
+      let editButton;
+
+      await waitFor(() => {
+        editButton = screen.queryByText(/Edit/);
+        expect(editButton).toBeVisible();
+      });
+
+      fireEvent.click(editButton);
+      expect(screen.queryByText(/Edit Licenses/)).toBeVisible();
+
+      const popover = document.getElementById('edit-licenses-popover');
+
+      await waitFor(() => {
+        expect(queryByTextWithin(/Available Licenses/, popover).first).toBeVisible();
+      });
+
+      const repositoryRadio = queryByTextWithin(/Repository - maven-central/, popover).first;
+      expect(repositoryRadio).toBeVisible();
+      fireEvent.click(repositoryRadio);
+
+      const statusDropDown = document.querySelector('#status-select');
+      expect(statusDropDown).toBeVisible();
+      fireEvent.change(statusDropDown, { target: { value: 'SELECTED' } });
+
+      const selectedLicensesFieldset = document.querySelector('.iq-edit-licenses-form__selected-licenses');
+      expect(queryByTextWithin(/Selected Licenses/, selectedLicensesFieldset).first).toBeVisible();
+
+      const firstAvailableLicense = queryByTextWithin(/Apache-1.1/, selectedLicensesFieldset);
+      expect(firstAvailableLicense.all.length).toBe(1);
+      fireEvent.click(firstAvailableLicense.first);
+
+      const commentBox = document.querySelector('.nx-text-input__box textarea');
+      fireEvent.change(commentBox, { target: { value: newComment } });
+
+      await waitFor(() => {
+        expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBeFalse();
+      });
+
+      fireEvent.submit(document.querySelector('.nx-form'));
+
+      await waitFor(() => {
+        expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBeFalse();
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByText('Success!')).toBeVisible();
+      });
+    });
+
+    ['OPEN', 'ACKNOWLEDGED', 'CONFIRMED', 'DELETE'].forEach((licenseStatus) => {
+      it(`will set license status as ${licenseStatus === 'DELETE' ? 'INHERITED' : licenseStatus}`, async () => {
+        render(<FirewallLegalTab />, { preloadedState });
+        let editButton;
+
+        await waitFor(() => {
+          editButton = screen.queryByText(/Edit/);
+          expect(editButton).toBeVisible();
+        });
+
+        fireEvent.click(editButton);
+        expect(screen.queryByText(/Edit Licenses/)).toBeVisible();
+
+        const popover = document.getElementById('edit-licenses-popover');
+
+        await waitFor(() => {
+          expect(queryByTextWithin(/Available Licenses/, popover).first).toBeVisible();
+        });
+
+        const repositoryRadio = queryByTextWithin(/Repository - maven-central/, popover).first;
+        expect(repositoryRadio).toBeVisible();
+        fireEvent.click(repositoryRadio);
+
+        const statusDropDown = document.querySelector('#status-select');
+        expect(statusDropDown).toBeVisible();
+        fireEvent.change(statusDropDown, { target: { value: licenseStatus } });
+
+        const commentBox = document.querySelector('.nx-text-input__box textarea');
+        fireEvent.change(commentBox, { target: { value: newComment } });
+
+        await waitFor(() => {
+          expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBeFalse();
+        });
+
+        fireEvent.submit(document.querySelector('.nx-form'));
+
+        await waitFor(() => {
+          expect(queryByTextWithin(/Save/, popover).first.className.includes('disabled')).toBeFalse();
+        });
+
+        await waitFor(() => {
+          expect(screen.queryByText('Success!')).toBeVisible();
+        });
+      });
+    });
   });
 });

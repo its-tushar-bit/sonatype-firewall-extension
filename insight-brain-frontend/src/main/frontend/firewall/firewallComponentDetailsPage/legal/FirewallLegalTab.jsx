@@ -13,6 +13,8 @@ import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelector
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { loadComponentDetails, loadComponentLicenses } from 'MainRoot/firewall/firewallActions';
 import { selectFirewallLicenseDetectionsTileDataSlice } from 'MainRoot/firewall/firewallComponentDetailsPage/legal/firewallLegalSelectors';
+import { actions as licenseDetectionTileActions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
+import EditLicensesPopoverContainer from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesPopoverContainer';
 
 export default function ComponentDetailsLegalTab() {
   const violations = useSelector(selectLegalPolicyViolations);
@@ -41,12 +43,13 @@ export default function ComponentDetailsLegalTab() {
         {...{
           ...data,
           loadLicenses: () => dispatch(loadComponentLicenses(repositoryId, componentIdentifier)),
-          toggleShowEditLicensesPopover: () => {},
+          toggleShowEditLicensesPopover: () => dispatch(licenseDetectionTileActions.toggleShowEditLicensesPopover()),
           reviewObligationsClickHandler,
           loadComponentDetails: () => dispatch(loadComponentDetails(routeParams)),
         }}
       />
       <FirewallPolicyViolationsTile violations={violations} showProxyState title="Legal Policy Violations" />
+      <EditLicensesPopoverContainer />
     </>
   );
 }

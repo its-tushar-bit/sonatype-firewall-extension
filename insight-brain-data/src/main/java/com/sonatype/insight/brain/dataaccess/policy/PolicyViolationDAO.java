@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -17,6 +18,8 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 import com.sonatype.insight.dataaccess.TransactionContext;
+
+import org.apache.commons.lang3.StringUtils;
 
 import static com.sonatype.insight.brain.utils.ExecutorThreadPools.getThreadPool;
 import static java.util.stream.Collectors.toList;
@@ -165,35 +168,10 @@ public class PolicyViolationDAO
     return getList(tx, sQuery, applicationId);
   }
 
-  public List<PolicyViolation> getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(
-      Collection<String> applicationIds,
-      Collection<String> stageTypeIds,
-      Date minDate,
-      Integer minThreatLevel,
-      Integer maxThreatLevel,
-      Collection<PolicyThreatCategory> policyThreatCategories)
-  {
-    return getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds, stageTypeIds, minDate, false,
-        minThreatLevel, maxThreatLevel, policyThreatCategories);
-  }
-
   public List<PolicyViolation> getActiveByApplicationIdsAndStageIdsOpenedAfterDate(
       Collection<String> applicationIds,
       Collection<String> stageTypeIds,
       Date minDate,
-      Integer minThreatLevel,
-      Integer maxThreatLevel,
-      Collection<PolicyThreatCategory> policyThreatCategories)
-  {
-    return getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds, stageTypeIds, minDate, true,
-        minThreatLevel, maxThreatLevel, policyThreatCategories);
-  }
-
-  private List<PolicyViolation> getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(
-      Collection<String> applicationIds,
-      Collection<String> stageTypeIds,
-      Date minDate,
-      boolean onlyActiveViolations,
       Integer minThreatLevel,
       Integer maxThreatLevel,
       Collection<PolicyThreatCategory> policyThreatCategories)
@@ -210,37 +188,14 @@ public class PolicyViolationDAO
         " AND entity.threatLevel <= ?5" + //
         " AND entity.threatCategory IN (?6)" + //
         " AND entity.fixTime IS NULL" + //
-        (onlyActiveViolations ? " AND entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL " : "");
+        " AND entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL";
     return getUnfixed(sQuery, applicationIds, stageTypeIds, minDate, minThreatLevel, maxThreatLevel,
-        policyThreatCategories);
-  }
-
-  public List<PolicyViolation> getUnfixedByApplicationIdsAndStageIds(
-      Collection<String> applicationIds,
-      Collection<String> stageTypeIds,
-      Integer minThreatLevel,
-      Integer maxThreatLevel,
-      Collection<PolicyThreatCategory> policyThreatCategories)
-  {
-    return getUnfixedByApplicationIdsAndStageIds(applicationIds, stageTypeIds, false, minThreatLevel, maxThreatLevel,
         policyThreatCategories);
   }
 
   public List<PolicyViolation> getActiveByApplicationIdsAndStageIds(
       Collection<String> applicationIds,
       Collection<String> stageTypeIds,
-      Integer minThreatLevel,
-      Integer maxThreatLevel,
-      Collection<PolicyThreatCategory> policyThreatCategories)
-  {
-    return getUnfixedByApplicationIdsAndStageIds(applicationIds, stageTypeIds, true, minThreatLevel, maxThreatLevel,
-        policyThreatCategories);
-  }
-
-  private List<PolicyViolation> getUnfixedByApplicationIdsAndStageIds(
-      Collection<String> applicationIds,
-      Collection<String> stageTypeIds,
-      boolean onlyActiveViolations,
       Integer minThreatLevel,
       Integer maxThreatLevel,
       Collection<PolicyThreatCategory> policyThreatCategories)
@@ -256,9 +211,102 @@ public class PolicyViolationDAO
         " AND entity.threatLevel >= ?3" + //
         " AND entity.threatLevel <= ?4" + //
         " AND entity.threatCategory IN (?5)" + //
-        (onlyActiveViolations ? " AND entity.waiveTime IS NULL " : "") + //
-        (onlyActiveViolations ? " AND entity.grandfatherTime IS NULL " : "");
+        " AND entity.waiveTime IS NULL" + //
+        " AND entity.grandfatherTime IS NULL";
+
     return getUnfixed(sQuery, applicationIds, stageTypeIds, minThreatLevel, maxThreatLevel, policyThreatCategories);
+  }
+
+  public List<PolicyViolation> getUnfixedBy(
+      Collection<String> applicationIds,
+      Collection<String> stageTypeIds,
+      Integer minThreatLevel,
+      Integer maxThreatLevel,
+      Collection<PolicyThreatCategory> policyThreatCategories,
+      Boolean violationStateOpen,
+      Boolean violationStateWaived,
+      Boolean violationStateGrandfathered)
+  {
+    minThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
+    maxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
+
+    policyThreatCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
+
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId=?1 AND entity.stageTypeId IN (?2)" + //
+        " AND entity.fixTime IS NULL" + //
+        " AND entity.threatLevel >= ?3" + //
+        " AND entity.threatLevel <= ?4" + //
+        " AND entity.threatCategory IN (?5)";
+
+    sQuery += getPolicyStateFilter(violationStateOpen, violationStateWaived, violationStateGrandfathered);
+
+    return getUnfixed(sQuery, applicationIds, stageTypeIds, minThreatLevel, maxThreatLevel, policyThreatCategories);
+  }
+
+  public List<PolicyViolation> getUnfixedBy(
+      Collection<String> applicationIds,
+      Collection<String> stageTypeIds,
+      Date minDate,
+      Integer minThreatLevel,
+      Integer maxThreatLevel,
+      Collection<PolicyThreatCategory> policyThreatCategories,
+      Boolean violationStateOpen,
+      Boolean violationStateWaived,
+      Boolean violationStateGrandfathered)
+  {
+    minThreatLevel = minThreatLevel == null ? 0 : minThreatLevel;
+    maxThreatLevel = maxThreatLevel == null ? 10 : maxThreatLevel;
+
+    policyThreatCategories = getPolicyThreatCategoriesFilter(policyThreatCategories);
+
+    String sQuery = "SELECT entity FROM PolicyViolation entity" + //
+        " WHERE entity.applicationId=?1 AND entity.stageTypeId IN (?2)" + //
+        " AND entity.openTime >= ?3" + //
+        " AND entity.threatLevel >= ?4" + //
+        " AND entity.threatLevel <= ?5" + //
+        " AND entity.threatCategory IN (?6)" + //
+        " AND entity.fixTime IS NULL";
+
+    sQuery += getPolicyStateFilter(violationStateOpen, violationStateWaived, violationStateGrandfathered);
+
+    return getUnfixed(sQuery, applicationIds, stageTypeIds, minDate, minThreatLevel, maxThreatLevel,
+        policyThreatCategories);
+  }
+
+  private String getPolicyStateFilter(
+      Boolean violationStateOpen,
+      Boolean violationStateWaived,
+      Boolean violationStateGrandfathered)
+  {
+    String policyStateFilter = "";
+
+    violationStateOpen = violationStateOpen == null || violationStateOpen;
+    violationStateWaived = violationStateWaived == null || violationStateWaived;
+    violationStateGrandfathered = violationStateGrandfathered == null || violationStateGrandfathered;
+
+    if (!violationStateOpen && !violationStateWaived && !violationStateGrandfathered) {
+      return policyStateFilter;
+    }
+
+    if (!violationStateOpen || !violationStateWaived || !violationStateGrandfathered) {
+      policyStateFilter += " AND (";
+
+      List<String> stateQuery = new ArrayList<>();
+      if (violationStateOpen) {
+        stateQuery.add("(entity.waiveTime IS NULL AND entity.grandfatherTime IS NULL)");
+      }
+      if (violationStateWaived) {
+        stateQuery.add("entity.waiveTime IS NOT NULL");
+      }
+      if (violationStateGrandfathered) {
+        stateQuery.add("entity.grandfatherTime IS NOT NULL");
+      }
+      policyStateFilter += StringUtils.join(stateQuery.toArray(), " OR ");
+      policyStateFilter += ")";
+    }
+
+    return policyStateFilter;
   }
 
   public List<PolicyViolation> getActiveByApplicationIdsAndPolicyIds(

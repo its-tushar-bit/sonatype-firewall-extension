@@ -6,6 +6,8 @@
 
 import { curry, flip, lensPath, sortWith, view } from 'ramda';
 import { isNilOrEmpty } from './jsUtil';
+import { isWaiverAllVersionsOrExact } from './waiverUtils';
+import { getComponentNameWithoutVersion } from './componentNameUtils';
 
 /**
  * Return a list of the given items sorted by the specified properties, optionally in reverse
@@ -120,4 +122,48 @@ export const getColumnDirection = (currentSortedColumnName, isCurrentColumnSortD
     isDescending = isThisColumnSorted && isCurrentColumnSortDescending;
 
   return isAscending ? 'asc' : isDescending ? 'desc' : null;
+};
+
+export const sortWaiversByComponent = (sortFields, results = []) => {
+  let groupWaiversByComponentName = {
+    exactAndAllversion: [],
+    allComponents: [],
+    ['Unknown']: [],
+  };
+
+  results.forEach((waiver) => {
+    let component = isWaiverAllVersionsOrExact(waiver) ? getComponentNameWithoutVersion(waiver) : 'allComponents';
+    const waiverWithComponentName = { ...waiver, component };
+
+    groupWaiversByComponentName[component]
+      ? groupWaiversByComponentName[component].push(waiverWithComponentName)
+      : groupWaiversByComponentName.exactAndAllversion.push(waiverWithComponentName);
+  });
+
+  Object.entries(groupWaiversByComponentName).forEach(([key, val]) => {
+    groupWaiversByComponentName[key] = sortItemsByFieldsWithNull(sortFields, val);
+  });
+
+  const resultsSortedByGroup = [
+    ...groupWaiversByComponentName.exactAndAllversion,
+    ...groupWaiversByComponentName['allComponents'],
+    ...groupWaiversByComponentName['Unknown'],
+  ];
+
+  resultsSortedByGroup.forEach((waiver) => delete waiver.component);
+
+  return resultsSortedByGroup;
+};
+
+export const sortWaiversByFields = (sortFields, results) => {
+  const sortFieldsWithExpiryTime = [...sortFields, 'expiryTime'];
+  const primarySort = sortFieldsWithExpiryTime[0];
+  let sortedResults = [];
+  if (['component', '-component'].includes(primarySort)) {
+    sortedResults = sortWaiversByComponent(sortFieldsWithExpiryTime, results);
+  } else {
+    sortedResults = sortItemsByFieldsWithNull(sortFieldsWithExpiryTime, results);
+  }
+
+  return sortedResults;
 };

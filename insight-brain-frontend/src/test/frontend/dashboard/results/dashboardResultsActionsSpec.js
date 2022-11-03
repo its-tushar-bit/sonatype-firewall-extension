@@ -495,35 +495,14 @@ describe('dashboardResultsActions', function () {
       });
     });
 
-    it('updates sortFields and sorts on back end if doBackendSort is set to true', function (done) {
-      const doBESort = true;
-      const expectedSortFields = initialState.dashboard.waivers.sortFields;
-
+    it('updates sortFields and sorts on front end if numResults === MAX_RESULTS (100)', function () {
       initialState.dashboard.waivers.results = ['-foo', 'bar'];
-      initialState.dashboard.waivers.numResults = 1;
-
-      spyOn(dashboardDataServices, 'getWaivers').and.returnValue(
-        Promise.resolve({
-          results: 'sorted results',
-          numResults: 3,
-        })
-      );
+      initialState.dashboard.waivers.numResults = 100;
 
       const store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(dashboardActions.sortWaiversResults(['-foo', 'bar'], doBESort)).then(() => {
-        expect(getWaiversSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
-        expect(store.getActions().length).toBe(3);
-        expect(store.getActions()[2]).toEqual({
-          type: 'LOAD_RESULTS_FULFILLED',
-          payload: {
-            classyBrew: undefined,
-            resultsType: 'waivers',
-            results: 'sorted results',
-            numResults: 3,
-          },
-        });
-        done();
-      });
+      store.dispatch(dashboardActions.sortWaiversResults(['-foo', 'bar']));
+
+      expect(store.getActions().length).toBe(2);
 
       // this action will update sortFields in the state
       expect(store.getActions()[0]).toEqual({
@@ -535,8 +514,11 @@ describe('dashboardResultsActions', function () {
       });
 
       expect(store.getActions()[1]).toEqual({
-        type: 'LOAD_RESULTS_REQUESTED',
-        payload: 'waivers',
+        type: 'SORT_RESULTS_FULFILLED',
+        payload: {
+          resultsType: 'waivers',
+          results: ['-foo', 'bar'],
+        },
       });
     });
   });

@@ -61,16 +61,15 @@ export default function DashboardWaiversTable(props) {
   const doSort = (columnIndex) => {
     const columnSortFields = DEFAULT_SORT_FIELDS[columnIndex];
     const column = extractSortFieldName(columnSortFields[0]);
-    const isComponentColumn = column === 'component';
 
     if (equals(columnSortFields, sortFields)) {
       if (sortFields[0] !== column) {
-        sortWaivers([column], isComponentColumn);
+        sortWaivers([column]);
       } else {
-        sortWaivers([`-${column}`], isComponentColumn);
+        sortWaivers([`-${column}`]);
       }
     } else {
-      sortWaivers(columnSortFields, isComponentColumn);
+      sortWaivers(columnSortFields);
     }
   };
 

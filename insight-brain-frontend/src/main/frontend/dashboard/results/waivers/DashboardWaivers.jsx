@@ -16,7 +16,7 @@ export default function DashboardWaivers() {
   const dispatch = useDispatch();
   const loadWaivers = () => dispatch(loadWaiverResults());
   const stateGo = (...params) => dispatch(stateGoAction(...params));
-  const sortWaivers = (sortFields, doBackendSort) => dispatch(sortWaiversResults(sortFields, doBackendSort));
+  const sortWaivers = (sortFields) => dispatch(sortWaiversResults(sortFields));
 
   const {
     loading: filterLoading,

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { sortItemsByFields, sortItemsByFieldsWithNull } from '../../util/sortUtils';
+import { sortItemsByFields, sortWaiversByFields } from '../../util/sortUtils';
 import {
   getApplicationRisks,
   getComponentRisks,
@@ -65,7 +65,7 @@ export const loadComponentResults = partial(loadResults, [COMPONENTS_RESULTS_TYP
 export const loadApplicationResults = partial(loadResults, [APPLICATIONS_RESULTS_TYPE]);
 export const loadWaiverResults = partial(loadResults, [WAIVERS_RESULTS_TYPE]);
 
-function sortResults(resultsType, sortFields, doBackendSort = false) {
+function sortResults(resultsType, sortFields) {
   return (dispatch, getState) => {
     dispatch({
       type: SORT_RESULTS_REQUESTED,
@@ -75,24 +75,18 @@ function sortResults(resultsType, sortFields, doBackendSort = false) {
     const dashboardState = getState().dashboard;
     const results = dashboardState[resultsType].results;
     const numResults = dashboardState[resultsType].numResults;
-    if (!results || numResults > MAX_RESULTS || doBackendSort) {
+    if (!results || numResults > MAX_RESULTS) {
       return dispatch(loadResults(resultsType));
     } else {
-      // use sortItemsByFieldsWithNull only for waivers in case expiryTime prop is null
+      // use sortWaiversByFields only for waivers in case expiryTime prop is null
       const sortByType = {
-        waivers: sortItemsByFieldsWithNull,
+        waivers: sortWaiversByFields,
         default: sortItemsByFields,
       };
 
-      // if type is waiver add expiryTime a second sort field column
-      let sortFieldsWithExpiryTime = [];
-      if (resultsType === 'waivers') {
-        sortFieldsWithExpiryTime = [...sortFields, 'expiryTime'];
-      }
-
       // sort results in frontend
       const sorted = sortByType[resultsType]
-        ? sortByType[resultsType](sortFieldsWithExpiryTime, results)
+        ? sortByType[resultsType](sortFields, results)
         : sortByType.default(sortFields, results);
       dispatch(sortResultsFulfilled(resultsType, sorted));
       return Promise.resolve();

@@ -310,7 +310,7 @@ public class DashboardWaiversTest
 
     headers.componentHeader().click();
     table.firstWaiver().component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
-    table.lastWaiver().component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
+    table.lastWaiver().component().shouldHave(text("All Components"));
 
     DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Waivers Data")).click();
     exportCsv = new String(responseCopyHandler.consumeResponse());

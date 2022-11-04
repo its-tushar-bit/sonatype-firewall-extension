@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.io.Resources;
 import com.google.inject.Binder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.keycloak.adapters.saml.SamlDeployment;
 import org.keycloak.adapters.saml.SamlDeployment.Binding;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+@Ignore
 public class SamlDeploymentManagerTest
     extends AbstractComponentTest
 {

@@ -7,7 +7,6 @@ import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
 import angularCommonModule from '../utilAngular/AngularCommon';
 import storesModule from '../utilAngular/Stores';
-import ComponentModule from './ComponentController';
 import ComponentDisplayModule from '../ComponentDisplay/module';
 import template from './dashboard.view.html';
 import dashboardResultsActionsModule from './results/dashboardResultsActions';
@@ -25,7 +24,6 @@ var dashboardModule = angular
     'ui.router',
     storesModule.name,
     angularCommonModule.name,
-    ComponentModule.name,
     ComponentDisplayModule.name,
     dashboardResultsActionsModule.name,
   ])

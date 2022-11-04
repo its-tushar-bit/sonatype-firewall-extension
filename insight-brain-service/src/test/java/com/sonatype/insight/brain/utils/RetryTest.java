@@ -34,7 +34,7 @@ public class RetryTest
     doReturn(result).when(callable).call();
 
     Retry retry = new Retry("test", 1, null, e -> true, attempt -> Duration.ZERO);
-    assertThat(retry.executeCallable(callable)).isEqualTo(result);
+    assertThat(retry.<Object, RuntimeException>executeCallable(callable)).isEqualTo(result);
     verify(callable, times(1)).call();
   }
 
@@ -81,7 +81,7 @@ public class RetryTest
     doThrow(error).doReturn(result).when(callable).call();
 
     Retry retry = new Retry("test", 1, null, e -> e == error, attempt -> Duration.ZERO);
-    assertThat(retry.executeCallable(callable)).isEqualTo(result);
+    assertThat(retry.<Object, RuntimeException>executeCallable(callable)).isEqualTo(result);
     verify(callable, times(2)).call();
   }
 

@@ -157,7 +157,7 @@ public class ThirdPartyDataService
 
   //Visible for testing
   ComponentIdentifier getComponentIdentifier(final ThirdPartyFileCoordinate coord) {
-    ComponentIdentifier componentIdentifier = null;
+    ComponentIdentifier componentIdentifier;
     if (StringUtils.isNotBlank(coord.getPackageUrl())) {
       componentIdentifier = ComponentIdentifierAdapter.toComponentIdentifier(coord.getPackageUrl());
       componentIdentifier.ensureComplete();

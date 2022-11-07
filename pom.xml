@@ -55,7 +55,7 @@
     <jersey.version>2.37</jersey.version>
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
     <aether-util.version>1.13.1</aether-util.version>
-    <drools.version>7.66.0.Final</drools.version>
+    <drools.version>7.73.0.Final</drools.version>
     <geb.version>2.3.1</geb.version>
     <selenium.version>3.141.59</selenium.version>
     <httpcomponents.version>4.5.13</httpcomponents.version>

@@ -16,7 +16,7 @@ import { stateGo } from '../reduxUiRouter/routerActions';
 import { getPermissionContextTestUrl } from '../utilAngular/CLMContextLocation';
 import { getApplicationSummaryUrl } from '../util/CLMLocation';
 import { fetchCrossStageViolation, fetchApplicableWaivers } from '../violation/violationActions';
-import { getExpiryTime } from '../util/waiverUtils';
+import { getExpiryTime, originNamesForAddRequestPages } from '../util/waiverUtils';
 
 import { actions as policyViolationsActions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { loadTransitiveViolationWaivers } from '../violation/transitiveViolationsActions';
@@ -141,7 +141,7 @@ export function loadAddWaiverData(violationId) {
 }
 
 /**
- * @param {string } violationId
+ * @param { string } violationId
  */
 export function loadManageWaiversData(violationId) {
   return (dispatch, getState) => {
@@ -167,29 +167,34 @@ export function loadManageWaiversData(violationId) {
 export function returnToAddWaiverOriginPage() {
   return (dispatch, getState) => {
     const { prevParams, prevState, currentParams } = getState().router;
-    const originNameForComponentDetails = 'applicationReport.violationWaivers';
-    const originNameForViolationDetails = 'listWaivers';
-    const originNameForCip = 'applicationReport.policy';
 
     const prevStateName = prevState && prevState.name;
+
+    // If user canceled waiver creation, return to previous view
     switch (prevStateName) {
-      case originNameForComponentDetails:
-        return dispatch(stateGo(originNameForComponentDetails, prevParams));
+      case originNamesForAddRequestPages.APP_REPORT_VIOLATION_WAIVERS:
+        return dispatch(stateGo(originNamesForAddRequestPages.APP_REPORT_VIOLATION_WAIVERS, prevParams));
 
-      case originNameForViolationDetails:
-        return dispatch(stateGo(originNameForViolationDetails, prevParams));
+      case originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS:
+        return dispatch(stateGo(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS, prevParams));
 
-      case originNameForCip:
+      case originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION:
+        return dispatch(stateGo(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, prevParams));
+
+      case originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW:
+        return dispatch(stateGo(originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW, prevParams));
+
+      case originNamesForAddRequestPages.APP_REPORT_CIP:
         return dispatch(
           stateGo(prevState.name, {
             ...prevParams,
             policyViolationId: currentParams.violationId,
           })
         );
-
+      // Came from a direct link to the Add Waiver Page or some other origin
       default:
         return dispatch(
-          stateGo(originNameForViolationDetails, {
+          stateGo(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, {
             violationId: currentParams.violationId,
           })
         );

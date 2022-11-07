@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import { compose, keys, map, max, prop, reduce, values } from 'ramda';
 import classnames from 'classnames';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxStatefulSegmentedButton } from '@sonatype/react-shared-components';
 
 import ViolationExclamation from '../react/ViolationExclamation';
 import { timeAgo } from '../utilAngular/CommonServices';
@@ -16,7 +16,6 @@ import { capitalizeFirstLetter } from '../util/jsUtil';
 import { getOwnerImageUrl } from '../utilAngular/CLMContextLocation';
 import ViolationDetailsSubtitle from './ViolationDetailsSubtitle';
 import StageDisplay from './StageDisplay';
-import { faEye } from '@fortawesome/pro-solid-svg-icons/faEye';
 import ActiveWaiversIndicator from './ActiveWaiversIndicator';
 
 const ownerIdTypeMap = {
@@ -85,11 +84,24 @@ export default function ViolationDetailsTile(props) {
         });
       }
     },
+    // Manage waivers buttons
+    // TODO (in CLM-22982): Add disabled state/warning/alert when user doesn't have permission to add waivers
+    redirectToAddWaiverPage = () => stateGo('addWaiver', { violationId: selectedViolationId }),
+    redirectToRequestWaiverPage = () => stateGo('requestWaiver', { violationId: selectedViolationId }),
     manageWaiversButton = (
-      <NxButton id="violation-page-manage-waivers" variant="tertiary" onClick={onManageWaiversClick}>
-        <NxFontAwesomeIcon icon={faEye} />
-        <span>Manage Waivers</span>
-      </NxButton>
+      <NxStatefulSegmentedButton
+        id="violation-page-manage-waivers"
+        variant="tertiary"
+        onClick={onManageWaiversClick}
+        buttonContent="Manage Waivers"
+      >
+        <button id="violation-page-add-waiver" className="nx-dropdown-button" onClick={redirectToAddWaiverPage}>
+          Add Waiver
+        </button>
+        <button id="violation-page-request-waiver" className="nx-dropdown-button" onClick={redirectToRequestWaiverPage}>
+          Request Waiver
+        </button>
+      </NxStatefulSegmentedButton>
     );
 
   function getOwnerHref(owner) {

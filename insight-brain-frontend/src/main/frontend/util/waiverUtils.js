@@ -14,6 +14,26 @@ export const waiverMatcherStrategy = {
   EXACT_COMPONENT: 'EXACT_COMPONENT',
 };
 
+// TODO in CLM-22759: Extend the use of these origins to the
+// Add/Request Waiver breadcrumb "Back to..." buttons
+// (AddRequestWaiversBackButton.jsx)
+
+// Previous state names for the various routes to the Add Waiver
+// and Request Waiver pages, used by the Add Waiver Page's
+// Cancel and Save buttons.
+export const originNamesForAddRequestPages = {
+  // From CIP policy view
+  APP_REPORT_CIP: 'applicationReport.policy',
+  // App Report -> Component Details -> Policy Violations -> Violation Details Popover -> Manage Waivers -> Add Waiver
+  APP_REPORT_VIOLATION_WAIVERS: 'applicationReport.violationWaivers',
+  // App Report -> Component Details -> Policy Violations -> Violation Details Popover -> Manage Waivers dropdown, Add Waiver
+  APP_REPORT_COMPONENT_DETAILS: 'applicationReport.componentDetails.violations',
+  // Dashboard -> Violations -> Violation Details -> Manage Waivers dropdown -> Add Waiver
+  DASHBOARD_VIOLATIONS_VIEW: 'sidebarView.violation',
+  // Dashboard -> Violations -> Violation Details -> Manage Waivers -> Add Waiver
+  WAIVERS_FOR_VIOLATION: 'listWaivers',
+};
+
 export const waiverExpirations = [
   { name: 'Never', value: 'never' }, // <select> doesn't handle null values, so use string instead
   { name: '7 Days', value: '7' },

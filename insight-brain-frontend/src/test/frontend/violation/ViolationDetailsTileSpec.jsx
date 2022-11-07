@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../enzymeUtils';
-import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
-import ViolationDetailsSubtitle from '../../../main/frontend/violation/ViolationDetailsSubtitle';
-import StageDisplay from '../../../main/frontend/violation/StageDisplay';
-import { pathSet } from '../../../main/frontend/util/jsUtil';
-import { NxButton } from '@sonatype/react-shared-components';
-import ActiveWaiversIndicator from '../../../main/frontend/violation/ActiveWaiversIndicator';
+import ViolationExclamation from 'MainRoot/react/ViolationExclamation';
+import ViolationDetailsSubtitle from 'MainRoot/violation/ViolationDetailsSubtitle';
+import StageDisplay from 'MainRoot/violation/StageDisplay';
+import { pathSet } from 'MainRoot/util/jsUtil';
+import { NxStatefulSegmentedButton } from '@sonatype/react-shared-components';
+import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
 
 describe('ViolationDetailsTile', function () {
   let timeAgoMock,
@@ -223,15 +223,15 @@ describe('ViolationDetailsTile', function () {
       expect(subtitle).toHaveProp('filenames', minimalProps.violationDetails.filenames);
     });
 
-    it('renders an nx-tile__actions section with an action button', function () {
+    it('renders an nx-tile__actions section with a Manage Waivers button', function () {
       const actions = getShallowComponent().find('.nx-tile__actions'),
-        button = actions.find(NxButton);
+        manageWaiversButton = actions.find(NxStatefulSegmentedButton);
 
       expect(actions).toExist();
-      expect(button).toExist();
-      expect(button.text()).toContain('Manage Waivers');
+      expect(manageWaiversButton).toExist();
+      expect(manageWaiversButton).toHaveProp('buttonContent', 'Manage Waivers');
 
-      button.simulate('click');
+      manageWaiversButton.simulate('click');
       expect(stateGoMock).toHaveBeenCalledWith('listWaivers', {
         violationId: 'selectedViolationId',
         type: 'violation',
@@ -240,19 +240,55 @@ describe('ViolationDetailsTile', function () {
       expect(goToWaiversMock).toHaveBeenCalledTimes(0);
     });
 
-    it('renders an nx-tile__actions section with an action button calling the goToWaivers func', function () {
+    it('renders an nx-tile__actions section with a Manage Waivers button calling the goToWaivers func', function () {
       const actions = getShallowComponent({
           isFromPolicyViolations: true,
         }).find('.nx-tile__actions'),
-        button = actions.find(NxButton);
+        manageWaiversButton = actions.find(NxStatefulSegmentedButton);
 
       expect(actions).toExist();
-      expect(button).toExist();
-      expect(button.text()).toContain('Manage Waivers');
+      expect(manageWaiversButton).toExist();
+      expect(manageWaiversButton).toHaveProp('buttonContent', 'Manage Waivers');
 
-      button.simulate('click');
+      manageWaiversButton.simulate('click');
       expect(goToWaiversMock).toHaveBeenCalledWith('selectedViolationId');
       expect(stateGoMock).toHaveBeenCalledTimes(0);
+    });
+
+    it('renders a Manage Waivers segmented button with Add Waiver and Request Waiver menu buttons', function () {
+      const manageWaiversButton = getShallowComponent().find(NxStatefulSegmentedButton),
+        addWaiverButton = manageWaiversButton.children().at(0),
+        requestWaiverButton = manageWaiversButton.children().at(1);
+
+      expect(manageWaiversButton).toExist();
+      expect(addWaiverButton).toExist();
+      expect(requestWaiverButton).toExist();
+      expect(addWaiverButton.text()).toContain('Add Waiver');
+      expect(requestWaiverButton.text()).toContain('Request Waiver');
+    });
+
+    it('renders an Add Waiver menu button that navigates to the Add Waiver page when clicked', function () {
+      const manageWaiversButton = getShallowComponent().find(NxStatefulSegmentedButton),
+        addWaiverButton = manageWaiversButton.children().at(0);
+
+      expect(addWaiverButton).toExist();
+
+      addWaiverButton.simulate('click');
+      expect(stateGoMock).toHaveBeenCalledWith('addWaiver', {
+        violationId: 'selectedViolationId',
+      });
+    });
+
+    it('renders an Add Waiver menu button that navigates to the Request Waiver page when clicked', function () {
+      const manageWaiversButton = getShallowComponent().find(NxStatefulSegmentedButton),
+        requestWaiverButton = manageWaiversButton.children().at(1);
+
+      expect(requestWaiverButton).toExist();
+
+      requestWaiverButton.simulate('click');
+      expect(stateGoMock).toHaveBeenCalledWith('requestWaiver', {
+        violationId: 'selectedViolationId',
+      });
     });
 
     it('show header subtitle if isPolicyPopoverShown not active', () => {

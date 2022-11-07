@@ -894,7 +894,37 @@ describe('waiverActions', function () {
       });
     });
 
-    it('dispatches STATE_GO with the route to ComponentDetails when router comes from component details', function () {
+    it('dispatches STATE_GO with the route to the Component Details violation details tile when the router comes from the that tile in the app report', function () {
+      const state = {
+        router: {
+          prevState: { name: 'applicationReport.componentDetails.violations' },
+          prevParams: {
+            hash: 'hash',
+            publicId: 'appPublicId',
+            scanId: 'scanId',
+            tabId: 'violations',
+          },
+          currentParams: { violationId: 'policyViolationId' },
+        },
+      };
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(returnToAddWaiverOriginPage());
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0].type).toBe(STATE_GO);
+      expect(store.getActions()[0].payload).toEqual({
+        to: 'applicationReport.componentDetails.violations',
+        params: {
+          hash: 'hash',
+          publicId: 'appPublicId',
+          scanId: 'scanId',
+          tabId: 'violations',
+        },
+        options: undefined,
+      });
+    });
+
+    it('dispatches STATE_GO with the route to ComponentDetails list waivers page when router comes from component details', function () {
       const state = {
         router: {
           prevState: { name: 'applicationReport.violationWaivers' },
@@ -919,6 +949,34 @@ describe('waiverActions', function () {
           publicId: 'publicId',
           scanId: 'scanId',
           violationId: 'violationId',
+        },
+        options: undefined,
+      });
+    });
+
+    it('dispatches STATE_GO with the route to Violation Details sidebar view when router comes from the dashboard', function () {
+      const state = {
+        router: {
+          prevState: { name: 'sidebarView.violation' },
+          prevParams: {
+            id: 'violationId',
+            sidebarReference: 'sideBarReference',
+            type: 'violation',
+          },
+          currentParams: { violationId: 'policyViolationId' },
+        },
+      };
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(returnToAddWaiverOriginPage());
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0].type).toBe(STATE_GO);
+      expect(store.getActions()[0].payload).toEqual({
+        to: 'sidebarView.violation',
+        params: {
+          id: 'violationId',
+          sidebarReference: 'sideBarReference',
+          type: 'violation',
         },
         options: undefined,
       });

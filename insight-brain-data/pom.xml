@@ -163,6 +163,10 @@
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-saml-servlet-filter-adapter</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

@@ -648,4 +648,35 @@ public class ApiConfigFeaturesServiceTest
     assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.API_PAGE)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already disabled.");
   }
+
+  @Test
+  public void testEnableFeature_ScanPomFilesInMetaInfDirectory() {
+    service.enableFeature(SCAN_POM_FILES_IN_META_INF_DIRECTORY);
+    assertThat(systemConfigurationPropertyDAO.getByName(SCAN_POM_FILES_IN_META_INF_DIRECTORY).getValue()).isEqualTo(
+        "true");
+  }
+
+  @Test
+  public void testEnableFeature_ScanPomFilesInMetaInfDirectory_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY);
+    assertThatThrownBy(
+        () -> service.enableFeature(SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_ScanPomFilesInMetaInfDirectory() {
+    tempEntity.newSystemConfigurationProperty(
+        SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY.getPropertyName(), "true");
+    service.disableFeature(SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY);
+    assertThat(systemConfigurationPropertyDAO.getByName(
+        SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY)).isNull();
+  }
+
+  @Test
+  public void testDisableFeature_ScanPomFilesInMetaInfDirectory_AlreadyDisabled() {
+    assertThatThrownBy(
+        () -> service.disableFeature(SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY)).isInstanceOf(
+        BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
 }

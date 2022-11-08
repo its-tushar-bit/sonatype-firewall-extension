@@ -116,6 +116,7 @@ public class ApiConfigFeaturesService
       }
     },
     API_PAGE(SystemConfigurationProperty.API_PAGE, false),
+    SCAN_POM_FILES_IN_META_INF_DIRECTORY(SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY, false),
 
     /**
      * @deprecated Use {@link SourceControl#getSourceControlEvaluationsEnabled() instead}

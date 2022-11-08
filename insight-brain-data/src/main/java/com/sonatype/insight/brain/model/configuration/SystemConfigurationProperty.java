@@ -143,6 +143,8 @@ public class SystemConfigurationProperty
 
   public static final String BFS_REPOSITORIES = "bfs.repositories";
 
+  public static final String SCAN_POM_FILES_IN_META_INF_DIRECTORY = "scanPomFilesInMetaInfDirectory";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

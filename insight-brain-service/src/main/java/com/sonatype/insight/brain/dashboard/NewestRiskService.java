@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -138,12 +137,10 @@ public class NewestRiskService
                                                           Integer maxDaysOld)
   {
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
-    Predicate<? super PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
-        policyThreatLevelFilter, policyViolationStateFilter);
 
     Date minDate = (maxDaysOld == null) ? null
         : new Date(Instant.now().minus(Duration.ofDays(maxDaysOld)).toEpochMilli());
-    return policyViolationLoader.getViolations(applications, stageTypes, false, filter, minDate,
+    return policyViolationLoader.getViolations(applications, stageTypes, false, null, minDate,
         policyThreatLevelFilter, policyThreatCategoryFilter, policyViolationStateFilter);
   }
 

@@ -5,72 +5,14 @@
  */
 package com.sonatype.insight.brain.dashboard.filters;
 
-import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class PolicyThreatLevelFilterTest
 {
-  @Test
-  public void testMinimumPolicyThreatLevel() {
-    PolicyThreatLevelFilter filter = new PolicyThreatLevelFilter(4, null);
-    PolicyViolation trueViolation = new PolicyViolation();
-    trueViolation.setThreatLevel(4);
-
-    PolicyViolation falseViolation = new PolicyViolation();
-    falseViolation.setThreatLevel(0);
-
-    assertThat(filter.asPolicyViolationPredicate().test(trueViolation)).isTrue();
-    assertThat(filter.asPolicyViolationPredicate().test(falseViolation)).isFalse();
-  }
-
-  @Test
-  public void testMaximumPolicyThreatLevel() {
-    PolicyThreatLevelFilter filter = new PolicyThreatLevelFilter(null, 4);
-    PolicyViolation trueViolation = new PolicyViolation();
-    trueViolation.setThreatLevel(4);
-
-    PolicyViolation falseViolation = new PolicyViolation();
-    falseViolation.setThreatLevel(5);
-
-    assertThat(filter.asPolicyViolationPredicate().test(trueViolation)).isTrue();
-    assertThat(filter.asPolicyViolationPredicate().test(falseViolation)).isFalse();
-  }
-
-  @Test
-  public void testMinimumAndMaximumPolicyThreatLevel() {
-    PolicyThreatLevelFilter filter = new PolicyThreatLevelFilter(2, 4);
-    PolicyViolation v1 = new PolicyViolation();
-    PolicyViolation v2 = new PolicyViolation();
-    PolicyViolation v3 = new PolicyViolation();
-    v1.setThreatLevel(4);
-    v2.setThreatLevel(2);
-    v3.setThreatLevel(0);
-
-    assertThat(filter.asPolicyViolationPredicate().test(v1)).isTrue();
-    assertThat(filter.asPolicyViolationPredicate().test(v2)).isTrue();
-    assertThat(filter.asPolicyViolationPredicate().test(v3)).isFalse();
-  }
-
-  @Test
-  public void testMinimumAndMaximumPolicyEqualThreatLevels() {
-    PolicyThreatLevelFilter filter = new PolicyThreatLevelFilter(2, 2);
-    PolicyViolation v1 = new PolicyViolation();
-    PolicyViolation v2 = new PolicyViolation();
-    PolicyViolation v3 = new PolicyViolation();
-    v1.setThreatLevel(2);
-    v2.setThreatLevel(2);
-    v3.setThreatLevel(0);
-
-    assertThat(filter.asPolicyViolationPredicate().test(v1)).isTrue();
-    assertThat(filter.asPolicyViolationPredicate().test(v2)).isTrue();
-    assertThat(filter.asPolicyViolationPredicate().test(v3)).isFalse();
-  }
-
   @Test
   public void testMinimumThreatLevelExceedsMaximumThreatLevel() {
     assertThatExceptionOfType(BadRequestException.class)
@@ -111,44 +53,16 @@ public class PolicyThreatLevelFilterTest
 
   @Test
   public void testStringConstruction() {
-
     String noMin = ",5";
     String noMax = "3,";
     String minAndMax = "3,6";
     String noMinAndNoMax = ",";
     String spacesInMinAndMax = "    3     ,     6   ";
 
-    PolicyThreatLevelFilter noMinFilter = new PolicyThreatLevelFilter(noMin);
-    PolicyThreatLevelFilter noMaxFilter = new PolicyThreatLevelFilter(noMax);
-    PolicyThreatLevelFilter minAndMaxFilter = new PolicyThreatLevelFilter(minAndMax);
-    PolicyThreatLevelFilter noMinAndNoMaxFilter = new PolicyThreatLevelFilter(noMinAndNoMax);
-    PolicyThreatLevelFilter spacesInMinAndMaxFilter = new PolicyThreatLevelFilter(spacesInMinAndMax);
-
-    PolicyViolation v1 = new PolicyViolation();
-    PolicyViolation v2 = new PolicyViolation();
-    PolicyViolation v3 = new PolicyViolation();
-    v1.setThreatLevel(1);
-    v2.setThreatLevel(2);
-    v3.setThreatLevel(6);
-
-    assertThat(noMinFilter.asPolicyViolationPredicate().test(v1)).isTrue();
-    assertThat(noMinFilter.asPolicyViolationPredicate().test(v2)).isTrue();
-    assertThat(noMinFilter.asPolicyViolationPredicate().test(v3)).isFalse();
-
-    assertThat(noMaxFilter.asPolicyViolationPredicate().test(v1)).isFalse();
-    assertThat(noMaxFilter.asPolicyViolationPredicate().test(v2)).isFalse();
-    assertThat(noMaxFilter.asPolicyViolationPredicate().test(v3)).isTrue();
-
-    assertThat(minAndMaxFilter.asPolicyViolationPredicate().test(v1)).isFalse();
-    assertThat(minAndMaxFilter.asPolicyViolationPredicate().test(v2)).isFalse();
-    assertThat(minAndMaxFilter.asPolicyViolationPredicate().test(v3)).isTrue();
-
-    assertThat(noMinAndNoMaxFilter.asPolicyViolationPredicate().test(v1)).isTrue();
-    assertThat(noMinAndNoMaxFilter.asPolicyViolationPredicate().test(v2)).isTrue();
-    assertThat(noMinAndNoMaxFilter.asPolicyViolationPredicate().test(v3)).isTrue();
-
-    assertThat(spacesInMinAndMaxFilter.asPolicyViolationPredicate().test(v1)).isFalse();
-    assertThat(spacesInMinAndMaxFilter.asPolicyViolationPredicate().test(v2)).isFalse();
-    assertThat(spacesInMinAndMaxFilter.asPolicyViolationPredicate().test(v3)).isTrue();
+    new PolicyThreatLevelFilter(noMin);
+    new PolicyThreatLevelFilter(noMax);
+    new PolicyThreatLevelFilter(minAndMax);
+    new PolicyThreatLevelFilter(noMinAndNoMax);
+    new PolicyThreatLevelFilter(spacesInMinAndMax);
   }
 }

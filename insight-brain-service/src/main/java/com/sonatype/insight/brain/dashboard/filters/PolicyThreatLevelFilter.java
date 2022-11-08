@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.dashboard.filters;
 
 import java.util.function.Predicate;
 
-import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.codehaus.plexus.util.StringUtils;
@@ -85,18 +84,5 @@ public class PolicyThreatLevelFilter
   @Override
   public boolean test(Integer threatLevel) {
     return threatLevel != null && minPolicyThreatLevel <= threatLevel && threatLevel <= maxPolicyThreatLevel;
-  }
-
-  /**
-   * Transforms this predicate into one that applies the same filtering to policy violations.
-   */
-  public Predicate<AbstractPolicyViolation> asPolicyViolationPredicate() {
-    return new Predicate<AbstractPolicyViolation>()
-    {
-      @Override
-      public boolean test(AbstractPolicyViolation policyViolation) {
-        return PolicyThreatLevelFilter.this.test(policyViolation.getThreatLevel());
-      }
-    };
   }
 }

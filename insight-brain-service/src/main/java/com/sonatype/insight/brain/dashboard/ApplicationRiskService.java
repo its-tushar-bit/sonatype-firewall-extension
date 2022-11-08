@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.function.Predicate;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -93,11 +92,9 @@ public class ApplicationRiskService
         .setData("inspectedApplicationCount", appsToSearch.size());
 
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
-    Predicate<? super PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
-        policyThreatLevelFilter, policyViolationStateFilter);
 
     Collection<ApplicationView> appViews =
-        policyViolationLoader.getViolations(appsToSearch, stageTypes, false, filter, policyThreatLevelFilter,
+        policyViolationLoader.getViolations(appsToSearch, stageTypes, false, policyThreatLevelFilter,
             policyThreatCategoryFilter, policyViolationStateFilter);
 
     List<ApplicationRiskScoreDTO> applicationRiskScoreDTOs = createApplicationRiskScores(appViews);

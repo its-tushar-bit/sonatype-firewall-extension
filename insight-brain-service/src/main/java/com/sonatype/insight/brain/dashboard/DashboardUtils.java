@@ -5,23 +5,16 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
-import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
-import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.StageTypeService;
@@ -96,26 +89,5 @@ public class DashboardUtils
       stageTypeIds.add(stageType.getId());
     }
     return stageTypeIds;
-  }
-
-  Predicate<AbstractPolicyViolation> buildViolationFilter(
-      PolicyThreatCategoryFilter threatCategoryFilter,
-      PolicyThreatLevelFilter threatLevelFilter,
-      PolicyViolationStateFilter violationStatusFilter)
-  {
-    if (threatCategoryFilter == null && threatLevelFilter == null && violationStatusFilter == null) {
-      return null;
-    }
-    List<Predicate<AbstractPolicyViolation>> predicates = new ArrayList<>();
-    if (threatCategoryFilter != null) {
-      predicates.add(threatCategoryFilter.asPolicyViolationPredicate());
-    }
-    if (threatLevelFilter != null) {
-      predicates.add(threatLevelFilter.asPolicyViolationPredicate());
-    }
-    if (violationStatusFilter != null) {
-      predicates.add(violationStatusFilter.asPolicyViolationPredicate());
-    }
-    return predicates.stream().reduce(Predicate::and).get();
   }
 }

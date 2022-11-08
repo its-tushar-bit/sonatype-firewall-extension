@@ -75,12 +75,11 @@ public class PolicyViolationLoader
       Collection<Application> applications,
       Collection<StageType> stageTypes,
       boolean activeViolationsOnly,
-      Predicate<? super PolicyViolation> violationFilter,
       PolicyThreatLevelFilter policyThreatLevelFilter,
       PolicyThreatCategoryFilter policyThreatCategoryFilter,
       PolicyViolationStateFilter policyViolationStateFilter)
   {
-    return getViolations(applications, stageTypes, activeViolationsOnly, violationFilter, null,
+    return getViolations(applications, stageTypes, activeViolationsOnly, null, null,
         policyThreatLevelFilter, policyThreatCategoryFilter, policyViolationStateFilter);
   }
 

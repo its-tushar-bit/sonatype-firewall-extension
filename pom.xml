@@ -59,8 +59,8 @@
     <geb.version>2.3.1</geb.version>
     <selenium.version>3.141.59</selenium.version>
     <httpcomponents.version>4.5.13</httpcomponents.version>
-    <nexus-scm-client.version>1.48.5-01</nexus-scm-client.version>
-    <nexus-dependency-management.version>1.23.2-01</nexus-dependency-management.version>
+    <nexus-scm-client.version>1.48.6-01</nexus-scm-client.version>
+    <nexus-dependency-management.version>1.23.3-01</nexus-dependency-management.version>
     <swagger.version>2.2.2</swagger.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
 

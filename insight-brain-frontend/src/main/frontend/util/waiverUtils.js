@@ -14,10 +14,6 @@ export const waiverMatcherStrategy = {
   EXACT_COMPONENT: 'EXACT_COMPONENT',
 };
 
-// TODO in CLM-22759: Extend the use of these origins to the
-// Add/Request Waiver breadcrumb "Back to..." buttons
-// (AddRequestWaiversBackButton.jsx)
-
 // Previous state names for the various routes to the Add Waiver
 // and Request Waiver pages, used by the Add Waiver Page's
 // Cancel and Save buttons.

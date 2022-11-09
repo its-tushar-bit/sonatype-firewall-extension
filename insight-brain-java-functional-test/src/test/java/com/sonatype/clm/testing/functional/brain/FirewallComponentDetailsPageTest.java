@@ -1553,4 +1553,31 @@ public class FirewallComponentDetailsPageTest
     return componentEvaluationData;
 
   }
+
+  @Test
+  public void testRemoveComponentWaiverUsingPopover() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    SelenideElement viewAllComponentWaiversButton = firewallComponentDetailsPage.getViewAllComponentWaiversButton();
+    viewAllComponentWaiversButton.click();
+
+    // Sanity Check
+    ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
+    componentWaiversTable.getRows().shouldHaveSize(1);
+
+    firewallComponentDetailsPage.getDeleteWaiverButton().click();
+
+    firewallComponentDetailsPage.getDeleteWaiverModal().shouldBe(visible);
+
+    firewallComponentDetailsPage.getDeleteWaiverModalButton().click();
+
+    ComponentWaiversPopover componentWaiversPopoverRefreshed = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTableRefreshed =
+        componentWaiversPopoverRefreshed.componentWaiversPopoverTable();
+    componentWaiversTableRefreshed.getRows().get(0).shouldHave(text("No existing component waivers"));
+  }
 }

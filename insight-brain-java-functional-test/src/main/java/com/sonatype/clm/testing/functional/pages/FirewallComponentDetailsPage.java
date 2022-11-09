@@ -12,13 +12,16 @@ import java.nio.charset.StandardCharsets;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
+import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.nexus.scm.api.common.JsonUtils.toJson;
 
 public class FirewallComponentDetailsPage
@@ -153,6 +156,10 @@ public class FirewallComponentDetailsPage
     return FirewallPolicyViolationsTable.getPolicyViolationsTableForParent(ROOT);
   }
 
+  public static PolicyViolationsTable getPolicyViolationsTable() {
+    return PolicyViolationsTable.getPolicyViolationsTableForParent(".component-waivers");
+  }
+
   public ElementsCollection getClickableVersionsInVersionExplorer() {
     return children("#aiVersionChartViz > svg:nth-child(1) > g:nth-child(1) > g:nth-child(24) > g:nth-child(1) > rect");
   }
@@ -179,5 +186,47 @@ public class FirewallComponentDetailsPage
 
   public SelenideElement firewallWaiversButton() {
     return child("#firewall-details-view-waivers");
+  }
+
+  public SelenideElement getViewAllComponentWaiversButton() {
+    return child("#firewall-details-view-waivers");
+  }
+
+  public SelenideElement getDeleteWaiverButton() {
+    return child(".iq-component-violations-waivers-table__delete-btn");
+  }
+
+  public SelenideElement getDeleteWaiverModal() {
+    return child("#delete-waiver-modal");
+  }
+
+  public SelenideElement getDeleteWaiverModalButton() {
+    return child("#delete-waiver-modal-continue-button");
+  }
+
+  public DeleteWaiverModal deleteWaiverModal() {
+    return new DeleteWaiverModal();
+  }
+
+  public static class DeleteWaiverModal
+      extends BasicElement<ListWaiversPage.DeleteWaiverModal>
+  {
+    private static final String ROOT_SELECTOR = "#delete-waiver-modal";
+
+    public SelenideElement root() {
+      return $(ROOT_SELECTOR);
+    }
+
+    public SelenideElement header() {
+      return child(".nx-modal-header");
+    }
+
+    public SelenideElement message() {
+      return child(".nx-modal-content");
+    }
+
+    public SelenideElement footer() {
+      return child(".nx-footer");
+    }
   }
 }

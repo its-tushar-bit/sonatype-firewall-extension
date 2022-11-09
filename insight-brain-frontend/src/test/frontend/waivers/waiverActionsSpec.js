@@ -73,9 +73,11 @@ import {
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SET_SIDEBAR_NAV_LIST_DATA } from 'MainRoot/sidebarNav/sidebarNavListActions';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
+import { axiosMockAdapter } from 'TestRoot/SpecUtil';
+import { FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED } from 'MainRoot/firewall/firewallActions';
 
 describe('waiverActions', function () {
-  let store, mockAxiosCalls;
+  let store, mockAxiosCalls, mock;
 
   beforeEach(function () {
     const state = {
@@ -97,6 +99,7 @@ describe('waiverActions', function () {
       isFromFirewallPage: false,
     };
     store = SpecUtil.mockReduxStore(state);
+    mock = axiosMockAdapter();
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
     spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
   });
@@ -1059,6 +1062,44 @@ describe('waiverActions', function () {
     });
 
     describe('after a successful DELETE', function () {
+      it('dispatches WAIVERS_DELETE_WAIVER_FULFILLED and reloads existing waivers if on the component details page', function (done) {
+        const waiversData = [{ id: 'waiver1' }];
+        state = {
+          ...state,
+          router: {
+            currentState: { name: 'firewall.componentDetailsPage.violations' },
+            currentParams: { ownerId: 'ownerId', scanId: 'scanId', hash: 'hash' },
+          },
+          componentDetailsPolicyViolations: {
+            reloadComponentWaivers: false,
+          },
+        };
+        store = SpecUtil.mockReduxStore(state);
+
+        const requestUrl = deleteWaiverUrl('repository', 'ownerId', 'waiverId');
+
+        mock.onDelete(requestUrl).reply(200, {});
+        mock.onGet(getComponentWaivers('repository', 'ownerId', 'hash1')).reply(200, {
+          data: waiversData,
+        });
+
+        jasmine.clock().install();
+
+        store.dispatch(deleteWaiver('repository', 'ownerId', 'waiverId')).then(() => {
+          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jasmine.clock().uninstall();
+
+          expect(store.getActions().length).toBe(4);
+          expect(store.getActions()[1].type).toBe(WAIVERS_DELETE_WAIVER_FULFILLED);
+          expect(store.getActions()[2].type).toEqual(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED);
+          expect(store.getActions()[3].type).toEqual(WAIVERS_DELETE_MASK_TIMER_DONE);
+          done();
+        });
+
+        expect(store.getActions().length).toBe(1);
+        expect(store.getActions()[0].type).toBe(WAIVERS_DELETE_WAIVER_REQUESTED);
+      });
+
       it('dispatches WAIVERS_DELETE_WAIVER_FULFILLED and reloads transitive violation waivers if on the transitive violation waivers page', function (done) {
         state = {
           ...state,

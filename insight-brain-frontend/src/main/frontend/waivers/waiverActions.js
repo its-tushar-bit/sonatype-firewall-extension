@@ -20,8 +20,9 @@ import { getExpiryTime, originNamesForAddRequestPages } from '../util/waiverUtil
 
 import { actions as policyViolationsActions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { loadTransitiveViolationWaivers } from '../violation/transitiveViolationsActions';
-import { selectPreviousRouteName, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectPreviousRouteName, selectIsFirewall, selectHash } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
+import { loadExistingWaiversData } from 'MainRoot/firewall/firewallActions';
 
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
@@ -294,6 +295,9 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
           const scanId = router.currentParams.scanId;
           const hash = router.currentParams.hash;
           dispatch(loadTransitiveViolationWaivers(ownerId, scanId, hash));
+        } else if (currentState.name === 'firewall.componentDetailsPage.violations') {
+          const hash = selectHash(router);
+          dispatch(loadExistingWaiversData(ownerType, ownerId, hash));
         } else {
           if (!reloadComponentWaivers) {
             dispatch(loadApplicableWaivers(policyViolationId));

@@ -13,7 +13,7 @@ const TWO_MINUTES = 2 * 60 * 1000;
  * A service that keeps track of how long it has been since the session was refreshed, and if it has been too long,
  * assumes that the session has expired and refreshes the page for security
  */
-function SessionSecurityService($cookies, $window, $rootScope, logoutWarningModalService) {
+function SessionSecurityService($cookies, $window, $rootScope, logoutWarningModalService, CLMLocations) {
   /*
    * the approximate difference between the server's clock time and the time on the client.  This is necessary to
    * more reliably determine whether the server session has timed out.  Note that this value cannot be exact because
@@ -61,7 +61,10 @@ function SessionSecurityService($cookies, $window, $rootScope, logoutWarningModa
   function sessionExpired() {
     // unbind the beforeunload handler so that the page refresh cannot be cancelled
     $($window).unbind('beforeunload');
-    $window.location.reload();
+    const xhr = new XMLHttpRequest();
+    xhr.onload = () => $window.location.reload();
+    xhr.open('DELETE', CLMLocations.getSessionLogoutUrl());
+    xhr.send();
   }
 
   /**
@@ -102,7 +105,7 @@ function SessionSecurityService($cookies, $window, $rootScope, logoutWarningModa
   };
 }
 
-SessionSecurityService.$inject = ['$cookies', '$window', `$rootScope`, 'logoutWarningModalService'];
+SessionSecurityService.$inject = ['$cookies', '$window', `$rootScope`, 'logoutWarningModalService', 'CLMLocations'];
 
 export default angular
   .module('SessionSecurityModule', ['ngCookies', logoutWarningModalModule.name])

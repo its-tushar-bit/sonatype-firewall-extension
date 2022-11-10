@@ -15,6 +15,8 @@ export const selectCurrentRouteName = createSelector(selectRouterState, prop('na
 
 export const selectRouterPrevState = createSelector(selectRouterSlice, prop('prevState'));
 
+export const selectRouterPrevParams = createSelector(selectRouterSlice, prop('prevParams'));
+
 export const selectPreviousRouteName = createSelector(selectRouterPrevState, prop('name'));
 
 const includesNamePart = curryN(2, (part, str) => contains(part, split('.', str)));
@@ -34,6 +36,7 @@ export const selectApplicationId = createSelector(selectRouterCurrentParams, pro
 export const selectRepositoryId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryId'));
 export const selectHash = createSelector(selectRouterCurrentParams, propOr('', 'componentHash'));
 export const selectRepositoryPolicyId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryPolicyId'));
+export const selectPrevRepositoryPolicyId = createSelector(selectRouterPrevParams, propOr('', 'repositoryPolicyId'));
 
 export const selectIsRootOrganization = createSelector(
   selectRouterCurrentParams,

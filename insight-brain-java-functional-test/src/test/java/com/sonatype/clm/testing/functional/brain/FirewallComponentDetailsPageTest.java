@@ -32,6 +32,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
@@ -47,6 +48,7 @@ import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.Compone
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
+import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -96,6 +98,7 @@ import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1579,5 +1582,174 @@ public class FirewallComponentDetailsPageTest
     ComponentWaiversPopoverTable componentWaiversTableRefreshed =
         componentWaiversPopoverRefreshed.componentWaiversPopoverTable();
     componentWaiversTableRefreshed.getRows().get(0).shouldHave(text("No existing component waivers"));
+  }
+
+  @Test
+  public void testOpenAddWaiverPage() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getManageWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.artifactName().shouldHave(text("abi.cli"));
+    addWaiverPage.componentName().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
+    addWaiverPage.policyName().shouldHave(text("Security-High"));
+    addWaiverPage.constraintName().shouldHave(text("Security Constraint"));
+    addWaiverPage.conditions().shouldHaveSize(1);
+    addWaiverPage.condition(1).shouldHave(text("security vulnerability severity >= 9.1"));
+    addWaiverPage.availableScopes().shouldHaveSize(3);
+    addWaiverPage.scope(0).label().shouldHave(text("Repository - repositoryPublicId"));
+    addWaiverPage.scope(1).label().shouldHave(text("Repository_container - All Repositories"));
+    addWaiverPage.scope(2).label().shouldHave(text("Organization - Root Organization"));
+    addWaiverPage.availableComponents().shouldHaveSize(3);
+    addWaiverPage.component(0).label().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
+    addWaiverPage.component(1).label().shouldHave(text("com.lingocoder : abi.cli"));
+    addWaiverPage.component(2).label().shouldHave(text("All Components"));
+    addWaiverPage.currentUserName().scrollIntoView(true).shouldHave(text("Admin BuiltIn"));
+  }
+
+  @Test
+  public void testAddWaiverPage_TimeOptions() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getManageWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.comments().shouldHave(text(""));
+    addWaiverPage.expiryTimesOptions().shouldHaveSize(8);
+    addWaiverPage.expiryTimesOptions().get(0).shouldHave(text("Never"));
+    addWaiverPage.expiryTimesOptions().get(1).shouldHave(text("7 Days"));
+    addWaiverPage.expiryTimesOptions().get(2).shouldHave(text("14 Days"));
+    addWaiverPage.expiryTimesOptions().get(3).shouldHave(text("30 Days"));
+    addWaiverPage.expiryTimesOptions().get(4).shouldHave(text("60 Days"));
+    addWaiverPage.expiryTimesOptions().get(5).shouldHave(text("90 Days"));
+    addWaiverPage.expiryTimesOptions().get(6).shouldHave(text("120 Days"));
+    addWaiverPage.expiryTimesOptions().get(7).shouldHave(text("Custom"));
+    addWaiverPage.expiryTimesSelect().getSelectedOption().shouldHave(text("Never"));
+  }
+
+  @Test
+  public void tesAddWaiverComponent_cancelButtonClick() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getManageWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.availableScopes().shouldHaveSize(3);
+    addWaiverPage.cancelButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+  }
+
+  @Test
+  public void tesAddWaiverComponent__clickingDifferentScopes_and_submitButtonClick() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    Date createDate = date;
+    String dateCreated = getDateString(createDate, dateFormatMask);
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getManageWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.availableScopes().shouldHaveSize(3);
+    NxRadio chosenScope = addWaiverPage.scope(0);
+    chosenScope.label().shouldHave(text("Repository - repositoryPublicId"));
+    chosenScope.click();
+    addWaiverPage.availableComponents().shouldHaveSize(3);
+    NxRadio chosenComponent = addWaiverPage.component(2);
+    chosenComponent.label().shouldHave(text("All Components"));
+    chosenComponent.click();
+    addWaiverPage.comments().setValue("Some comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    addWaiverPage.submitError().shouldNotBe(visible);
+
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldNotBe(visible);
+    listWaiversPage.waiverListTable().rows().shouldHaveSize(1);
+    listWaiversPage.waiverListTable().row(1).comments().shouldHave(text("Some comments"));
+    listWaiversPage.waiverListTable().row(1).createdBy().shouldHave(text("Admin BuiltIn"));
+    listWaiversPage.waiverListTable().row(1).waiverExpiration().shouldHave(text("Does not expire"));
+    listWaiversPage.waiverListTable().row(1).components().shouldHave(text("All"));
+    listWaiversPage.waiverListTable().row(1).scope().shouldHave(text("Repository - repository"));
+    listWaiversPage.waiverListTable().row(1).dateCreated().shouldHave(text(dateCreated));
   }
 }

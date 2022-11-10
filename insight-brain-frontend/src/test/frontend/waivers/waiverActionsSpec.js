@@ -17,6 +17,7 @@ import {
   getReportPolicyThreatsUrl,
   getViolationDetailsUrl,
   getWaiveTransitiveViolationsUrl,
+  getRepositoryPolicyViolationUrl,
 } from '../../../main/frontend/util/CLMLocation';
 import { getPermissionContextTestUrl } from '../../../main/frontend/utilAngular/CLMContextLocation';
 import {
@@ -64,7 +65,6 @@ import {
   VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED,
   VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED,
 } from '../../../main/frontend/violation/violationActions';
-import { STATE_GO } from '../../../main/frontend/reduxUiRouter/routerActions';
 import { getFutureDate } from '../../../main/frontend/util/jsUtil';
 import {
   TRANSITIVE_VIOLATION_WAIVERS_LOAD_FULFILLED,
@@ -77,7 +77,7 @@ import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED } from 'MainRoot/firewall/firewallActions';
 
 describe('waiverActions', function () {
-  let store, mockAxiosCalls, mock;
+  let store, mockAxiosCalls, selectIsPrevFirewallSpy, mock;
 
   beforeEach(function () {
     const state = {
@@ -87,7 +87,10 @@ describe('waiverActions', function () {
           policyId: 'policyId',
         },
       },
-      router: { currentParams: { violationId: 'policyViolationId', repositoryPolicyId: 'repositoryPolicyId' } },
+      router: {
+        currentParams: { violationId: 'policyViolationId', repositoryPolicyId: 'repositoryPolicyId' },
+        prevParams: { repositoryPolicyId: 'repositoryPolicyId' },
+      },
       firewall: {
         componentDetailsPage: {
           showManageWaiverPage: false,
@@ -102,6 +105,8 @@ describe('waiverActions', function () {
     mock = axiosMockAdapter();
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
     spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+    selectIsPrevFirewallSpy = spyOn(routerSelectors, 'selectIsPrevFirewall').and.returnValue(false);
+    spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
   });
 
   describe('saveWaiverAndRedirect', function () {
@@ -173,7 +178,7 @@ describe('waiverActions', function () {
             expect(actions.length).toBe(4);
             expect(actions).toHaveActionTypesInOrder([
               WAIVERS_SAVE_WAIVER_FULFILLED,
-              STATE_GO,
+              RouterActions.STATE_GO,
               WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
             ]);
             done();
@@ -206,7 +211,7 @@ describe('waiverActions', function () {
             expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
             expect(store.getActions().length).toBe(3);
             expect(store.getActions()[1].type).toBe(WAIVERS_SAVE_WAIVER_FULFILLED);
-            expect(store.getActions()[2].type).toBe(STATE_GO);
+            expect(store.getActions()[2].type).toBe(RouterActions.STATE_GO);
             done();
           });
 
@@ -501,6 +506,166 @@ describe('waiverActions', function () {
 
           expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
         });
+      });
+    });
+
+    it('calls fetchCrossStageViolationAddWaiver actionCreator', function (done) {
+      selectIsPrevFirewallSpy.and.returnValue(true);
+      const repositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'foo'),
+        violationDetails = {
+          repositoryPolicyId: 'repositoryId',
+          policyId: 'policyId',
+        };
+      mockAxiosCalls({
+        get: {
+          [repositoryPolicyViolationUrl]: Promise.resolve({ data: violationDetails }),
+        },
+      });
+
+      store.dispatch(loadAddWaiverData('foo')).then(() => {
+        expect(store.getActions()).toHaveActionType(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
+        expect(store.getActions()).toHaveActionType(WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED);
+        done();
+      });
+
+      expect(store.getActions()).toHaveActionType(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
+      expect(axios.get).toHaveBeenCalledWith(repositoryPolicyViolationUrl);
+    });
+
+    describe('when fetchCrossStageViolationAddWaiver succeeds', function () {
+      it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED', function (done) {
+        selectIsPrevFirewallSpy.and.returnValue(true);
+        const loadRepositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'foo'),
+          ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('repository', 'repositoryId', 'policyId'),
+          incomingData = {
+            policyViolationId: 'e0ecf0a629d341e88179f8d40f4675ee',
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: 'ant',
+                classifier: '',
+                extension: 'jar',
+                groupId: 'ant',
+                version: '1.6',
+              },
+            },
+            componentDisplayName: {
+              parts: [
+                {
+                  field: 'Group',
+                  value: 'ant',
+                },
+                {
+                  value: ' : ',
+                },
+                {
+                  field: 'Artifact',
+                  value: 'ant',
+                },
+                {
+                  value: ' : ',
+                },
+                {
+                  field: 'Version',
+                  value: '1.6',
+                },
+              ],
+              name: 'ant',
+            },
+            hash: '7a3c2521ae0c6f53e044',
+            policyId: 'd98fb873ed1f48e5b00316d8acddbc0f',
+            policyName: 'Security-Medium',
+            policyOwner: {
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              ownerName: 'Root Organization',
+              ownerType: 'organization',
+            },
+            policyThreatLevel: 7,
+            policyThreatCategory: 'SECURITY',
+            constraints: [
+              {
+                constraintId: 'c6436a5a051046b1ba2aa94e9fd82a51',
+                constraintName: 'Medium risk CVSS score',
+                constraintOperator: 'AND',
+                conditions: [
+                  {
+                    conditionType: 'SecurityVulnerabilitySeverity',
+                    conditionSummary: 'Security Vulnerability Severity >= 4',
+                    conditionReason: 'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)',
+                    conditionTriggerReference: {
+                      value: 'CVE-2012-2098',
+                      type: 'SECURITY_VULNERABILITY_REFID',
+                    },
+                  },
+                  {
+                    conditionType: 'SecurityVulnerabilitySeverity',
+                    conditionSummary: 'Security Vulnerability Severity < 7',
+                    conditionReason: 'Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)',
+                    conditionTriggerReference: {
+                      value: 'CVE-2012-2098',
+                      type: 'SECURITY_VULNERABILITY_REFID',
+                    },
+                  },
+                ],
+              },
+            ],
+            constraintFactsJson:
+              '[{"constraintId":"c6436a5a051046b1ba2aa94e9fd82a51","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"}]}]',
+            policyActionTypeId: null,
+            lastReported: '2022-10-10T16:01:37.586+03:00',
+          };
+
+        mockAxiosCalls({
+          get: {
+            [loadRepositoryPolicyViolationUrl]: () =>
+              Promise.resolve({
+                data: incomingData,
+              }),
+            [ownerContextHierarchyUrl]: Promise.resolve({
+              data: {
+                type: 'type',
+                id: 'id',
+                name: 'name',
+              },
+            }),
+          },
+        });
+
+        store.dispatch(loadAddWaiverData('foo')).then(() => {
+          expect(axios.get.calls.argsFor(1)).toEqual([ownerContextHierarchyUrl]);
+          expect(store.getActions().length).toBe(3);
+          expect(store.getActions()[1].type).toBe(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+          expect(store.getActions()[2].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED);
+          expect(store.getActions()[2].payload).toEqual([{ type: 'type', id: 'id', name: 'name', label: 'Type' }]);
+          done();
+        });
+
+        expect(store.getActions()).toHaveActionType(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
+      });
+    });
+
+    describe('when fetchCrossStageViolationAddWaiver fails', function () {
+      it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED', function (done) {
+        selectIsPrevFirewallSpy.and.returnValue(true);
+        const applicableWaiversUrl = getApplicableWaiversUrl('foo');
+        const loadRepositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'foo');
+        mockAxiosCalls({
+          get: {
+            [applicableWaiversUrl]: Promise.resolve({
+              data: { activeWaivers: [], expiredWaivers: [] },
+            }),
+            [loadRepositoryPolicyViolationUrl]: () => Promise.reject('Err'),
+          },
+        });
+
+        store.dispatch(loadAddWaiverData('foo')).then(() => {
+          expect(store.getActions().length).toBe(2);
+          expect(store.getActions()[1].type).toEqual(WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED);
+          expect(store.getActions()[1].payload).toEqual('Err');
+          done();
+        });
+
+        expect(store.getActions()).toHaveActionType(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
       });
     });
 
@@ -862,7 +1027,7 @@ describe('waiverActions', function () {
     it('dispatches STATE_GO with the route to ViolationDetails when router comes from violation details', function () {
       store.dispatch(returnToAddWaiverOriginPage());
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toBe(STATE_GO);
+      expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
         to: 'listWaivers',
         params: { violationId: 'policyViolationId' },
@@ -885,7 +1050,7 @@ describe('waiverActions', function () {
 
       store.dispatch(returnToAddWaiverOriginPage());
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toBe(STATE_GO);
+      expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
         to: 'applicationReport.policy',
         params: {
@@ -914,7 +1079,7 @@ describe('waiverActions', function () {
 
       store.dispatch(returnToAddWaiverOriginPage());
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toBe(STATE_GO);
+      expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
         to: 'applicationReport.componentDetails.violations',
         params: {
@@ -944,7 +1109,7 @@ describe('waiverActions', function () {
 
       store.dispatch(returnToAddWaiverOriginPage());
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toBe(STATE_GO);
+      expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
         to: 'applicationReport.violationWaivers',
         params: {
@@ -973,7 +1138,7 @@ describe('waiverActions', function () {
 
       store.dispatch(returnToAddWaiverOriginPage());
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toBe(STATE_GO);
+      expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
         to: 'sidebarView.violation',
         params: {
@@ -1000,7 +1165,7 @@ describe('waiverActions', function () {
 
         store.dispatch(returnToAddWaiverOriginPage());
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(STATE_GO);
+        expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
         expect(store.getActions()[0].payload).toEqual({
           to: 'listWaivers',
           params: { violationId: 'policyViolationId' },

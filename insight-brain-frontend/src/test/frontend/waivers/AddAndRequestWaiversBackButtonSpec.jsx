@@ -32,6 +32,8 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
         href = 'violationDetailsHref';
       } else if (stateName === originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION) {
         href = 'listWaiversViolationDetailsHref';
+      } else if (stateName === originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS) {
+        href = 'firewallViolationWaiversHref';
       }
       return href;
     });
@@ -260,5 +262,29 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
     expect(component).toMatchSelector(MenuBarBackButton);
     expect(component).toHaveProp('text', 'Back to Waivers');
     expect(component).toHaveProp('href', 'listWaiversViolationDetailsHref');
+  });
+
+  describe('if navigated to Add Waivers Page via Waivers for Firewall Violation page', () => {
+    it(`renders an MenuBarBackButton with title 'Back to Waivers'
+    and navigates from the Add Waiver Page to Waivers for Firewall Violation page`, () => {
+      const component = getShallowComponent({
+        violationId: 'violationId',
+        prevStateName: originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS,
+        prevParams: {
+          hash: 'hash',
+          repositoryPolicyId: 'repositoryPolicyId',
+        },
+      });
+
+      expect(routerContext.useRouterState).toHaveBeenCalled();
+      expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS, {
+        hash: 'hash',
+        violationId: 'violationId',
+        repositoryPolicyId: 'repositoryPolicyId',
+      });
+      expect(component).toMatchSelector(MenuBarBackButton);
+      expect(component).toHaveProp('text', 'Back to Waivers');
+      expect(component).toHaveProp('href', 'firewallViolationWaiversHref');
+    });
   });
 });

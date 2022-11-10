@@ -10,17 +10,30 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { capitalize, getISODateFromDateInput } from '../util/jsUtil';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { Messages } from '../utilAngular/CommonServices';
-import { getAddPolicyViolationWaiverUrl, getOwnerContextHierarchyUrl, deleteWaiverUrl } from '../util/CLMLocation';
-
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { getPermissionContextTestUrl } from '../utilAngular/CLMContextLocation';
-import { getApplicationSummaryUrl } from '../util/CLMLocation';
-import { fetchCrossStageViolation, fetchApplicableWaivers } from '../violation/violationActions';
+import {
+  getApplicationSummaryUrl,
+  getAddPolicyViolationWaiverUrl,
+  getOwnerContextHierarchyUrl,
+  deleteWaiverUrl,
+} from '../util/CLMLocation';
+import {
+  fetchCrossStageViolation,
+  fetchApplicableWaivers,
+  fetchCrossStageViolationAddWaiver,
+} from '../violation/violationActions';
 import { getExpiryTime, originNamesForAddRequestPages } from '../util/waiverUtils';
 
 import { actions as policyViolationsActions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { loadTransitiveViolationWaivers } from '../violation/transitiveViolationsActions';
-import { selectPreviousRouteName, selectIsFirewall, selectHash } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectPreviousRouteName,
+  selectHash,
+  selectIsFirewall,
+  selectIsPrevFirewall,
+  selectPrevRepositoryPolicyId,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
 import { loadExistingWaiversData } from 'MainRoot/firewall/firewallActions';
 
@@ -126,15 +139,19 @@ export const saveWaiverAndLoadPolicyViolationData = (
  */
 export function loadAddWaiverData(violationId) {
   return (dispatch, getState) => {
+    const isCurrentRouteName = selectIsPrevFirewall(getState());
+    const repositoryPolicyId = selectPrevRepositoryPolicyId(getState());
+    const fetchCrossStage = isCurrentRouteName ? fetchCrossStageViolationAddWaiver : fetchCrossStageViolation;
     dispatch(loadAddWaiverDataRequested());
-    return dispatch(fetchCrossStageViolation(violationId))
+    return dispatch(fetchCrossStage(violationId))
       .then(() => {
-        const ownerType = 'application',
+        const ownerType = isCurrentRouteName ? 'repository' : 'application',
           { violation } = getState(),
           { violationDetails } = violation,
-          { applicationPublicId, policyId } = violationDetails;
+          { applicationPublicId, policyId } = violationDetails,
+          isPublicId = isCurrentRouteName ? repositoryPolicyId : applicationPublicId;
         // ToDo verify that ownerType is always application
-        return loadOwnerContextHierarchy(ownerType, applicationPublicId, policyId);
+        return loadOwnerContextHierarchy(ownerType, isPublicId, policyId);
       })
       .then((waiverTargets) => dispatch(loadAddWaiverDataFulfilled(waiverTargets)))
       .catch((err) => dispatch(loadAddWaiverDataFailed(err)));
@@ -192,6 +209,10 @@ export function returnToAddWaiverOriginPage() {
             policyViolationId: currentParams.violationId,
           })
         );
+
+      case originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS:
+        return dispatch(stateGo(originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS, prevParams));
+
       // Came from a direct link to the Add Waiver Page or some other origin
       default:
         return dispatch(

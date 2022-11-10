@@ -28,6 +28,7 @@ export const originNamesForAddRequestPages = {
   DASHBOARD_VIOLATIONS_VIEW: 'sidebarView.violation',
   // Dashboard -> Violations -> Violation Details -> Manage Waivers -> Add Waiver
   WAIVERS_FOR_VIOLATION: 'listWaivers',
+  FIREWALL_VIOLATION_WAIVERS: 'firewall.violationWaivers',
 };
 
 export const waiverExpirations = [

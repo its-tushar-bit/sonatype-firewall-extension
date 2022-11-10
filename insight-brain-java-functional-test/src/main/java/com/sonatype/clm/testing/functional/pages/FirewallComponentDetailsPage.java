@@ -14,14 +14,12 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.nexus.scm.api.common.JsonUtils.toJson;
 
 public class FirewallComponentDetailsPage
@@ -202,31 +200,5 @@ public class FirewallComponentDetailsPage
 
   public SelenideElement getDeleteWaiverModalButton() {
     return child("#delete-waiver-modal-continue-button");
-  }
-
-  public DeleteWaiverModal deleteWaiverModal() {
-    return new DeleteWaiverModal();
-  }
-
-  public static class DeleteWaiverModal
-      extends BasicElement<ListWaiversPage.DeleteWaiverModal>
-  {
-    private static final String ROOT_SELECTOR = "#delete-waiver-modal";
-
-    public SelenideElement root() {
-      return $(ROOT_SELECTOR);
-    }
-
-    public SelenideElement header() {
-      return child(".nx-modal-header");
-    }
-
-    public SelenideElement message() {
-      return child(".nx-modal-content");
-    }
-
-    public SelenideElement footer() {
-      return child(".nx-footer");
-    }
   }
 }

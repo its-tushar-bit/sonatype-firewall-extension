@@ -19,7 +19,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -38,6 +37,7 @@ import com.sonatype.insight.brain.filter.AdvancedLegalPackDashboardFilter;
 import com.sonatype.insight.brain.filter.UserFilterDTO;
 import com.sonatype.insight.brain.filter.UserFilterService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
@@ -62,6 +62,9 @@ import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_N
 import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
 import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.booleanThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 public class ApplicationAttributionReportBuilderTest
@@ -90,7 +93,7 @@ public class ApplicationAttributionReportBuilderTest
   @Test
   public void testDefaultSuccessfulReport() throws IOException {
     Application application = tempEntity.newApplicationWithParent("appId");
-    generateReportDataAndMocks(application);
+    generateReportDataAndMocks(application, true);
 
     String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
         LegalCustomReportParameters.builder().buildWithDefaults(application.getPublicId()));
@@ -128,8 +131,7 @@ public class ApplicationAttributionReportBuilderTest
     app2.applicationPublicId = application2.getPublicId();
     app2.stageTypeName = BuildStageType.ID;
     applicationsAndStages.add(app2);
-    generateReportDataAndMocks(application, true, true);
-    generateReportDataAndMocks(application2, true, true);
+    generateMultiReportDataAndMocks(Lists.newArrayList(application, application2), true);
     when(mockApplicationService
         .getByPublicIdsNoAuthz(new HashSet<>(Arrays.asList(application.getPublicId(), application2.getPublicId()))))
             .thenReturn(Arrays.asList(application, application2));
@@ -168,8 +170,7 @@ public class ApplicationAttributionReportBuilderTest
     when(mockUserFilterService.getActiveUserFilterForCurrentUser(UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD))
         .thenReturn(newUserFilterDTO(tempEntity.newUserFilter("Test User", InternalRealm.ID, ACTIVE_FILTER_NAME,
             ADVANCED_LEGAL_PACK_DASHBOARD, JsonUtils.format(advancedLegalPackDashboardFilter), filterName)));
-    generateReportDataAndMocks(application, true, true);
-    generateReportDataAndMocks(application2, true, true);
+    generateMultiReportDataAndMocks(Lists.newArrayList(application, application2), true);
 
     List<Application> appIdList = Arrays.asList(application, application2);
     when(mockApplicationService.getApplicationsByIdsAndOrganizationIdsAndTagIdsNoAuthz(null,
@@ -208,8 +209,7 @@ public class ApplicationAttributionReportBuilderTest
     app2.applicationPublicId = application2.getPublicId();
     app2.stageTypeName = BuildStageType.ID;
     applicationsAndStages.add(app2);
-    generateReportDataAndMocks(application, true, true);
-    generateReportDataAndMocks(application2, true, true);
+    generateMultiReportDataAndMocks(Lists.newArrayList(application, application2), true);
     when(mockApplicationService
         .getByPublicIdsNoAuthz(new HashSet<>(Arrays.asList(application.getPublicId(), application2.getPublicId()))))
             .thenReturn(Arrays.asList(application, application2));
@@ -242,7 +242,7 @@ public class ApplicationAttributionReportBuilderTest
   @Test
   public void testNoTableOfContent() {
     Application application = tempEntity.newApplicationWithParent("appId");
-    generateReportDataAndMocks(application);
+    generateReportDataAndMocks(application, true);
 
     String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
         LegalCustomReportParameters.builder()
@@ -266,7 +266,7 @@ public class ApplicationAttributionReportBuilderTest
   @Test
   public void testNoStandardLicenseTextNoAppendix() {
     Application application = tempEntity.newApplicationWithParent("appId");
-    generateReportDataAndMocks(application);
+    generateReportDataAndMocks(application, true);
 
     String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
         LegalCustomReportParameters.builder()
@@ -291,7 +291,7 @@ public class ApplicationAttributionReportBuilderTest
   @Test
   public void testNoAppendix() {
     Application application = tempEntity.newApplicationWithParent("appId");
-    generateReportDataAndMocks(application);
+    generateReportDataAndMocks(application, true);
 
     String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
         LegalCustomReportParameters.builder()
@@ -324,7 +324,7 @@ public class ApplicationAttributionReportBuilderTest
   @Test
   public void testAppendixDontIncludeStandardLicenseText() {
     Application application = tempEntity.newApplicationWithParent("appId");
-    generateReportDataAndMocks(application);
+    generateReportDataAndMocks(application, true);
 
     String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
         LegalCustomReportParameters.builder()
@@ -376,7 +376,7 @@ public class ApplicationAttributionReportBuilderTest
   @Test
   public void testWithHeaderAndFooter() {
     Application application = tempEntity.newApplicationWithParent("appId");
-    generateReportDataAndMocks(application);
+    generateReportDataAndMocks(application, true);
 
     String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
         LegalCustomReportParameters.builder()
@@ -399,7 +399,7 @@ public class ApplicationAttributionReportBuilderTest
   @Test
   public void testWithNoticeFiles() {
     Application application = tempEntity.newApplicationWithParent("appId");
-    generateReportDataAndMocks(application);
+    generateReportDataAndMocks(application, true);
 
     String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
         LegalCustomReportParameters.builder()
@@ -420,19 +420,11 @@ public class ApplicationAttributionReportBuilderTest
         .contains("Second Notice File Content");
   }
 
-  private void generateReportDataAndMocks(final Application application) {
-    generateReportDataAndMocks(application, true);
-  }
-
   private void generateReportDataAndMocks(final Application application, boolean addStandardLicenseTextToMetadata) {
-    generateReportDataAndMocks(application, addStandardLicenseTextToMetadata, false);
+    generateSingleReportDataAndMocks(application, addStandardLicenseTextToMetadata);
   }
 
-  private void generateReportDataAndMocks(
-      final Application application,
-      boolean addStandardLicenseTextToMetadata,
-      boolean addMultiApp)
-  {
+  private ApiLicenseLegalApplicationReportDTO generateMockReportData(boolean addStandardLicenseTextToMetadata) {
 
     ApiLicenseLegalApplicationReportDTO reportDTO = new ApiLicenseLegalApplicationReportDTO();
 
@@ -568,21 +560,36 @@ public class ApplicationAttributionReportBuilderTest
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component4, licenseLegalData4, null));
     reportDTO.components.add(new ApiLicenseLegalComponentDTO(component5, licenseLegalData5, null));
 
-    if (addMultiApp) {
-      when(mockApiLicenseLegalService.getLicenseLegalApplicationReportNoException(application, BuildStageType.ID, false,
-              false)).thenReturn(Optional.of(reportDTO));
-    }
-    else {
-      when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID,
-          false, false)).thenReturn(reportDTO);
-    }
-
     reportDTO.licenseLegalMetadata = new HashSet<>();
     ApiLicenseLegalMetadataDTO licenseLegalMetadataDTO =
         new ApiLicenseLegalMetadataDTO("LicenseOne", "LicenseOneName",
             addStandardLicenseTextToMetadata ? "License One Standard License Text" : null,
             new HashSet<>(), null);
     reportDTO.licenseLegalMetadata.add(licenseLegalMetadataDTO);
+    return reportDTO;
+  }
+
+  private void generateSingleReportDataAndMocks(
+      final Application application,
+      boolean addStandardLicenseTextToMetadata)
+  {
+    ApiLicenseLegalApplicationReportDTO reportDTO = generateMockReportData(addStandardLicenseTextToMetadata);
+    when(mockApiLicenseLegalService.getLicenseLegalApplicationReport(application, BuildStageType.ID,
+        false, false)).thenReturn(reportDTO);
+  }
+
+  private void generateMultiReportDataAndMocks(
+      final List<Owner> applications,
+      boolean addStandardLicenseTextToMetadata)
+  {
+    Set<Optional<ApiLicenseLegalApplicationReportDTO>> reportDTOs =
+        applications.stream().map(app -> Optional.of(generateMockReportData(addStandardLicenseTextToMetadata)))
+            .collect(Collectors.toSet());
+    doReturn(reportDTOs).when(mockApiLicenseLegalService).getLicenseLegalMultiApplicationReport(
+        argThat(matcher -> matcher.containsAll(applications)),
+        argThat(matcher -> matcher.containsAll(Collections.nCopies(applications.size(), BuildStageType.ID))),
+        booleanThat(matcher -> !matcher),
+        booleanThat(matcher -> !matcher));
   }
 
   @Test
@@ -601,7 +608,7 @@ public class ApplicationAttributionReportBuilderTest
   @Test
   public void testHtmlEscaping() {
     Application application = tempEntity.newApplicationWithParent("appId");
-    generateReportDataAndMocks(application);
+    generateReportDataAndMocks(application, true);
 
     String content = reportBuilder.generateCustomLegalApplicationAttributionReport(application, BuildStageType.ID,
         LegalCustomReportParameters.builder()

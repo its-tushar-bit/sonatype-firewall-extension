@@ -212,6 +212,12 @@ public class PolicyWaiverDAO
     return getList(tx, sQuery, policyId);
   }
 
+  public List<PolicyWaiver> getActiveByPolicyId(String policyId) {
+    String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
+        " WHERE entity.policyId=?1 AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)";
+    return getList(sQuery, policyId);
+  }
+
   public List<PolicyWaiver> getByPolicyIdAndOwnerIds(TransactionContext tx, String policyId, Set<String> ownerIds) {
     String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
         " WHERE entity.policyId=?1 AND entity.ownerId IN (?2)";

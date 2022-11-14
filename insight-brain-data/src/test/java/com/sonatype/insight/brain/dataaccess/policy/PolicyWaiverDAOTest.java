@@ -990,4 +990,68 @@ public class PolicyWaiverDAOTest
         .as("The waiver should have updated comment.")
         .isEqualTo(newComment);
   }
+
+  @Test
+  public void testGetActiveByPolicyId() {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    Policy policy1 = tempEntity.newPolicy(application);
+    Policy policy2 = tempEntity.newPolicy(organization);
+
+    PolicyWaiver policy1Waiver1 = tempEntity.newWaiver("hash1", policy1.getId(), application.getId(), "test comment",
+        Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
+    PolicyWaiver policy2ActiveWaiver1 =
+        tempEntity.newWaiver("hash2", policy2.getId(), application.getId(), "test comment",
+            Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
+    PolicyWaiver policy2ActiveWaiver2 =
+        tempEntity.newWaiver("hash3", policy2.getId(), application.getId(), "test comment",
+            Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
+    PolicyWaiver policy2ExpiredWaiver1 =
+        tempEntity.newWaiver("hash4", policy2.getId(), application.getId(), "test comment",
+            Date.from(Instant.now().minus(4, ChronoUnit.DAYS)));
+
+    List<PolicyWaiver> waivers = dao.getActiveByPolicyId(policy2.getId());
+
+    assertThat(waivers)
+        .isNotEmpty()
+        .as("It should not include expired waivers")
+        .hasSize(2);
+
+    assertThat(waivers)
+        .extracting(PolicyWaiver::getId)
+        .contains(policy2ActiveWaiver1.getId(), policy2ActiveWaiver2.getId())
+        .doesNotContain(policy1Waiver1.getId(), policy2ExpiredWaiver1.getId());
+  }
+
+  @Test
+  public void testGetByPolicyId() {
+    PolicyWaiverDAO dao = new PolicyWaiverDAO();
+
+    Policy policy1 = tempEntity.newPolicy(application);
+    Policy policy2 = tempEntity.newPolicy(organization);
+
+    PolicyWaiver policy1Waiver1 = tempEntity.newWaiver("hash1", policy1.getId(), application.getId(), "test comment",
+        Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
+    PolicyWaiver policy2ActiveWaiver1 =
+        tempEntity.newWaiver("hash2", policy2.getId(), application.getId(), "test comment",
+            Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
+    PolicyWaiver policy2ActiveWaiver2 =
+        tempEntity.newWaiver("hash3", policy2.getId(), application.getId(), "test comment",
+            Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
+    PolicyWaiver policy2ExpiredWaiver1 =
+        tempEntity.newWaiver("hash4", policy2.getId(), application.getId(), "test comment",
+            Date.from(Instant.now().minus(4, ChronoUnit.DAYS)));
+
+    List<PolicyWaiver> waivers = dao.getByPolicyId(policy2.getId());
+
+    assertThat(waivers)
+        .isNotEmpty()
+        .as("It should also include expired waivers")
+        .hasSize(3);
+
+    assertThat(waivers)
+        .extracting(PolicyWaiver::getId)
+        .contains(policy2ActiveWaiver1.getId(), policy2ActiveWaiver2.getId(), policy2ExpiredWaiver1.getId())
+        .doesNotContain(policy1Waiver1.getId());
+  }
 }

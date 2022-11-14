@@ -117,7 +117,9 @@ public class DashboardPolicyWaiverService
 
     List<DashboardPolicyWaiverDTO> filteredWaiverDTOs = new ArrayList<>();
     for (Policy policy : filteredPoliciesById.values()) {
-      List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByPolicyId(policy.getId());
+      List<PolicyWaiver> policyWaivers = expirationDate.equals(ALL) ?
+          policyWaiverDAO.getByPolicyId(policy.getId())
+          : policyWaiverDAO.getActiveByPolicyId(policy.getId());
       List<DashboardPolicyWaiverDTO> partialDTOs =
           filterPolicyWaiversAndBuildDTOs(policyWaivers, filteringPredicate, dtoAdapter);
       filteredWaiverDTOs.addAll(partialDTOs);

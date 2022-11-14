@@ -13,9 +13,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.IntConsumer;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.inject.Inject;
 
@@ -55,6 +57,7 @@ import org.junit.Test;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_GOLANG;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_PYPI;
+import static com.sonatype.insight.brain.dashboard.ExpirationDate.ALL;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.IN_30_DAYS;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.IN_7_DAYS;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.NEVER;
@@ -702,6 +705,122 @@ public class DashboardPolicyWaiverServiceTest
         .as("Irrespective of the expiry dates, " +
             "waivers first should be sorted by policy names ")
         .isEqualTo(policyWaiver1App1.getHash());
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_shouldNotAddExpiredWaivers() {
+    Policy policy1 = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withName("Z-Policy-Name")
+            .withOwnerId(app1.getId())
+            .build());
+
+    Policy policy2 = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withName("A-Policy-Name")
+            .withOwnerId(app1.getId())
+            .build());
+
+    PolicyWaiver expiredPolicyWaiverApp1 = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy1.getId())
+        .withOwnerId(app1.getId())
+        .withExpiryTime(Date.from(Instant.now().minus(11, ChronoUnit.DAYS)))
+        .build();
+
+    PolicyWaiver activePolicyWaiverApp1 = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy2.getId())
+        .withOwnerId(app1.getId())
+        .withExpiryTime(Date.from(Instant.now().plus(5, ChronoUnit.DAYS)))
+        .build();
+
+    PolicyWaiver activePolicyWaiverApp2 = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy2.getId())
+        .withOwnerId(app2.getId())
+        .withExpiryTime(Date.from(Instant.now().plus(3, ChronoUnit.DAYS)))
+        .build();
+
+    tempEntity.newWaiver(expiredPolicyWaiverApp1);
+    tempEntity.newWaiver(activePolicyWaiverApp1);
+    tempEntity.newWaiver(activePolicyWaiverApp2);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(
+            risksFilterDTOBuilder
+                .withExpirationDate(IN_7_DAYS)
+                .withMaxResults(10)
+                .build());
+
+    assertThat(dashboardPolicyWaivers.numResults)
+        .as("It should not add expired waiver to the result")
+        .isEqualTo(2);
+
+    List<String> actualHashList =
+        dashboardPolicyWaivers.dashboardResults
+            .stream()
+            .map(dto -> dto.hash)
+            .collect(Collectors.toList());
+
+    assertThat(actualHashList)
+        .isNotEmpty()
+        .doesNotContain(expiredPolicyWaiverApp1.getHash());
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_shouldAddExpiredWaiversWhenAllFilterIsSelectedOnExpiryDate() {
+    Policy policy1 = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withName("Z-Policy-Name")
+            .withOwnerId(app1.getId())
+            .build());
+
+    Policy policy2 = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withName("A-Policy-Name")
+            .withOwnerId(app1.getId())
+            .build());
+
+    PolicyWaiver expiredPolicyWaiverApp1 = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy1.getId())
+        .withOwnerId(app1.getId())
+        .withExpiryTime(Date.from(Instant.now().minus(11, ChronoUnit.DAYS)))
+        .build();
+
+    PolicyWaiver activePolicyWaiverApp1 = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy2.getId())
+        .withOwnerId(app1.getId())
+        .withExpiryTime(Date.from(Instant.now().plus(5, ChronoUnit.DAYS)))
+        .build();
+
+    PolicyWaiver activePolicyWaiverApp2 = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy2.getId())
+        .withOwnerId(app2.getId())
+        .withExpiryTime(Date.from(Instant.now().plus(3, ChronoUnit.DAYS)))
+        .build();
+
+    tempEntity.newWaiver(expiredPolicyWaiverApp1);
+    tempEntity.newWaiver(activePolicyWaiverApp1);
+    tempEntity.newWaiver(activePolicyWaiverApp2);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(
+            risksFilterDTOBuilder
+                .withExpirationDate(ALL)
+                .withMaxResults(10)
+                .build());
+
+    assertThat(dashboardPolicyWaivers.numResults)
+        .as("It should add expired waiver(s) to the result if ALL expiration date filter is selected.")
+        .isEqualTo(3);
   }
 
   private PolicyWaiver createPolicyWaiverWithFullDetails(Application application) {

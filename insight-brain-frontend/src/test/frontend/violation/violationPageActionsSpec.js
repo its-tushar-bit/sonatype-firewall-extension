@@ -9,6 +9,7 @@ import {
   getViolationDetailsUrl,
   getVulnerabilityJsonDetailUrl,
   getApplicableWaiversUrl,
+  getApplicationSummaryUrl,
 } from '../../../main/frontend/util/CLMLocation';
 import {
   loadViolation,
@@ -22,6 +23,7 @@ import {
   VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED,
   loadVulnerabilityDetails,
 } from '../../../main/frontend/violation/violationActions';
+import { getPermissionContextTestUrl } from '../../../main/frontend/utilAngular/CLMContextLocation';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('violationActions', function () {
@@ -29,13 +31,16 @@ describe('violationActions', function () {
   let store;
 
   describe('loadViolation', function () {
-    let state;
+    let state, permissionContextTestUrl, applicationSummaryUrl;
 
     beforeEach(function () {
+      permissionContextTestUrl = getPermissionContextTestUrl('application', 'applicationPrivateId');
+      applicationSummaryUrl = getApplicationSummaryUrl('applicationPublicId');
       state = {
         violation: {
           violationDetails: {
             policyViolationId: 'baz',
+            applicationPublicId: 'applicationPublicId',
           },
           selectedViolationId: 'bar',
         },
@@ -75,6 +80,14 @@ describe('violationActions', function () {
                 expiredWaivers: ['bar'],
               },
             }),
+            [applicationSummaryUrl]: Promise.resolve({
+              data: { id: 'applicationPrivateId' },
+            }),
+          },
+          put: {
+            [permissionContextTestUrl]: Promise.resolve({
+              data: ['WAIVE_POLICY_VIOLATIONS'],
+            }),
           },
         });
 
@@ -90,7 +103,7 @@ describe('violationActions', function () {
             expiredWaivers: ['bar'],
           });
           expect(store.getActions()[2].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
-          expect(store.getActions()[2].payload).toBeUndefined();
+          expect(store.getActions()[2].payload).toEqual(true);
           done();
         });
 
@@ -116,6 +129,14 @@ describe('violationActions', function () {
           [getApplicableWaiversUrl('foo1')]: Promise.resolve({
             data: { activeWaivers: ['foo1'], expiredWaivers: ['bar'] },
           }),
+          [applicationSummaryUrl]: Promise.resolve({
+            data: { id: 'applicationPrivateId' },
+          }),
+        },
+        put: {
+          [permissionContextTestUrl]: Promise.resolve({
+            data: ['WAIVE_POLICY_VIOLATIONS'],
+          }),
         },
       });
 
@@ -132,7 +153,7 @@ describe('violationActions', function () {
           expiredWaivers: ['bar'],
         });
         expect(store.getActions()[3].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
-        expect(store.getActions()[3].payload).toBeUndefined();
+        expect(store.getActions()[3].payload).toEqual(true);
 
         done();
       });
@@ -148,6 +169,14 @@ describe('violationActions', function () {
           }),
           [getApplicableWaiversUrl('foo2')]: Promise.resolve({
             data: { activeWaivers: ['foo2'], expiredWaivers: ['bar'] },
+          }),
+          [applicationSummaryUrl]: Promise.resolve({
+            data: { id: 'applicationPrivateId' },
+          }),
+        },
+        put: {
+          [permissionContextTestUrl]: Promise.resolve({
+            data: ['WAIVE_POLICY_VIOLATIONS'],
           }),
         },
       });
@@ -165,7 +194,7 @@ describe('violationActions', function () {
           expiredWaivers: ['bar'],
         });
         expect(store.getActions()[3].type).toEqual(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
-        expect(store.getActions()[3].payload).toBeUndefined();
+        expect(store.getActions()[3].payload).toEqual(true);
 
         done();
       });
@@ -181,6 +210,14 @@ describe('violationActions', function () {
           [getViolationDetailsUrl('foo')]: () => Promise.reject(responseError),
           [getApplicableWaiversUrl('foo')]: Promise.resolve({
             data: { activeWaivers: ['foo'], expiredWaivers: ['bar'] },
+          }),
+          [applicationSummaryUrl]: Promise.resolve({
+            data: { id: 'applicationPrivateId' },
+          }),
+        },
+        put: {
+          [permissionContextTestUrl]: Promise.resolve({
+            data: ['WAIVE_POLICY_VIOLATIONS'],
           }),
         },
       });
@@ -211,6 +248,14 @@ describe('violationActions', function () {
             data: { policyViolationId: 'foo' },
           }),
           [getApplicableWaiversUrl('foo')]: () => Promise.reject(responseError),
+          [applicationSummaryUrl]: Promise.resolve({
+            data: { id: 'applicationPrivateId' },
+          }),
+        },
+        put: {
+          [permissionContextTestUrl]: Promise.resolve({
+            data: ['WAIVE_POLICY_VIOLATIONS'],
+          }),
         },
       });
 
@@ -264,6 +309,14 @@ describe('violationActions', function () {
               data: { activeWaivers: [], expiredWaivers: [] },
             }),
             [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: Promise.resolve({ data: vulnerabilityResponseData }),
+            [applicationSummaryUrl]: Promise.resolve({
+              data: { id: 'applicationPrivateId' },
+            }),
+          },
+          put: {
+            [permissionContextTestUrl]: Promise.resolve({
+              data: ['WAIVE_POLICY_VIOLATIONS'],
+            }),
           },
         });
 
@@ -292,6 +345,14 @@ describe('violationActions', function () {
               data: { activeWaivers: [], expiredWaivers: [] },
             }),
             [getVulnerabilityJsonDetailUrl('CVE-2016-1000027')]: () => Promise.reject(vulnerabilityResponseError),
+            [applicationSummaryUrl]: Promise.resolve({
+              data: { id: 'applicationPrivateId' },
+            }),
+          },
+          put: {
+            [permissionContextTestUrl]: Promise.resolve({
+              data: ['WAIVE_POLICY_VIOLATIONS'],
+            }),
           },
         });
 

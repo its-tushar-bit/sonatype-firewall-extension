@@ -79,6 +79,7 @@ describe('violationReducer', function () {
         vulnerabilityDetails: {},
         vulnerabilityDetailsError: 'bla',
         otherProp: 'asdf',
+        hasPermissionForAppWaivers: false,
       };
 
       const newState = reducer(initialState, {
@@ -95,6 +96,7 @@ describe('violationReducer', function () {
         vulnerabilityDetailsError: null,
         activeWaivers: [],
         expiredWaivers: [],
+        hasPermissionForAppWaivers: false,
       });
     });
   });

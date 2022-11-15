@@ -241,7 +241,7 @@ function loadOwnerContextHierarchy(ownerType, ownerId, policyId) {
   // let the error be handled by calling code.
 }
 
-function loadPermissionForAppWaivers(applicationPublicId) {
+export function loadPermissionForAppWaivers(applicationPublicId) {
   return axios
     .get(getApplicationSummaryUrl(applicationPublicId))
     .then(({ data }) => getAddWaiverPermissionForApplicationPromiseBuilder(data.id))

@@ -16,6 +16,7 @@ import {
 import { isNilOrEmpty } from '../util/jsUtil';
 import { convertToWaiverViolationFormat } from '../util/waiverUtils';
 import { selectComponentViolations } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
+import { loadPermissionForAppWaivers } from 'MainRoot/waivers/waiverActions';
 import {
   selectRepositoryPolicyId,
   selectIsFirewall,
@@ -34,12 +35,13 @@ export const VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED = 'VIOLATION_LOAD_VU
 export const VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED = 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED';
 
 export function loadViolation(id) {
-  return function (dispatch) {
+  return function (dispatch, getState) {
     dispatch(loadViolationDetailsRequested());
 
     const parallelRequests = [dispatch(fetchCrossStageViolation(id)), dispatch(fetchApplicableWaivers(id))];
 
     return Promise.all(parallelRequests)
+      .then(() => loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId))
       .then(compose(dispatch, loadViolationDetailsFulfilled))
       .then(compose(dispatch, loadVulnerabilityDetails))
       .catch(compose(dispatch, loadViolationDetailsFailed));
@@ -120,7 +122,7 @@ export function fetchCrossStageViolationAddWaiver(id) {
 }
 
 const loadViolationDetailsRequested = noPayloadActionCreator(VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED);
-const loadViolationDetailsFulfilled = noPayloadActionCreator(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+const loadViolationDetailsFulfilled = payloadParamActionCreator(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
 const loadViolationDetailsFailed = payloadParamActionCreator(VIOLATION_LOAD_VIOLATION_DETAILS_FAILED);
 
 const isNotNil = complement(isNil),

@@ -163,6 +163,7 @@ describe('ViolationPage', function () {
       selectPolicyId: '02a6107559a94c39b04d4ec8374b9508',
       loadFirewallPolicyVulnerabilityDetails: loadFirewallPolicyVulnerabilityDetailsSpy,
       loadFirewallViolationDetails: loadFirewallViolationDetailsSpy,
+      hasPermissionForAppWaivers: true,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ViolationPage, minimalProps);
@@ -192,7 +193,7 @@ describe('ViolationPage', function () {
     expect(getLoadWrapper({ violationDetailsError: 'foo', stageTypesError: 'bar' })).toHaveProp('error', 'foo');
   });
 
-  it("sets the LoadWrapper's retryHandler to a function that calls loadViolation and fetchStateTypes", function () {
+  it("sets the LoadWrapper's retryHandler to a function that calls loadViolation, fetchStateTypes and loadAddWaiverPermission", function () {
     const loadWrapper = getShallowComponent().find(LoadWrapper),
       retryHandler = loadWrapper.prop('retryHandler');
 
@@ -205,7 +206,7 @@ describe('ViolationPage', function () {
     expect(fetchStageTypesSpy).toHaveBeenCalledWith('dashboard');
   });
 
-  it('calls loadViolation with the $state id param, and fetchStageTypes with the `dashboard` param, on first load', function () {
+  it('calls loadViolation with the $state id param, fetchStageTypes with the `dashboard` param and loadAddWaiverPermission on first load', function () {
     getMountedComponent();
 
     expect(loadViolationSpy).toHaveBeenCalledWith('foo');

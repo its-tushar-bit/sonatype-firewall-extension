@@ -8,7 +8,7 @@ import ViolationExclamation from 'MainRoot/react/ViolationExclamation';
 import ViolationDetailsSubtitle from 'MainRoot/violation/ViolationDetailsSubtitle';
 import StageDisplay from 'MainRoot/violation/StageDisplay';
 import { pathSet } from 'MainRoot/util/jsUtil';
-import { NxStatefulSegmentedButton } from '@sonatype/react-shared-components';
+import { NxStatefulSegmentedButton, NxTooltip } from '@sonatype/react-shared-components';
 import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
 
 describe('ViolationDetailsTile', function () {
@@ -132,6 +132,7 @@ describe('ViolationDetailsTile', function () {
         policyActionTypeId: null,
         lastReported: '2022-08-10T13:35:40.641+03:00',
       },
+      hasPermissionForAppWaivers: true,
     };
 
     ViolationDetailsTile = require('inject-loader!../../../main/frontend/violation/ViolationDetailsTile')({
@@ -257,7 +258,7 @@ describe('ViolationDetailsTile', function () {
 
     it('renders a Manage Waivers segmented button with Add Waiver and Request Waiver menu buttons', function () {
       const manageWaiversButton = getShallowComponent().find(NxStatefulSegmentedButton),
-        addWaiverButton = manageWaiversButton.children().at(0),
+        addWaiverButton = manageWaiversButton.find('#violation-page-add-waiver'),
         requestWaiverButton = manageWaiversButton.children().at(1);
 
       expect(manageWaiversButton).toExist();
@@ -269,13 +270,39 @@ describe('ViolationDetailsTile', function () {
 
     it('renders an Add Waiver menu button that navigates to the Add Waiver page when clicked', function () {
       const manageWaiversButton = getShallowComponent().find(NxStatefulSegmentedButton),
-        addWaiverButton = manageWaiversButton.children().at(0);
+        addWaiverButton = manageWaiversButton.find('#violation-page-add-waiver');
 
       expect(addWaiverButton).toExist();
 
       addWaiverButton.simulate('click');
       expect(stateGoMock).toHaveBeenCalledWith('addWaiver', {
         violationId: 'selectedViolationId',
+      });
+    });
+
+    describe('When hasPermissionForAppWaivers is false', () => {
+      beforeEach(() => {
+        getShallowComponent = enzymeUtils.getShallowComponent(ViolationDetailsTile, {
+          ...minimalProps,
+          hasPermissionForAppWaivers: false,
+        });
+      });
+
+      it('renders a Manage Waivers segmented button with a disabled Add Waiver button', function () {
+        const manageWaiversButton = getShallowComponent().find(NxStatefulSegmentedButton);
+        const addWaiverButton = manageWaiversButton.find('#violation-page-add-waiver');
+        const addWaiverTooltip = manageWaiversButton.find(NxTooltip);
+
+        expect(manageWaiversButton).toExist();
+        expect(addWaiverButton).toExist();
+        expect(addWaiverTooltip).toExist();
+        expect(addWaiverButton.text()).toContain('Add Waiver');
+        expect(addWaiverTooltip).toHaveProp('title', 'Insufficient permissions to Add Waiver');
+
+        addWaiverButton.simulate('click');
+        expect(stateGoMock).not.toHaveBeenCalledWith('addWaiver', {
+          violationId: 'selectedViolationId',
+        });
       });
     });
 

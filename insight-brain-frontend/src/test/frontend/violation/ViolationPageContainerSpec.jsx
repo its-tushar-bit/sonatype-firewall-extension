@@ -48,6 +48,7 @@ describe('ViolationPageContainer', function () {
       violation: {
         loading: false,
         violationDetailsError: null,
+        hasPermissionForAppWaivers: false,
       },
       stages: {
         dashboard: {

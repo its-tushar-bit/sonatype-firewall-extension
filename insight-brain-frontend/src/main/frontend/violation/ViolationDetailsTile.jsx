@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import { compose, keys, map, max, prop, reduce, values } from 'ramda';
 import classnames from 'classnames';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
-import { NxStatefulSegmentedButton } from '@sonatype/react-shared-components';
+import { NxStatefulSegmentedButton, NxTooltip } from '@sonatype/react-shared-components';
 
 import ViolationExclamation from '../react/ViolationExclamation';
 import { timeAgo } from '../utilAngular/CommonServices';
@@ -37,6 +37,7 @@ export default function ViolationDetailsTile(props) {
       policyDetail,
       selectPolicyId,
       onGoToFirewallWaiversPage,
+      hasPermissionForAppWaivers,
     } = props,
     applicationPublicId = isPolicyPopoverShown ? null : violationDetails.applicationPublicId,
     policyName = isPolicyPopoverShown ? policyDetail.policyName : violationDetails.policyName,
@@ -85,8 +86,11 @@ export default function ViolationDetailsTile(props) {
       }
     },
     // Manage waivers buttons
-    // TODO (in CLM-22982): Add disabled state/warning/alert when user doesn't have permission to add waivers
-    redirectToAddWaiverPage = () => stateGo('addWaiver', { violationId: selectedViolationId }),
+    redirectToAddWaiverPage = () => {
+      if (hasPermissionForAppWaivers) {
+        stateGo('addWaiver', { violationId: selectedViolationId });
+      }
+    },
     redirectToRequestWaiverPage = () => stateGo('requestWaiver', { violationId: selectedViolationId }),
     manageWaiversButton = (
       <NxStatefulSegmentedButton
@@ -95,9 +99,17 @@ export default function ViolationDetailsTile(props) {
         onClick={onManageWaiversClick}
         buttonContent="Manage Waivers"
       >
-        <button id="violation-page-add-waiver" className="nx-dropdown-button" onClick={redirectToAddWaiverPage}>
-          Add Waiver
-        </button>
+        <div>
+          <NxTooltip title={hasPermissionForAppWaivers ? '' : 'Insufficient permissions to Add Waiver'} placement="top">
+            <button
+              id="violation-page-add-waiver"
+              className={classnames('nx-dropdown-button', { disabled: !hasPermissionForAppWaivers })}
+              onClick={redirectToAddWaiverPage}
+            >
+              Add Waiver
+            </button>
+          </NxTooltip>
+        </div>
         <button id="violation-page-request-waiver" className="nx-dropdown-button" onClick={redirectToRequestWaiverPage}>
           Request Waiver
         </button>
@@ -284,4 +296,5 @@ ViolationDetailsTile.propTypes = {
   policyDetail: PropTypes.object,
   selectPolicyId: PropTypes.string,
   onGoToFirewallWaiversPage: PropTypes.func.isRequired,
+  hasPermissionForAppWaivers: PropTypes.bool,
 };

@@ -10,8 +10,8 @@ import LoadWrapper from '../react/LoadWrapper';
 import ViolationDetailsTile, { violationDetailsPropTypes } from './ViolationDetailsTile';
 import PolicyViolationConstraintInfoTile, { constraintViolationsPropType } from './PolicyViolationConstraintInfoTile';
 import SecurityVulnerabilityDetailsTile from './SecurityVulnerabilityDetailsTile';
-
 import { capitalizeFirstLetter } from '../util/jsUtil';
+
 export default function ViolationPage(props) {
   const {
     $state,
@@ -35,6 +35,7 @@ export default function ViolationPage(props) {
     loadFirewallPolicyVulnerabilityDetails,
     onGoToFirewallWaiversPage,
     loadFirewallViolationDetails,
+    hasPermissionForAppWaivers,
   } = props;
 
   const error = props.violationDetailsError || props.stageTypesError;
@@ -96,6 +97,7 @@ export default function ViolationPage(props) {
             selectPolicyId,
             policyDetail,
             onGoToFirewallWaiversPage,
+            hasPermissionForAppWaivers,
           }}
         />
         <PolicyViolationConstraintInfoTile
@@ -146,6 +148,7 @@ export const violationPageTypes = {
   policyViolations: PropTypes.array,
   selectPolicyId: PropTypes.string,
   loadFirewallPolicyVulnerabilityDetails: PropTypes.func,
+  hasPermissionForAppWaivers: PropTypes.bool,
 };
 
 ViolationPage.propTypes = violationPageTypes;

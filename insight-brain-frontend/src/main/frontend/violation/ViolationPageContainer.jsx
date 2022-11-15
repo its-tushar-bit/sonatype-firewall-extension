@@ -32,6 +32,10 @@ function mapStateToProps(state, showViolationsDetailPopover) {
         'vulnerabilityDetails',
         'vulnerabilityDetailsError',
         'activeWaivers',
+        'addWaiverPermission',
+        'addWaiverPermissionLoading',
+        'addWaiverPermissionError',
+        'hasPermissionForAppWaivers',
       ],
       violation
     ),

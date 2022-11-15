@@ -62,6 +62,9 @@
     <nexus-scm-client.version>1.48.6-01</nexus-scm-client.version>
     <nexus-dependency-management.version>1.23.3-01</nexus-dependency-management.version>
     <swagger.version>2.2.2</swagger.version>
+    <!-- byte-buddy version should match whichever version mockito-core depends on in its pom.xml file -->
+    <mockito-core.version>4.7.0</mockito-core.version>
+    <byte-buddy.version>1.12.13</byte-buddy.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
 
     <!--
@@ -695,7 +698,17 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>4.7.0</version>
+        <version>${mockito-core.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy</artifactId>
+        <version>${byte-buddy.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy-agent</artifactId>
+        <version>${byte-buddy.version}</version>
       </dependency>
       <dependency>
         <groupId>org.awaitility</groupId>

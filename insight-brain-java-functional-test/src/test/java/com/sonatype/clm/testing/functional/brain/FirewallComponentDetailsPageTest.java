@@ -1752,4 +1752,32 @@ public class FirewallComponentDetailsPageTest
     listWaiversPage.waiverListTable().row(1).scope().shouldHave(text("Repository - repository"));
     listWaiversPage.waiverListTable().row(1).dateCreated().shouldHave(text(dateCreated));
   }
+
+  @Test
+  public void testRemoveComponentWaiverUsingPopover_legalTab() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+
+    waitUntilSpinnersGone();
+
+    SelenideElement viewAllComponentWaiversButton = firewallComponentDetailsPage.getViewAllComponentWaiversButton();
+    viewAllComponentWaiversButton.click();
+
+    // Sanity Check
+    ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
+    componentWaiversTable.getRows().shouldHaveSize(1);
+
+    firewallComponentDetailsPage.getDeleteWaiverButton().click();
+
+    firewallComponentDetailsPage.getDeleteWaiverModal().shouldBe(visible);
+
+    firewallComponentDetailsPage.getDeleteWaiverModalButton().click();
+
+    ComponentWaiversPopover componentWaiversPopoverRefreshed = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTableRefreshed =
+        componentWaiversPopoverRefreshed.componentWaiversPopoverTable();
+    componentWaiversTableRefreshed.getRows().get(0).shouldHave(text("No existing component waivers"));
+  }
 }

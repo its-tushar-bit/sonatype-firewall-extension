@@ -316,7 +316,10 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
           const scanId = router.currentParams.scanId;
           const hash = router.currentParams.hash;
           dispatch(loadTransitiveViolationWaivers(ownerId, scanId, hash));
-        } else if (currentState.name === 'firewall.componentDetailsPage.violations') {
+        } else if (
+          currentState.name === 'firewall.componentDetailsPage.violations' ||
+          currentState.name === 'firewall.componentDetailsPage.legal'
+        ) {
           const hash = selectHash(router);
           dispatch(loadExistingWaiversData(ownerType, ownerId, hash));
         } else {

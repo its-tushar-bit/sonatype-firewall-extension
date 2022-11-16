@@ -11,27 +11,30 @@ import com.sonatype.insight.brain.model.Organization;
 import org.junit.After;
 import org.junit.Before;
 
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
-
 public class RootOrganizationPolicyViolationGrandfatheringEditorTest
     extends AbstractPolicyViolationGrandfatheringEditorTest
 {
-  private Organization organization;
+  private Boolean grandfatheringEnabled;
+
+  private boolean grandfatheringOverrideEnabled;
 
   @Before
   public void init() {
-    organization = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
-    super.init(organization);
+    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+
+    // Save the root org grandfathering settings so we can restore them after the tests.
+    grandfatheringEnabled = rootOrg.isPolicyViolationGrandfatheringEnabled();
+    grandfatheringOverrideEnabled = rootOrg.isAllowPolicyViolationGrandfatheringOverride();
+
+    super.init(rootOrg);
   }
 
-  // Must manually reset grandfathering props since root organization is not
-  // part of the organization collection in TemporaryEntity.
   @After
-  public void resetRootOrganizationPolicyViolationGrandfathering() {
+  public void restoreRootOrganizationPolicyViolationGrandfatheringSettings() {
     OrganizationDAO orgDAO = new OrganizationDAO();
-    Organization rootOrg = orgDAO.getByIdNotNull(ROOT_ORGANIZATION_ID);
-    rootOrg.setPolicyViolationGrandfatheringEnabled(null);
-    rootOrg.setAllowPolicyViolationGrandfatheringOverride(true);
+    Organization rootOrg = orgDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    rootOrg.setPolicyViolationGrandfatheringEnabled(grandfatheringEnabled);
+    rootOrg.setAllowPolicyViolationGrandfatheringOverride(grandfatheringOverrideEnabled);
     orgDAO.update(rootOrg);
   }
 }

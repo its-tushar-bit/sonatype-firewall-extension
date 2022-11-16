@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../enzymeUtils';
-// import React from 'react';
 import ListWaiversBackButton from '../../../main/frontend/waivers/ListWaiversBackButton';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import * as routerContext from '../../../main/frontend/react/RouterStateContext';
@@ -15,11 +14,23 @@ describe('ListWaiversBackButton', function () {
   beforeEach(function () {
     minimalProps = {
       violationId: 'violationId',
+      prevParams: {
+        repositoryId: 'repositoryId',
+        componentIdentifier: 'componentIdentifier',
+        componentHash: 'componentHash',
+        matchState: 'matchState',
+        pathname: 'pathname',
+      },
     };
     hrefSpy = jasmine.createSpy('href').and.callFake((stateName) => {
-      return stateName === 'applicationReport.componentDetails.violations'
-        ? 'componentDetailsHref'
-        : 'violationDetailsHref';
+      switch (stateName) {
+        case 'applicationReport.componentDetails.violations':
+          return 'componentDetailsHref';
+        case 'firewall.componentDetailsPage':
+          return 'firewallComponentDetailsPageHref';
+        default:
+          return 'violationDetailsHref';
+      }
     });
     routerContextMock = { href: hrefSpy };
     spyOn(routerContext, 'useRouterState').and.returnValue(routerContextMock);
@@ -123,5 +134,28 @@ describe('ListWaiversBackButton', function () {
     expect(component).toMatchSelector(MenuBarBackButton);
     expect(component).toHaveProp('text', 'Back to Component Details');
     expect(component).toHaveProp('href', 'componentDetailsHref');
+  });
+
+  it('renders an MenuBarBackButton with title `Back to Component Details` if prevParams and previousRouterStateNameForComponentDetails are provided as props', () => {
+    const component = getShallowComponent({
+      previousRouterStateNameForComponentDetails: 'firewall.componentDetailsPage.violations',
+      repositoryId: 'repositoryId',
+      componentIdentifier: 'componentIdentifier',
+      componentHash: 'componentHash',
+      matchState: 'matchState',
+      pathname: 'pathname',
+    });
+
+    expect(routerContext.useRouterState).toHaveBeenCalled();
+    expect(hrefSpy).toHaveBeenCalledWith('firewall.componentDetailsPage', {
+      repositoryId: 'repositoryId',
+      componentIdentifier: 'componentIdentifier',
+      componentHash: 'componentHash',
+      matchState: 'matchState',
+      pathname: 'pathname',
+    });
+    expect(component).toMatchSelector(MenuBarBackButton);
+    expect(component).toHaveProp('text', 'Back to Component Details');
+    expect(component).toHaveProp('href', 'firewallComponentDetailsPageHref');
   });
 });

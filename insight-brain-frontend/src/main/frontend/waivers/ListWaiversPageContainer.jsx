@@ -22,6 +22,7 @@ function mapStateToProps(state) {
     ...manageWaivers,
     ...pick(['waiverToDelete'], deleteWaiver),
     ...pick(['showManageWaiverPage'], firewall.componentDetailsPage),
+    ...pick(['prevParams'], router),
     isCurrentRouteName: selectIsFirewall(state),
   };
 }

@@ -967,6 +967,39 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
+  public void testManageWaiversPage_backButtonClick() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.backButton().shouldHave(text("Back to Component Details")).click();
+    waitUntilSpinnersGone();
+
+    firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(0).shouldHave(text("Exact"));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(1).shouldHave(text("Sonatype"));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(2).shouldHave(text("Visit Project Website"));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(3).shouldHave(text("Other"));
+  }
+
+  @Test
   public void testSecurityTabSecurityViolationsTable() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
@@ -1483,7 +1516,7 @@ public class FirewallComponentDetailsPageTest
 
     ListWaiversPage waiversForViolationPage = new ListWaiversPage();
     waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
-    waiversForViolationPage.backButton().shouldHave(text("Back to Violation Details"));
+    waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
     waiversForViolationPage.componentName().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
     waiversForViolationPage.waiverListTable().rows().shouldHaveSize(1);
   }

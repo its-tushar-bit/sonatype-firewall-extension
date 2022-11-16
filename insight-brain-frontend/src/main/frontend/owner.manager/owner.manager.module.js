@@ -33,6 +33,7 @@ import SameOwnerViewSref from './utility/same.owner.view.sref.directive';
 import retentionModule from './retention/module';
 import sourceControlModule from './source.control/module';
 import viewTemplate from './state/owner.manager.view.html';
+import editTemplate from './state/owner.manager.edit.html';
 import repoSummaryTemplate from './repositories/repositories.summary.view.html';
 import summaryViewTemplate from './summary/owner.summary.view.html';
 import SourceControlService from './source.control/source.control.service';
@@ -160,22 +161,16 @@ export default angular
         .state('management', {
           url: '/management',
           abstract: true,
-          template: viewTemplate,
         })
         .state('management.view', {
           url: '/view',
+          template: viewTemplate,
           data: {
             title: 'Management',
-          },
-          views: {
-            'navigation@management': {
-              template: '<owner-tree-view></owner-tree-view>',
-            },
           },
         })
         .state('management.edit', {
           abstract: true,
-          template: '<div ui-view></div>',
         })
         .state('management.view.repositories', {
           url: '/repositories',
@@ -183,44 +178,28 @@ export default angular
             title: 'Repositories Management',
             viewportSized: true,
           },
-          views: {
-            '@management': {
-              template: repoSummaryTemplate,
-            },
-          },
+          template: repoSummaryTemplate,
         })
         .state('management.edit.repositories', {
           url: '/edit/repositories',
           data: {
             title: 'Repositories Management',
           },
-          views: {
-            'navigation@management': {
-              template: '<owner-detail-tree-view></owner-detail-tree-view>',
-            },
-          },
+          template: editTemplate,
         })
         .state('management.edit.repositories.add-access', {
           url: '/access',
           data: {
             isDirty: ['orgsAndPolicies', 'access', 'isDirty'],
           },
-          views: {
-            '@management.edit': {
-              component: 'accessPage',
-            },
-          },
+          component: 'accessPage',
         })
         .state('management.edit.repositories.edit-access', {
           url: '/access/{roleId}',
           data: {
             isDirty: ['orgsAndPolicies', 'access', 'isDirty'],
           },
-          views: {
-            '@management.edit': {
-              component: 'accessPage',
-            },
-          },
+          component: 'accessPage',
         });
 
       ownerTypes.forEach(function (ownerType) {
@@ -231,22 +210,14 @@ export default angular
               title: ownerType.name + ' Management',
               viewportSized: true,
             },
-            views: {
-              '@management': {
-                template: summaryViewTemplate,
-              },
-            },
+            template: summaryViewTemplate,
           })
           .state('management.edit.' + ownerType.type, {
             url: '/edit/' + ownerType.type + '/{' + ownerType.id + '}',
             data: {
               title: ownerType.name + ' Management',
             },
-            views: {
-              'navigation@management': {
-                template: '<owner-detail-tree-view></owner-detail-tree-view>',
-              },
-            },
+            template: editTemplate,
           })
           .state('management.edit.' + ownerType.type + '.label', {
             url: '/label/{labelId}',
@@ -254,11 +225,7 @@ export default angular
               title: ownerType.name + ' Labels',
               isDirty: ['orgsAndPolicies', 'labels', 'isDirty'],
             },
-            views: {
-              '@management.edit': {
-                component: 'createComponentLabel',
-              },
-            },
+            component: 'createComponentLabel',
           })
           .state('management.edit.' + ownerType.type + '.create-label', {
             url: '/label',
@@ -266,11 +233,7 @@ export default angular
               title: ownerType.name + ' Labels',
               isDirty: ['orgsAndPolicies', 'labels', 'isDirty'],
             },
-            views: {
-              '@management.edit': {
-                component: 'createComponentLabel',
-              },
-            },
+            component: 'createComponentLabel',
           })
           .state('management.edit.' + ownerType.type + '.policy', {
             url: '/policy/{policyId}',
@@ -278,11 +241,7 @@ export default angular
               title: ownerType.name + ' Policy',
               isDirty: ['orgsAndPolicies', 'policy', 'isDirty'],
             },
-            views: {
-              '@management': {
-                component: 'policyEditor',
-              },
-            },
+            component: 'policyEditor',
           })
           .state('management.edit.' + ownerType.type + '.create-policy', {
             url: '/policy',
@@ -290,11 +249,7 @@ export default angular
               title: ownerType.name + ' Policy',
               isDirty: ['orgsAndPolicies', 'policy', 'isDirty'],
             },
-            views: {
-              '@management': {
-                component: 'policyEditor',
-              },
-            },
+            component: 'policyEditor',
           })
           .state('management.edit.' + ownerType.type + '.add-access', {
             url: '/access',
@@ -302,11 +257,7 @@ export default angular
               title: ownerType.name + ' Access',
               isDirty: ['orgsAndPolicies', 'access', 'isDirty'],
             },
-            views: {
-              '@management.edit': {
-                component: 'accessPage',
-              },
-            },
+            component: 'accessPage',
           })
           .state('management.edit.' + ownerType.type + '.edit-access', {
             url: '/access/{roleId}',
@@ -314,11 +265,7 @@ export default angular
               title: ownerType.name + ' Access',
               isDirty: ['orgsAndPolicies', 'access', 'isDirty'],
             },
-            views: {
-              '@management.edit': {
-                component: 'accessPage',
-              },
-            },
+            component: 'accessPage',
           })
           .state('management.edit.' + ownerType.type + '.violation-grandfathering-policy', {
             url: '/grandfathering',
@@ -326,11 +273,7 @@ export default angular
               title: ownerType.name + ' Violation Grandfathering',
               isDirty: ['orgsAndPolicies', 'policyViolationGrandfathering', 'isDirty'],
             },
-            views: {
-              '@management.edit': {
-                component: 'policyViolationGrandfatheringEditor',
-              },
-            },
+            component: 'policyViolationGrandfatheringEditor',
           })
           .state('management.edit.' + ownerType.type + '.monitor-policy', {
             url: '/monitoring',
@@ -338,11 +281,7 @@ export default angular
               title: ownerType.name + ' Continuous Monitoring',
               isDirty: ['orgsAndPolicies', 'policyMonitoring', 'isDirty'],
             },
-            views: {
-              '@management.edit': {
-                component: 'continuousMonitoring',
-              },
-            },
+            component: 'continuousMonitoring',
           })
           .state('management.edit.' + ownerType.type + '.proprietary-config-policy', {
             url: '/proprietary',
@@ -350,11 +289,7 @@ export default angular
               title: ownerType.name + ' Proprietary Components',
               isDirty: ['orgsAndPolicies', 'proprietary', 'isDirty'],
             },
-            views: {
-              '@management.edit': {
-                component: 'proprietaryComponentConfiguration',
-              },
-            },
+            component: 'proprietaryComponentConfiguration',
           })
           .state('management.edit.' + ownerType.type + '.edit-license-threat-group', {
             url: '/licenseThreatGroup/{licenseThreatGroupId}',
@@ -362,22 +297,14 @@ export default angular
               title: ownerType.name + ' License Threat Groups',
               isDirty: ['orgsAndPolicies', 'licenseThreatGroups', 'isDirty'],
             },
-            views: {
-              '@management.edit': {
-                component: 'licenseThreatGroupEditor',
-              },
-            },
+            component: 'licenseThreatGroupEditor',
           })
           .state('management.edit.' + ownerType.type + '.edit-source-control', {
             url: '/source-control',
             data: {
               title: 'Source Control',
             },
-            views: {
-              '@management.edit': {
-                component: 'sourceControlEditor',
-              },
-            },
+            component: 'sourceControlEditor',
           });
       });
 
@@ -388,11 +315,7 @@ export default angular
             title: 'Organization Category',
             isDirty: ['orgsAndPolicies', 'applicationCategories', 'createEdit', 'isDirty'],
           },
-          views: {
-            '@management.edit': {
-              component: 'createEditApplicationCategory',
-            },
-          },
+          component: 'createEditApplicationCategory',
         })
         .state('management.edit.organization.create-category', {
           url: '/category',
@@ -400,11 +323,7 @@ export default angular
             title: 'Organization Category',
             isDirty: ['orgsAndPolicies', 'applicationCategories', 'createEdit', 'isDirty'],
           },
-          views: {
-            '@management.edit': {
-              component: 'createEditApplicationCategory',
-            },
-          },
+          component: 'createEditApplicationCategory',
         })
         .state('management.edit.application.category', {
           data: {
@@ -412,11 +331,7 @@ export default angular
             isDirty: ['orgsAndPolicies', 'applicationCategories', 'assign', 'isDirty'],
           },
           url: '/category',
-          views: {
-            '@management.edit': {
-              component: 'assignAppCategory',
-            },
-          },
+          component: 'assignAppCategory',
         })
         .state('management.edit.organization.create-license-threat-group', {
           data: {
@@ -424,22 +339,14 @@ export default angular
             isDirty: ['orgsAndPolicies', 'licenseThreatGroups', 'isDirty'],
           },
           url: '/licenseThreatGroup',
-          views: {
-            '@management.edit': {
-              component: 'licenseThreatGroupEditor',
-            },
-          },
+          component: 'licenseThreatGroupEditor',
         })
         .state('management.edit.organization.edit-data-retention', {
           url: '/data-retention',
           data: {
             title: 'Organization Data Retention',
           },
-          views: {
-            '@management.edit': {
-              component: 'retentionEditor',
-            },
-          },
+          component: 'retentionEditor',
         });
     },
   ]);

@@ -8,7 +8,7 @@ import PolicyViolationConstraintInfoTile from '../../../main/frontend/violation/
 
 describe('PolicyViolationConstraintInfoTile', function () {
   const minimalProps = {
-    isPolicyPopoverShown: false,
+    isFirewallContext: false,
     constraintViolations: [
       {
         constraintName: 'test constraint',
@@ -38,13 +38,13 @@ describe('PolicyViolationConstraintInfoTile', function () {
     expect(reasonListItems.at(1)).toHaveText('reason 2');
   });
 
-  it('renders conditions if isPolicyPopoverShown is active', () => {
-    const component = getShallowComponent({ isPolicyPopoverShown: true });
+  it('renders conditions if isFirewallContext is active', () => {
+    const component = getShallowComponent({ isFirewallContext: true });
     expect(component.find('.nx-tile-header__subtitle')).not.toExist();
   });
 
   it('renders violation conditions', function () {
-    const reasonListItems = getShallowComponent({ isPolicyPopoverShown: true }).find(
+    const reasonListItems = getShallowComponent({ isFirewallContext: true }).find(
       'div.nx-list--violation-reasons #policy-violation-reasons .nx-list__item'
     );
     expect(reasonListItems.length).toBe(2);

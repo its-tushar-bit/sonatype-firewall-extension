@@ -43,7 +43,7 @@ describe('ViolationPage', function () {
       fetchStageTypes: fetchStageTypesSpy,
       stateGo: stateGoSpy,
       loading: false,
-      isPolicyPopoverShown: false,
+      isFirewallContext: false,
       refId: { value: 'CVE-2012-2098' },
       policyDetail: {
         policyViolationId: '02a6107559a94c39b04d4ec8374b9508',
@@ -229,7 +229,7 @@ describe('ViolationPage', function () {
 
     expect(loadFirewallPolicyVulnerabilityDetailsSpy).not.toHaveBeenCalledWith('CVE-2012-2098');
 
-    component.setProps({ isPolicyPopoverShown: true });
+    component.setProps({ isFirewallContext: true });
 
     expect(loadFirewallPolicyVulnerabilityDetailsSpy).toHaveBeenCalledWith('CVE-2012-2098');
   });
@@ -250,19 +250,19 @@ describe('ViolationPage', function () {
     expect(tile.prop('$state')).toBe(minimalProps.$state);
     expect(tile.prop('violationDetails')).toBe(violationDetails);
     expect(tile.prop('stageTypes')).toBe(stageTypes);
-    expect(tile.prop('isPolicyPopoverShown')).toBe(minimalProps.isPolicyPopoverShown);
+    expect(tile.prop('isFirewallContext')).toBe(minimalProps.isFirewallContext);
     expect(tile.prop('policyViolations')).toBe(minimalProps.policyViolations);
     expect(tile.prop('selectPolicyId')).toBe(minimalProps.selectPolicyId);
     expect(tile.prop('policyDetail')).toEqual(minimalProps.policyDetail);
   });
 
   it('renders a PolicyViolationConstraintInfoTile within the LoadWrapper with correct props', function () {
-    const violationDetails = { constraintViolations: 'constraintViolations', isPolicyPopoverShown: false };
+    const violationDetails = { constraintViolations: 'constraintViolations', isFirewallContext: false };
     const tile = getShallowComponent({ violationDetails }).find(LoadWrapper).find(PolicyViolationConstraintInfoTile);
 
     expect(tile).toExist();
     expect(tile.prop('constraintViolations')).toBe('constraintViolations');
-    expect(tile.prop('isPolicyPopoverShown')).toBe(false);
+    expect(tile.prop('isFirewallContext')).toBe(false);
   });
 
   it("renders a SecurityVulnerabilityDetailsTile with correct props if it's a security vulnerability", function () {
@@ -317,7 +317,7 @@ describe('ViolationPage', function () {
 
   it('calls loadFirewallViolationDetails with params', function () {
     const component = getMountedComponent();
-    component.setProps({ isPolicyPopoverShown: true });
+    component.setProps({ isFirewallContext: true });
     expect(loadFirewallViolationDetailsSpy).toHaveBeenCalledWith('02a6107559a94c39b04d4ec8374b9508');
   });
 });

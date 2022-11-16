@@ -90,7 +90,7 @@ describe('ViolationDetailsTile', function () {
       stateGo: stateGoMock,
       goToWaivers: goToWaiversMock,
       activeWaivers: [],
-      isPolicyPopoverShown: false,
+      isFirewallContext: false,
       policyDetail: {
         policyViolationId: '02a6107559a94c39b04d4ec8374b9508',
         policyId: 'd98fb873ed1f48e5b00316d8acddbc0f',
@@ -318,13 +318,13 @@ describe('ViolationDetailsTile', function () {
       });
     });
 
-    it('show header subtitle if isPolicyPopoverShown not active', () => {
-      const component = getShallowComponent({ isPolicyPopoverShown: false });
+    it('show header subtitle if isFirewallContext not active', () => {
+      const component = getShallowComponent({ isFirewallContext: false });
       expect(component.find(ViolationDetailsSubtitle)).toExist();
     });
 
-    it('hide header subtitle if isPolicyPopoverShown active', () => {
-      const component = getShallowComponent({ isPolicyPopoverShown: true });
+    it('hide header subtitle if isFirewallContext active', () => {
+      const component = getShallowComponent({ isFirewallContext: true });
       expect(component.find(ViolationDetailsSubtitle)).not.toExist();
     });
 
@@ -451,13 +451,13 @@ describe('ViolationDetailsTile', function () {
       expect(component.find('dd')).toHaveText('1 weeks ago');
     });
 
-    it('hidden first report section if isPolicyPopoverShown is true', () => {
-      const component = getShallowComponent({ isPolicyPopoverShown: true });
+    it('hidden first report section if isFirewallContext is true', () => {
+      const component = getShallowComponent({ isFirewallContext: true });
       expect(component.find('.iq-violation-details__first-reported')).not.toExist();
     });
 
-    it('show first report section if isPolicyPopoverShown is false', () => {
-      const component = getShallowComponent({ isPolicyPopoverShown: false });
+    it('show first report section if isFirewallContext is false', () => {
+      const component = getShallowComponent({ isFirewallContext: false });
       expect(component.find('.iq-violation-details__first-reported')).toExist();
     });
   });
@@ -503,13 +503,13 @@ describe('ViolationDetailsTile', function () {
       expect(dds.at(2).children()).toHaveProp('applicationPublicId', 'app1');
     });
 
-    it('hide stage section if isPolicyPopoverShown is true', () => {
-      const component = getShallowComponent({ isPolicyPopoverShown: true });
+    it('hide stage section if isFirewallContext is true', () => {
+      const component = getShallowComponent({ isFirewallContext: true });
       expect(component.find('.iq-violation-details__stages')).not.toExist();
     });
 
-    it('show stage section if isPolicyPopoverShown is false', () => {
-      const component = getShallowComponent({ isPolicyPopoverShown: false });
+    it('show stage section if isFirewallContext is false', () => {
+      const component = getShallowComponent({ isFirewallContext: false });
       expect(component.find('.iq-violation-details__stages')).toExist();
     });
   });

@@ -61,7 +61,10 @@ export const displayWaiverScope = (waiver) => {
       return `Application - ${waiver.scopeOwnerName}`;
     }
     case 'repository': {
-      return `Repository - ${waiver.scopeOwnerType}`;
+      return `Repository - ${waiver.scopeOwnerName}`;
+    }
+    case 'all_repositories': {
+      return `Repository - ${waiver.scopeOwnerName}`;
     }
   }
   return null;

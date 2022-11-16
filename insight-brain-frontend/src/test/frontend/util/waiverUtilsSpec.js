@@ -41,10 +41,10 @@ describe('waiverUtils', function () {
     it('returns a readable label with name if the scopeOwnerType is `repository`', () => {
       const waiver = {
         scopeOwnerType: 'repository',
-        scopeOwnerName: 'Repo X',
+        scopeOwnerName: 'maven-central',
       };
       const result = displayWaiverScope(waiver);
-      expect(result).toEqual('Repository - repository');
+      expect(result).toEqual('Repository - maven-central');
     });
 
     it('returns null if the scopeOwnerType is not valid', () => {

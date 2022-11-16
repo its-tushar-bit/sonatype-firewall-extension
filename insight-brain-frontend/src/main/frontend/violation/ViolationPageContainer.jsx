@@ -42,7 +42,7 @@ function mapStateToProps(state, showViolationsDetailPopover) {
     stageTypes: stageData.stageTypes,
     stageTypesError: stageData.error,
     selectedViolationId: selectSelectedViolationId(state),
-    isPolicyPopoverShown: isShowViolationsDetailPopover,
+    isFirewallContext: isShowViolationsDetailPopover,
     policyViolations: policyViolations,
     selectPolicyId: selectPolicyId,
   };

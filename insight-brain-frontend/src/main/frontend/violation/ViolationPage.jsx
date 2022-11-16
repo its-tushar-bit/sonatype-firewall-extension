@@ -29,7 +29,7 @@ export default function ViolationPage(props) {
     selectedViolationId,
     goToWaivers,
     isFromPolicyViolations,
-    isPolicyPopoverShown,
+    isFirewallContext,
     policyViolations,
     selectPolicyId,
     loadFirewallPolicyVulnerabilityDetails,
@@ -46,21 +46,19 @@ export default function ViolationPage(props) {
 
   const detailViolations = violationDetails ? violationDetails.constraintViolations : [];
 
-  const constraintViolations = isPolicyPopoverShown ? policyDetail.constraints : detailViolations;
+  const constraintViolations = isFirewallContext ? policyDetail.constraints : detailViolations;
 
-  const violationLoading = isPolicyPopoverShown
+  const violationLoading = isFirewallContext
     ? !loading || !policyViolations
     : loading || !(violationDetails && stageTypes);
 
-  const conditionTriggerReference = isPolicyPopoverShown
+  const conditionTriggerReference = isFirewallContext
     ? policyDetail.constraints[0].conditions[0].conditionTriggerReference
     : null;
 
   const isSecurityVulnerability =
     capitalizeFirstLetter(
-      isPolicyPopoverShown
-        ? policyDetail.policyThreatCategory
-        : violationDetails && violationDetails.policyThreatCategory
+      isFirewallContext ? policyDetail.policyThreatCategory : violationDetails && violationDetails.policyThreatCategory
     ) === 'Security';
 
   useEffect(() => {
@@ -68,7 +66,7 @@ export default function ViolationPage(props) {
   }, [selectedViolationId, conditionTriggerReference, selectPolicyId]);
 
   function load() {
-    if (!isPolicyPopoverShown) {
+    if (!isFirewallContext) {
       loadViolation(selectedViolationId);
     } else {
       loadFirewallViolationDetails(selectPolicyId);
@@ -92,7 +90,7 @@ export default function ViolationPage(props) {
             goToWaivers,
             selectedViolationId,
             isFromPolicyViolations,
-            isPolicyPopoverShown,
+            isFirewallContext,
             policyViolations,
             selectPolicyId,
             policyDetail,
@@ -101,7 +99,7 @@ export default function ViolationPage(props) {
           }}
         />
         <PolicyViolationConstraintInfoTile
-          isPolicyPopoverShown={isPolicyPopoverShown}
+          isFirewallContext={isFirewallContext}
           constraintViolations={constraintViolations}
         />
         {isSecurityVulnerability && (
@@ -144,7 +142,7 @@ export const violationPageTypes = {
   onGoToFirewallWaiversPage: PropTypes.func.isRequired,
   loadFirewallViolationDetails: PropTypes.func.isRequired,
   isFromPolicyViolations: PropTypes.bool,
-  isPolicyPopoverShown: PropTypes.bool,
+  isFirewallContext: PropTypes.bool,
   policyViolations: PropTypes.array,
   selectPolicyId: PropTypes.string,
   loadFirewallPolicyVulnerabilityDetails: PropTypes.func,

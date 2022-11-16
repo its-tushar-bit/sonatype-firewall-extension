@@ -91,7 +91,7 @@ describe('FirewallExistingWaiversPopover', () => {
     expect(componentRaws.length).toBeGreaterThanOrEqual(1);
 
     expect(screen.getByRole('cell', { name: `Admin BuiltIn` })).toBeVisible();
-    expect(screen.getByRole('cell', { name: `Repository - repository` })).toBeVisible();
+    expect(screen.getByRole('cell', { name: `Repository - maven-central` })).toBeVisible();
     expect(screen.getByRole('cell', { name: moment.parseZone(expectedTime).format('MM/DD/YYYY') })).toBeVisible();
   });
 });

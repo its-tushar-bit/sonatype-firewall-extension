@@ -68,7 +68,7 @@ describe('ViolationPageContainer', function () {
         },
       },
       showViolationsDetailPopover: {
-        isPolicyPopoverShown: undefined,
+        isFirewallContext: undefined,
         selectPolicyId: undefined,
       },
     };
@@ -193,10 +193,10 @@ describe('ViolationPageContainer', function () {
     expect(wrapper).toHaveProp('policyViolations', [{ policyViolationId: '02a6107559a94c39b04d4ec8374b9508' }]);
   });
 
-  it('maps the state slice "isPolicyPopoverShown" to ViolationPageContainer props', () => {
+  it('maps the state slice "isFirewallContext" to ViolationPageContainer props', () => {
     let wrapper = shallow(vdom).dive();
 
-    expect(wrapper).toHaveProp('isPolicyPopoverShown', undefined);
+    expect(wrapper).toHaveProp('isFirewallContext', undefined);
   });
 
   it('maps the state slice "selectPolicyId" to ViolationPageContainer props', () => {

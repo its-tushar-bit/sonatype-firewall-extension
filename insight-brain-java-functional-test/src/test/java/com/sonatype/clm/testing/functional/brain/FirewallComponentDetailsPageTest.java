@@ -1477,7 +1477,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getManageWaiversButton();
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
 
     manageWaiversButton.click();
 
@@ -1602,7 +1602,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getManageWaiversButton();
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
 
     manageWaiversButton.click();
 
@@ -1646,7 +1646,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getManageWaiversButton();
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
 
     manageWaiversButton.click();
 
@@ -1686,7 +1686,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getManageWaiversButton();
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
 
     manageWaiversButton.click();
 
@@ -1721,7 +1721,7 @@ public class FirewallComponentDetailsPageTest
     violationRow1Cells.get(3).click();
 
     policyViolationDetailPopover.shouldBe(visible);
-    SelenideElement manageWaiversButton = policyViolationDetailPopover.getManageWaiversButton();
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
 
     manageWaiversButton.click();
 

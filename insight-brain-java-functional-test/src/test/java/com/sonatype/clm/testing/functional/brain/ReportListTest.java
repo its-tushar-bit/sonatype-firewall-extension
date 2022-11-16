@@ -35,6 +35,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.codeborne.selenide.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.exactText;
@@ -186,6 +187,8 @@ public class ReportListTest
     reportPage.shouldBe(visible);
   }
 
+  // Temporary ignoring flaky test. See CLM-23084
+  @Ignore
   @Test
   public void testChiclets() {
     ReportListRow firstRow = ReportListPage.firstRow();

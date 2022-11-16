@@ -43,6 +43,10 @@ public class WebhookConfigurationPage
     return child(".nx-list__item--empty");
   }
 
+  public SelenideElement pageTitle() {
+    return child(".nx-page-title");
+  }
+
   public class WebhookListElement
       extends BasicElement<ActionList.ActionListElement>
   {

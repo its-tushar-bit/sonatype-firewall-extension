@@ -45,7 +45,7 @@ public class ResetAdminCommandAuditTest
     InsightConfig insightConfig = new InsightConfig();
     insightConfig.setSonatypeWork(temporaryFolder.newFolder().getAbsolutePath());
     OperationalDataStoreProvider
-        .initWithoutMigration(new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods));
+        .init(new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods), true);
 
     new ResetAdminCommand().run(null, null, insightConfig);
 

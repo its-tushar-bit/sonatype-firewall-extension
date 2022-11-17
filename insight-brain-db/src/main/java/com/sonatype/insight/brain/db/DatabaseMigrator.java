@@ -59,16 +59,16 @@ public class DatabaseMigrator
       return;
     }
 
+    if (!isMigrationEnabled()) {
+      return;
+    }
+
     try {
       int desiredVersion = getDesiredVersion(databaseName);
 
-      if (new DataSourceFactory().isNewDataSource(dataSource)) {
+      if (DataSourceFactory.populateDatabaseSchema(dataSource, databaseName)) {
         // This is a new database, nothing to migrate here.
         DatabaseUtil.updateDatabaseSchemaVersion(dataSource, databaseName, desiredVersion);
-        return;
-      }
-
-      if (!isMigrationEnabled()) {
         return;
       }
 

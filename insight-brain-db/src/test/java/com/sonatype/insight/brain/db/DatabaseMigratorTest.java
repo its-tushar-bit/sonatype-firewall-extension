@@ -219,22 +219,22 @@ public class DatabaseMigratorTest
 
   @Test
   public void testMigrate_NewAggregationDatabase_PopulatesVersion() throws Exception {
-    testMigrate_NewDatabase_PopulatesVersion(AggregationDataStoreProvider.ID, -1);
+    testMigrate_NewDatabase_PopulatesVersion(AggregationDataStoreProvider.ID);
   }
 
   @Test
   public void testMigrate_NewDatamartDatabase_PopulatesVersion() throws Exception {
-    testMigrate_NewDatabase_PopulatesVersion(DatamartProvider.ID, -1);
+    testMigrate_NewDatabase_PopulatesVersion(DatamartProvider.ID);
   }
 
   @Test
   public void testMigrate_NewOperationalDataStoreDatabase_PopulatesVersion() throws Exception {
-    testMigrate_NewDatabase_PopulatesVersion(OperationalDataStoreProvider.ID, -1);
+    testMigrate_NewDatabase_PopulatesVersion(OperationalDataStoreProvider.ID);
   }
 
   @Test
   public void testMigrate_NewThirdPartyScansDatabase_PopulatesVersion() throws Exception {
-    testMigrate_NewDatabase_PopulatesVersion(ThirdPartyScansProvider.ID, 1);
+    testMigrate_NewDatabase_PopulatesVersion(ThirdPartyScansProvider.ID);
   }
 
   @Test
@@ -370,15 +370,17 @@ public class DatabaseMigratorTest
     assertThat(filesChecked).isNotEmpty();
   }
 
-  private void testMigrate_NewDatabase_PopulatesVersion(String databaseName, int initialVersion) throws Exception {
+  private void testMigrate_NewDatabase_PopulatesVersion(String databaseName) throws Exception {
     File databaseDir = tempDir.newFolder();
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, databaseName);
     DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, databaseName);
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isEqualTo(initialVersion);
+    assertThat(DatabaseUtil.schemaExists(dataSource, databaseName)).isFalse();
 
     new DatabaseMigrator().migrate(databaseConfig, databaseName, dataSource);
 
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isNotEqualTo(initialVersion);
+    assertThat(DatabaseUtil.schemaExists(dataSource, databaseName)).isTrue();
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isEqualTo(
+        DatabaseMigrator.determineDesiredVersion(databaseName));
   }
 
   static class PostIncrementalMigratorVersionMinus1

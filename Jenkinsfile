@@ -38,7 +38,6 @@ make(
       excludes: [
         '**/*-sources.jar*',
         '**/*-javadoc.jar*',
-        '**/*proguard*',
         '**/original-*'
       ]
     ],

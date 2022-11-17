@@ -27,6 +27,8 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.junit.Test;
+import org.keycloak.adapters.saml.SamlSessionStore;
+import org.keycloak.adapters.saml.SamlSessionStore.CurrentAction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -398,6 +400,76 @@ public class ShiroSessionDAOTest
     if (throwable.get() != null) {
       throw throwable.get();
     }
+  }
+
+  @Test
+  public void testDoReadSession_Null() {
+    testDoReadSession(null, true);
+  }
+
+  @Test
+  public void testDoReadSession_SamlLoggingIn() {
+    testDoReadSession(CurrentAction.LOGGING_IN, false);
+  }
+
+  @Test
+  public void testDoReadSession_SamlLoggingOut() {
+    testDoReadSession(CurrentAction.LOGGING_OUT, false);
+  }
+
+  @Test
+  public void testDoReadSession_SamlNoAction() {
+    testDoReadSession(CurrentAction.NONE, true);
+  }
+
+  private void testDoReadSession(CurrentAction currentAction, boolean shouldStoreInCache) {
+    SimpleSession session = createSession();
+    session.setId("id");
+    session.setAttribute(SamlSessionStore.CURRENT_ACTION, currentAction);
+    PersistedUserSession persistedUserSession = new PersistedUserSession(session);
+    new PersistedUserSessionDAO().insert(persistedUserSession);
+
+    shiroSessionDAO.doReadSession(session.getId());
+
+    assertThat(getSessionFromCache(session.getId()) != null).isEqualTo(shouldStoreInCache);
+    assertThat(getSessionFromDatabase(session.getId())).isNotNull();
+  }
+
+  @Test
+  public void testUpdateSession_Null() {
+    testUpdate(null, true);
+  }
+
+  @Test
+  public void testUpdateSession_SamlLoggingIn() {
+    testUpdate(CurrentAction.LOGGING_IN, false);
+  }
+
+  @Test
+  public void testUpdateSession_SamlLoggingOut() {
+    testUpdate(CurrentAction.LOGGING_OUT, false);
+  }
+
+  @Test
+  public void testUpdateSession_SamlNoAction() {
+    testUpdate(CurrentAction.NONE, true);
+  }
+
+  private void testUpdate(CurrentAction currentAction, boolean shouldStoreInCache) {
+    SimpleSession session = createSession();
+    session.setId("id");
+    PersistedUserSession persistedUserSession = new PersistedUserSession(session);
+    new PersistedUserSessionDAO().insert(persistedUserSession);
+    if (!shouldStoreInCache) {
+      ShiroSessionDAO.SESSION_CACHE
+          .put(session.getId(), new SessionAndStoredJson(session, PersistedUserSession.simpleSessionToJson(session)));
+    }
+
+    session.setAttribute(SamlSessionStore.CURRENT_ACTION, currentAction);
+    shiroSessionDAO.update(session);
+
+    assertThat(getSessionFromCache(session.getId()) != null).isEqualTo(shouldStoreInCache);
+    assertThat(getSessionFromDatabase(session.getId())).isNotNull();
   }
 
   private SessionAndStoredJson getSessionFromCache(Serializable id) {

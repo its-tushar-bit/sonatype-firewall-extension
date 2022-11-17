@@ -95,9 +95,9 @@ public class DashboardPolicyWaiverServiceAuthzTest
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaivers.numResults)
-        .as("We should get the apps the parent orgs and the root org that the user have permission")
-        .isEqualTo(3);
-    assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(3);
+        .as("We should get the apps, the parent orgs, the root org and the repositories that the user have permission")
+        .isEqualTo(5);
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(5);
   }
 
   @Test

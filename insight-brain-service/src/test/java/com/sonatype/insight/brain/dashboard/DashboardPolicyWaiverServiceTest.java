@@ -27,6 +27,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.RisksFilterDTOBuilder;
+import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.builders.TestPolicyBuilder;
 import com.sonatype.insight.brain.builders.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.dashboard.DashboardPolicyWaiverDTOComparator.DashboardPolicyWaiverOrderByEnum;
@@ -41,6 +42,8 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -179,6 +182,96 @@ public class DashboardPolicyWaiverServiceTest
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
     assertThat(dashboardPolicyWaivers.numResults).isEqualTo(1);
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), policyWaiverApp2, app2);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_filtersByRepository() {
+    Repository repository = tempEntity.newRepository();
+
+    Policy policy = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withOwnerId(org.getId())
+            .build());
+
+    PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy.getId())
+        .withOwnerId(repository.getId())
+        .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
+        .build();
+
+    tempEntity.newWaiver(policyWaiver);
+
+    PolicyWaiver policyWaiver1 = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy.getId())
+        .withOwnerId(app1.getId())
+        .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
+        .build();
+
+    tempEntity.newWaiver(policyWaiver1);
+
+    risksFilterDTOBuilder.withRepositoryIds(Collections.singleton(repository.getId())).withMaxResults(10);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+
+    assertThat(dashboardPolicyWaivers.numResults)
+        .isEqualTo(1);
+
+    assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), policyWaiver, repository);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_returnAllWaivers() {
+    Repository repository = tempEntity.newRepository();
+
+    Policy policy = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withOwnerId(org.getId())
+            .build());
+
+    PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy.getId())
+        .withOwnerId(repository.getId())
+        .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
+        .build();
+
+    tempEntity.newWaiver(policyWaiver);
+
+    RepositoryComponent
+        component = tempEntity.newRepositoryComponent(repository.getId());
+
+    PolicyViolationTestHelper.createPolicyViolationWaived(policy, component, tempEntity);
+
+    PolicyWaiver policyWaiver1 = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy.getId())
+        .withOwnerId(app1.getId())
+        .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
+        .build();
+
+    tempEntity.newWaiver(policyWaiver1);
+
+    Organization org2 = tempEntity.newOrganization("Org3");
+    Application application3 = tempEntity.newApplication("Application-3", " Applicatin-3", org2.getId());
+    PolicyWaiver policyWaiverOrg2 = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy.getId())
+        .withOwnerId(application3.getId())
+        .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
+        .build();
+
+    tempEntity.newWaiver(policyWaiverOrg2);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.withMaxResults(10).build());
+
+    assertThat(dashboardPolicyWaivers.numResults)
+        .isEqualTo(3);
   }
 
   @Test

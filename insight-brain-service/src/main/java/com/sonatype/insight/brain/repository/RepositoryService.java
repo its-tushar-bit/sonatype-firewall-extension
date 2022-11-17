@@ -10,13 +10,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -58,6 +60,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -392,6 +395,19 @@ public class RepositoryService
       repositoryDTOs.add(convertRepository(repository));
     }
     return new RepositoriesDTO(repositoryDTOs);
+  }
+
+  public Set<Repository> getRepositoriesByIds(final Set<String> repositoryIds) {
+    Set<Repository> allRepositories = new HashSet<>(getRepositoriesWithReadPermission());
+
+    if (CollectionUtils.isEmpty(repositoryIds)) {
+      return allRepositories;
+    }
+
+    return allRepositories
+        .stream()
+        .filter(repository -> repositoryIds.contains(repository.getId()))
+        .collect(Collectors.toSet());
   }
 
   @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY)

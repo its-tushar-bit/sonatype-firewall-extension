@@ -195,18 +195,15 @@ public class DependencyResolverTest
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar",
         appInnerSource);
 
-    PackageUrlIdentifier knownModule1 = new PackageUrlIdentifier(
-        "pkg:maven/com.sonatype.insight.scan/insight-test-reverse-proxy@2.23.5-SNAPSHOT?type=jar");
-    PackageUrlIdentifier knownModule2 =
+    PackageUrlIdentifier knownModule1 =
         new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-scanner-model@2.23.5-SNAPSHOT?type=jar");
-    PackageUrlIdentifier knownModule3 = new PackageUrlIdentifier(
+    PackageUrlIdentifier knownModule2 = new PackageUrlIdentifier(
         "pkg:maven/com.sonatype.insight.scan/insight-scanner-model-io@2.23.5-SNAPSHOT?type=jar");
-    PackageUrlIdentifier knownModule4 =
+    PackageUrlIdentifier knownModule3 =
         new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-scanner-core@2.23.5-SNAPSHOT?type=jar");
 
     List<String> knownComponents =
-        Arrays.asList(knownModule1.getPackageUrl(), knownModule2.getPackageUrl(), knownModule3.getPackageUrl(),
-            knownModule4.getPackageUrl());
+        Arrays.asList(knownModule1.getPackageUrl(), knownModule2.getPackageUrl(), knownModule3.getPackageUrl());
 
     JsonNode dependenciesJson =
         getJsonNodeInformation("report-innersource-multi-module-component-not-in-bom/dependencies.json");
@@ -220,7 +217,7 @@ public class DependencyResolverTest
     assertThat(innerSourceComponents).hasSize(8);
 
     assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
-    assertDependencyInfo(bomJson, 9, 3, 1, 2, 3, summaryJson, dataJson, appInnerSource, knownComponents);
+    assertDependencyInfo(bomJson, 7, 3, 1, 2, 3, summaryJson, dataJson, appInnerSource, knownComponents);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
     producerTelemetries.add(

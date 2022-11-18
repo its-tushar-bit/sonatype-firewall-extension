@@ -296,10 +296,18 @@ public class DependencyResolver
       }
       else {
         Optional<ObjectNode> bomNode = findBomComponent(packageUrlIdentifier);
+        //Only modules need to be created
         if (!bomNode.isPresent()) {
-          ObjectNode node = newNodeComponent(packageUrlIdentifier);
-          bomComponentNodes.put(packageUrlIdentifier, node);
+          if (directDependency.isModule()) {
+            ObjectNode node = newNodeComponent(packageUrlIdentifier);
+            bomComponentNodes.put(packageUrlIdentifier, node);
+          }
+          else {
+            log.debug("Dependency with purl '{}' exists in the tree but no the bom.json, it was not created",
+                packageUrlIdentifier.getPackageUrl());
+          }
         }
+
         // a regular (non InnerSource) dependency/module
         updateBomNodeDependencyInformation(true, false, packageUrlIdentifier, null, null);
         updateDependencyInfoForComponentChildren(directDependency.getChildren(), false, false, packageUrlIdentifier);
@@ -384,8 +392,7 @@ public class DependencyResolver
       bomComponentNodes.put(innerSourcePackageUrlIdentifier, isNode);
       totalArtifactCount.getAndIncrement();
 
-      log.debug("InnerSource Component" + "'{}' was created in bom.json",
-          innerSourcePackageUrlIdentifier.getPackageUrl());
+      log.debug("InnerSource Component '{}' was created in bom.json", innerSourcePackageUrlIdentifier.getPackageUrl());
     }
     updateBomNodeDependencyInformation(true, true, innerSourcePackageUrlIdentifier, null, innerSourceData,
         producerInfo);
@@ -569,8 +576,8 @@ public class DependencyResolver
     if (!bomObjectNode.hasNonNull(MATCH_STATE) ||
         MatchState.UNKNOWN.getId().equals(bomObjectNode.get(MATCH_STATE).asText())) {
       markComponentAsKnown(bomObjectNode, componentPurl, isDirect);
-      log.debug(innerSourceData != null ? "InnerSource component" :
-          "Component" + "'{}' was updated in bom.json as a known component", componentPurl);
+      log.debug((innerSourceData != null ? "InnerSource component" : "Component")
+          + "'{}' was updated in bom.json as a known component", componentPurl);
     }
 
     setTelemetryInfo(producerInfo, bomObjectNode);

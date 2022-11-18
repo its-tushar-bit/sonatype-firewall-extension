@@ -257,7 +257,7 @@ public class DefaultPolicyEvaluateService
   {
     // to avoid any race condition when the following task attempts to update
     PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
-        createPersistedPolicyEvaluationPollingResultIfNeeded(app, statusId);
+        createPersistedPolicyEvaluationPollingResultIfNeeded(app.getId(), statusId);
 
     log.debug(
         "Submitting policy evaluation task for app public id {}, clientScanType {}, stageTypeId {}. "
@@ -272,11 +272,11 @@ public class DefaultPolicyEvaluateService
   }
 
   public PersistedPolicyEvaluationPollingResult createPersistedPolicyEvaluationPollingResultIfNeeded(
-      Application app,
+      String appId,
       String statusId)
   {
     PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
-        persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(), statusId);
+        persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(appId, statusId);
     if (persistedPolicyEvaluationPollingResult != null) {
       return persistedPolicyEvaluationPollingResult;
     }
@@ -285,7 +285,7 @@ public class DefaultPolicyEvaluateService
     initialResult.setStatus(PolicyEvaluationStatus.PENDING);
     initialResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
     persistedPolicyEvaluationPollingResult =
-        new PersistedPolicyEvaluationPollingResult(app.getId(), statusId, initialResult);
+        new PersistedPolicyEvaluationPollingResult(appId, statusId, initialResult);
     persistedPolicyEvaluationPollingResultDAO.insert(persistedPolicyEvaluationPollingResult);
 
     return persistedPolicyEvaluationPollingResult;

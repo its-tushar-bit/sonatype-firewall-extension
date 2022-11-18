@@ -60,6 +60,22 @@ public class PolicyEvaluationPollingResultUtilsTest
     assertThat(policyEvaluationPollingResult.getReason()).isEqualTo(reason);
   }
 
+  @Test
+  public void testHandleException_Handles_Null_PersistedPolicyEvaluationPollingResult() {
+    Application app = tempEntity.newApplicationWithParent();
+    String statusId = "testStatusId";
+    Exception exception = new Exception("test exception");
+
+    policyEvaluationPollingResultUtils.handleException(app.getId(), statusId, exception);
+
+    PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
+        persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(app.getId(), statusId);
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
+    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.FAILED);
+    assertThat(policyEvaluationPollingResult.getReason()).startsWith("Internal Server Error (ID ");
+  }
+
   private PersistedPolicyEvaluationPollingResult createPersistedPolicyEvaluationPollingResult(
       String appId,
       String statusId,

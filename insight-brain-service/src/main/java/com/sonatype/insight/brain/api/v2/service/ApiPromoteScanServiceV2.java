@@ -127,7 +127,7 @@ public class ApiPromoteScanServiceV2
     validateRequest(apiPromoteScanRequestDTOV2, application.getId());
 
     String statusId = UUID.randomUUID().toString().replace("-", "");
-    policyEvaluateService.createPersistedPolicyEvaluationPollingResultIfNeeded(application, statusId);
+    policyEvaluateService.createPersistedPolicyEvaluationPollingResultIfNeeded(applicationId, statusId);
     log.debug("Received request to promote scan {} of app {} to stage {}. The status ID of the operation is {}.",
         apiPromoteScanRequestDTOV2.scanId != null ? apiPromoteScanRequestDTOV2.scanId
             : "from stage " + apiPromoteScanRequestDTOV2.sourceStageId,

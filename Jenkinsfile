@@ -25,7 +25,7 @@ make(
         nexusPolicyEvaluation iqStage: stage, iqApplication: 'insight-brain',
           iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
           //Test files inside the maven modules are excluded from the scan
-          iqModuleExcludes: [[moduleExclude: '**/test/**']],
+          iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
           failBuildOnNetworkError: true
     },
     distFiles: [

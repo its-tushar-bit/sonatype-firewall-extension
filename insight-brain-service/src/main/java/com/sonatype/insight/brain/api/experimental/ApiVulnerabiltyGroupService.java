@@ -6,9 +6,10 @@
 package com.sonatype.insight.brain.api.experimental;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -23,6 +24,9 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerab
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -38,14 +42,18 @@ public class ApiVulnerabiltyGroupService
 
   private final OwnerDAO ownerDAO;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public ApiVulnerabiltyGroupService(
       VulnerabilityGroupDAO vulnerabilityGroupDAO,
       VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO,
+      final TelemetrySender telemetrySender,
       OwnerDAO ownerDAO)
   {
     this.vulnerabilityGroupDAO = vulnerabilityGroupDAO;
     this.vulnerabilityGroupVulnerabilityDAO = vulnerabilityGroupVulnerabilityDAO;
+    this.telemetrySender = telemetrySender;
     this.ownerDAO = ownerDAO;
   }
 
@@ -68,6 +76,9 @@ public class ApiVulnerabiltyGroupService
         VulnerabilityGroup currentGroup =
             vulnerabilityGroupDAO.getByOwnerIdAndGroupName(tx, groupOwner.getId(),
                 apiVulnerabilityGroupDTO.getGroupName());
+        sendVulnerabilityGroupTelemetryData(METHOD.SAVE_VULNERABILITY_GROUP,
+            apiVulnerabilityGroupDTO.getVulnIds().size(),
+            apiVulnerabilityGroupDTO.getVulnIds());
         if (currentGroup != null) {
           deleteVulnerabilitiesInGroupByGroupId(tx, currentGroup.getId());
           saveVulnerabilitiesInGroup(tx, apiVulnerabilityGroupDTO.getVulnIds(), currentGroup.getId());
@@ -76,7 +87,7 @@ public class ApiVulnerabiltyGroupService
         }
         else {
           VulnerabilityGroup vulnGroupObj =
-              new VulnerabilityGroup( apiVulnerabilityGroupDTO.getGroupName(),groupOwner.getId());
+              new VulnerabilityGroup(apiVulnerabilityGroupDTO.getGroupName(), groupOwner.getId());
           vulnerabilityGroupDAO.insert(tx, vulnGroupObj);
           saveVulnerabilitiesInGroup(tx, apiVulnerabilityGroupDTO.getVulnIds(), vulnGroupObj.getId());
           tx.commit();
@@ -112,6 +123,7 @@ public class ApiVulnerabiltyGroupService
       VulnerabilityGroup currentGroup = vulnerabilityGroupDAO.getById(vulnerabilityGroupId);
       if (currentGroup != null) {
         vulnerabilityGroupDAO.delete(currentGroup);
+        sendVulnerabilityGroupTelemetryData(METHOD.DELETE_BY_ID, 0, new ArrayList<>());
         tx.commit();
       }
       else {
@@ -135,6 +147,8 @@ public class ApiVulnerabiltyGroupService
         vulnGroupDTO = new ApiVulnerabilityGroupDTO(vulnGroup.getId(), vulnGroup.getVulnerabilityGroupName(),
             vulnList.stream().map(VulnerabilityGroupVulnerability::getVulnerabilityRefId).collect(Collectors.toList()),
             vulnGroup.getOwnerId());
+        sendVulnerabilityGroupTelemetryData(METHOD.GET_BY_GROUP_ID,
+            vulnGroupDTO.getVulnIds().size(), vulnGroupDTO.getVulnIds());
         return vulnGroupDTO;
       }
       else {
@@ -158,6 +172,8 @@ public class ApiVulnerabiltyGroupService
         vulnGroupDTO = new ApiVulnerabilityGroupDTO(vulnGroup.getId(), vulnGroup.getVulnerabilityGroupName(),
             vulnList.stream().map(VulnerabilityGroupVulnerability::getVulnerabilityRefId).collect(Collectors.toList()),
             vulnGroup.getOwnerId());
+        sendVulnerabilityGroupTelemetryData(METHOD.GET_BY_GROUP_NAME,
+            vulnGroupDTO.getVulnIds().size(), vulnGroupDTO.getVulnIds());
         return vulnGroupDTO;
       }
       else {
@@ -181,9 +197,35 @@ public class ApiVulnerabiltyGroupService
         ApiVulnerabilityGroupDTO vulnGroupDTO = new ApiVulnerabilityGroupDTO(vulnerabilityGroup.getId(),
             vulnerabilityGroup.getVulnerabilityGroupName(),
             vulnList.stream().map(VulnerabilityGroupVulnerability::getVulnerabilityRefId).collect(Collectors.toList()));
+        sendVulnerabilityGroupTelemetryData(METHOD.GET_BY_OWNER,
+            vulnGroupDTO.getVulnIds().size(), vulnGroupDTO.getVulnIds());
         vulnGroupDTOList.add(vulnGroupDTO);
       }
     }
     return vulnGroupDTOList;
+  }
+
+  private void sendVulnerabilityGroupTelemetryData(
+      METHOD method,
+      int vulCount,
+      List<String> vulIds)
+  {
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put("method", method);
+    attributes.put("vulnerability_count", vulCount);
+    attributes.put("vulnerability_ids", vulIds);
+
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.VULNERABILITY_GROUP_API);
+    telemetryData.setAttributes(attributes);
+    telemetrySender.send(telemetryData);
+  }
+
+  enum METHOD
+  {
+    GET_BY_OWNER,
+    GET_BY_GROUP_NAME,
+    GET_BY_GROUP_ID,
+    SAVE_VULNERABILITY_GROUP,
+    DELETE_BY_ID,
   }
 }

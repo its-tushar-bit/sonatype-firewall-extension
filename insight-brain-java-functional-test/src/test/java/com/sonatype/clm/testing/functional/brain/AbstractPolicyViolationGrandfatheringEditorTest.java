@@ -214,12 +214,5 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
       policyViolationGrandfatheringService.setGrandfathering(OwnerType.ORGANIZATION, parentOrg.getId(),
           policyViolationGrandfatheringDTO);
     }
-
-    if (OwnerType.APPLICATION.equals(allowOverride)) {
-      policyViolationGrandfatheringDTO.enabled = null;
-      policyViolationGrandfatheringDTO.allowOverride = allowOverride;
-      policyViolationGrandfatheringService.setGrandfathering(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
-          policyViolationGrandfatheringDTO);
-    }
   }
 }

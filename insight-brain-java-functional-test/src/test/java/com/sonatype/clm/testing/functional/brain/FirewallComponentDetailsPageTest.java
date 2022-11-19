@@ -1652,7 +1652,7 @@ public class FirewallComponentDetailsPageTest
     addWaiverPage.condition(1).shouldHave(text("security vulnerability severity >= 9.1"));
     addWaiverPage.availableScopes().shouldHaveSize(3);
     addWaiverPage.scope(0).label().shouldHave(text("Repository - repositoryPublicId"));
-    addWaiverPage.scope(1).label().shouldHave(text("Repository_container - All Repositories"));
+    addWaiverPage.scope(1).label().shouldHave(text("All Repositories"));
     addWaiverPage.scope(2).label().shouldHave(text("Organization - Root Organization"));
     addWaiverPage.availableComponents().shouldHaveSize(3);
     addWaiverPage.component(0).label().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));

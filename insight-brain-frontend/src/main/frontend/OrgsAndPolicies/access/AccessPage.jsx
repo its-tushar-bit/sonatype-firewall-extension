@@ -138,6 +138,34 @@ export default function AccessPage() {
     dispatch(actions.addSelectedUserGroup());
   };
 
+  function getUserTooltipTitle(user) {
+    if (user.realm && !user.email) {
+      return <>{user.realm}</>;
+    }
+    if (user.realm && user.email) {
+      return (
+        <>
+          {user.realm} <br /> {user.email}
+        </>
+      );
+    }
+    if (!user.realm && user.email) {
+      return <>{user.email}</>;
+    }
+    return user.displayName;
+  }
+
+  const getUserItems = (addedUsers) =>
+    addedUsers.map((user) => {
+      return {
+        id: user.id,
+        displayName: user.displayName,
+        tooltip: {
+          title: getUserTooltipTitle(user),
+        },
+      };
+    });
+
   return (
     <div id="create-edit-access-page">
       <NxPageTitle>
@@ -241,7 +269,7 @@ export default function AccessPage() {
                 filterValue={addedItemsFilter}
                 onFilterChange={setAddedItemsFilter}
                 showMoveAll
-                items={addedUsers}
+                items={getUserItems(addedUsers)}
                 onItemChange={onRemoveMembers}
                 onMoveAll={onRemoveAllMembers}
                 isSelected

@@ -63,4 +63,9 @@ public class RisksFilterDTOBuilder
     this.risksFilterDTO.maxResults = maxResults;
     return this;
   }
+
+  public RisksFilterDTOBuilder withRepositoryIds(final Set<String> repositoryIds) {
+    this.risksFilterDTO.repositoryIds = repositoryIds;
+    return this;
+  }
 }

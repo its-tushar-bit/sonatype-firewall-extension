@@ -12,6 +12,7 @@ import { fetchStageTypes } from '../stages/stagesActions';
 import ViolationPage from './ViolationPage';
 import { selectSelectedViolationId } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { actions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
+import { onGoToFirewallWaiversPage, loadFirewallViolationDetails } from '../firewall/firewallActions';
 
 function mapStateToProps(state, showViolationsDetailPopover) {
   const { stages, violation, firewall } = state;
@@ -31,13 +32,17 @@ function mapStateToProps(state, showViolationsDetailPopover) {
         'vulnerabilityDetails',
         'vulnerabilityDetailsError',
         'activeWaivers',
+        'addWaiverPermission',
+        'addWaiverPermissionLoading',
+        'addWaiverPermissionError',
+        'hasPermissionForAppWaivers',
       ],
       violation
     ),
     stageTypes: stageData.stageTypes,
     stageTypesError: stageData.error,
     selectedViolationId: selectSelectedViolationId(state),
-    isPolicyPopoverShown: isShowViolationsDetailPopover,
+    isFirewallContext: isShowViolationsDetailPopover,
     policyViolations: policyViolations,
     selectPolicyId: selectPolicyId,
   };
@@ -46,10 +51,12 @@ function mapStateToProps(state, showViolationsDetailPopover) {
 const mapDispatchToProps = {
   loadViolation,
   loadVulnerabilityDetails,
+  loadFirewallPolicyVulnerabilityDetails,
   fetchStageTypes,
   stateGo,
   goToWaivers: actions.goToWaivers,
-  loadFirewallPolicyVulnerabilityDetails,
+  onGoToFirewallWaiversPage: onGoToFirewallWaiversPage,
+  loadFirewallViolationDetails: loadFirewallViolationDetails,
 };
 
 const ViolationPageContainer = connect(mapStateToProps, mapDispatchToProps)(ViolationPage);

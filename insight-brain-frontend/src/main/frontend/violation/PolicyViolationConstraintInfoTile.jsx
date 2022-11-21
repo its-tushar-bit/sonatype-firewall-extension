@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import { map } from 'ramda';
 
 export default function PolicyViolationConstraintInfoTile(props) {
-  const { constraintViolations, isPolicyPopoverShown } = props;
+  const { constraintViolations, isFirewallContext } = props;
   const { constraintName, reasons, conditions } = constraintViolations[0];
 
   return (
@@ -25,7 +25,7 @@ export default function PolicyViolationConstraintInfoTile(props) {
         </h3>
         <div className="nx-list nx-list--bulleted nx-list--violation-reasons">
           <ul id="policy-violation-reasons">
-            {isPolicyPopoverShown
+            {isFirewallContext
               ? map(
                   ({ conditionReason }) => (
                     <li className="nx-list__item" key={conditionReason}>
@@ -76,6 +76,6 @@ export const constraintViolationsPropType = PropTypes.arrayOf(constraintViolatio
 
 PolicyViolationConstraintInfoTile.propTypes = {
   constraintViolations: constraintViolationsPropType,
-  isPolicyPopoverShown: PropTypes.bool,
+  isFirewallContext: PropTypes.bool,
   conditions: PropTypes.arrayOf(conditionsPropType),
 };

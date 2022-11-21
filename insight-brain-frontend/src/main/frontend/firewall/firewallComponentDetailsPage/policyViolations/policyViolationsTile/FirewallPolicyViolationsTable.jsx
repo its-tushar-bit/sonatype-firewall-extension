@@ -3,7 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { bindActionCreators } from 'redux';
+import { useDispatch } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import { sort } from 'ramda';
 import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
@@ -11,6 +13,7 @@ import { waiverType } from '../../../../util/waiverUtils';
 import FirewallPolicyViolationsTableRow from './FirewallPolicyViolationsTableRow';
 import PolicyViolationDetailsPopover from './FirewallPolicyViolationDetailsPopover';
 import FirewallExistingWaiversPopover from './FirewallExistingWaiversPopover';
+import * as WaiverActionCreators from 'MainRoot/waivers/waiverActions';
 
 // exporting function for testing
 export const sortPolicyByThreat = sort((threatA, threatB) => {
@@ -31,6 +34,10 @@ export default function FirewallPolicyViolationsTable({
   const orderedViolations = violations ? sortPolicyByThreat(violations) : [];
   const [showViolationsDetailPopover, showPopover] = useState(false);
   const [selectPolicyId, savePolicyId] = useState('');
+  const dispatch = useDispatch();
+  const boundSetWaiverToDelete = useMemo(() => bindActionCreators(WaiverActionCreators.setWaiverToDelete, dispatch), [
+    dispatch,
+  ]);
 
   return (
     <>
@@ -73,7 +80,7 @@ export default function FirewallPolicyViolationsTable({
           componentNameWithoutVersion={componentNameWithoutVersion}
           setShowComponentWaiversPopover={setShowComponentWaiversPopover}
           waivers={waivers}
-          setWaiverToDelete={setWaiverToDelete}
+          setWaiverToDelete={boundSetWaiverToDelete}
           waiverToDelete={waiverToDelete}
         />
       )}

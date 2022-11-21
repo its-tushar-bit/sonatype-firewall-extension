@@ -109,7 +109,7 @@ public class ComponentInfoResource
       @QueryParam("scanId") String scanId,
       @QueryParam("dependencyType") String dependencyTypeId)
   {
-    return componentInfoService.getComponentVersionInfo_ReadPermission(ownerType, ownerId,
+    return componentInfoService.getComponentVersionInfo(ownerType, ownerId,
         componentIdentifier, stageId, identificationSource, scanId, DependencyType.getById(dependencyTypeId));
   }
 

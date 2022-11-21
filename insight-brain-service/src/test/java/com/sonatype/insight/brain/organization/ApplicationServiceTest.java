@@ -15,7 +15,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
-
+import java.util.stream.IntStream;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -488,6 +488,36 @@ public class ApplicationServiceTest
   public void testGetByPublicIdsNoAuthz() {
     List<Application> apps = applicationService.getByPublicIdsNoAuthz(Collections.singleton(app1.getPublicId()));
     assertThat(apps).extracting(Application::getPublicId).containsExactlyInAnyOrder(app1.getPublicId());
+  }
+
+  @Test
+  public void testGetParentOrganizationsForApplicationsNoAuthz() {
+    List<Application> applications = IntStream.range(0, 100)
+        .mapToObj(number -> {
+          String orgId = number % 2 == 0
+              ? tempEntity.newOrganizationWithSpecificId("org" + number, "orgName" + number).getId()
+              : "org" + (number - 1);
+          return tempEntity.newApplication(orgId);
+        }).collect(Collectors.toList());
+
+    Set<Organization> orgs = applicationService.getParentOrganizationsForApplicationsNoAuthz(applications);
+    List<String> orgIds = orgs.stream().map(Organization::getId).collect(Collectors.toList());
+    assertThat(orgs).hasSize(50);
+    applications.forEach(application -> {
+      assertThat(application.getOrganizationId()).isIn(orgIds);
+    });
+  }
+
+  @Test
+  public void testGetParentOrganizationsForApplicationsNoAuthz_Null() {
+    Set<Organization> orgs = applicationService.getParentOrganizationsForApplicationsNoAuthz(null);
+    assertThat(orgs).isEmpty();
+  }
+
+  @Test
+  public void testGetParentOrganizationsForApplicationsNoAuthz_Empty() {
+    Set<Organization> orgs = applicationService.getParentOrganizationsForApplicationsNoAuthz(Collections.emptyList());
+    assertThat(orgs).isEmpty();
   }
 
   private void createAlphabeticalOrgsAndApps(List<Organization> orgs, List<Application> apps) {

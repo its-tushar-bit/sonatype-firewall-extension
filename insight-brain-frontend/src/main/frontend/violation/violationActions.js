@@ -7,9 +7,21 @@ import axios from 'axios';
 import { both, complement, compose, find, isNil, prop, propEq, propSatisfies } from 'ramda';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
-import { getViolationDetailsUrl, getVulnerabilityJsonDetailUrl, getApplicableWaiversUrl } from '../util/CLMLocation';
+import {
+  getViolationDetailsUrl,
+  getVulnerabilityJsonDetailUrl,
+  getApplicableWaiversUrl,
+  getRepositoryPolicyViolationUrl,
+} from '../util/CLMLocation';
 import { isNilOrEmpty } from '../util/jsUtil';
+import { convertToWaiverViolationFormat } from '../util/waiverUtils';
 import { selectComponentViolations } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
+import { loadPermissionForAppWaivers } from 'MainRoot/waivers/waiverActions';
+import {
+  selectRepositoryPolicyId,
+  selectIsFirewall,
+  selectPrevRepositoryPolicyId,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED = 'VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED';
 export const VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED = 'VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED';
@@ -23,12 +35,13 @@ export const VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED = 'VIOLATION_LOAD_VU
 export const VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED = 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED';
 
 export function loadViolation(id) {
-  return function (dispatch) {
+  return function (dispatch, getState) {
     dispatch(loadViolationDetailsRequested());
 
     const parallelRequests = [dispatch(fetchCrossStageViolation(id)), dispatch(fetchApplicableWaivers(id))];
 
     return Promise.all(parallelRequests)
+      .then(() => loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId))
       .then(compose(dispatch, loadViolationDetailsFulfilled))
       .then(compose(dispatch, loadVulnerabilityDetails))
       .catch(compose(dispatch, loadViolationDetailsFailed));
@@ -50,20 +63,57 @@ export function fetchApplicableWaivers(id) {
 export function fetchCrossStageViolation(id) {
   return function (dispatch, getState) {
     const state = getState();
-    const { violationDetails, selectedViolationId } = state.violation;
+    const { showManageWaiverPage } = state.firewall.componentDetailsPage;
 
-    if (selectedViolationId === id) {
+    if (!showManageWaiverPage) {
+      const { selectedViolationId, violationDetails } = state.violation;
+      if (selectedViolationId === id) {
+        return Promise.resolve(violationDetails);
+      }
+    }
+
+    const { violationDetails } = state.firewall.componentDetailsPage;
+    const { policyViolationId } = violationDetails;
+    if (policyViolationId === id) {
       return Promise.resolve(violationDetails);
     }
 
-    return axios.get(getViolationDetailsUrl(id)).then(({ data }) => {
+    const repositoryId = selectIsFirewall(state) ? selectRepositoryPolicyId(state) : null;
+    const getDataUrl = selectIsFirewall(state)
+      ? getRepositoryPolicyViolationUrl(repositoryId, id)
+      : getViolationDetailsUrl(id);
+
+    return axios.get(getDataUrl).then(({ data }) => {
+      const violationData = selectIsFirewall(state) ? convertToWaiverViolationFormat(data) : data;
       const violations = selectComponentViolations(state);
       const waived = violations
-        ? prop('waived', find(propEq('policyViolationId', data.policyViolationId), violations))
+        ? prop('waived', find(propEq('policyViolationId', violationData.policyViolationId), violations))
         : true;
       return dispatch(
         payloadParamActionCreator(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED)({
-          violationDetails: { ...data, waived },
+          violationDetails: { ...violationData, waived },
+          selectedViolationId: id,
+        })
+      );
+    });
+  };
+}
+
+export function fetchCrossStageViolationAddWaiver(id) {
+  return function (dispatch, getState) {
+    const state = getState();
+
+    const repositoryId = selectPrevRepositoryPolicyId(state);
+
+    return axios.get(getRepositoryPolicyViolationUrl(repositoryId, id)).then(({ data }) => {
+      const violationData = convertToWaiverViolationFormat(data);
+      const violations = selectComponentViolations(state);
+      const waived = violations
+        ? prop('waived', find(propEq('policyViolationId', violationData.policyViolationId), violations))
+        : true;
+      return dispatch(
+        payloadParamActionCreator(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED)({
+          violationDetails: { ...violationData, waived },
           selectedViolationId: id,
         })
       );
@@ -72,7 +122,7 @@ export function fetchCrossStageViolation(id) {
 }
 
 const loadViolationDetailsRequested = noPayloadActionCreator(VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED);
-const loadViolationDetailsFulfilled = noPayloadActionCreator(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+const loadViolationDetailsFulfilled = payloadParamActionCreator(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
 const loadViolationDetailsFailed = payloadParamActionCreator(VIOLATION_LOAD_VIOLATION_DETAILS_FAILED);
 
 const isNotNil = complement(isNil),

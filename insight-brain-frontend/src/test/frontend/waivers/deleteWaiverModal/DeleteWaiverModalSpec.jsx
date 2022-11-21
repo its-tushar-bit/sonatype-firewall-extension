@@ -95,6 +95,20 @@ describe('DeleteWaiverModal', function () {
     expect(deleteWaiverSpy).toHaveBeenCalledWith('organization', 'root', 'foo');
   });
 
+  it('correctly handles the repository scenario when clicking Yes to delete the waiver', function () {
+    const component = getShallowComponent({
+      waiverToDelete: {
+        scopeOwnerId: 'root',
+        scopeOwnerType: 'all_repositories',
+        policyWaiverId: 'foo',
+      },
+    });
+    const modal = component.find(NxModal);
+    const yesButton = modal.find('#delete-waiver-modal-continue-button');
+    yesButton.simulate('click');
+    expect(deleteWaiverSpy).toHaveBeenCalledWith('repository_container', 'root', 'foo');
+  });
+
   it('renders a submit Mask if the deletion is in progress', function () {
     const component = getMountedComponent({ deleteWaiverSaving: false }),
       submitMask = component.find(NxSubmitMask);

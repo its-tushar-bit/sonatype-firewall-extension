@@ -50,6 +50,17 @@ public class InnerSourceComponentDAO
     }
   }
 
+  public InnerSourceComponent getByPackageUrlExcludingApplication(
+      PackageUrlIdentifier packageUrl,
+      String excludedApplicationId)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      String sQuery = SELECT_ENTITY_FROM_INNER_SOURCE_COMPONENT + //
+          " WHERE entity.packageUrl=?1 and entity.applicationId<>?2";
+      return get(tx, sQuery, packageUrl.getPackageUrl(), excludedApplicationId);
+    }
+  }
+
   public List<InnerSourceComponent> getByPackageUrls(Set<PackageUrlIdentifier> packageUrls) {
     try (TransactionContext tx = createTransactionContext()) {
       String sQuery = SELECT_ENTITY_FROM_INNER_SOURCE_COMPONENT + //

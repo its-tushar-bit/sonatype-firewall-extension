@@ -3,7 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { displayWaiverScope, formatWaiverDetails, waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
+import {
+  displayWaiverScope,
+  convertToWaiverViolationFormat,
+  formatWaiverDetails,
+  waiverMatcherStrategy,
+} from 'MainRoot/util/waiverUtils';
 
 describe('waiverUtils', function () {
   describe('dislayWaiverScope', () => {
@@ -36,10 +41,10 @@ describe('waiverUtils', function () {
     it('returns a readable label with name if the scopeOwnerType is `repository`', () => {
       const waiver = {
         scopeOwnerType: 'repository',
-        scopeOwnerName: 'Repo X',
+        scopeOwnerName: 'maven-central',
       };
       const result = displayWaiverScope(waiver);
-      expect(result).toEqual('Repository - repository');
+      expect(result).toEqual('Repository - maven-central');
     });
 
     it('returns null if the scopeOwnerType is not valid', () => {
@@ -164,6 +169,216 @@ describe('waiverUtils', function () {
           matcherStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
         },
       });
+    });
+  });
+
+  describe('convertToWaiverViolationFormat', () => {
+    let incomingData, convertData;
+    beforeEach(function () {
+      incomingData = {
+        policyViolationId: 'e0ecf0a629d341e88179f8d40f4675ee',
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'ant',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'ant',
+            version: '1.6',
+          },
+        },
+        componentDisplayName: {
+          parts: [
+            {
+              field: 'Group',
+              value: 'ant',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Artifact',
+              value: 'ant',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Version',
+              value: '1.6',
+            },
+          ],
+          name: 'ant',
+        },
+        hash: '7a3c2521ae0c6f53e044',
+        policyId: 'd98fb873ed1f48e5b00316d8acddbc0f',
+        policyName: 'Security-Medium',
+        policyOwner: {
+          ownerId: 'ROOT_ORGANIZATION_ID',
+          ownerName: 'Root Organization',
+          ownerType: 'organization',
+        },
+        policyThreatLevel: 7,
+        policyThreatCategory: 'SECURITY',
+        constraints: [
+          {
+            constraintId: 'c6436a5a051046b1ba2aa94e9fd82a51',
+            constraintName: 'Medium risk CVSS score',
+            constraintOperator: 'AND',
+            conditions: [
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity >= 4',
+                conditionReason: 'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)',
+                conditionTriggerReference: {
+                  value: 'CVE-2012-2098',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity < 7',
+                conditionReason: 'Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)',
+                conditionTriggerReference: {
+                  value: 'CVE-2012-2098',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+            ],
+          },
+        ],
+        constraintFactsJson:
+          '[{"constraintId":"c6436a5a051046b1ba2aa94e9fd82a51","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"}]}]',
+        policyActionTypeId: null,
+        lastReported: '2022-10-10T16:01:37.586+03:00',
+      };
+
+      convertData = {
+        policyViolationId: 'e0ecf0a629d341e88179f8d40f4675ee',
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'ant',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'ant',
+            version: '1.6',
+          },
+        },
+        componentDisplayName: {
+          parts: [
+            {
+              field: 'Group',
+              value: 'ant',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Artifact',
+              value: 'ant',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Version',
+              value: '1.6',
+            },
+          ],
+          name: 'ant',
+        },
+        hash: '7a3c2521ae0c6f53e044',
+        policyId: 'd98fb873ed1f48e5b00316d8acddbc0f',
+        policyName: 'Security-Medium',
+        policyOwner: {
+          ownerId: 'ROOT_ORGANIZATION_ID',
+          ownerName: 'Root Organization',
+          ownerType: 'organization',
+        },
+        policyThreatLevel: 7,
+        policyThreatCategory: 'SECURITY',
+        constraints: [
+          {
+            constraintId: 'c6436a5a051046b1ba2aa94e9fd82a51',
+            constraintName: 'Medium risk CVSS score',
+            constraintOperator: 'AND',
+            conditions: [
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity >= 4',
+                conditionReason: 'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)',
+                conditionTriggerReference: {
+                  value: 'CVE-2012-2098',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity < 7',
+                conditionReason: 'Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)',
+                conditionTriggerReference: {
+                  value: 'CVE-2012-2098',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+            ],
+          },
+        ],
+        constraintFactsJson:
+          '[{"constraintId":"c6436a5a051046b1ba2aa94e9fd82a51","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"}]}]',
+        policyActionTypeId: null,
+        lastReported: '2022-10-10T16:01:37.586+03:00',
+        threatLevel: 7,
+        constraintViolations: [
+          {
+            constraintId: 'c6436a5a051046b1ba2aa94e9fd82a51',
+            constraintName: 'Medium risk CVSS score',
+            reasons: [
+              {
+                reason: 'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)',
+                reference: null,
+              },
+            ],
+          },
+        ],
+        applicationPublicId: '',
+        applicationName: '',
+        organizationName: '',
+        openTime: '2022-10-10T16:01:37.586+03:00',
+        fixTime: null,
+        displayName: {
+          parts: [
+            {
+              field: 'Group',
+              value: 'ant',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Artifact',
+              value: 'ant',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Version',
+              value: '1.6',
+            },
+          ],
+          name: 'ant',
+        },
+        filename: null,
+        stageData: {},
+        waived: false,
+      };
+    });
+
+    it('convert incoming data for waiver violation structure', () => {
+      const convertResult = convertToWaiverViolationFormat(incomingData);
+      expect(convertResult).toEqual(convertData);
     });
   });
 });

@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.migration;
 
 import java.lang.reflect.Modifier;
-
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -28,6 +30,7 @@ import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
 import com.google.inject.matcher.Matchers;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -190,6 +193,53 @@ public class PolicyWaiverComponentPurlMigratorTest
     assertThat(applicationWaiverAfterMigration.getAssociatedPackageUrl()).isNotNull().isEqualTo(getBasicPurl());
     PolicyWaiver repositoryWaiverAfterMigration = policyWaiverDAO.getById(repositoryHashWaiver.getId());
     assertThat(repositoryWaiverAfterMigration.getAssociatedPackageUrl()).isNotNull().isEqualTo(getBasicPurl());
+  }
+
+  @Test
+  public void testMigrate_duplicateWaivers() {
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+
+    String policyId = policy.getId();
+    String ownerId = organization.getId();
+    String hash1 = RandomStringUtils.randomAlphabetic(8);
+
+    tempEntity.newApplicationComponent(application.getId(), StageTypes.BUILD.getName(), hash1,
+        getBasicComponentIdentifier());
+
+    PolicyWaiver expiredPolicyWaiver =
+        new PolicyWaiver(hash1, policyId, ownerId, null, RandomStringUtils.randomAlphabetic(8));
+    expiredPolicyWaiver.setExpiryTime(Date.from(Instant.now().minus(5, ChronoUnit.DAYS)));
+    expiredPolicyWaiver.setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT);
+    tempEntity.newWaiver(expiredPolicyWaiver);
+
+    PolicyWaiver activePolicyWaiver =
+        new PolicyWaiver(hash1, policyId, ownerId, null, RandomStringUtils.randomAlphabetic(5));
+    activePolicyWaiver.setExpiryTime(Date.from(Instant.now().plus(1, ChronoUnit.DAYS)));
+    activePolicyWaiver.setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT);
+
+    tempEntity.newWaiver(activePolicyWaiver);
+
+    assertThat(expiredPolicyWaiver.getAssociatedPackageUrl())
+        .as("Associated package url on expired waiver should not be set before migration")
+        .isNull();
+
+    assertThat(activePolicyWaiver.getAssociatedPackageUrl())
+        .as("Associated package url on active waiver should not be set before migration")
+        .isNull();
+
+    policyWaiverComponentPurlMigrator.migrate();
+
+    PolicyWaiver expiredWaiverAfterMigration = policyWaiverDAO.getById(expiredPolicyWaiver.getId());
+    assertThat(expiredWaiverAfterMigration.getAssociatedPackageUrl())
+        .as("Associated package url on expired waiver should be set after the migration")
+        .isEqualTo(getBasicPurl());
+
+    PolicyWaiver activeWaiverAfterMigration = policyWaiverDAO.getById(activePolicyWaiver.getId());
+    assertThat(activeWaiverAfterMigration.getAssociatedPackageUrl())
+        .as("Associated package url on active waiver should be set after the migration")
+        .isEqualTo(getBasicPurl());
   }
 
   private static ComponentIdentifier getBasicComponentIdentifier() {

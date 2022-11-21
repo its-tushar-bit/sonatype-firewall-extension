@@ -10,18 +10,32 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { capitalize, getISODateFromDateInput } from '../util/jsUtil';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { Messages } from '../utilAngular/CommonServices';
-import { getAddPolicyViolationWaiverUrl, getOwnerContextHierarchyUrl, deleteWaiverUrl } from '../util/CLMLocation';
-
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { getPermissionContextTestUrl } from '../utilAngular/CLMContextLocation';
-import { getApplicationSummaryUrl } from '../util/CLMLocation';
-import { fetchCrossStageViolation, fetchApplicableWaivers } from '../violation/violationActions';
-import { getExpiryTime } from '../util/waiverUtils';
+import {
+  getApplicationSummaryUrl,
+  getAddPolicyViolationWaiverUrl,
+  getOwnerContextHierarchyUrl,
+  deleteWaiverUrl,
+} from '../util/CLMLocation';
+import {
+  fetchCrossStageViolation,
+  fetchApplicableWaivers,
+  fetchCrossStageViolationAddWaiver,
+} from '../violation/violationActions';
+import { getExpiryTime, originNamesForAddRequestPages } from '../util/waiverUtils';
 
 import { actions as policyViolationsActions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { loadTransitiveViolationWaivers } from '../violation/transitiveViolationsActions';
-import { selectPreviousRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectPreviousRouteName,
+  selectHash,
+  selectIsFirewall,
+  selectIsPrevFirewall,
+  selectPrevRepositoryPolicyId,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
+import { loadExistingWaiversData } from 'MainRoot/firewall/firewallActions';
 
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
@@ -125,15 +139,19 @@ export const saveWaiverAndLoadPolicyViolationData = (
  */
 export function loadAddWaiverData(violationId) {
   return (dispatch, getState) => {
+    const isCurrentRouteName = selectIsPrevFirewall(getState());
+    const repositoryPolicyId = selectPrevRepositoryPolicyId(getState());
+    const fetchCrossStage = isCurrentRouteName ? fetchCrossStageViolationAddWaiver : fetchCrossStageViolation;
     dispatch(loadAddWaiverDataRequested());
-    return dispatch(fetchCrossStageViolation(violationId))
+    return dispatch(fetchCrossStage(violationId))
       .then(() => {
-        const ownerType = 'application',
+        const ownerType = isCurrentRouteName ? 'repository' : 'application',
           { violation } = getState(),
           { violationDetails } = violation,
-          { applicationPublicId, policyId } = violationDetails;
+          { applicationPublicId, policyId } = violationDetails,
+          isPublicId = isCurrentRouteName ? repositoryPolicyId : applicationPublicId;
         // ToDo verify that ownerType is always application
-        return loadOwnerContextHierarchy(ownerType, applicationPublicId, policyId);
+        return loadOwnerContextHierarchy(ownerType, isPublicId, policyId);
       })
       .then((waiverTargets) => dispatch(loadAddWaiverDataFulfilled(waiverTargets)))
       .catch((err) => dispatch(loadAddWaiverDataFailed(err)));
@@ -141,7 +159,7 @@ export function loadAddWaiverData(violationId) {
 }
 
 /**
- * @param {string } violationId
+ * @param { string } violationId
  */
 export function loadManageWaiversData(violationId) {
   return (dispatch, getState) => {
@@ -154,7 +172,11 @@ export function loadManageWaiversData(violationId) {
     }
 
     return dispatch(fetchCrossStageViolation(violationId))
-      .then(() => loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId))
+      .then(() =>
+        selectIsFirewall(getState())
+          ? getAddWaiverPermissionForRepository(getState().router.currentParams.repositoryPolicyId)
+          : loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId)
+      )
       .then(compose(dispatch, loadManageWaiversDataFulfilled))
       .catch(compose(dispatch, loadManageWaiversDataFailed));
   };
@@ -163,19 +185,24 @@ export function loadManageWaiversData(violationId) {
 export function returnToAddWaiverOriginPage() {
   return (dispatch, getState) => {
     const { prevParams, prevState, currentParams } = getState().router;
-    const originNameForComponentDetails = 'applicationReport.violationWaivers';
-    const originNameForViolationDetails = 'listWaivers';
-    const originNameForCip = 'applicationReport.policy';
 
     const prevStateName = prevState && prevState.name;
+
+    // If user canceled waiver creation, return to previous view
     switch (prevStateName) {
-      case originNameForComponentDetails:
-        return dispatch(stateGo(originNameForComponentDetails, prevParams));
+      case originNamesForAddRequestPages.APP_REPORT_VIOLATION_WAIVERS:
+        return dispatch(stateGo(originNamesForAddRequestPages.APP_REPORT_VIOLATION_WAIVERS, prevParams));
 
-      case originNameForViolationDetails:
-        return dispatch(stateGo(originNameForViolationDetails, prevParams));
+      case originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS:
+        return dispatch(stateGo(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS, prevParams));
 
-      case originNameForCip:
+      case originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION:
+        return dispatch(stateGo(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, prevParams));
+
+      case originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW:
+        return dispatch(stateGo(originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW, prevParams));
+
+      case originNamesForAddRequestPages.APP_REPORT_CIP:
         return dispatch(
           stateGo(prevState.name, {
             ...prevParams,
@@ -183,9 +210,13 @@ export function returnToAddWaiverOriginPage() {
           })
         );
 
+      case originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS:
+        return dispatch(stateGo(originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS, prevParams));
+
+      // Came from a direct link to the Add Waiver Page or some other origin
       default:
         return dispatch(
-          stateGo(originNameForViolationDetails, {
+          stateGo(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, {
             violationId: currentParams.violationId,
           })
         );
@@ -210,7 +241,7 @@ function loadOwnerContextHierarchy(ownerType, ownerId, policyId) {
   // let the error be handled by calling code.
 }
 
-function loadPermissionForAppWaivers(applicationPublicId) {
+export function loadPermissionForAppWaivers(applicationPublicId) {
   return axios
     .get(getApplicationSummaryUrl(applicationPublicId))
     .then(({ data }) => getAddWaiverPermissionForApplicationPromiseBuilder(data.id))
@@ -219,6 +250,11 @@ function loadPermissionForAppWaivers(applicationPublicId) {
 
 export const getAddWaiverPermissionForApplicationPromiseBuilder = (internalApplicationId) =>
   axios.put(getPermissionContextTestUrl('application', internalApplicationId), ['WAIVE_POLICY_VIOLATIONS']);
+
+const getAddWaiverPermissionForRepository = (repositoryId) =>
+  axios
+    .put(getPermissionContextTestUrl('repository', repositoryId), ['WAIVE_POLICY_VIOLATIONS'])
+    .then(({ data }) => data.length === 1);
 
 /**
  * Flattens the Org/Apps hierarchy
@@ -280,6 +316,12 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
           const scanId = router.currentParams.scanId;
           const hash = router.currentParams.hash;
           dispatch(loadTransitiveViolationWaivers(ownerId, scanId, hash));
+        } else if (
+          currentState.name === 'firewall.componentDetailsPage.violations' ||
+          currentState.name === 'firewall.componentDetailsPage.legal'
+        ) {
+          const hash = selectHash(router);
+          dispatch(loadExistingWaiversData(ownerType, ownerId, hash));
         } else {
           if (!reloadComponentWaivers) {
             dispatch(loadApplicableWaivers(policyViolationId));

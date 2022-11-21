@@ -22,6 +22,10 @@ public class PolicyViolationDetailPopover
     return child("#violation-page-manage-waivers");
   }
 
+  public SelenideElement getAddWaiversButton() {
+    return child("#violation-page-add-waiver");
+  }
+
   public SelenideElement getCloseButton() {
     return child("#policy-violation-close-btn");
   }

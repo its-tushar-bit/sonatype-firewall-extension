@@ -267,7 +267,7 @@
         "version" : "2.6"
       }
     },
-    "packageUrl": "pkg:maven/commons-io/commons-io@3.1.0?type=jar",
+    "packageUrl": "pkg:maven/commons-io/commons-io@2.6?type=jar",
     "groupId" : "commons-io",
     "artifactId" : "commons-io",
     "version" : "2.6",

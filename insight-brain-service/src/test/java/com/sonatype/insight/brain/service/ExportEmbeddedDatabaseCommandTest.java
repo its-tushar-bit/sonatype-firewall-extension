@@ -69,7 +69,8 @@ public class ExportEmbeddedDatabaseCommandTest
 
       assertThatExceptionOfType(RuntimeException.class)
           .isThrownBy(() -> newService().run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file",
-              dumpFile.getPath())).withMessageMatching(".* The database from .* is empty.*");
+              dumpFile.getPath())).withMessageContaining("The server needs to have been started normally once before" +
+              " in order to complete the required upgrade steps.");
       assertThat(dumpFile).doesNotExist();
     }
     finally {

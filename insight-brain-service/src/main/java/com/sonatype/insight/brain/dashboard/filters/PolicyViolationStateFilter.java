@@ -27,6 +27,10 @@ public class PolicyViolationStateFilter
     // No argument constructor for convenience.
   }
 
+  public Set<PolicyViolationState> getPolicyViolationStates() {
+    return policyViolationStates;
+  }
+
   /**
    * @param states A set of {@link PolicyViolationState}s.
    */

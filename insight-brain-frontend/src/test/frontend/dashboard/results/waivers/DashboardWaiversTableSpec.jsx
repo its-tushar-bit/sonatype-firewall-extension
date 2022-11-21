@@ -155,37 +155,31 @@ describe('DashboardWaiversTable', function () {
         columnName: 'Threat',
         roleName: /Threat/,
         filter: ['threatLevel', '-threatLevel'],
-        doBackendCall: false,
       },
       {
         columnName: 'Date Created',
         roleName: /Date Created/,
         filter: ['createTime', '-createTime'],
-        doBackendCall: false,
       },
       {
         columnName: 'Expiration',
         roleName: /Expiration/,
         filter: ['expiryTime', '-expiryTime'],
-        doBackendCall: false,
       },
       {
         columnName: 'Policy',
         roleName: /Policy/,
         filter: ['policyName', '-policyName'],
-        doBackendCall: false,
       },
       {
         columnName: 'Scope',
         roleName: /Scope/,
         filter: ['scope', '-scope'],
-        doBackendCall: false,
       },
       {
         columnName: 'Components',
         roleName: 'Components',
         filter: ['component', '-component'],
-        doBackendCall: true,
       },
     ];
     columns.forEach((column) => {
@@ -202,7 +196,7 @@ describe('DashboardWaiversTable', function () {
 
           fireEvent.click(headerCellButton);
 
-          expect(sortWaiversSpy).toHaveBeenCalledWith([expectedFilterAfterClick], column.doBackendCall);
+          expect(sortWaiversSpy).toHaveBeenCalledWith([expectedFilterAfterClick]);
         });
       });
     });

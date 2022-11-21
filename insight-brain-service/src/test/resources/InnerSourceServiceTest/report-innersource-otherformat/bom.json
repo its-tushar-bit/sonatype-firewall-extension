@@ -34,10 +34,11 @@
     "analyzerFeatures" : {
       "analysisSource" : "SDS",
       "analysisType" : "COORDINATE",
-      "scanClient" : "cli",
+      "scanClient" : "mvn",
       "hasLicense" : true,
       "hasIdentity" : true,
-      "hasSecurity" : true
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
     },
     "integrityRating" : {
       "id" : 3,
@@ -100,7 +101,8 @@
       "scanClient" : "cli",
       "hasLicense" : true,
       "hasIdentity" : true,
-      "hasSecurity" : true
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
     },
     "integrityRating" : {
       "id" : 3,
@@ -159,7 +161,8 @@
       "scanClient" : "cli",
       "hasLicense" : false,
       "hasIdentity" : false,
-      "hasSecurity" : false
+      "hasSecurity" : false,
+      "manifestContentType" : "SBOM"
     },
     "integrityRating" : null,
     "displayName" : {

@@ -1,0 +1,133 @@
+{
+  "dependencyTree" : {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "ACME-Producer",
+        "classifier" : "",
+        "extension" : "pom",
+        "groupId" : "org.example",
+        "version" : "1.0-SNAPSHOT"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.example/ACME-Producer@1.0-SNAPSHOT?type=pom",
+    "children" : [ {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "ACME-business",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.example",
+          "version" : "1.0-SNAPSHOT"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.example/ACME-business@1.0-SNAPSHOT?type=jar",
+      "children" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "commons-lang3",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.apache.commons",
+            "version" : "3.9"
+          }
+        },
+        "packageUrl" : "pkg:maven/org.apache.commons/commons-lang3@3.9?type=jar"
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "ACME-data",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.example",
+            "version" : "1.0-SNAPSHOT"
+          }
+        },
+        "packageUrl" : "pkg:maven/org.example/ACME-data@1.0-SNAPSHOT?type=jar",
+        "children" : [ {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "javax.inject",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "javax.inject",
+              "version" : "1"
+            }
+          },
+          "packageUrl" : "pkg:maven/javax.inject/javax.inject@1?type=jar"
+        }, {
+          "componentIdentifier" : {
+            "format" : "maven",
+            "coordinates" : {
+              "artifactId" : "commons-io",
+              "classifier" : "",
+              "extension" : "jar",
+              "groupId" : "commons-io",
+              "version" : "2.6"
+            }
+          },
+          "packageUrl" : "pkg:maven/commons-io/commons-io@2.6?type=jar",
+          "direct" : true
+        } ],
+        "direct" : true
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "slf4j-api",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "org.slf4j",
+            "version" : "1.7.30"
+          }
+        },
+        "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@1.7.30?type=jar"
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "commons-io",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "commons-io",
+            "version" : "2.6"
+          }
+        },
+        "packageUrl" : "pkg:maven/commons-io/commons-io@2.6?type=jar",
+        "direct" : true
+      } ],
+      "direct" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "ACME-data",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "org.example",
+          "version" : "1.0-SNAPSHOT"
+        }
+      },
+      "packageUrl" : "pkg:maven/org.example/ACME-data@1.0-SNAPSHOT?type=jar",
+      "direct" : true
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "artifactId" : "commons-io",
+          "classifier" : "",
+          "extension" : "jar",
+          "groupId" : "commons-io",
+          "version" : "2.6"
+        }
+      },
+      "packageUrl" : "pkg:maven/commons-io/commons-io@2.6?type=jar",
+      "direct" : true
+    } ],
+    "module" : true
+  }
+}

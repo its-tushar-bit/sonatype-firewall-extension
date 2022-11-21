@@ -6,13 +6,16 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -776,6 +779,50 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> repositoryService.reevaluateComponent(repo.getId(), "missing-hash", null))
         .withMessage("Cannot find a repository component for hash missing-hash in " + repo.getPublicId() + ".");
+  }
+
+  @Test
+  public void testGetRepositoriesByIds() {
+    List<String> repoIds = IntStream.range(0, 10)
+        .mapToObj(number -> tempEntity.newRepository().getId())
+        .collect(Collectors.toList());
+
+    String repoId1 = repoIds.get(0);
+    String repoId2 = repoIds.get(1);
+
+    Set<Repository> actual = repositoryService.getRepositoriesByIds(new HashSet<>(Arrays.asList(repoId1, repoId2)));
+    assertThat(actual).hasSize(2);
+
+    List<String> actualIds = actual.stream().map(Repository::getId).collect(Collectors.toList());
+
+    assertThat(repoId1).isIn(actualIds);
+    assertThat(repoId2).isIn(actualIds);
+  }
+
+  @Test
+  public void testGetRepositoriesByIds_Null() {
+    List<String> repoIds = IntStream.range(0, 5)
+        .mapToObj(number -> tempEntity.newRepository().getId())
+        .collect(Collectors.toList());
+
+    Set<Repository> actual = repositoryService.getRepositoriesByIds(null);
+
+    actual.forEach(repo -> {
+      assertThat(repo.getId()).isIn(repoIds);
+    });
+  }
+
+  @Test
+  public void testGetRepositoriesByIds_Empty() {
+    List<String> repoIds = IntStream.range(0, 5)
+        .mapToObj(number -> tempEntity.newRepository().getId())
+        .collect(Collectors.toList());
+
+    Set<Repository> actual = repositoryService.getRepositoriesByIds(Collections.emptySet());
+
+    actual.forEach(repo -> {
+      assertThat(repo.getId()).isIn(repoIds);
+    });
   }
 
   private RepositoryComponent createRepositoryPolicyViolation(final Repository repository,

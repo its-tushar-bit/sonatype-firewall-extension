@@ -78,6 +78,9 @@ public class WebhookConfigurationTest
 
     webhooks.shouldHaveSize(3);
     webhooks.shouldHave(texts("http://localhost0", "http://localhost1", "http://localhost2"));
+
+    // click on page title before eyesCheck to avoid random mouse-over style
+    webhookConfigurationPage.pageTitle().click();
     eyesWatcher.eyesCheck();
   }
 

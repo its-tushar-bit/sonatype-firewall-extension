@@ -5,11 +5,13 @@
  */
 
 import React from 'react';
+import moment from 'moment';
 import { render, screen } from 'TestRoot/SpecUtil';
 import FirewallExistingWaiversPopover from 'MainRoot/firewall/firewallComponentDetailsPage/policyViolations/policyViolationsTile/FirewallExistingWaiversPopover';
 
 describe('FirewallExistingWaiversPopover', () => {
   let minimalProps, renderComponent, setShowComponentWaiversPopoverSpy;
+  const expectedTime = 1661928739954;
 
   beforeEach(() => {
     setShowComponentWaiversPopoverSpy = jasmine.createSpy('setShowComponentWaiversPopover');
@@ -43,7 +45,7 @@ describe('FirewallExistingWaiversPopover', () => {
         policyId: '6f085a73545f443ab92ce7a109c83935',
         ownerId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
         comment: '',
-        createTime: 1661928739954,
+        createTime: expectedTime,
         expiryTime: null,
         creatorId: 'admin',
         creatorName: 'Admin BuiltIn',
@@ -89,7 +91,7 @@ describe('FirewallExistingWaiversPopover', () => {
     expect(componentRaws.length).toBeGreaterThanOrEqual(1);
 
     expect(screen.getByRole('cell', { name: `Admin BuiltIn` })).toBeVisible();
-    expect(screen.getByRole('cell', { name: `Repository - repository` })).toBeVisible();
-    expect(screen.getByRole('cell', { name: `08/31/2022` })).toBeVisible();
+    expect(screen.getByRole('cell', { name: `Repository - maven-central` })).toBeVisible();
+    expect(screen.getByRole('cell', { name: moment.parseZone(expectedTime).format('MM/DD/YYYY') })).toBeVisible();
   });
 });

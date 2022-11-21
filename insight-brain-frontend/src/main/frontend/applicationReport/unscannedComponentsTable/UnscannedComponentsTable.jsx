@@ -51,7 +51,7 @@ export default function UnscannedComponentsTable() {
             <NxTable.Cell isSortable sortDir={sortDir} onClick={() => sortByName()}>
               Component
             </NxTable.Cell>
-            <NxTable.Cell>Occurences</NxTable.Cell>
+            <NxTable.Cell>Occurrences</NxTable.Cell>
           </NxTable.Row>
         </NxTable.Head>
         <NxTable.Body>{componentRows}</NxTable.Body>

@@ -12,6 +12,7 @@ import com.sonatype.insight.postgres.PostgresServer;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -63,6 +64,8 @@ public class DbDiagnosticsTest
         .contains("DATABASE_TO_UPPER: FALSE");
   }
 
+  // Temporary ignoring flaky test. See CLM-23081
+  @Ignore
   @Test
   public void testGetDBFileInfo_Postgres() throws Exception {
     try (PostgresServer postgres = new PostgresServer()) {

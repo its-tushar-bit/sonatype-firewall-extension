@@ -4,9 +4,22 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import iqHttpInterceptors from '../../../main/frontend/utilAngular/IqHttpInterceptors';
+import * as urlUtil from 'MainRoot/util/urlUtil';
 
 describe('IqHttpInterceptors', function () {
   var $httpBackend, $http;
+
+  let CLMLocation;
+
+  beforeEach(function () {
+    CLMLocation = require('inject-loader!../../../main/frontend/util/CLMLocation')({
+      './urlUtil': {
+        ...urlUtil,
+      },
+    });
+
+    angular.mock.module(CLMLocation.default.name);
+  });
 
   beforeEach(angular.mock.module(iqHttpInterceptors.name));
 

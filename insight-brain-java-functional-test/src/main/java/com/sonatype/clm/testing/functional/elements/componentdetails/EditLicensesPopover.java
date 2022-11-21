@@ -21,6 +21,24 @@ public class EditLicensesPopover
     extends BasicElement<EditLicensesPopover>
 {
   static final String POPOVER_SELECTOR = "#edit-licenses-popover";
+  
+  // keeps the same order displayed in the form
+  public enum RepositoryComponentLicensesScopes 
+  {
+    REPOSITORY,
+    ALL_REPOSITORIES,
+    ORGANIZATION
+  }
+
+  public enum LicensesStatuses 
+  {
+    OPEN,
+    ACKNOWLEDGED,
+    OVERRIDDEN,
+    SELECTED,
+    CONFIRMED,
+    INHERITED,
+  }
 
   public EditLicensesPopover() {
     super(POPOVER_SELECTOR);
@@ -97,5 +115,17 @@ public class EditLicensesPopover
 
   public SelenideElement unsavedModalContinueButton() { 
     return child("#unsaved-changes-modal-continue-button"); 
+  }
+
+  public ElementsCollection availableLicensesTransferListItems() {
+    return children(".nx-transfer-list__half:nth-child(1) .nx-transfer-list__item");
+  }
+
+  public ElementsCollection selectedLicensesTransferListItems() {
+    return children(".nx-transfer-list__half:nth-child(2) .nx-transfer-list__item");
+  }
+
+  public ElementsCollection scopeStatuses() {
+    return children(".iq-edit-licenses-form__scope-status");
   }
 }

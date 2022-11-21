@@ -49,6 +49,10 @@ import {
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED,
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED,
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED,
+  FIREWALL_SHOW_MANAGE_WAIVER_PAGE,
+  FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED,
+  FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED,
+  FIREWALL_LOAD_VIOLATION_DETAIL_FAILED,
   FIREWALL_REEVALUATE_COMPONENT_REQUESTED,
   FIREWALL_REEVALUATE_COMPONENT_FULFILLED,
   FIREWALL_REEVALUATE_COMPONENT_FAILED,
@@ -83,6 +87,10 @@ export const initialState = Object.freeze({
     policyExistingWaivers: null,
     isLoadExistingWaivers: false,
     existingWaiversError: null,
+    showManageWaiverPage: false,
+    violationDetails: [],
+    isLoadViolationDetails: false,
+    violationDetailsError: null,
   }),
   viewState: Object.freeze({
     isShowConfigurationModal: false,
@@ -616,6 +624,44 @@ const loadExistingWaiversDataFailed = (error, state) => ({
   },
 });
 
+const showManageWaiverPage = (payload, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    showManageWaiverPage: payload,
+  },
+});
+
+const loadViolationDetailRequested = (_, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    violationDetails: [],
+    isLoadViolationDetails: true,
+    violationDetailsError: null,
+  },
+});
+
+const loadViolationDetailFulfilled = (payload, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    violationDetails: payload,
+    isLoadViolationDetails: false,
+    violationDetailsError: null,
+  },
+});
+
+const loadViolationDetailFailed = (error, state) => ({
+  ...state,
+  componentDetailsPage: {
+    ...state.componentDetailsPage,
+    violationDetails: [],
+    isLoadViolationDetails: false,
+    violationDetailsError: error,
+  },
+});
+
 const reevaluateComponentRequested = (_, state) => ({
   ...state,
   componentDetailsPage: {
@@ -687,6 +733,10 @@ const reducerActionMap = {
   [FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED]: loadExistingWaiversDataRequested,
   [FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED]: loadExistingWaiversDataFulfilled,
   [FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED]: loadExistingWaiversDataFailed,
+  [FIREWALL_SHOW_MANAGE_WAIVER_PAGE]: showManageWaiverPage,
+  [FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED]: loadViolationDetailRequested,
+  [FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED]: loadViolationDetailFulfilled,
+  [FIREWALL_LOAD_VIOLATION_DETAIL_FAILED]: loadViolationDetailFailed,
   [FIREWALL_REEVALUATE_COMPONENT_REQUESTED]: reevaluateComponentRequested,
   [FIREWALL_REEVALUATE_COMPONENT_FULFILLED]: reevaluateComponentFulfilled,
   [FIREWALL_REEVALUATE_COMPONENT_FAILED]: reevaluateComponentFailed,

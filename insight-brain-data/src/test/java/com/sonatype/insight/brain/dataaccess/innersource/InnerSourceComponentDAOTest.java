@@ -85,6 +85,31 @@ public class InnerSourceComponentDAOTest
   }
 
   @Test
+  public void testGetByPurl_appExcluded() {
+    PackageUrlIdentifier purl = new PackageUrlIdentifier("pkg:maven/inner/source@1.0.0");
+
+    tempEntity.newInnerSourceComponent(purl.getPackageUrl(), application);
+    tempEntity.newInnerSourceComponent("pkg:maven/inner/source@2.0.0", application);
+
+    InnerSourceComponent innerSourceComponent = dao.getByPackageUrlExcludingApplication(purl, application.getId());
+    assertThat(innerSourceComponent).isNull();
+  }
+
+  @Test
+  public void testGetByPurl_appNotExcluded() {
+    PackageUrlIdentifier purl = new PackageUrlIdentifier("pkg:maven/inner/sourceTest@1.0.0");
+
+    Application newApp = tempEntity.newApplicationWithParent();
+
+    InnerSourceComponent expected = tempEntity.newInnerSourceComponent(purl.getPackageUrl(), application);
+    tempEntity.newInnerSourceComponent("pkg:maven/inner/sourceTest@2.0.0", application);
+
+    InnerSourceComponent innerSourceComponent = dao.getByPackageUrlExcludingApplication(purl, newApp.getId());
+    assertThat(innerSourceComponent).isNotNull();
+    assertInnerSourceComponent(expected, innerSourceComponent);
+  }
+
+  @Test
   public void testGetByPurls() {
     PackageUrlIdentifier purl1 = new PackageUrlIdentifier("pkg:maven/inner/source@1.0.0");
     PackageUrlIdentifier purl2 = new PackageUrlIdentifier("pkg:maven/inner/source@1.0.1");

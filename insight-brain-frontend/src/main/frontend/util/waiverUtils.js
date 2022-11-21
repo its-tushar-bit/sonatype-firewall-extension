@@ -14,6 +14,23 @@ export const waiverMatcherStrategy = {
   EXACT_COMPONENT: 'EXACT_COMPONENT',
 };
 
+// Previous state names for the various routes to the Add Waiver
+// and Request Waiver pages, used by the Add Waiver Page's
+// Cancel and Save buttons.
+export const originNamesForAddRequestPages = {
+  // From CIP policy view
+  APP_REPORT_CIP: 'applicationReport.policy',
+  // App Report -> Component Details -> Policy Violations -> Violation Details Popover -> Manage Waivers -> Add Waiver
+  APP_REPORT_VIOLATION_WAIVERS: 'applicationReport.violationWaivers',
+  // App Report -> Component Details -> Policy Violations -> Violation Details Popover -> Manage Waivers dropdown, Add Waiver
+  APP_REPORT_COMPONENT_DETAILS: 'applicationReport.componentDetails.violations',
+  // Dashboard -> Violations -> Violation Details -> Manage Waivers dropdown -> Add Waiver
+  DASHBOARD_VIOLATIONS_VIEW: 'sidebarView.violation',
+  // Dashboard -> Violations -> Violation Details -> Manage Waivers -> Add Waiver
+  WAIVERS_FOR_VIOLATION: 'listWaivers',
+  FIREWALL_VIOLATION_WAIVERS: 'firewall.violationWaivers',
+};
+
 export const waiverExpirations = [
   { name: 'Never', value: 'never' }, // <select> doesn't handle null values, so use string instead
   { name: '7 Days', value: '7' },
@@ -44,7 +61,10 @@ export const displayWaiverScope = (waiver) => {
       return `Application - ${waiver.scopeOwnerName}`;
     }
     case 'repository': {
-      return `Repository - ${waiver.scopeOwnerType}`;
+      return `Repository - ${waiver.scopeOwnerName}`;
+    }
+    case 'all_repositories': {
+      return `Repository - ${waiver.scopeOwnerName}`;
     }
   }
   return null;
@@ -68,6 +88,54 @@ export const isWaiverAllVersionsOrExact = (waiver) =>
   [waiver?.componentMatchStrategy, waiver?.matcherStrategy].some(
     (field) => field === waiverMatcherStrategy.ALL_VERSIONS || field === waiverMatcherStrategy.EXACT_COMPONENT
   );
+
+export const convertToWaiverViolationFormat = (data) => {
+  const {
+    policyId,
+    policyName,
+    policyViolationId,
+    policyThreatLevel,
+    constraints,
+    lastReported,
+    hash,
+    policyThreatCategory,
+    componentDisplayName,
+    componentIdentifier,
+    policyOwner,
+  } = data;
+  return {
+    ...data,
+    policyId,
+    policyName,
+    policyViolationId,
+    threatLevel: policyThreatLevel,
+    constraintViolations: [
+      {
+        constraintId: constraints[0].constraintId,
+        constraintName: constraints[0].constraintName,
+        reasons: [
+          {
+            reason: constraints[0].conditions[0].conditionReason,
+            reference: null,
+          },
+        ],
+      },
+    ],
+    applicationPublicId: '',
+    applicationName: '',
+    organizationName: '',
+    openTime: lastReported,
+    fixTime: null,
+    hash,
+    policyThreatCategory,
+    displayName: componentDisplayName,
+    componentIdentifier: componentIdentifier,
+    filename: null,
+    stageData: {},
+    policyOwner,
+    waived: false,
+  };
+};
 
 // Process details about a single waiver
 export const formatWaiverDetails = (waiver) => {

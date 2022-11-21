@@ -75,6 +75,8 @@ public class SecurityModule
     configureFilterChainsForIntegrations(manager);
 
     String anonFilters = "anon, sessionExpirationCookie, secureCookies";
+    String telemetryFilters = "anon, secureCookies";
+
     // Activate the antiCsrf filter for static assets so that the first resource loaded for any given page sets the CSRF
     // token cookie. We want the cookie to be available for the front-end code as soon as possible so that subsequent
     // requests that are unsafe can access it.
@@ -83,9 +85,9 @@ public class SecurityModule
     manager.createChain("/rest/ide/brain/**", anonFilters); // only redirects
     manager.createChain("/rest/report/*/*/brain/**", anonFilters); // only redirects
     manager.createChain("/rest/user/session/logout", anonFilters); // client logout requires no auth
-    manager.createChain("/rest/user-telemetry/javascript", anonFilters); // user-telemetry javascript
-    manager.createChain("/rest/user-telemetry/config", anonFilters); // user-telemetry configuration
-    manager.createChain("/rest/user-telemetry/events/**", anonFilters); // user-telemetry events
+    manager.createChain("/rest/user-telemetry/javascript", telemetryFilters); // user-telemetry javascript
+    manager.createChain("/rest/user-telemetry/config", telemetryFilters); // user-telemetry configuration
+    manager.createChain("/rest/user-telemetry/events/**", telemetryFilters); // user-telemetry events
     manager.createChain("/rest/product/version", anonFilters); // product version info
     manager.createChain("/rest/product/license/validate", anonFilters); // product license info
     // endpoint used to decide whether we have unauthenticated pages or not

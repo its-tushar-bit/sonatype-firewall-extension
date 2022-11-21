@@ -13,11 +13,9 @@ import org.junit.Before;
 public class RootOrganizationPolicyViolationGrandfatheringEditorTest
     extends AbstractPolicyViolationGrandfatheringEditorTest
 {
-  private Organization organization;
-
   @Before
   public void init() {
-    organization = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
-    super.init(organization);
+    Organization rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    super.init(rootOrg);
   }
 }

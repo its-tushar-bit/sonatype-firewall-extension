@@ -22,8 +22,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dashboard.PolicyViolationState;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatLevelFilter;
+import com.sonatype.insight.brain.dashboard.filters.PolicyViolationStateFilter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -73,12 +75,12 @@ public class PolicyViolationLoader
       Collection<Application> applications,
       Collection<StageType> stageTypes,
       boolean activeViolationsOnly,
-      Predicate<? super PolicyViolation> violationFilter,
       PolicyThreatLevelFilter policyThreatLevelFilter,
-      PolicyThreatCategoryFilter policyThreatCategoryFilter)
+      PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      PolicyViolationStateFilter policyViolationStateFilter)
   {
-    return getViolations(applications, stageTypes, activeViolationsOnly, violationFilter, null,
-        policyThreatLevelFilter, policyThreatCategoryFilter);
+    return getViolations(applications, stageTypes, activeViolationsOnly, null, null,
+        policyThreatLevelFilter, policyThreatCategoryFilter, policyViolationStateFilter);
   }
 
   public Collection<ApplicationView> getViolations(Collection<Application> applications,
@@ -86,16 +88,18 @@ public class PolicyViolationLoader
                                                    boolean activeViolationsOnly,
                                                    Predicate<? super PolicyViolation> violationFilter)
   {
-    return getViolations(applications, stageTypes, activeViolationsOnly, violationFilter, null, null, null);
+    return getViolations(applications, stageTypes, activeViolationsOnly, violationFilter, null, null, null, null);
   }
 
-  public Collection<ApplicationView> getViolations(Collection<Application> applications,
-                                                   Collection<StageType> stageTypes,
-                                                   boolean activeViolationsOnly,
-                                                   Predicate<? super PolicyViolation> violationFilter,
-                                                   Date minDate,
-                                                   PolicyThreatLevelFilter policyThreatLevelFilter,
-                                                   PolicyThreatCategoryFilter policyThreatCategoryFilter)
+  public Collection<ApplicationView> getViolations(
+      Collection<Application> applications,
+      Collection<StageType> stageTypes,
+      boolean activeViolationsOnly,
+      Predicate<? super PolicyViolation> violationFilter,
+      Date minDate,
+      PolicyThreatLevelFilter policyThreatLevelFilter,
+      PolicyThreatCategoryFilter policyThreatCategoryFilter,
+      PolicyViolationStateFilter policyViolationStateFilter)
   {
     long start = System.currentTimeMillis();
 
@@ -161,10 +165,30 @@ public class PolicyViolationLoader
     else {
       log.debug("Loading violations without a filter on policy threat level categories.");
     }
-    Collection<PolicyViolation> violations =
-        minDate != null ? loadViolationsAfter(applicationIds, stageTypeIds, minDate, activeViolationsOnly,
-            minimumThreatLevel, maximumThreatLevel, policyThreatCategories) : loadViolations(applicationIds,
-            stageTypeIds, activeViolationsOnly, minimumThreatLevel, maximumThreatLevel, policyThreatCategories);
+
+    Boolean violationStateOpen = null;
+    Boolean violationStateWaived = null;
+    Boolean violationStateGrandfathered = null;
+
+    if (policyViolationStateFilter != null) {
+      violationStateOpen = policyViolationStateFilter.getPolicyViolationStates().contains(PolicyViolationState.OPEN);
+      violationStateWaived =
+          policyViolationStateFilter.getPolicyViolationStates().contains(PolicyViolationState.WAIVED);
+      violationStateGrandfathered =
+          policyViolationStateFilter.getPolicyViolationStates().contains(PolicyViolationState.GRANDFATHERED);
+      log.debug("Loading violations with a filter on state open: {}, waived: {} and grandfathered: {}",
+          violationStateOpen, violationStateWaived, violationStateGrandfathered);
+    }
+    else {
+      log.debug("Loading violations without a filter on policy violation states.");
+    }
+
+    Collection<PolicyViolation> violations = minDate != null ?
+        loadViolationsAfter(applicationIds, stageTypeIds, minDate, activeViolationsOnly, minimumThreatLevel,
+            maximumThreatLevel, policyThreatCategories, violationStateOpen, violationStateWaived,
+            violationStateGrandfathered)
+        : loadViolations(applicationIds, stageTypeIds, activeViolationsOnly, minimumThreatLevel, maximumThreatLevel,
+        policyThreatCategories, violationStateOpen, violationStateWaived, violationStateGrandfathered);
 
     Map<String, ApplicationView> appViewsByAppId = appViewsByAppIdFuture.join();
 
@@ -220,7 +244,10 @@ public class PolicyViolationLoader
       boolean activeViolationsOnly,
       Integer minThreatLevel,
       Integer maxThreatLevel,
-      Collection<PolicyThreatCategory> policyThreatCategories)
+      Collection<PolicyThreatCategory> policyThreatCategories,
+      Boolean violationStateOpen,
+      Boolean violationStateWaived,
+      Boolean violationStateGrandfathered)
   {
     long start = System.currentTimeMillis();
     Collection<PolicyViolation> violations;
@@ -239,9 +266,8 @@ public class PolicyViolationLoader
                 maxThreatLevel, policyThreatCategories);
       }
       else {
-        violations =
-            policyViolationDAO.getUnfixedByApplicationIdsAndStageIds(applicationIds, stageTypeIds, minThreatLevel,
-                maxThreatLevel, policyThreatCategories);
+        violations = policyViolationDAO.getUnfixedBy(applicationIds, stageTypeIds, minThreatLevel, maxThreatLevel,
+            policyThreatCategories, violationStateOpen, violationStateWaived, violationStateGrandfathered);
       }
     }
     log.debug("Loaded {} policy violations in {} ms", violations.size(), System.currentTimeMillis() - start);
@@ -255,7 +281,10 @@ public class PolicyViolationLoader
       boolean activeViolationsOnly,
       Integer minThreatLevel,
       Integer maxThreatLevel,
-      Collection<PolicyThreatCategory> policyThreatCategories)
+      Collection<PolicyThreatCategory> policyThreatCategories,
+      Boolean violationStateOpen,
+      Boolean violationStateWaived,
+      Boolean violationStateGrandfathered)
   {
     long start = System.currentTimeMillis();
     Collection<PolicyViolation> violations;
@@ -277,8 +306,10 @@ public class PolicyViolationLoader
             stageTypeIds, minDate, minThreatLevel, maxThreatLevel, policyThreatCategories);
       }
       else {
-        violations = policyViolationDAO.getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(applicationIds,
-            stageTypeIds, minDate, minThreatLevel, maxThreatLevel, policyThreatCategories);
+        violations =
+            policyViolationDAO.getUnfixedBy(applicationIds, stageTypeIds, minDate, minThreatLevel,
+                maxThreatLevel, policyThreatCategories, violationStateOpen, violationStateWaived,
+                violationStateGrandfathered);
       }
     }
     log.debug("Loaded {} policy violations after date in {} ms", violations.size(), System.currentTimeMillis() - start);

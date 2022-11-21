@@ -31,18 +31,24 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.elements.NxRadio;
+import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
+import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover.VulnerabilityOverrideForm;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
+import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -73,6 +79,7 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
@@ -91,6 +98,8 @@ import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -935,6 +944,62 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
+  public void testPolicyViolationTabVulnerabilitiesRowClick() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+    violationRow1Cells.get(0).shouldHave(text(policyViolationDetailPopover.popoverThreatLevel().getText()));
+    violationRow1Cells.get(1).shouldHave(text(policyViolationDetailPopover.popoverHeaderTitle().getText()));
+    violationRow1Cells.get(2).shouldHave(text(policyViolationDetailPopover.policyViolationText().getText()));
+    violationRow1Cells.get(3).shouldHave(text(policyViolationDetailPopover.popoverList().getText()));
+    policyViolationDetailPopover.getCloseButton().click();
+  }
+
+  @Test
+  public void testManageWaiversPage_backButtonClick() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.backButton().shouldHave(text("Back to Component Details")).click();
+    waitUntilSpinnersGone();
+
+    firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(0).shouldHave(text("Exact"));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(1).shouldHave(text("Sonatype"));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(2).shouldHave(text("Visit Project Website"));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(3).shouldHave(text("Other"));
+  }
+
+  @Test
   public void testSecurityTabSecurityViolationsTable() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
@@ -1222,7 +1287,240 @@ public class FirewallComponentDetailsPageTest
     testLegalTabPolicyViolationsTable();
   }
 
+  private void setOverriddenLicensesStatus(EditLicensesPopover editPopover, int scope, String comment) {
+    waitUntilSpinnersGone();
+    editPopover.scope(scope).click();
+    editPopover.status().click();
+    editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.OVERRIDDEN.ordinal()).click();
+    waitUntilSpinnersGone();
+    editPopover.availableLicensesTransferListItems().shouldBe(sizeGreaterThan(1));
+    editPopover.selectedLicensesTransferListItems().shouldHaveSize(0);
+    editPopover.availableLicensesTransferListItems().get(0).click();
+    editPopover.availableLicensesTransferListItems().get(0).click();
+    editPopover.selectedLicensesTransferListItems().shouldHaveSize(2);
+    
+    editPopover.comment().setValue(comment);
+    editPopover.saveButton().click();
+    waitUntilSpinnersGone();
+    NxSubmitMask.seeAndWaitForDismissal();
+  }
+
   @Test
+  public void testLegalTab_overridenLicensesStatus() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(overriddenLicense);
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+    waitUntilSpinnersGone();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("GPL-1.0"));
+
+    ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("Apache-2.0"));
+
+    licenseDetectionsTile.status().shouldHave(text("Overridden"));
+    
+    licenseDetectionsTile.editLicenseButton().click();
+
+    EditLicensesPopover editPopover = new EditLicensesPopover();
+    String testComment = "test comment";
+    setOverriddenLicensesStatus(editPopover, EditLicensesPopover.RepositoryComponentLicensesScopes.REPOSITORY.ordinal(),
+        testComment);
+    editPopover.getCloseButton().click();
+
+    licenseDetectionsTile.editLicenseButton().click();
+    editPopover.selectedLicensesTransferListItems().shouldHaveSize(2);
+    editPopover.comment().shouldHave(text(testComment));
+
+    effectiveLicenses.shouldHaveSize(2);
+    effectiveLicenses.first().shouldHave(text("0BSD"));
+    effectiveLicenses.get(1).shouldHave(text("10tec-Company-License-Agreement"));
+    
+    licenseDetectionsTile.status().shouldHave(text("Overridden"));
+  }
+
+  @Test
+  public void testLegalTab_inheritedLicensesStatus() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(overriddenLicense);
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+    waitUntilSpinnersGone();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("GPL-1.0"));
+
+    ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("Apache-2.0"));
+
+    licenseDetectionsTile.status().shouldHave(text("Overridden")); 
+    
+    licenseDetectionsTile.editLicenseButton().click();
+
+    EditLicensesPopover editPopover = new EditLicensesPopover();
+
+    String testComment = "test comment";
+    setOverriddenLicensesStatus(editPopover, EditLicensesPopover.RepositoryComponentLicensesScopes.REPOSITORY.ordinal(),
+        testComment);
+    
+    editPopover.status().click();
+    editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.INHERITED.ordinal()).click();
+    editPopover.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    waitUntilSpinnersGone();
+    editPopover.availableScopes().get(EditLicensesPopover.RepositoryComponentLicensesScopes.ORGANIZATION.ordinal())
+        .shouldHave(Condition.attribute("className", "nx-radio-checkbox nx-radio tm-checked"));
+    String inherietedScope = editPopover.scopeStatuses().last().getText().replaceAll("[()]", "");
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("GPL-1.0"));
+    licenseDetectionsTile.status().shouldHave(text(inherietedScope));
+  }
+
+  @Test
+  public void testLegalTab_selectedLicensesStatus() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(overriddenLicense);
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+    waitUntilSpinnersGone();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("GPL-1.0"));
+
+    ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("Apache-2.0"));
+
+    licenseDetectionsTile.status().shouldHave(text("Overridden")); 
+    
+    licenseDetectionsTile.editLicenseButton().click();
+
+    EditLicensesPopover editPopover = new EditLicensesPopover();
+
+    editPopover.status().click();
+    editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.SELECTED.ordinal()).click();
+    editPopover.selectedLicensesCheckBoxElements().get(0).click();
+    editPopover.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    waitUntilSpinnersGone();
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("Apache-2.0"));
+    licenseDetectionsTile.status().shouldHave(text("Selected"));
+  }
+
+  @Test
+  public void testLegalTab_openAcknowledgeAndConfirmedLicensesStatus() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(overriddenLicense);
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+    waitUntilSpinnersGone();
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    LicenseDetectionsTile licenseDetectionsTile = componentDetailsPage.legalTabContent().licenseDetectionsTile();
+    licenseDetectionsTile.shouldBe(visible);
+
+    ElementsCollection declaredLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.declaredLicenses());
+    declaredLicenses.shouldHaveSize(1);
+    declaredLicenses.first().shouldHave(text("Apache-2.0"));
+
+    ElementsCollection effectiveLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.effectiveLicenses());
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("GPL-1.0"));
+
+    ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
+    observedLicenses.shouldHaveSize(1);
+    observedLicenses.first().shouldHave(text("Apache-2.0"));
+
+    licenseDetectionsTile.status().shouldHave(text("Overridden")); 
+    
+    licenseDetectionsTile.editLicenseButton().click();
+
+    EditLicensesPopover editPopover = new EditLicensesPopover();
+
+    editPopover.status().click();
+    editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.OPEN.ordinal()).click();
+    editPopover.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    licenseDetectionsTile.status().shouldHave(text("Open"));
+
+    editPopover.status().click();
+    editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.ACKNOWLEDGED.ordinal()).click();
+    editPopover.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    licenseDetectionsTile.status().shouldHave(text("Acknowledged"));
+
+    editPopover.status().click();
+    editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.CONFIRMED.ordinal()).click();
+    editPopover.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    licenseDetectionsTile.status().shouldHave(text("Confirmed"));
+
+    effectiveLicenses.shouldHaveSize(1);
+    effectiveLicenses.first().shouldHave(text("Apache-2.0"));
+  }
+
+  @Test
+  public void testPolicyViolationTabManageWaiversButtonClick() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
+    waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
+    waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
+    waiversForViolationPage.componentName().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
+    waiversForViolationPage.waiverListTable().rows().shouldHaveSize(1);
+  }
+  
   public void testComponentReEvaluation() throws Exception {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
@@ -1290,5 +1588,229 @@ public class FirewallComponentDetailsPageTest
 
     return componentEvaluationData;
 
+  }
+
+  @Test
+  public void testRemoveComponentWaiverUsingPopover() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    SelenideElement viewAllComponentWaiversButton = firewallComponentDetailsPage.getViewAllComponentWaiversButton();
+    viewAllComponentWaiversButton.click();
+
+    // Sanity Check
+    ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
+    componentWaiversTable.getRows().shouldHaveSize(1);
+
+    firewallComponentDetailsPage.getDeleteWaiverButton().click();
+
+    firewallComponentDetailsPage.getDeleteWaiverModal().shouldBe(visible);
+
+    firewallComponentDetailsPage.getDeleteWaiverModalButton().click();
+
+    ComponentWaiversPopover componentWaiversPopoverRefreshed = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTableRefreshed =
+        componentWaiversPopoverRefreshed.componentWaiversPopoverTable();
+    componentWaiversTableRefreshed.getRows().get(0).shouldHave(text("No existing component waivers"));
+  }
+
+  @Test
+  public void testOpenAddWaiverPage() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.artifactName().shouldHave(text("abi.cli"));
+    addWaiverPage.componentName().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
+    addWaiverPage.policyName().shouldHave(text("Security-High"));
+    addWaiverPage.constraintName().shouldHave(text("Security Constraint"));
+    addWaiverPage.conditions().shouldHaveSize(1);
+    addWaiverPage.condition(1).shouldHave(text("security vulnerability severity >= 9.1"));
+    addWaiverPage.availableScopes().shouldHaveSize(3);
+    addWaiverPage.scope(0).label().shouldHave(text("Repository - repositoryPublicId"));
+    addWaiverPage.scope(1).label().shouldHave(text("All Repositories"));
+    addWaiverPage.scope(2).label().shouldHave(text("Organization - Root Organization"));
+    addWaiverPage.availableComponents().shouldHaveSize(3);
+    addWaiverPage.component(0).label().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
+    addWaiverPage.component(1).label().shouldHave(text("com.lingocoder : abi.cli"));
+    addWaiverPage.component(2).label().shouldHave(text("All Components"));
+    addWaiverPage.currentUserName().scrollIntoView(true).shouldHave(text("Admin BuiltIn"));
+  }
+
+  @Test
+  public void testAddWaiverPage_TimeOptions() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.comments().shouldHave(text(""));
+    addWaiverPage.expiryTimesOptions().shouldHaveSize(8);
+    addWaiverPage.expiryTimesOptions().get(0).shouldHave(text("Never"));
+    addWaiverPage.expiryTimesOptions().get(1).shouldHave(text("7 Days"));
+    addWaiverPage.expiryTimesOptions().get(2).shouldHave(text("14 Days"));
+    addWaiverPage.expiryTimesOptions().get(3).shouldHave(text("30 Days"));
+    addWaiverPage.expiryTimesOptions().get(4).shouldHave(text("60 Days"));
+    addWaiverPage.expiryTimesOptions().get(5).shouldHave(text("90 Days"));
+    addWaiverPage.expiryTimesOptions().get(6).shouldHave(text("120 Days"));
+    addWaiverPage.expiryTimesOptions().get(7).shouldHave(text("Custom"));
+    addWaiverPage.expiryTimesSelect().getSelectedOption().shouldHave(text("Never"));
+  }
+
+  @Test
+  public void tesAddWaiverComponent_cancelButtonClick() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.availableScopes().shouldHaveSize(3);
+    addWaiverPage.cancelButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+  }
+
+  @Test
+  public void tesAddWaiverComponent__clickingDifferentScopes_and_submitButtonClick() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    Date createDate = date;
+    String dateCreated = getDateString(createDate, dateFormatMask);
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.availableScopes().shouldHaveSize(3);
+    NxRadio chosenScope = addWaiverPage.scope(0);
+    chosenScope.label().shouldHave(text("Repository - repositoryPublicId"));
+    chosenScope.click();
+    addWaiverPage.availableComponents().shouldHaveSize(3);
+    NxRadio chosenComponent = addWaiverPage.component(2);
+    chosenComponent.label().shouldHave(text("All Components"));
+    chosenComponent.click();
+    addWaiverPage.comments().setValue("Some comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    addWaiverPage.submitError().shouldNotBe(visible);
+
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldNotBe(visible);
+    listWaiversPage.waiverListTable().rows().shouldHaveSize(1);
+    listWaiversPage.waiverListTable().row(1).comments().shouldHave(text("Some comments"));
+    listWaiversPage.waiverListTable().row(1).createdBy().shouldHave(text("Admin BuiltIn"));
+    listWaiversPage.waiverListTable().row(1).waiverExpiration().shouldHave(text("Does not expire"));
+    listWaiversPage.waiverListTable().row(1).components().shouldHave(text("All"));
+    listWaiversPage.waiverListTable().row(1).scope().shouldHave(text("Repository - repository"));
+    listWaiversPage.waiverListTable().row(1).dateCreated().shouldHave(text(dateCreated));
+  }
+
+  @Test
+  public void testRemoveComponentWaiverUsingPopover_legalTab() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
+
+    waitUntilSpinnersGone();
+
+    SelenideElement viewAllComponentWaiversButton = firewallComponentDetailsPage.getViewAllComponentWaiversButton();
+    viewAllComponentWaiversButton.click();
+
+    // Sanity Check
+    ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
+    componentWaiversTable.getRows().shouldHaveSize(1);
+
+    firewallComponentDetailsPage.getDeleteWaiverButton().click();
+
+    firewallComponentDetailsPage.getDeleteWaiverModal().shouldBe(visible);
+
+    firewallComponentDetailsPage.getDeleteWaiverModalButton().click();
+
+    ComponentWaiversPopover componentWaiversPopoverRefreshed = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTableRefreshed =
+        componentWaiversPopoverRefreshed.componentWaiversPopoverTable();
+    componentWaiversTableRefreshed.getRows().get(0).shouldHave(text("No existing component waivers"));
   }
 }

@@ -70,6 +70,7 @@ describe('ListWaiversPage', function () {
       setWaiverToDelete: setWaiverToDeleteMock,
       waiverToDelete: null,
       stateGo: stateGoSpy,
+      isCurrentRouteName: false,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ListWaiversPage, minimalProps);
@@ -288,5 +289,20 @@ describe('ListWaiversPage', function () {
     const reloadApplicableWaiversCallback = table.prop('reloadApplicableWaivers');
     reloadApplicableWaiversCallback();
     expect(loadApplicableWaiversSpy).toHaveBeenCalledWith('violationId');
+  });
+
+  describe('Request Waiver button', () => {
+    let requestWaiverButton;
+    it('if button is availabe', () => {
+      const component = getShallowComponent();
+      requestWaiverButton = component.find('#request-waiver-btn');
+      expect(requestWaiverButton).toExist();
+    });
+
+    it('if button is not availabe', () => {
+      const component = getShallowComponent({ isCurrentRouteName: true });
+      requestWaiverButton = component.find('#request-waiver-btn');
+      expect(requestWaiverButton).not.toExist();
+    });
   });
 });

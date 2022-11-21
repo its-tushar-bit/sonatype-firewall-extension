@@ -23,7 +23,8 @@ import {
   closeVulnerabilityDetailsModal,
 } from '../vulnerabilityDetails/vulnerabilityDetailsModalActions';
 
-function mapStateToProps({ addWaiver, violation, router, user }) {
+function mapStateToProps(state) {
+  const { addWaiver, violation, router, user } = state;
   return {
     ...addWaiver,
     ...pick(['violationDetails'], violation),

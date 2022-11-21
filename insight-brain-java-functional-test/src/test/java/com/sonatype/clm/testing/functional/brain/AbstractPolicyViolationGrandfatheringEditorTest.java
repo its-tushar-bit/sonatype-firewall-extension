@@ -20,14 +20,15 @@ import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService.Po
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.Condition;
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.CLM.NX_RADIO_CHECKBOX_DISABLED;
 import static com.sonatype.clm.testing.functional.elements.CLM.NX_RADIO_SELECTED;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractPolicyViolationGrandfatheringEditorTest
@@ -43,6 +44,10 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
 
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
 
+  private Boolean grandfatheringEnabled;
+
+  private boolean grandfatheringOverrideEnabled;
+
   @BeforeClass
   public static void boot() {
     refreshOrOpen(OwnerSummaryPage.urlToRootOrg());
@@ -52,8 +57,22 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
   protected void init(Owner currentOwner) {
     this.currentOwner = currentOwner;
     this.parentOrg = organizationDAO.getById(currentOwner.getParentOwnerId());
+
+    // Save the root org grandfathering settings so we can restore them after the tests.
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    grandfatheringEnabled = rootOrg.isPolicyViolationGrandfatheringEnabled();
+    grandfatheringOverrideEnabled = rootOrg.isAllowPolicyViolationGrandfatheringOverride();
+
     policyViolationGrandfatheringService =
         testCLMServer.getCLMServer().getInstance(PolicyViolationGrandfatheringService.class);
+  }
+
+  @After
+  public void restoreRootOrganizationPolicyViolationGrandfatheringSettings() {
+    Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    rootOrg.setPolicyViolationGrandfatheringEnabled(grandfatheringEnabled);
+    rootOrg.setAllowPolicyViolationGrandfatheringOverride(grandfatheringOverrideEnabled);
+    organizationDAO.update(rootOrg);
   }
 
   @Test
@@ -193,13 +212,6 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
       policyViolationGrandfatheringDTO.enabled = null;
       policyViolationGrandfatheringDTO.allowOverride = allowOverride;
       policyViolationGrandfatheringService.setGrandfathering(OwnerType.ORGANIZATION, parentOrg.getId(),
-          policyViolationGrandfatheringDTO);
-    }
-
-    if (OwnerType.APPLICATION.equals(allowOverride)) {
-      policyViolationGrandfatheringDTO.enabled = null;
-      policyViolationGrandfatheringDTO.allowOverride = allowOverride;
-      policyViolationGrandfatheringService.setGrandfathering(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
           policyViolationGrandfatheringDTO);
     }
   }

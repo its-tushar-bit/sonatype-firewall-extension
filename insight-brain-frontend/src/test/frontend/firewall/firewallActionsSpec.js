@@ -52,6 +52,9 @@ import {
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED,
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED,
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED,
+  FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED,
+  FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED,
+  FIREWALL_LOAD_VIOLATION_DETAIL_FAILED,
   loadAutoUnquarantineData,
   loadConfiguration,
   loadFirewallData,
@@ -83,6 +86,8 @@ import {
   loadExistingWaiversDataRequested,
   loadExistingWaiversDataFulfilled,
   loadExistingWaiversDataFailed,
+  onGoToFirewallWaiversPage,
+  loadFirewallViolationDetails,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
   getFirewallConfigurationUrl,
@@ -92,6 +97,7 @@ import {
   getFirewallReleaseQuarantineSummaryUrl,
   getPoliciesUrl,
   getComponentDetailsUrl,
+  getRepositoryPolicyViolationUrl,
   getLicensesWithSyntheticFilterUrl,
   getComponentMultiLicensesUrl,
   getLicenseOverrideUrl,
@@ -107,6 +113,9 @@ describe('firewallActions', function () {
     firewallQuarantineSummaryUrl = getFirewallQuarantineSummaryUrl(),
     firewallQuarantineListUrl = getFirewallQuarantineListUrl(),
     policiesUrl = getPoliciesUrl(),
+    requestRepositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'RepolicyViolationId'),
+    repositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'policyViolationId'),
+    errorRepositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'ErrorpolicyViolationId'),
     allLicensesUrl = getLicensesWithSyntheticFilterUrl(),
     componentMultiLicensesUrl = getComponentMultiLicensesUrl({
       clientType: 'ci',
@@ -188,6 +197,12 @@ describe('firewallActions', function () {
           ],
         }),
       }),
+      router: Object.freeze({
+        currentParams: Object.freeze({
+          componentHash: 'componentHash',
+          repositoryId: 'repositoryId',
+        }),
+      }),
     };
 
     store = SpecUtil.mockReduxStore(state);
@@ -223,11 +238,17 @@ describe('firewallActions', function () {
     it('dispatches FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED action after succesfull requests', function (done) {
       store.dispatch(loadComponentLicenses('repositoryId', 'componentIdentifier')).then(() => {
         actions = store.getActions();
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(3);
         expect(actions[0].type).toBe(FIREWALL_LOAD_COMPONENT_LICENSES_REQUESTED);
         expect(actions[0].payload).toBeUndefined();
         expect(actions[1].type).toBe(FIREWALL_LOAD_COMPONENT_LICENSES_FULFILLED);
         expect(actions[1].payload).toEqual({
+          multiLicensesData: [],
+          licenseOverride: [],
+          allLicenses: [],
+        });
+        expect(actions[2].type).toBe('componentDetailsLicenseDetectionsTile/load/fulfilled');
+        expect(actions[2].payload).toEqual({
           multiLicensesData: [],
           licenseOverride: [],
           allLicenses: [],
@@ -1354,6 +1375,195 @@ describe('firewallActions', function () {
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED);
       expect(actions[0].payload).toBe(mockResponse);
+    });
+  });
+
+  describe('onGoToFirewallWaiversPage', () => {
+    it('calls stateGo with the appropriate parameters', () => {
+      store.dispatch(onGoToFirewallWaiversPage('policyViolationId'));
+
+      const actions = store.getActions();
+
+      expect(actions).toHaveAction({
+        type: '@@reduxUiRouter/stateGo',
+        payload: {
+          to: 'firewall.violationWaivers',
+          params: { hash: 'componentHash', violationId: 'policyViolationId', repositoryPolicyId: 'repositoryId' },
+          options: undefined,
+        },
+      });
+    });
+  });
+
+  describe('loadFirewallViolationDetails', () => {
+    let mockData;
+    beforeEach(function () {
+      mockData = {
+        policyViolationId: 'e0ecf0a629d341e88179f8d40f4675ee',
+        componentIdentifier: {
+          format: 'maven',
+          coordinates: {
+            artifactId: 'ant',
+            classifier: '',
+            extension: 'jar',
+            groupId: 'ant',
+            version: '1.6',
+          },
+        },
+        componentDisplayName: {
+          parts: [
+            {
+              field: 'Group',
+              value: 'ant',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Artifact',
+              value: 'ant',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Version',
+              value: '1.6',
+            },
+          ],
+          name: 'ant',
+        },
+        hash: '7a3c2521ae0c6f53e044',
+        policyId: 'd98fb873ed1f48e5b00316d8acddbc0f',
+        policyName: 'Security-Medium',
+        policyOwner: {
+          ownerId: 'ROOT_ORGANIZATION_ID',
+          ownerName: 'Root Organization',
+          ownerType: 'organization',
+        },
+        policyThreatLevel: 7,
+        policyThreatCategory: 'SECURITY',
+        constraints: [
+          {
+            constraintId: 'c6436a5a051046b1ba2aa94e9fd82a51',
+            constraintName: 'Medium risk CVSS score',
+            constraintOperator: 'AND',
+            conditions: [
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity >= 4',
+                conditionReason: 'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)',
+                conditionTriggerReference: {
+                  value: 'CVE-2012-2098',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+              {
+                conditionType: 'SecurityVulnerabilitySeverity',
+                conditionSummary: 'Security Vulnerability Severity < 7',
+                conditionReason: 'Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)',
+                conditionTriggerReference: {
+                  value: 'CVE-2012-2098',
+                  type: 'SECURITY_VULNERABILITY_REFID',
+                },
+              },
+            ],
+          },
+        ],
+        constraintFactsJson:
+          '[{"constraintId":"c6436a5a051046b1ba2aa94e9fd82a51","constraintName":"Medium risk CVSS score","operatorName":"AND","conditionFacts":[{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":0,"summary":"Security Vulnerability Severity >= 4","reason":"Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":0,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"},{"conditionTypeId":"SecurityVulnerabilitySeverity","conditionIndex":1,"summary":"Security Vulnerability Severity < 7","reason":"Found security vulnerability CVE-2012-2098 with severity < 7 (severity = 5.0)","reference":{"value":"CVE-2012-2098","type":"SECURITY_VULNERABILITY_REFID"},"triggerJson":"{\\"conditionIndex\\":1,\\"trigger\\":{\\"refId\\":\\"CVE-2012-2098\\",\\"severity\\":5.0}}"}]}]',
+        policyActionTypeId: null,
+        lastReported: '2022-10-10T16:01:37.586+03:00',
+        threatLevel: 7,
+        constraintViolations: [
+          {
+            constraintId: 'c6436a5a051046b1ba2aa94e9fd82a51',
+            constraintName: 'Medium risk CVSS score',
+            reasons: [
+              {
+                reason: 'Found security vulnerability CVE-2012-2098 with severity >= 4 (severity = 5.0)',
+                reference: null,
+              },
+            ],
+          },
+        ],
+        applicationPublicId: '',
+        applicationName: '',
+        organizationName: '',
+        openTime: '2022-10-10T16:01:37.586+03:00',
+        fixTime: null,
+        displayName: {
+          parts: [
+            {
+              field: 'Group',
+              value: 'ant',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Artifact',
+              value: 'ant',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Version',
+              value: '1.6',
+            },
+          ],
+          name: 'ant',
+        },
+        filename: null,
+        stageData: {},
+        waived: false,
+      };
+
+      mockAxiosCalls({
+        get: {
+          [requestRepositoryPolicyViolationUrl]: () => Promise.resolve({}),
+          [repositoryPolicyViolationUrl]: () => Promise.resolve({ data: mockData }),
+          [errorRepositoryPolicyViolationUrl]: () => Promise.reject('error'),
+        },
+      });
+    });
+
+    it('dispatch a FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED action', () => {
+      store.dispatch(loadFirewallViolationDetails('RepolicyViolationId'));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    it('dispatches FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED action after successfully requests', (done) => {
+      store.dispatch(loadFirewallViolationDetails('policyViolationId')).then(() => {
+        actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED);
+        expect(actions[0].payload).toBeUndefined();
+        expect(actions[1].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED);
+        expect(actions[1].payload).toEqual(mockData);
+        done();
+      });
+
+      let actions = store.getActions();
+      expect(actions.length).toBe(1);
+    });
+
+    it('dispatches FIREWALL_LOAD_VIOLATION_DETAIL_FAILED action after one of all of the requests failed', () => {
+      store.dispatch(loadFirewallViolationDetails('ErrorpolicyViolationId')).then(() => {
+        actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED);
+        expect(actions[0].payload).toBeUndefined();
+        expect(actions[1].type).toBe(FIREWALL_LOAD_VIOLATION_DETAIL_FAILED);
+        expect(actions[1].payload).toBe('error');
+      });
+      let actions = store.getActions();
+      expect(actions.length).toBe(1);
     });
   });
 });

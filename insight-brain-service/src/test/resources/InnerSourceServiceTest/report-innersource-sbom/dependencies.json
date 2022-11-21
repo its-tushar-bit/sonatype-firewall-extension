@@ -1,49 +1,4 @@
 {
-  "dependencyGraph" : [ {
-    "children" : [ {
-      "componentIdentifier" : {
-        "format" : "golang",
-        "coordinates" : {
-          "name" : "acme-app",
-          "version" : "1.0"
-        }
-      },
-      "packageUrl" : "pkg:golang/acme-app@1.0",
-      "directDependency" : true
-    } ]
-  }, {
-    "componentIdentifier" : {
-      "format" : "golang",
-      "coordinates" : {
-        "name" : "acme-app",
-        "version" : "1.0"
-      }
-    },
-    "packageUrl" : "pkg:golang/acme-app@1.0",
-    "children" : [ {
-      "componentIdentifier" : {
-        "format" : "golang",
-        "coordinates" : {
-          "name" : "github.com/gohouse/converter",
-          "version" : "v0.0.3"
-        }
-      },
-      "packageUrl" : "pkg:golang/github.com/gohouse/converter@v0.0.3"
-    } ],
-    "directDependency" : true
-  }, {
-    "componentIdentifier" : {
-      "format" : "golang",
-      "coordinates" : {
-        "name" : "github.com/gohouse/converter",
-        "version" : "v0.0.3"
-      }
-    },
-    "packageUrl" : "pkg:golang/github.com/gohouse/converter@v0.0.3",
-    "directDependency" : false
-  } ],
-  "gavDepths" : { },
-  "componentDepths" : [ ],
   "dependencyTree" : {
     "componentIdentifier" : {
       "format" : "golang",

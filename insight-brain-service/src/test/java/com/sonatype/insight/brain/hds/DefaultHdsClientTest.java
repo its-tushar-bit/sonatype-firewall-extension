@@ -10,14 +10,18 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 import javax.mail.BodyPart;
@@ -35,6 +39,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.error.exception.BadGatewayException;
@@ -42,10 +47,8 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.google.common.net.HttpHeaders;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -58,8 +61,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static com.sonatype.insight.brain.utils.HttpHelper.createMockResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -81,7 +86,8 @@ public class DefaultHdsClientTest
     ProductLicense productLicense = mock(ProductLicense.class);
     when(productLicense.getFingerprint()).thenReturn("license-fingerprint");
     spyInsightProxy = spy(new InsightProxy(configuration, passwordHandler));
-    client = new DefaultHdsClient(spyInsightProxy, productLicense, configuration, new VersionService(), telemetryId);
+    client = new DefaultHdsClient(spyInsightProxy, productLicense, configuration, new VersionService(), telemetryId, 20,
+        name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
   }
 
   /**
@@ -630,20 +636,6 @@ public class DefaultHdsClientTest
             + "+dojo%22%2C%22qualifier%22%3A%22%22%2C%22version%22%3A%221.8.14%22%7D%7D",
         "&name1=%7B+%7D%2B%26%3B%2F%3F%3A%40%3D%3C%3E%23%25%7C%5C%5E~%5B%5D%60");
   }
-
-  private HttpResponse createMockResponse(Exception e) throws Exception {
-    HttpResponse mockResponse = mock(HttpResponse.class);
-    Header mockHeader = mock(Header.class);
-    when(mockHeader.getValue()).thenReturn("text/plain");
-    when(mockResponse.getFirstHeader(org.apache.http.HttpHeaders.CONTENT_TYPE)).thenReturn(mockHeader);
-    HttpEntity mockEntity = mock(HttpEntity.class);
-    when(mockEntity.getContent()).thenThrow(e);
-    when(mockResponse.getEntity()).thenReturn(mockEntity);
-    StatusLine mockStatusLine = mock(StatusLine.class);
-    when(mockStatusLine.getReasonPhrase()).thenReturn("reason");
-    when(mockResponse.getStatusLine()).thenReturn(mockStatusLine);
-    return mockResponse;
-  }
   
   private static class ServletInputStreamImpl
       extends ServletInputStream
@@ -847,5 +839,61 @@ public class DefaultHdsClientTest
     initClient();
 
     verify(spyInsightProxy).contextualize(any(), eq(expected));
+  }
+
+  @Test
+  public void testExecute_DefaultRetry_BadGatewayErrorsOutEventually() {
+    AtomicInteger requests = new AtomicInteger();
+    List<String> queryStrings = new ArrayList<>();
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException
+      {
+        requests.incrementAndGet();
+        response.setStatus(HttpStatus.BAD_GATEWAY_502);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().println("Some error message");
+        queryStrings.add(request.getQueryString());
+        baseRequest.setHandled(true);
+      }
+    };
+
+    assertThatThrownBy(
+        () -> client.execute(DefaultHdsClient.DEFAULT_RETRY_CREATOR.apply("test"),
+            new HttpGet(configuration.getHdsUrl())))
+        .isInstanceOf(BadGatewayException.class);
+    assertThat(requests.get()).isEqualTo(5);
+    assertThat(queryStrings).containsExactly(null, "retryCount=1", "retryCount=2", "retryCount=3", "retryCount=4");
+  }
+
+  @Test
+  public void testExecute_DefaultRetry_BadGatewayCanSucceed() {
+    AtomicInteger requests = new AtomicInteger();
+    List<String> queryStrings = new ArrayList<>();
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException
+      {
+        requests.incrementAndGet();
+        if (requests.get() > 1) {
+          response.setStatus(HttpStatus.OK_200);
+        }
+        else {
+          response.setStatus(HttpStatus.BAD_GATEWAY_502);
+          response.setContentType("text/plain;charset=UTF-8");
+          response.getWriter().println("Some error message");
+        }
+        queryStrings.add(request.getQueryString());
+        baseRequest.setHandled(true);
+      }
+    };
+
+    client.execute(DefaultHdsClient.DEFAULT_RETRY_CREATOR.apply("test"), new HttpGet(configuration.getHdsUrl()));
+    assertThat(requests.get()).isEqualTo(2);
+    assertThat(queryStrings).containsExactly(null, "retryCount=1");
   }
 }

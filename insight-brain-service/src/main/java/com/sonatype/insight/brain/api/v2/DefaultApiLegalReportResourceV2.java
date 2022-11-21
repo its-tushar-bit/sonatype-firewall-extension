@@ -209,7 +209,7 @@ public class DefaultApiLegalReportResourceV2
   @Path(CUSTOM_MULTI_APPLICATION_REPORT_PATH)
   @Produces(MediaType.TEXT_HTML)
   public String getLicenseLegalCustomMultiApplicationHTMLReport(FormDataMultiPart formData) {
-    Set<AttributionReportApplicationDTO> applicationsAndStages = new HashSet<>();
+    Set<AttributionReportApplicationDTO> applicationsAndStages;
     final LegalCustomReportParameters.Builder reportParametersBuilder = LegalCustomReportParameters.builder();
     try {
       reportParametersBuilder.withTitle(requireMultiPartValue(formData, REPORT_FORM_TITLE))

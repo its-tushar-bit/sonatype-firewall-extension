@@ -759,6 +759,57 @@ public class AddWaiverTest
     }
   }
 
+  @Test
+  public void testOpenPageFromAddWaiverDropdownButton_cancelReturnsToViolationDetails() {
+    try {
+      refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
+      refresh(); // refresh to ensure there is no previous page/routing information
+
+      ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+      violationDetailsPage.detailsTile().manageWaiversDropdownToggle().click();
+      violationDetailsPage.detailsTile().addWaiverDropdownButton().click();
+
+      waitUntilUrl(AddWaiverPage.url(policyViolation.getId()));
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.cancelButton().click();
+
+      violationDetailsPage.detailsTile().shouldBe(visible);
+    }
+    finally {
+      cleanupCreatedWaivers(policyWaiverDAO.getActiveByOwnerId(application.getId()));
+    }
+  }
+
+  @Test
+  public void testOpenPageFromAddWaiverDropdownButton_submitReturnsToViolationDetails() {
+    try {
+      refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(policyViolation.getId(), "violation", "filter"));
+      refresh(); // refresh to ensure there is no previous page/routing information
+
+      ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+      violationDetailsPage.detailsTile().manageWaiversDropdownToggle().click();
+      violationDetailsPage.detailsTile().addWaiverDropdownButton().click();
+
+      waitUntilUrl(AddWaiverPage.url(policyViolation.getId()));
+      AddWaiverPage addWaiverPage = new AddWaiverPage();
+      addWaiverPage.availableScopes().shouldHaveSize(3);
+      NxRadio chosenScope = addWaiverPage.scope(0);
+      chosenScope.label().shouldHave(text("Application - App 1"));
+      chosenScope.click();
+      addWaiverPage.availableComponents().shouldHaveSize(3);
+      NxRadio chosenComponent = addWaiverPage.component(2);
+      chosenComponent.label().shouldHave(text("All Components"));
+      chosenComponent.click();
+      addWaiverPage.comments().setValue("Some comments");
+      addWaiverPage.saveButton().click();
+      NxSubmitMask.seeAndWaitForDismissal();
+      addWaiverPage.submitError().shouldNotBe(visible);
+    }
+    finally {
+      cleanupCreatedWaivers(policyWaiverDAO.getActiveByOwnerId(application.getId()));
+    }
+  }
+
   private void cleanupCreatedWaivers(List<PolicyWaiver> waivers) {
     if (waivers != null && !waivers.isEmpty()) {
       waivers.forEach(policyWaiverDAO::delete);

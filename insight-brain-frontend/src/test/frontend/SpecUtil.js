@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render as rtlRender } from '@testing-library/react';
+import { render as rtlRender, within } from '@testing-library/react';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import * as PropTypes from 'prop-types';
@@ -400,3 +400,48 @@ afterAll(() => {
   mock && mock.restore();
   mock = null;
 });
+
+/**
+ * Gets the matched elements inside a node using RTL.
+ *
+ * Usage example:
+ * ```
+ * const popover = document.getElementById('edit-licenses-popover');
+ * const myNode = queryByTextWithin(/Effective Licenses/, popover).first;
+ * const myNodes = queryByTextWithin('Apache-1.1', '.iq-license-info-section').all;
+ * ```
+ *
+ * This is an abbreviated way to use:
+ * ```
+ * within(document.querySelector(selector)).queryAllByText(regExp)
+ * ```
+ * @param  {(string|RegExp)} regexpOrString
+ * @param  {(string|HTMLElement)} selectorOrDOMNode
+ * @returns {{all: HTMLElement[], first: ?HTMLElement}}
+ */
+export const queryByTextWithin = (regexpOrString, selectorOrDOMNode) => {
+  let nodes;
+
+  if (!(regexpOrString instanceof RegExp || typeof regexpOrString === 'string')) {
+    throw Error('queryByTextWithin - regexpOrString must be a RegExp object or a string');
+  }
+
+  const validateNodeType = (nodeToValidate) => {
+    if (nodeToValidate instanceof HTMLCollection) {
+      throw Error('queryByTextWithin - selectorOrDOMNode param must query or provide a single DOM element');
+    } else if (!(nodeToValidate instanceof HTMLElement)) {
+      throw Error('queryByTextWithin - selectorOrDOMNode param must be either a query string or a single DOM element');
+    }
+  };
+
+  if (typeof selectorOrDOMNode === 'string') {
+    const withinNode = document.querySelector(selectorOrDOMNode);
+    validateNodeType(withinNode);
+    nodes = within(withinNode).queryAllByText(regexpOrString);
+  } else {
+    validateNodeType(selectorOrDOMNode);
+    nodes = within(selectorOrDOMNode).queryAllByText(regexpOrString);
+  }
+
+  return { all: nodes ?? [], first: nodes?.[0] };
+};

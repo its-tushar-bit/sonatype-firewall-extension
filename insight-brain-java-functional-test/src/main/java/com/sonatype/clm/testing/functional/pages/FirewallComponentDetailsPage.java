@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
+import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -153,6 +154,10 @@ public class FirewallComponentDetailsPage
     return FirewallPolicyViolationsTable.getPolicyViolationsTableForParent(ROOT);
   }
 
+  public static PolicyViolationsTable getPolicyViolationsTable() {
+    return PolicyViolationsTable.getPolicyViolationsTableForParent(".component-waivers");
+  }
+
   public ElementsCollection getClickableVersionsInVersionExplorer() {
     return children("#aiVersionChartViz > svg:nth-child(1) > g:nth-child(1) > g:nth-child(24) > g:nth-child(1) > rect");
   }
@@ -179,5 +184,21 @@ public class FirewallComponentDetailsPage
 
   public SelenideElement firewallWaiversButton() {
     return child("#firewall-details-view-waivers");
+  }
+
+  public SelenideElement getViewAllComponentWaiversButton() {
+    return child("#firewall-details-view-waivers");
+  }
+
+  public SelenideElement getDeleteWaiverButton() {
+    return child(".iq-component-violations-waivers-table__delete-btn");
+  }
+
+  public SelenideElement getDeleteWaiverModal() {
+    return child("#delete-waiver-modal");
+  }
+
+  public SelenideElement getDeleteWaiverModalButton() {
+    return child("#delete-waiver-modal-continue-button");
   }
 }

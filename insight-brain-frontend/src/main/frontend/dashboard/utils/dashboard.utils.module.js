@@ -14,17 +14,10 @@ import wrapWith from './filters/wrap.with.filter';
 import angularCommonModule from '../../utilAngular/AngularCommon';
 import storesModule from '../../utilAngular/Stores';
 import { setToArray } from '../../util/jsUtil';
-import ComponentModule from '../ComponentController';
 import ComponentDisplayModule from '../../ComponentDisplay/module';
 
 export default angular
-  .module('dashboard.utils', [
-    'ui.router',
-    storesModule.name,
-    angularCommonModule.name,
-    ComponentModule.name,
-    ComponentDisplayModule.name,
-  ])
+  .module('dashboard.utils', ['ui.router', storesModule.name, angularCommonModule.name, ComponentDisplayModule.name])
   .value('createDashboardDataRequestPayload', createDashboardDataRequestPayload)
   .value('extractColumn', extractColumn)
   .factory('ClassyBrew', ClassyBrew)

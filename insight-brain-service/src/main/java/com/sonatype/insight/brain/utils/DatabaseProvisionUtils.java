@@ -97,6 +97,9 @@ public final class DatabaseProvisionUtils
   }
 
   private static boolean isMigrationNeeded(DataSource dataSource, String databaseSchemaName) {
+    if (!DatabaseUtil.schemaExists(dataSource, databaseSchemaName)) {
+      return true;
+    }
     int currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseSchemaName);
     int desiredVersion = DatabaseMigrator.determineDesiredVersion(databaseSchemaName);
     return currentVersion < desiredVersion;

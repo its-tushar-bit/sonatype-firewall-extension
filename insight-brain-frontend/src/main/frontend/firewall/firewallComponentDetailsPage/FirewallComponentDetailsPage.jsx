@@ -121,7 +121,7 @@ FirewallComponentDetailsPage.propTypes = {
     identificationSource: PropTypes.string,
     scanId: PropTypes.string,
     tabId: PropTypes.string,
-    componentIdentifier: PropTypes.string.isRequired,
+    componentIdentifier: PropTypes.string,
     pathname: PropTypes.string,
   }).isRequired,
   componentDetailsPageResponseState: PropTypes.shape({

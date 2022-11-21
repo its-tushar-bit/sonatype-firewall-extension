@@ -33,6 +33,10 @@ describe('firewallReducer', function () {
       policyExistingWaivers: null,
       isLoadExistingWaivers: false,
       existingWaiversError: null,
+      showManageWaiverPage: false,
+      violationDetails: [],
+      isLoadViolationDetails: false,
+      violationDetailsError: null,
     }),
     viewState: Object.freeze({
       isShowConfigurationModal: false,
@@ -1150,6 +1154,92 @@ describe('firewallReducer', function () {
           policyExistingWaivers: null,
           isLoadExistingWaivers: false,
           existingWaiversError: 'Error',
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_SHOW_MANAGE_WAIVER_PAGE action', () => {
+    it('update state and set boolean value if opened waiver page', () => {
+      let minimumState = {
+        componentDetailsPage: {
+          showManageWaiverPage: false,
+        },
+      };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_SHOW_MANAGE_WAIVER_PAGE', payload: { data: 'payload' } })).toEqual({
+        ...minimumState,
+        componentDetailsPage: {
+          ...minimumState.componentDetailsPage,
+          showManageWaiverPage: { data: 'payload' },
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED action', function () {
+    it('updates the state and sets isLoadViolationDetails to true', () => {
+      let minimumState = {
+        componentDetailsPage: {
+          violationDetails: [],
+          isLoadViolationDetails: false,
+          violationDetailsError: null,
+        },
+      };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED' })).toEqual({
+        ...minimumState,
+        componentDetailsPage: {
+          ...minimumState.componentDetailsPage,
+          violationDetails: [],
+          isLoadViolationDetails: true,
+          violationDetailsError: null,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED action', () => {
+    it('updates the state and sets selected violation details with the response results', () => {
+      let minimumState = {
+        componentDetailsPage: {
+          violationDetails: [],
+          isLoadViolationDetails: false,
+          violationDetailsError: null,
+        },
+      };
+
+      expect(
+        reduce(minimumState, { type: 'FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED', payload: { data: 'payload' } })
+      ).toEqual({
+        ...minimumState,
+        componentDetailsPage: {
+          ...minimumState.componentDetailsPage,
+          violationDetails: { data: 'payload' },
+          isLoadViolationDetails: false,
+          violationDetailsError: null,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_LOAD_VIOLATION_DETAIL_FAILED action', function () {
+    it('updates the state and sets existing waivers with the request error message', () => {
+      let minimumState = {
+        componentDetailsPage: {
+          violationDetails: [],
+          isLoadViolationDetails: false,
+          violationDetailsError: null,
+        },
+      };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_VIOLATION_DETAIL_FAILED', payload: 'Error' })).toEqual({
+        ...minimumState,
+        componentDetailsPage: {
+          ...minimumState.componentDetailsPage,
+          violationDetails: [],
+          isLoadViolationDetails: false,
+          violationDetailsError: 'Error',
         },
       });
     });

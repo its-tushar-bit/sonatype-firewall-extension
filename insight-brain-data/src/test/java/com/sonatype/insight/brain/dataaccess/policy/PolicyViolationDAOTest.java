@@ -404,15 +404,15 @@ public class PolicyViolationDAOTest
         "scan-3");
     tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-    List<PolicyViolation> violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), null, null, null);
+    List<PolicyViolation> violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), null, null, null, null, null, null);
 
     assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(openViolation.getId(),
         waivedViolation.getId(), grandfatheredViolation.getId());
   }
 
   @Test
-  public void testGetUnfixedByApplicationIdsAndStageIds_threatLevel() {
+  public void testGetUnfixedBy_threatLevel() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
 
     Policy policyFive = tempEntity.newPolicy(application);
@@ -429,66 +429,66 @@ public class PolicyViolationDAOTest
 
     List<PolicyViolation> violations;
 
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), 4, 6, null);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), 4, 6, null, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId).containsExactly(openViolationFive.getId());
 
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), 4, 5, null);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), 4, 5, null, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId).containsExactly(openViolationFive.getId());
 
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), 5, 6, null);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), 5, 6, null, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId).containsExactly(openViolationFive.getId());
 
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), 0, 10, null);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), 0, 10, null, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(openViolationFive.getId(), violationZero.getId(), violationTen.getId());
 
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), null, 10, null);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), null, 10, null, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(openViolationFive.getId(), violationZero.getId(), violationTen.getId());
 
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), 0, null, null);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), 0, null, null, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(openViolationFive.getId(), violationZero.getId(), violationTen.getId());
 
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), null, null, null);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), null, null, null, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(openViolationFive.getId(), violationZero.getId(), violationTen.getId());
 
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), 1, 10, null);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), 1, 10, null, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(openViolationFive.getId(), violationTen.getId());
 
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), 0, 9, null);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), 0, 9, null, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(openViolationFive.getId(), violationZero.getId());
 
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), 1, 9, null);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), 1, 9, null, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(openViolationFive.getId());
 
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), 0, 1, null);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), 0, 1, null, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(violationZero.getId());
 
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), 9, 10, null);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), 9, 10, null, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(violationTen.getId());
   }
 
   @Test
-  public void testGetUnfixedByApplicationIdsAndStageIds_threatCategory() {
+  public void testGetUnfixedBy_threatCategory() {
     PolicyViolationDAO dao = new PolicyViolationDAO();
 
     Policy security = tempEntity.newPolicy(application);
@@ -503,36 +503,92 @@ public class PolicyViolationDAOTest
     Set<PolicyThreatCategory> policyThreatCategorySet = new HashSet<>();
 
     List<PolicyViolation> violations;
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), null, null, null);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), null, null, null, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactly(violationSecurity.getId(), violationLicense.getId());
 
     policyThreatCategorySet.add(PolicyThreatCategory.SECURITY);
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), null, null, policyThreatCategorySet);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), null, null, policyThreatCategorySet, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId).containsExactly(violationSecurity.getId());
 
     policyThreatCategorySet.clear();
     policyThreatCategorySet.add(PolicyThreatCategory.LICENSE);
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), null, null, policyThreatCategorySet);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), null, null, policyThreatCategorySet, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId).containsExactly(violationLicense.getId());
 
     policyThreatCategorySet.clear();
     policyThreatCategorySet.add(PolicyThreatCategory.SECURITY);
     policyThreatCategorySet.add(PolicyThreatCategory.LICENSE);
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), null, null, policyThreatCategorySet);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), null, null, policyThreatCategorySet, null, null, null);
     assertThat(violations).extracting(PolicyViolation::getId)
         .containsExactlyInAnyOrder(violationLicense.getId(), violationSecurity.getId());
 
     policyThreatCategorySet.clear();
     policyThreatCategorySet.add(PolicyThreatCategory.QUALITY);
     policyThreatCategorySet.add(PolicyThreatCategory.OTHER);
-    violations = dao.getUnfixedByApplicationIdsAndStageIds(Arrays.asList(application.getId()),
-        Arrays.asList(BuildStageType.ID), null, null, policyThreatCategorySet);
+    violations = dao.getUnfixedBy(Arrays.asList(application.getId()),
+        Arrays.asList(BuildStageType.ID), null, null, policyThreatCategorySet, null, null, null);
     assertThat(violations).isEmpty();
+  }
+
+  @Test
+  public void testGetUnfixedByApplicationIdsAndStageIds_policyViolationState() {
+    PolicyViolationDAO dao = new PolicyViolationDAO();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan1");
+
+    PolicyViolation openPolicyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    PolicyViolation waivedPolicyViolation = tempEntity.newWaivedPolicyViolation(policyEvaluation, policy, policyWaiver);
+    PolicyViolation grandfatheredPolicyViolation = tempEntity.newGrandfatheredPolicyViolation(policyEvaluation, policy);
+
+    List<String> applicationIds = Arrays.asList(application.getId());
+    List<String> stageTypeIds = Arrays.asList(BuildStageType.ID);
+    List<PolicyViolation> violations;
+
+    // All violation states
+    violations = dao.getUnfixedBy(applicationIds, stageTypeIds, null, null, null, true, true, true);
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(openPolicyViolation.getId(), waivedPolicyViolation.getId(),
+            grandfatheredPolicyViolation.getId());
+
+    // None violation states (Equal to all)
+    violations = dao.getUnfixedBy(applicationIds, stageTypeIds, null, null, null, false, false, false);
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(openPolicyViolation.getId(), waivedPolicyViolation.getId(),
+            grandfatheredPolicyViolation.getId());
+
+    // Only Open
+    violations = dao.getUnfixedBy(applicationIds, stageTypeIds, null, null, null, true, false, false);
+    assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(openPolicyViolation.getId());
+
+    // Only Waived
+    violations = dao.getUnfixedBy(applicationIds, stageTypeIds, null, null, null, false, true, false);
+    assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(waivedPolicyViolation.getId());
+
+    // Only Grandfathered
+    violations = dao.getUnfixedBy(applicationIds, stageTypeIds, null, null, null, false, false, true);
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(grandfatheredPolicyViolation.getId());
+
+    // Open and Waived
+    violations = dao.getUnfixedBy(applicationIds, stageTypeIds, null, null, null, true, true, false);
+    assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(openPolicyViolation.getId(),
+        waivedPolicyViolation.getId());
+
+    // Open and Grandfathered
+    violations = dao.getUnfixedBy(applicationIds, stageTypeIds, null, null, null, true, false, true);
+    assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(openPolicyViolation.getId(),
+        grandfatheredPolicyViolation.getId());
+
+    // Waived and Grandfathered
+    violations = dao.getUnfixedBy(applicationIds, stageTypeIds, null, null, null, false, true, true);
+    assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrder(waivedPolicyViolation.getId(),
+        grandfatheredPolicyViolation.getId());
   }
 
   @Test
@@ -819,46 +875,6 @@ public class PolicyViolationDAOTest
     addViolation(dao, ReleaseStageType.ID, openAfter, notGrandfathered, notWaived, notFixed);
 
     List<PolicyViolation> violations = dao.getActiveByApplicationIdsAndStageIdsOpenedAfterDate(
-        Arrays.asList(application.getId()), Arrays.asList(BuildStageType.ID), cutoff, null, null, null);
-
-    assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrderElementsOf(expectedIds);
-  }
-
-  @Test
-  public void getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate() {
-    PolicyViolationDAO dao = new PolicyViolationDAO();
-    Instant reference = Instant.now();
-    Date openBefore = new Date(reference.minus(Duration.ofMinutes(1)).toEpochMilli());
-    Date cutoff = new Date(reference.toEpochMilli());
-    Date openAfter = new Date(reference.plus(Duration.ofMinutes(1)).toEpochMilli());
-    Date grandfatherTime = new Date(reference.plus(Duration.ofMinutes(2)).toEpochMilli());
-    Date waiveTime = new Date(reference.plus(Duration.ofMinutes(3)).toEpochMilli());
-    Date fixTime = new Date(reference.plus(Duration.ofMinutes(4)).toEpochMilli());
-    Date notGrandfathered = null;
-    Date notWaived = null;
-    Date notFixed = null;
-
-    List<String> expectedIds = new ArrayList<>();
-
-    expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, notWaived, notFixed));
-    expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, notFixed));
-    expectedIds.add(addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, waiveTime, notFixed));
-    expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, grandfatherTime, notWaived, notFixed));
-    expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, notFixed));
-    expectedIds.add(addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, notFixed));
-
-    addViolation(dao, BuildStageType.ID, openBefore, notGrandfathered, notWaived, notFixed);
-    addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, notWaived, fixTime);
-    addViolation(dao, BuildStageType.ID, cutoff, notGrandfathered, waiveTime, fixTime);
-    addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, notWaived, fixTime);
-    addViolation(dao, BuildStageType.ID, openAfter, notGrandfathered, waiveTime, fixTime);
-    addViolation(dao, ReleaseStageType.ID, openAfter, notGrandfathered, notWaived, notFixed);
-    addViolation(dao, ReleaseStageType.ID, openAfter, notGrandfathered, waiveTime, notFixed);
-    addViolation(dao, ReleaseStageType.ID, openAfter, grandfatherTime, notWaived, notFixed);
-    addViolation(dao, BuildStageType.ID, openAfter, grandfatherTime, notWaived, fixTime);
-    addViolation(dao, BuildStageType.ID, cutoff, grandfatherTime, notWaived, fixTime);
-
-    List<PolicyViolation> violations = dao.getUnfixedByApplicationIdsAndStageIdsOpenedAfterDate(
         Arrays.asList(application.getId()), Arrays.asList(BuildStageType.ID), cutoff, null, null, null);
 
     assertThat(violations).extracting(PolicyViolation::getId).containsExactlyInAnyOrderElementsOf(expectedIds);

@@ -11,10 +11,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -27,6 +30,7 @@ import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthentication
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.error.exception.BadGatewayException;
@@ -48,6 +52,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.entity.BufferedHttpEntity;
@@ -86,14 +91,20 @@ public class DefaultHdsClient
   private final TelemetryId telemetryId;
 
   private final VersionService versionService;
-  
+
   private final Configuration configuration;
+
+  private final Function<String, Retry> retryCreator;
 
   private static volatile String version;
 
   public static final String UPLOAD_FILE_ATTRIBUTE = "hds.upload.file";
 
   public static final String CLM_CLIENT_USER_AGENT_HEADER = "X-CLM-Client-User-Agent";
+
+  // Visible for testing
+  static final Function<String, Retry> DEFAULT_RETRY_CREATOR =
+      name -> new Retry(name, 4, null, BadGatewayException.class::isInstance, i -> Duration.ofSeconds(1));
 
   static final String OWNER_TYPE_HEADER = "X-CLM-Owner-Type";
 
@@ -102,6 +113,9 @@ public class DefaultHdsClient
   static final String TELEMETRY_ID_HEADER = "X-CLM-Instance-Id";
 
   public static final String CLIENT_INSTANCE_ID_HEADER = "X-CLM-Client-Instance-Id";
+
+  // VisibleForTesting
+  public static boolean waitToCloseOldClients = true;
 
   @Inject
   public DefaultHdsClient(
@@ -122,12 +136,25 @@ public class DefaultHdsClient
       TelemetryId telemetryId,
       int poolSize)
   {
+    this(proxy, productLicense, configuration, versionService, telemetryId, poolSize, DEFAULT_RETRY_CREATOR);
+  }
+
+  protected DefaultHdsClient(
+      InsightProxy proxy,
+      ProductLicense productLicense,
+      Configuration configuration,
+      VersionService versionService,
+      TelemetryId telemetryId,
+      int poolSize,
+      Function<String, Retry> retryCreator)
+  {
     this.proxy = proxy;
     this.productLicense = productLicense;
     connectionPoolSize = poolSize;
     this.versionService = versionService;
     this.configuration = configuration;
     this.telemetryId = telemetryId;
+    this.retryCreator = retryCreator;
     updateClient();
     // TODO Need to determine if there is additional information we should be sending to the HDS
     loadVersion();
@@ -160,7 +187,11 @@ public class DefaultHdsClient
         @Override
         public void run() {
           try {
-            Thread.sleep(TimeUnit.MINUTES.toMillis(15));
+            // If we wait in a unit test then this leads to the thread count increasing massively as each test
+            // ultimately triggers a reset of the client.
+            if (waitToCloseOldClients) {
+              Thread.sleep(TimeUnit.MINUTES.toMillis(15));
+            }
             // hopefully by now, the old connections are unused
             oldClient.close();
           }
@@ -192,7 +223,12 @@ public class DefaultHdsClient
 
   @Override
   public <T> T get(Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams) {
-    return internalGet(clazz, buildUri(null, path, queryParams, uriParams), null /* clientUserAgent */);
+    return get(retryCreator.apply(path), clazz, path, queryParams, uriParams);
+  }
+
+  @Override
+  public <T> T get(Retry retry, Class<T> clazz, String path, Map<String, String> queryParams, String... uriParams) {
+    return internalGet(retry, clazz, buildUri(null, path, queryParams, uriParams), null /* clientUserAgent */);
   }
 
   @Override
@@ -203,18 +239,35 @@ public class DefaultHdsClient
       Map<String, String> queryParams,
       String... uriParams)
   {
-    return internalGet(clazz, buildUri(null, path, queryParams, uriParams), clientUserAgent);
+    return get(retryCreator.apply(path), clazz, path, clientUserAgent, queryParams, uriParams);
+  }
+
+  @Override
+  public <T> T get(
+      Retry retry,
+      Class<T> clazz,
+      String path,
+      String clientUserAgent,
+      Map<String, String> queryParams,
+      String... uriParams)
+  {
+    return internalGet(retry, clazz, buildUri(null, path, queryParams, uriParams), clientUserAgent);
   }
 
   @Override
   public <T> T get(Class<T> clazz, String url) {
-    return internalGet(clazz, buildUri(url), null /* clientUserAgent */);
+    return get(retryCreator.apply(url), clazz, url);
   }
 
-  private <T> T internalGet(Class<T> clazz, String url, String clientUserAgent) {
+  @Override
+  public <T> T get(Retry retry, Class<T> clazz, String url) {
+    return internalGet(retry, clazz, buildUri(url), null /* clientUserAgent */);
+  }
+
+  private <T> T internalGet(Retry retry, Class<T> clazz, String url, String clientUserAgent) {
     HttpGet cloudReq = createGetRequest(url, null, null);
     setClientUserAgentHeader(cloudReq, clientUserAgent);
-    return execute(cloudReq, clazz);
+    return execute(retry, cloudReq, clazz);
   }
 
   @Override
@@ -224,7 +277,18 @@ public class DefaultHdsClient
       String path,
       String... uriParams) throws IOException
   {
-    return relay(request, clazz, path, null, uriParams);
+    return relay(retryCreator.apply(path), request, clazz, path, uriParams);
+  }
+
+  @Override
+  public <T> RelayResponse<T> relay(
+      Retry retry,
+      HttpServletRequest request,
+      Class<T> clazz,
+      String path,
+      String... uriParams) throws IOException
+  {
+    return relay(retry, request, clazz, path, null, uriParams);
   }
 
   @Override
@@ -235,7 +299,19 @@ public class DefaultHdsClient
       Map<String, String> queryParams,
       String... uriParams) throws IOException
   {
-    return relay(request, null, clazz, path, queryParams, uriParams);
+    return relay(retryCreator.apply(path), request, clazz, path, queryParams, uriParams);
+  }
+
+  @Override
+  public <T> RelayResponse<T> relay(
+      Retry retry,
+      HttpServletRequest request,
+      Class<T> clazz,
+      String path,
+      Map<String, String> queryParams,
+      String... uriParams) throws IOException
+  {
+    return relay(retry, request, null, clazz, path, queryParams, uriParams);
   }
 
   @Override
@@ -247,9 +323,22 @@ public class DefaultHdsClient
       Map<String, String> queryParams,
       String... uriParams) throws IOException
   {
+    return relay(retryCreator.apply(path), request, analytics, clazz, path, queryParams, uriParams);
+  }
+
+  @Override
+  public <T> RelayResponse<T> relay(
+      Retry retry,
+      HttpServletRequest request,
+      HdsClientAnalytics analytics,
+      Class<T> clazz,
+      String path,
+      Map<String, String> queryParams,
+      String... uriParams) throws IOException
+  {
     String url = buildUri(request, path, queryParams, uriParams);
     HttpUriRequest cloudReq = createRequest(request, url, analytics);
-    HttpResponse response = execute(cloudReq);
+    HttpResponse response = execute(retry, cloudReq);
     RelayResponse<T> relayResponse = new RelayResponse<>(fromHttpResponse(response, clazz));
     if (response.getEntity() != null && response.getEntity().getContentType() != null) {
       relayResponse.contentType = response.getEntity().getContentType().getValue();
@@ -260,13 +349,18 @@ public class DefaultHdsClient
   public HttpResponse forwardingProxy(HttpServletRequest request, Map<String, String> queryParams)
       throws IOException
   {
+    return forwardingProxy(retryCreator.apply(request.toString()), request, queryParams);
+  }
+
+  public HttpResponse forwardingProxy(Retry retry, HttpServletRequest request, Map<String, String> queryParams)
+      throws IOException
+  {
     String url = buildUri(request, request.getPathInfo(), queryParams);
     HttpUriRequest labReq = createRequest(request, url, null);
-    return execute(labReq);
+    return execute(retry, labReq);
   }
 
   private <T> T fromHttpResponse(HttpResponse response, Class<T> clazz) {
-    throwErrorIfNeeded(response);
     boolean usingStream = false;
     try {
       HttpEntity entity = response.getEntity();
@@ -289,7 +383,7 @@ public class DefaultHdsClient
     }
     catch (IOException e) {
       log.error("Failed to read response entity: {}", e.getMessage(), e);
-      throw new BadGatewayException("Failed to read response entity received from Sonatype Data Services, please " + 
+      throw new BadGatewayException("Failed to read response entity received from Sonatype Data Services, please " +
           "retry in a bit.");
     }
     finally {
@@ -398,24 +492,36 @@ public class DefaultHdsClient
 
   @Override
   public void post(String path, HttpEntity httpEntity, String clientUserAgent) {
+    post(retryCreator.apply(path), path, httpEntity, clientUserAgent);
+  }
+
+  @Override
+  public void post(Retry retry, String path, HttpEntity httpEntity, String clientUserAgent) {
     HttpPost cloudReq = createPostRequest(buildUri(path), null, clientUserAgent);
     cloudReq.setEntity(httpEntity);
-    execute(cloudReq, null);
+    execute(retry, cloudReq, null);
   }
 
   @Override
   public <T> T post(Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) {
-    return post(null /* analytics */, clazz, path, null /* clientUserAgent */, jsonSerializableObject, uriParams);
+    return post(retryCreator.apply(path), clazz, path, jsonSerializableObject, uriParams);
+  }
+
+  @Override
+  public <T> T post(Retry retry, Class<T> clazz, String path, Object jsonSerializableObject, String... uriParams) {
+    return post(retry, null /* analytics */, clazz, path, null /* clientUserAgent */, jsonSerializableObject,
+        uriParams);
   }
 
   private HttpGet createGetRequest(String url, HdsClientAnalytics analytics, String clientUserAgent) {
     return createGetRequest(url, analytics, null, clientUserAgent);
   }
 
-  private HttpGet createGetRequest(String url,
-                                   HdsClientAnalytics analytics,
-                                   HttpServletRequest request,
-                                   String clientUserAgent)
+  private HttpGet createGetRequest(
+      String url,
+      HdsClientAnalytics analytics,
+      HttpServletRequest request,
+      String clientUserAgent)
   {
     HttpGet cloudReq = new HttpGet(url);
     populateRequest(request, cloudReq, analytics);
@@ -424,12 +530,27 @@ public class DefaultHdsClient
   }
 
   @Override
-  public <T> T post(HdsClientAnalytics analytics,
-                    Class<T> clazz,
-                    String path,
-                    final String clientUserAgent,
-                    Object jsonSerializableObject,
-                    String... uriParams)
+  public <T> T post(
+      HdsClientAnalytics analytics,
+      Class<T> clazz,
+      String path,
+      final String clientUserAgent,
+      Object jsonSerializableObject,
+      String... uriParams)
+  {
+    return post(retryCreator.apply(path), analytics, clazz, path, clientUserAgent, jsonSerializableObject,
+        uriParams);
+  }
+
+  @Override
+  public <T> T post(
+      Retry retry,
+      HdsClientAnalytics analytics,
+      Class<T> clazz,
+      String path,
+      final String clientUserAgent,
+      Object jsonSerializableObject,
+      String... uriParams)
   {
     HttpPost cloudReq = createPostRequest(buildUri(path, uriParams), analytics, clientUserAgent);
     HttpEntity entity;
@@ -442,7 +563,7 @@ public class DefaultHdsClient
     cloudReq.setEntity(entity);
     cloudReq.setHeader(HttpHeaders.ACCEPT, "application/json");
 
-    return execute(cloudReq, clazz);
+    return execute(retry, cloudReq, clazz);
   }
 
   private HttpPut createPutRequest(String url, HdsClientAnalytics analytics, String clientUserAgent) {
@@ -462,25 +583,50 @@ public class DefaultHdsClient
       Map<String, String> queryParams,
       String... uriParams) throws IOException
   {
+    return put(retryCreator.apply(path), analytics, clazz, clientUserAgent, path, uploadFile, queryParams,
+        uriParams);
+  }
+
+  @Override
+  public <T> T put(
+      Retry retry,
+      HdsClientAnalytics analytics,
+      Class<T> clazz,
+      String clientUserAgent,
+      String path,
+      File uploadFile,
+      Map<String, String> queryParams,
+      String... uriParams) throws IOException
+  {
     if (!uploadFile.exists()) {
       throw new FileNotFoundException(uploadFile.getAbsolutePath());
     }
 
     HttpPut cloudReq = createPutRequest(buildUri(null, path, queryParams, uriParams), analytics, clientUserAgent);
     cloudReq.setEntity(new FileEntity(uploadFile, ContentType.DEFAULT_BINARY));
-    return execute(cloudReq, clazz);
+    return execute(retry, cloudReq, clazz);
   }
 
-  private HttpResponse execute(HttpUriRequest request) {
-    log.debug("Starting request: {} {}", request.getMethod(), request.getURI());
+  // Visible for testing
+  HttpResponse execute(Retry retry, HttpUriRequest request) {
+    AtomicInteger retryCount = new AtomicInteger();
+    return retry.executeSupplier(() -> execute(request, retryCount.getAndIncrement()));
+  }
+
+  private HttpResponse execute(HttpUriRequest request, int retryCount) {
+    HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request);
+    if (retryCount > 0) {
+      wrapper.setURI(UriBuilder.fromUri(request.getURI()).queryParam("retryCount", retryCount).build());
+    }
+    log.debug("Starting request: {} {}", wrapper.getMethod(), wrapper.getURI());
     long start = System.currentTimeMillis();
     StatusLine statusLine = null;
     String requestId = null;
+    HttpResponse response;
     try {
-      HttpResponse response = client.execute(request);
+      response = getResponse(wrapper);
       requestId = getRequestId(response);
       statusLine = response.getStatusLine();
-      return response;
     }
     catch (HttpHostConnectException e) {
       throw new GatewayTimeoutException(e.getMessage(), e);
@@ -501,10 +647,16 @@ public class DefaultHdsClient
       log.debug("Completed request{} in {} ms. {}", formatRequestId(" %s", requestId),
           System.currentTimeMillis() - start, statusLine != null ? statusLine.getStatusCode() : "");
     }
+    throwErrorIfNeeded(response);
+    return response;
   }
 
-  private <T> T execute(HttpUriRequest request, Class<T> clazz) {
-    HttpResponse response = execute(request);
+  public HttpResponse getResponse(HttpUriRequest request) throws IOException {
+    return client.execute(request);
+  }
+
+  private <T> T execute(Retry retry, HttpUriRequest request, Class<T> clazz) {
+    HttpResponse response = execute(retry, request);
     return fromHttpResponse(response, clazz);
   }
 
@@ -540,7 +692,7 @@ public class DefaultHdsClient
 
   private void populateRequest(final HttpServletRequest orig, HttpUriRequest req, HdsClientAnalytics analytics) {
     if (orig != null) {
-      for (Enumeration<String> e = orig.getHeaderNames(); e.hasMoreElements();) {
+      for (Enumeration<String> e = orig.getHeaderNames(); e.hasMoreElements(); ) {
         String headerName = e.nextElement();
         if (!HttpHeaders.CONNECTION.equalsIgnoreCase(headerName) && !HttpHeaders.HOST.equalsIgnoreCase(headerName)
             && !HttpHeaders.ACCEPT_ENCODING.equalsIgnoreCase(headerName)

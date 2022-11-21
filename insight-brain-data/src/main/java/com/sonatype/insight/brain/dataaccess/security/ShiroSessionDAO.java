@@ -20,6 +20,8 @@ import org.apache.shiro.session.Session;
 import org.apache.shiro.session.UnknownSessionException;
 import org.apache.shiro.session.mgt.SimpleSession;
 import org.apache.shiro.session.mgt.eis.AbstractSessionDAO;
+import org.keycloak.adapters.saml.SamlSessionStore;
+import org.keycloak.adapters.saml.SamlSessionStore.CurrentAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,8 +56,7 @@ public class ShiroSessionDAO
     PersistedUserSession persistedUserSession = new PersistedUserSession((SimpleSession) session);
     persistedUserSessionDAO.insert(persistedUserSession);
     ((SimpleSession) session).setId(persistedUserSession.getId());
-    SESSION_CACHE
-        .put(session.getId(), new SessionAndStoredJson((SimpleSession) session, persistedUserSession.getSessionJson()));
+    cacheSession(session, persistedUserSession);
     return session.getId();
   }
 
@@ -67,14 +68,13 @@ public class ShiroSessionDAO
             CACHE_DURATION.toMillis()) {
       return cachedSession.getSession();
     }
-    SESSION_CACHE.remove(sessionId);
+    uncacheSession(sessionId);
     PersistedUserSession persistedUserSession = persistedUserSessionDAO.getById(sessionId.toString());
     if (persistedUserSession == null) {
       return null;
     }
     Session session = getSessionOrDeleteIfUnknown(persistedUserSession);
-    SESSION_CACHE
-        .put(sessionId, new SessionAndStoredJson((SimpleSession) session, persistedUserSession.getSessionJson()));
+    cacheSession(session, persistedUserSession);
     return session;
   }
 
@@ -94,11 +94,12 @@ public class ShiroSessionDAO
     }
     catch (EntityNotFoundException e) {
       // The session may have been deleted on another node e.g. if the user was deleted
-      SESSION_CACHE.remove(session.getId());
       throw new UnknownSessionException("There is no session with id [" + session.getId() + "]", e);
     }
-    SESSION_CACHE
-        .put(session.getId(), new SessionAndStoredJson((SimpleSession) session, persistedUserSession.getSessionJson()));
+    finally {
+      uncacheSession(session.getId());
+    }
+    cacheSession(session, persistedUserSession);
   }
 
   private boolean isOnlyLastAccessTimeUpdate(SimpleSession session, String storedSessionJson) {
@@ -125,8 +126,23 @@ public class ShiroSessionDAO
   public void deleteById(Serializable id) {
     if (id != null) {
       persistedUserSessionDAO.deleteById(id.toString());
-      SESSION_CACHE.remove(id);
+      uncacheSession(id);
     }
+  }
+
+  private void cacheSession(Session session, PersistedUserSession persistedUserSession) {
+    // Do not cache a SAML user session as they log in/out to avoid infinite redirect loops in a multi-node setup
+    // see https://issues.sonatype.org/browse/CLM-23061 for more details
+    Object samlCurrentAction = session.getAttribute(SamlSessionStore.CURRENT_ACTION);
+    if (samlCurrentAction != null && samlCurrentAction != CurrentAction.NONE) {
+      return;
+    }
+    SESSION_CACHE
+        .put(session.getId(), new SessionAndStoredJson((SimpleSession) session, persistedUserSession.getSessionJson()));
+  }
+
+  private void uncacheSession(Serializable id) {
+    SESSION_CACHE.remove(id);
   }
 
   @Override

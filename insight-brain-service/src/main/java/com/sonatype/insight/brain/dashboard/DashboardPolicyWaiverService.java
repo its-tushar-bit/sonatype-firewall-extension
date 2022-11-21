@@ -12,13 +12,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -33,8 +32,11 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.organization.OrganizationService;
+import com.sonatype.insight.brain.repository.RepositoryService;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -60,6 +62,8 @@ public class DashboardPolicyWaiverService
 
   private final OrganizationDAO organizationDAO;
 
+  private final RepositoryService repositoryService;
+
   @Inject
   public DashboardPolicyWaiverService(
       DashboardUtils dashboardUtils,
@@ -67,7 +71,8 @@ public class DashboardPolicyWaiverService
       OrganizationService organizationService,
       PolicyDAO policyDAO,
       PolicyWaiverDAO policyWaiverDAO,
-      OrganizationDAO organizationDAO)
+      OrganizationDAO organizationDAO,
+      RepositoryService repositoryService)
   {
     this.dashboardUtils = dashboardUtils;
     this.applicationService = applicationService;
@@ -75,6 +80,7 @@ public class DashboardPolicyWaiverService
     this.policyDAO = policyDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.organizationDAO = organizationDAO;
+    this.repositoryService = repositoryService;
   }
 
   public DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaivers(final RisksFilterDTO risksFilterDTO) {
@@ -106,7 +112,7 @@ public class DashboardPolicyWaiverService
     // Verify orderBy early to prevent costly operations if it fails
     DashboardPolicyWaiverDTOComparator dashboardPolicyWaiverDTOComparator = verifyOrderByAndBuildComparator(orderBy);
 
-    Map<String, Owner> owners = getOwners(organizationIds, applicationIds, tagIds);
+    Map<String, Owner> owners = getOwners(organizationIds, applicationIds, tagIds, risksFilterDTO.repositoryIds);
     Map<String, Policy> filteredPoliciesById = getFilteredPoliciesById(policyThreatCategories, policyThreatLevelRange);
     DashboardPolicyWaiverDTOAdapter dtoAdapter =
         new DashboardPolicyWaiverDTOAdapter(filteredPoliciesById, owners, includeDetails);
@@ -117,7 +123,9 @@ public class DashboardPolicyWaiverService
 
     List<DashboardPolicyWaiverDTO> filteredWaiverDTOs = new ArrayList<>();
     for (Policy policy : filteredPoliciesById.values()) {
-      List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByPolicyId(policy.getId());
+      List<PolicyWaiver> policyWaivers = expirationDate.equals(ALL) ?
+          policyWaiverDAO.getByPolicyId(policy.getId())
+          : policyWaiverDAO.getActiveByPolicyId(policy.getId());
       List<DashboardPolicyWaiverDTO> partialDTOs =
           filterPolicyWaiversAndBuildDTOs(policyWaivers, filteringPredicate, dtoAdapter);
       filteredWaiverDTOs.addAll(partialDTOs);
@@ -143,70 +151,71 @@ public class DashboardPolicyWaiverService
   }
 
   private Map<String, Owner> getOwners(
-      final Set<String> organizationIds, final Set<String> applicationIds, final Set<String> tagIds)
+      final Set<String> organizationIds,
+      final Set<String> applicationIds,
+      final Set<String> tagIds,
+      final Set<String> repositoryIds)
   {
     Map<String, Owner> owners = new HashMap<>();
+    BooleanSupplier isOwnerFilterSpecified = () ->
+        CollectionUtils.isEmpty(organizationIds)
+          && CollectionUtils.isEmpty(applicationIds)
+          && CollectionUtils.isEmpty(tagIds)
+          && CollectionUtils.isEmpty(repositoryIds);
     Collector<Owner, ?, Map<String, Owner>> ownerCollector =
-        Collectors.toMap(Owner::getId, Function.identity(), (owner1, owner2) -> owner1);
-
-    final Map<String, Owner> allOrganizations = organizationDAO.getAll().stream().collect(ownerCollector);
-
-    Runnable setAuditData = () -> {
-      AuditData.get().setData("filteredOwnersCount", owners.size());
-      log.debug("getDashboardPolicyWaivers: Found {} owners to filter policy waivers", owners.size());
-    };
-
-    if (CollectionUtils.isEmpty(organizationIds)
-        && CollectionUtils.isEmpty(applicationIds)
-        && CollectionUtils.isEmpty(tagIds)) {
-      List<Application> applications = applicationService.getApplications();
-      owners.putAll(applications.stream().collect(ownerCollector));
-      owners.putAll(getAllOrganizationsForFilteredApplications(ownerCollector, allOrganizations, applications));
-      includeRootOrgInOwnersIfApplicable(owners, allOrganizations);
-
-      setAuditData.run();
-
-      return owners;
-    }
-
-    Predicate<Owner> filterOrgsById = (Owner organization) -> organizationIds.contains(organization.getId());
+        Collectors.toMap(Owner::getId, Function.identity(), (existing, replacement) -> existing);
 
     List<Application> applications = Collections.emptyList();
-    if (!CollectionUtils.isEmpty(applicationIds) || !CollectionUtils.isEmpty(tagIds)) {
-      applications = applicationService
-          .getApplicationsByIdsAndOrganizationIdsAndTagIds(null, applicationIds, tagIds);
+    Set<Organization> parentOrganizationsOfApplications = Collections.emptySet();
+    List<Organization> selectedOrganizations = Collections.emptyList();
+    Set<Repository> repositories = Collections.emptySet();
+
+    if (isOwnerFilterSpecified.getAsBoolean()) {
+      // no filters specified, add everything by default
+      applications = applicationService.getOwnerApplicationsByIdsOrTagIds(applicationIds, tagIds);
+      parentOrganizationsOfApplications = applicationService.getParentOrganizationsForApplicationsNoAuthz(applications);
+      repositories = repositoryService.getRepositoriesByIds(repositoryIds);
+    }
+    else {
+      // certain filters specified in the request.
+      if (CollectionUtils.isNotEmpty(applicationIds) || CollectionUtils.isNotEmpty(tagIds)) {
+        applications = applicationService.getOwnerApplicationsByIdsOrTagIds(applicationIds, tagIds);
+        parentOrganizationsOfApplications =
+            applicationService.getParentOrganizationsForApplicationsNoAuthz(applications);
+      }
+
+      if (CollectionUtils.isNotEmpty(organizationIds)) {
+        // check with authz when specific org ids are provided.
+        selectedOrganizations = organizationService.getAll()
+            .stream()
+            .filter(organization -> organizationIds.contains(organization.getId()))
+            .collect(Collectors.toList());
+      }
+
+      if (CollectionUtils.isNotEmpty(repositoryIds)) {
+        repositories = repositoryService.getRepositoriesByIds(repositoryIds);
+      }
     }
 
-    if (!applications.isEmpty()) {
-      owners.putAll(applications.stream().collect(ownerCollector));
-      owners.putAll(getAllOrganizationsForFilteredApplications(ownerCollector, allOrganizations, applications));
-    }
-    if (!CollectionUtils.isEmpty(organizationIds)) {
-      owners.putAll(organizationService.getAll().stream().filter(filterOrgsById).collect(ownerCollector));
-    }
-    includeRootOrgInOwnersIfApplicable(owners, allOrganizations);
+    owners.putAll(applications.stream().collect(ownerCollector));
+    owners.putAll(parentOrganizationsOfApplications.stream().collect(ownerCollector));
+    owners.putAll(selectedOrganizations.stream().collect(ownerCollector));
+    owners.putAll(repositories.stream().collect(ownerCollector));
 
-    setAuditData.run();
+    // add repo container if there is at least one repo
+    if (!repositories.isEmpty()) {
+      owners.put(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON);
+    }
+
+    // include root org if there is at least one entry in the owners
+    if (!owners.isEmpty()) {
+      owners.put(Organization.ROOT_ORGANIZATION_ID, organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID));
+    }
+
+    AuditData.get().setData("filteredOwnersCount", owners.size());
+    log.debug("getDashboardPolicyWaivers: Found {} owners to filter policy waivers", owners.size());
 
     return owners;
-  }
-
-  private void includeRootOrgInOwnersIfApplicable(
-      final Map<String, Owner> owners,
-      final Map<String, Owner> allOrganizations)
-  {
-    if (!owners.isEmpty()) {
-      owners.put(Organization.ROOT_ORGANIZATION_ID, allOrganizations.get(Organization.ROOT_ORGANIZATION_ID));
-    }
-  }
-
-  private Map<String, Owner> getAllOrganizationsForFilteredApplications(
-      final Collector<Owner, ?, Map<String, Owner>> ownerCollector,
-      final Map<String, Owner> allOrganizations,
-      final List<Application> applications)
-  {
-    return applications.stream().map(application -> allOrganizations.get(application.getOrganizationId()))
-        .filter(Objects::nonNull).collect(ownerCollector);
   }
 
   private Map<String, Policy> getFilteredPoliciesById(

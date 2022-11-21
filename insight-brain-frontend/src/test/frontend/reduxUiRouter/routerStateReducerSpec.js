@@ -58,10 +58,8 @@ describe('routerStateReducer', function () {
           fromParams: { timeFilterFeature: undefined },
           toState: {
             $$state: function () {},
-            controller: 'componentController',
             data: { crumb: 'Component Details' },
             name: 'dashboard.component',
-            templateUrl: 'dashboard/component.html?1511889593717',
             url: '/component/{hash}',
           },
           toParams: { hash: '964cd74171f427720480' },

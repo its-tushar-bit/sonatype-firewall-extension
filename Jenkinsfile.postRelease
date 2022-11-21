@@ -11,6 +11,10 @@ properties([
     ])
 ])
 
+def getShortVersion(version) {
+  return version.split('-')[0]
+}
+
 pipeline {
   agent { label InsightConstants.AGENT_LABEL }
   options {
@@ -20,7 +24,8 @@ pipeline {
     stage('Update IQ Server Test Instance') {
       steps {
         script {
-          String fullImage = "${sonatypeDockerRegistryId()}/sonatype/nexus-iq-server:${params.releaseVersion}"
+          String version = getShortVersion("${params.releaseVersion}")
+          String fullImage = "${sonatypeDockerRegistryId()}/sonatype/nexus-iq-server:${version}"
           String targetImage = "${sonatypeDockerRegistryId()}/iq/staging:${params.releaseVersion}"
 
          build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging',
@@ -44,7 +49,8 @@ pipeline {
     stage('Update IQ Server Production Instance') {
       steps {
         script {
-          String fullImage = "${sonatypeDockerRegistryId()}/sonatype/nexus-iq-server:${params.releaseVersion}"
+          String version = getShortVersion("${params.releaseVersion}")
+          String fullImage = "${sonatypeDockerRegistryId()}/sonatype/nexus-iq-server:${version}"
           String targetImage = "${sonatypeDockerRegistryId()}/iq/prod:${params.releaseVersion}"
 
           build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/production',

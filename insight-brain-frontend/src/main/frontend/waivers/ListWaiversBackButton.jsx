@@ -18,17 +18,34 @@ export default function ListWaiversBackButton(props) {
     scanId,
     publicId,
     previousRouterStateNameForComponentDetails,
+    prevParams,
   } = props;
 
   const componentDetailsPropsPresent = hash && scanId && publicId && previousRouterStateNameForComponentDetails;
 
   const uiRouterState = useRouterState();
 
-  const backButtonTitle = componentDetailsPropsPresent ? 'Back to Component Details' : 'Back to Violation Details';
+  let backButtonTitle;
+  let backButtonHref;
 
-  const backButtonHref = componentDetailsPropsPresent
-    ? uiRouterState.href(previousRouterStateNameForComponentDetails, { hash, scanId, publicId })
-    : uiRouterState.href('sidebarView.violation', { id: violationId, type, sidebarReference });
+  if (componentDetailsPropsPresent) {
+    backButtonTitle = 'Back to Component Details';
+    backButtonHref = uiRouterState.href(previousRouterStateNameForComponentDetails, { hash, scanId, publicId });
+  } else {
+    if (previousRouterStateNameForComponentDetails === 'firewall.componentDetailsPage.violations') {
+      backButtonTitle = 'Back to Component Details';
+      backButtonHref = uiRouterState.href('firewall.componentDetailsPage', {
+        repositoryId: prevParams.repositoryId,
+        componentIdentifier: prevParams.componentIdentifier,
+        componentHash: prevParams.componentHash,
+        matchState: prevParams.matchState,
+        pathname: prevParams.pathname,
+      });
+    } else {
+      backButtonTitle = 'Back to Violation Details';
+      backButtonHref = uiRouterState.href('sidebarView.violation', { id: violationId, type, sidebarReference });
+    }
+  }
 
   return <MenuBarBackButton text={backButtonTitle} href={backButtonHref} />;
 }
@@ -41,4 +58,11 @@ ListWaiversBackButton.propTypes = {
   scanId: PropTypes.string,
   publicId: PropTypes.string,
   previousRouterStateNameForComponentDetails: PropTypes.string,
+  prevParams: PropTypes.shape({
+    repositoryId: PropTypes.string,
+    componentIdentifier: PropTypes.string,
+    componentHash: PropTypes.string,
+    matchState: PropTypes.string,
+    pathname: PropTypes.string,
+  }),
 };

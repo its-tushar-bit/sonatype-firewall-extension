@@ -434,14 +434,10 @@ public class DbMigrationCommandTest
     databaseDir.mkdirs();
 
     try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
-        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class,
-            CALLS_REAL_METHODS)) {
+        CALLS_REAL_METHODS)) {
       DatabaseProvisionUtils.initializeDatabases(insightConfig, new DatabaseConfigProvider(insightConfig));
 
-      clusterLock.verify(ClusterLock::createForSchemaMigration);
-      clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress);
       databaseUtils.verify(() -> DatabaseProvisionUtils.doMigrateDatabases(insightConfig));
-      clusterLock.verify(ClusterLock::deleteForSchemaMigrationInProgress);
     }
   }
 
@@ -452,14 +448,10 @@ public class DbMigrationCommandTest
     databaseDir.mkdirs();
 
     try (MockedStatic<DatabaseProvisionUtils> databaseUtils = mockStatic(DatabaseProvisionUtils.class,
-        CALLS_REAL_METHODS); MockedStatic<ClusterLock> clusterLock = mockStatic(ClusterLock.class,
-            CALLS_REAL_METHODS)) {
+        CALLS_REAL_METHODS)) {
       DatabaseProvisionUtils.initializeDatabases(insightConfig, new DatabaseConfigProvider(insightConfig));
 
-      clusterLock.verify(ClusterLock::createForSchemaMigration);
-      clusterLock.verify(ClusterLock::createForSchemaMigrationInProgress);
       databaseUtils.verify(() -> DatabaseProvisionUtils.doMigrateDatabases(insightConfig));
-      clusterLock.verify(ClusterLock::deleteForSchemaMigrationInProgress);
     }
   }
 

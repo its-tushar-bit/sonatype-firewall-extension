@@ -727,7 +727,7 @@ public class TemporaryEntity
         PR_LINE_COMMENTING, ENABLE_UNAUTHENTICATED_PAGES, INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS,
         MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, SCHEMA_MIGRATION_ENABLED, API_PAGE,
         BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX, BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL, BFS_COMPONENT_QUERY_LIMIT,
-        BFS_REPOSITORIES, SUPPORT_CLUSTER_LOG_FILE_REGEX
+        BFS_REPOSITORIES, SUPPORT_CLUSTER_LOG_FILE_REGEX, SCAN_POM_FILES_IN_META_INF_DIRECTORY
     };
     for (String name : names) {
       SystemConfigurationProperty property = systemConfigurationPropertyDAO.getByName(name);
@@ -986,6 +986,10 @@ public class TemporaryEntity
 
   public void register(SourceControlPullRequestResult... sourceControlPullRequestResults) {
     Collections.addAll(this.sourceControlPullRequestResults, sourceControlPullRequestResults);
+  }
+
+  public void register(VulnerabilityGroup... vulnerabilityGroup) {
+    Collections.addAll(this.vulnerabilityGroups, vulnerabilityGroup);
   }
 
   public Application newApplicationWithParent() {

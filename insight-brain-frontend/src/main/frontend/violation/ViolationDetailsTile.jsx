@@ -8,7 +8,8 @@ import * as PropTypes from 'prop-types';
 import { compose, keys, map, max, prop, reduce, values } from 'ramda';
 import classnames from 'classnames';
 import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/util/threatLevels';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxStatefulSegmentedButton, NxButton, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
+import { faEye } from '@fortawesome/pro-solid-svg-icons';
 
 import ViolationExclamation from '../react/ViolationExclamation';
 import { timeAgo } from '../utilAngular/CommonServices';
@@ -16,7 +17,6 @@ import { capitalizeFirstLetter } from '../util/jsUtil';
 import { getOwnerImageUrl } from '../utilAngular/CLMContextLocation';
 import ViolationDetailsSubtitle from './ViolationDetailsSubtitle';
 import StageDisplay from './StageDisplay';
-import { faEye } from '@fortawesome/pro-solid-svg-icons/faEye';
 import ActiveWaiversIndicator from './ActiveWaiversIndicator';
 
 const ownerIdTypeMap = {
@@ -34,37 +34,41 @@ export default function ViolationDetailsTile(props) {
       goToWaivers,
       selectedViolationId,
       isFromPolicyViolations,
-      isPolicyPopoverShown,
+      isFirewallContext,
       policyDetail,
+      selectPolicyId,
+      onGoToFirewallWaiversPage,
+      hasPermissionForAppWaivers,
     } = props,
-    applicationPublicId = isPolicyPopoverShown ? null : violationDetails.applicationPublicId,
-    policyName = isPolicyPopoverShown ? policyDetail.policyName : violationDetails.policyName,
-    policyExists = isPolicyPopoverShown ? policyDetail.policyOwner.ownerId : !!violationDetails.policyOwner.ownerId,
-    threatLevel = isPolicyPopoverShown ? policyDetail.policyThreatLevel : violationDetails.threatLevel,
-    stageData = isPolicyPopoverShown
+    applicationPublicId = isFirewallContext ? null : violationDetails.applicationPublicId,
+    policyName = isFirewallContext ? policyDetail.policyName : violationDetails.policyName,
+    policyExists = isFirewallContext ? policyDetail.policyOwner.ownerId : !!violationDetails.policyOwner.ownerId,
+    threatLevel = isFirewallContext ? policyDetail.policyThreatLevel : violationDetails.threatLevel,
+    selectedId = isFirewallContext ? selectPolicyId : selectedViolationId,
+    stageData = isFirewallContext
       ? { release: { mostRecentEvaluationTime: policyDetail.lastReported } }
       : violationDetails.stageData,
-    policyOwner = isPolicyPopoverShown ? policyDetail.policyOwner : violationDetails.policyOwner,
+    policyOwner = isFirewallContext ? policyDetail.policyOwner : violationDetails.policyOwner,
     threatLevelCategory =
-      categoryByPolicyThreatLevel[isPolicyPopoverShown ? policyDetail.policyThreatLevel : violationDetails.threatLevel],
+      categoryByPolicyThreatLevel[isFirewallContext ? policyDetail.policyThreatLevel : violationDetails.threatLevel],
     threatLevelClassName = classnames(
       'iq-read-only-data',
       'iq-threat-level',
       `iq-threat-level--${threatLevelCategory}`
     ),
     parseISODate = (time) => new Date(time),
-    openTime = timeAgo(parseISODate(isPolicyPopoverShown ? null : violationDetails.openTime)),
+    openTime = timeAgo(parseISODate(isFirewallContext ? null : violationDetails.openTime)),
     parseRecentEvaluationTimes = compose(parseISODate, prop('mostRecentEvaluationTime')),
     mostRecentEvaluationTimes = map(
       parseRecentEvaluationTimes,
-      values(isPolicyPopoverShown ? stageData : violationDetails.stageData)
+      values(isFirewallContext ? stageData : violationDetails.stageData)
     ),
     mostRecentEvaluationTimestamp = reduce(max, 0, mostRecentEvaluationTimes),
     mostRecentEvaluationTime = timeAgo(mostRecentEvaluationTimestamp),
     // pair each possible stage type with its respective (optional) data from the backend
     stageDisplayData = map(
       (stageType) => [stageType, stageData[stageType.stageTypeId]],
-      isPolicyPopoverShown ? '' : stageTypes
+      isFirewallContext ? '' : stageTypes
     ),
     createStageDisplay = ([stageType, stageData]) => (
       <dd className="iq-read-only-data" key={stageType.stageTypeId}>
@@ -73,20 +77,49 @@ export default function ViolationDetailsTile(props) {
     ),
     onManageWaiversClick = () => {
       if (isFromPolicyViolations) {
-        goToWaivers(selectedViolationId);
+        isFirewallContext ? onGoToFirewallWaiversPage(selectedId) : goToWaivers(selectedId);
       } else {
         stateGo('listWaivers', {
-          violationId: selectedViolationId,
+          violationId: selectedId,
           type: $state.params.type,
           sidebarReference: $state.params.sidebarReference,
         });
       }
     },
-    manageWaiversButton = (
-      <NxButton id="violation-page-manage-waivers" variant="tertiary" onClick={onManageWaiversClick}>
+    // Manage waivers buttons
+    redirectToAddWaiverPage = () => {
+      if (hasPermissionForAppWaivers) {
+        stateGo('addWaiver', { violationId: selectedViolationId });
+      }
+    },
+    redirectToRequestWaiverPage = () => stateGo('requestWaiver', { violationId: selectedViolationId }),
+    manageWaiversButton = isFirewallContext ? (
+      <NxButton id="violation-page-add-waiver" variant="tertiary" onClick={onManageWaiversClick}>
         <NxFontAwesomeIcon icon={faEye} />
         <span>Manage Waivers</span>
       </NxButton>
+    ) : (
+      <NxStatefulSegmentedButton
+        id="violation-page-manage-waivers"
+        variant="tertiary"
+        onClick={onManageWaiversClick}
+        buttonContent="Manage Waivers"
+      >
+        <div>
+          <NxTooltip title={hasPermissionForAppWaivers ? '' : 'Insufficient permissions to Add Waiver'} placement="top">
+            <button
+              id="violation-page-add-waiver"
+              className={classnames('nx-dropdown-button', { disabled: !hasPermissionForAppWaivers })}
+              onClick={redirectToAddWaiverPage}
+            >
+              Add Waiver
+            </button>
+          </NxTooltip>
+        </div>
+        <button id="violation-page-request-waiver" className="nx-dropdown-button" onClick={redirectToRequestWaiverPage}>
+          Request Waiver
+        </button>
+      </NxStatefulSegmentedButton>
     );
 
   function getOwnerHref(owner) {
@@ -140,13 +173,13 @@ export default function ViolationDetailsTile(props) {
         })}
       >
         {headerMainTitle()}
-        {!isPolicyPopoverShown && <ViolationDetailsSubtitle {...violationDetails} />}
+        {!isFirewallContext && <ViolationDetailsSubtitle {...violationDetails} />}
         {policyExists && (
           <Fragment>
             <div className="nx-tile__actions">{manageWaiversButton}</div>
             <ActiveWaiversIndicator
               activeWaiverCount={activeWaivers.length}
-              waived={isPolicyPopoverShown ? null : violationDetails.waived}
+              waived={isFirewallContext ? null : violationDetails.waived}
               showUnapplied={isFromPolicyViolations}
             />
           </Fragment>
@@ -162,11 +195,11 @@ export default function ViolationDetailsTile(props) {
             <dt>Policy Type</dt>
             <dd className="iq-read-only-data">
               {capitalizeFirstLetter(
-                isPolicyPopoverShown ? policyDetail.policyThreatCategory : violationDetails.policyThreatCategory
+                isFirewallContext ? policyDetail.policyThreatCategory : violationDetails.policyThreatCategory
               )}
             </dd>
           </div>
-          {isPolicyPopoverShown ? null : (
+          {isFirewallContext ? null : (
             <div className="iq-violation-details__first-reported">
               <dt>First Reported</dt>
               <dd className="iq-read-only-data">
@@ -182,7 +215,7 @@ export default function ViolationDetailsTile(props) {
           </div>
         </dl>
         <dl className={secondFormGroupClasses}>
-          {isPolicyPopoverShown ? null : (
+          {isFirewallContext ? null : (
             <div className="iq-violation-details__stages">
               <dt>Stages</dt>
               {map(createStageDisplay, stageDisplayData)}
@@ -265,6 +298,9 @@ ViolationDetailsTile.propTypes = {
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(applicableWaiverPropTypes)),
   goToWaivers: PropTypes.func.isRequired,
   isFromPolicyViolations: PropTypes.bool,
-  isPolicyPopoverShown: PropTypes.bool.isRequired,
+  isFirewallContext: PropTypes.bool,
   policyDetail: PropTypes.object,
+  selectPolicyId: PropTypes.string,
+  onGoToFirewallWaiversPage: PropTypes.func.isRequired,
+  hasPermissionForAppWaivers: PropTypes.bool,
 };

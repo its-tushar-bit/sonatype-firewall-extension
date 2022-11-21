@@ -7,6 +7,7 @@ import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
+import { convertToWaiverViolationFormat } from '../util/waiverUtils';
 import {
   getFirewallConfigurationUrl,
   getFirewallQuarantineListUrl,
@@ -21,10 +22,12 @@ import {
   getLicenseOverrideUrl,
   getLicensesWithSyntheticFilterUrl,
   getComponentWaivers,
+  getRepositoryPolicyViolationUrl,
   getReevaluateComponentUrl,
 } from '../util/CLMLocation';
 import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
+import { actions as componentDetailsLicenseDetectionsTileActions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
 import { selectHash, selectRepositoryId } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';
@@ -165,6 +168,20 @@ export const loadExistingWaiversDataFulfilled = payloadParamActionCreator(
   FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FULFILLED
 );
 export const loadExistingWaiversDataFailed = payloadParamActionCreator(FIREWALL_LOAD_EXISTING_WAIVERS_DATA_FAILED);
+
+export const FIREWALL_SHOW_MANAGE_WAIVER_PAGE = 'FIREWALL_SHOW_MANAGE_WAIVER_PAGE';
+
+const isShowManageWaiverPage = payloadParamActionCreator(FIREWALL_SHOW_MANAGE_WAIVER_PAGE);
+
+export const FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED = 'FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED';
+export const FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED = 'FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED';
+export const FIREWALL_LOAD_VIOLATION_DETAIL_FAILED = 'FIREWALL_LOAD_VIOLATION_DETAIL_FAILED';
+
+export const loadViolationDetailRequested = noPayloadActionCreator(FIREWALL_LOAD_VIOLATION_DETAIL_REQUESTED);
+export const loadViolationDetailFulfilled = payloadParamActionCreator(FIREWALL_LOAD_VIOLATION_DETAIL_FULFILLED);
+export const loadViolationDetailFailed = payloadParamActionCreator(FIREWALL_LOAD_VIOLATION_DETAIL_FAILED);
+
+export const FIREWALL_SET_SHOW_WAIVER_MODAL = 'FIREWALL_SET_SHOW_WAIVER_MODAL';
 
 export const FIREWALL_REEVALUATE_COMPONENT_REQUESTED = 'FIREWALL_REEVALUATE_COMPONENT_REQUESTED';
 export const FIREWALL_REEVALUATE_COMPONENT_FULFILLED = 'FIREWALL_REEVALUATE_COMPONENT_FULFILLED';
@@ -519,6 +536,34 @@ export function onComponentDetailsPageTabChange(tabId) {
   };
 }
 
+export function onGoToFirewallWaiversPage(policyViolationId) {
+  return (dispatch, getState) => {
+    const componentHash = selectHash(getState());
+    const repositoryId = selectRepositoryId(getState());
+    dispatch(
+      stateGo('firewall.violationWaivers', {
+        hash: componentHash,
+        violationId: policyViolationId,
+        repositoryPolicyId: repositoryId,
+      })
+    );
+    dispatch(isShowManageWaiverPage(true));
+  };
+}
+
+export const loadFirewallViolationDetails = (policyViolationId) => (dispatch, getState) => {
+  dispatch(loadViolationDetailRequested());
+  const repositoryId = selectRepositoryId(getState());
+  return axios
+    .get(getRepositoryPolicyViolationUrl(repositoryId, policyViolationId))
+    .then(({ data }) => {
+      const convertData = convertToWaiverViolationFormat(data);
+      dispatch(loadViolationDetailFulfilled(convertData));
+    })
+    .catch((error) => {
+      dispatch(loadViolationDetailFailed(Messages.getHttpErrorMessage(error)));
+    });
+};
 export function loadComponentLicenses(repositoryId, componentIdentifier) {
   return (dispatch) => {
     dispatch(loadComponentLicensesRequested());
@@ -543,15 +588,18 @@ export function loadComponentLicenses(repositoryId, componentIdentifier) {
             data: { licenseOverridesByOwner: overridenLicensesData },
           },
         ]) => {
-          dispatch(
-            loadComponentLicensesFulfilled({
-              ...multiLicensesData,
-              licenseOverride: overridenLicensesData,
-              allLicenses: allLicensesData.map(({ id, shortDisplayName }) => ({ id, displayName: shortDisplayName })),
-            })
-          );
+          const licensesData = {
+            ...multiLicensesData,
+            licenseOverride: overridenLicensesData,
+            allLicenses: allLicensesData.map(({ id, shortDisplayName }) => ({ id, displayName: shortDisplayName })),
+          };
+
+          dispatch(loadComponentLicensesFulfilled(licensesData));
+          dispatch(componentDetailsLicenseDetectionsTileActions.load.fulfilled(licensesData));
         }
       )
-      .catch((error) => dispatch(loadComponentLicensesFailed(Messages.getHttpErrorMessage(error))));
+      .catch((error) => {
+        return dispatch(loadComponentLicensesFailed(Messages.getHttpErrorMessage(error)));
+      });
   };
 }

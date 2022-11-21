@@ -6,15 +6,15 @@
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
 
 properties(
-  [
-    parameters (
-      [
-        booleanParam(name: 'hotfix', defaultValue: 'false', description: 'Check if this IQ Release is intended to be a hotfix e.g. urgent release to fix a severe bug. (Used for internal metrics only.)'),
-        string (name: 'releaseVersion', defaultValue: '',description: 'The version number for the product, like "1.118.0-01"'),
-        run(name:'snapshotBuild', filter: 'STABLE', projectName: 'insight/insight-brain/master-snapshot', description: 'The snapshot build to release from.')
-      ]
-    )
-  ]
+    [
+        parameters (
+            [
+                booleanParam(name: 'hotfix', defaultValue: 'false', description: 'Check if this IQ Release is intended to be a hotfix e.g. urgent release to fix a severe bug. (Used for internal metrics only.)'),
+                string (name: 'releaseVersion', defaultValue: '',description: 'The version number for the product, like "1.118.0-01"'),
+                run(name:'snapshotBuild', filter: 'STABLE', projectName: 'insight/insight-brain/master-snapshot', description: 'The snapshot build to release from.')
+            ]
+        )
+    ]
 )
 
 pipeline {
@@ -30,49 +30,41 @@ pipeline {
     stage('Send Release Starting Notification') {
       steps {
         build(job: 'insight/insight-brain/Release Starting',
-          parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+              parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
     stage('Stage Release Binaries') {
       steps {
         build(job: 'insight/insight-brain/release',
-            parameters: [ booleanParam(name: 'hotfix', value: params.hotfix),
-                          string(name: 'version', value: params.releaseVersion),
-                          run(name: 'snapshotBuild', runId: "insight/insight-brain/master-snapshot#${env.snapshotBuild_NUMBER}")])
+              parameters: [ booleanParam(name: 'hotfix', value: params.hotfix),
+                            string(name: 'version', value: params.releaseVersion),
+                            run(name: 'snapshotBuild', runId: "insight/insight-brain/master-snapshot#${env.snapshotBuild_NUMBER}")])
       }
     }
     stage('Release Jira Version - IQ') {
       steps {
         build(job: 'insight/insight-brain/Release JIRA Version',
-          parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+              parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
     stage('Release Jira Version - Integrations') {
       steps {
         build(job: 'integrations/Set Jira Fix Version/',
-          parameters: [string(name: 'prefix', value: 'brain'), string(name: 'version', value: env.minorVersion)])
+              parameters: [string(name: 'prefix', value: 'brain'), string(name: 'version', value: env.minorVersion)])
       }
     }
     stage('Deploy Binaries to Staging') {
       steps {
-        build(
-          job: 'insight/insight-brain/deploy',
-          parameters: [
-            string(name: 'environment', value: 'Staging'),
-            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, env.snapshotBuild_NUMBER)}")
-          ]
-        )
+        build(job: 'insight/insight-brain/deploy',
+              parameters: [ string(name: 'environment', value: 'Staging'),
+                            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, env.snapshotBuild_NUMBER)}")])
       }
     }
     stage('Deploy Binaries to Production') {
       steps {
-        build(
-          job: 'insight/insight-brain/deploy',
-          parameters: [
-            string(name: 'environment', value: 'Production'),
-            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, env.snapshotBuild_NUMBER)}")
-          ]
-        )
+        build(job: 'insight/insight-brain/deploy',
+              parameters: [ string(name: 'environment', value: 'Production'),
+                            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, env.snapshotBuild_NUMBER)}")])
       }
     }
     stage('Publish Release Notes & Documentation') {
@@ -83,54 +75,49 @@ pipeline {
     stage('Create Product Notification') {
       steps {
         build(job: 'insight/insight-brain/Update Product Notifications',
-          parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+              parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
     stage('Deploy Product Notification to Staging') {
       steps {
         build(job: 'insight/hosted-data-services/Sync Product Notifications',
-          parameters: [string(name: 'ENVIRONMENT', value: 'staging')])
+              parameters: [string(name: 'ENVIRONMENT', value: 'staging')])
       }
     }
     stage('Deploy Product Notification to Production') {
       steps {
         build(job: 'insight/hosted-data-services/Sync Product Notifications',
-          parameters: [string(name: 'ENVIRONMENT', value: 'production')])
+              parameters: [string(name: 'ENVIRONMENT', value: 'production')])
       }
     }
     stage('Send Policy Results') {
       steps {
         build(job: 'insight/insight-brain/Send Policy Results',
-          parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+              parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
     stage('Publish Docker Image') {
       steps {
-        build(
-            job: 'insight/insight-brain/docker/docker-nexus-iq-server',
-            parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, env.snapshotBuild_NUMBER)}")]
-        )
+        build(job: 'insight/insight-brain/docker/docker-nexus-iq-server',
+              parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, env.snapshotBuild_NUMBER)}")])
       }
     }
     stage('Publish CloudFormation Templates') {
       steps {
-        build(
-            job: 'integrations/cloud/nexus-iq-ha-reference',
-            parameters: [
-                run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, env.snapshotBuild_NUMBER)}")
-            ]
-        )
+        build(job: 'integrations/cloud/nexus-iq-ha-reference',
+              parameters: [ run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, env.snapshotBuild_NUMBER)}")])
       }
     }
     stage('Send Release Complete Notifications') {
       steps {
         build(job: 'insight/insight-brain/Release Notification',
-          parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+              parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
     stage('Trigger Post-Release Build') {
       steps {
-        build(job: 'insight/insight-brain/post-release', propagate: false,
+        build(job: 'insight/insight-brain/post-release',
+              propagate: false,
               parameters: [string(name: 'releaseVersion', value: params.releaseVersion)])
       }
     }

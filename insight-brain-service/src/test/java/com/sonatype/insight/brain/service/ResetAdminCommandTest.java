@@ -43,7 +43,7 @@ public class ResetAdminCommandTest
     insightConfig = new InsightConfig();
     insightConfig.setSonatypeWork(temporaryFolder.newFolder().getAbsolutePath());
     OperationalDataStoreProvider
-        .initWithoutMigration(new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods));
+        .init(new DatabaseConfigProvider(insightConfig).getDatabaseConfig(DatabaseName.ods), true);
     userDAO = new UserDAO();
     membershipMappingDAO = new MembershipMappingDAO();
   }

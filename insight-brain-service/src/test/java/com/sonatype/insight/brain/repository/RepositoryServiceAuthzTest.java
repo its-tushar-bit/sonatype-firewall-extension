@@ -5,8 +5,13 @@
  */
 package com.sonatype.insight.brain.repository;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
-
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -325,6 +330,72 @@ public class RepositoryServiceAuthzTest
     login();
     RepositoriesDTO repositories = repositoryService.getRepositories();
     assertThat(repositories.repositories).isNull();
+  }
+
+  @Test
+  public void testGetRepositoriesWithReadPermission_Unauthorized() {
+    createRepository();
+    login();
+    List<Repository> repositories = repositoryService.getRepositoriesWithReadPermission();
+    assertThat(repositories).isEmpty();
+  }
+
+  @Test
+  public void testGetRepositoriesWithReadPermission_Unauthenticated() {
+    createRepository();
+    List<Repository> repositories = repositoryService.getRepositoriesWithReadPermission();
+    assertThat(repositories).isEmpty();
+  }
+
+  @Test
+  public void testGetRepositoriesWithReadPermission() {
+    Repository repository = createRepository();
+    Repository repository2 = tempEntity.newRepository();
+
+    grantReadPermission(repository.getId());
+    List<Repository> repositories = repositoryService.getRepositoriesWithReadPermission();
+
+    assertThat(repositories)
+        .as("Read permission given for only one of the repositories.")
+        .hasSize(1);
+    assertThat(repositories.get(0).getId()).isEqualTo(repository.getId());
+
+    grantReadPermission(repository2.getId());
+    repositories = repositoryService.getRepositoriesWithReadPermission();
+    assertThat(repositories).hasSize(2);
+  }
+
+  @Test
+  public void testGetRepositoriesByIds_Unauthorized() {
+    Repository repo = createRepository();
+    login();
+    Set<Repository> repositories = repositoryService.getRepositoriesByIds(Collections.singleton(repo.getId()));
+    assertThat(repositories).isEmpty();
+  }
+
+  @Test
+  public void testGetRepositoriesByIds_Unauthenticated() {
+    Repository repo = createRepository();
+    Set<Repository> repositories = repositoryService.getRepositoriesByIds(Collections.singleton(repo.getId()));
+    assertThat(repositories).isEmpty();
+  }
+
+  @Test
+  public void testGetRepositoriesByIds() {
+    Repository repo = createRepository();
+    Repository repo2 = tempEntity.newRepository();
+
+    grantReadPermission(repo.getId());
+    Set<Repository> repositories = repositoryService.getRepositoriesByIds(Collections.singleton(repo.getId()));
+
+    assertThat(repositories)
+        .as("Read permission given for only one of the repositories.")
+        .hasSize(1);
+    assertThat(new ArrayList<>(repositories).get(0).getId()).isEqualTo(repo.getId());
+
+    grantReadPermission(repo2.getId());
+    repositories = repositoryService.getRepositoriesByIds(new HashSet<>(Arrays.asList(repo.getId(), repo2.getId())));
+    assertThat(repositories).hasSize(2);
   }
 
   @Test

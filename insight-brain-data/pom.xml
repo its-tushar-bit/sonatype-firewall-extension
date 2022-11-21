@@ -10,7 +10,7 @@
   <parent>
     <groupId>com.sonatype.insight.brain</groupId>
     <artifactId>insight-brain</artifactId>
-    <version>1.148.0-SNAPSHOT</version>
+    <version>1.150.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>insight-brain-data</artifactId>
@@ -162,6 +162,10 @@
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-saml-servlet-filter-adapter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
     </dependency>
   </dependencies>
 

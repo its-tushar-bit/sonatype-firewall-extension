@@ -17,17 +17,21 @@ import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 @Named
 public class PolicyEvaluationPollingResultUtils
 {
-  private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
+  private final DefaultPolicyEvaluateService defaultPolicyEvaluateService;
 
   private final ErrorResponseGenerator errorResponseGenerator;
 
+  private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
+
   @Inject
   public PolicyEvaluationPollingResultUtils(
-      PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
-      ErrorResponseGenerator errorResponseGenerator)
+      DefaultPolicyEvaluateService defaultPolicyEvaluateService,
+      ErrorResponseGenerator errorResponseGenerator,
+      PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO)
   {
-    this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
+    this.defaultPolicyEvaluateService = defaultPolicyEvaluateService;
     this.errorResponseGenerator = errorResponseGenerator;
+    this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
   }
 
   public PolicyEvaluationPollingResult handleException(String appId, String statusId, Exception e) {
@@ -35,7 +39,7 @@ public class PolicyEvaluationPollingResultUtils
       String errorMessage = errorResponseGenerator.mapExceptionAndLog(e).getMessageBody();
 
       PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
-          persistedPolicyEvaluationPollingResultDAO.getByApplicationIdAndStatusId(appId, statusId);
+            defaultPolicyEvaluateService.createPersistedPolicyEvaluationPollingResultIfNeeded(appId, statusId);
       PolicyEvaluationPollingResult policyEvaluationPollingResult =
           persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
 

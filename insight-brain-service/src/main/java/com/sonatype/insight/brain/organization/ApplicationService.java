@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.organization;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,7 +16,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -28,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventFinder;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -45,6 +48,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -206,6 +210,34 @@ public class ApplicationService
 
   public List<Application> getByPublicIdsNoAuthz(Set<String> applicationPublicIds) {
     return applicationDAO.getByPublicIds(applicationPublicIds);
+  }
+
+  public Set<Organization> getParentOrganizationsForApplicationsNoAuthz(final List<Application> applications) {
+    if (CollectionUtils.isEmpty(applications)) {
+      return Collections.emptySet();
+    }
+
+    /*
+     * We are using DAO call to get all orgs since it is possible
+     * that a user might not have permission for the parent org of given application.
+     * However, we still want to show waivers being applied to that parent org
+     * as they will also apply to given child application.
+     * */
+    final Map<String, Organization> allOrganizations = organizationDAO.getAll()
+        .stream()
+        .collect(Collectors.toMap(Organization::getId, Function.identity()));
+
+    return applications
+        .stream()
+        .map(application -> allOrganizations.get(application.getOrganizationId()))
+        .collect(Collectors.toSet());
+  }
+
+  public List<Application> getOwnerApplicationsByIdsOrTagIds(
+      final Set<String> applicationIds,
+      final Set<String> tagIds)
+  {
+    return getApplicationsByIdsAndOrganizationIdsAndTagIds(null, applicationIds, tagIds);
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)

@@ -7,6 +7,7 @@ import { shallow } from 'enzyme';
 import React from 'react';
 import configureStore from 'redux-mock-store';
 import ListWaiversPage from '../../../main/frontend/waivers/ListWaiversPage';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('ListWaiversPageContainer', function () {
   let ListWaiversPageContainer, loadManageWaiversDataMock, setWaiverToDeleteMock, store, state, vdom;
@@ -44,7 +45,14 @@ describe('ListWaiversPageContainer', function () {
       deleteWaiver: {
         waiverToDelete: { waiverId: 'foo' },
       },
+      firewall: {
+        componentDetailsPage: {
+          showManageWaiverPage: false,
+        },
+      },
     };
+
+    spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
 
     store = configureStore()(() => state);
     vdom = <ListWaiversPageContainer store={store} />;
@@ -81,6 +89,7 @@ describe('ListWaiversPageContainer', function () {
     expect(wrapper).toHaveProp('loadManageWaiversDataError', null);
     expect(wrapper).toHaveProp('hasPermissionForAppWaivers', true);
     expect(wrapper).toHaveProp('waiverToDelete', { waiverId: 'foo' });
+    expect(wrapper).toHaveProp('showManageWaiverPage', false);
   });
 
   it('maps action creators to props', function () {

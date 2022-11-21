@@ -473,6 +473,47 @@ public class ViolationDetailsTest
   }
 
   @Test
+  public void testGoDirectlyToRequestWaiver() {
+    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
+
+    detailsTile.manageWaiversDropdownToggle().shouldBe(visible);
+    detailsTile.manageWaiversDropdownToggle().click();
+
+    detailsTile.requestWaiverDropdownButton().shouldBe(visible);
+    detailsTile.requestWaiverDropdownButton().click();
+
+    RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
+
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Group1 : Artifact1 : Version1"));
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Policy 1"));
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));
+    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("sonatype-2017-0507"));
+    requestWaiverPage.requestWaiverPolicyViolationId().shouldHave(text(securityPolicyViolation.getId()));
+  }
+
+  @Test
+  public void testGoDirectlyToAddWaiver() {
+    refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(securityPolicyViolation.getId(), "violation", "filter"));
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    ViolationDetailsTile detailsTile = violationDetailsPage.detailsTile();
+
+    detailsTile.manageWaiversDropdownToggle().shouldBe(visible);
+    detailsTile.manageWaiversDropdownToggle().click();
+
+    detailsTile.addWaiverDropdownButton().shouldBe(visible);
+    detailsTile.addWaiverDropdownButton().click();
+
+    waitUntilUrl(AddWaiverPage.url(securityPolicyViolation.getId()));
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+
+    addWaiverPage.artifactName().shouldHave(text("Artifact1"));
+    addWaiverPage.policyName().shouldHave(text("Policy 1"));
+    addWaiverPage.constraintName().shouldHave(text("Test Constraint"));
+  }
+
+  @Test
   public void testWaivedIndicator() {
     // Set up a waiver
     List<ConstraintFact> constraintFacts = otherPolicyViolation.getConstraintFacts();

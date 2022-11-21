@@ -12,7 +12,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -64,18 +63,5 @@ public class PolicyThreatCategoryFilter
 
   public Set<PolicyThreatCategory> getPolicyThreatCategories() {
     return policyThreatCategories;
-  }
-
-  /**
-   * Transforms this predicate into one that applies the same filtering to policy violations.
-   */
-  public Predicate<AbstractPolicyViolation> asPolicyViolationPredicate() {
-    return new Predicate<AbstractPolicyViolation>()
-    {
-      @Override
-      public boolean test(AbstractPolicyViolation policyViolation) {
-        return PolicyThreatCategoryFilter.this.test(policyViolation.getThreatCategory());
-      }
-    };
   }
 }

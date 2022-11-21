@@ -997,4 +997,12 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getComponentPolicyViolationsUrl('pathname', 'repositoryId')).toEqual(expectedUrl);
     });
   });
+
+  describe('getRepositoryPolicyViolationUrl', () => {
+    it('should return a URL with proper repositoryId and repositoryPolicyId', () => {
+      expect(CLMLocation.getRepositoryPolicyViolationUrl('repositoryId', 'repositoryPolicyId')).toBe(
+        '/rest/repositories/repositoryId/policyViolation/repositoryPolicyId'
+      );
+    });
+  });
 });

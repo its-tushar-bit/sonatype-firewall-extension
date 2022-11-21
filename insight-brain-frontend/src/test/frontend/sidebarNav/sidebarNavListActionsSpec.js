@@ -114,7 +114,7 @@ describe('sidebarNavListActions', function () {
           })
         )
         .then(() => {
-          expect(DashboardFilterActions.loadFilter).toHaveBeenCalledWith('violations');
+          expect(DashboardFilterActions.loadFilter).toHaveBeenCalledWith('violations', true);
           expect(store.getActions()[2].type).toEqual(LOAD_SIDEBAR_NAV_LIST_FULFILLED);
           expect(store.getActions()[2].payload).toEqual({
             data: { foo: 'bar' },
@@ -138,7 +138,7 @@ describe('sidebarNavListActions', function () {
           })
         )
         .then(() => {
-          expect(DashboardFilterActions.loadFilter).toHaveBeenCalledWith('waivers');
+          expect(DashboardFilterActions.loadFilter).toHaveBeenCalledWith('waivers', true);
           expect(store.getActions()[2].type).toEqual(LOAD_SIDEBAR_NAV_LIST_FULFILLED);
           expect(store.getActions()[2].payload).toEqual({
             data: { foo: 'bar' },
@@ -170,7 +170,7 @@ describe('sidebarNavListActions', function () {
           done();
         });
 
-      expect(DashboardFilterActions.loadFilter).toHaveBeenCalledWith('violations');
+      expect(DashboardFilterActions.loadFilter).toHaveBeenCalledWith('violations', true);
     });
 
     it('dispatches LOAD_SIDEBAR_NAV_LIST_FAILED if an unknown sidebarReference is passed in', function () {

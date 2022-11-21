@@ -19,13 +19,15 @@ describe('ViolationPage', function () {
     stateGoSpy,
     getShallowComponent,
     getMountedComponent,
-    loadFirewallPolicyVulnerabilityDetailsSpy;
+    loadFirewallPolicyVulnerabilityDetailsSpy,
+    loadFirewallViolationDetailsSpy;
 
   beforeEach(function () {
     loadViolationSpy = jasmine.createSpy('loadViolation');
     fetchStageTypesSpy = jasmine.createSpy('fetchStageTypes');
     stateGoSpy = jasmine.createSpy('stateGo');
     loadFirewallPolicyVulnerabilityDetailsSpy = jasmine.createSpy('loadFirewallPolicyVulnerabilityDetails');
+    loadFirewallViolationDetailsSpy = jasmine.createSpy('loadFirewallViolationDetails');
 
     minimalProps = {
       $state: {
@@ -41,7 +43,7 @@ describe('ViolationPage', function () {
       fetchStageTypes: fetchStageTypesSpy,
       stateGo: stateGoSpy,
       loading: false,
-      isPolicyPopoverShown: false,
+      isFirewallContext: false,
       refId: { value: 'CVE-2012-2098' },
       policyDetail: {
         policyViolationId: '02a6107559a94c39b04d4ec8374b9508',
@@ -160,6 +162,8 @@ describe('ViolationPage', function () {
       ],
       selectPolicyId: '02a6107559a94c39b04d4ec8374b9508',
       loadFirewallPolicyVulnerabilityDetails: loadFirewallPolicyVulnerabilityDetailsSpy,
+      loadFirewallViolationDetails: loadFirewallViolationDetailsSpy,
+      hasPermissionForAppWaivers: true,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ViolationPage, minimalProps);
@@ -189,7 +193,7 @@ describe('ViolationPage', function () {
     expect(getLoadWrapper({ violationDetailsError: 'foo', stageTypesError: 'bar' })).toHaveProp('error', 'foo');
   });
 
-  it("sets the LoadWrapper's retryHandler to a function that calls loadViolation and fetchStateTypes", function () {
+  it("sets the LoadWrapper's retryHandler to a function that calls loadViolation, fetchStateTypes and loadAddWaiverPermission", function () {
     const loadWrapper = getShallowComponent().find(LoadWrapper),
       retryHandler = loadWrapper.prop('retryHandler');
 
@@ -202,7 +206,7 @@ describe('ViolationPage', function () {
     expect(fetchStageTypesSpy).toHaveBeenCalledWith('dashboard');
   });
 
-  it('calls loadViolation with the $state id param, and fetchStageTypes with the `dashboard` param, on first load', function () {
+  it('calls loadViolation with the $state id param, fetchStageTypes with the `dashboard` param and loadAddWaiverPermission on first load', function () {
     getMountedComponent();
 
     expect(loadViolationSpy).toHaveBeenCalledWith('foo');
@@ -225,7 +229,7 @@ describe('ViolationPage', function () {
 
     expect(loadFirewallPolicyVulnerabilityDetailsSpy).not.toHaveBeenCalledWith('CVE-2012-2098');
 
-    component.setProps({ isPolicyPopoverShown: true });
+    component.setProps({ isFirewallContext: true });
 
     expect(loadFirewallPolicyVulnerabilityDetailsSpy).toHaveBeenCalledWith('CVE-2012-2098');
   });
@@ -246,19 +250,19 @@ describe('ViolationPage', function () {
     expect(tile.prop('$state')).toBe(minimalProps.$state);
     expect(tile.prop('violationDetails')).toBe(violationDetails);
     expect(tile.prop('stageTypes')).toBe(stageTypes);
-    expect(tile.prop('isPolicyPopoverShown')).toBe(minimalProps.isPolicyPopoverShown);
+    expect(tile.prop('isFirewallContext')).toBe(minimalProps.isFirewallContext);
     expect(tile.prop('policyViolations')).toBe(minimalProps.policyViolations);
     expect(tile.prop('selectPolicyId')).toBe(minimalProps.selectPolicyId);
     expect(tile.prop('policyDetail')).toEqual(minimalProps.policyDetail);
   });
 
   it('renders a PolicyViolationConstraintInfoTile within the LoadWrapper with correct props', function () {
-    const violationDetails = { constraintViolations: 'constraintViolations', isPolicyPopoverShown: false };
+    const violationDetails = { constraintViolations: 'constraintViolations', isFirewallContext: false };
     const tile = getShallowComponent({ violationDetails }).find(LoadWrapper).find(PolicyViolationConstraintInfoTile);
 
     expect(tile).toExist();
     expect(tile.prop('constraintViolations')).toBe('constraintViolations');
-    expect(tile.prop('isPolicyPopoverShown')).toBe(false);
+    expect(tile.prop('isFirewallContext')).toBe(false);
   });
 
   it("renders a SecurityVulnerabilityDetailsTile with correct props if it's a security vulnerability", function () {
@@ -309,5 +313,11 @@ describe('ViolationPage', function () {
       .find(SecurityVulnerabilityDetailsTile);
 
     expect(tile).not.toExist();
+  });
+
+  it('calls loadFirewallViolationDetails with params', function () {
+    const component = getMountedComponent();
+    component.setProps({ isFirewallContext: true });
+    expect(loadFirewallViolationDetailsSpy).toHaveBeenCalledWith('02a6107559a94c39b04d4ec8374b9508');
   });
 });

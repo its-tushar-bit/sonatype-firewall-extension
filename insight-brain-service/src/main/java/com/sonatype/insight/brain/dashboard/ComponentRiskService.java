@@ -12,7 +12,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -132,11 +131,9 @@ public class ComponentRiskService
 
     log.debug("Loaded {} applications", applications.size());
     Set<StageType> stageTypes = dashboardUtils.getStageTypes(stageIds);
-    Predicate<? super PolicyViolation> filter = dashboardUtils.buildViolationFilter(policyThreatCategoryFilter,
-        policyThreatLevelFilter, policyViolationStateFilter);
 
-    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, stageTypes, false, filter,
-        policyThreatLevelFilter, policyThreatCategoryFilter);
+    Collection<ApplicationView> appViews = policyViolationLoader.getViolations(applications, stageTypes, false,
+        policyThreatLevelFilter, policyThreatCategoryFilter, policyViolationStateFilter);
 
     List<PolicyViolationDTO> policyViolationDTOs = new ArrayList<>();
 

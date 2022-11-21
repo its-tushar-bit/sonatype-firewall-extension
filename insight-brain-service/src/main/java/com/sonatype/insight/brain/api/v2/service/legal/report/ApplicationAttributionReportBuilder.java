@@ -121,11 +121,17 @@ public class ApplicationAttributionReportBuilder
     validateReportParameters(reportParameters);
     Map<String, Application> applicationMap =
         applicationsAuthz.stream().collect(Collectors.toMap(Application::getPublicId, Function.identity()));
-    Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOSet = applicationsAndStages.stream()
-        .map(applicationReportDTO -> apiLicenseLegalService.getLicenseLegalApplicationReportNoException(
-            applicationMap.get(applicationReportDTO.applicationPublicId), applicationReportDTO.stageTypeName,
-            reportParameters.isIncludeInnerSource(), reportParameters.isIncludeSonatypeSpecialLicenses()))
-        .collect(Collectors.toSet());
+
+    List<Owner> applications = new ArrayList<>();
+    List<String> stageIds = new ArrayList<>();
+    for (AttributionReportApplicationDTO report : applicationsAndStages) {
+      applications.add(applicationMap.get(report.applicationPublicId));
+      stageIds.add(report.stageTypeName);
+    }
+    Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOSet = apiLicenseLegalService
+        .getLicenseLegalMultiApplicationReport(applications, stageIds, reportParameters.isIncludeInnerSource(),
+            reportParameters.isIncludeSonatypeSpecialLicenses());
+
     ApiLicenseLegalApplicationReportDTO applicationReportDTO =
         mergeApplicationReports(applicationReportDTOSet, applicationPublicIds);
     Map<String, Object> contextMap = buildContextMap(null, applicationReportDTO, reportParameters);
@@ -137,10 +143,10 @@ public class ApplicationAttributionReportBuilder
   {
     validateReportParameters(reportParameters);
 
-    UserFilterDTO filterDto = new UserFilterDTO();
+    UserFilterDTO filterDto;
     Set<String> stagesFilter = new HashSet<>();
-    List<Application> applicationsAuthz = new ArrayList<>();
-    Set<AttributionReportApplicationDTO> applicationsAndStages = new HashSet<>();
+    List<Application> applicationsAuthz;
+    Set<AttributionReportApplicationDTO> applicationsAndStages;
     Set<String> applicationIds = new LinkedHashSet<>();
 
     try {
@@ -173,11 +179,15 @@ public class ApplicationAttributionReportBuilder
       Map<String, Application> applicationMap =
           applicationsAuthz.stream().collect(Collectors.toMap(Application::getId, Function.identity()));
 
-      Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOSet = applicationsAndStages.stream()
-          .map(applicationReportDTO -> apiLicenseLegalService.getLicenseLegalApplicationReportNoException(
-              applicationMap.get(applicationReportDTO.applicationId), applicationReportDTO.stageTypeName,
-              reportParameters.isIncludeInnerSource(), reportParameters.isIncludeSonatypeSpecialLicenses()))
-          .collect(Collectors.toSet());
+      List<Owner> applications = new ArrayList<>();
+      List<String> stageIds = new ArrayList<>();
+      for (AttributionReportApplicationDTO report : applicationsAndStages) {
+        applications.add(applicationMap.get(report.applicationId));
+        stageIds.add(report.stageTypeName);
+      }
+      Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOSet = apiLicenseLegalService
+          .getLicenseLegalMultiApplicationReport(applications, stageIds, reportParameters.isIncludeInnerSource(),
+              reportParameters.isIncludeSonatypeSpecialLicenses());
 
       ApiLicenseLegalApplicationReportDTO applicationReportDTO =
           mergeApplicationReports(applicationReportDTOSet, applicationIds);

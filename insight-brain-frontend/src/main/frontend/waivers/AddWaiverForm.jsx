@@ -234,7 +234,7 @@ export default function AddWaiverForm(props) {
                 key={id}
                 onChange={handleScopeChange}
               >
-                {label} - {name}
+                {label === 'Repository_container' ? name : `${label} - ${name}`}
               </NxRadio>
             ))}
         </NxFieldset>

@@ -27,6 +27,9 @@ import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationR
 import { pathSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { isOverriddenOrSelected } from '../LegalTabUtils';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
+import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
+import { selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { loadComponentLicenses } from 'MainRoot/firewall/firewallActions';
 
 const REDUCER_NAME = 'componentDetailsLicenseDetectionsTile';
 
@@ -67,6 +70,13 @@ const startTimerToResetMaskAndReloadTileData = (dispatch) => {
   setTimeout(() => {
     dispatch(actions.resetSubmitMaskState());
     dispatch(actions.load());
+  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+};
+
+const startFirewallTimerToResetMaskAndReloadTileData = (dispatch, repositoryId, componentIdentifier) => {
+  setTimeout(() => {
+    dispatch(actions.resetSubmitMaskState());
+    dispatch(loadComponentLicenses(repositoryId, componentIdentifier));
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 };
 
@@ -215,7 +225,7 @@ const saveEditLicensesForm = createAsyncThunk(
   `${REDUCER_NAME}/saveEditLicensesForm`,
   (_, { getState, dispatch, rejectWithValue }) => {
     const { status, comment, scope, licenseIds } = selectEditLicensesForm(getState());
-    const { componentIdentifier } = selectSelectedComponent(getState());
+    const { isRepositoryComponent, component, componentIdentifier } = getComponentInfo(getState);
     const { ownerType, ownerId } = scope;
     const payloadLicenseIds = isOverriddenOrSelected(status) ? licenseIds : [];
     const url = getBaseLicenseOverrideUrl(ownerType, ownerId),
@@ -223,26 +233,50 @@ const saveEditLicensesForm = createAsyncThunk(
         id: null,
         licenseIds: payloadLicenseIds,
         componentIdentifier,
-        status: status,
+        status,
         comment: comment.value || '',
 
         ownerId,
       };
-
     return axios
       .post(url, payload)
       .then(() => {
-        startTimerToResetMaskAndReloadTileData(dispatch);
+        if (isRepositoryComponent) {
+          startFirewallTimerToResetMaskAndReloadTileData(
+            dispatch,
+            component.repositoryId,
+            component.componentIdentifier
+          );
+        } else {
+          startTimerToResetMaskAndReloadTileData(dispatch);
+        }
       })
-      .catch(rejectWithValue);
+      .catch((error) => {
+        return rejectWithValue(error);
+      });
   }
 );
+
+const getComponentInfo = (getState) => {
+  let componentIdentifier, component;
+  const routeName = selectCurrentRouteName(getState());
+  const isRepositoryComponent = routeName.includes('firewall');
+  if (isRepositoryComponent) {
+    component = selectFirewallComponentDetailsPageRouteParams(getState());
+    componentIdentifier = JSON.parse(component?.componentIdentifier);
+  } else {
+    component = selectSelectedComponent(getState());
+    componentIdentifier = component?.componentIdentifier;
+  }
+  return { isRepositoryComponent, component, componentIdentifier };
+};
 
 const deleteLicenseOverride = createAsyncThunk(
   `${REDUCER_NAME}/deleteLicenseOverride`,
   (_, { getState, dispatch, rejectWithValue }) => {
     const { scope } = selectEditLicensesForm(getState());
     const { ownerType, ownerId, licenseOverride } = scope;
+    const { isRepositoryComponent, component } = getComponentInfo(getState);
 
     if (!licenseOverride) {
       return startTimerToResetMaskAndReloadTileData(dispatch);
@@ -251,9 +285,19 @@ const deleteLicenseOverride = createAsyncThunk(
     return axios
       .delete(getDeleteLicenseOverrideUrl(ownerType, ownerId, licenseOverride.id))
       .then(() => {
-        startTimerToResetMaskAndReloadTileData(dispatch);
+        if (isRepositoryComponent) {
+          startFirewallTimerToResetMaskAndReloadTileData(
+            dispatch,
+            component.repositoryId,
+            component.componentIdentifier
+          );
+        } else {
+          startTimerToResetMaskAndReloadTileData(dispatch);
+        }
       })
-      .catch(rejectWithValue);
+      .catch((error) => {
+        return rejectWithValue(error);
+      });
   }
 );
 

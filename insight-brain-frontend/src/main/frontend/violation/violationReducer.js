@@ -26,6 +26,7 @@ const initialState = Object.freeze({
   activeWaivers: Object.freeze([]),
   expiredWaivers: Object.freeze([]),
   selectedViolationId: null,
+  hasPermissionForAppWaivers: false,
 });
 
 const reducerActionMap = {
@@ -60,6 +61,7 @@ function loadViolationFulfilled(payload, state) {
     ...state,
     loading: false,
     violationDetailsError: null,
+    hasPermissionForAppWaivers: payload,
   };
 }
 

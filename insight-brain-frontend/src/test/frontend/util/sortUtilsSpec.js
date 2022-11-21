@@ -8,11 +8,14 @@ import { map, props } from 'ramda';
 import {
   sortItemsByFields,
   sortItemsByFieldsWithNull,
+  sortWaiversByComponent,
   sortColumn,
   getColumnDirection,
   defaultComparator,
   sortItemsByFieldsWithComparator,
-} from '../../../main/frontend/util/sortUtils';
+} from 'MainRoot/util/sortUtils';
+import { getComponentName, getComponentNameWithoutVersion } from 'MainRoot/util/componentNameUtils';
+import { isWaiverAllVersionsOrExact } from 'MainRoot/util/waiverUtils';
 
 describe('sortUtils specs', function () {
   const input = [
@@ -553,6 +556,267 @@ describe('sortUtils specs', function () {
       const actual = sortItemsByFieldsWithComparator(caseInsensitiveComparator, fields, data);
 
       expect(actual.map((a) => a.value)).toEqual(['a', 'B', 'c', 'D', 'e']);
+    });
+  });
+
+  describe('sortWaiversByComponent', () => {
+    const getComponentNameFromItem = (item) => {
+      return isWaiverAllVersionsOrExact(item)
+        ? item.componentMatchStrategy === 'ALL_VERSIONS'
+          ? `${getComponentNameWithoutVersion(item)} (all versions)`
+          : getComponentName(item)
+        : 'allComponents';
+    };
+    const data = [
+      {
+        createTime: 1667235892412,
+        expiryTime: null,
+        componentMatchStrategy: 'ALL_VERSIONS',
+        displayName: {
+          parts: [
+            {
+              field: 'Group',
+              value: 'aopalliance',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Artifact',
+              value: 'aopalliance',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Version',
+              value: '1.0',
+            },
+          ],
+          name: 'aopalliance',
+        },
+        scope: 'Application - app1',
+      },
+      {
+        createTime: 1667236133684,
+        expiryTime: 1667883599999,
+        componentMatchStrategy: 'ALL_VERSIONS',
+        displayName: {
+          parts: [
+            {
+              field: 'Group',
+              value: 'org.springframework.security',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Artifact',
+              value: 'spring-security-core',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Version',
+              value: '3.2.4.RELEASE',
+            },
+          ],
+          name: 'spring-security-core',
+        },
+        scope: 'Organization - rootorg1',
+      },
+      {
+        createTime: 1667236153015,
+        expiryTime: 1668488399999,
+        componentMatchStrategy: 'EXACT_COMPONENT',
+        displayName: {
+          parts: [
+            {
+              field: 'Group',
+              value: 'org.springframework.security',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Artifact',
+              value: 'spring-security-core',
+            },
+            {
+              value: ' : ',
+            },
+            {
+              field: 'Version',
+              value: '3.2.4.RELEASE',
+            },
+          ],
+          name: 'spring-security-core',
+        },
+        scope: 'Application - app1',
+      },
+      {
+        createTime: 1667235862643,
+        expiryTime: 1675054799999,
+        componentMatchStrategy: 'EXACT_COMPONENT',
+        displayName: {
+          parts: [
+            {
+              field: 'Name',
+              value: 'org.webjars angularjs',
+            },
+            {
+              value: ' ',
+            },
+            {
+              field: 'Version',
+              value: '1.2.16',
+            },
+          ],
+          name: 'org.webjars angularjs',
+        },
+        scope: 'Organization - rootorg1',
+      },
+      {
+        createTime: 1667235851125,
+        expiryTime: null,
+        componentMatchStrategy: 'ALL_VERSIONS',
+        displayName: {
+          parts: [
+            {
+              field: 'Name',
+              value: 'org.webjars angularjs',
+            },
+            {
+              value: ' ',
+            },
+            {
+              field: 'Version',
+              value: '1.2.16',
+            },
+          ],
+          name: 'org.webjars angularjs',
+        },
+        scope: 'Application - app1',
+      },
+      {
+        createTime: 1667236842975,
+        expiryTime: 1669870799999,
+        componentMatchStrategy: 'EXACT_COMPONENT',
+        displayName: {
+          parts: [
+            {
+              field: 'Name',
+              value: 'org.webjars jquery',
+            },
+            {
+              value: ' ',
+            },
+            {
+              field: 'Version',
+              value: '1.10.2',
+            },
+          ],
+          name: 'org.webjars jquery',
+        },
+        scope: 'Application - app1',
+      },
+      {
+        createTime: 1667236885556,
+        expiryTime: 1669957200000,
+        componentMatchStrategy: 'EXACT_COMPONENT',
+        displayName: {
+          parts: [
+            {
+              field: 'Name',
+              value: 'org.webjars jquery',
+            },
+            {
+              value: ' ',
+            },
+            {
+              field: 'Version',
+              value: '1.10.2',
+            },
+          ],
+          name: 'org.webjars jquery',
+        },
+        scope: 'Application - app1',
+      },
+      {
+        createTime: 1667235915879,
+        expiryTime: 1668488399999,
+        componentMatchStrategy: 'ALL_COMPONENTS',
+        displayName: null,
+        scope: 'Organization - rootorg1',
+      },
+      {
+        createTime: 1667235668371,
+        expiryTime: 1675054799999,
+        componentMatchStrategy: 'ALL_COMPONENTS',
+        displayName: null,
+        scope: 'Organization - rootorg1',
+      },
+      {
+        createTime: 1667236066251,
+        expiryTime: null,
+        componentMatchStrategy: 'ALL_COMPONENTS',
+        displayName: null,
+        scope: 'Organization - Root Organization',
+      },
+      {
+        createTime: 1667235648269,
+        expiryTime: 1677646799999,
+        componentMatchStrategy: 'EXACT_COMPONENT',
+        displayName: null,
+        scope: 'Application - app1',
+      },
+      {
+        createTime: 1667235711117,
+        expiryTime: 1677646899999,
+        componentMatchStrategy: 'EXACT_COMPONENT',
+        displayName: null,
+        scope: 'Application - app1',
+      },
+    ].map((item) => ({
+      ...item,
+      componentName: getComponentNameFromItem(item), // add this prop in test just for visualizing results
+    }));
+
+    it('sorts ascending by component and asc by expiryTime by grouping exact and all version first, all components second and unknown third', () => {
+      const actual = sortWaiversByComponent(['component', 'expiryTime'], data);
+      expect(map(props(['componentName', 'expiryTime']))(actual)).toEqual([
+        ['aopalliance : aopalliance (all versions)', null],
+        ['org.springframework.security : spring-security-core (all versions)', 1667883599999],
+        ['org.springframework.security : spring-security-core : 3.2.4.RELEASE', 1668488399999],
+        ['org.webjars angularjs 1.2.16', 1675054799999],
+        ['org.webjars angularjs (all versions)', null],
+        ['org.webjars jquery 1.10.2', 1669870799999],
+        ['org.webjars jquery 1.10.2', 1669957200000],
+        ['allComponents', 1668488399999],
+        ['allComponents', 1675054799999],
+        ['allComponents', null],
+        ['Unknown', 1677646799999],
+        ['Unknown', 1677646899999],
+      ]);
+    });
+
+    it('sorts descending by component and asc by expiryTime by grouping exact and all version first, all components second and unknown third', () => {
+      const actual = sortWaiversByComponent(['-component'], data);
+      expect(map(props(['componentName', 'expiryTime']))(actual)).toEqual([
+        ['org.webjars jquery 1.10.2', 1669870799999],
+        ['org.webjars jquery 1.10.2', 1669957200000],
+        ['org.webjars angularjs 1.2.16', 1675054799999],
+        ['org.webjars angularjs (all versions)', null],
+        ['org.springframework.security : spring-security-core (all versions)', 1667883599999],
+        ['org.springframework.security : spring-security-core : 3.2.4.RELEASE', 1668488399999],
+        ['aopalliance : aopalliance (all versions)', null],
+        ['allComponents', 1668488399999],
+        ['allComponents', 1675054799999],
+        ['allComponents', null],
+        ['Unknown', 1677646799999],
+        ['Unknown', 1677646899999],
+      ]);
     });
   });
 });

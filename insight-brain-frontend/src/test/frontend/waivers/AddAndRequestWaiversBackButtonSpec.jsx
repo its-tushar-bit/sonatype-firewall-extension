@@ -7,6 +7,7 @@ import * as enzymeUtils from '../enzymeUtils';
 import AddAndRequestWaiversBackButton from 'MainRoot/waivers/AddAndRequestWaiversBackButton';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
+import { originNamesForAddRequestPages } from 'MainRoot/util/waiverUtils';
 
 describe('AddAndRequestWaiversBackButtonSpec', function () {
   let minimalProps, getShallowComponent, routerContextMock, hrefSpy;
@@ -23,12 +24,16 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
     };
     hrefSpy = jasmine.createSpy('href').and.callFake((stateName) => {
       let href;
-      if (stateName === 'applicationReport.componentDetails.violations') {
+      if (stateName === originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS) {
         href = 'componentDetailsHref';
-      } else if (stateName === 'applicationReport.violationWaivers') {
+      } else if (stateName === originNamesForAddRequestPages.APP_REPORT_VIOLATION_WAIVERS) {
         href = 'listWaiversComponentDetailsHref';
-      } else if (stateName === 'listWaivers') {
+      } else if (stateName === originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW) {
+        href = 'violationDetailsHref';
+      } else if (stateName === originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION) {
         href = 'listWaiversViolationDetailsHref';
+      } else if (stateName === originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS) {
+        href = 'firewallViolationWaiversHref';
       }
       return href;
     });
@@ -38,50 +43,18 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
     getShallowComponent = enzymeUtils.getShallowComponent(AddAndRequestWaiversBackButton, minimalProps);
   });
 
-  describe('hash, scanId and publicId props are not present', () => {
-    describe('if navigated to Request Waivers Page via copy/pasted shareable URL', () => {
-      it(`renders an MenuBarBackButton with title 'Back to Waivers'
-      and navigates from the Request Waiver Page to Waivers for Violation page`, () => {
-        const component = getShallowComponent({ violationId: 'violationId' });
-
-        expect(routerContext.useRouterState).toHaveBeenCalled();
-        expect(hrefSpy).toHaveBeenCalledWith('listWaivers', {
-          violationId: 'violationId',
-        });
-        expect(component).toMatchSelector(MenuBarBackButton);
-        expect(component).toHaveProp('text', 'Back to Waivers');
-        expect(component).toHaveProp('href', 'listWaiversViolationDetailsHref');
-      });
-    });
-
+  // Navigated from Violation Details Popover (via app report's Component Details)
+  describe('Violation Details Popover params are present (hash, scanId, publicId)', () => {
     describe('if navigated to Request Waivers Page via Waivers for Violation page', () => {
-      it(`renders an MenuBarBackButton with title 'Back to Waivers'
+      it(`renders a MenuBarBackButton with title 'Back to Waivers'
       and navigates from the Request Waiver Page to Waivers for Violation page`, () => {
         const component = getShallowComponent({
-          violationId: 'violationId',
-          prevStateName: 'listWaivers',
-          prevParams: {},
+          ...minimalProps,
+          prevStateName: originNamesForAddRequestPages.APP_REPORT_VIOLATION_WAIVERS,
         });
 
         expect(routerContext.useRouterState).toHaveBeenCalled();
-        expect(hrefSpy).toHaveBeenCalledWith('listWaivers', {
-          violationId: 'violationId',
-        });
-        expect(component).toMatchSelector(MenuBarBackButton);
-        expect(component).toHaveProp('text', 'Back to Waivers');
-        expect(component).toHaveProp('href', 'listWaiversViolationDetailsHref');
-      });
-    });
-  });
-
-  describe('hash, scanId and publicId props are all present', () => {
-    describe('if navigated to Request Waivers Page via Waivers for Violation page', () => {
-      it(`renders an MenuBarBackButton with title 'Back to Waivers'
-      and navigates from the Request Waiver Page to Waivers for Violation page`, () => {
-        const component = getShallowComponent({ ...minimalProps, prevStateName: 'applicationReport.violationWaivers' });
-
-        expect(routerContext.useRouterState).toHaveBeenCalled();
-        expect(hrefSpy).toHaveBeenCalledWith('applicationReport.violationWaivers', {
+        expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.APP_REPORT_VIOLATION_WAIVERS, {
           publicId: 'publicId',
           scanId: 'scanId',
           hash: 'hash',
@@ -93,15 +66,15 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
     });
 
     describe('if navigated to Request Waivers Page via Violation Details Popover/Page', () => {
-      it(`renders an MenuBarBackButton with title 'Back to Component Details'
+      it(`renders a MenuBarBackButton with title 'Back to Component Details'
       and navigates from the Request Waiver Page to Violations Details Popover`, () => {
         const component = getShallowComponent({
           ...minimalProps,
-          prevStateName: 'applicationReport.componentDetails.violations',
+          prevStateName: originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS,
         });
 
         expect(routerContext.useRouterState).toHaveBeenCalled();
-        expect(hrefSpy).toHaveBeenCalledWith('applicationReport.componentDetails.violations', {
+        expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS, {
           publicId: 'publicId',
           scanId: 'scanId',
           hash: 'hash',
@@ -113,14 +86,14 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
     });
 
     describe('if navigated to Request Waivers Page via any other page', () => {
-      it(`renders an MenuBarBackButton with title 'Back to Waivers'
+      it(`renders a MenuBarBackButton with title 'Back to Waivers'
       and navigates from the Request Waiver Page to Waivers for Violation page`, () => {
         const component = getShallowComponent({
           ...minimalProps,
           prevStateName: 'someState',
         });
 
-        expect(hrefSpy).toHaveBeenCalledWith('listWaivers', {
+        expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, {
           violationId: 'violationId',
         });
         expect(component).toMatchSelector(MenuBarBackButton);
@@ -129,7 +102,7 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
       });
     });
 
-    it(`renders an MenuBarBackButton with title 'Back to Waivers'
+    it(`renders a MenuBarBackButton with title 'Back to Waivers'
       and navigates from the Request Waiver Page to Waivers for Violation page
       if prevStateName is not present`, () => {
       const component = getShallowComponent({
@@ -137,7 +110,7 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
         prevStateName: null,
       });
 
-      expect(hrefSpy).toHaveBeenCalledWith('listWaivers', {
+      expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, {
         violationId: 'violationId',
       });
       expect(component).toMatchSelector(MenuBarBackButton);
@@ -146,19 +119,104 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
     });
   });
 
-  it(`renders an MenuBarBackButton with title 'Back to Waivers'
+  // Navigated from Violation Details Page (via Dashboard's Violations tab)
+  describe('Violation Details Page params are present (sidebarReference, type)', () => {
+    describe('if navigated to Request Waivers Page via Waivers for Violation page', () => {
+      it(`renders a MenuBarBackButton with title 'Back to Waivers'
+      and navigates from the Request Waiver Page to Waivers for Violation page`, () => {
+        const component = getShallowComponent({
+          prevParams: {
+            sidebarReference: 'sidebarReference',
+            type: 'type',
+          },
+          prevStateName: originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION,
+        });
+
+        expect(routerContext.useRouterState).toHaveBeenCalled();
+        expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, {
+          sidebarReference: 'sidebarReference',
+          type: 'type',
+        });
+        expect(component).toMatchSelector(MenuBarBackButton);
+        expect(component).toHaveProp('text', 'Back to Waivers');
+        expect(component).toHaveProp('href', 'listWaiversViolationDetailsHref');
+      });
+    });
+
+    describe('if navigated to Request Waivers Page directly from Violation Details Page', () => {
+      it(`renders a MenuBarBackButton with title 'Back to Violation Details'
+      and navigates from the Request Waiver Page to Violations Details Page`, () => {
+        const component = getShallowComponent({
+          prevParams: {
+            sidebarReference: 'sidebarReference',
+            type: 'type',
+          },
+          prevStateName: originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW,
+        });
+
+        expect(routerContext.useRouterState).toHaveBeenCalled();
+        expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW, {
+          sidebarReference: 'sidebarReference',
+          type: 'type',
+        });
+        expect(component).toMatchSelector(MenuBarBackButton);
+        expect(component).toHaveProp('text', 'Back to Violation Details');
+        expect(component).toHaveProp('href', 'violationDetailsHref');
+      });
+    });
+  });
+
+  // Navigated from a shareable link or somewhere else
+  describe('hash, scanId, publicId, sidebarReference, and type are all not present', () => {
+    describe('if navigated to Request Waivers Page via copy/pasted shareable URL', () => {
+      it(`renders a MenuBarBackButton with title 'Back to Waivers'
+      and navigates from the Request Waiver Page to Waivers for Violation page`, () => {
+        const component = getShallowComponent({ violationId: 'violationId' });
+
+        expect(routerContext.useRouterState).toHaveBeenCalled();
+        expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, {
+          violationId: 'violationId',
+        });
+        expect(component).toMatchSelector(MenuBarBackButton);
+        expect(component).toHaveProp('text', 'Back to Waivers');
+        expect(component).toHaveProp('href', 'listWaiversViolationDetailsHref');
+      });
+    });
+
+    describe('if navigated to Request Waivers Page via Waivers for Violation page', () => {
+      it(`renders a MenuBarBackButton with title 'Back to Waivers'
+      and navigates from the Request Waiver Page to Waivers for Violation page`, () => {
+        const component = getShallowComponent({
+          violationId: 'violationId',
+          prevStateName: originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION,
+          prevParams: {},
+        });
+
+        expect(routerContext.useRouterState).toHaveBeenCalled();
+        expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, {
+          violationId: 'violationId',
+        });
+        expect(component).toMatchSelector(MenuBarBackButton);
+        expect(component).toHaveProp('text', 'Back to Waivers');
+        expect(component).toHaveProp('href', 'listWaiversViolationDetailsHref');
+      });
+    });
+  });
+
+  // EXTRA CASES
+  it(`renders a MenuBarBackButton with title 'Back to Waivers'
       and navigates from the Request Waiver Page to Waivers for Violation page
       if hash is not present`, () => {
     const component = getShallowComponent({
       violationId: 'violationId',
-      prevStateName: 'applicationReport.componentDetails.violations',
+      prevStateName: originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS,
       prevParams: {
         publicId: 'publicId',
         scanId: 'scanId',
       },
     });
 
-    expect(hrefSpy).toHaveBeenCalledWith('listWaivers', {
+    expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, {
       violationId: 'violationId',
     });
     expect(component).toMatchSelector(MenuBarBackButton);
@@ -166,19 +224,19 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
     expect(component).toHaveProp('href', 'listWaiversViolationDetailsHref');
   });
 
-  it(`renders an MenuBarBackButton with title 'Back to Waivers'
+  it(`renders a MenuBarBackButton with title 'Back to Waivers'
       and navigates from the Request Waiver Page to Waivers for Violation page
       if scanId is not present`, () => {
     const component = getShallowComponent({
       violationId: 'violationId',
-      prevStateName: 'applicationReport.componentDetails.violations',
+      prevStateName: originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS,
       prevParams: {
         hash: 'hash',
         publicId: 'publicId',
       },
     });
 
-    expect(hrefSpy).toHaveBeenCalledWith('listWaivers', {
+    expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, {
       violationId: 'violationId',
     });
     expect(component).toMatchSelector(MenuBarBackButton);
@@ -186,23 +244,47 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
     expect(component).toHaveProp('href', 'listWaiversViolationDetailsHref');
   });
 
-  it(`renders an MenuBarBackButton with title 'Back to Waivers'
+  it(`renders a MenuBarBackButton with title 'Back to Waivers'
       and navigates from the Request Waiver Page to Waivers for Violation page
       if publicId is not present`, () => {
     const component = getShallowComponent({
       violationId: 'violationId',
-      prevStateName: 'applicationReport.componentDetails.violations',
+      prevStateName: originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS,
       prevParams: {
         hash: 'hash',
         scanId: 'scanId',
       },
     });
 
-    expect(hrefSpy).toHaveBeenCalledWith('listWaivers', {
+    expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, {
       violationId: 'violationId',
     });
     expect(component).toMatchSelector(MenuBarBackButton);
     expect(component).toHaveProp('text', 'Back to Waivers');
     expect(component).toHaveProp('href', 'listWaiversViolationDetailsHref');
+  });
+
+  describe('if navigated to Add Waivers Page via Waivers for Firewall Violation page', () => {
+    it(`renders an MenuBarBackButton with title 'Back to Waivers'
+    and navigates from the Add Waiver Page to Waivers for Firewall Violation page`, () => {
+      const component = getShallowComponent({
+        violationId: 'violationId',
+        prevStateName: originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS,
+        prevParams: {
+          hash: 'hash',
+          repositoryPolicyId: 'repositoryPolicyId',
+        },
+      });
+
+      expect(routerContext.useRouterState).toHaveBeenCalled();
+      expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS, {
+        hash: 'hash',
+        violationId: 'violationId',
+        repositoryPolicyId: 'repositoryPolicyId',
+      });
+      expect(component).toMatchSelector(MenuBarBackButton);
+      expect(component).toHaveProp('text', 'Back to Waivers');
+      expect(component).toHaveProp('href', 'firewallViolationWaiversHref');
+    });
   });
 });

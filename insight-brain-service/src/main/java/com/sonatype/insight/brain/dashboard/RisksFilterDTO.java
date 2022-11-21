@@ -44,5 +44,10 @@ public class RisksFilterDTO
    */
   public ExpirationDate expirationDate = ExpirationDate.ALL;
 
+  /**
+   * @since 1.149
+   */
+  public Set<String> repositoryIds;
+
   public int maxResults = 1000;
 }

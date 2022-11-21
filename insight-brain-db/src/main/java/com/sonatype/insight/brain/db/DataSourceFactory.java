@@ -44,7 +44,7 @@ public class DataSourceFactory
   protected DataSource loadDataSource(DatabaseConfig databaseConfig, String databaseName) {
     DataSource dataSource = super.loadDataSource(databaseConfig, databaseName);
     DatabaseEngine databaseEngine = getDatabaseEngine(dataSource);
-    boolean isNew = populateDatabaseSchema(dataSource, databaseEngine, databaseName);
+    boolean isNew = !DatabaseUtil.schemaExists(dataSource, databaseName);
     logDatabaseSettings(dataSource, databaseEngine);
     newDataSources.put(dataSource, isNew);
 
@@ -70,8 +70,8 @@ public class DataSourceFactory
     throw new DatabaseException("Unsupported database engine: " + databaseProductName);
   }
 
-  boolean isNewDataSource(DataSource dataSource) {
-    return newDataSources.get(dataSource);
+  public static boolean populateDatabaseSchema(DataSource dataSource, String databaseName) {
+    return new DataSourceFactory().populateDatabaseSchema(dataSource, getDatabaseEngine(dataSource), databaseName);
   }
 
   public static boolean hasNewDataSource() {

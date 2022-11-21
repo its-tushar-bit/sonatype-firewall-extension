@@ -84,7 +84,7 @@ public class ApiSourceControlEvaluationService
         application.getName(), sourceControlEvaluationRequest.stageId, sourceControlEvaluationRequest.branchName,
         statusId);
 
-    policyEvaluateService.createPersistedPolicyEvaluationPollingResultIfNeeded(application, statusId);
+    policyEvaluateService.createPersistedPolicyEvaluationPollingResultIfNeeded(applicationId, statusId);
 
     String branchName;
     if (sourceControlEvaluationRequest.branchName != null) {

@@ -212,6 +212,12 @@ public class PolicyWaiverDAO
     return getList(tx, sQuery, policyId);
   }
 
+  public List<PolicyWaiver> getActiveByPolicyId(String policyId) {
+    String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
+        " WHERE entity.policyId=?1 AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)";
+    return getList(sQuery, policyId);
+  }
+
   public List<PolicyWaiver> getByPolicyIdAndOwnerIds(TransactionContext tx, String policyId, Set<String> ownerIds) {
     String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
         " WHERE entity.policyId=?1 AND entity.ownerId IN (?2)";
@@ -323,6 +329,21 @@ public class PolicyWaiverDAO
     }
 
     super.update(tx, entity);
+  }
+
+  /**
+   * This method should only be used when you want to perform update without any validations. Please be very careful
+   * when using this method.
+   *
+   * @deprecated Use {@link #update(TransactionContext, PolicyWaiver)}
+   */
+  @Deprecated
+  public void updateWithNoChecks(PolicyWaiver entity) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      super.update(tx, entity);
+      tx.commit();
+    }
   }
 
   public PolicyWaiver getByIdAndOwnerIdNotNull(String policyWaiverId, String ownerId) {

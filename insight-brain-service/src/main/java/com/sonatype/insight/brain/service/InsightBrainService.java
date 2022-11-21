@@ -99,6 +99,9 @@ public class InsightBrainService
 
   private static final String INSTANCE_ID = UUID.randomUUID().toString();
 
+  // Visible for testing
+  static final String SISU_URL_CACHES = "sisu.url.caches";
+
   private static volatile File configFile;
 
   private static long startTime;
@@ -119,6 +122,14 @@ public class InsightBrainService
       t.printStackTrace();
       log.error(t.getMessage(), t);
       System.exit(2);
+    }
+  }
+
+  // Visible for testing
+  static void setSisuUrlCachesToTrueIfNotSet() {
+    String sisuUrlCaches = System.getProperty(SISU_URL_CACHES);
+    if (sisuUrlCaches == null) {
+      System.setProperty(SISU_URL_CACHES, "true");
     }
   }
 
@@ -146,6 +157,7 @@ public class InsightBrainService
   @Override
   public void run(String... arguments) throws Exception {
     startTime = System.currentTimeMillis();
+    setSisuUrlCachesToTrueIfNotSet();
 
     final Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(this);
     bootstrap.addCommand(new DbMigrationCommand());

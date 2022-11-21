@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
+import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
@@ -154,6 +155,8 @@ public abstract class AbstractBrainServiceTest
 
   @Before
   public void initTest() throws Exception {
+    DefaultHdsClient.waitToCloseOldClients = false;
+
     log.info("Before: {}", testName.getMethodName());
     initHds();
     if (!isTestUsingManualServerInit()) {

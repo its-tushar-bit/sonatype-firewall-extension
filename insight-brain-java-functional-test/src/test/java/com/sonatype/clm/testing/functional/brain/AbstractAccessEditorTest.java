@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
@@ -66,6 +67,30 @@ public abstract class AbstractAccessEditorTest
 
   protected void shouldBeOnInitialPage() {
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
+  }
+
+  @Test
+  public void testUserToolTip() {
+    tempEntity.newUser("Michael-Hammerrin", "Michael", "Hammerrin", "Mike@sonatype.com");
+    goFromSummaryToAddRole();
+    AccessEditorPage accessEditorPage = new AccessEditorPage();
+    AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
+    addMembersForm.searchBox().setValue("Michael*").click();
+    addMembersForm.searchResults().get(0).click();
+    addMembersForm.addedItems().get(0).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("IQ Server Mike@sonatype.com"));
+  }
+
+  @Test
+  public void testUserTooltip_UserGroup() {
+    Role role = tempEntity.newRole("Write Only", false);
+    tempEntity.newMembershipMapping(currentOwner.getId(), role.getId(), "Loooooong Name Group", MemberType.GROUP);
+    refresh();
+    goFromSummaryToEditRole(role);
+    AccessEditorPage accessEditorPage = new AccessEditorPage();
+    AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
+    addMembersForm.addedItems().get(0).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("Loooooong Name Group"));
   }
 
   @Test

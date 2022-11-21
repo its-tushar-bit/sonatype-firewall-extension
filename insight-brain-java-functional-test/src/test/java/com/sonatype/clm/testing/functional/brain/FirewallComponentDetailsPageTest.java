@@ -1787,6 +1787,56 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
+  public void tesAddWaiverComponent_findBackButtonAndClick() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.availableScopes().shouldHaveSize(3);
+    NxRadio chosenScope = addWaiverPage.scope(0);
+    chosenScope.label().shouldHave(text("Repository - repositoryPublicId"));
+    chosenScope.click();
+    addWaiverPage.availableComponents().shouldHaveSize(3);
+    NxRadio chosenComponent = addWaiverPage.component(2);
+    chosenComponent.label().shouldHave(text("All Components"));
+    chosenComponent.click();
+    addWaiverPage.comments().setValue("Some comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    addWaiverPage.submitError().shouldNotBe(visible);
+
+    listWaiversPage.backButton().shouldHave(text("Back to Component Details")).click();
+    waitUntilSpinnersGone();
+
+    firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(0).shouldHave(text("Exact"));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(1).shouldHave(text("Sonatype"));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(2).shouldHave(text("Visit Project Website"));
+    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(3).shouldHave(text("Other"));
+  }
+
+  @Test
   public void testRemoveComponentWaiverUsingPopover_legalTab() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();

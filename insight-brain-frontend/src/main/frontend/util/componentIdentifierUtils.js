@@ -24,3 +24,8 @@ export function stringifyComponentIdentifier(componentIdentifier, matchState) {
   const coordinates = !matchState || matchState === 'unknown' ? null : componentIdentifier.coordinates;
   return coordinates ? JSON.stringify({ format: componentIdentifier.format, coordinates }) : null;
 }
+
+export function stringifyPathName(componentIdentifier) {
+  const coordinates = componentIdentifier.coordinates;
+  return `${coordinates.artifactId}/${coordinates.groupId}/${coordinates.version}/${coordinates.artifactId}-${coordinates.version}.${coordinates.extension}`;
+}

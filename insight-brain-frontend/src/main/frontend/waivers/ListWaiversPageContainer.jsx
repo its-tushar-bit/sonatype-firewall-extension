@@ -10,11 +10,20 @@ import { pick } from 'ramda';
 import { setWaiverToDelete, loadApplicableWaivers, loadManageWaiversData } from './waiverActions';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { selectIsFirewall } from '../reduxUiRouter/routerSelectors';
+import { stringifyPathName, stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
 
 function mapStateToProps(state) {
   const { violation, manageWaivers, router, deleteWaiver, firewall } = state;
-  const { showManageWaiverPage } = firewall.componentDetailsPage;
+  const { showManageWaiverPage, componentDetails } = firewall.componentDetailsPage;
   const selectViolationDetails = showManageWaiverPage ? firewall.componentDetailsPage : violation;
+  const matchState = showManageWaiverPage ? componentDetails.matchState : null;
+  const pathname = showManageWaiverPage
+    ? stringifyPathName(firewall.componentDetailsPage.componentDetails.componentIdentifier)
+    : null;
+  const componentIdentifier = showManageWaiverPage
+    ? stringifyComponentIdentifier(componentDetails.componentIdentifier, componentDetails.matchState)
+    : null;
+
   return {
     ...pick(['activeWaivers', 'expiredWaivers'], violation),
     ...pick(['violationDetails'], selectViolationDetails),
@@ -22,8 +31,11 @@ function mapStateToProps(state) {
     ...manageWaivers,
     ...pick(['waiverToDelete'], deleteWaiver),
     ...pick(['showManageWaiverPage'], firewall.componentDetailsPage),
-    ...pick(['prevParams'], router),
+    matchState,
     isCurrentRouteName: selectIsFirewall(state),
+    repositoryPolicyId: router.currentParams.repositoryPolicyId,
+    pathname,
+    componentIdentifier,
   };
 }
 

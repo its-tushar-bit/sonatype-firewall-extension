@@ -14,13 +14,12 @@ describe('ListWaiversBackButton', function () {
   beforeEach(function () {
     minimalProps = {
       violationId: 'violationId',
-      prevParams: {
-        repositoryId: 'repositoryId',
-        componentIdentifier: 'componentIdentifier',
-        componentHash: 'componentHash',
-        matchState: 'matchState',
-        pathname: 'pathname',
-      },
+      hash: 'hash',
+      repositoryPolicyId: 'repositoryPolicyId',
+      componentIdentifier: 'componentIdentifier',
+      componentHash: 'componentHash',
+      matchState: 'matchState',
+      pathname: 'pathname',
     };
     hrefSpy = jasmine.createSpy('href').and.callFake((stateName) => {
       switch (stateName) {
@@ -139,18 +138,18 @@ describe('ListWaiversBackButton', function () {
   it('renders an MenuBarBackButton with title `Back to Component Details` if prevParams and previousRouterStateNameForComponentDetails are provided as props', () => {
     const component = getShallowComponent({
       previousRouterStateNameForComponentDetails: 'firewall.componentDetailsPage.violations',
-      repositoryId: 'repositoryId',
+      repositoryId: 'repositoryPolicyId',
       componentIdentifier: 'componentIdentifier',
-      componentHash: 'componentHash',
+      componentHash: 'hash',
       matchState: 'matchState',
       pathname: 'pathname',
     });
 
     expect(routerContext.useRouterState).toHaveBeenCalled();
     expect(hrefSpy).toHaveBeenCalledWith('firewall.componentDetailsPage', {
-      repositoryId: 'repositoryId',
+      repositoryId: 'repositoryPolicyId',
       componentIdentifier: 'componentIdentifier',
-      componentHash: 'componentHash',
+      componentHash: 'hash',
       matchState: 'matchState',
       pathname: 'pathname',
     });

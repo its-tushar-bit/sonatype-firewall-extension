@@ -22,7 +22,6 @@ public class OrganizationAccessEditorTest
   @Override
   protected void goFromSummaryToAddRole() {
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().addRoleButton().click();
   }
@@ -30,7 +29,6 @@ public class OrganizationAccessEditorTest
   @Override
   protected void goFromSummaryToEditRole(Role role) {
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().localAccessRole(role.getName()).click();
   }

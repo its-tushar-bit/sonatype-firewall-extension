@@ -38,7 +38,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
@@ -265,32 +264,22 @@ public class RepositoriesSummaryViewTest
 
   @Test
   public void testScrollSpy() {
-    RepositoriesSummaryPage.summaryTile().configButton().parent().shouldHave(cssClass("active"));
-    RepositoriesSummaryPage.summaryTile().accessButton().parent().shouldNotHave(cssClass("active"));
     RepositoriesSummaryPage.configTile().shouldNotBe(scrolledOffTop);
     RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
 
     RepositoriesSummaryPage.summaryTile().accessButton().click();
-    RepositoriesSummaryPage.summaryTile().configButton().parent().shouldNotHave(cssClass("active"));
-    RepositoriesSummaryPage.summaryTile().accessButton().parent().shouldHave(cssClass("active"));
     RepositoriesSummaryPage.configTile().shouldBe(scrolledOffTop);
     RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
 
     RepositoriesSummaryPage.summaryTile().configButton().click();
-    RepositoriesSummaryPage.summaryTile().configButton().parent().shouldHave(cssClass("active"));
-    RepositoriesSummaryPage.summaryTile().accessButton().parent().shouldNotHave(cssClass("active"));
     RepositoriesSummaryPage.configTile().shouldNotBe(scrolledOffTop);
     RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
 
     ScrollUtil.scrollToTop(RepositoriesSummaryPage.accessTile().getElement());
-    RepositoriesSummaryPage.summaryTile().configButton().parent().shouldNotHave(cssClass("active"));
-    RepositoriesSummaryPage.summaryTile().accessButton().parent().shouldHave(cssClass("active"));
     RepositoriesSummaryPage.configTile().shouldBe(scrolledOffTop);
     RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
 
     ScrollUtil.scrollToTop(RepositoriesSummaryPage.configTile().getElement());
-    RepositoriesSummaryPage.summaryTile().configButton().parent().shouldHave(cssClass("active"));
-    RepositoriesSummaryPage.summaryTile().accessButton().parent().shouldNotHave(cssClass("active"));
     RepositoriesSummaryPage.configTile().shouldNotBe(scrolledOffTop);
     RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
   }

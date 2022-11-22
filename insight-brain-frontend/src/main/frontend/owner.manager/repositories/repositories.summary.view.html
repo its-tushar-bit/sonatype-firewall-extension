@@ -5,18 +5,9 @@
    --><span>Repositories</span>
     </h1>
   </div>
-  <ul class="nav nav-pills iq-nav-pills">
-    <li class="iq-nav-pills__pill active">
-      <a data-toggle="pill" id="repositories-configuration-button" data-target="#repositories-pill-configuration">
-        Configuration
-      </a>
-    </li>
-    <li class="iq-nav-pills__pill">
-      <a data-toggle="pill" id="repositories-access-button" data-target="#repositories-pill-access">Access</a>
-    </li>
-  </ul>
+  <repositories-pills></repositories-pills>
 </div>
-<div class="iq-tile-scroll-container nx-viewport-sized__scrollable" scrollspy="#repositories-summary">
+<div class="iq-tile-scroll-container nx-viewport-sized__scrollable" id="repositories-summary-sections">
   <div id="repositories-pill-configuration"
        class="iq-tile"
        ng-controller="repositories.configuration.tile.controller as vm">

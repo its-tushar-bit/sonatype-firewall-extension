@@ -45,6 +45,7 @@ import CreateComponentLabel from 'MainRoot/OrgsAndPolicies/componentLabels/Creat
 import CreateEditApplicationCategory from 'MainRoot/OrgsAndPolicies/createEditApplicationCategory/CreateEditApplicationCategory';
 import ProprietaryComponentConfiguration from 'MainRoot/OrgsAndPolicies/proprietaryComponentConfig/ProprietaryComponentConfiguration';
 import OwnerSummaryTilesContainerController from './summary/owner.summary.tiles.container.controller';
+import OwnerSummaryPills from 'MainRoot/OrgsAndPolicies/OwnerSummaryPills/OwnerSummaryPills';
 import PolicyEditor from 'MainRoot/OrgsAndPolicies/policyEditor/PolicyEditor';
 import PolicyGrandfatheringTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PolicyGrandfatheringTile';
 import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
@@ -66,6 +67,7 @@ import MoveApplicationModal from 'MainRoot/OrgsAndPolicies/moveApplicationModal/
 import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
 import LicenseThreatGroupSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/LicenseThreatGroupSummaryTile';
 import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/EvaluateApplicationModal';
+import RepositoriesPills from 'MainRoot/owner.manager/repositories/RepositoriesPills/RepositoriesPills';
 
 export default angular
   .module('owner.manager.module', [
@@ -136,11 +138,13 @@ export default angular
     iqReact2Angular(PolicyViolationGrandfatheringEditor, [], ['$ngRedux'])
   )
   .component('moveApplicationModal', iqReact2Angular(MoveApplicationModal, [], ['$ngRedux']))
+  .component('ownerSummaryPills', iqReact2Angular(OwnerSummaryPills, [], ['$ngRedux']))
   .component(
     'licenseThreatGroupSummaryTile',
     iqReact2Angular(LicenseThreatGroupSummaryTile, [], ['$ngRedux', '$state'])
   )
   .component('evaluateApplicationModal', iqReact2Angular(EvaluateApplicationModal, [], ['$ngRedux']))
+  .component('repositoriesPills', iqReact2Angular(RepositoriesPills, [], []))
   .config([
     '$stateProvider',
     function ($stateProvider) {

@@ -545,7 +545,6 @@ public class ApplicationSummaryViewTest
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -562,7 +561,6 @@ public class ApplicationSummaryViewTest
     refresh();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -580,7 +578,6 @@ public class ApplicationSummaryViewTest
     refresh();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -598,7 +595,6 @@ public class ApplicationSummaryViewTest
     refresh();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -620,7 +616,6 @@ public class ApplicationSummaryViewTest
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -643,7 +638,6 @@ public class ApplicationSummaryViewTest
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);

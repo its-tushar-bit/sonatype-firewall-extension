@@ -322,7 +322,6 @@ public class ArtifactoryRepositoryBaseConfigurationsPageTest
     waitUntilUrl(OwnerSummaryPage.url(owner));
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
     OwnerSummaryPage.artifactoryRepositoryTile().editButton().click();
     waitUntilUrl(ArtifactoryRepositoryBaseConfigurationsPage.url(owner.getType().toString(), owner.getId()));
@@ -407,7 +406,6 @@ public class ArtifactoryRepositoryBaseConfigurationsPageTest
     page.back().click();
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
     OwnerSummaryPage.artifactoryRepositoryTile().editButton().click();
     waitUntilUrl(ArtifactoryRepositoryBaseConfigurationsPage.url(owner.getType().toString(), owner.getId()));

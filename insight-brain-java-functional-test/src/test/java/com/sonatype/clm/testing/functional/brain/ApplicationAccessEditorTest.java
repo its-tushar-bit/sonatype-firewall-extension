@@ -42,7 +42,6 @@ public class ApplicationAccessEditorTest
   @Override
   protected void goFromSummaryToAddRole() {
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().addRoleButton().click();
     waitUntilUrl(AccessEditorPage.urlToCreate(currentOwner));
@@ -51,7 +50,6 @@ public class ApplicationAccessEditorTest
   @Override
   protected void goFromSummaryToEditRole(Role role) {
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().click();
     OwnerSummaryPage.accessTile().localAccessRole(role.getName()).click();
     waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner, role.getId()));

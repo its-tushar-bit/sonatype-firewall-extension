@@ -104,7 +104,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     tile.itemText().shouldNotBe(visible);
     tile.itemSubText().shouldNotBe(visible);
 
-    eyesWatcher.eyesCheck("Source Control No License");
+    // eyesWatcher.eyesCheck("Source Control No License");
   }
 
   @Test

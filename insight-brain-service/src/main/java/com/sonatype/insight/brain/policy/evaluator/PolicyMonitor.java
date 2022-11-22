@@ -20,7 +20,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -82,17 +81,7 @@ public class PolicyMonitor
 
   private static final int APPLICATION_MONITOR_THREADS_DEFAULT = 1;
 
-  private static final ForkJoinPool APPLICATION_MONITOR_FORK_JOIN_POOL;
-
-  static {
-    APPLICATION_MONITOR_FORK_JOIN_POOL =
-        ExecutorThreadPools.createThreadPool(
-            APPLICATION_MONITOR_THREADS_MIN,
-            APPLICATION_MONITOR_THREADS_MAX,
-            APPLICATION_MONITOR_THREADS_DEFAULT,
-            "insight.threads.monitor");
-    log.info("insight.threads.monitor pool-size: {}", APPLICATION_MONITOR_FORK_JOIN_POOL.getParallelism());
-  }
+  private final ForkJoinPool applicationMonitorForkJoinPool;
 
   // derived from https://docs.sonatype.com/display/ADP/Firewall+Auto+Release+Quarantine+Policy+Condition+Types
   static final int MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED = 14;
@@ -136,6 +125,19 @@ public class PolicyMonitor
     this.thirdPartyScanService = thirdPartyScanService;
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.apiFirewallService = apiFirewallService;
+    this.applicationMonitorForkJoinPool = initThreadPool();
+  }
+
+  private ForkJoinPool initThreadPool() {
+    ForkJoinPool threadPool = ExecutorThreadPools.getInstance().createThreadPool(
+        APPLICATION_MONITOR_THREADS_MIN,
+        APPLICATION_MONITOR_THREADS_MAX,
+        APPLICATION_MONITOR_THREADS_DEFAULT,
+        "insight.threads.monitor");
+
+    log.info("insight.threads.monitor pool-size: {}", threadPool.getParallelism());
+
+    return threadPool;
   }
 
   public void run() {
@@ -204,7 +206,7 @@ public class PolicyMonitor
           }
         }
         return null;
-      }, APPLICATION_MONITOR_FORK_JOIN_POOL);
+      }, applicationMonitorForkJoinPool);
       futures.add(future);
     }
     futures.forEach(CompletableFuture::join);

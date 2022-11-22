@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
@@ -52,6 +51,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
 import com.sonatype.insight.brain.repository.RepositoryService;
+import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -59,7 +59,6 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.utils.ExecutorThreadPools.getThreadPool;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -209,7 +208,7 @@ public class ApiComponentsWithWaiversReportingService
               localDTOs.add(applicationWaiverDTO);
             }
             return localDTOs;
-          }, getThreadPool(ThreadPools.GENERAL));
+          }, ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL));
         }).collect(toList());
 
     dtoFutures.stream().map(CompletableFuture::join).forEach(applicationWaiverDTOs::addAll);
@@ -244,7 +243,7 @@ public class ApiComponentsWithWaiversReportingService
                 buildRepositoryDTO(idToRepositoryMap.get(repositoryId));
             List<ApiComponentPolicyViolationDTO> componentPolicyViolationDTOs = new ArrayList<>();
 
-            // Filter and group policy violations by non-null component identifier 
+            // Filter and group policy violations by non-null component identifier
             getGroupedRepositoryPolicyViolationsByComponentIdentifier(policyViolations)
                 .forEach((componentIdentifier, policyViolationsByComponent) -> {
                   repositoryComponentsWithWaiversCount.increment();

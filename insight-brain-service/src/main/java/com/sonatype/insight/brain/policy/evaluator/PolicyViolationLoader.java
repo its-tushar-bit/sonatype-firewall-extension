@@ -35,12 +35,12 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.utils.ExecutorThreadPools.getThreadPool;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -145,7 +145,7 @@ public class PolicyViolationLoader
         appStageView.filteredViolations = new ArrayList<>();
       }
       return appViewsByAppId;
-    }, getThreadPool(ThreadPools.GENERAL));
+    }, ExecutorThreadPools.getInstance().getThreadPool(ThreadPools.GENERAL));
 
     Integer minimumThreatLevel = null;
     Integer maximumThreatLevel = null;

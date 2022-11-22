@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ExecutorThreadPoolsTest
+public class DefaultExecutorThreadPoolsTest
 {
   @Test
   public void testGetThreadCount() {
@@ -24,7 +24,7 @@ public class ExecutorThreadPoolsTest
     System.setProperty(property1, "-1");
 
     int expected1 = min1;
-    assertThat(ExecutorThreadPools.getThreadCount(min1, max1, default1, property1)).isEqualTo(expected1);
+    assertThat(DefaultExecutorThreadPools.getThreadCount(min1, max1, default1, property1)).isEqualTo(expected1);
 
     // test max
     int min2 = 5;
@@ -34,7 +34,7 @@ public class ExecutorThreadPoolsTest
     System.setProperty(property2, "1000");
 
     int expected2 = max2;
-    assertThat(ExecutorThreadPools.getThreadCount(min2, max2, default2, property2)).isEqualTo(expected2);
+    assertThat(DefaultExecutorThreadPools.getThreadCount(min2, max2, default2, property2)).isEqualTo(expected2);
 
     // test default
     int min3 = 5;
@@ -44,7 +44,7 @@ public class ExecutorThreadPoolsTest
     System.setProperty(property3, "");
 
     int expected3 = default3;
-    assertThat(ExecutorThreadPools.getThreadCount(min3, max3, default3, property3)).isEqualTo(expected3);
+    assertThat(DefaultExecutorThreadPools.getThreadCount(min3, max3, default3, property3)).isEqualTo(expected3);
   }
 
   @Test
@@ -55,7 +55,7 @@ public class ExecutorThreadPoolsTest
     String property = "insight.brain.threadpool.test";
     ForkJoinPool testPool;
 
-    testPool = ExecutorThreadPools.createThreadPool(min, max, defaultValue, property);
+    testPool = ExecutorThreadPools.getInstance().createThreadPool(min, max, defaultValue, property);
 
     CompletableFuture<Boolean> daemonCheck = CompletableFuture.supplyAsync(() -> {
       return Thread.currentThread().isDaemon();

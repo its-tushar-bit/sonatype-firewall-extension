@@ -39,6 +39,8 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
+import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
+import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
@@ -208,7 +210,7 @@ public class InsightBrainService
   static void ensureBouncyCastleProviderIsLowestPreference() {
     // Adding BouncyCastleProvider here via Security.addProvider(...) ensures it gets the lowest preference position.
     // This prevents org.keycloak.saml.processing.core.util.ProvidersUtil.ensure() from adding it at a higher preference
-    // position, which can cause CLM-13629 due to the IQ Server uber JAR invalidating BouncyCastleProvider by excluding 
+    // position, which can cause CLM-13629 due to the IQ Server uber JAR invalidating BouncyCastleProvider by excluding
     // its signatures
 
     // First remove it in case it is already added
@@ -350,7 +352,7 @@ public class InsightBrainService
         return new InsightConfigurationFactory(klass, validator, configureObjectMapper(objectMapper.copy()),
             propertyPrefix);
       }
-      
+
       @Override
       protected ObjectMapper configureObjectMapper(ObjectMapper objectMapper) {
         super.configureObjectMapper(objectMapper);
@@ -366,7 +368,7 @@ public class InsightBrainService
         return objectMapper;
       }
     });
-    
+
     bootstrap.setConfigurationSourceProvider(new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
         new EnvironmentVariableSubstitutor(false, true)));
   }
@@ -455,6 +457,8 @@ public class InsightBrainService
       protected void configure() {
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
         bind(CsvMapper.class).toInstance(configureObjectMapper(new CsvMapper()));
+        bind(ExecutorThreadPools.class).to(DefaultExecutorThreadPools.class);
+        requestStaticInjection(ExecutorThreadPools.class);
       }
     };
     Module authc = new SecurityModule();

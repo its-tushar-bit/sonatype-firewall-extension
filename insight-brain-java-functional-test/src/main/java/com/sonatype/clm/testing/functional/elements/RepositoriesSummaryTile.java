@@ -9,8 +9,6 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Selenide.$;
-
 public class RepositoriesSummaryTile
     extends BasicElement<RepositoriesSummaryTile>
 {
@@ -22,15 +20,11 @@ public class RepositoriesSummaryTile
     return child("h1");
   }
 
-  private SelenideElement scrollContainer() {
-    return $(".iq-tile-scroll-container");
-  }
-
   public PillButton configButton() {
-    return new PillButton(scrollContainer(), "#repositories-configuration-button");
+    return new PillButton("#repositories-pill-configuration-button");
   }
 
   public PillButton accessButton() {
-    return new PillButton(scrollContainer(), "#repositories-access-button");
+    return new PillButton("#repositories-pill-access-button");
   }
 }

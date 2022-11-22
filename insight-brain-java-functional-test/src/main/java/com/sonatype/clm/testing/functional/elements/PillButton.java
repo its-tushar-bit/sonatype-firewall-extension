@@ -15,17 +15,16 @@ import static com.codeborne.selenide.Selenide.$;
 public class PillButton
     extends BasicElement<PillButton>
 {
-  private final SelenideElement scrollContainer;
-
-  public PillButton(SelenideElement scrollContainer, String selector) {
+  public PillButton(String selector) {
     super(selector);
-    this.scrollContainer = scrollContainer;
   }
 
   @Override
   public PillButton click() {
-    scrollContainer.shouldHave(ScrollUtil.scrollSpyInitialized);
-    SelenideElement scrollTarget = $(getElement().data("target"));
+    SelenideElement currentPill = $(selector);
+    currentPill.scrollIntoView("{inline: 'center'}");
+    ScrollUtil.awaitEndOfScrolling(currentPill);
+    SelenideElement scrollTarget = $("#" + getElement().data("scroll"));
     super.click();
     ScrollUtil.awaitEndOfScrolling(scrollTarget);
     return me();

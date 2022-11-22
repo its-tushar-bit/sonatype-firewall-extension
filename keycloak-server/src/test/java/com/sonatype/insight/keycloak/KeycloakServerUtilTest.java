@@ -10,21 +10,18 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.Response;
 
+import com.github.javafaker.Faker;
+import com.github.javafaker.Internet;
+import com.github.javafaker.Name;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestName;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllBytes;
@@ -38,26 +35,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class KeycloakServerUtilTest
 {
-  private final Logger log = LoggerFactory.getLogger(getClass());
-
   @ClassRule
   public static KeycloakServerRule rule = new KeycloakServerRule();
 
-  @Rule
-  public TestName testName = new TestName();
-
   private KeycloakServerUtil keycloak = rule.getServerUtil();
 
-  @Before
-  public void before() {
-    log.info("******************* Before test: {}", testName.getMethodName());
-  }
+  private final Faker faker = new Faker();
 
   @After
   public void after() {
-    log.info("******************* After test start: {}", testName.getMethodName());
     keycloak.clean();
-    log.info("******************* After test end: {}", testName.getMethodName());
   }
 
   @Test
@@ -105,22 +92,27 @@ public class KeycloakServerUtilTest
 
   @Test
   public void testClean() {
+    String username = faker.name().username();
+    String email = faker.internet().emailAddress();
+    String clientId = faker.funnyName().name();
+    String groupName = faker.funnyName().name();
+
     assertThat(keycloak.getClients()).hasSize(5);
     assertThat(keycloak.getUsers()).extracting(UserRepresentation::getUsername)
         .containsExactly(KeycloakServer.USERNAME);
 
     ClientRepresentation clientRepresentation = new ClientRepresentation();
-    clientRepresentation.setClientId("a-new-client");
+    clientRepresentation.setClientId(clientId);
     clientRepresentation.setProtocol("saml");
 
     UserRepresentation userRepresentation = new UserRepresentation();
-    userRepresentation.setUsername("john.doe");
-    userRepresentation.setEmail("example@example.com");
+    userRepresentation.setUsername(username);
+    userRepresentation.setEmail(email);
     userRepresentation.setEnabled(true);
 
     keycloak.createClient(clientRepresentation);
     keycloak.createUser(userRepresentation);
-    keycloak.createGroup("a-group");
+    keycloak.createGroup(groupName);
 
     assertThat(keycloak.getClients()).hasSize(6);
     assertThat(keycloak.getUsers()).hasSize(2);
@@ -135,86 +127,117 @@ public class KeycloakServerUtilTest
 
   @Test
   public void testCreateClient_Duplicate() {
+    String clientName = faker.funnyName().name();
+
     ClientRepresentation clientRepresentation = new ClientRepresentation();
-    clientRepresentation.setClientId("a-new-client");
+    clientRepresentation.setClientId(clientName);
     clientRepresentation.setProtocol("saml");
 
     keycloak.createClient(clientRepresentation);
     assertThatThrownBy(() -> keycloak.createClient(clientRepresentation)).isInstanceOf(RuntimeException.class)
-        .hasMessage("Client creation failed with status code: 409 for clientId:a-new-client");
+        .hasMessage("Client creation failed with status code: 409 for clientId:" + clientName);
   }
 
   @Test
   public void testCreateUser_UsingUserRepresentation() {
-    UserRepresentation user = new UserRepresentation();
-    user.setUsername("john.doe");
-    user.setEmail("example@example.com");
-    user.setEnabled(true);
-
-    CredentialRepresentation credential = new CredentialRepresentation();
-    credential.setType(CredentialRepresentation.PASSWORD);
-    credential.setValue("password");
-    credential.setTemporary(false);
-    user.setCredentials(asList(credential));
+    String username = faker.name().username();
+    String password = faker.internet().password();
+    String email = faker.internet().emailAddress();
 
     Map<String, List<String>> userAttributes = new HashMap<>();
     userAttributes.put("key-01", asList("key-01-val01", "key-01-val02"));
     userAttributes.put("key-02", asList("key-02-val01", "key-02-val02"));
-    user.setAttributes(userAttributes);
 
-    String userId = keycloak.createUser(user);
+    String userId = createUser(username, password, email, userAttributes);
+
     assertThat(userId).isNotNull();
 
-    user = stream(keycloak.getUsers()).filter(u -> u.getUsername().equals("john.doe")).findFirst().get();
-    assertThat(user.getEmail()).isEqualTo("example@example.com");
+    UserRepresentation user =
+        stream(keycloak.getUsers()).filter(u -> u.getUsername().equals(username)).findFirst().get();
+    assertThat(user.getEmail()).isEqualTo(email);
     assertThat(user.isEnabled()).isTrue();
     assertThat(userAttributes).isEqualTo(user.getAttributes());
 
     // This asserts the user is enabled and the password is working
-    assertThat(keycloak.getToken("john.doe", "password")).isNotNull();
+    assertThat(keycloak.getToken(username, password)).isNotNull();
   }
 
   @Test
   public void testCreateUser_UsingUserRepresentationDuplicate() {
-    testCreateUser_UsingUserRepresentation();
-    assertThatExceptionOfType(RuntimeException.class).isThrownBy(this::testCreateUser_UsingUserRepresentation)
-        .withMessageContaining("User creation failed with status code: 409");
+    String username = faker.name().username();
+    String password = faker.internet().password();
+    String email = faker.internet().emailAddress();
+
+    Map<String, List<String>> userAttributes = new HashMap<>();
+    userAttributes.put("key-01", asList("key-01-val01", "key-01-val02"));
+
+    createUser(username, password, email, userAttributes);
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
+      createUser(username, password, email, userAttributes);
+    }).withMessage("User creation failed with status code: 409" + " for username:" + username);
   }
 
   @Test
   public void testCreateUser_UsingUserAttributes() {
-    String id = keycloak.createUser("john", "doe", "joanne.doe", "joanne@example.com", "pw", new HashMap<>());
+    Name name = faker.name();
+    Internet internet = faker.internet();
+
+    String firstName = name.firstName();
+    String lastName = name.lastName();
+    String username = name.username();
+    String email = internet.emailAddress();
+    String password = internet.password();
+
+    String id = keycloak.createUser(firstName, lastName, username, email, password, new HashMap<>());
     assertThat(id).isNotNull();
 
     UserRepresentation user =
-        stream(keycloak.getUsers()).filter(u -> u.getUsername().equals("joanne.doe")).findFirst().get();
-    assertThat(user.getEmail()).isEqualTo("joanne@example.com");
-    assertThat(user.getFirstName()).isEqualTo("john");
-    assertThat(user.getLastName()).isEqualTo("doe");
+        stream(keycloak.getUsers()).filter(u -> u.getUsername().equals(username)).findFirst().get();
+    assertThat(user.getEmail()).isEqualTo(email);
+    assertThat(user.getFirstName()).isEqualTo(firstName);
+    assertThat(user.getLastName()).isEqualTo(lastName);
     assertThat(user.isEnabled()).isTrue();
     assertThat(user.getAttributes()).isNull();
 
     // This asserts the user is enabled and the password is working
-    assertThat(keycloak.getToken("joanne.doe", "pw")).isNotNull();
+    assertThat(keycloak.getToken(username, password)).isNotNull();
   }
 
   @Test
   public void testCreateUser_UsingUserAttributesDuplicate() {
-    testCreateUser_UsingUserAttributes();
-    assertThatExceptionOfType(RuntimeException.class).isThrownBy(this::testCreateUser_UsingUserAttributes)
-        .withMessageContaining("User creation failed with status code: 409");
+    Name name = faker.name();
+    Internet internet = faker.internet();
+
+    String firstName = name.firstName();
+    String lastName = name.lastName();
+    String username = name.username();
+    String email = internet.emailAddress();
+    String password = internet.password();
+
+    keycloak.createUser(firstName, lastName, username, email, password, new HashMap<>());
+
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
+      keycloak.createUser(firstName, lastName, username, email, password, new HashMap<>());
+    }).withMessage("User creation failed with status code: 409 for username:" + username);
   }
 
   @Test
   public void testUpdateUser() {
+    Name name = faker.name();
+    Internet internet = faker.internet();
+
+    String username = name.username();
+    String email = internet.emailAddress();
+    String password = internet.password();
+
     UserRepresentation user = new UserRepresentation();
-    user.setUsername("john.doe");
-    user.setEmail("example@example.com");
+    user.setUsername(username);
+    user.setEmail(email);
     user.setEnabled(true);
 
     CredentialRepresentation credential = new CredentialRepresentation();
     credential.setType(CredentialRepresentation.PASSWORD);
-    credential.setValue("password");
+    credential.setValue(password);
     credential.setTemporary(false);
     user.setCredentials(asList(credential));
 
@@ -223,13 +246,13 @@ public class KeycloakServerUtilTest
     user.setAttributes(userAttributes);
 
     keycloak.createUser(user);
-    user = stream(keycloak.getUsers()).filter(u -> u.getUsername().equals("john.doe")).findFirst().get();
+    user = stream(keycloak.getUsers()).filter(u -> u.getUsername().equals(username)).findFirst().get();
     assertThat(user.getAttributes().get("foo")).isEqualTo(Arrays.asList("bar"));
 
     user.getAttributes().get("foo").set(0, "baz");
     keycloak.updateUser(user);
 
-    user = stream(keycloak.getUsers()).filter(u -> u.getUsername().equals("john.doe")).findFirst().get();
+    user = stream(keycloak.getUsers()).filter(u -> u.getUsername().equals(username)).findFirst().get();
     assertThat(user.getAttributes().get("foo")).isEqualTo(Arrays.asList("baz"));
   }
 
@@ -243,8 +266,17 @@ public class KeycloakServerUtilTest
 
   @Test
   public void testLogoutUser() {
-    String id = keycloak.createUser("john", "doe", "john.doe", "", "password", new HashMap<>());
-    keycloak.getToken("john.doe", "password"); // Creates a session for john.doe
+    Name name = faker.name();
+    Internet internet = faker.internet();
+
+    String firstName = name.firstName();
+    String lastName = name.lastName();
+    String username = name.username();
+    String email = internet.emailAddress();
+    String password = internet.password();
+
+    String id = keycloak.createUser(firstName, lastName, username, email, password, new HashMap<>());
+    keycloak.getToken(username, password); // Creates a session
     assertThat(keycloak.getSessionsOfUser(id)).hasSize(1);
     keycloak.logoutUser(id);
     assertThat(keycloak.getSessionsOfUser(id)).isEmpty();
@@ -259,21 +291,47 @@ public class KeycloakServerUtilTest
   @Test
   public void testCreateGroups() {
     assertThat(keycloak.getGroups()).hasSize(0);
-    keycloak.createGroup("a-new-group");
+    keycloak.createGroup(faker.funnyName().name());
     assertThat(keycloak.getGroups()).hasSize(1);
   }
 
   @Test
   public void testAssignUserToGroup() {
+    Name name = faker.name();
+    Internet internet = faker.internet();
+
+    String username = name.username();
+    String email = internet.emailAddress();
+
     UserRepresentation userRepresentation = new UserRepresentation();
-    userRepresentation.setUsername("john.doe");
-    userRepresentation.setEmail("example@example.com");
+    userRepresentation.setUsername(username);
+    userRepresentation.setEmail(email);
     userRepresentation.setEnabled(true);
 
-    keycloak.assignUserToGroup(keycloak.createUser(userRepresentation), keycloak.createGroup("a-new-group"));
+    keycloak.assignUserToGroup(keycloak.createUser(userRepresentation), keycloak.createGroup(faker.funnyName().name()));
 
     // Keycloak does not have a proper API for fetching users of a group or groups of a user.
     // This test only verifies no exceptions are thrown when keycloak.assignUserToGroup(user, group) is called.
     // The group assignment is implicitly tested in SamlTest where we check from IQ Server user is assigned.
+  }
+
+  /**
+   * @return The userId of the created user in Keycloak
+   */
+  private String createUser(String username, String password, String email, Map<String, List<String>> userAttributes) {
+    UserRepresentation user = new UserRepresentation();
+    user.setUsername(username);
+    user.setEmail(email);
+    user.setEnabled(true);
+
+    CredentialRepresentation credential = new CredentialRepresentation();
+    credential.setType(CredentialRepresentation.PASSWORD);
+    credential.setValue(password);
+    credential.setTemporary(false);
+    user.setCredentials(asList(credential));
+
+    user.setAttributes(userAttributes);
+
+    return keycloak.createUser(user);
   }
 }

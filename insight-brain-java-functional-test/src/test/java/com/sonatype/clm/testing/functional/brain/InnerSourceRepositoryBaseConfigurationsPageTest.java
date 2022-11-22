@@ -331,7 +331,6 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
     waitUntilUrl(OwnerSummaryPage.url(owner));
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     OwnerSummaryPage.innerSourceRepositoryTile().editButton().click();
     waitUntilUrl(InnerSourceRepositoryBaseConfigurationsPage.url(owner.getType().toString(), owner.getId()));
@@ -414,7 +413,6 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
     page.back().click();
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     OwnerSummaryPage.innerSourceRepositoryTile().editButton().click();
     waitUntilUrl(InnerSourceRepositoryBaseConfigurationsPage.url(owner.getType().toString(), owner.getId()));

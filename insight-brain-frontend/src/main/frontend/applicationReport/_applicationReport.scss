@@ -359,4 +359,8 @@ tbody .iq-cell--application-report-component-display {
   .iq-component-display-text {
     font-style: normal;
   }
+  .nx-cell {
+    max-width: 0;
+    overflow-wrap: break-word;
+  }
 }

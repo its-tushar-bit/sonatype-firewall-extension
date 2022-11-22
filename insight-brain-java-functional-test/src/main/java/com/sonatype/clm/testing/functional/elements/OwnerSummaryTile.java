@@ -9,8 +9,6 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Selenide.$;
-
 public class OwnerSummaryTile
     extends BasicElement<OwnerSummaryTile>
 {
@@ -38,47 +36,39 @@ public class OwnerSummaryTile
     return new ErrorBox(selector, ".iq-alert.iq-alert--error");
   }
 
-  private SelenideElement scrollContainer() {
-    return $(".iq-tile-scroll-container");
-  }
-
   public PillButton appCategoriesButton() {
-    return new PillButton(scrollContainer(), "#owner-app-categories-button");
+    return new PillButton("#owner-pill-app-categories-button");
   }
 
   public PillButton policyButton() {
-    return new PillButton(scrollContainer(), "#owner-policy-button");
+    return new PillButton("#owner-pill-policy-button");
   }
 
-  public PillButton labelsButtonInDropdown() {
-    return new PillButton(scrollContainer(), "#owner-comp-labels-button__dropdown");
+  public PillButton labelsButton() {
+    return new PillButton("#owner-pill-comp-labels-button");
   }
 
   public PillButton ltgsButton() {
-    return new PillButton(scrollContainer(), "#owner-ltgs-button");
+    return new PillButton("#owner-pill-ltgs-button");
   }
 
   public PillButton dataRetentionButton() {
-    return new PillButton(scrollContainer(), "#owner-data-retention-button");
+    return new PillButton("#owner-pill-retention-button");
   }
 
   public PillButton sourceControlButton() {
-    return new PillButton(scrollContainer(), "#owner-source-control-button");
+    return new PillButton("#owner-pill-source-control-button");
   }
 
   public PillButton innerSourceRepositoryButton() {
-    return new PillButton(scrollContainer(), "#owner-innersource-repository-button");
+    return new PillButton("#owner-pill-innersource-repository-button");
   }
 
   public PillButton artifactoryRepositoryButton() {
-    return new PillButton(scrollContainer(), "#owner-artifactory-repository-button");
+    return new PillButton("#owner-pill-artifactory-repository-button");
   }
 
   public PillButton accessButton() {
-    return new PillButton(scrollContainer(), "#owner-access-button");
-  }
-
-  public SelenideElement dropdownButton() {
-    return child("#nav-pill-dropdown");
+    return new PillButton("#owner-pill-access-button");
   }
 }

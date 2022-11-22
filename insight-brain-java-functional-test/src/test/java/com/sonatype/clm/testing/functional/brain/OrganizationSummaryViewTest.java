@@ -194,8 +194,7 @@ public class OrganizationSummaryViewTest
     FormMask.seeAndWaitForDismissal();
 
     // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
-    OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
 
     LabelTile labelTile = OwnerSummaryPage.labelTile();
     labelTile.labelList(0);
@@ -208,7 +207,6 @@ public class OrganizationSummaryViewTest
     eyesWatcher.eyesCheck("labels tile after policy import");
 
     // scroll to the ltgs
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
     LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
     ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
@@ -326,7 +324,6 @@ public class OrganizationSummaryViewTest
   public void testDataRetentionTile() {
     DataRetentionTile tile = OwnerSummaryPage.dataRetentionTile();
 
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -399,7 +396,6 @@ public class OrganizationSummaryViewTest
 
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
 
     tile.maxAge(Stage.ID_DEVELOP).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
@@ -424,7 +420,6 @@ public class OrganizationSummaryViewTest
     DataRetentionTile tile = new DataRetentionTile();
     DataRetentionEditorPage page = new DataRetentionEditorPage();
 
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -436,7 +431,6 @@ public class OrganizationSummaryViewTest
     page.shouldBe(visible);
 
     back();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -452,7 +446,6 @@ public class OrganizationSummaryViewTest
     SidebarNavigation.closeNavigationSidebar();
     DataRetentionTile tile = OwnerSummaryPage.dataRetentionTile();
 
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -467,7 +460,6 @@ public class OrganizationSummaryViewTest
   public void testSourceControlTile() {
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -484,7 +476,6 @@ public class OrganizationSummaryViewTest
     refresh();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -502,7 +493,6 @@ public class OrganizationSummaryViewTest
     refresh();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -520,7 +510,6 @@ public class OrganizationSummaryViewTest
     refresh();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -542,7 +531,6 @@ public class OrganizationSummaryViewTest
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);
@@ -565,7 +553,6 @@ public class OrganizationSummaryViewTest
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
     tile.shouldBe(visible);

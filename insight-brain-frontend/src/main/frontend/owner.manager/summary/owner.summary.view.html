@@ -105,106 +105,12 @@
     <div class="page-repository-url nx-truncate-ellipsis" ng-if="vm.isApp && vm.repositoryUrl">
       <i class="fa fa-{{vm.scmProviderIcon}} size-24px"></i><a href="{{vm.repositoryUrl}}" target="_blank">{{vm.repositoryUrl}}</a>
     </div>
-    <div class="iq-nav-pills-container">
-      <ul class="nav nav-pills iq-nav-pills iq-nav-pills--owner">
-        <li class="active iq-nav-pills__pill">
-          <a data-toggle="pill" id="owner-app-categories-button" data-target="#owner-pill-app-categories" ng-href="">
-            Application Categories
-          </a>
-        </li><!--
-     --><li class="iq-nav-pills__pill">
-          <a data-toggle="pill" id="owner-policy-button" data-target="#owner-pill-policy" ng-href="">Policies</a>
-        </li><!--
-     --><li class="iq-nav-pills__pill">
-          <a data-toggle="pill" id="owner-grandfathering-button" data-target="#owner-pill-grandfathering" ng-href="">
-            Grandfathering
-          </a>
-        </li><!--
-     --><li class="iq-nav-pills__pill">
-          <a data-toggle="pill"
-             id="owner-continuous-monitoring-button"
-             data-target="#owner-pill-continuous-monitoring"
-             ng-href="">
-            Continuous monitoring
-          </a>
-        </li><!--
-     --><li class="iq-nav-pills__pill">
-          <a data-toggle="pill"
-             id="owner-component-configuration-button"
-             data-target="#owner-pill-component-configuration"
-             ng-href="">
-            Component configuration
-          </a>
-        </li>
-      </ul>
-      <div class="iq-dropdown dropdown iq-pull-right iq-dropdown--nav-pills" id="nav-pill-dropdown">
-        <button class="dropdown-toggle iq-btn--nav-pill"
-                type="button"
-                data-toggle="dropdown">
-          <span class="ellipsis">…</span>
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu iq-dropdown-menu iq-dropdown-menu--nav-pills nav nav-pills iq-nav-pills">
-          <li class="iq-nav-pills__pill">
-            <a data-toggle="pill"
-               id="owner-component-configuration-button__dropdown"
-               data-target="#owner-pill-component-configuration"
-               ng-href="">
-              Component configuration
-            </a>
-          </li>
-          <li class="iq-nav-pills__pill">
-            <a data-toggle="pill" id="owner-comp-labels-button__dropdown" data-target="#owner-pill-comp-labels" ng-href="">
-              Component labels
-            </a>
-          </li>
-          <li class="iq-nav-pills__pill">
-            <a data-toggle="pill" id="owner-ltgs-button" data-target="#owner-pill-ltgs" ng-href="">
-              License threat groups
-            </a>
-          </li>
-          <li ng-if="vm.isOrg" class="iq-nav-pills__pill">
-            <a data-toggle="pill" id="owner-data-retention-button" data-target="#owner-pill-retention" ng-href="">
-              Data retention
-            </a>
-          </li>
-          <li ng-if="vm.isOrg || vm.isApp" class="iq-nav-pills__pill">
-            <a data-toggle="pill"
-               id="owner-source-control-button"
-               data-target="#owner-pill-source-control"
-               ng-href="">
-              Source control
-            </a>
-          </li>
-          <li ng-if="vm.isInnerSourceRepositorySupported && (vm.isOrg || vm.isApp)" class="iq-nav-pills__pill">
-            <a data-toggle="pill"
-               id="owner-innersource-repository-button"
-               data-target="#owner-pill-innersource-repository"
-               ng-href="">
-              InnerSource repository
-            </a>
-          </li>
-          <li ng-if="vm.isArtifactoryRepositorySupported && (vm.isOrg || vm.isApp)" class="iq-nav-pills__pill">
-            <a data-toggle="pill"
-               id="owner-artifactory-repository-button"
-               data-target="#owner-pill-artifactory-repository"
-               ng-href="">
-              Artifactory repository
-            </a>
-          </li>
-          <li class="iq-nav-pills__pill">
-            <a data-toggle="pill" id="owner-access-button" data-target="#owner-pill-access" ng-href="">
-              Access
-            </a>
-          </li>
-        </ul>
-      </div>
-    </div>
+    <owner-summary-pills></owner-summary-pills>
   </div>
 </div>
 <div
 class="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
-     scrollspy="#owner-summary">
+     scrollspy="#owner-summary" id="owner-summary-sections">
   <div ng-controller="OwnerSummaryTilesContainerController as vm">
     <div ng-if="!vm.loading">
       <application-categories-tile></application-categories-tile>

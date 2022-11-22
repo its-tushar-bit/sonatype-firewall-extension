@@ -18,7 +18,10 @@ export default function ListWaiversBackButton(props) {
     scanId,
     publicId,
     previousRouterStateNameForComponentDetails,
-    prevParams,
+    repositoryPolicyId,
+    componentIdentifier,
+    matchState,
+    pathname,
   } = props;
 
   const componentDetailsPropsPresent = hash && scanId && publicId && previousRouterStateNameForComponentDetails;
@@ -32,14 +35,14 @@ export default function ListWaiversBackButton(props) {
     backButtonTitle = 'Back to Component Details';
     backButtonHref = uiRouterState.href(previousRouterStateNameForComponentDetails, { hash, scanId, publicId });
   } else {
-    if (previousRouterStateNameForComponentDetails === 'firewall.componentDetailsPage.violations') {
+    if (previousRouterStateNameForComponentDetails?.includes('firewall.componentDetailsPage')) {
       backButtonTitle = 'Back to Component Details';
       backButtonHref = uiRouterState.href('firewall.componentDetailsPage', {
-        repositoryId: prevParams.repositoryId,
-        componentIdentifier: prevParams.componentIdentifier,
-        componentHash: prevParams.componentHash,
-        matchState: prevParams.matchState,
-        pathname: prevParams.pathname,
+        repositoryId: repositoryPolicyId,
+        componentIdentifier,
+        componentHash: hash,
+        matchState,
+        pathname,
       });
     } else {
       backButtonTitle = 'Back to Violation Details';
@@ -58,11 +61,8 @@ ListWaiversBackButton.propTypes = {
   scanId: PropTypes.string,
   publicId: PropTypes.string,
   previousRouterStateNameForComponentDetails: PropTypes.string,
-  prevParams: PropTypes.shape({
-    repositoryId: PropTypes.string,
-    componentIdentifier: PropTypes.string,
-    componentHash: PropTypes.string,
-    matchState: PropTypes.string,
-    pathname: PropTypes.string,
-  }),
+  pathname: PropTypes.string,
+  matchState: PropTypes.string,
+  componentIdentifier: PropTypes.string,
+  repositoryPolicyId: PropTypes.string,
 };

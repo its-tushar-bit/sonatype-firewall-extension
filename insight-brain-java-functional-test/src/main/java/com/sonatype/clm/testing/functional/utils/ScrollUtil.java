@@ -16,8 +16,6 @@ import org.openqa.selenium.Point;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 
-import static com.codeborne.selenide.Condition.cssClass;
-
 /**
  * Utilities for detecting and affecting scroll position. NOTE: The implementations here assume that the element's
  * offsetParent is what is scrolling.
@@ -51,8 +49,6 @@ public class ScrollUtil
   }
 
   public static final Condition scrolledOffTop = new ScrolledOffTop();
-
-  public static final Condition scrollSpyInitialized = cssClass("scroll-spy-initialized");
 
   /**
    * Selenide's typical `visible` condition doesn't consider whether or not the element is scrolled into view.

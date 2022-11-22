@@ -48,6 +48,19 @@ describe('ListWaiversPageContainer', function () {
       firewall: {
         componentDetailsPage: {
           showManageWaiverPage: false,
+          componentDetails: {
+            matchState: 'exact',
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: 'ant',
+                classifier: '',
+                extension: 'jar',
+                groupId: 'ant',
+                version: '1.6',
+              },
+            },
+          },
         },
       },
     };

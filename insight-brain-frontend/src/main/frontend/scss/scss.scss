@@ -131,6 +131,9 @@
 @use '../OrgsAndPolicies/ownerSummary/labelsTile/labelsTile';
 @use '../OrgsAndPolicies/ownerSummary/policiesTile/policiesTile';
 @use '../OrgsAndPolicies/ownerSummary/retentionTile/retentionTile';
+@use '../OrgsAndPolicies/OwnerSummaryPills/ownerSummaryPills';
+@use '../owner.manager/repositories/RepositoriesPills/repositoriesPills';
+@use '../navPills/navPills';
 @use '../OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/applicableLicenseThreatGroupTable';
 @use '../OrgsAndPolicies/сontinuousMonitoringEditor/continuousMonitoringEditor';
 @use '../OrgsAndPolicies/ownerModal/ownerModal';

@@ -162,7 +162,6 @@ public abstract class AbstractSummaryViewTest
     setCurrentOwnerRepositoryConnectionStatus(currentOwner, true);
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
     innerSourceRepositoryTile.should(exist);
@@ -180,7 +179,6 @@ public abstract class AbstractSummaryViewTest
   public void testInnerSourceRepositoryTile_Disabled() {
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
     InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
     innerSourceRepositoryTile.should(exist);
@@ -205,7 +203,6 @@ public abstract class AbstractSummaryViewTest
 
       refresh();
       SidebarNavigation.closeNavigationSidebar();
-      OwnerSummaryPage.summaryTile().dropdownButton().click();
       OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
       InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
       innerSourceRepositoryTile.should(exist);
@@ -253,7 +250,6 @@ public abstract class AbstractSummaryViewTest
 
       refresh();
       SidebarNavigation.closeNavigationSidebar();
-      OwnerSummaryPage.summaryTile().dropdownButton().click();
       OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
       InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
       innerSourceRepositoryTile.should(exist);
@@ -280,7 +276,6 @@ public abstract class AbstractSummaryViewTest
     SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION.setEnabled(false);
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldNot(exist);
     OwnerSummaryPage.innerSourceRepositoryTile().shouldNot(exist);
 
@@ -294,7 +289,6 @@ public abstract class AbstractSummaryViewTest
     setCurrentOwnerArtifactoryConnectionStatus(currentOwner, true);
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
     ArtifactoryRepositoryTile artifactoryRepositoryTile = OwnerSummaryPage.artifactoryRepositoryTile();
     artifactoryRepositoryTile.should(exist);
@@ -313,7 +307,6 @@ public abstract class AbstractSummaryViewTest
     SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
     ArtifactoryRepositoryTile artifactoryRepositoryTile = OwnerSummaryPage.artifactoryRepositoryTile();
     artifactoryRepositoryTile.should(exist);
@@ -337,7 +330,6 @@ public abstract class AbstractSummaryViewTest
 
       refresh();
       SidebarNavigation.closeNavigationSidebar();
-      OwnerSummaryPage.summaryTile().dropdownButton().click();
       OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
       ArtifactoryRepositoryTile artifactoryRepositoryTile = OwnerSummaryPage.artifactoryRepositoryTile();
       artifactoryRepositoryTile.should(exist);
@@ -383,7 +375,6 @@ public abstract class AbstractSummaryViewTest
 
       refresh();
       SidebarNavigation.closeNavigationSidebar();
-      OwnerSummaryPage.summaryTile().dropdownButton().click();
       OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
       ArtifactoryRepositoryTile artifactoryRepositoryTile = OwnerSummaryPage.artifactoryRepositoryTile();
       artifactoryRepositoryTile.should(exist);
@@ -409,7 +400,6 @@ public abstract class AbstractSummaryViewTest
     SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(false);
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldNot(exist);
     OwnerSummaryPage.artifactoryRepositoryTile().shouldNot(exist);
 
@@ -427,8 +417,7 @@ public abstract class AbstractSummaryViewTest
 
     // scroll to the labels tile
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
-    OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
 
     NxList list = labelTile.labelList(0);
     labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
@@ -443,7 +432,6 @@ public abstract class AbstractSummaryViewTest
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
@@ -521,8 +509,7 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(1);
 
     // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
-    OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
 
     NxList list = labelTile.labelList(0);
     labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
@@ -562,7 +549,6 @@ public abstract class AbstractSummaryViewTest
     }
 
     // scroll to the ltgs
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
 
     ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
@@ -600,7 +586,6 @@ public abstract class AbstractSummaryViewTest
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
@@ -746,8 +731,7 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(hierarchySize);
 
     // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
-    OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {
       NxList list = labelTile.labelList(i);
@@ -839,7 +823,6 @@ public abstract class AbstractSummaryViewTest
     LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
 
     // scroll to the ltgs
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
 
     final int hierarchyCount = ltgTile.getAllApplicableLicenseThreatGroupSection().size();
@@ -891,7 +874,6 @@ public abstract class AbstractSummaryViewTest
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile
-    OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
 
     for (int i = 0; i < hierarchySize; i++) {

@@ -148,7 +148,8 @@ public abstract class AbstractSummaryViewTest
   @Test
   public void testTile_default() {
     testLabelTile_no_labels();
-    // eyesWatcher.eyesCheck(String.format("empty label tile for %s %s", currentOwner.getType(), currentOwner.getName()));
+    // eyesWatcher.eyesCheck(String.format("empty label tile for %s %s",
+    //  currentOwner.getType(), currentOwner.getName()));
     testAccessTile_no_local_access();
     eyesWatcher.eyesCheck(String.format("empty access tile with inherited data for %s %s", currentOwner.getType(),
         currentOwner.getName()));

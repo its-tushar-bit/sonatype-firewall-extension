@@ -9,6 +9,7 @@ import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails;
 
@@ -20,6 +21,14 @@ public class RepositoryResultsDetailsResponseDto
 
   public String componentDisplayText;
 
+  public String pathname;
+
+  public ApiComponentIdentifierDTOV2 componentIdentifier;
+
+  public String hash;
+
+  public String matchStateId;
+
   public Date quarantineTime;
 
   public Boolean waived;
@@ -28,17 +37,24 @@ public class RepositoryResultsDetailsResponseDto
   }
 
   public RepositoryResultsDetailsResponseDto(final RepositoryResultsDetails details) {
+    ComponentIdentifier componentIdentifierFromJson = ComponentIdentifierAdapter
+        .formatAndJsonToComponentIdentifier(details.componentIdFormat, details.componentIdCoordinatesJson);
+
     this.threatLevel = details.policyThreatLevel;
     this.policyName = details.policyName;
-    this.componentDisplayText = buildComponentDisplayText(details);
+    this.componentDisplayText = buildComponentDisplayText(details, componentIdentifierFromJson);
+    this.pathname = details.pathname;
+    this.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifierFromJson);
+    this.hash = details.hash;
+    this.matchStateId = details.matchStateId;
     this.quarantineTime = details.quarantineTime;
     this.waived = details.waived;
   }
 
-  private static String buildComponentDisplayText(final RepositoryResultsDetails details) {
-    final ComponentIdentifier componentIdentifier =
-        ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier(details.componentIdFormat,
-            details.componentIdCoordinatesJson);
+  private static String buildComponentDisplayText(
+      final RepositoryResultsDetails details,
+      final ComponentIdentifier componentIdentifier)
+  {
     if (componentIdentifier != null) {
       return ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();
     }

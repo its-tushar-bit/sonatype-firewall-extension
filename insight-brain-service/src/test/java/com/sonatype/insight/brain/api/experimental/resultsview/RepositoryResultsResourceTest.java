@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -51,7 +52,13 @@ public class RepositoryResultsResourceTest
     assertThat(responseDtos.get(0).policyName).isEqualTo(policyViolation.getPolicyName());
     assertThat(responseDtos.get(0).waived).isEqualTo(policyViolation.isWaived());
     assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g : a : v");
+    assertThat(responseDtos.get(0).pathname).isEqualTo(repositoryComponent.getPathname());
+    assertThat(responseDtos.get(0).hash).isEqualTo(repositoryComponent.getHash());
+    assertThat(responseDtos.get(0).matchStateId).isEqualTo(repositoryComponent.getMatchStateId());
     assertThat(responseDtos.get(0).quarantineTime).isEqualTo(
         repositoryComponent.isQuarantined() ? repositoryComponent.getQuarantineTime() : null);
+
+    assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(responseDtos.get(0).componentIdentifier))
+        .isEqualTo(repositoryComponent.getComponentIdentifier());
   }
 }

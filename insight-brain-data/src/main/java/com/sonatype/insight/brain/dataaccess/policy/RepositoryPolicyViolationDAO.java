@@ -215,7 +215,8 @@ public class RepositoryPolicyViolationDAO
   {
     try (TransactionContext tx = createTransactionContext()) {
       String baseQuery = "SELECT violation.threat_level, violation.policy_name, component.component_id_format," + //
-          " component.pathname, component.component_id_coordinates_json," + //
+          " component.pathname, component.component_id_coordinates_json, component.hash," + //
+          " component.match_state_id," + //
           " CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL) THEN" + //
           " component.quarantine_time END AS quarantine_time, violation.waived" + //
           " FROM insight_brain_ods.repository_component component" + //
@@ -248,8 +249,8 @@ public class RepositoryPolicyViolationDAO
 
       List<RepositoryResultsDetails> results = ((Stream<Object[]>) query.getResultStream())
           .map(array -> new RepositoryResultsDetails(getInteger(array[0]), (String) array[1],
-              (String) array[2], (String) array[3], (String) array[4],
-              array[5] == null ? null : new Date(((Timestamp) array[5]).getTime()), (Boolean) array[6]))
+              (String) array[2], (String) array[3], (String) array[4], (String) array[5], (String) array[6],
+              array[7] == null ? null : new Date(((Timestamp) array[7]).getTime()), (Boolean) array[8]))
           .collect(Collectors.toList());
 
       return results;

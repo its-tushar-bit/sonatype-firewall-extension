@@ -112,8 +112,10 @@ export default function ReportTableRow({ onClick, component }) {
             <NxFontAwesomeIcon icon={faHistory} />
           </span>
         )}
-        <DependencyIndicators component={component} />
-        <ComponentDisplay component={component} />
+        <div className="iq-app-report__truncate-wrapper">
+          <DependencyIndicators component={component} />
+          <ComponentDisplay component={component} truncate />
+        </div>
       </NxTableCell>
       <NxTableCell chevron />
     </NxTableRow>

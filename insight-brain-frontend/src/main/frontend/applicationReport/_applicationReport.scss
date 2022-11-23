@@ -325,8 +325,11 @@ tbody .iq-cell--application-report-component-display {
     max-height: none;
   }
 
-  .iq-component-display {
-    display: inline;
+  .iq-app-report__truncate-wrapper {
+    display: flex;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .iq-dependency-indicator {

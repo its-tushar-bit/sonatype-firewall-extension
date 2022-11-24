@@ -711,8 +711,9 @@ public abstract class AbstractSummaryViewTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     SidebarNavigation.closeNavigationSidebar();
     testLabelTile_Inherited(inheritedLabels, parentOwners);
-    eyesWatcher.eyesCheck(
-        String.format("label tile with inherited data for %s %s", currentOwner.getType(), currentOwner.getName()));
+    // eyesWatcher.eyesCheck(
+    //  String.format("label tile with inherited data for %s %s", currentOwner.getType(),
+    //  currentOwner.getName()));
     testLTGTile_Inherited(inheritedLTGs, parentOwners);
     eyesWatcher.eyesCheck(
         String.format("license threat group tile with inherited data for %s %s", currentOwner.getType(),

@@ -38,7 +38,7 @@
       <!-- Included to make use of existing dto classes used by rest api-->
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-core</artifactId>
-      <version>7.0.0</version>
+      <version>${keycloak.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.bouncycastle</groupId>
@@ -49,6 +49,10 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-saml-servlet-filter-adapter</artifactId>
     </dependency>
 
     <dependency>

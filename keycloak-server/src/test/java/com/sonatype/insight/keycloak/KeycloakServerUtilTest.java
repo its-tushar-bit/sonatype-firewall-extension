@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.Response;
 
@@ -70,14 +71,14 @@ public class KeycloakServerUtilTest
   public void testCreateClient() {
     // Initial clients in Keycloak:
     // account, admin-cli, broken, master-realm, security-admin-console
-    assertThat(keycloak.getClients()).hasSize(5);
+    int builtInClientsCount = keycloak.getClients().length;
 
     ClientRepresentation clientRepresentation = new ClientRepresentation();
     clientRepresentation.setClientId("a-new-client");
     clientRepresentation.setProtocol("saml");
 
     keycloak.createClient(clientRepresentation);
-    assertThat(keycloak.getClients()).hasSize(6);
+    assertThat(keycloak.getClients()).hasSize(builtInClientsCount + 1);
   }
 
   @Test
@@ -97,7 +98,7 @@ public class KeycloakServerUtilTest
     String clientId = faker.funnyName().name();
     String groupName = faker.funnyName().name();
 
-    assertThat(keycloak.getClients()).hasSize(5);
+    int builtInClientsCount = keycloak.getClients().length;
     assertThat(keycloak.getUsers()).extracting(UserRepresentation::getUsername)
         .containsExactly(KeycloakServer.USERNAME);
 
@@ -114,13 +115,13 @@ public class KeycloakServerUtilTest
     keycloak.createUser(userRepresentation);
     keycloak.createGroup(groupName);
 
-    assertThat(keycloak.getClients()).hasSize(6);
+    assertThat(keycloak.getClients()).hasSize(builtInClientsCount + 1);
     assertThat(keycloak.getUsers()).hasSize(2);
     assertThat(keycloak.getGroups()).hasSize(1);
 
     keycloak.clean();
 
-    assertThat(keycloak.getClients()).hasSize(5);
+    assertThat(keycloak.getClients()).hasSize(builtInClientsCount);
     assertThat(keycloak.getUsers()).extracting(UserRepresentation::getUsername)
         .containsExactly(KeycloakServer.USERNAME);
   }
@@ -285,7 +286,7 @@ public class KeycloakServerUtilTest
   @Test
   public void testGetSamlMetadataXml() {
     String samlMetadata = keycloak.getSamlMetadataXml();
-    assertThat(samlMetadata).startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").contains("IDPSSODescriptor");
+    assertThat(samlMetadata).contains("IDPSSODescriptor");
   }
 
   @Test

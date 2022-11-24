@@ -90,7 +90,7 @@ class KeycloakServer
     try {
       dockerClient = DefaultDockerClient.fromEnv().apiVersion("v1.30").build();
       hostname = dockerClient.getHost();
-      String image = applyRegistry("jboss/keycloak:7.0.0");
+      String image = applyRegistry("jboss/keycloak:14.0.0");
       log.info("Creating keycloak server from image {}", image);
       try {
         dockerClient.inspectImage(image);

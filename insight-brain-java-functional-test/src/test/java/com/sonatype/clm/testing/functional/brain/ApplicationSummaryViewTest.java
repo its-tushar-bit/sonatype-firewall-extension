@@ -571,7 +571,7 @@ public class ApplicationSummaryViewTest
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("Repository URL needed"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text("Inherit access token (GitHub)"));
 
-    eyesWatcher.eyesCheck("Application Source Control configured without URL");
+    // eyesWatcher.eyesCheck("Application Source Control configured without URL");
 
     rootSourceControl.setToken("TESK_TOKEN");
     sourceControlDAO.update(rootSourceControl);

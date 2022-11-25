@@ -9,6 +9,7 @@ import java.security.Provider;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
+import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
@@ -73,6 +75,7 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.quartz.JobPersistenceException;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,7 +93,7 @@ public class InsightBrainServiceTest
       TelemetryPurpose.HIERARCHY_METRICS, TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE,
       TelemetryPurpose.CONFIGURATION_PROPERTIES, TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS,
       TelemetryPurpose.SOURCE_CONTROL_RATE_LIMITS, TelemetryPurpose.ROLE_USAGE, TelemetryPurpose.RUNTIME_ENVIRONMENT,
-      TelemetryPurpose.REPOSITORY_CONFIGURATION
+      TelemetryPurpose.REPOSITORY_CONFIGURATION, TelemetryPurpose.CLUSTER_USAGE
   };
 
   @Rule
@@ -101,11 +104,15 @@ public class InsightBrainServiceTest
 
   private MockedStatic<DatabaseProvisionUtils> mockedDBUtil;
 
+  private QuartzJobStoreTX quartzJobStoreTX;
+
   @Before
-  public void before() {
+  public void before() throws JobPersistenceException {
     mockedDBUtil = Mockito.mockStatic(DatabaseProvisionUtils.class);
     // noinspection ResultOfMethodCallIgnored
     mockedDBUtil.when(DatabaseProvisionUtils::isInMemoryDatabase).thenReturn(true);
+    quartzJobStoreTX = mock(QuartzJobStoreTX.class);
+    when(quartzJobStoreTX.getSchedulerStateRecords()).thenReturn(Collections.nCopies(2, null));
   }
 
   @After
@@ -198,12 +205,9 @@ public class InsightBrainServiceTest
               .containsEntry(RealmTelemetryCollector.SAML_CONFIGURED, "false");
           break;
         case ROLE_USAGE:
-          assertThat(telemetryDataReceived.getAttributes()).isNotEmpty();
-          break;
         case RUNTIME_ENVIRONMENT:
-          assertThat(telemetryDataReceived.getAttributes()).isNotEmpty();
-          break;
         case REPOSITORY_CONFIGURATION:
+        case CLUSTER_USAGE:
           assertThat(telemetryDataReceived.getAttributes()).isNotEmpty();
           break;
         default:
@@ -290,7 +294,7 @@ public class InsightBrainServiceTest
     responses.clear();
     telemetryScheduler.getTelemetryRunnable().run();
     temporarilyEnableQuartzTelemetry();
-    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(11));
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(12));
     Date expectedMaxCreateTime = new Date();
     Collection<TelemetryData> allTelemetryData =
         assertTelemetry(responses, expectedMinCreateTime, expectedMaxCreateTime);

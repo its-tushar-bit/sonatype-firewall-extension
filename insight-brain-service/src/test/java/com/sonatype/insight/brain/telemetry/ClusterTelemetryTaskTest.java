@@ -6,9 +6,11 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -31,6 +33,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ClusterTelemetryTaskTest
     extends AbstractComponentTest
@@ -44,6 +47,9 @@ public class ClusterTelemetryTaskTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
+  @Mock
+  private QuartzJobStoreTX quartzJobStoreTXMock;
+
   @Captor
   private ArgumentCaptor<List<TelemetryData>> allTelemetryDataCaptor;
 
@@ -51,6 +57,7 @@ public class ClusterTelemetryTaskTest
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    binder.bind(QuartzJobStoreTX.class).toInstance(quartzJobStoreTXMock);
     super.configure(binder);
   }
 
@@ -60,11 +67,12 @@ public class ClusterTelemetryTaskTest
   }
 
   @Test
-  public void testExecute() {
+  public void testExecute() throws Exception {
     doAnswer(invocationOnMock -> {
       assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
       return null;
     }).when(telemetrySenderMock).send(anyList());
+    when(quartzJobStoreTXMock.getSchedulerStateRecords()).thenReturn(Collections.nCopies(2, null));
 
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
       clusterTelemetryTask.execute(mock(JobExecutionContext.class));
@@ -78,6 +86,7 @@ public class ClusterTelemetryTaskTest
                                             TelemetryPurpose.ROLE_USAGE, //
                                             TelemetryPurpose.REPOSITORY_CONFIGURATION, //
                                             TelemetryPurpose.SOURCE_CONTROL_METRICS, //
+                                            TelemetryPurpose.CLUSTER_USAGE, //
     };
     verify(telemetrySenderMock, times(expectedPurposes.length)).send(allTelemetryDataCaptor.capture());
     List<TelemetryData> allTelemetryData =

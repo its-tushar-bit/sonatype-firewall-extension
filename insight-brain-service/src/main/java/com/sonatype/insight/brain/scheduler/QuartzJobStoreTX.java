@@ -202,8 +202,7 @@ public class QuartzJobStoreTX
     return schedulerStateRecord.getSchedulerInstanceId() + " - " + schedulerStateRecord.getCheckinTimestamp();
   }
 
-  // Visible for testing
-  List<SchedulerStateRecord> getSchedulerStateRecords() throws JobPersistenceException {
+  public List<SchedulerStateRecord> getSchedulerStateRecords() throws JobPersistenceException {
     Connection conn = getNonManagedTXConnection();
     try {
       return getDelegate().selectSchedulerStateRecords(conn, null);

@@ -491,8 +491,8 @@ public abstract class AbstractSummaryViewTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     SidebarNavigation.closeNavigationSidebar();
     testLabelTile_Local(localLabels);
-    eyesWatcher.eyesCheck(
-        String.format("label tile with local data for %s %s", currentOwner.getType(), currentOwner.getName()));
+    // eyesWatcher.eyesCheck(
+    // String.format("label tile with local data for %s %s", currentOwner.getType(), currentOwner.getName()));
     testLTGTile_Local(locaLTGs);
     eyesWatcher.eyesCheck(
         String.format("license threat group tile with local data for %s %s", currentOwner.getType(),

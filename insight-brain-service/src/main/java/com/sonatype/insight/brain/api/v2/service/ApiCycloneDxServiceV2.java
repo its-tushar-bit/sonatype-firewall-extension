@@ -203,7 +203,9 @@ public class ApiCycloneDxServiceV2
   }
 
   private void addDependencyTree(
-      ApiDependencyTreeNodeDTO dependenciesData, Bom bom, Set<String> components) throws IOException
+      ApiDependencyTreeNodeDTO dependenciesData,
+      Bom bom,
+      Set<String> components)
   {
     if (ObjectUtils.allNotNull(dependenciesData, dependenciesData.getPackageUrl())) {
       List<Dependency> dependencies = convert(dependenciesData, components);

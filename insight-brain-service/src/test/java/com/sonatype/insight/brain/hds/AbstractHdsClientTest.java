@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +17,7 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.test.InjectedTest;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
@@ -34,7 +33,7 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
 public abstract class AbstractHdsClientTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
   @Inject
   protected PasswordHandler passwordHandler;
@@ -122,7 +121,7 @@ public abstract class AbstractHdsClientTest
     configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.HDS_URL, hdsUrl);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
   }
-  
+
   private void setUserAgentSuffix(String userAgentSuffix) {
     configurationService.setConfigurationNoAuthz(SystemConfigurationProperty.USER_AGENT_SUFFIX, userAgentSuffix);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.USER_AGENT_SUFFIX);

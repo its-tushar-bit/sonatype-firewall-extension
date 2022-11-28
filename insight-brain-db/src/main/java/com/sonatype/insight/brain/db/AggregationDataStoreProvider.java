@@ -17,9 +17,12 @@ import com.sonatype.insight.db.DatabaseConfig;
  */
 public class AggregationDataStoreProvider
 {
-  private static AggregationDataStore INSTANCE = new DefaultAggregationDataStore();
+  private static AggregationDataStore INSTANCE;
 
   public static AggregationDataStore getInstance() {
+    if (INSTANCE == null) {
+      INSTANCE = new DefaultAggregationDataStore();
+    }
     return INSTANCE;
   }
 
@@ -30,30 +33,32 @@ public class AggregationDataStoreProvider
   private AggregationDataStoreProvider() { }
 
   public static void init(DatabaseConfig databaseConfig) {
-    INSTANCE.initWithMigration(databaseConfig, null);
+    getInstance().initWithMigration(databaseConfig, null);
   }
 
   public static void initWithoutMigration(DatabaseConfig databaseConfig) {
-    INSTANCE.initWithoutMigration(databaseConfig);
+    getInstance().initWithoutMigration(databaseConfig);
   }
 
   public static void migrate() {
-    INSTANCE.migrate(false);
+    getInstance().migrate(false);
   }
 
   public static DataSource getDataSource() {
-    return INSTANCE.getDataSource();
+    return getInstance().getDataSource();
   }
 
   public static DatabaseConfig getDatabaseConfig() {
-    return INSTANCE.getDatabaseConfig();
+    return getInstance().getDatabaseConfig();
   }
 
   public static EntityManagerFactory getJPAEntityManagerFactory() {
-    return INSTANCE.getJPAEntityManagerFactory();
+    return getInstance().getJPAEntityManagerFactory();
   }
 
   static synchronized void clear_ForTestsOnly() {
-    INSTANCE.clear_ForTestsOnly();
+    if (INSTANCE != null) {
+      INSTANCE.clear_ForTestsOnly();
+    }
   }
 }

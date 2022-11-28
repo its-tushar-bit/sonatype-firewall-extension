@@ -7,16 +7,17 @@ package com.sonatype.insight.brain.security;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
+
 import com.google.inject.Binder;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SecurityModuleTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
   @Inject
   private SecurityManager securityManager;

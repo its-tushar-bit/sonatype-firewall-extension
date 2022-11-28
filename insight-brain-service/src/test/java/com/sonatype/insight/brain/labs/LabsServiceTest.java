@@ -7,12 +7,11 @@ package com.sonatype.insight.brain.labs;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.sonatype.insight.test.InjectedTest;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
@@ -26,7 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class LabsServiceTest extends InjectedTest
+public class LabsServiceTest
+    extends BrainInjectedTest
 {
   @Inject
   private LabsService labsService;

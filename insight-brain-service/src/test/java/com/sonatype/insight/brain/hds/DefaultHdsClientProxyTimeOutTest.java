@@ -14,7 +14,6 @@ import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
@@ -27,10 +26,10 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightProxy;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.brain.utils.Retry;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadGatewayException;
-import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.networking.PortAllocator;
 
 import org.junit.After;
@@ -48,7 +47,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultHdsClientProxyTimeOutTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();

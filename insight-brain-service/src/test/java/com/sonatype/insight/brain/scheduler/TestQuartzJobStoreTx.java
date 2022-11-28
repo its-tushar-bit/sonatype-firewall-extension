@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 
@@ -27,10 +28,13 @@ public class TestQuartzJobStoreTx
   private volatile boolean recoveringMisfires = false;
 
   @Inject
-  public TestQuartzJobStoreTx(ProductLicense productLicense, InsightConfig insightConfig)
+  public TestQuartzJobStoreTx(
+      ProductLicense productLicense,
+      InsightConfig insightConfig,
+      OperationalDataStore operationalDataStore)
       throws InvalidConfigurationException
   {
-    super(productLicense, insightConfig);
+    super(productLicense, insightConfig, operationalDataStore);
   }
 
   @Override

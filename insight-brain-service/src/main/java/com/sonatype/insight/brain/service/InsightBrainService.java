@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
-
 import javax.inject.Named;
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
@@ -28,6 +27,14 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditFilter;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
+import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
+import com.sonatype.insight.brain.db.DatamartProvider;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
 import com.sonatype.insight.brain.metrics.CustomMetrics;
 import com.sonatype.insight.brain.migration.DbMigrationCommand;
@@ -463,8 +470,18 @@ public class InsightBrainService
     };
     Module authc = new SecurityModule();
     Module authz = new SecurityAopModule();
+    Module dbModule = new AbstractModule()
+    {
+      @Override
+      protected void configure() {
+        bind(OperationalDataStore.class).toInstance(OperationalDataStoreProvider.getInstance());
+        bind(AggregationDataStore.class).toInstance(AggregationDataStoreProvider.getInstance());
+        bind(DataMartDataStore.class).toInstance(DatamartProvider.getInstance());
+        bind(ThirdPartyScansDataStore.class).toInstance(ThirdPartyScansProvider.getInstance());
+      }
+    };
 
-    return Arrays.asList(bindings, authc, authz);
+    return Arrays.asList(bindings, authc, authz, dbModule);
   }
 
   public static String getInstanceId() {

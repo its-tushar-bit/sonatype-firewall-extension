@@ -14,9 +14,12 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 public class ThirdPartyScansProvider
 {
-  private static ThirdPartyScansDataStore INSTANCE = new DefaultThirdPartyScansDataStore();
+  private static ThirdPartyScansDataStore INSTANCE;
 
   public static ThirdPartyScansDataStore getInstance() {
+    if (INSTANCE == null) {
+      INSTANCE = new DefaultThirdPartyScansDataStore();
+    }
     return INSTANCE;
   }
 
@@ -28,30 +31,32 @@ public class ThirdPartyScansProvider
   }
 
   public static void init(DatabaseConfig databaseConfig) {
-    INSTANCE.initWithMigration(databaseConfig, null);
+    getInstance().initWithMigration(databaseConfig, null);
   }
 
   public static void initWithoutMigration(DatabaseConfig databaseConfig) {
-    INSTANCE.initWithoutMigration(databaseConfig);
+    getInstance().initWithoutMigration(databaseConfig);
   }
 
   public static void migrate() {
-    INSTANCE.migrate(false);
+    getInstance().migrate(false);
   }
 
   public static DataSource getDataSource() {
-    return INSTANCE.getDataSource();
+    return getInstance().getDataSource();
   }
 
   public static DatabaseConfig getDatabaseConfig() {
-    return INSTANCE.getDatabaseConfig();
+    return getInstance().getDatabaseConfig();
   }
 
   public static EntityManagerFactory getJPAEntityManagerFactory() {
-    return INSTANCE.getJPAEntityManagerFactory();
+    return getInstance().getJPAEntityManagerFactory();
   }
 
   static synchronized void clear_ForTestsOnly() {
-    INSTANCE.clear_ForTestsOnly();
+    if (INSTANCE != null) {
+      INSTANCE.clear_ForTestsOnly();
+    }
   }
 }

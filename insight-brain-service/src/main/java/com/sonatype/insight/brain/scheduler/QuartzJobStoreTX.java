@@ -15,7 +15,6 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.db.DataSourceFactory;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
@@ -80,16 +79,22 @@ public class QuartzJobStoreTX
 
   private final InsightConfig insightConfig;
 
+  protected final OperationalDataStore operationalDataStore;
+
   private volatile boolean productLicenseLoaded;
 
   private volatile boolean isShuttingDown;
 
   @Inject
-  public QuartzJobStoreTX(ProductLicense productLicense, InsightConfig insightConfig)
+  public QuartzJobStoreTX(
+      ProductLicense productLicense,
+      InsightConfig insightConfig,
+      OperationalDataStore operationalDataStore)
       throws InvalidConfigurationException
   {
     this.productLicense = productLicense;
     this.insightConfig = insightConfig;
+    this.operationalDataStore = operationalDataStore;
     initialize();
   }
 
@@ -99,7 +104,7 @@ public class QuartzJobStoreTX
     setTablePrefix(OperationalDataStore.ID + ".QRTZ_");
     setUseProperties("true");
     setClusterCheckinInterval(CLUSTER_CHECKIN_INTERVAL_MILLIS);
-    DatabaseEngine dbEngine = DataSourceFactory.getDatabaseEngine(OperationalDataStoreProvider.getDataSource());
+    DatabaseEngine dbEngine = DataSourceFactory.getDatabaseEngine(operationalDataStore.getDataSource());
     if (H2DatabaseEngine.INSTANCE.equals(dbEngine)) {
       setIsClustered(false);
       setDriverDelegateClass(QuartzHSQLDBDelegate.class.getName());

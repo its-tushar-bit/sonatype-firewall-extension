@@ -42,8 +42,8 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
 import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.json.store.JsonUtils;
-
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -59,7 +59,6 @@ import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
 import org.apache.shiro.util.ThreadContext;
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -83,7 +82,7 @@ import static org.mockito.Mockito.mock;
  * Support class for tests of Sisu components.
  */
 public class AbstractComponentTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
   private final Logger log = LoggerFactory.getLogger(getClass());
 

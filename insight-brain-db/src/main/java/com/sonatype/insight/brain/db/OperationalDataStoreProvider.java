@@ -23,9 +23,12 @@ public class OperationalDataStoreProvider
 {
   private static final Logger log = LoggerFactory.getLogger(OperationalDataStoreProvider.class);
 
-  private static OperationalDataStore INSTANCE = new DefaultOperationalDataStore();
+  private static OperationalDataStore INSTANCE;
 
   public static OperationalDataStore getInstance() {
+    if (INSTANCE == null) {
+      INSTANCE = new DefaultOperationalDataStore();
+    }
     return INSTANCE;
   }
 
@@ -36,47 +39,49 @@ public class OperationalDataStoreProvider
   private OperationalDataStoreProvider() { }
 
   public static void init(DatabaseConfig databaseConfig, boolean migrateToNewViolationModel) {
-    INSTANCE.initWithMigration(databaseConfig, migrateToNewViolationModel);
+    getInstance().initWithMigration(databaseConfig, migrateToNewViolationModel);
   }
 
   public static void initWithoutMigration(DatabaseConfig databaseConfig) {
-    INSTANCE.initWithoutMigration(databaseConfig);
+    getInstance().initWithoutMigration(databaseConfig);
   }
 
   public static void migrate(boolean migrateToNewViolationModel) {
-    INSTANCE.migrate(migrateToNewViolationModel);
+    getInstance().migrate(migrateToNewViolationModel);
   }
 
   public static DataSource getDataSource() {
-    return INSTANCE.getDataSource();
+    return getInstance().getDataSource();
   }
 
   public static DataSource getDataSourceWithoutInit() {
-    return INSTANCE.getDataSourceWithoutInit();
+    return getInstance().getDataSourceWithoutInit();
   }
 
   public static DatabaseConfig getDatabaseConfig() {
-    return INSTANCE.getDatabaseConfig();
+    return getInstance().getDatabaseConfig();
   }
 
   public static boolean isDatabaseInMemory() {
-    return INSTANCE.isDatabaseInMemory();
+    return getInstance().isDatabaseInMemory();
   }
 
   public static EntityManagerFactory getJPAEntityManagerFactory() {
-    return INSTANCE.getJPAEntityManagerFactory();
+    return getInstance().getJPAEntityManagerFactory();
   }
 
   public static EntityManagerFactory getEntityManagerFactoryForLocks() {
-    return INSTANCE.getEntityManagerFactoryForLocks();
+    return getInstance().getEntityManagerFactoryForLocks();
   }
 
   static synchronized void clear_ForTestsOnly() {
-    INSTANCE.clear_ForTestsOnly();
+    if (INSTANCE != null) {
+      INSTANCE.clear_ForTestsOnly();
+    }
   }
 
   public static boolean isDatabaseEmbedded() {
-    return INSTANCE.isDatabaseEmbedded();
+    return getInstance().isDatabaseEmbedded();
   }
 
   public static IntConsumer getUpgradeGuard(final Boolean migrateToNewViolationModel) {

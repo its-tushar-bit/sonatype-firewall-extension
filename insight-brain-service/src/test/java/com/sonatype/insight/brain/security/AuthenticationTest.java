@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.security;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.jaxrs.error.JavaLangErrorHandler;
 
 import com.google.inject.Binder;
@@ -18,7 +19,6 @@ import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.realm.Realm;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
  * Tests for authentication aspects that are not limited or specific to a single class.
  */
 public class AuthenticationTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
   @Inject
   private SecurityManager securityManager;

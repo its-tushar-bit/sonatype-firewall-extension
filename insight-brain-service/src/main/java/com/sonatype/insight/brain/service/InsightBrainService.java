@@ -115,6 +115,8 @@ public class InsightBrainService
 
   private static long startTime;
 
+  private DatabaseProvisionUtils databaseProvisionUtils;
+
   public static void main(final String[] args) {
     try {
       setupServerLogging(args);
@@ -168,8 +170,10 @@ public class InsightBrainService
     startTime = System.currentTimeMillis();
     setSisuUrlCachesToTrueIfNotSet();
 
+    databaseProvisionUtils = createDatabaseProvisionUtils();
+
     final Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(this);
-    bootstrap.addCommand(new DbMigrationCommand());
+    bootstrap.addCommand(new DbMigrationCommand(databaseProvisionUtils));
     bootstrap.addCommand(new ServerCommand<InsightConfig>(this)
     {
       private volatile InsightFileLock insightFileLock;
@@ -239,13 +243,22 @@ public class InsightBrainService
   public void run(InsightConfig configuration, Environment environment) throws Exception {
     logServerInstanceMessage("Started " + getServerInstanceMessage());
 
-    DatabaseProvisionUtils.initializeDatabases(configuration, getDatabaseConfigProvider(configuration));
+    databaseProvisionUtils.initializeDatabases(configuration, getDatabaseConfigProvider(configuration));
 
-    validateMinimumSchemaVersion();
+    validateMinimumSchemaVersion(databaseProvisionUtils);
 
     super.run(configuration, environment);
 
     bootApplicationLifecycle();
+  }
+
+  protected DatabaseProvisionUtils createDatabaseProvisionUtils() {
+    return new DatabaseProvisionUtils(
+        OperationalDataStoreProvider.getInstance(),
+        AggregationDataStoreProvider.getInstance(),
+        DatamartProvider.getInstance(),
+        ThirdPartyScansProvider.getInstance()
+    );
   }
 
   // Visible for testing
@@ -275,10 +288,10 @@ public class InsightBrainService
     log.info(message);
   }
 
-  private void validateMinimumSchemaVersion() {
+  private void validateMinimumSchemaVersion(final DatabaseProvisionUtils databaseProvisionUtils) {
     // Force exit if schema version table does not exist or if migration was needed but didn't happen.
-    if (!DatabaseProvisionUtils.isInMemoryDatabase() &&
-        (!DatabaseProvisionUtils.isSchemaVersionTableExists() || DatabaseProvisionUtils.isMigrationNeeded())) {
+    if (!databaseProvisionUtils.isInMemoryDatabase() &&
+        (!databaseProvisionUtils.isSchemaVersionTableExists() || databaseProvisionUtils.isMigrationNeeded())) {
       log.error("\n\n\t\t\t***** Database migration is required. " +
           "Please migrate the database before starting the application! *****\n");
       System.exit(1);

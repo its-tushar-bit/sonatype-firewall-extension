@@ -86,7 +86,7 @@ public interface DataStore
    * objects for the data store (e.g. {@link DataSource} and {@link EntityManagerFactory} and also the population of new
    * and empty databases.
    *
-   * @param databaseConfig
+   * @param databaseConfig             configuration for the database
    * @param migrateToNewViolationModel IQ version 114 introduced a new violation model that required special handling.
    *                                   This flag indicates if that migration should be performed.
    */

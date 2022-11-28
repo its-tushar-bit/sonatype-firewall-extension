@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import javax.mail.BodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
@@ -73,8 +72,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.quartz.JobPersistenceException;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -102,22 +99,18 @@ public class InsightBrainServiceTest
   @Rule
   public final ExpectedSystemExit expectedExit = ExpectedSystemExit.none();
 
-  private MockedStatic<DatabaseProvisionUtils> mockedDBUtil;
-
   private QuartzJobStoreTX quartzJobStoreTX;
 
   @Before
   public void before() throws JobPersistenceException {
-    mockedDBUtil = Mockito.mockStatic(DatabaseProvisionUtils.class);
-    // noinspection ResultOfMethodCallIgnored
-    mockedDBUtil.when(DatabaseProvisionUtils::isInMemoryDatabase).thenReturn(true);
+    databaseProvisionUtils = mock(DatabaseProvisionUtils.class);
     quartzJobStoreTX = mock(QuartzJobStoreTX.class);
     when(quartzJobStoreTX.getSchedulerStateRecords()).thenReturn(Collections.nCopies(2, null));
+    when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(true);
   }
 
   @After
   public void after() {
-    mockedDBUtil.close();
     System.setProperty(InsightBrainService.SISU_URL_CACHES, "true");
   }
 
@@ -381,10 +374,9 @@ public class InsightBrainServiceTest
   @Test
   @ManualServerInit
   public void testDesiredSchemaVersionMet() throws Exception {
-    // noinspection ResultOfMethodCallIgnored
-    mockedDBUtil.when(DatabaseProvisionUtils::isInMemoryDatabase).thenReturn(false);
-    mockedDBUtil.when(DatabaseProvisionUtils::isSchemaVersionTableExists).thenReturn(true);
-    mockedDBUtil.when(DatabaseProvisionUtils::isMigrationNeeded).thenReturn(false);
+    when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(false);
+    when(databaseProvisionUtils.isSchemaVersionTableExists()).thenReturn(true);
+    when(databaseProvisionUtils.isMigrationNeeded()).thenReturn(false);
 
     initServer(config -> {
     });
@@ -395,10 +387,9 @@ public class InsightBrainServiceTest
   @Test
   @ManualServerInit
   public void testDesiredSchemaVersionUnmet() throws Exception {
-    // noinspection ResultOfMethodCallIgnored
-    mockedDBUtil.when(DatabaseProvisionUtils::isInMemoryDatabase).thenReturn(false);
-    mockedDBUtil.when(DatabaseProvisionUtils::isSchemaVersionTableExists).thenReturn(true);
-    mockedDBUtil.when(DatabaseProvisionUtils::isMigrationNeeded).thenReturn(true);
+    when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(false);
+    when(databaseProvisionUtils.isSchemaVersionTableExists()).thenReturn(true);
+    when(databaseProvisionUtils.isMigrationNeeded()).thenReturn(true);
 
     expectedExit.expectSystemExitWithStatus(1);
 
@@ -418,9 +409,8 @@ public class InsightBrainServiceTest
   @Test
   @ManualServerInit
   public void testDesiredSchemaVersionNoSchema() throws Exception {
-    // noinspection ResultOfMethodCallIgnored
-    mockedDBUtil.when(DatabaseProvisionUtils::isInMemoryDatabase).thenReturn(false);
-    mockedDBUtil.when(DatabaseProvisionUtils::isSchemaVersionTableExists).thenReturn(false);
+    when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(false);
+    when(databaseProvisionUtils.isSchemaVersionTableExists()).thenReturn(false);
 
     expectedExit.expectSystemExitWithStatus(1);
 
@@ -439,7 +429,7 @@ public class InsightBrainServiceTest
 
   @Test
   public void testStartupFailsIfSonatypeWorkIsInUse() {
-    TestCLMServer testCLMServerTwo = new TestCLMServer(false, null, null);
+    TestCLMServer testCLMServerTwo = new TestCLMServer(false, null, null, null);
     try {
       assertThatExceptionOfType(IllegalStateException.class).isThrownBy(testCLMServerTwo::start)
           .withStackTraceContaining(

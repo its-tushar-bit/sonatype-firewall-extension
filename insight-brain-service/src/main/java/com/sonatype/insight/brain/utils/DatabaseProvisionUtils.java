@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.DatamartProvider;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
@@ -26,39 +25,55 @@ import com.sonatype.insight.db.DatabaseConfig;
 
 public final class DatabaseProvisionUtils
 {
-  private DatabaseProvisionUtils() {
-    // Utility class
+  private final OperationalDataStore operationalDataStore;
+
+  private final AggregationDataStore aggregationDataStore;
+
+  private final DataMartDataStore dataMartDataStore;
+
+  private final ThirdPartyScansDataStore thirdPartyScansDataStore;
+
+  public DatabaseProvisionUtils(
+      final OperationalDataStore operationalDataStore,
+      final AggregationDataStore aggregationDataStore,
+      final DataMartDataStore dataMartDataStore,
+      final ThirdPartyScansDataStore thirdPartyScansDataStore)
+  {
+    this.operationalDataStore = operationalDataStore;
+    this.aggregationDataStore = aggregationDataStore;
+    this.dataMartDataStore = dataMartDataStore;
+    this.thirdPartyScansDataStore = thirdPartyScansDataStore;
   }
 
-  public static void initializeDatabases(InsightConfig insightConfig, DatabaseConfigProvider databaseConfigProvider) {
+  public void initializeDatabases(InsightConfig insightConfig, DatabaseConfigProvider databaseConfigProvider) {
     initializeDatabasesWithoutMigration(databaseConfigProvider);
     migrateDatabasesIfNeeded(insightConfig);
   }
 
-  public static void initializeDatabasesWithoutMigration(InsightConfig insightConfig) {
+  public void initializeDatabasesWithoutMigration(InsightConfig insightConfig) {
     initializeDatabasesWithoutMigration(new DatabaseConfigProvider(insightConfig));
   }
 
-  private static void initializeDatabasesWithoutMigration(DatabaseConfigProvider databaseConfigProvider) {
+  private void initializeDatabasesWithoutMigration(DatabaseConfigProvider databaseConfigProvider) {
     DatabaseConfig odsDatabaseConfig = databaseConfigProvider.getDatabaseConfig(DatabaseName.ods);
-    OperationalDataStoreProvider.initWithoutMigration(odsDatabaseConfig);
+    operationalDataStore.initWithoutMigration(odsDatabaseConfig);
 
     DatabaseConfig dmDatabaseConfig = databaseConfigProvider.getDatabaseConfig(DatabaseName.dm);
-    DatamartProvider.initWithoutMigration(dmDatabaseConfig);
+    dataMartDataStore.initWithoutMigration(dmDatabaseConfig);
 
     DatabaseConfig tpsDatabaseConfig = databaseConfigProvider.getDatabaseConfig(DatabaseName.third_party_scans);
-    ThirdPartyScansProvider.initWithoutMigration(tpsDatabaseConfig);
+    thirdPartyScansDataStore.initWithoutMigration(tpsDatabaseConfig);
 
     DatabaseConfig aggregationDatabaseConfig = databaseConfigProvider.getDatabaseConfig(DatabaseName.aggregation);
-    AggregationDataStoreProvider.initWithoutMigration(aggregationDatabaseConfig);
+    aggregationDataStore.initWithoutMigration(aggregationDatabaseConfig);
   }
 
-  public static void migrateDatabasesIfNeeded(InsightConfig insightConfig) {
+  public void migrateDatabasesIfNeeded(InsightConfig insightConfig) {
     int schemaVersion = -2;
     boolean schemaVersionTableExists = isSchemaVersionTableExists();
     if (schemaVersionTableExists) {
-      schemaVersion = DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(),
-          OperationalDataStore.ID);
+      schemaVersion =
+          DatabaseUtil.getDatabaseSchemaVersion(operationalDataStore.getDataSource(), operationalDataStore.getID());
     }
     boolean isMigrationEnabledOrHasNewDataSource = isMigrationEnabledOrHasNewDataSource();
     // -1 indicates a new database which needs to be "migrated" to have its schema version inserted
@@ -80,27 +95,26 @@ public final class DatabaseProvisionUtils
     }
   }
 
-  public static boolean isInMemoryDatabase() {
-    return OperationalDataStoreProvider.isDatabaseInMemory();
+  public boolean isInMemoryDatabase() {
+    return operationalDataStore.isDatabaseInMemory();
   }
 
-  public static boolean isSchemaVersionTableExists() {
-    return DatabaseUtil.schemaVersionTableExists(OperationalDataStoreProvider.getDataSource(),
-        OperationalDataStore.ID);
+  public boolean isSchemaVersionTableExists() {
+    return DatabaseUtil.schemaVersionTableExists(operationalDataStore.getDataSource(), operationalDataStore.getID());
   }
 
-  public static boolean isMigrationEnabledOrHasNewDataSource() {
+  public boolean isMigrationEnabledOrHasNewDataSource() {
     return DatabaseMigrator.isMigrationEnabled() || DataSourceFactory.hasNewDataSource();
   }
 
-  public static boolean isMigrationNeeded() {
-    return isMigrationNeeded(OperationalDataStoreProvider.getDataSource(), OperationalDataStore.ID)
+  public boolean isMigrationNeeded() {
+    return isMigrationNeeded(operationalDataStore.getDataSource(), operationalDataStore.getID())
         || isMigrationNeeded(DatamartProvider.getDataSource(), DataMartDataStore.ID)
         || isMigrationNeeded(ThirdPartyScansProvider.getDataSource(), ThirdPartyScansDataStore.ID)
         || isMigrationNeeded(AggregationDataStoreProvider.getDataSource(), AggregationDataStore.ID);
   }
 
-  private static boolean isMigrationNeeded(DataSource dataSource, String databaseSchemaName) {
+  private boolean isMigrationNeeded(DataSource dataSource, String databaseSchemaName) {
     if (!DatabaseUtil.schemaExists(dataSource, databaseSchemaName)) {
       return true;
     }
@@ -110,10 +124,10 @@ public final class DatabaseProvisionUtils
   }
 
   // Visible for testing
-  public static void doMigrateDatabases(InsightConfig insightConfig) {
+  public void doMigrateDatabases(InsightConfig insightConfig) {
     // NOTE: The ODS can refuse upgrade if the existing schema is too old. So upgrade it first to avoid
     // upgrading the other databases if the ODS fails and a previous server version must be run first instead.
-    OperationalDataStoreProvider.migrate(insightConfig.isConsentToUpgradeToVersion_1_45());
+    operationalDataStore.migrate(insightConfig.isConsentToUpgradeToVersion_1_45());
     DatamartProvider.migrate();
     ThirdPartyScansProvider.migrate();
     AggregationDataStoreProvider.migrate();

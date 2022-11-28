@@ -8,13 +8,14 @@ package com.sonatype.insight.brain.service;
 import java.util.List;
 
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.test.networking.PortAllocator;
 
 import com.google.inject.Module;
 
 /**
  * Test helper for CLM server. It wraps and manages a CLM brain service/server and a mocked HDS server.
- * 
+ *
  * @since 1.11
  */
 public class TestCLMServer
@@ -37,10 +38,12 @@ public class TestCLMServer
 
   private static int totalStopTime;
 
-  public TestCLMServer(boolean isProxyRequiredToReachHds,
-                       List<Module> modules,
-                       Configurator configurator,
-                       HdsMockServerRule hdsMockServer)
+  public TestCLMServer(
+      boolean isProxyRequiredToReachHds,
+      List<Module> modules,
+      Configurator configurator,
+      HdsMockServerRule hdsMockServer,
+      DatabaseProvisionUtils databaseProvisionUtils)
   {
     this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
 
@@ -48,10 +51,16 @@ public class TestCLMServer
     hdsMockServerOwned = false;
 
     brain = new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
-        hdsMockServer.getHttpUrl(), isProxyRequiredToReachHds, modules).setConfigurator(configurator);
+        hdsMockServer.getHttpUrl(), databaseProvisionUtils, isProxyRequiredToReachHds, modules).setConfigurator(
+        configurator);
   }
 
-  public TestCLMServer(boolean isProxyRequiredToReachHds, List<Module> modules, Configurator configurator) {
+  public TestCLMServer(
+      boolean isProxyRequiredToReachHds,
+      List<Module> modules,
+      Configurator configurator,
+      DatabaseProvisionUtils databaseProvisionUtils)
+  {
     this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
 
     int hdsMockServerPort = PortAllocator.nextFreePort();
@@ -60,7 +69,7 @@ public class TestCLMServer
     hdsMockServerOwned = true;
 
     brain = new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
-        "http://localhost:" + hdsMockServerPort, isProxyRequiredToReachHds, modules)
+        "http://localhost:" + hdsMockServerPort, databaseProvisionUtils, isProxyRequiredToReachHds, modules)
         .setConfigurator(configurator);
   }
 

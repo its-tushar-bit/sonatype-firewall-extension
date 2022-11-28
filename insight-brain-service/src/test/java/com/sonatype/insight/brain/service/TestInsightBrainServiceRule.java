@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 import com.google.inject.Module;
@@ -21,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * TestInsightBrainService as Junit ExternalResource (which is a Junit TestRule).
- * 
+ *
  * @since 1.9.1
  */
 public class TestInsightBrainServiceRule
@@ -35,6 +36,8 @@ public class TestInsightBrainServiceRule
 
   private final String hdsUrl;
 
+  private final DatabaseProvisionUtils databaseProvisionUtils;
+
   private final boolean isHdsProxyRequired;
 
   private final List<Module> modules;
@@ -46,12 +49,14 @@ public class TestInsightBrainServiceRule
   public TestInsightBrainServiceRule(int port,
                                      int adminPort,
                                      String hdsUrl,
+                                     DatabaseProvisionUtils databaseProvisionUtils,
                                      boolean isHdsProxyRequired,
                                      List<Module> modules)
   {
     this.port = port;
     this.adminPort = adminPort;
     this.hdsUrl = hdsUrl;
+    this.databaseProvisionUtils = databaseProvisionUtils;
     this.isHdsProxyRequired = isHdsProxyRequired;
     this.modules = modules;
   }
@@ -76,6 +81,7 @@ public class TestInsightBrainServiceRule
     if (hdsUrl != null) {
       brain.setHdsUrl(hdsUrl);
     }
+    brain.setDatabaseProvisionUtils(databaseProvisionUtils);
     if (isHdsProxyRequired) {
       brain.setProxyServerConfiguration("127.0.0.1", new URL(hdsUrl).getPort(), "proxyuser", "proxypass");
     }
@@ -143,7 +149,7 @@ public class TestInsightBrainServiceRule
     this.configurator = configurator;
     return this;
   }
-  
+
   public void resetDisableForTesting() {
     if (brain != null && brain.getInjector() != null) {
       brain.disableForTesting();

@@ -10,6 +10,10 @@ import com.sonatype.insight.brain.TestProductLicenseManager
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity
+import com.sonatype.insight.brain.db.AggregationDataStoreProvider
+import com.sonatype.insight.brain.db.DatamartProvider
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider
+import com.sonatype.insight.brain.db.ThirdPartyScansProvider
 import com.sonatype.insight.brain.model.Organization
 import com.sonatype.insight.brain.model.security.Permission
 import com.sonatype.insight.brain.model.security.Role
@@ -20,6 +24,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
 import com.sonatype.insight.brain.testing.functional.utils.BrowserInfo
+import com.sonatype.insight.brain.utils.DatabaseProvisionUtils
 import com.sonatype.insight.test.networking.PortAllocator
 import com.sonatype.insight.test.networking.SslProperties;
 
@@ -79,8 +84,14 @@ extends GebReportingSpec {
   }
 
   def createServiceRule() {
+    DatabaseProvisionUtils databaseProvisionUtils = new DatabaseProvisionUtils(
+        OperationalDataStoreProvider.getInstance(),
+        AggregationDataStoreProvider.getInstance(),
+        DatamartProvider.getInstance(),
+        ThirdPartyScansProvider.getInstance()
+    )
     new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
-        "http://localhost:" + hdsPort, false, getBrainModules())
+        "http://localhost:" + hdsPort, databaseProvisionUtils, false, getBrainModules())
   }
 
   def setupSpec() {
@@ -220,7 +231,7 @@ extends GebReportingSpec {
   public <T> T loginAsUserVia(String username, String password, Class<T> initialPage = ReportViolationsPage,
       Object[] args) {
     via initialPage, args
-    /* 
+    /*
      * Sadly, a module can't reliably wait for itself to appear. Once a function of the module is called, its base
      * element gets frozen and if that becomes stale, e.g. due to a page change as done above, all module contents
      * suffer the same fate, no matter how long the invoked module function waits and a module can't reload its base.

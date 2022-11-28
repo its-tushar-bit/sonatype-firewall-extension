@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMultipart;
@@ -50,6 +49,10 @@ import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
+import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
+import com.sonatype.insight.brain.db.DatamartProvider;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.hds.DefaultHdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
@@ -68,6 +71,7 @@ import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
 import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.client.utils.Authentication;
@@ -79,7 +83,6 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryHeader;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.networking.PortAllocator;
-
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
 
@@ -149,6 +152,8 @@ public abstract class AbstractBrainServiceTest
 
   protected static JiraClient mockJiraClient;
 
+  protected DatabaseProvisionUtils databaseProvisionUtils;
+
   public void setUpTestLicenseThreatGroups() {
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
   }
@@ -206,8 +211,15 @@ public abstract class AbstractBrainServiceTest
       testCLMServer = null;
     }
 
+    if (databaseProvisionUtils == null) {
+      databaseProvisionUtils = new DatabaseProvisionUtils(OperationalDataStoreProvider.getInstance(),
+          AggregationDataStoreProvider.getInstance(), DatamartProvider.getInstance(),
+          ThirdPartyScansProvider.getInstance());
+    }
+
     if (testCLMServer == null) {
-      testCLMServer = new TestCLMServer(isProxyRequiredToReachHds(), getBrainModules(), configurator, hdsMockServer);
+      testCLMServer = new TestCLMServer(isProxyRequiredToReachHds(), getBrainModules(), configurator, hdsMockServer,
+          databaseProvisionUtils);
       testCLMServer.start();
     }
     setBaseUrl("http://localhost");

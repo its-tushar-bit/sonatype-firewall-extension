@@ -26,8 +26,11 @@ public class DbMigrationCommand
   // Visible for testing
   static final int ATTEMPTS_TO_WAIT_FOR_LAST_CHECKIN_TO_NOT_BE_RECENT = 1;
 
-  public DbMigrationCommand() {
+  private final DatabaseProvisionUtils databaseProvisionUtils;
+
+  public DbMigrationCommand(final DatabaseProvisionUtils databaseProvisionUtils) {
     super("migrate-db", "Migrates the database to the latest schema version.");
+    this.databaseProvisionUtils = databaseProvisionUtils;
   }
 
   @Override
@@ -40,11 +43,12 @@ public class DbMigrationCommand
   protected void run(Bootstrap<InsightConfig> bootstrap, Namespace namespace, InsightConfig insightConfig) {
     try {
       DatabaseMigrator.setForceEnableMigration(true);
-      DatabaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig);
+
+      databaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig);
 
       tryCheckLastCheckinTimeNotRecent(getAttemptsToWaitForLastCheckinToNotBeRecent());
 
-      DatabaseProvisionUtils.migrateDatabasesIfNeeded(insightConfig);
+      databaseProvisionUtils.migrateDatabasesIfNeeded(insightConfig);
     }
     finally {
       DatabaseMigrator.setForceEnableMigration(false);

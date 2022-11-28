@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.function.BiConsumer;
-
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
@@ -41,10 +40,10 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
+import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
-
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import io.dropwizard.configuration.ConfigurationException;
@@ -67,7 +66,7 @@ public class TestInsightBrainService
     extends InsightBrainService
 {
   private static final Logger log = LoggerFactory.getLogger(TestInsightBrainService.class);
-  
+
   private static final String DEFAULT_CONFIG_FILE_PATH = "target/test-classes/config-test.yml";
 
   private static final String FORK_ID = System.getProperty("test.forkId", "");
@@ -95,6 +94,8 @@ public class TestInsightBrainService
 
   private String testHdsUrl;
 
+  private DatabaseProvisionUtils testDatabaseProvisionUtils;
+
   private ProxyServerConfiguration testProxyServerConfiguration;
 
   private Server testBrainServer;
@@ -120,6 +121,10 @@ public class TestInsightBrainService
 
   public void setHdsUrl(final String hdsUrl) {
     testHdsUrl = hdsUrl;
+  }
+
+  public void setDatabaseProvisionUtils(final DatabaseProvisionUtils databaseProvisionUtils) {
+    this.testDatabaseProvisionUtils = databaseProvisionUtils;
   }
 
   public ProxyServerConfiguration getTestProxyServerConfiguration() {
@@ -300,6 +305,11 @@ public class TestInsightBrainService
     disableForTesting();
 
     getInstance(ApplicationLifecycle.class).boot();
+  }
+
+  @Override
+  protected DatabaseProvisionUtils createDatabaseProvisionUtils() {
+    return testDatabaseProvisionUtils;
   }
 
   /**

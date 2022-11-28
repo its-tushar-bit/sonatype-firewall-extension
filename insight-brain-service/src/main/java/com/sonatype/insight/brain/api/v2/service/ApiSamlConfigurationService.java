@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -13,6 +14,7 @@ import java.util.Base64;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.core.UriBuilder;
+import javax.xml.stream.XMLStreamWriter;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
@@ -30,8 +32,12 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.adapters.saml.SamlDeployment;
+import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
 import org.keycloak.saml.SPMetadataDescriptor;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
+import org.keycloak.saml.common.exceptions.ProcessingException;
+import org.keycloak.saml.common.util.StaxUtil;
+import org.keycloak.saml.processing.core.saml.v2.writers.SAMLMetadataWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -169,15 +175,24 @@ public class ApiSamlConfigurationService
       String certificatePem =
           Base64.getEncoder().encodeToString(samlConfigurationDAO.get().getCertificate().getEncoded());
       Element key = SPMetadataDescriptor.buildKeyInfoElement(null, certificatePem);
-      return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + SPMetadataDescriptor.getSPDescriptor(
-          JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri(), samlEndpointUrl, samlEndpointUrl,
-          samlDeployment.getIDP().getSingleSignOnService().signRequest(),
+      URI bindingUri = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
+      EntityDescriptorType spDescriptor = SPMetadataDescriptor.buildSPdescriptor(bindingUri,
+          bindingUri, samlEndpointUrl, samlEndpointUrl, samlDeployment.getIDP().getSingleSignOnService().signRequest(),
           samlDeployment.getIDP().getSingleSignOnService().validateAssertionSignature(), true,
           samlDeployment.getEntityID(), samlDeployment.getNameIDPolicyFormat(), Arrays.asList(key), Arrays.asList(key));
+      return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + spDescriptorAsString(spDescriptor);
     }
     catch (Exception e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  private String spDescriptorAsString(EntityDescriptorType spDescriptor) throws ProcessingException {
+    StringWriter sw = new StringWriter();
+    XMLStreamWriter writer = StaxUtil.getXMLStreamWriter(sw);
+    SAMLMetadataWriter metadataWriter = new SAMLMetadataWriter(writer);
+    metadataWriter.writeEntityDescriptor(spDescriptor);
+    return sw.toString();
   }
 
   private ApiSamlConfigurationResponseDTO convertToResponseDTO(SamlConfiguration samlConfiguration) {

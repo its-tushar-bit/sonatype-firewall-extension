@@ -217,7 +217,7 @@ describe('DashboardFilter', function () {
 
       const [orgAppFilter] = getInnerFilters();
 
-      const [orgGroup, appGroup] = within(orgAppFilter).getAllByRole('group');
+      const [orgGroup, appGroup] = within(orgAppFilter).getAllByRole('menu');
       expect(orgGroup.children[0]).toHaveTextContent('all/none');
       expect(orgGroup.children[1]).toHaveTextContent('Org1');
       expect(appGroup.children[0]).toHaveTextContent('all/none');
@@ -239,7 +239,7 @@ describe('DashboardFilter', function () {
 
       const [, categoryFilter] = getInnerFilters();
 
-      const categoryGroup = within(categoryFilter).getByRole('group');
+      const categoryGroup = within(categoryFilter).getByRole('menu');
       expect(categoryGroup.children[0]).toHaveTextContent('all/none');
       expect(categoryGroup.children[1]).toHaveTextContent('uncategorized applications');
       expect(categoryGroup.children[2]).toHaveTextContent('Cat');
@@ -260,7 +260,7 @@ describe('DashboardFilter', function () {
 
       const [, , stageFilter] = getInnerFilters();
 
-      const stagesGroup = within(stageFilter).getByRole('group');
+      const stagesGroup = within(stageFilter).getByRole('menu');
       expect(stagesGroup.children[0]).toHaveTextContent('all/none');
       expect(stagesGroup.children[1]).toHaveTextContent('Build');
       expect(stagesGroup.children[2]).toHaveTextContent('Stage Release');
@@ -284,7 +284,7 @@ describe('DashboardFilter', function () {
 
       const [, , policyTypeFilter] = getInnerFilters();
 
-      const policyTypeGroup = within(policyTypeFilter).getByRole('group');
+      const policyTypeGroup = within(policyTypeFilter).getByRole('menu');
       expect(policyTypeGroup.children[0]).toHaveTextContent('all/none');
       expect(policyTypeGroup.children[1]).toHaveTextContent('Security');
       expect(policyTypeGroup.children[2]).toHaveTextContent('License');
@@ -309,7 +309,7 @@ describe('DashboardFilter', function () {
 
       const [, , , policyViolationStateFilter] = getInnerFilters();
 
-      const policyViolationStateGroup = within(policyViolationStateFilter).getByRole('group');
+      const policyViolationStateGroup = within(policyViolationStateFilter).getByRole('menu');
       expect(policyViolationStateGroup.children[0]).toHaveTextContent('all/none');
       expect(policyViolationStateGroup.children[1]).toHaveTextContent('Open');
       expect(policyViolationStateGroup.children[2]).toHaveTextContent('Waived');
@@ -331,8 +331,7 @@ describe('DashboardFilter', function () {
 
       const [, , , threatLevelFiler] = getInnerFilters();
 
-      const threatLevelGroup = within(threatLevelFiler).getByRole('group');
-      const [minSlider, maxSlider] = within(threatLevelGroup).getAllByRole('slider');
+      const [minSlider, maxSlider] = within(threatLevelFiler).getAllByRole('slider');
       expect(minSlider).toHaveTextContent('2');
       expect(maxSlider).toHaveTextContent('10');
     });
@@ -349,8 +348,8 @@ describe('DashboardFilter', function () {
         ...filterData,
         showAgeFilter: true,
       });
-      let filters = within(getFilter()).getAllByRole('menu');
-      expect(filters.length).toBe(5);
+      let filters = within(getFilter()).getAllByRole('group');
+      expect(filters.length).toBe(6);
       expect(filters[4].id).toBe('age-filter');
       unmount();
 
@@ -369,10 +368,10 @@ describe('DashboardFilter', function () {
         selectExpirationDate: selectExpirationDateSpy,
         showExpirationDateFilter: true,
       });
-      let filters = within(getFilter()).getAllByRole('menu');
-      expect(filters.length).toBe(5);
+      let filters = within(getFilter()).getAllByRole('group');
+      expect(filters.length).toBe(6);
       expect(filters[4].id).toBe('expiration-date-filter');
-      const expirationDatesGroup = within(filters[4]).getByRole('group');
+      const expirationDatesGroup = within(filters[4]).getByRole('menu');
       expect(expirationDatesGroup.children.length).toBe(7);
       expect(expirationDatesGroup.children[0]).toHaveTextContent('all');
       expect(expirationDatesGroup.children[1]).toHaveTextContent('in 24 hours');

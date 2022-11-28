@@ -9,8 +9,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-
 import javax.sql.DataSource;
+
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 
 public class DatabaseUtil
 {
@@ -19,11 +20,11 @@ public class DatabaseUtil
   }
 
   public static boolean quartzSchedulerStateTableExists(DataSource dataSource) {
-    return tableExists(dataSource, OperationalDataStoreProvider.ID, "qrtz_scheduler_state");
+    return tableExists(dataSource, OperationalDataStore.ID, "qrtz_scheduler_state");
   }
 
   public static boolean systemConfigurationPropertyTableExists(DataSource dataSource) {
-    return tableExists(dataSource, OperationalDataStoreProvider.ID, "system_configuration_property");
+    return tableExists(dataSource, OperationalDataStore.ID, "system_configuration_property");
   }
 
   public static boolean tableExists(DataSource dataSource, String databaseName, String tableName) {

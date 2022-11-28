@@ -16,6 +16,10 @@ import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -54,12 +58,12 @@ public final class DatabaseProvisionUtils
     boolean schemaVersionTableExists = isSchemaVersionTableExists();
     if (schemaVersionTableExists) {
       schemaVersion = DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(),
-          OperationalDataStoreProvider.ID);
+          OperationalDataStore.ID);
     }
     boolean isMigrationEnabledOrHasNewDataSource = isMigrationEnabledOrHasNewDataSource();
     // -1 indicates a new database which needs to be "migrated" to have its schema version inserted
     if (schemaVersionTableExists &&
-        (schemaVersion == -1 || schemaVersion >= OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION)) {
+        (schemaVersion == -1 || schemaVersion >= OperationalDataStore.LOCK_TABLE_DATABASE_VERSION)) {
       try (ClusterLock clusterLock = ClusterLock.createForSchemaMigration()) {
         clusterLock.lock();
         if (isMigrationEnabledOrHasNewDataSource && isMigrationNeeded()) {
@@ -82,7 +86,7 @@ public final class DatabaseProvisionUtils
 
   public static boolean isSchemaVersionTableExists() {
     return DatabaseUtil.schemaVersionTableExists(OperationalDataStoreProvider.getDataSource(),
-        OperationalDataStoreProvider.ID);
+        OperationalDataStore.ID);
   }
 
   public static boolean isMigrationEnabledOrHasNewDataSource() {
@@ -90,10 +94,10 @@ public final class DatabaseProvisionUtils
   }
 
   public static boolean isMigrationNeeded() {
-    return isMigrationNeeded(OperationalDataStoreProvider.getDataSource(), OperationalDataStoreProvider.ID)
-        || isMigrationNeeded(DatamartProvider.getDataSource(), DatamartProvider.ID)
-        || isMigrationNeeded(ThirdPartyScansProvider.getDataSource(), ThirdPartyScansProvider.ID)
-        || isMigrationNeeded(AggregationDataStoreProvider.getDataSource(), AggregationDataStoreProvider.ID);
+    return isMigrationNeeded(OperationalDataStoreProvider.getDataSource(), OperationalDataStore.ID)
+        || isMigrationNeeded(DatamartProvider.getDataSource(), DataMartDataStore.ID)
+        || isMigrationNeeded(ThirdPartyScansProvider.getDataSource(), ThirdPartyScansDataStore.ID)
+        || isMigrationNeeded(AggregationDataStoreProvider.getDataSource(), AggregationDataStore.ID);
   }
 
   private static boolean isMigrationNeeded(DataSource dataSource, String databaseSchemaName) {

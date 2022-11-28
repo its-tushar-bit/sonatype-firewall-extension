@@ -3,39 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.db;
+package com.sonatype.insight.brain.db.datastore;
 
 import java.io.File;
 
-import javax.sql.DataSource;
-
-import com.sonatype.insight.db.DatabaseConfig;
+import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.DatabaseUtil;
 
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DatamartProviderTest
-    extends AbstractDatabaseProviderTest
+public class DefaultDataMartDataStoreTest
+    extends AbstractDataStoreTest
 {
   @Override
-  protected DatabaseConfig getDatabaseConfig() {
-    return DatamartProvider.getDatabaseConfig();
-  }
-
-  @Override
-  protected void initDatabase(DatabaseConfig databaseConfig) {
-    DatamartProvider.init(databaseConfig);
-  }
-
-  @Override
-  protected DataSource getDataSource() {
-    return DatamartProvider.getDataSource();
-  }
-
-  @Override
-  protected String getSchemaName() {
-    return DatamartProvider.ID;
+  protected DataStore createTestDataStore() {
+    return new DefaultDataMartDataStore();
   }
 
   @Test
@@ -49,8 +33,8 @@ public class DatamartProviderTest
     initDatabase(getDatabaseConfig(databaseDir, "dm"));
 
     assertThat(databaseVersionFile).doesNotExist();
-    int desiredDbVersion = DatabaseMigrator.determineDesiredVersion(DatamartProvider.ID);
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(DatamartProvider.getDataSource(), DatamartProvider.ID))
+    int desiredDbVersion = DatabaseMigrator.determineDesiredVersion(dataStore.getID());
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID()))
         .isEqualTo(desiredDbVersion);
   }
 }

@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.common.collect.Sets;
@@ -93,7 +94,7 @@ public class TaskSchedulerTest
     assertThat(scheduler.getMetaData().getThreadPoolSize()).isEqualTo(10);
     assertThat(scheduler).isInstanceOf(StdScheduler.class);
     try (Connection connection = DBConnectionManager.getInstance().getConnection("ods")) {
-      assertThat(connection.getSchema()).isEqualTo(OperationalDataStoreProvider.ID);
+      assertThat(connection.getSchema()).isEqualTo(OperationalDataStore.ID);
     }
     assertThat(scheduler.getSchedulerName()).isNotBlank();
     assertThat(scheduler.getSchedulerInstanceId()).isNotNull();

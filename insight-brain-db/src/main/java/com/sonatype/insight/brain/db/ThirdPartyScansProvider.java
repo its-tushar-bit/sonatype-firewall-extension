@@ -5,90 +5,53 @@
  */
 package com.sonatype.insight.brain.db;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.db.DatabaseConfig;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ThirdPartyScansProvider
 {
-  private static final Logger log = LoggerFactory.getLogger(ThirdPartyScansProvider.class);
+  private static ThirdPartyScansDataStore INSTANCE = new DefaultThirdPartyScansDataStore();
 
-  public static final String ID = "insight_brain_third_party_scans";
+  public static ThirdPartyScansDataStore getInstance() {
+    return INSTANCE;
+  }
 
-  private static DataSource dataSource;
-
-  private static DatabaseConfig databaseConfig;
-
-  private static EntityManagerFactory entityManagerFactory;
-
-  private static volatile boolean isInitialized = false;
+  public static void setInstance(final ThirdPartyScansDataStore thirdPartyScansDataStore) {
+    INSTANCE = thirdPartyScansDataStore;
+  }
 
   private ThirdPartyScansProvider() {
   }
 
   public static void init(DatabaseConfig databaseConfig) {
-    init(databaseConfig, true);
+    INSTANCE.initWithMigration(databaseConfig, null);
   }
 
   public static void initWithoutMigration(DatabaseConfig databaseConfig) {
-    init(databaseConfig, false);
-  }
-
-  private static synchronized void init(DatabaseConfig databaseConfig, boolean migrateDatabase) {
-    if (isInitialized) {
-      return;
-    }
-
-    log.info("Initializing the {} data store.", ID);
-    long start = System.currentTimeMillis();
-
-    ThirdPartyScansProvider.databaseConfig = databaseConfig;
-    dataSource = new DataSourceFactory().newDataSource(databaseConfig, ID);
-    if (migrateDatabase) {
-      migrate();
-    }
-    Map<String, Object> props = new LinkedHashMap<>();
-    props.put("openjpa.ConnectionFactory", dataSource);
-    entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainThirdPartyScans", props);
-    isInitialized = true;
-
-    log.info("Initialized the {} data store in {} ms.", ID, System.currentTimeMillis() - start);
+    INSTANCE.initWithoutMigration(databaseConfig);
   }
 
   public static void migrate() {
-    new DatabaseMigrator().migrate(databaseConfig, ID, dataSource);
+    INSTANCE.migrate(false);
   }
 
   public static DataSource getDataSource() {
-    if (!isInitialized) {
-      init(null /* databaseConfig */);
-    }
-    return dataSource;
+    return INSTANCE.getDataSource();
   }
 
   public static DatabaseConfig getDatabaseConfig() {
-    return databaseConfig;
+    return INSTANCE.getDatabaseConfig();
   }
 
   public static EntityManagerFactory getJPAEntityManagerFactory() {
-    if (!isInitialized) {
-      init(null /* databaseConfig */);
-    }
-    return entityManagerFactory;
+    return INSTANCE.getJPAEntityManagerFactory();
   }
 
   static synchronized void clear_ForTestsOnly() {
-    databaseConfig = null;
-    dataSource = null;
-    entityManagerFactory = null;
-    isInitialized = false;
+    INSTANCE.clear_ForTestsOnly();
   }
 }

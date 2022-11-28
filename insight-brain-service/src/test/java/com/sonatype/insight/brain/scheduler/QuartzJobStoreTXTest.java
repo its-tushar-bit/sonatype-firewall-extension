@@ -16,6 +16,7 @@ import java.util.UUID;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -108,7 +109,7 @@ public class QuartzJobStoreTXTest
 
   private void assertJobStoreTX(JobStoreTX jobStoreTX) {
     assertThat(jobStoreTX.getDataSource()).isEqualTo("ods");
-    assertThat(jobStoreTX.getTablePrefix()).isEqualTo(OperationalDataStoreProvider.ID + ".QRTZ_");
+    assertThat(jobStoreTX.getTablePrefix()).isEqualTo(OperationalDataStore.ID + ".QRTZ_");
     assertThat(jobStoreTX.canUseProperties()).isTrue();
     assertThat(jobStoreTX.getClusterCheckinInterval()).isEqualTo(QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS);
   }

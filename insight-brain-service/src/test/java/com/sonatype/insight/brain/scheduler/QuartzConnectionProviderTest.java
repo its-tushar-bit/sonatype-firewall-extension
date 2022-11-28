@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.scheduler;
 
 import java.sql.Connection;
 
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 
 import org.junit.Test;
 
@@ -18,7 +18,7 @@ public class QuartzConnectionProviderTest
   @Test
   public void testGetConnection() throws Exception {
     try (Connection connection = new QuartzConnectionProvider().getConnection()) {
-      assertThat(connection.getSchema()).isEqualTo(OperationalDataStoreProvider.ID);
+      assertThat(connection.getSchema()).isEqualTo(OperationalDataStore.ID);
     }
   }
 }

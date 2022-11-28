@@ -16,7 +16,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
-
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
@@ -29,6 +28,11 @@ import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -260,8 +264,8 @@ public class DbMigrationCommandTest
     File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
-    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION,
-        DatabaseName.ods, OperationalDataStoreProvider.ID, databaseConfig -> {
+    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
+        DatabaseName.ods, OperationalDataStore.ID, databaseConfig -> {
           OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
           return OperationalDataStoreProvider.getDataSource();
         }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -329,8 +333,8 @@ public class DbMigrationCommandTest
     File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
-    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION,
-        DatabaseName.ods, OperationalDataStoreProvider.ID, databaseConfig -> {
+    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
+        DatabaseName.ods, OperationalDataStore.ID, databaseConfig -> {
           OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
           return OperationalDataStoreProvider.getDataSource();
         }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -354,8 +358,8 @@ public class DbMigrationCommandTest
     File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
-    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION,
-        DatabaseName.ods, OperationalDataStoreProvider.ID, databaseConfig -> {
+    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
+        DatabaseName.ods, OperationalDataStore.ID, databaseConfig -> {
           OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
           return OperationalDataStoreProvider.getDataSource();
         }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -379,8 +383,8 @@ public class DbMigrationCommandTest
     File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
-    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION,
-        DatabaseName.ods, OperationalDataStoreProvider.ID, databaseConfig -> {
+    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
+        DatabaseName.ods, OperationalDataStore.ID, databaseConfig -> {
           OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
           return OperationalDataStoreProvider.getDataSource();
         }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -406,8 +410,8 @@ public class DbMigrationCommandTest
     File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
-    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION,
-        DatabaseName.ods, OperationalDataStoreProvider.ID, databaseConfig -> {
+    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
+        DatabaseName.ods, OperationalDataStore.ID, databaseConfig -> {
           OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
           return OperationalDataStoreProvider.getDataSource();
         }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -462,7 +466,7 @@ public class DbMigrationCommandTest
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
     assertThat(readDatabaseVersion(getDatabaseVersionFile(databaseDir, DatabaseName.ods.name()))).isEqualTo(
-        String.valueOf(OperationalDataStoreProvider.MINIMUM_DATABASE_VERSION));
+        String.valueOf(DefaultOperationalDataStore.MINIMUM_DATABASE_VERSION));
     assertThat(readDatabaseVersion(getDatabaseVersionFile(databaseDir, DatabaseName.aggregation.name()))).isEqualTo(
         String.valueOf(1));
     assertThat(readDatabaseVersion(getDatabaseVersionFile(databaseDir, DatabaseName.dm.name()))).isEqualTo(
@@ -470,7 +474,7 @@ public class DbMigrationCommandTest
     ThirdPartyScansProvider.initWithoutMigration(
         getH2DatabaseConfig(databaseDir, DatabaseName.third_party_scans.name()));
     assertThat(DatabaseUtil.getDatabaseSchemaVersion(ThirdPartyScansProvider.getDataSource(),
-        ThirdPartyScansProvider.ID)).isEqualTo(1);
+        ThirdPartyScansDataStore.ID)).isEqualTo(1);
     DataSourceFactory.clear_ForTestsOnly();
     DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand());
     when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
@@ -486,8 +490,8 @@ public class DbMigrationCommandTest
     File databaseDir = new File(insightConfig.getSonatypeWork(), "data");
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
-    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION,
-        DatabaseName.ods, OperationalDataStoreProvider.ID, databaseConfig -> {
+    initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
+        DatabaseName.ods, OperationalDataStore.ID, databaseConfig -> {
           OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
           return OperationalDataStoreProvider.getDataSource();
         }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -497,11 +501,11 @@ public class DbMigrationCommandTest
         String.valueOf(1));
     OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
     assertThat(DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(),
-        OperationalDataStoreProvider.ID)).isEqualTo(OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION);
+        OperationalDataStore.ID)).isEqualTo(OperationalDataStore.LOCK_TABLE_DATABASE_VERSION);
     ThirdPartyScansProvider.initWithoutMigration(
         getH2DatabaseConfig(databaseDir, DatabaseName.third_party_scans.name()));
     assertThat(DatabaseUtil.getDatabaseSchemaVersion(ThirdPartyScansProvider.getDataSource(),
-        ThirdPartyScansProvider.ID)).isEqualTo(1);
+        ThirdPartyScansDataStore.ID)).isEqualTo(1);
     DataSourceFactory.clear_ForTestsOnly();
     DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand());
     when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
@@ -552,8 +556,8 @@ public class DbMigrationCommandTest
         resourceDatabasePopulator.populate(connection);
       }
       initPostgresToDesiredVersion(getClass().getSimpleName() + "/postgres/ods.sql",
-          OperationalDataStoreProvider.LOCK_TABLE_DATABASE_VERSION, postgres.getDatabaseConfig(),
-          OperationalDataStoreProvider.ID, databaseConfig -> {
+          OperationalDataStore.LOCK_TABLE_DATABASE_VERSION, postgres.getDatabaseConfig(),
+          OperationalDataStore.ID, databaseConfig -> {
             OperationalDataStoreProvider.initWithoutMigration(databaseConfig);
             return OperationalDataStoreProvider.getDataSource();
           }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -576,17 +580,17 @@ public class DbMigrationCommandTest
 
   private void assertMigrated() {
     assertThat(DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(),
-        OperationalDataStoreProvider.ID)).isEqualTo(
-        DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID));
+        OperationalDataStore.ID)).isEqualTo(
+        DatabaseMigrator.determineDesiredVersion(OperationalDataStore.ID));
     assertThat(DatabaseUtil.getDatabaseSchemaVersion(AggregationDataStoreProvider.getDataSource(),
-        AggregationDataStoreProvider.ID)).isEqualTo(
-        DatabaseMigrator.determineDesiredVersion(AggregationDataStoreProvider.ID));
+        AggregationDataStore.ID)).isEqualTo(
+        DatabaseMigrator.determineDesiredVersion(AggregationDataStore.ID));
     assertThat(DatabaseUtil.getDatabaseSchemaVersion(DatamartProvider.getDataSource(),
-        DatamartProvider.ID)).isEqualTo(
-        DatabaseMigrator.determineDesiredVersion(DatamartProvider.ID));
+        DataMartDataStore.ID)).isEqualTo(
+        DatabaseMigrator.determineDesiredVersion(DataMartDataStore.ID));
     assertThat(DatabaseUtil.getDatabaseSchemaVersion(ThirdPartyScansProvider.getDataSource(),
-        ThirdPartyScansProvider.ID)).isEqualTo(
-        DatabaseMigrator.determineDesiredVersion(ThirdPartyScansProvider.ID));
+        ThirdPartyScansDataStore.ID)).isEqualTo(
+        DatabaseMigrator.determineDesiredVersion(ThirdPartyScansDataStore.ID));
   }
 
   private void createSchedulerStateRecord(long checkinTimestamp) throws Exception {

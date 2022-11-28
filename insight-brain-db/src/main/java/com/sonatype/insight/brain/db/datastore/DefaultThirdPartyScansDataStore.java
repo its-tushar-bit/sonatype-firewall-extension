@@ -1,0 +1,74 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.db.datastore;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.db.DatabaseConfig;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class DefaultThirdPartyScansDataStore
+    extends AbstractDataStore
+    implements ThirdPartyScansDataStore
+{
+  private static final Logger log = LoggerFactory.getLogger(DefaultThirdPartyScansDataStore.class);
+
+  private EntityManagerFactory entityManagerFactory;
+
+  private volatile boolean isInitialized = false;
+
+  @Override
+  protected synchronized void init(
+      final DatabaseConfig databaseConfig,
+      final boolean migrateDatabase,
+      final Boolean migrateToNewViolationModel)
+  {
+    if (isInitialized()) {
+      return;
+    }
+
+    log.info("Initializing the {} data store.", getID());
+    long start = System.currentTimeMillis();
+
+    this.databaseConfig = databaseConfig;
+    dataSource = new DataSourceFactory().newDataSource(databaseConfig, getID());
+    if (migrateDatabase) {
+      migrate(migrateToNewViolationModel);
+    }
+    Map<String, Object> props = new LinkedHashMap<>();
+    props.put("openjpa.ConnectionFactory", dataSource);
+    entityManagerFactory = Persistence.createEntityManagerFactory("InsightBrainThirdPartyScans", props);
+    isInitialized = true;
+
+    log.info("Initialized the {} data store in {} ms.", getID(), System.currentTimeMillis() - start);
+  }
+
+  @Override
+  protected boolean isInitialized() {
+    return isInitialized;
+  }
+
+  @Override
+  public EntityManagerFactory getJPAEntityManagerFactory() {
+    if (!isInitialized) {
+      initWithMigration(null /* databaseConfig */, false);
+    }
+    return entityManagerFactory;
+  }
+
+  @Override
+  public void clear_ForTestsOnly() {
+    super.clear_ForTestsOnly();
+    entityManagerFactory = null;
+    isInitialized = false;
+  }
+}

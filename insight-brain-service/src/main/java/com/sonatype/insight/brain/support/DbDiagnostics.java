@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.slf4j.Logger;
@@ -57,7 +58,7 @@ class DbDiagnostics
       }
     }
 
-    final int version = DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStoreProvider.ID);
+    final int version = DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID);
     result.append("Schema version: ").append(version).append("\n");
     addLatencyInformation(result, dataSource);
     result.append("-- Database Settings --\n");

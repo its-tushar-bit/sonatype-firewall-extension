@@ -12,9 +12,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipFile;
-
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import com.google.common.io.Resources;
@@ -45,14 +48,14 @@ public class DatabaseMigratorTest
 
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "dm");
 
-    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DatamartProvider.ID);
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DataMartDataStore.ID);
 
     // The migration should fail because schema_incremental_0007.sql drops the license_category table, but we already
     // removed this table.
     // The version file must be updated to contain the number of the last incremental script applied successfully (in
     // this case, schema_incremental_0006.sql).
     assertThatThrownBy(() -> {
-      new DatabaseMigrator().migrate(databaseConfig, DatamartProvider.ID, dataSource);
+      new DatabaseMigrator().migrate(databaseConfig, DataMartDataStore.ID, dataSource);
     }).isInstanceOf(ScriptStatementFailedException.class);
     assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo("6");
   }
@@ -65,14 +68,14 @@ public class DatabaseMigratorTest
 
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "dm");
 
-    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DatamartProvider.ID);
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DataMartDataStore.ID);
 
     // The migration should fail because schema_incremental_0007.sql drops the license_category table, but we already
     // removed this table.
     // The version file must be updated to contain the number of the last incremental script applied successfully (in
     // this case, schema_incremental_0006.sql).
     assertThatThrownBy(() -> {
-      new DatabaseMigrator().migrate(databaseConfig, DatamartProvider.ID, dataSource);
+      new DatabaseMigrator().migrate(databaseConfig, DataMartDataStore.ID, dataSource);
     }).isInstanceOf(ScriptStatementFailedException.class);
 
     File backupFile = new File(databaseDir, "backup/dm.zip");
@@ -87,14 +90,14 @@ public class DatabaseMigratorTest
 
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "dm");
 
-    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DatamartProvider.ID);
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DataMartDataStore.ID);
 
     // The migration should fail because schema_incremental_0007.sql drops the license_category table, but we already
     // removed this table.
     // The version file must be updated to contain the number of the last incremental script applied successfully (in
     // this case, schema_incremental_0006.sql).
     assertThatThrownBy(() -> {
-      new DatabaseMigrator().migrate(databaseConfig, DatamartProvider.ID, dataSource);
+      new DatabaseMigrator().migrate(databaseConfig, DataMartDataStore.ID, dataSource);
     }).isInstanceOf(ScriptStatementFailedException.class);
 
     File backupFile = new File(databaseDir, "backup/dm.zip");
@@ -180,10 +183,10 @@ public class DatabaseMigratorTest
     File databaseVersionFile = new File(databaseDir, "dm.ver");
 
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "dm");
-    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DatamartProvider.ID);
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, DataMartDataStore.ID);
 
     assertThatThrownBy(() -> {
-      new DatabaseMigrator().migrate(databaseConfig, DatamartProvider.ID, dataSource);
+      new DatabaseMigrator().migrate(databaseConfig, DataMartDataStore.ID, dataSource);
     }).isInstanceOf(IllegalStateException.class).hasMessageContaining("was created by a newer product version");
     assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo("9999");
   }
@@ -219,22 +222,22 @@ public class DatabaseMigratorTest
 
   @Test
   public void testMigrate_NewAggregationDatabase_PopulatesVersion() throws Exception {
-    testMigrate_NewDatabase_PopulatesVersion(AggregationDataStoreProvider.ID);
+    testMigrate_NewDatabase_PopulatesVersion(AggregationDataStore.ID);
   }
 
   @Test
   public void testMigrate_NewDatamartDatabase_PopulatesVersion() throws Exception {
-    testMigrate_NewDatabase_PopulatesVersion(DatamartProvider.ID);
+    testMigrate_NewDatabase_PopulatesVersion(DataMartDataStore.ID);
   }
 
   @Test
   public void testMigrate_NewOperationalDataStoreDatabase_PopulatesVersion() throws Exception {
-    testMigrate_NewDatabase_PopulatesVersion(OperationalDataStoreProvider.ID);
+    testMigrate_NewDatabase_PopulatesVersion(OperationalDataStore.ID);
   }
 
   @Test
   public void testMigrate_NewThirdPartyScansDatabase_PopulatesVersion() throws Exception {
-    testMigrate_NewDatabase_PopulatesVersion(ThirdPartyScansProvider.ID);
+    testMigrate_NewDatabase_PopulatesVersion(ThirdPartyScansDataStore.ID);
   }
 
   @Test
@@ -243,9 +246,9 @@ public class DatabaseMigratorTest
     File databaseDir = tempDir.newFolder();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/testMigrate_ByEnvironmentVariable");
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, DatabaseName.ods.name());
-    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStore.ID);
 
-    new DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource);
+    new DatabaseMigrator().migrate(databaseConfig, OperationalDataStore.ID, dataSource);
 
     File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
     assertThat(databaseVersionFile).exists();
@@ -260,14 +263,14 @@ public class DatabaseMigratorTest
       File databaseDir = tempDir.newFolder();
       copyDatabase(databaseDir, getClass().getSimpleName() + "/testMigrate_ByEnvironmentVariable");
       DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, DatabaseName.ods.name());
-      DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
+      DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStore.ID);
 
-      new DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource);
+      new DatabaseMigrator().migrate(databaseConfig, OperationalDataStore.ID, dataSource);
 
       File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
       assertThat(databaseVersionFile).doesNotExist();
-      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStoreProvider.ID)).isEqualTo(
-          DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID));
+      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID)).isEqualTo(
+          DatabaseMigrator.determineDesiredVersion(OperationalDataStore.ID));
     }
     finally {
       DatabaseMigrator.setForceEnableMigration(false);
@@ -280,14 +283,14 @@ public class DatabaseMigratorTest
     File databaseDir = tempDir.newFolder();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/testMigrate_ByEnvironmentVariable");
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, DatabaseName.ods.name());
-    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStore.ID);
 
-    new DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource);
+    new DatabaseMigrator().migrate(databaseConfig, OperationalDataStore.ID, dataSource);
 
     File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
     assertThat(databaseVersionFile).doesNotExist();
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStoreProvider.ID)).isEqualTo(
-        DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID));
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID)).isEqualTo(
+        DatabaseMigrator.determineDesiredVersion(OperationalDataStore.ID));
   }
 
   @Test
@@ -296,12 +299,12 @@ public class DatabaseMigratorTest
     copyDatabase(databaseDir,
         getClass().getSimpleName() + "/testMigrate_MigrationDisabled_BySystemConfigurationProperty");
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, DatabaseName.ods.name());
-    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStore.ID);
     OperationalDataStoreProvider.initWithoutMigration(databaseConfig);
     assertThat(DatabaseUtil.systemConfigurationPropertyTableExists(dataSource)).isTrue();
     assertThat(DatabaseUtil.getSchemaMigrationEnabledFromDatabase(dataSource)).isEqualTo("false");
 
-    new DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource);
+    new DatabaseMigrator().migrate(databaseConfig, OperationalDataStore.ID, dataSource);
 
     File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
     assertThat(databaseVersionFile).exists();
@@ -316,17 +319,17 @@ public class DatabaseMigratorTest
       copyDatabase(databaseDir,
           getClass().getSimpleName() + "/testMigrate_MigrationDisabled_BySystemConfigurationProperty");
       DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, DatabaseName.ods.name());
-      DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
+      DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStore.ID);
       OperationalDataStoreProvider.initWithoutMigration(databaseConfig);
       assertThat(DatabaseUtil.systemConfigurationPropertyTableExists(dataSource)).isTrue();
       assertThat(DatabaseUtil.getSchemaMigrationEnabledFromDatabase(dataSource)).isEqualTo("false");
 
-      new DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource);
+      new DatabaseMigrator().migrate(databaseConfig, OperationalDataStore.ID, dataSource);
 
       File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
       assertThat(databaseVersionFile).doesNotExist();
-      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStoreProvider.ID)).isEqualTo(
-          DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID));
+      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID)).isEqualTo(
+          DatabaseMigrator.determineDesiredVersion(OperationalDataStore.ID));
     }
     finally {
       DatabaseMigrator.setForceEnableMigration(false);
@@ -339,17 +342,17 @@ public class DatabaseMigratorTest
     copyDatabase(databaseDir,
         getClass().getSimpleName() + "/testMigrate_MigrationEnabled_BySystemConfigurationProperty");
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, DatabaseName.ods.name());
-    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStoreProvider.ID);
+    DataSource dataSource = new DataSourceFactory().newDataSource(databaseConfig, OperationalDataStore.ID);
     OperationalDataStoreProvider.initWithoutMigration(databaseConfig);
     assertThat(DatabaseUtil.systemConfigurationPropertyTableExists(dataSource)).isTrue();
     assertThat(DatabaseUtil.getSchemaMigrationEnabledFromDatabase(dataSource)).isEqualTo("true");
 
-    new DatabaseMigrator().migrate(databaseConfig, OperationalDataStoreProvider.ID, dataSource);
+    new DatabaseMigrator().migrate(databaseConfig, OperationalDataStore.ID, dataSource);
 
     File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
     assertThat(databaseVersionFile).doesNotExist();
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStoreProvider.ID)).isEqualTo(
-        DatabaseMigrator.determineDesiredVersion(OperationalDataStoreProvider.ID));
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID)).isEqualTo(
+        DatabaseMigrator.determineDesiredVersion(OperationalDataStore.ID));
   }
 
   @Test

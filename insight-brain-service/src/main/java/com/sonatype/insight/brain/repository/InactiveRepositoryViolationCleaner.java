@@ -21,6 +21,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.MigrationTracker;
 
 import io.dropwizard.lifecycle.Managed;
@@ -130,7 +131,7 @@ public class InactiveRepositoryViolationCleaner
     }
 
     private List<String> getInactivePolicyViolationIds() throws SQLException {
-      String query = "SELECT repository_policy_violation_id FROM " + OperationalDataStoreProvider.ID
+      String query = "SELECT repository_policy_violation_id FROM " + OperationalDataStore.ID
           + ".repository_policy_violation" + " WHERE active = false FETCH FIRST " + BATCH_SIZE + " ROWS ONLY";
       try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
           PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -146,7 +147,7 @@ public class InactiveRepositoryViolationCleaner
     private int deleteInactivePolicyViolations(List<String> inactivePolicyViolationIds) throws SQLException {
       String in = inactivePolicyViolationIds.stream().map(violationId -> "'" + violationId + "'")
           .collect(Collectors.joining(","));
-      String query = "DELETE FROM " + OperationalDataStoreProvider.ID
+      String query = "DELETE FROM " + OperationalDataStore.ID
           + ".repository_policy_violation WHERE repository_policy_violation_id IN (" + in + ")";
       try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
           Statement statement = connection.createStatement()) {

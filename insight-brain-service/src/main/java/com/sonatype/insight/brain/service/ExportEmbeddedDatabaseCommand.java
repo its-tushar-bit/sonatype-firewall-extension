@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import io.dropwizard.cli.Cli;
@@ -77,12 +78,12 @@ public class ExportEmbeddedDatabaseCommand
     DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(config);
     OperationalDataStoreProvider.initWithoutMigration(databaseConfigProvider.getDatabaseConfig(DatabaseName.ods));
     if (!DatabaseUtil.schemaVersionTableExists(OperationalDataStoreProvider.getDataSource(),
-        OperationalDataStoreProvider.ID)) {
+        OperationalDataStore.ID)) {
       throw new BadRequestException("The server needs to have been started normally once before"
           + " in order to complete the required upgrade steps.");
     }
     if (DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(),
-        OperationalDataStoreProvider.ID) <= 0) {
+        OperationalDataStore.ID) <= 0) {
       throw new BadRequestException("The database from the work directory " + config.getSonatypeWork().getAbsolutePath()
           + " is empty. Please verify you specified the correct config.yml file.");
     }
@@ -116,7 +117,7 @@ public class ExportEmbeddedDatabaseCommand
   /**
    * Delegates to H2's SCRIPT command for the heavy lifting in generating the SQL dump and post-processes its output to
    * be both compatible and efficient for use with PostgreSQL, specifically its psql client.
-   * 
+   *
    * @see https://www.h2database.com/html/commands.html#script
    * @see https://www.postgresql.org/docs/10/app-psql.html
    */
@@ -199,7 +200,7 @@ public class ExportEmbeddedDatabaseCommand
   /**
    * Transforms the comma-separated values of a traditional INSERT statement into the tab-separated text format for
    * PostgreSQL's COPY command.
-   * 
+   *
    * @see https://www.postgresql.org/docs/10/sql-copy.html#id-1.9.3.52.9.2
    */
   static String transformInsertValues(String values) {

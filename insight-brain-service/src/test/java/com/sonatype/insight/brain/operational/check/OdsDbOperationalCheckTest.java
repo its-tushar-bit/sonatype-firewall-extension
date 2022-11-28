@@ -13,6 +13,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.test.InjectedTest;
 
 import com.codahale.metrics.health.HealthCheck.Result;
@@ -39,7 +40,7 @@ public class OdsDbOperationalCheckTest
     try {
       try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
           Statement statement = connection.createStatement()) {
-        statement.execute("DROP SCHEMA " + OperationalDataStoreProvider.ID);
+        statement.execute("DROP SCHEMA " + OperationalDataStore.ID);
       }
       Result result = odsDbOperationalCheck.execute();
       assertThat(result.isHealthy()).isFalse();

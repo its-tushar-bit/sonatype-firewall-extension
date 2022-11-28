@@ -21,6 +21,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -79,7 +80,7 @@ public class DatabaseTelemetryCollector
         Statement statement = connection.createStatement()) {
       ResultSet resultSet = statement.executeQuery(
           "SELECT SUM(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(tablename)))::BIGINT " //
-              + "FROM pg_tables WHERE schemaname = '" + OperationalDataStoreProvider.ID + "'");
+              + "FROM pg_tables WHERE schemaname = '" + OperationalDataStore.ID + "'");
       resultSet.next();
       return String.valueOf(resultSet.getLong(1));
     }

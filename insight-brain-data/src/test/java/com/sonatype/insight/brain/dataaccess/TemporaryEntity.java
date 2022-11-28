@@ -2672,8 +2672,8 @@ public class TemporaryEntity
     return override;
   }
 
-  public VulnerabilityGroup newVulnerabilityGroup(String ownerId, String groupName) {
-    VulnerabilityGroup group = new VulnerabilityGroup(ownerId, groupName);
+  public VulnerabilityGroup newVulnerabilityGroup(String groupName, String ownerId) {
+    VulnerabilityGroup group = new VulnerabilityGroup(groupName, ownerId);
     vulnerabilityGroupDAO.insert(group);
     vulnerabilityGroups.add(group);
     return group;

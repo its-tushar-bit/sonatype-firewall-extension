@@ -106,7 +106,7 @@ public class ApiVulnerabiltyGroupServiceTest
       tempEntity.register(vulngroup);
       List<VulnerabilityGroupVulnerability> vGroupVuln =
           vGroupVulnDao.getByGroupId(tx, groupId);
-      assertThat(vulnGroupDTO.getGroupName()).isEqualTo(vulngroup.getVulnerabilityGroupName());
+      assertThat(vulnGroupDTO.getGroupName()).isEqualTo(vulngroup.getName());
       assertThat(vulnGroupDTO.getOwnerId()).isEqualTo(vulngroup.getOwnerId());
       assertThat(vulnGroupDTO.getVulnerabilityGroupId()).isEqualTo(vulnGroupDTO.getVulnerabilityGroupId());
       assertThat(vulnGroupDTO.getVulnIds()).isEqualTo(

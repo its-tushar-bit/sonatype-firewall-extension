@@ -144,7 +144,7 @@ public class ApiVulnerabiltyGroupService
       if (vulnGroup != null) {
         List<VulnerabilityGroupVulnerability> vulnList =
             vulnerabilityGroupVulnerabilityDAO.getByGroupId(tx, vulnGroup.getId());
-        vulnGroupDTO = new ApiVulnerabilityGroupDTO(vulnGroup.getId(), vulnGroup.getVulnerabilityGroupName(),
+        vulnGroupDTO = new ApiVulnerabilityGroupDTO(vulnGroup.getId(), vulnGroup.getName(),
             vulnList.stream().map(VulnerabilityGroupVulnerability::getVulnerabilityRefId).collect(Collectors.toList()),
             vulnGroup.getOwnerId());
         sendVulnerabilityGroupTelemetryData(METHOD.GET_BY_GROUP_ID,
@@ -169,7 +169,7 @@ public class ApiVulnerabiltyGroupService
       if (vulnGroup != null) {
         List<VulnerabilityGroupVulnerability> vulnList =
             vulnerabilityGroupVulnerabilityDAO.getByGroupId(tx, vulnGroup.getId());
-        vulnGroupDTO = new ApiVulnerabilityGroupDTO(vulnGroup.getId(), vulnGroup.getVulnerabilityGroupName(),
+        vulnGroupDTO = new ApiVulnerabilityGroupDTO(vulnGroup.getId(), vulnGroup.getName(),
             vulnList.stream().map(VulnerabilityGroupVulnerability::getVulnerabilityRefId).collect(Collectors.toList()),
             vulnGroup.getOwnerId());
         sendVulnerabilityGroupTelemetryData(METHOD.GET_BY_GROUP_NAME,
@@ -195,7 +195,7 @@ public class ApiVulnerabiltyGroupService
         List<VulnerabilityGroupVulnerability> vulnList =
             vulnerabilityGroupVulnerabilityDAO.getByGroupId(tx, vulnerabilityGroup.getId());
         ApiVulnerabilityGroupDTO vulnGroupDTO = new ApiVulnerabilityGroupDTO(vulnerabilityGroup.getId(),
-            vulnerabilityGroup.getVulnerabilityGroupName(),
+            vulnerabilityGroup.getName(),
             vulnList.stream().map(VulnerabilityGroupVulnerability::getVulnerabilityRefId).collect(Collectors.toList()));
         sendVulnerabilityGroupTelemetryData(METHOD.GET_BY_OWNER,
             vulnGroupDTO.getVulnIds().size(), vulnGroupDTO.getVulnIds());

@@ -91,9 +91,11 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
@@ -1908,6 +1910,8 @@ public class ScanPolicyEvaluatorTest
     LicenseThreatGroup licenseThreatGroup = tempEntity.newLicenseThreatGroup(Organization.ROOT_ORGANIZATION_ID);
     tempEntity.newSecurityVulnerabilityOverride(application.getId(), "964cd74171f427720480", "sonatype",
         "sonatype-2007-0004", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
+    VulnerabilityGroup vg = tempEntity.newVulnerabilityGroup("Test Group Name 1", Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newVulnerabilityGroupVulnerability(vg.getId(), "sonatype-2007-0004");
 
     Condition ageCondition = new Condition(AgeInDaysConditionType.ID, "older than", "1");
     Condition coordinatesCondition = new Condition(CoordinatesConditionType.ID, "match", "maven:*:*:*:*:*");
@@ -1926,6 +1930,7 @@ public class ScanPolicyEvaluatorTest
     Condition securityVulnerabilityStatusCondition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
         "ACKNOWLEDGED");
     Condition securityVulnerabilityCweCondition = new Condition(SecurityVulnerabilityCweConditionType.ID, "is", "770");
+    Condition vulnerabilityGroupCondition = new Condition(VulnerabilityGroupConditionType.ID, "is in", vg.getId());
     Condition packageUrlCondition = new Condition(PackageUrlConditionType.ID, "matches", "pkg:maven/*/*@*");
     Condition componentCategoryCondition = new Condition(ComponentCategoryConditionType.ID, "is not", "113");
     Condition hygieneCondition = new Condition(HygieneRatingConditionType.ID, "is not", "1");
@@ -1942,7 +1947,8 @@ public class ScanPolicyEvaluatorTest
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
         licenseThreatGroupLevelCondition, matchStateCondition, proprietaryCondition, relativePopularityCondition,
         securityVulnerabilitySeverityCondition, securityVulnerabilityStatusCondition, securityVulnerabilityCweCondition,
-        packageUrlCondition, componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
+        vulnerabilityGroupCondition, packageUrlCondition, componentCategoryCondition, hygieneCondition,
+        dataSourceCondition, dependencyCondition,
         componentFormatCondition, vulnerabilityCategoryCondition, integrityCondition,
         securityVulnerabilitySourceCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);

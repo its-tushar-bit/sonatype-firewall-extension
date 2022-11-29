@@ -30,7 +30,9 @@ public class AggregationDataStoreProvider
     INSTANCE = aggregationDataStore;
   }
 
-  private AggregationDataStoreProvider() { }
+  private AggregationDataStoreProvider() {
+    // private ctor
+  }
 
   public static void init(DatabaseConfig databaseConfig) {
     getInstance().initWithMigration(databaseConfig, null);

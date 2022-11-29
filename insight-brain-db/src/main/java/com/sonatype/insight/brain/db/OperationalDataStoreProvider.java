@@ -36,7 +36,9 @@ public class OperationalDataStoreProvider
     INSTANCE = operationalDataStore;
   }
 
-  private OperationalDataStoreProvider() { }
+  private OperationalDataStoreProvider() {
+    // private ctor
+  }
 
   public static void init(DatabaseConfig databaseConfig, boolean migrateToNewViolationModel) {
     getInstance().initWithMigration(databaseConfig, migrateToNewViolationModel);

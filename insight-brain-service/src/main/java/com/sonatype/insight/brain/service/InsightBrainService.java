@@ -33,6 +33,10 @@ import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultDataMartDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
+import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.landing.IndexCacheControlFilter;
@@ -92,7 +96,7 @@ import org.slf4j.LoggerFactory;
 public class InsightBrainService
     extends SisuApplication<InsightConfig>
 {
-  private static final Logger log = LoggerFactory.getLogger(InsightBrainService.class);
+  protected static final Logger log = LoggerFactory.getLogger(InsightBrainService.class);
 
   private static final String PRODUCT_NAME = "Nexus IQ Server";
 
@@ -217,6 +221,27 @@ public class InsightBrainService
     cli.run(arguments);
   }
 
+  /**
+   * Provisioning of the database happens before the application is booted by DropWizard, or seen by Guice. The
+   * {@link DatabaseProvisionUtils} is responsible for this provisioning which includes establishing database
+   * connections, populating empty/new databases, as well as possibly doing migrations if required.
+   */
+  protected DatabaseProvisionUtils createDatabaseProvisionUtils() {
+    OperationalDataStore operationalDataStore = new DefaultOperationalDataStore();
+    AggregationDataStore aggregationDataStore = new DefaultAggregationDataStore();
+    DataMartDataStore dataMartDataStore = new DefaultDataMartDataStore();
+    ThirdPartyScansDataStore thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore();
+
+    // Populate the legacy classes
+    OperationalDataStoreProvider.setInstance(operationalDataStore);
+    AggregationDataStoreProvider.setInstance(aggregationDataStore);
+    DatamartProvider.setInstance(dataMartDataStore);
+    ThirdPartyScansProvider.setInstance(thirdPartyScansDataStore);
+
+    return new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
+        thirdPartyScansDataStore);
+  }
+
   @VisibleForTesting
   static void ensureBouncyCastleProviderIsLowestPreference() {
     // Adding BouncyCastleProvider here via Security.addProvider(...) ensures it gets the lowest preference position.
@@ -250,15 +275,6 @@ public class InsightBrainService
     super.run(configuration, environment);
 
     bootApplicationLifecycle();
-  }
-
-  protected DatabaseProvisionUtils createDatabaseProvisionUtils() {
-    return new DatabaseProvisionUtils(
-        OperationalDataStoreProvider.getInstance(),
-        AggregationDataStoreProvider.getInstance(),
-        DatamartProvider.getInstance(),
-        ThirdPartyScansProvider.getInstance()
-    );
   }
 
   // Visible for testing
@@ -298,7 +314,7 @@ public class InsightBrainService
     }
   }
 
-  private static boolean validateTempDir() {
+  protected static boolean validateTempDir() {
     // Ensure that temp directory can be written to. If not, exit and log reason.
     String tmp = System.getProperty("java.io.tmpdir");
     try {

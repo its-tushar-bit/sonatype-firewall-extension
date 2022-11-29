@@ -92,14 +92,29 @@ void pushDockerImageIfDeployBranch() {
 
     String iqVersion = getMavenProjectVersion('.')
     String imageVersion = "${iqVersion.split("-")[0]}-${env.BUILD_NUMBER}"
-    String imageName = 'iq/snapshot'
     echo "iqVersion:'${iqVersion}'"
     echo "buildnum: ${env.BUILD_NUMBER}"
 
-    String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
-
     dir("nexus-iq-server") {
         withSonatypeDockerRegistry() {
+            String imageName = 'iq/snapshot'
+            String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
+
+            sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${iqVersion} --tag ${imageName}:${imageVersion} ."
+            String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
+            runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"
+            runSafely "docker push ${fullImage}"
+            // Also tag as latest
+            runSafely "docker tag ${imageName}:${imageVersion} ${latest}"
+            runSafely "docker push ${latest}"
+        }
+    }
+
+    dir("nexus-mtiq-server") {
+        withSonatypeDockerRegistry() {
+            String imageName = 'mtiq/snapshot'
+            String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
+
             sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${iqVersion} --tag ${imageName}:${imageVersion} ."
             String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
             runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"

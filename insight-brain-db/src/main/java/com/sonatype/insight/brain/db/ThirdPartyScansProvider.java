@@ -28,6 +28,7 @@ public class ThirdPartyScansProvider
   }
 
   private ThirdPartyScansProvider() {
+    // private ctor
   }
 
   public static void init(DatabaseConfig databaseConfig) {

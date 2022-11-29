@@ -20,7 +20,6 @@ public class DatamartProvider
     if (INSTANCE == null) {
       INSTANCE = new DefaultDataMartDataStore();
     }
-
     return INSTANCE;
   }
 
@@ -29,6 +28,7 @@ public class DatamartProvider
   }
 
   private DatamartProvider() {
+    // private ctor
   }
 
   public static void init(DatabaseConfig databaseConfig) {

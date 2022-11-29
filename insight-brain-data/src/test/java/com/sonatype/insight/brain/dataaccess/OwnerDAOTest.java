@@ -9,12 +9,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.joda.time.DateTime;
@@ -153,6 +157,29 @@ public class OwnerDAOTest
       tx.commit();
       policyWaivers = new PolicyWaiverDAO().getByOwnerId(tx, owner.getId());
       assertThat(policyWaivers).isEmpty();
+    }
+  }
+
+  @Test
+  public void testCascadeDelete_VulnerabilityGroups() {
+    try (TransactionContext tx = new ApplicationDAO().createTransactionContext()) {
+      Owner owner = ownerDAO.getById(organization.getId());
+      VulnerabilityGroup vulnGroup = tempEntity.newVulnerabilityGroup("TestGroup", owner.getId());
+      tempEntity.newVulnerabilityGroupVulnerability(vulnGroup.getId(), "CVE-1234");
+      VulnerabilityGroup vulnGroup2 = tempEntity.newVulnerabilityGroup("TestGroup2", owner.getId());
+      tempEntity.newVulnerabilityGroupVulnerability(vulnGroup2.getId(), "CVE-456");
+      List<VulnerabilityGroup> vulnerabilityGroupList = new VulnerabilityGroupDAO().getByOwnerId(owner.getId());
+      assertThat(vulnerabilityGroupList).hasSize(2);
+      tx.begin();
+      ownerDAO.cascadeDelete(tx, owner);
+      tx.commit();
+      vulnerabilityGroupList = new VulnerabilityGroupDAO().getByOwnerId(owner.getId());
+      assertThat(vulnerabilityGroupList).isEmpty();
+      List<VulnerabilityGroupVulnerability> vulnerabilityList =
+          new VulnerabilityGroupVulnerabilityDAO().getByGroupId(vulnGroup.getId());
+      assertThat(vulnerabilityList).isEmpty();
+      vulnerabilityList = new VulnerabilityGroupVulnerabilityDAO().getByGroupId(vulnGroup2.getId());
+      assertThat(vulnerabilityList).isEmpty();
     }
   }
 

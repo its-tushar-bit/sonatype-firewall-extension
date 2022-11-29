@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -38,6 +39,7 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 public class OwnerDAO
@@ -246,6 +248,12 @@ public class OwnerDAO
     for (ComponentObligationAttribution componentObligationAttribution : componentObligationAttributionDAO
         .getByOwnerId(tx, owner.getId())) {
       componentObligationAttributionDAO.delete(tx, componentObligationAttribution);
+    }
+
+    // Cascade to vulnerability groups
+    VulnerabilityGroupDAO vulnerabilityGroupDAO = new VulnerabilityGroupDAO();
+    for (VulnerabilityGroup vulnerabilityGroup : vulnerabilityGroupDAO.getByOwnerId(tx, owner.getId())) {
+      vulnerabilityGroupDAO.delete(tx, vulnerabilityGroup);
     }
   }
 

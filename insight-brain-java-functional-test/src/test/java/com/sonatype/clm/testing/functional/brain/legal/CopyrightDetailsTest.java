@@ -194,7 +194,7 @@ public class CopyrightDetailsTest
     CopyrightFilePaths copyrightFilePaths = ComponentCopyrightDetailsPage.copyrightFilePaths();
     copyrightFilePaths.pathAt(2).click();
     copyrightFilePaths.pathAt(1).shouldHave(cssClass("nx-collapsible-items--expanded"));
-    copyrightFilePaths.pathAt(2).shouldHave(cssClass("nx-collapsible-items--collapsed"));
+    copyrightFilePaths.pathAt(2).shouldHave(cssClass("nx-collapsible-items--expanded"));
   }
 
   @Test

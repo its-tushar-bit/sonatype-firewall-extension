@@ -20,7 +20,6 @@ import associationEditor from './widgets/association.editor.directive';
 import colorPicker from './widgets/color.picker.directive';
 import doubleColumnPicker from './widgets/double.column.picker.directive';
 import dropdownSelector from './widgets/dropdown.selector.directive';
-import scrollspy from './widgets/scrollspy.directive';
 import sortColumn from './widgets/sort.column.directive';
 import submitWrapper from './widgets/submit.wrapper.directive';
 import threatLevelSelector from './widgets/threat.level.selector.directive';
@@ -53,7 +52,6 @@ export default angular
   .directive('colorPicker', colorPicker)
   .directive('doubleColumnPicker', doubleColumnPicker)
   .directive('dropdownSelector', dropdownSelector)
-  .directive('scrollspy', scrollspy)
   .directive('sortColumn', sortColumn)
   .directive('submitWrapper', submitWrapper)
   .directive('threatLevelSelector', threatLevelSelector);

@@ -92,6 +92,15 @@ public class ScrollUtil
   }
 
   /**
+   * Scrolls the given element into view with behavior 'instant'.
+   * {@link SelenideElement#scrollTo()} tries to scroll the entire window which
+   * doesn't help for containers with scrollable content.
+   */
+  public static SelenideElement scrollIntoViewInstantly(final SelenideElement element) {
+    return awaitEndOfScrolling(element.scrollIntoView("{ behavior: \"instant\", block: \"end\" }"));
+  }
+
+  /**
    * Waits for any scrolling affecting the given element to finish to ensure later clicks don't miss their target.
    */
   public static SelenideElement awaitEndOfScrolling(final SelenideElement element) {

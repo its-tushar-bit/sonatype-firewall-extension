@@ -61,38 +61,54 @@ $pills-border-radius: 14px;
   }
 
   .iq-arrow {
-    color: transparent;
     position: absolute;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     top: 0;
     width: 26px;
     height: 40px;
-    transition-property: width, color;
+    transition-property: width;
     transition-duration: 0.3s;
     transition-timing-function: linear;
+
+    button {
+      min-width: 48px;
+      color: transparent;
+      transition-property: color;
+      transition-duration: 0.3s;
+      transition-timing-function: linear;
+    }
   }
 
   .iq-arrow-right {
     right: 0;
     background: linear-gradient(90deg, rgba(219, 222, 240, 0) 0%, rgba(219, 222, 240, 1) 30%);
-    border-bottom-right-radius: $pills-border-radius;
-    border-top-right-radius: $pills-border-radius;
+
+    button {
+      border-bottom-right-radius: $pills-border-radius;
+      border-top-right-radius: $pills-border-radius;
+    }
   }
 
   .iq-arrow-left {
     left: 0;
     background: linear-gradient(90deg, rgba(219, 222, 240, 1) 70%, rgba(219, 222, 240, 0) 100%);
-    border-bottom-left-radius: $pills-border-radius;
-    border-top-left-radius: $pills-border-radius;
+
+    button {
+      border-bottom-left-radius: $pills-border-radius;
+      border-top-left-radius: $pills-border-radius;
+    }
   }
 
   &:hover,
   &:focus-within {
     .iq-arrow {
-      width: 56px;
-      color: var(--nx-swatch-indigo-40);
+      width: 48px;
+
+      button {
+        color: var(--nx-swatch-indigo-40);
+      }
     }
   }
 }

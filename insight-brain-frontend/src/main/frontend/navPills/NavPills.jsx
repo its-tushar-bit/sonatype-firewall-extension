@@ -5,10 +5,12 @@
  */
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxButton } from '@sonatype/react-shared-components';
 import useResizeObserver from '@react-hook/resize-observer';
 import { useDebounceCallback } from '@react-hook/debounce';
 import { faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+
+const PILLS_SCROLL_DISTANCE = 200;
 
 const NavPills = ({ list, root }) => {
   const ref = useRef(null);
@@ -47,6 +49,39 @@ const NavPills = ({ list, root }) => {
     const element = document.querySelector(`#${id}`);
     const y = element.offsetTop - 16;
     scrollRoot.scrollTo({ top: y, behavior: 'smooth' });
+  };
+
+  const scrollRight = () => {
+    if (ref.current.scrollLeft + PILLS_SCROLL_DISTANCE >= ref.current?.scrollWidth - ref.current?.offsetWidth) {
+      return ref.current?.scroll({
+        top: 0,
+        left: ref.current?.scrollWidth - ref.current?.offsetWidth,
+        behavior: 'smooth',
+      });
+    }
+
+    ref.current?.scroll({
+      top: 0,
+      left: ref.current.scrollLeft + PILLS_SCROLL_DISTANCE,
+      behavior: 'smooth',
+    });
+  };
+
+  const scrollLeft = () => {
+    if (ref.current.scrollLeft - PILLS_SCROLL_DISTANCE < 0) {
+      ref.current?.scroll({
+        top: 0,
+        left: 0,
+        behavior: 'smooth',
+      });
+      return;
+    }
+
+    ref.current?.scroll({
+      top: 0,
+      left: ref.current.scrollLeft - PILLS_SCROLL_DISTANCE,
+      behavior: 'smooth',
+    });
   };
 
   useEffect(() => {
@@ -95,13 +130,17 @@ const NavPills = ({ list, root }) => {
     <div className="iq-nav-pills-menu">
       {leftArrowVisible && (
         <div className="iq-arrow-left iq-arrow">
-          <NxFontAwesomeIcon icon={faArrowLeft} />
+          <NxButton onClick={scrollLeft} variant="icon-only" title="scroll left">
+            <NxFontAwesomeIcon icon={faArrowLeft} />
+          </NxButton>
         </div>
       )}
 
       {rightArrowVisible && (
         <div className="iq-arrow-right iq-arrow">
-          <NxFontAwesomeIcon icon={faArrowRight} />
+          <NxButton onClick={scrollRight} variant="icon-only" title="scroll right">
+            <NxFontAwesomeIcon icon={faArrowRight} />
+          </NxButton>
         </div>
       )}
 

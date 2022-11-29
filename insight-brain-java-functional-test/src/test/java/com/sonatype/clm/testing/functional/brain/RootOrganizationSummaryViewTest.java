@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SourceControlTile;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -55,7 +56,8 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(
@@ -70,7 +72,8 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     refresh();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(
@@ -92,7 +95,8 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
@@ -114,7 +118,8 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String

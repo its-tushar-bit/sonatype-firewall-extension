@@ -248,17 +248,20 @@ public class ApplicationSummaryViewTest
   @Test
   public void testLTGTile_NoLocal() {
     LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
-    ScrollUtil.scrollIntoView(ltgTile.nxHeader());
+    ScrollUtil.scrollIntoViewInstantly(ltgTile.nxHeader());
+
     ltgTile.nxHeader().shouldBe(visible).shouldHave(text("License Threat Groups"));
     ltgTile.nxSubHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(application.getName()));
     ltgTile.newButton().shouldBe(hidden);
 
     ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHaveSize(1);
-    ScrollUtil.scrollIntoView(ltgTile.nxHeader());
+    ScrollUtil.scrollIntoViewInstantly(ltgTile.nxHeader());
+
     eyesWatcher.eyesCheck("Application License Threat Group Tile with no local threats");
 
     ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
-    ScrollUtil.scrollIntoView(section.getTitle());
+    ScrollUtil.scrollIntoViewInstantly(section.getTitle());
+
     section.getTitle().shouldBe(visible).shouldHave(text("INHERITED FROM ROOT ORGANIZATION"));
     section.getEmptyDescriptor().shouldBe(hidden);
     section.getTableContent().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
@@ -545,7 +548,8 @@ public class ApplicationSummaryViewTest
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
@@ -561,7 +565,8 @@ public class ApplicationSummaryViewTest
     refresh();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
@@ -578,7 +583,9 @@ public class ApplicationSummaryViewTest
     refresh();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
@@ -595,7 +602,9 @@ public class ApplicationSummaryViewTest
     refresh();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
@@ -616,7 +625,9 @@ public class ApplicationSummaryViewTest
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
@@ -638,7 +649,9 @@ public class ApplicationSummaryViewTest
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String

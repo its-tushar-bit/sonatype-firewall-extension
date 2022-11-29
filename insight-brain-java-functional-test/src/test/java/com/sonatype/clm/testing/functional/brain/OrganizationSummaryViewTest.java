@@ -43,7 +43,6 @@ import org.junit.Test;
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactTextCaseSensitive;
 import static com.codeborne.selenide.Condition.exist;
@@ -98,7 +97,8 @@ public class OrganizationSummaryViewTest
 
     LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
 
-    ScrollUtil.scrollIntoView(ltgTile.nxHeader());
+    ScrollUtil.scrollIntoViewInstantly(ltgTile.nxHeader());
+
     ltgTile.nxHeader().shouldBe(visible).shouldHave(text("License Threat Groups"));
     ltgTile.nxSubHeader().shouldBe(visible).shouldHave(LabelTile.subHeaderText(organization.getName()));
     ltgTile.addLTGButton().shouldBe(visible, enabled);
@@ -109,7 +109,7 @@ public class OrganizationSummaryViewTest
 
     for (int i = 0; i < hierarchySize; i++) {
       ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(i);
-      ScrollUtil.scrollIntoView(section.getTitle());
+      ScrollUtil.scrollIntoViewInstantly(section.getTitle());
 
       if (i == 0) {
         section.getTitle().shouldBe(visible).shouldHave(text("Local"));
@@ -194,9 +194,11 @@ public class OrganizationSummaryViewTest
     FormMask.seeAndWaitForDismissal();
 
     // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible);
 
     LabelTile labelTile = OwnerSummaryPage.labelTile();
+    ScrollUtil.scrollIntoViewInstantly(labelTile.getElement());
+
     labelTile.labelList(0);
     NxList list = labelTile.labelList(0);
     labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
@@ -207,8 +209,10 @@ public class OrganizationSummaryViewTest
     eyesWatcher.eyesCheck("labels tile after policy import");
 
     // scroll to the ltgs
-    OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible);
     LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
+    ScrollUtil.scrollIntoViewInstantly(ltgTile.getElement());
+
     ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
     section.getEmptyDescriptor().shouldNot(exist);
     section.getLTG(0).shouldHave(text("Test LTG"));
@@ -217,8 +221,10 @@ public class OrganizationSummaryViewTest
     eyesWatcher.eyesCheck("license threat group tile after policy import");
 
     // scroll to the policy tile
-    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible);
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
+    ScrollUtil.scrollIntoViewInstantly(policyTile.getElement());
+
     PolicyTileList policyList = policyTile.policyList(0);
     policyList.emptyDescriptor().shouldBe(hidden);
     policyList.rows().shouldHaveSize(2); // 1 row plus header
@@ -230,8 +236,10 @@ public class OrganizationSummaryViewTest
     eyesWatcher.eyesCheck("policy tile after policy import");
 
     // scroll to the application categories tile
-    OwnerSummaryPage.summaryTile().appCategoriesButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().appCategoriesButton().shouldBe(visible);
     CategoryTile categoryTile = OwnerSummaryPage.categoryTile();
+    ScrollUtil.scrollIntoViewInstantly(categoryTile.getElement());
+
     NxList categoryList = categoryTile.categoryList(0);
     categoryList.elements().shouldBe(empty);
     categoryList.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
@@ -324,7 +332,9 @@ public class OrganizationSummaryViewTest
   public void testDataRetentionTile() {
     DataRetentionTile tile = OwnerSummaryPage.dataRetentionTile();
 
-    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible);
+
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(tile.subHeaderText(currentOwner.getName()));
@@ -396,7 +406,8 @@ public class OrganizationSummaryViewTest
 
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.maxAge(Stage.ID_DEVELOP).shouldBe(visible).shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
     tile.maxReport(Stage.ID_DEVELOP).shouldBe(visible).shouldHave(exactTextCaseSensitive("6"));
@@ -420,8 +431,9 @@ public class OrganizationSummaryViewTest
     DataRetentionTile tile = new DataRetentionTile();
     DataRetentionEditorPage page = new DataRetentionEditorPage();
 
-    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible);
 
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
     tile.shouldBe(visible);
     page.shouldNot(exist);
 
@@ -431,8 +443,8 @@ public class OrganizationSummaryViewTest
     page.shouldBe(visible);
 
     back();
-    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
-
+    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
     tile.shouldBe(visible);
     page.shouldNot(exist);
   }
@@ -446,8 +458,9 @@ public class OrganizationSummaryViewTest
     SidebarNavigation.closeNavigationSidebar();
     DataRetentionTile tile = OwnerSummaryPage.dataRetentionTile();
 
-    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible);
 
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(tile.subHeaderText(currentOwner.getName()));
     tile.rows().shouldHaveSize(3);
@@ -460,7 +473,8 @@ public class OrganizationSummaryViewTest
   public void testSourceControlTile() {
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
@@ -476,7 +490,9 @@ public class OrganizationSummaryViewTest
     refresh();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
@@ -493,7 +509,9 @@ public class OrganizationSummaryViewTest
     refresh();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
@@ -510,7 +528,9 @@ public class OrganizationSummaryViewTest
     refresh();
 
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
@@ -531,7 +551,9 @@ public class OrganizationSummaryViewTest
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String
@@ -553,7 +575,9 @@ public class OrganizationSummaryViewTest
     SidebarNavigation.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
-    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible);
+
+    ScrollUtil.scrollIntoViewInstantly(tile.getElement());
 
     tile.shouldBe(visible);
     tile.nxSubHeader().shouldBe(visible).shouldHave(Condition.text(String

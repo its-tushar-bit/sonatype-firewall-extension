@@ -163,9 +163,10 @@ public abstract class AbstractSummaryViewTest
     setCurrentOwnerRepositoryConnectionStatus(currentOwner, true);
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible);
     InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
     innerSourceRepositoryTile.should(exist);
+    ScrollUtil.scrollIntoViewInstantly(innerSourceRepositoryTile.getElement());
     innerSourceRepositoryTile.listTitle().should(exist);
     ElementsCollection rows = innerSourceRepositoryTile.rows();
     rows.shouldHaveSize(1);
@@ -180,9 +181,11 @@ public abstract class AbstractSummaryViewTest
   public void testInnerSourceRepositoryTile_Disabled() {
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible);
     InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
     innerSourceRepositoryTile.should(exist);
+    ScrollUtil.scrollIntoViewInstantly(innerSourceRepositoryTile.getElement());
+
     innerSourceRepositoryTile.listTitle().should(exist);
     ElementsCollection rows = innerSourceRepositoryTile.rows();
     rows.shouldHaveSize(1);
@@ -204,9 +207,11 @@ public abstract class AbstractSummaryViewTest
 
       refresh();
       SidebarNavigation.closeNavigationSidebar();
-      OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
+      OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible);
       InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
       innerSourceRepositoryTile.should(exist);
+      ScrollUtil.scrollIntoViewInstantly(innerSourceRepositoryTile.getElement());
+
       innerSourceRepositoryTile.listTitle().shouldHave(text("Local"));
       ElementsCollection rows = innerSourceRepositoryTile.rows();
       rows.shouldHaveSize(2);
@@ -251,9 +256,11 @@ public abstract class AbstractSummaryViewTest
 
       refresh();
       SidebarNavigation.closeNavigationSidebar();
-      OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible).click();
+      OwnerSummaryPage.summaryTile().innerSourceRepositoryButton().shouldBe(visible);
       InnerSourceRepositoryTile innerSourceRepositoryTile = OwnerSummaryPage.innerSourceRepositoryTile();
       innerSourceRepositoryTile.should(exist);
+      ScrollUtil.scrollIntoViewInstantly(innerSourceRepositoryTile.getElement());
+
       innerSourceRepositoryTile.listTitle().shouldHave(text("Inherited from " + parentOwner.getName()));
       ElementsCollection rows = innerSourceRepositoryTile.rows();
       rows.shouldHaveSize(2);
@@ -290,9 +297,10 @@ public abstract class AbstractSummaryViewTest
     setCurrentOwnerArtifactoryConnectionStatus(currentOwner, true);
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible);
     ArtifactoryRepositoryTile artifactoryRepositoryTile = OwnerSummaryPage.artifactoryRepositoryTile();
     artifactoryRepositoryTile.should(exist);
+    ScrollUtil.scrollIntoViewInstantly(artifactoryRepositoryTile.getElement());
     artifactoryRepositoryTile.listTitle().should(exist);
     ElementsCollection rows = artifactoryRepositoryTile.rows();
     rows.shouldHaveSize(1);
@@ -308,9 +316,10 @@ public abstract class AbstractSummaryViewTest
     SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.setEnabled(true);
     refresh();
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible);
     ArtifactoryRepositoryTile artifactoryRepositoryTile = OwnerSummaryPage.artifactoryRepositoryTile();
     artifactoryRepositoryTile.should(exist);
+    ScrollUtil.scrollIntoViewInstantly(artifactoryRepositoryTile.getElement());
     artifactoryRepositoryTile.listTitle().should(exist);
     ElementsCollection rows = artifactoryRepositoryTile.rows();
     rows.shouldHaveSize(1);
@@ -331,15 +340,16 @@ public abstract class AbstractSummaryViewTest
 
       refresh();
       SidebarNavigation.closeNavigationSidebar();
-      OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
+      OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible);
       ArtifactoryRepositoryTile artifactoryRepositoryTile = OwnerSummaryPage.artifactoryRepositoryTile();
       artifactoryRepositoryTile.should(exist);
+      ScrollUtil.scrollIntoViewInstantly(artifactoryRepositoryTile.getElement());
+
       artifactoryRepositoryTile.listTitle().shouldHave(text("Local"));
       ElementsCollection rows = artifactoryRepositoryTile.rows();
       rows.shouldHaveSize(1);
       rows.get(0).shouldBe(text(artifactoryConnection.getBaseUrl()));
       artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
-
       eyesWatcher.eyesCheck(
           String.format("Artifactory repository tile configured local for %s %s", currentOwner.getType(),
               currentOwner.getName()));
@@ -376,9 +386,11 @@ public abstract class AbstractSummaryViewTest
 
       refresh();
       SidebarNavigation.closeNavigationSidebar();
-      OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible).click();
+      OwnerSummaryPage.summaryTile().artifactoryRepositoryButton().shouldBe(visible);
       ArtifactoryRepositoryTile artifactoryRepositoryTile = OwnerSummaryPage.artifactoryRepositoryTile();
       artifactoryRepositoryTile.should(exist);
+      ScrollUtil.scrollIntoViewInstantly(artifactoryRepositoryTile.getElement());
+
       artifactoryRepositoryTile.listTitle().shouldHave(text("Inherited from " + parentOwner.getName()));
       ElementsCollection rows = artifactoryRepositoryTile.rows();
       rows.shouldHaveSize(1);
@@ -418,8 +430,8 @@ public abstract class AbstractSummaryViewTest
 
     // scroll to the labels tile
     SidebarNavigation.closeNavigationSidebar();
-    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
-
+    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(labelTile.getElement());
     NxList list = labelTile.labelList(0);
     labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
     list.emptyDescriptor().shouldBe(visible);
@@ -433,7 +445,8 @@ public abstract class AbstractSummaryViewTest
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile
-    OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(accessTile.getElement());
 
     for (int i = 0; i < hierarchySize; i++) {
       AccessTileList list = accessTile.accessList(i);
@@ -510,7 +523,8 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(1);
 
     // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(labelTile.getElement());
 
     NxList list = labelTile.labelList(0);
     labelTile.labelListSubheader(0).shouldBe(visible).shouldHave(text("Local"));
@@ -541,7 +555,7 @@ public abstract class AbstractSummaryViewTest
     LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
     ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHaveSize(2);
 
-    ScrollUtil.scrollIntoView(ltgTile.nxHeader());
+    ScrollUtil.scrollIntoViewInstantly(ltgTile.nxHeader());
     if (OwnerType.APPLICATION.equals(currentOwner.getType())) {
       ltgTile.addLTGButton().shouldNot(exist);
     }
@@ -550,11 +564,13 @@ public abstract class AbstractSummaryViewTest
     }
 
     // scroll to the ltgs
-    OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(ltgTile.getElement());
 
     ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(0);
 
-    ScrollUtil.scrollIntoView(section.getTitle());
+    ScrollUtil.scrollIntoViewInstantly(section.getTitle());
+
     section.getTitle().shouldBe(visible).shouldHave(text("Local"));
     section.getEmptyDescriptor().shouldNot(exist);
     section.getTableContent().shouldHaveSize(locaLTGs.size());
@@ -574,7 +590,8 @@ public abstract class AbstractSummaryViewTest
     }
 
     section = ltgTile.getApplicableLicenseThreatGroupSection(1);
-    ScrollUtil.scrollIntoView(section.getTitle());
+    ScrollUtil.scrollIntoViewInstantly(section.getTitle());
+
     section.getTitle().shouldBe(visible).shouldHave(text("INHERITED FROM ROOT ORGANIZATION"));
     section.getEmptyDescriptor().shouldBe(hidden);
     section.getTableContent().shouldHaveSize(LicenseThreatGroupDataHelper.TEST_LICENSE_THREAT_GROUP_COUNT);
@@ -587,7 +604,8 @@ public abstract class AbstractSummaryViewTest
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile
-    OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(accessTile.getElement());
 
     for (int i = 0; i < hierarchySize; i++) {
       AccessTileList list = accessTile.accessList(i);
@@ -621,7 +639,8 @@ public abstract class AbstractSummaryViewTest
     policyTile.policyLists().shouldHaveSize(1);
 
     // scroll to the policy tile
-    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(policyTile.getElement());
 
     PolicyTileList list = policyTile.policyList(0);
     list.emptyDescriptor().shouldBe(hidden);
@@ -733,7 +752,8 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(hierarchySize);
 
     // scroll to the labels tile
-    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().labelsButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(labelTile.getElement());
 
     for (int i = 0; i < hierarchySize; i++) {
       NxList list = labelTile.labelList(i);
@@ -825,12 +845,13 @@ public abstract class AbstractSummaryViewTest
     LicenseThreatGroupSummaryTile ltgTile = OwnerSummaryPage.licenseThreatGroupSummaryTile();
 
     // scroll to the ltgs
-    OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(ltgTile.getElement());
 
     final int hierarchyCount = ltgTile.getAllApplicableLicenseThreatGroupSection().size();
     for (int i = 0; i < hierarchyCount; i++) {
       ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(i);
-      ScrollUtil.scrollIntoView(section.getTitle());
+      ScrollUtil.scrollIntoViewInstantly(section.getTitle());
 
       boolean notAnApp = !OwnerType.APPLICATION.equals(currentOwner.getType());
 
@@ -876,7 +897,8 @@ public abstract class AbstractSummaryViewTest
     accessTile.accessLists().shouldHaveSize(hierarchySize);
 
     // scroll to the access tile
-    OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(accessTile.getElement());
 
     for (int i = 0; i < hierarchySize; i++) {
       AccessTileList list = accessTile.accessList(i);
@@ -912,7 +934,8 @@ public abstract class AbstractSummaryViewTest
     policyTile.policyLists().shouldHaveSize(hierarchySize);
 
     // scroll to the policy tile
-    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(policyTile.getElement());
 
     for (int i = 0; i < hierarchySize; i++) {
       PolicyTileList list = policyTile.policyList(i);
@@ -991,7 +1014,7 @@ public abstract class AbstractSummaryViewTest
     Policy policy = tempEntity.newPolicy(currentOwner.getId(), "Policy 1", 10, null, null, null);
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
-    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible);
 
     assertPolicyTile_Foundation(policy, false);
 
@@ -1005,7 +1028,7 @@ public abstract class AbstractSummaryViewTest
     Policy policy = tempEntity.newPolicy(currentOwner.getId(), "Policy 1", 10, null, null, null);
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
-    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible);
 
     assertPolicyTile_Foundation(policy, true);
     eyesWatcher.eyesCheck();
@@ -1013,6 +1036,8 @@ public abstract class AbstractSummaryViewTest
 
   private void assertPolicyTile_Foundation(Policy policy, boolean proxyActionReadOnly) {
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
+    ScrollUtil.scrollIntoViewInstantly(policyTile.getElement());
+
     PolicyTileList list = policyTile.policyList(0);
 
     PolicyTileListElement policyElement = list.row(1);
@@ -1061,7 +1086,8 @@ public abstract class AbstractSummaryViewTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
 
-    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
+    OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible);
+    ScrollUtil.scrollIntoViewInstantly(policyTile.getElement());
 
     PolicyTileList list = policyTile.policyList(0);
 

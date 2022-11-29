@@ -63,10 +63,20 @@ import org.joda.time.format.DateTimeFormat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.cssValue;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.matchesText;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.DIRECT_DEPENDENCY_CLASS;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.INNER_SOURCE_DEPENDENCY_CLASS;
@@ -391,6 +401,7 @@ public class ApplicationReportTest
     eyesWatcher.eyesCheck("Showing ellipsis in overflown policy names.");
   }
 
+  @Ignore
   @Test
   public void testEllipsisInComponentName() {
     reportPage.headers().componentNameFilterInput()

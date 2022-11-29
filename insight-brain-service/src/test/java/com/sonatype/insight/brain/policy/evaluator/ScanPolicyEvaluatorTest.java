@@ -1930,7 +1930,7 @@ public class ScanPolicyEvaluatorTest
     Condition securityVulnerabilityStatusCondition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
         "ACKNOWLEDGED");
     Condition securityVulnerabilityCweCondition = new Condition(SecurityVulnerabilityCweConditionType.ID, "is", "770");
-    Condition vulnerabilityGroupCondition = new Condition(VulnerabilityGroupConditionType.ID, "is in", vg.getId());
+    Condition vulnerabilityGroupCondition = new Condition(VulnerabilityGroupConditionType.ID, "is", vg.getId());
     Condition packageUrlCondition = new Condition(PackageUrlConditionType.ID, "matches", "pkg:maven/*/*@*");
     Condition componentCategoryCondition = new Condition(ComponentCategoryConditionType.ID, "is not", "113");
     Condition hygieneCondition = new Condition(HygieneRatingConditionType.ID, "is not", "1");

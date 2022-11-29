@@ -12,6 +12,7 @@ import {
   useToggle,
 } from '@sonatype/react-shared-components';
 import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
+import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 import {
   faChartArea,
   faFileChartLine,
@@ -45,6 +46,7 @@ function IqSidebarNav(props) {
     isFirewallEnabled,
     isLegalEnabled,
     isApiPageEnabled,
+    isDataInsightsEnabled,
   } = props;
 
   const logo = getProductLogo(productEdition);
@@ -58,6 +60,7 @@ function IqSidebarNav(props) {
   const advSearchHref = uiRouterState.href('advancedSearch');
   const firewallHref = uiRouterState.href('firewall.firewallPage');
   const legalHref = uiRouterState.href('legal.dashboard');
+  const dataInsightsHref = uiRouterState.href('dataInsights');
 
   const isSelected = (entryName) => {
     return uiRouterState.includes(entryName);
@@ -164,6 +167,20 @@ function IqSidebarNav(props) {
               href={apiHref}
             />
           )}
+          {isDataInsightsEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected('dataInsights')}
+              id="data-insights-navigation-button"
+              icon={faDatabase}
+              text={
+                <>
+                  <span>Data Insights</span>
+                  <span className="nx-global-sidebar__navigation-badge">Labs</span>
+                </>
+              }
+              href={dataInsightsHref}
+            />
+          )}
         </NxGlobalSidebarNavigation>
       )}
       {productEdition && releaseVersion && (
@@ -186,5 +203,6 @@ IqSidebarNav.propTypes = {
   isFirewallEnabled: PropTypes.bool,
   isLegalEnabled: PropTypes.bool,
   isApiPageEnabled: PropTypes.bool,
+  isDataInsightsEnabled: PropTypes.bool,
 };
 export default IqSidebarNav;

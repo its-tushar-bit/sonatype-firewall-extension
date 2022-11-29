@@ -12,7 +12,6 @@ import { MenuButton, MenuTitle, NavLink } from '../MenuButton/MenuButton';
 export const SystemPreferencesMenu = ({
   permissions = {},
   isWebhooksSupported = false,
-  dataInsightsEnabled = false,
   isSourceControlSupported = false,
   isCrowdIntegrationEnabled = false,
 }) => {
@@ -85,10 +84,6 @@ export const SystemPreferencesMenu = ({
       <NavLink stateName="advancedSearchConfig" id="system-configuration-advanced-search" showIf={CONFIGURE_SYSTEM}>
         Advanced Search
       </NavLink>
-
-      <NavLink stateName="dataInsights" id="system-labs-data-insights" showIf={dataInsightsEnabled}>
-        Data Insights
-      </NavLink>
       <EarlyAccessLinks></EarlyAccessLinks>
     </MenuButton>
   );
@@ -103,7 +98,6 @@ SystemPreferencesMenu.propTypes = {
     MANAGE_AUTOMATIC_SCM_CONFIGURATION: PropTypes.bool,
   }),
   isWebhooksSupported: PropTypes.bool,
-  dataInsightsEnabled: PropTypes.bool,
   isSourceControlSupported: PropTypes.bool,
   isCrowdIntegrationEnabled: PropTypes.bool,
 };

@@ -55,6 +55,7 @@ export default angular
         'isFirewallEnabled',
         'isLegalEnabled',
         'isApiPageEnabled',
+        'isDataInsightsEnabled',
       ],
       ['$state']
     )

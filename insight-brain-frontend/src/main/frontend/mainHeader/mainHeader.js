@@ -7,7 +7,6 @@ import { faUserAlt } from '@fortawesome/pro-regular-svg-icons';
 import template from './mainHeader.html';
 import {
   selectIsSourceControlSupported,
-  selectIsDataInsightsSupported,
   selectIsWebhooksSupported,
   selectIsCrowdIntegrationSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
@@ -75,7 +74,6 @@ function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser
 
 export const mapStateToThis = (state) => ({
   isWebhooksSupported: selectIsWebhooksSupported(state),
-  isLabsDataInsightsEnabled: selectIsDataInsightsSupported(state),
   isSourceControlSupported: selectIsSourceControlSupported(state),
   isCrowdIntegrationEnabled: selectIsCrowdIntegrationSupported(state),
 });

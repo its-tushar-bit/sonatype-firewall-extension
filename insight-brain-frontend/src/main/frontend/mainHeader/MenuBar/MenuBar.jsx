@@ -16,14 +16,13 @@ export const MenuBar = ({
   userActions,
   permissions = {},
   isWebhooksSupported = false,
-  isLabsDataInsightsEnabled,
   isSourceControlSupported,
   login,
   isLoggedIn = false,
   shouldShowLoginButton = false,
   isCrowdIntegrationEnabled,
 }) => {
-  const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0 || isLabsDataInsightsEnabled;
+  const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0;
 
   const backButtonPortalContainer = <div id="menu-bar__back-button-container" />;
 
@@ -49,7 +48,6 @@ export const MenuBar = ({
           <SystemPreferencesMenu
             permissions={permissions}
             isWebhooksSupported={isWebhooksSupported}
-            dataInsightsEnabled={isLabsDataInsightsEnabled}
             isSourceControlSupported={isSourceControlSupported}
             isCrowdIntegrationEnabled={isCrowdIntegrationEnabled}
           />
@@ -63,7 +61,6 @@ export const MenuBar = ({
 MenuBar.propTypes = {
   permissions: PropTypes.object,
   isWebhooksSupported: PropTypes.bool,
-  isLabsDataInsightsEnabled: PropTypes.bool,
   isSourceControlSupported: PropTypes.bool,
   userActions: PropTypes.shape({
     loadUser: PropTypes.func,

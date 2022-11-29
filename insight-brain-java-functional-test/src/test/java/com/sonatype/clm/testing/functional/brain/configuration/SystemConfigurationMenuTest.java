@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.After;
@@ -180,51 +179,5 @@ public class SystemConfigurationMenuTest
     webhookConfigurationPage.shouldNotBe(visible);
     systemConfigMenu.emailConfiguration().shouldBe(hidden);
     systemConfigMenu.proxyConfiguration().shouldBe(hidden);
-  }
-
-  @Test
-  public void testLicenseFeatureAwareness_dataInsights_enabled() {
-    setFeatures(LicensedFeature.DATA_INSIGHTS);
-
-    User user = newUser();
-
-    refreshOrOpen(ReportListPage.url());
-    login(user.getUsername(), user.getPassword());
-
-    systemConfigMenu.shouldBe(visible);
-    systemConfigMenu.dropdownToggle().click();
-    systemConfigMenu.dataInsights().shouldBe(visible);
-  }
-
-  @Test
-  public void testLicenseFeatureAwareness_dataInsights_disabled() {
-    User user = newUser(Permission.MANAGE_AUTOMATIC_APPLICATION_CREATION);
-
-    refreshOrOpen(ReportListPage.url());
-    login(user.getUsername(), user.getPassword());
-
-    systemConfigMenu.shouldBe(visible);
-    systemConfigMenu.dataInsights().shouldBe(hidden);
-  }
-
-  @Test
-  public void testLicenseFeatureAwareness_admin_dataInsights_enabled() {
-    setFeatures(LicensedFeature.DATA_INSIGHTS);
-
-    refreshOrOpen(ReportListPage.url());
-    loginAsAdmin();
-
-    systemConfigMenu.shouldBe(visible);
-    systemConfigMenu.dropdownToggle().click();
-    systemConfigMenu.dataInsights().shouldBe(visible);
-  }
-
-  @Test
-  public void testLicenseFeatureAwareness_admin_dataInsights_disabled() {
-    refreshOrOpen(ReportListPage.url());
-    loginAsAdmin();
-
-    systemConfigMenu.shouldBe(visible);
-    systemConfigMenu.dataInsights().shouldBe(hidden);
   }
 }

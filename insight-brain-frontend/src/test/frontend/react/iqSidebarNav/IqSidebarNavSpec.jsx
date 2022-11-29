@@ -14,6 +14,7 @@ import {
   faShieldCheck,
   faSitemap,
 } from '@fortawesome/pro-solid-svg-icons';
+import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 import * as preferenceStoreFunctions from '../../../../main/frontend/util/preferenceStore';
 import * as routerContext from '../../../../main/frontend/react/RouterStateContext';
 
@@ -283,6 +284,37 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
+    it('does not render NxGlobalSidebarNavigationLink for Data Insights if it is not enabled', function () {
+      expect(
+        getShallowComponent({
+          isLoggedIn: true,
+          isLicensed: true,
+          isDataInsightsEnabled: false,
+        }).find('#data-insights-navigation-button')
+      ).not.toExist();
+    });
+
+    it('renders an NxGlobalSidebarNavigationLink for Data Insights with "Labs" badge if allowed', function () {
+      const component = getMountedComponent({
+        isLoggedIn: true,
+        isLicensed: true,
+        isDataInsightsEnabled: true,
+      });
+
+      const navLink = component.find('#data-insights-navigation-button').at(0);
+
+      expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
+      expect(navLink).toHaveProp('icon', faDatabase);
+      expect(navLink).toHaveProp('href', 'href-dataInsights');
+      expect(navLink).toHaveProp('isSelected', false);
+
+      const text = navLink.find('.nx-global-sidebar__navigation-text span:first-child').text();
+      const badgeText = navLink.find('.nx-global-sidebar__navigation-badge').text();
+
+      expect(text).toEqual('Data Insights');
+      expect(badgeText).toEqual('Labs');
+    });
+
     describe('selected state', function () {
       let renderAllLinks;
       beforeEach(function () {
@@ -296,6 +328,7 @@ describe('IqSidebarNav', function () {
           isFirewallEnabled: true,
           isLegalEnabled: true,
           isApiPageEnabled: true,
+          isDataInsightsEnabled: true,
         });
       });
 
@@ -352,6 +385,11 @@ describe('IqSidebarNav', function () {
       it('renders Legal link as selected when the state matches', function () {
         includesSpy.and.callFake((state) => state === 'legal');
         expect(renderAllLinks().find('#advanced-legal-navigation-button')).toHaveProp('isSelected', true);
+      });
+
+      it('renders Data Insight as selected when the state matches', function () {
+        includesSpy.and.callFake((state) => state === 'dataInsights');
+        expect(renderAllLinks().find('#data-insights-navigation-button')).toHaveProp('isSelected', true);
       });
     });
   });

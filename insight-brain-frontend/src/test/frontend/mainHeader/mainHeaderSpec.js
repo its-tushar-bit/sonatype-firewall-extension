@@ -73,7 +73,6 @@ describe('mainHeaderSpec', function () {
         productFeatures: {
           productFeatures: {
             'webhooks-for-applications': true,
-            'data-insights': true,
             automation: true,
           },
         },
@@ -82,7 +81,6 @@ describe('mainHeaderSpec', function () {
       const output = mapStateToThis(state);
 
       expect(output.isWebhooksSupported).toBeTrue();
-      expect(output.isLabsDataInsightsEnabled).toBeTrue();
       expect(output.isSourceControlSupported).toBeTrue();
     });
   });

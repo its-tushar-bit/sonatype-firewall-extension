@@ -13,6 +13,7 @@ import {
   selectIsDashboardSupported,
   selectIsReportListSupported,
   selectIsApiPageSupported,
+  selectIsDataInsightsSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 /* global clmServerVersion */
@@ -30,6 +31,7 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
   vm.isFirewallSupported = false;
   vm.isAdvancedLegalPackSupported = false;
   vm.isApiPageEnabled = false;
+  vm.isDataInsightsEnabled = false;
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
 
@@ -86,6 +88,7 @@ function mapStateToThis(state) {
     isDashboardSupported: selectIsDashboardSupported(state),
     isReportListSupported: selectIsReportListSupported(state),
     isApiPageEnabled: selectIsApiPageSupported(state),
+    isDataInsightsEnabled: selectIsDataInsightsSupported(state),
   };
 }
 

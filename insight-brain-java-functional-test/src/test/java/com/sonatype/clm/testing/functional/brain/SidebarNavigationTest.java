@@ -248,4 +248,24 @@ public class SidebarNavigationTest
     SidebarNavigation.apiNavigationButton().click();
     waitUntilUrl(ApiPage.url());
   }
+
+  @Test
+  public void testDataInsightsNavigation_ShowWhenEnabled() {
+    setFeatures(LicensedFeature.DATA_INSIGHTS);
+    refresh();
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible);
+  }
+
+  @Test
+  public void testDataInsightsNavigation_HiddenWhenDisabled() {
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testDataInsightsNavigation_toDataInsights() throws Exception {
+    setFeatures(LicensedFeature.DATA_INSIGHTS);
+    refresh();
+    SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible).click();
+    waitUntilUrl(BaseUrl.resolvePageUrl("/dataInsights"));
+  }
 }

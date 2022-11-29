@@ -33,3 +33,18 @@ iq-sidebar-nav {
     display: none;
   }
 }
+
+.nx-global-sidebar__navigation-badge {
+  $height: 22.5px;
+
+  background-color: var(--nx-swatch-yellow-60);
+  border-radius: calc(#{$height} / 2);
+  color: var(--nx-color-text-dark);
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: $height;
+  margin-left: var(--nx-spacing-2x);
+  padding: 0 var(--nx-spacing-3x);
+  vertical-align: bottom;
+}

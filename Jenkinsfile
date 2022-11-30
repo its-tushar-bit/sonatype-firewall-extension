@@ -61,7 +61,7 @@ void configureBranchJob() {
       description: 'If checked will enable Applitools EyesCheck.',
       name: 'applitoolsEnabled')]
 
-  // Jenkins unfortunately will overwrite any parameters defined at the folder level using this dynamic approach for 
+  // Jenkins unfortunately will overwrite any parameters defined at the folder level using this dynamic approach for
   // applitools. Therefore in order to support this workflow we need to mirror folder defined parameters here otherwise
   // they are erased completely from the release configuration.
   // See https://jenkins.ci.sonatype.dev/job/insight/job/insight-brain/job/release/
@@ -95,11 +95,11 @@ void pushDockerImageIfDeployBranch() {
     echo "iqVersion:'${iqVersion}'"
     echo "buildnum: ${env.BUILD_NUMBER}"
 
+    String imageName = 'iq/snapshot'
+    String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
+
     dir("nexus-iq-server") {
         withSonatypeDockerRegistry() {
-            String imageName = 'iq/snapshot'
-            String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
-
             sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${iqVersion} --tag ${imageName}:${imageVersion} ."
             String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
             runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"
@@ -110,35 +110,37 @@ void pushDockerImageIfDeployBranch() {
         }
     }
 
-    dir("nexus-mtiq-server") {
-        withSonatypeDockerRegistry() {
-            String imageName = 'mtiq/snapshot'
-            String fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
-
-            sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${iqVersion} --tag ${imageName}:${imageVersion} ."
-            String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
-            runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"
-            runSafely "docker push ${fullImage}"
-            // Also tag as latest
-            runSafely "docker tag ${imageName}:${imageVersion} ${latest}"
-            runSafely "docker push ${latest}"
-        }
-    }
-
+    // Trigger downstream jobs for IQ
     String targetImage = "${sonatypeDockerRegistryId()}/iq/staging:${imageVersion}"
     build('job': 'ops/sonatype-lifecycle/docker-ops-nexus-iq-server/staging',
           parameters: [
-            string(name: 'BASE_IMAGE', value: fullImage), 
+            string(name: 'BASE_IMAGE', value: fullImage),
             string(name: 'TARGET_IMAGE', value: targetImage),
-          ], 
+          ],
           propagate: false)
 
     build('job': 'ops/sonatype-lifecycle/ops-terraform-ecs-iq-server/staging',
           parameters: [
-            string(name: 'environment', value: 'Staging'), 
+            string(name: 'environment', value: 'Staging'),
             string(name:'imageUrl', value: targetImage)
-          ], 
+          ],
           propagate: false)
+
+    // Build MTIQ
+    dir("nexus-mtiq-server") {
+      withSonatypeDockerRegistry() {
+        imageName = 'mtiq/snapshot'
+        fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
+
+        sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${iqVersion} --tag ${imageName}:${imageVersion} ."
+        String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
+        runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"
+        runSafely "docker push ${fullImage}"
+        // Also tag as latest
+        runSafely "docker tag ${imageName}:${imageVersion} ${latest}"
+        runSafely "docker push ${latest}"
+      }
+    }
 }
 
 /*

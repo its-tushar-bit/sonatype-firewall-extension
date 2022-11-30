@@ -27,7 +27,7 @@ import org.keycloak.representations.idm.UserSessionRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// Exposes utility methods per https://www.keycloak.org/docs-api/6.0/rest-api/ for a running Keycloak on a given url.
+// Exposes utility methods for a running Keycloak on a given url.
 // For using in tests, please see KeycloakTestUtilTest for reference which is responsible for
 // ignoring tests when -Dkeycloak.optional=true and stopping server / container gracefully
 // Call #clean whenever you need to reset the server to original state.
@@ -67,10 +67,6 @@ public class KeycloakServerUtil
                 .param("grant_type", "password"), MediaType.APPLICATION_FORM_URLENCODED_TYPE), Token.class).accessToken;
   }
 
-  /**
-   * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_clients_resource">Client Resource</a>
-   * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_clientrepresentation">Client Representation</a>
-   */
   public void createClient(ClientRepresentation client) {
     log.info("KeycloakServerUtil.createClient() start clientId:{}", client.getClientId());
 
@@ -92,10 +88,6 @@ public class KeycloakServerUtil
     }
   }
 
-  /**
-   * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_convertclientdescription">Convert Client</a>
-   * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_clientrepresentation">Client Representation</a>
-   */
   public ClientRepresentation createClientRepresentation(String xmlMetadata) {
     return ClientBuilder.newClient().target(url).path("admin/realms/master/client-description-converter").request()
         .header("Authorization", "Bearer " + adminToken)
@@ -104,8 +96,6 @@ public class KeycloakServerUtil
 
   /**
    * @return Returns the id assigned to the created user.
-   * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_users_resource">Users Resource</a>
-   * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_userrepresentation">User Representation</a>
    */
   public String createUser(UserRepresentation user) {
     log.info("KeycloakServerUtil.createUser() start username:{}", user.getUsername());
@@ -201,10 +191,6 @@ public class KeycloakServerUtil
     }
   }
 
-  /**
-   * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_users_resource">Users Resource</a>
-   * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_userrepresentation">User Representation</a>
-   */
   public void updateUser(UserRepresentation user) {
     Response response =
         ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(user.getId()).request()
@@ -219,9 +205,6 @@ public class KeycloakServerUtil
   /**
    * Remove all user sessions associated with the user
    * Also send notification to all clients that have an admin URL to invalidate the sessions for the particular user
-   *
-   * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_users_resource">Users Resource</a>
-   * @see <a href="https://www.keycloak.org/docs-api/6.0/rest-api/#_userrepresentation">User Representation</a>
    */
   public void logoutUser(String userId) {
     ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId).path("logout").request()

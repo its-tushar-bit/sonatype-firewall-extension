@@ -90,7 +90,7 @@ class KeycloakServer
     try {
       dockerClient = DefaultDockerClient.fromEnv().apiVersion("v1.30").build();
       hostname = dockerClient.getHost();
-      String image = applyRegistry("jboss/keycloak:16.1.1");
+      String image = applyRegistry("keycloak/keycloak:20.0.1");
       log.info("Creating keycloak server from image {}", image);
       try {
         dockerClient.inspectImage(image);
@@ -110,11 +110,12 @@ class KeycloakServer
       }
       containerId = dockerClient.createContainer(ContainerConfig.builder() //
           .image(image) //
-          .env("KEYCLOAK_USER=" + USERNAME, "KEYCLOAK_PASSWORD=" + PASSWORD, "DB_VENDOR=h2") //
+          .env("KEYCLOAK_ADMIN=" + USERNAME, "KEYCLOAK_ADMIN_PASSWORD=" + PASSWORD) //
           .hostConfig(HostConfig.builder() //
               .autoRemove(true) //
               .portBindings(Collections.singletonMap("8080/tcp", Arrays.asList(PortBinding.randomPort(null)))) //
               .build())
+          .cmd("start-dev")
           .build(), "keycloak-" + UUID.randomUUID().toString().substring(0, 8)).id();
       log.info("Starting keycloak server");
       dockerClient.startContainer(containerId);
@@ -233,7 +234,7 @@ class KeycloakServer
   }
 
   public String getUrl() {
-    return String.format("http://%s:%d/auth/", hostname, port);
+    return String.format("http://%s:%d/", hostname, port);
   }
 
   /**

@@ -616,6 +616,13 @@
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
     </dependency>
+    <!-- Needed by the Crowd support tests -->
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <version>2.3.7</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

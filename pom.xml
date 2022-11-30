@@ -43,7 +43,7 @@
     <openjpa.version>3.2.2</openjpa.version>
     <shiro.version>1.10.0</shiro.version>
     <!-- Also update the jboss/keycloak docker image version in the KeycloakServer java class -->
-    <keycloak.version>16.1.1</keycloak.version>
+    <keycloak.version>20.0.1</keycloak.version>
     <sisu-inject.version>0.3.5</sisu-inject.version>
     <clm.dto.model.version>1.50.1-01</clm.dto.model.version>
     <!-- The jetty.version must match the jersey version used by dropwizard -->
@@ -458,21 +458,12 @@
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
           </exclusion>
+          <!-- Avoid security vulnerabilities -->
+          <exclusion>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-server-spi-private</artifactId>
+          </exclusion>
         </exclusions>
-      </dependency>
-      <!--
-      We need to manage org.apache.santuario:xmlsec to avoid CVE-2021-40690
-      (see https://issues.sonatype.org/browse/CLM-19668).
-      org.apache.santuario:xmlsec is introduced as a transitive dependency by keycloak-saml-servlet-filter-adapter,
-      which at version 16.1.1 uses org.apache.santuario:xmlsec:2.1.6 (still vulnerable).
-      https://github.com/keycloak/keycloak/blob/16.1.1/pom.xml#L114
-      This dependency management should be removed when keycloak is upgraded
-      to a version that uses either org.apache.santuario:xmlsec = 2.1.7 or >= 2.2.3.
-      -->
-      <dependency>
-        <groupId>org.apache.santuario</groupId>
-        <artifactId>xmlsec</artifactId>
-        <version>2.1.7</version>
       </dependency>
 
       <dependency>

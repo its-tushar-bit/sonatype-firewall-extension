@@ -35,7 +35,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ProtocolMapperRepresentation;
@@ -45,8 +44,6 @@ import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
-//The test is temporary ignored due to flaky failures to start keycloak server (see CLM-23082)
-@Ignore
 public class SamlTest
     extends AbstractFunctionalTest
 {

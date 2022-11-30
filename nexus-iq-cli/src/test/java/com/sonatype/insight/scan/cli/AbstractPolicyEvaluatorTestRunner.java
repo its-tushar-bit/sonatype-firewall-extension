@@ -59,7 +59,11 @@ public abstract class AbstractPolicyEvaluatorTestRunner
   }
 
   public AbstractPolicyEvaluatorTestRunner expectFailExit() {
-    this.expectedExitCode = 1;
+    return expectFailExit(1);
+  }
+
+  public AbstractPolicyEvaluatorTestRunner expectFailExit(int exitCode) {
+    this.expectedExitCode = exitCode;
     this.expectedExitException = true;
     return this;
   }

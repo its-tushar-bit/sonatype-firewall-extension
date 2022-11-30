@@ -168,6 +168,7 @@ public abstract class DefaultPolicyEvaluatorTest
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "container://registry/image:tag");
     withTestRunner(params)
+        .expectFailExit(2) // due to a scanning error
         .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
         .doPolicyEvaluationRun();
   }
@@ -180,6 +181,7 @@ public abstract class DefaultPolicyEvaluatorTest
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "iac://registry/image:tag");
     withTestRunner(params)
+        .expectFailExit(2) // due to a scanning error
         .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
         .doPolicyEvaluationRun();
   }

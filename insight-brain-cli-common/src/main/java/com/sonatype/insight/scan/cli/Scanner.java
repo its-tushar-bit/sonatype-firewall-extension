@@ -26,7 +26,6 @@ import com.sonatype.insight.scan.file.FileScanRequest;
 import com.sonatype.insight.scan.file.FileScanner;
 import com.sonatype.insight.scan.file.ModuleScanRequest;
 import com.sonatype.insight.scan.file.ScanSession;
-import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanMetadata;
@@ -67,11 +66,11 @@ public class Scanner
     this.writerFactory = writerFactory;
   }
 
-  public ClientScanResult scan(File scanFile, List<File> targets, Properties config) throws IOException {
+  public CliScanResult scan(File scanFile, List<File> targets, Properties config) throws IOException {
     return this.scan(scanFile, targets, config, null);
   }
 
-  public ClientScanResult scan(
+  public CliScanResult scan(
       final File scanFile,
       final List<File> targets,
       final Properties config,
@@ -80,7 +79,7 @@ public class Scanner
     return this.scan(scanFile, null, targets, config, metadata, null);
   }
 
-  public ClientScanResult scan(
+  public CliScanResult scan(
       final File scanFile,
       final File baseDir,
       final List<File> targets,
@@ -91,7 +90,7 @@ public class Scanner
     return scan(scanFile, baseDir, targets, Collections.emptyList(), config, metadata, licensedFeatures);
   }
 
-  public ClientScanResult scan(
+  public CliScanResult scan(
       final File scanFile,
       final File baseDir,
       final List<File> targets,
@@ -123,7 +122,7 @@ public class Scanner
     }
     log.info("Fingerprinting completed in {} seconds for {} archives, {} total files",
         scan.getSummary().getElapsedSeconds(), scan.getSummary().getArchives(), scan.getSummary().getFiles());
-    return new ClientScanResult(scanFile, scan.hasThirdPartyScanContent());
+    return new CliScanResult(scanFile, scan.hasThirdPartyScanContent(), scan.getSummary().getErrorCount() > 0);
   }
 
   // Visible for testing

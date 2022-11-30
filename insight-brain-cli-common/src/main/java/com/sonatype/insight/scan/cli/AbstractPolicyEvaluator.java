@@ -67,10 +67,14 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
     validate(params, restClient);
 
-    ClientScanResult clientScanResult = scan(params, getProprietaryConfiguration(params, restClient),
+    CliScanResult cliScanResult = scan(params, getProprietaryConfiguration(params, restClient),
         getLicensedFeatures(params, restClient), restClient);
 
-    evaluatePolicy(params, restClient, clientScanResult, getClientScanType());
+    evaluatePolicy(params, restClient, cliScanResult, getClientScanType());
+
+    if (cliScanResult.hasScanningErrors()) {
+      throw new ExitException(2);
+    }
   }
 
   protected abstract ClientScanType getClientScanType();
@@ -186,7 +190,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     return scanTarget.startsWith("iac:");
   }
 
-  protected ClientScanResult scan(
+  protected CliScanResult scan(
       P params,
       ProprietaryConfig proprietaryConfig,
       Set<String> licensedFeatures,

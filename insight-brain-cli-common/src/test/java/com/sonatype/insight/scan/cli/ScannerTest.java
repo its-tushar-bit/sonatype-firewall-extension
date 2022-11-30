@@ -14,10 +14,14 @@ import java.util.Properties;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.scan.client.ClientScanner;
+import com.sonatype.insight.scan.config.ScanPropertiesLoader;
+import com.sonatype.insight.scan.file.FileScanRequest;
 import com.sonatype.insight.scan.file.FileScanner;
 import com.sonatype.insight.scan.file.ModuleScanRequest;
 import com.sonatype.insight.scan.file.ScanSession;
-import com.sonatype.insight.scan.model.ClientScanResult;
+import com.sonatype.insight.scan.model.ScanSummary;
+import com.sonatype.insight.scan.model.io.ScanWriterFactory;
 import com.sonatype.insight.test.InjectedTest;
 import com.sonatype.insight.test.LogOutput;
 
@@ -60,11 +64,42 @@ public class ScannerTest
   public void testScan_ReturnResult() throws Exception {
     List<File> targets = Collections.singletonList(new File("src/test/resources/ScannerTest/app.ear"));
 
-    ClientScanResult clientScanResult = scanner.scan(tmpDir.newFile("scan-test.xml.gz"), targets, new Properties());
+    CliScanResult cliScanResult = scanner.scan(tmpDir.newFile("scan-test.xml.gz"), targets, new Properties());
 
-    assertThat(clientScanResult).isNotNull();
-    assertThat(clientScanResult.getScanFile()).isNotNull();
-    assertThat(clientScanResult.hasThirdPartyScanContent()).isFalse();
+    assertThat(cliScanResult).isNotNull();
+    assertThat(cliScanResult.getScanFile()).isNotNull();
+    assertThat(cliScanResult.hasThirdPartyScanContent()).isFalse();
+    assertThat(cliScanResult.hasScanningErrors()).isFalse();
+  }
+
+  @Inject
+  private ScanPropertiesLoader configLoader;
+
+  @Inject
+  private ScanWriterFactory writerFactory;
+
+  @Test
+  public void testScan_ReturnResult_withScanningErrors() throws Exception {
+    List<File> targets =
+        Collections.singletonList(new File("container://https://registry.hub.docker.com/account/image"));
+
+    // a file scanner with a scanning error
+    FileScanner mockFileScanner = mock(FileScanner.class);
+    doAnswer(invocationOnMock -> {
+      FileScanRequest fileScanRequest = invocationOnMock.getArgument(0);
+      final ScanSummary summary = fileScanRequest.getScanSession().getScan().getSummary();
+      summary.setErrorCount(1);
+      return null;
+    }).when(mockFileScanner).scan(any(FileScanRequest.class));
+
+    Scanner scanner1 = new Scanner(configLoader, new ClientScanner(), mockFileScanner, writerFactory);
+
+    CliScanResult cliScanResult = scanner1.scan(tmpDir.newFile("scan-test.xml.gz"), targets, new Properties());
+
+    assertThat(cliScanResult).isNotNull();
+    assertThat(cliScanResult.getScanFile()).isNotNull();
+    assertThat(cliScanResult.hasThirdPartyScanContent()).isFalse();
+    assertThat(cliScanResult.hasScanningErrors()).isTrue();
   }
 
   @Test

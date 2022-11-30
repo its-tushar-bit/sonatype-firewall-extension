@@ -30,7 +30,6 @@ import SelectApplicationContactController from './summary/select.application.con
 import NumberInputWithStringValue from './utility/number.input.with.string.value';
 import SameOwnerEditSref from './utility/same.owner.edit.sref.directive';
 import SameOwnerViewSref from './utility/same.owner.view.sref.directive';
-import retentionModule from './retention/module';
 import sourceControlModule from './source.control/module';
 import viewTemplate from './state/owner.manager.view.html';
 import editTemplate from './state/owner.manager.edit.html';
@@ -64,6 +63,7 @@ import ImportPoliciesModal from 'MainRoot/OrgsAndPolicies/importPoliciesModal/Im
 import RetentionTile from 'MainRoot/OrgsAndPolicies/ownerSummary/retentionTile/RetentionTile';
 import InnerSourceRepositoryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/InnerSourceRepositoryTile';
 import MoveApplicationModal from 'MainRoot/OrgsAndPolicies/moveApplicationModal/MoveApplicationModal';
+import DataRetentionEditor from 'MainRoot/OrgsAndPolicies/dataRetentionEditor/DataRetentionEditor';
 import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
 import LicenseThreatGroupSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/LicenseThreatGroupSummaryTile';
 import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/EvaluateApplicationModal';
@@ -83,7 +83,6 @@ export default angular
     utilityServicesModule.name,
     validatorsModule.name,
     roleMembershipModule.name,
-    retentionModule.name,
     sourceControlModule.name,
     artifactoryRepositoryModule.name,
   ])
@@ -138,6 +137,7 @@ export default angular
     iqReact2Angular(PolicyViolationGrandfatheringEditor, [], ['$ngRedux'])
   )
   .component('moveApplicationModal', iqReact2Angular(MoveApplicationModal, [], ['$ngRedux']))
+  .component('dataRetentionEditor', iqReact2Angular(DataRetentionEditor, [], ['$ngRedux']))
   .component('ownerSummaryPills', iqReact2Angular(OwnerSummaryPills, [], ['$ngRedux']))
   .component(
     'licenseThreatGroupSummaryTile',
@@ -349,8 +349,9 @@ export default angular
           url: '/data-retention',
           data: {
             title: 'Organization Data Retention',
+            isDirty: ['orgsAndPolicies', 'retention', 'isDirty'],
           },
-          component: 'retentionEditor',
+          component: 'dataRetentionEditor',
         });
     },
   ]);

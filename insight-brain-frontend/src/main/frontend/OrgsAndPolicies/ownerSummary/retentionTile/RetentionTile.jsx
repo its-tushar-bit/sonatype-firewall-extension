@@ -45,12 +45,15 @@ export default function RetentionTile() {
   }, [selectedOwner]);
 
   function getSuccessMetricsMaxAge() {
+    const age = successMetrics.maxAge?.trimmedValue;
+    const unit = successMetrics.maxAgeUnit;
+    const ageUnit = age === '1' ? unit.slice(0, unit.length - 1) : unit;
     return (
       <div className="retention-tile__success-metrics">
         {successMetrics.enablePurging ? (
           <>
             <span className="retention-tile__max-age">Max Age: </span>
-            {successMetrics.maxAge}
+            {age} {ageUnit}
           </>
         ) : (
           NOT_ENABLED

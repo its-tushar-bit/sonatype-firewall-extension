@@ -17,7 +17,7 @@ export const timeShortener = (value) => {
   ]);
 
   for (const [regExp, replacer] of mapper) {
-    if (value?.match(regExp)) {
+    if (value.match(regExp)) {
       return replace(regExp, replacer, value);
     }
   }
@@ -25,21 +25,28 @@ export const timeShortener = (value) => {
   return value;
 };
 
+function getMaxAge(report) {
+  if (report.enablePurging) {
+    if (report.maxAge?.trimmedValue) {
+      const age = `${report.maxAge.trimmedValue} ${report.maxAgeUnit}`;
+      return timeShortener(age);
+    }
+    return NOT_APPLICABLE;
+  }
+  return NOT_ENABLED;
+}
+
+function getMaxReports(report) {
+  if (report.enablePurging) {
+    if (report.maxCount?.trimmedValue) {
+      return report.maxCount.trimmedValue;
+    }
+    return NOT_APPLICABLE;
+  }
+  return NOT_ENABLED;
+}
+
 export default function RetentionTable({ stages }) {
-  function getMaxAge(report) {
-    if (report.enablePurging) {
-      return report.maxAge ? timeShortener(report.maxAge) : NOT_APPLICABLE;
-    }
-    return NOT_ENABLED;
-  }
-
-  function getMaxReports(report) {
-    if (report.enablePurging) {
-      return report.maxCount ? report.maxCount : NOT_APPLICABLE;
-    }
-    return NOT_ENABLED;
-  }
-
   const stageNames = keys(stages);
 
   return (

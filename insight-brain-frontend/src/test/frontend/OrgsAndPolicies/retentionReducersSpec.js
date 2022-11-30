@@ -28,24 +28,28 @@ describe('retentionSlice reducers', () => {
         loading: true,
         applicationReports: null,
         successMetrics: {},
+        validationErrors: {},
       });
 
-      const { loading, applicationReports, successMetrics } = reducer(state, {
+      const { loading, applicationReports, successMetrics, validationErrors } = reducer(state, {
         type: 'retention/loadRetention/fulfilled',
         payload: {
-          applicationReports: {
-            stages: {
-              develop: {
-                inheritPolicy: true,
-                enablePurging: true,
-                maxAge: '3 months',
+          parentRetentionData: null,
+          entityRetentionData: {
+            applicationReports: {
+              stages: {
+                develop: {
+                  inheritPolicy: true,
+                  enablePurging: true,
+                  maxAge: '3 months',
+                },
               },
             },
-          },
-          successMetrics: {
-            inheritPolicy: true,
-            enablePurging: true,
-            maxAge: '1 year',
+            successMetrics: {
+              inheritPolicy: true,
+              enablePurging: true,
+              maxAge: '1 year',
+            },
           },
         },
       });
@@ -56,14 +60,21 @@ describe('retentionSlice reducers', () => {
           develop: {
             inheritPolicy: true,
             enablePurging: true,
-            maxAge: '3 months',
+            maxAge: { trimmedValue: '3', value: '3', isPristine: true, validationErrors: null },
+            maxAgeUnit: 'months',
+            maxCount: { trimmedValue: '', value: '', isPristine: true, validationErrors: null },
           },
         },
       });
       expect(successMetrics).toEqual({
         inheritPolicy: true,
         enablePurging: true,
-        maxAge: '1 year',
+        maxAge: { trimmedValue: '1', value: '1', isPristine: true, validationErrors: null },
+        maxAgeUnit: 'years',
+      });
+      expect(validationErrors).toEqual({
+        develop: { age: null, count: null },
+        successMetrics: { age: null, count: null },
       });
     });
   });

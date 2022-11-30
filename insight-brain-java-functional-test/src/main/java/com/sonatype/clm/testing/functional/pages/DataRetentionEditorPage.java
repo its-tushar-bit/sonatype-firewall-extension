@@ -6,8 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.Dropdown;
-import com.sonatype.clm.testing.functional.elements.IqRadio;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 
@@ -43,23 +42,32 @@ public class DataRetentionEditorPage
     }
 
     public SelenideElement radioButtonGroup() {
-      return child(".iq-radio-group");
+      return child("");
     }
 
-    public IqRadio inheritRadioButton() {
-      return new IqRadio(child("#retention-editor-inherit-" + contextId));
+    public SelenideElement inheritRadioButton() {
+      return child( "#retention-editor-inherit-" + contextId);
     }
 
-    public IqRadio disableRadioButton() {
-      return new IqRadio(child("#retention-editor-disable-" + contextId));
+    public SelenideElement disableRadioButton() {
+      return child( "#retention-editor-disable-" + contextId);
     }
 
-    public IqRadio customRadioButton() {
-      return new IqRadio(child("#retention-editor-custom-" + contextId));
+    public SelenideElement customRadioButton() {
+      return child( "#retention-editor-custom-" + contextId);
     }
 
     public SelenideElement customRow() {
-      return child(".iq-form-row");
+      return child( ".custom-purge-row");
+    }
+    //nx-text-input__invalid-message
+
+    public SelenideElement ageErrorMessage() {
+      return child(".custom-purge-row .nx-form-group:nth-child(2) .nx-text-input__invalid-message");
+    }
+
+    public SelenideElement countErrorMessage() {
+      return child(".custom-purge-row .nx-form-group:nth-child(5) .nx-text-input__invalid-message");
     }
 
     public SelenideElement maxAgeInput() {
@@ -78,8 +86,8 @@ public class DataRetentionEditorPage
       super(contextId);
     }
 
-    public Dropdown maxAgeDropdown() {
-      return new Dropdown("dropdown-selector[name='" + contextId + "-age-modifier']");
+    public NxFormSelect maxAgeDropdown() {
+      return new NxFormSelect("[name='" + contextId + "-age-modifier']");
     }
 
     public SelenideElement maxCountInput() {
@@ -96,6 +104,6 @@ public class DataRetentionEditorPage
   }
 
   public SelenideElement updateButton() {
-    return child("#save-retention-button");
+    return child(".nx-form__submit-btn");
   }
 }

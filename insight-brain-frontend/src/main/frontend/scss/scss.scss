@@ -140,6 +140,7 @@
 @use '../firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';
 @use '../api/apiPage';
 @use '../OrgsAndPolicies/policyViolationGrandfatheringEditor/policyViolationGrandfatheringEditor';
+@use '../OrgsAndPolicies/dataRetentionEditor/dataRetentionEditor';
 @use '../OrgsAndPolicies/evaluateApplicationModal/evaluateApplication';
 @use '../toastContainer/toastContainer';
 

@@ -140,6 +140,7 @@ describe('RetentionTile', () => {
     });
 
     beforeEach(() => {
+      axiosMock.onGet(getRetentionPoliciesUrl('ROOT_ORGANIZATION_ID')).reply(200, {});
       axiosMock.onGet(getRetentionPoliciesUrl(ownerId)).reply(200, {
         applicationReports: {
           stages: {

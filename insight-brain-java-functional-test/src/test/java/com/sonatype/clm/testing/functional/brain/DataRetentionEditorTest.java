@@ -15,7 +15,6 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.PopoverViolations;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage.ApplicationReportRetentionEditor;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage.RetentionEditor;
@@ -33,12 +32,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.exactTextCaseSensitive;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.textCaseSensitive;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DataRetentionEditorTest
     extends AbstractFunctionalTest
@@ -98,7 +93,7 @@ public class DataRetentionEditorTest
     refreshOrOpen(DataRetentionEditorPage.url(Organization.ROOT_ORGANIZATION_ID));
     setDisabled(Stage.ID_DEVELOP);
     setCustom(Stage.ID_BUILD, "1", "Days", "");
-    setCustom(Stage.ID_STAGE_RELEASE, "", "Years", "1");
+    setCustom(Stage.ID_STAGE_RELEASE, " ", "Years", "1");
     setCustom(Stage.ID_RELEASE, "2", "Days", "2");
     setDisabled(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS);
     updateDataRetention();
@@ -116,13 +111,13 @@ public class DataRetentionEditorTest
     checkDisabled(Stage.ID_OPERATE);
     checkCustom(DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING, "1", "Days", "");
 
-    setCustom(Stage.ID_DEVELOP, "", "Years", "6");
+    setCustom(Stage.ID_DEVELOP, " ", "Years", "6");
     setCustom(Stage.ID_BUILD, "2", "Weeks", "8");
     setCustom(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, "2");
 
     updateDataRetention();
 
-    checkCustom(Stage.ID_DEVELOP, "", "Years", "6");
+    checkCustom(Stage.ID_DEVELOP, " ", "Years", "6");
     checkCustom(Stage.ID_BUILD, "2", "Weeks", "8");
     checkCustom(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, "2");
 
@@ -222,25 +217,24 @@ public class DataRetentionEditorTest
     validateCustom(Stage.ID_BUILD, "", "Days", "1", null, null);
 
     // Max age limits
-    validateCustom(Stage.ID_BUILD, "", "Days", "", "Please enter a value", "Please enter a value");
-    validateCustom(Stage.ID_BUILD, "0", "Days", "", "Minimum allowed value is 1", "Please enter a value");
+    validateCustom(Stage.ID_BUILD, "0", "Days", "", "Minimum allowed value is 1", null);
     validateCustom(Stage.ID_BUILD, "1", "Days", "", null, null);
     validateCustom(Stage.ID_BUILD, "18249", "Days", "", null, null);
-    validateCustom(Stage.ID_BUILD, "18250", "Days", "", "Maximum allowed value is 18249", "Please enter a value");
+    validateCustom(Stage.ID_BUILD, "18250", "Days", "", "Maximum allowed value is 18249", null);
 
     // Max count limits
-    validateCustom(Stage.ID_BUILD, "", "Years", "0", "Please enter a value", "Minimum allowed value is 1");
-    validateCustom(Stage.ID_BUILD, "", "Years", "1", null, null);
+    validateCustom(Stage.ID_BUILD, "", "Years", "0", "Maximum allowed value is 49", "Minimum allowed value is 1");
+    validateCustom(Stage.ID_BUILD, " ", "Years", "1", null, null);
     validateCustom(Stage.ID_BUILD, "", "Years", "9999", null, null);
-    validateCustom(Stage.ID_BUILD, "", "Years", "10000", "Please enter a value", "Maximum allowed value is 9999");
+    validateCustom(Stage.ID_BUILD, "", "Years", "10000", "Must be non-empty", "Maximum allowed value is 9999");
     setCustom(Stage.ID_BUILD, "1", "Years", "1");
 
     // Success metrics
     validateCustom(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, "0", "Minimum allowed value is 1");
-    validateCustom(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, "1", null);
+    validateCustom(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, "15", null);
     validateCustom(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, "49", null);
     validateCustom(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, "50", "Maximum allowed value is 49");
-    validateCustom(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, "", "Please enter a value");
+    validateCustom(DataRetentionPolicy.CONTEXT_ID_SUCCESS_METRICS, " ", "Must be non-empty");
   }
 
   @Test
@@ -254,7 +248,7 @@ public class DataRetentionEditorTest
       editor.radioButtonGroup().scrollIntoView(true).shouldBe(visible);
       editor.inheritRadioButton().shouldNotBe(visible);
       editor.disableRadioButton().shouldBe(visible);
-      editor.customRadioButton().shouldBe(visible, selected);
+      editor.customRadioButton().shouldBe(visible).shouldHave(cssClass("tm-checked"));
     }
 
     eyesWatcher.eyesCheck();
@@ -271,18 +265,20 @@ public class DataRetentionEditorTest
   private void checkInherit(String contextId, String inheritText) {
     RetentionEditor editor = EDITORS.get(contextId);
     editor.scrollIntoView();
-    editor.inheritRadioButton().shouldBe(visible, selected).shouldHave(textCaseSensitive(inheritText));
-    editor.disableRadioButton().shouldBe(visible).shouldNotBe(selected);
-    editor.customRadioButton().shouldBe(visible).shouldNotBe(selected);
+    editor.inheritRadioButton()
+            .shouldBe(visible).shouldHave(cssClass("tm-checked")).shouldHave(textCaseSensitive(inheritText));
+    editor.disableRadioButton().shouldBe(visible).shouldNotHave(cssClass("tm-checked"));
+    editor.customRadioButton().shouldBe(visible).shouldNotHave(cssClass("tm-checked"));
     editor.customRow().shouldNot(exist);
   }
 
   private void checkDisabled(String contextId, String inheritText) {
     RetentionEditor editor = EDITORS.get(contextId);
     editor.scrollIntoView();
-    editor.inheritRadioButton().shouldBe(visible).shouldNotBe(selected).shouldHave(textCaseSensitive(inheritText));
-    editor.disableRadioButton().shouldBe(visible, selected);
-    editor.customRadioButton().shouldBe(visible).shouldNotBe(selected);
+    editor.inheritRadioButton()
+            .shouldBe(visible).shouldNotHave(cssClass("tm-checked")).shouldHave(textCaseSensitive(inheritText));
+    editor.disableRadioButton().shouldBe(visible).shouldHave(cssClass("tm-checked"));
+    editor.customRadioButton().shouldBe(visible).shouldNotHave(cssClass("tm-checked"));
     editor.customRow().shouldNot(exist);
   }
 
@@ -293,9 +289,10 @@ public class DataRetentionEditorTest
   private void checkCustom(String contextId, String inheritText, String maxAgeValue) {
     RetentionEditor editor = EDITORS.get(contextId);
     editor.scrollIntoView();
-    editor.inheritRadioButton().shouldBe(visible).shouldNotBe(selected).shouldHave(textCaseSensitive(inheritText));
-    editor.disableRadioButton().shouldBe(visible).shouldNotBe(selected);
-    editor.customRadioButton().shouldBe(visible, selected);
+    editor.inheritRadioButton()
+            .shouldBe(visible).shouldNotHave(cssClass("tm-checked")).shouldHave(textCaseSensitive(inheritText));
+    editor.disableRadioButton().shouldBe(visible).shouldNotHave(cssClass("tm-checked"));
+    editor.customRadioButton().shouldBe(visible).shouldHave(cssClass("tm-checked"));
     editor.customRow().shouldBe(visible);
     editor.maxAgeInput().shouldBe(visible).shouldHave(value(maxAgeValue));
   }
@@ -312,7 +309,8 @@ public class DataRetentionEditorTest
   {
     checkCustom(contextId, inheritText, maxAgeValue);
     ApplicationReportRetentionEditor appEditor = (ApplicationReportRetentionEditor) EDITORS.get(contextId);
-    appEditor.maxAgeDropdown().shouldBe(visible).shouldHave(exactTextCaseSensitive(maxAgeTimeUnit));
+    appEditor.maxAgeDropdown().shouldBe(visible);
+    assertThat(appEditor.maxAgeDropdown().selectedItem().getText()).isEqualTo(maxAgeTimeUnit);
     appEditor.maxCountInput().shouldBe(visible).shouldHave(value(maxCount));
   }
 
@@ -328,27 +326,26 @@ public class DataRetentionEditorTest
                               String maxAgeValue,
                               String maxAgeTimeUnit,
                               String maxCount,
-                              String maxAgeExpectedPopoverError,
-                              String maxCountExpectedPopoverError)
+                              String maxAgeExpectedError,
+                              String maxCountExpectedError)
   {
-    ApplicationReportRetentionEditor appEditor = (ApplicationReportRetentionEditor) EDITORS.get(contextId);
     setCustom(contextId, maxAgeValue, maxAgeTimeUnit, maxCount);
-    PopoverViolations maxAgePopoverError = PopoverViolations.on(appEditor.maxAgeInput());
-    if (maxAgeExpectedPopoverError == null) {
-      maxAgePopoverError.shouldNotExist();
+    RetentionEditor editor = EDITORS.get(contextId);
+    if (maxAgeExpectedError == null) {
+      editor.ageErrorMessage().shouldNotBe(visible);
     }
     else {
-      maxAgePopoverError.shouldShowError(maxAgeExpectedPopoverError);
+      editor.ageErrorMessage().shouldHave(text(maxAgeExpectedError));
     }
-    PopoverViolations maxCountPopoverError = PopoverViolations.on(appEditor.maxCountInput());
-    if (maxCountExpectedPopoverError == null) {
-      maxCountPopoverError.shouldNotExist();
+
+    if (maxCountExpectedError == null) {
+      editor.countErrorMessage().shouldNotBe(visible);
     }
     else {
-      maxCountPopoverError.shouldShowError(maxCountExpectedPopoverError);
+      editor.countErrorMessage().shouldHave(text(maxCountExpectedError));
     }
     SelenideElement updateButton = PAGE.updateButton().scrollIntoView(true).shouldBe(visible);
-    if (maxAgeExpectedPopoverError == null && maxCountExpectedPopoverError == null) {
+    if (maxAgeExpectedError == null && maxCountExpectedError == null) {
       updateButton.shouldNotBe(CLM.DISABLED);
     }
     else {
@@ -356,16 +353,15 @@ public class DataRetentionEditorTest
     }
   }
 
-  private void validateCustom(String contextId, String maxAgeValue, String maxAgeExpectedPopoverError) {
+  private void validateCustom(String contextId, String maxAgeValue, String maxAgeExpectedError) {
     RetentionEditor editor = EDITORS.get(contextId);
     setCustom(contextId, maxAgeValue);
-    PopoverViolations maxAgePopoverError = PopoverViolations.on(editor.maxAgeInput());
-    if (maxAgeExpectedPopoverError == null) {
-      maxAgePopoverError.shouldNotExist();
+    if (maxAgeExpectedError == null) {
+      editor.ageErrorMessage().shouldNotBe(visible);
       PAGE.updateButton().scrollIntoView(true).shouldBe(visible).shouldNotBe(CLM.DISABLED);
     }
     else {
-      maxAgePopoverError.shouldShowError(maxAgeExpectedPopoverError);
+      editor.ageErrorMessage().shouldHave(text(maxAgeExpectedError));
       PAGE.updateButton().scrollIntoView(true).shouldBe(visible, CLM.DISABLED);
     }
   }

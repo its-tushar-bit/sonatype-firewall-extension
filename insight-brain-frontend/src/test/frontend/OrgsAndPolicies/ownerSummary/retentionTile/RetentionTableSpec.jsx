@@ -16,22 +16,24 @@ describe('RetentionTable', () => {
     develop: {
       inheritPolicy: true,
       enablePurging: true,
-      maxAge: '3 months',
+      maxAge: { trimmedValue: '3', value: '3', isPristine: true, validationErrors: null },
+      maxAgeUnit: 'months',
     },
     source: {
       inheritPolicy: true,
       enablePurging: true,
-      maxCount: '30',
+      maxCount: { trimmedValue: '30', value: '30', isPristine: true, validationErrors: null },
     },
     build: {
       inheritPolicy: true,
       enablePurging: true,
-      maxCount: '40',
+      maxCount: { trimmedValue: '40', value: '40', isPristine: true, validationErrors: null },
     },
     'stage-release': {
       inheritPolicy: true,
       enablePurging: true,
-      maxAge: '2 months',
+      maxAge: { trimmedValue: '2', value: '2', isPristine: true, validationErrors: null },
+      maxAgeUnit: 'months',
     },
     release: {
       inheritPolicy: true,
@@ -40,12 +42,14 @@ describe('RetentionTable', () => {
     operate: {
       inheritPolicy: true,
       enablePurging: false,
-      maxAge: '10 years',
+      maxAge: { trimmedValue: '10', value: '10', isPristine: true, validationErrors: null },
+      maxAgeUnit: 'years',
     },
     'continuous-monitoring': {
       inheritPolicy: true,
       enablePurging: true,
-      maxAge: '2 weeks',
+      maxAge: { trimmedValue: '2', value: '2', isPristine: true, validationErrors: null },
+      maxAgeUnit: 'weeks',
     },
   };
   const renderComponent = (props) => render(<RetentionTable stages={props.stages} />);
@@ -73,7 +77,9 @@ describe('RetentionTable', () => {
       cells.forEach((cell, cellIdx) => {
         if (cellIdx !== 0) {
           const stage = stages[stageNames[cellIdx - 1]];
-          const property = idx === 0 ? timeShortener(stage.maxAge) : stage.maxCount;
+          const age = stage.maxAge ? `${stage.maxAge.trimmedValue} ${stage.maxAgeUnit}` : '';
+          const count = stage.maxCount?.trimmedValue || '';
+          const property = idx === 0 ? timeShortener(age) : count;
           const text = stage.enablePurging ? property || NOT_APPLICABLE : NOT_ENABLED;
 
           expect(cell.textContent).toEqual(text);
@@ -93,7 +99,8 @@ describe('RetentionTable', () => {
       develop: {
         inheritPolicy: true,
         enablePurging: true,
-        maxAge: '3 months',
+        maxAge: { trimmedValue: '3', value: '3', isPristine: true, validationErrors: null },
+        maxAgeUnit: 'months',
       },
     };
     await testNumberOfStages(stages, numberOfColumns);
@@ -105,12 +112,13 @@ describe('RetentionTable', () => {
       develop: {
         inheritPolicy: true,
         enablePurging: true,
-        maxAge: '3 months',
+        maxAge: { trimmedValue: '3', value: '3', isPristine: true, validationErrors: null },
+        maxAgeUnit: 'months',
       },
       source: {
         inheritPolicy: true,
         enablePurging: true,
-        maxCount: '30',
+        maxCount: { trimmedValue: '30', value: '30', isPristine: true, validationErrors: null },
       },
     };
     await testNumberOfStages(stages, numberOfColumns);
@@ -122,17 +130,18 @@ describe('RetentionTable', () => {
       develop: {
         inheritPolicy: true,
         enablePurging: true,
-        maxAge: '3 months',
+        maxAge: { trimmedValue: '3', value: '3', isPristine: true, validationErrors: null },
+        maxAgeUnit: 'months',
       },
       source: {
         inheritPolicy: true,
         enablePurging: true,
-        maxCount: '30',
+        maxCount: { trimmedValue: '30', value: '30', isPristine: true, validationErrors: null },
       },
       build: {
         inheritPolicy: true,
         enablePurging: true,
-        maxCount: '40',
+        maxCount: { trimmedValue: '40', value: '40', isPristine: true, validationErrors: null },
       },
     };
     await testNumberOfStages(stages, numberOfColumns);
@@ -144,22 +153,24 @@ describe('RetentionTable', () => {
       develop: {
         inheritPolicy: true,
         enablePurging: true,
-        maxAge: '3 months',
+        maxAge: { trimmedValue: '3', value: '3', isPristine: true, validationErrors: null },
+        maxAgeUnit: 'months',
       },
       source: {
         inheritPolicy: true,
         enablePurging: true,
-        maxCount: '30',
+        maxCount: { trimmedValue: '30', value: '30', isPristine: true, validationErrors: null },
       },
       build: {
         inheritPolicy: true,
         enablePurging: true,
-        maxCount: '40',
+        maxCount: { trimmedValue: '40', value: '40', isPristine: true, validationErrors: null },
       },
       'stage-release': {
         inheritPolicy: true,
         enablePurging: true,
-        maxAge: '2 months',
+        maxAge: { trimmedValue: '2', value: '2', isPristine: true, validationErrors: null },
+        maxAgeUnit: 'months',
       },
     };
     await testNumberOfStages(stages, numberOfColumns);
@@ -171,22 +182,24 @@ describe('RetentionTable', () => {
       develop: {
         inheritPolicy: true,
         enablePurging: true,
-        maxAge: '3 months',
+        maxAge: { trimmedValue: '3', value: '3', isPristine: true, validationErrors: null },
+        maxAgeUnit: 'months',
       },
       source: {
         inheritPolicy: true,
         enablePurging: true,
-        maxCount: '30',
+        maxCount: { trimmedValue: '30', value: '30', isPristine: true, validationErrors: null },
       },
       build: {
         inheritPolicy: true,
         enablePurging: true,
-        maxCount: '40',
+        maxCount: { trimmedValue: '40', value: '40', isPristine: true, validationErrors: null },
       },
       'stage-release': {
         inheritPolicy: true,
         enablePurging: true,
-        maxAge: '2 months',
+        maxAge: { trimmedValue: '2', value: '2', isPristine: true, validationErrors: null },
+        maxAgeUnit: 'months',
       },
       release: {
         inheritPolicy: true,
@@ -202,22 +215,24 @@ describe('RetentionTable', () => {
       develop: {
         inheritPolicy: true,
         enablePurging: true,
-        maxAge: '3 months',
+        maxAge: { trimmedValue: '3', value: '3', isPristine: true, validationErrors: null },
+        maxAgeUnit: 'months',
       },
       source: {
         inheritPolicy: true,
         enablePurging: true,
-        maxCount: '30',
+        maxCount: { trimmedValue: '30', value: '30', isPristine: true, validationErrors: null },
       },
       build: {
         inheritPolicy: true,
         enablePurging: true,
-        maxCount: '40',
+        maxCount: { trimmedValue: '40', value: '40', isPristine: true, validationErrors: null },
       },
       'stage-release': {
         inheritPolicy: true,
         enablePurging: true,
-        maxAge: '2 months',
+        maxAge: { trimmedValue: '2', value: '2', isPristine: true, validationErrors: null },
+        maxAgeUnit: 'months',
       },
       release: {
         inheritPolicy: true,
@@ -226,7 +241,8 @@ describe('RetentionTable', () => {
       operate: {
         inheritPolicy: true,
         enablePurging: false,
-        maxAge: '10 years',
+        maxAge: { trimmedValue: '10', value: '10', isPristine: true, validationErrors: null },
+        maxAgeUnit: 'years',
       },
     };
     await testNumberOfStages(stages, numberOfColumns);

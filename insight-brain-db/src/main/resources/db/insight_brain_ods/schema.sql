@@ -1243,6 +1243,7 @@ CREATE TABLE vulnerability_group (
   vulnerability_group_id varchar(50) NOT NULL,
   owner_id varchar(50) NOT NULL,
   vulnerability_group_name varchar(60) NOT NULL,
+  name_lowercase_no_whitespace varchar(60) NOT NULL,
   CONSTRAINT vulnerability_group_pk PRIMARY KEY (vulnerability_group_id),
   CONSTRAINT vulnerability_group_uk UNIQUE (owner_id, vulnerability_group_name)
 );

@@ -15,8 +15,8 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 
 public class DatabaseUtil
 {
-  public static boolean schemaVersionTableExists(DataSource dataSource, String databaseName) {
-    return tableExists(dataSource, databaseName, "schema_version");
+  public static boolean schemaVersionTableExists(DataSource dataSource, String databaseSchema) {
+    return tableExists(dataSource, databaseSchema, "schema_version");
   }
 
   public static boolean quartzSchedulerStateTableExists(DataSource dataSource) {
@@ -27,11 +27,11 @@ public class DatabaseUtil
     return tableExists(dataSource, OperationalDataStore.ID, "system_configuration_property");
   }
 
-  public static boolean tableExists(DataSource dataSource, String databaseName, String tableName) {
+  public static boolean tableExists(DataSource dataSource, String databaseSchema, String tableName) {
     try (Connection connection = dataSource.getConnection();
          PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES " +
              "WHERE TABLE_SCHEMA = ? AND LOWER(TABLE_NAME) = ?")) {
-      preparedStatement.setString(1, databaseName);
+      preparedStatement.setString(1, databaseSchema);
       preparedStatement.setString(2, tableName);
       try (ResultSet result = preparedStatement.executeQuery()) {
         return result.next();
@@ -39,56 +39,56 @@ public class DatabaseUtil
     }
     catch (Exception e) {
       throw new IllegalStateException(
-          String.format("Failed attempt to check if %s %s table exists.", databaseName, tableName), e);
+          String.format("Failed attempt to check if %s %s table exists.", databaseSchema, tableName), e);
     }
   }
 
-  public static boolean schemaExists(DataSource dataSource, String databaseName) {
+  public static boolean schemaExists(DataSource dataSource, String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
          PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES " +
              "WHERE TABLE_SCHEMA = ?")) {
-      preparedStatement.setString(1, databaseName);
+      preparedStatement.setString(1, databaseSchema);
       try (ResultSet result = preparedStatement.executeQuery()) {
         return result.next();
       }
     }
     catch (Exception e) {
       throw new IllegalStateException(
-          String.format("Failed attempt to check if %s schema exists.", databaseName), e);
+          String.format("Failed attempt to check if %s schema exists.", databaseSchema), e);
     }
   }
 
-  public static int getDatabaseSchemaVersion(DataSource dataSource, String databaseName) {
+  public static int getDatabaseSchemaVersion(DataSource dataSource, String databaseSchema) {
     try (Connection connection = dataSource.getConnection();
          Statement statement = connection.createStatement();
-         ResultSet result = statement.executeQuery("SELECT * FROM " + databaseName + ".schema_version")) {
+         ResultSet result = statement.executeQuery("SELECT * FROM " + databaseSchema + ".schema_version")) {
       if (result.next() && result.isLast()) {
         return result.getInt("schema_version");
       }
       else {
         throw new IllegalStateException(
-            databaseName + " schema_version table should have 1 entry but has " + result.getRow() + ".");
+            databaseSchema + " schema_version table should have 1 entry but has " + result.getRow() + ".");
       }
     }
     catch (Exception e) {
-      throw new IllegalStateException("Failed attempt to read " + databaseName + " schema_version table.", e);
+      throw new IllegalStateException("Failed attempt to read " + databaseSchema + " schema_version table.", e);
     }
   }
 
-  public static void updateDatabaseSchemaVersion(DataSource dataSource, String databaseName, int schemaVersion) {
+  public static void updateDatabaseSchemaVersion(DataSource dataSource, String databaseSchema, int schemaVersion) {
     try (Connection connection = dataSource.getConnection(); PreparedStatement preparedStatement = connection
-        .prepareStatement("UPDATE " + databaseName + ".schema_version SET schema_version = ?")) {
+        .prepareStatement("UPDATE " + databaseSchema + ".schema_version SET schema_version = ?")) {
       connection.setAutoCommit(true);
       preparedStatement.setInt(1, schemaVersion);
       int updated = preparedStatement.executeUpdate();
       if (updated != 1) {
         throw new IllegalStateException(
-            databaseName + " schema_version table should have 1 entry but has " + updated + ".");
+            databaseSchema + " schema_version table should have 1 entry but has " + updated + ".");
       }
     }
     catch (Exception e) {
       throw new IllegalStateException(
-          "Failed attempt to write " + schemaVersion + " to " + databaseName + " schema_version table.", e);
+          "Failed attempt to write " + schemaVersion + " to " + databaseSchema + " schema_version table.", e);
     }
   }
 
@@ -96,7 +96,8 @@ public class DatabaseUtil
     try (Connection connection = dataSource.getConnection();
          Statement statement = connection.createStatement();
          ResultSet resultSet = statement.executeQuery(
-             "SELECT MAX(last_checkin_time) FROM insight_brain_ods.QRTZ_SCHEDULER_STATE")) {
+             "SELECT MAX(last_checkin_time) FROM " + OperationalDataStoreProvider.getDatabaseSchema() +
+                 ".QRTZ_SCHEDULER_STATE")) {
       if (resultSet.next()) {
         return resultSet.getLong(1);
       }
@@ -111,8 +112,8 @@ public class DatabaseUtil
     try (Connection connection = dataSource.getConnection();
          Statement statement = connection.createStatement();
          ResultSet resultSet = statement.executeQuery(
-             "SELECT value FROM insight_brain_ods.system_configuration_property WHERE name = '" +
-                 DatabaseMigrator.SCHEMA_MIGRATION_ENABLED + "'")) {
+             "SELECT value FROM " + OperationalDataStoreProvider.getDatabaseSchema() +
+                 ".system_configuration_property WHERE name = '" + DatabaseMigrator.SCHEMA_MIGRATION_ENABLED + "'")) {
       if (resultSet.next()) {
         return resultSet.getString(1);
       }

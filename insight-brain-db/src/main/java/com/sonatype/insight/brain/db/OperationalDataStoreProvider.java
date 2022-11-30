@@ -64,6 +64,10 @@ public class OperationalDataStoreProvider
     return getInstance().getDatabaseConfig();
   }
 
+  public static String getDatabaseSchema() {
+    return getInstance().getDatabaseSchema();
+  }
+
   public static boolean isDatabaseInMemory() {
     return getInstance().isDatabaseInMemory();
   }

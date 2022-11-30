@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField.SortableField;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -219,9 +220,9 @@ public class RepositoryPolicyViolationDAO
           " component.match_state_id," + //
           " CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL) THEN" + //
           " component.quarantine_time END AS quarantine_time, violation.waived" + //
-          " FROM insight_brain_ods.repository_component component" + //
+          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_component component" + //
           ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") + //
-          " insight_brain_ods.repository_policy_violation violation" + //
+          " " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_policy_violation violation" + //
           " ON component.repository_id = violation.repository_id AND component.pathname = violation.pathname" + //
           " WHERE component.repository_id = ?1";
 

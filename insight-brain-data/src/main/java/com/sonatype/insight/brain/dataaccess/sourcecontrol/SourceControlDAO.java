@@ -14,8 +14,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
@@ -51,6 +49,7 @@ public class SourceControlDAO
 
   // Retrieves source control for application with information of repository even if it is not directly available
   // in source control row of application (it searches in parent organization or root organization)
+  // The '_SCHEMA_' string will be replaced by the proper schema at runtime.
   private static final String SELECT_COMPOSITE_SOURCE_CONTROL =
       "SELECT " +
           "  sc_app.source_control_id, " +
@@ -72,23 +71,24 @@ public class SourceControlDAO
           "     sc_gp.source_control_evaluations_enabled) AS source_control_evaluations_enabled, " +
           "  COALESCE(sc_app.source_control_scan_target, sc_p.source_control_scan_target, " +
           "     sc_gp.source_control_scan_target) AS source_control_scan_target " +
-          "FROM insight_brain_ods.application app " +
-          "JOIN insight_brain_ods.organization po ON po.organization_id = app.organization_id " +
-          "LEFT JOIN insight_brain_ods.organization gpo ON gpo.organization_id = po.parent_organization_id " +
-          "JOIN insight_brain_ods.source_control sc_app ON sc_app.owner_id = app.application_id " +
-          "LEFT JOIN insight_brain_ods.source_control sc_p ON sc_p.owner_id = po.organization_id " +
-          "LEFT JOIN insight_brain_ods.source_control sc_gp ON sc_gp.owner_id = gpo.organization_id ";
+          "FROM _SCHEMA_.application app " +
+          "JOIN _SCHEMA_.organization po ON po.organization_id = app.organization_id " +
+          "LEFT JOIN _SCHEMA_.organization gpo ON gpo.organization_id = po.parent_organization_id " +
+          "JOIN _SCHEMA_.source_control sc_app ON sc_app.owner_id = app.application_id " +
+          "LEFT JOIN _SCHEMA_.source_control sc_p ON sc_p.owner_id = po.organization_id " +
+          "LEFT JOIN _SCHEMA_.source_control sc_gp ON sc_gp.owner_id = gpo.organization_id ";
 
   private static final String SELECT_COMPOSITE_SOURCE_CONTROL_FOR_APPLICATION = SELECT_COMPOSITE_SOURCE_CONTROL +
       " WHERE app.application_id = ?1";
 
+  // The '_SCHEMA_' string will be replaced by the proper schema at runtime.
   private static final String SELECT_APPLICATIONS_FOR_SOURCE_SCAN =
       "SELECT sc.* " +
           "FROM ( " + SELECT_COMPOSITE_SOURCE_CONTROL + " ) sc " +
           "LEFT JOIN ( " +
           "   SELECT pe.application_id, pe.time, pe.scan_trigger_type " +
-          "     FROM insight_brain_ods.last_policy_evaluation lpe " +
-          "     JOIN insight_brain_ods.policy_evaluation pe ON pe.policy_evaluation_id = lpe.policy_evaluation_id" +
+          "     FROM _SCHEMA_.last_policy_evaluation lpe " +
+          "     JOIN _SCHEMA_.policy_evaluation pe ON pe.policy_evaluation_id = lpe.policy_evaluation_id" +
           "     WHERE lpe.stage_type_id='source' " +
           ") lpe ON lpe.application_id =  sc.owner_id " +
           "WHERE ( lpe.time < ?1 " +
@@ -137,15 +137,13 @@ public class SourceControlDAO
   }
 
   private void updatePullRequestPollTimesPerPolicyEvaluations(Date defaultPollingTime) {
-    EntityManager em = OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager();
-
-    try (TransactionContext txn = new TransactionContext(em)) {
+    try (TransactionContext txn = createTransactionContext()) {
       txn.begin();
 
       // for each application where the poll time is not already set, the poll time is set to earliest date between
       // the earliest policy evaluation with an associated commit or the given default polling time
-      em.createNativeQuery(
-          "UPDATE insight_brain_ods.source_control sc" +
+      txn.createNativeQuery(
+          "UPDATE " + OperationalDataStoreProvider.getDatabaseSchema() + ".source_control sc" +
               " SET pull_request_poll_time = (" +
               " SELECT" +
               "  CASE WHEN first_commit_time IS NULL THEN ?1" +
@@ -154,7 +152,7 @@ public class SourceControlDAO
               "       END" +
               " FROM (" +
               "     SELECT application_id, min(time) AS first_commit_time" +
-              "     FROM insight_brain_ods.policy_evaluation" +
+              "     FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".policy_evaluation" +
               "     WHERE commit_hash IS NOT NULL" +
               "     GROUP BY application_id" +
               "     ) AS first_policy_eval_commit" +
@@ -166,12 +164,11 @@ public class SourceControlDAO
   }
 
   private void setDefaultPullRequestPollTimes(Date defaultPollingTime) {
-    EntityManager em = OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager();
-
-    try (TransactionContext txn = new TransactionContext(em)) {
+    try (TransactionContext txn = createTransactionContext()) {
       txn.begin();
-      em.createNativeQuery(
-          "UPDATE insight_brain_ods.source_control SET pull_request_poll_time = ?1" +
+      txn.createNativeQuery(
+          "UPDATE " + OperationalDataStoreProvider.getDatabaseSchema() +
+              ".source_control SET pull_request_poll_time = ?1" +
               " WHERE pull_request_poll_time IS NULL AND repository_url IS NOT NULL;"
       ).setParameter(1, defaultPollingTime).executeUpdate();
       txn.commit();
@@ -179,14 +176,13 @@ public class SourceControlDAO
   }
 
   private void clearExtraneousPullRequestPollTimes() {
-    EntityManager em = OperationalDataStoreProvider.getJPAEntityManagerFactory().createEntityManager();
-
-    try (TransactionContext txn = new TransactionContext(em)) {
+    try (TransactionContext txn = createTransactionContext()) {
       txn.begin();
 
       // set poll time to null where repo url is null
-      em.createNativeQuery(
-          "UPDATE insight_brain_ods.source_control SET pull_request_poll_time = NULL WHERE repository_url IS NULL;"
+      txn.createNativeQuery(
+          "UPDATE " + OperationalDataStoreProvider.getDatabaseSchema() +
+              ".source_control SET pull_request_poll_time = NULL WHERE repository_url IS NULL;"
       ).executeUpdate();
 
       txn.commit();
@@ -540,7 +536,7 @@ public class SourceControlDAO
   public SourceControl getCompositeSourceControlByApplicationId(final String applicationId) {
     try (TransactionContext tx = createTransactionContext()) {
       javax.persistence.Query query =
-          tx.createNativeQuery(SELECT_COMPOSITE_SOURCE_CONTROL_FOR_APPLICATION, SourceControl.class);
+          tx.createNativeQuery(updateSchema(SELECT_COMPOSITE_SOURCE_CONTROL_FOR_APPLICATION), SourceControl.class);
       query.setParameter(1, applicationId);
 
       return (SourceControl) query.getSingleResult();
@@ -554,7 +550,7 @@ public class SourceControlDAO
       final Date scanLimitDate)
   {
     try (TransactionContext tx = createTransactionContext()) {
-      javax.persistence.Query query = tx.createNativeQuery(SELECT_APPLICATIONS_FOR_SOURCE_SCAN);
+      javax.persistence.Query query = tx.createNativeQuery(updateSchema(SELECT_APPLICATIONS_FOR_SOURCE_SCAN));
 
       query.setParameter(1, scanLimitDate);
 
@@ -580,5 +576,9 @@ public class SourceControlDAO
           })
           .collect(Collectors.toList());
     }
+  }
+
+  private String updateSchema(final String sql) {
+    return sql.replace("_SCHEMA_", OperationalDataStoreProvider.getDatabaseSchema());
   }
 }

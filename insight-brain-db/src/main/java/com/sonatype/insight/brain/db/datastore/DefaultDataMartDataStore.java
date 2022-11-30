@@ -40,7 +40,7 @@ public class DefaultDataMartDataStore
     long start = System.currentTimeMillis();
 
     this.databaseConfig = databaseConfig;
-    dataSource = new DataSourceFactory().newDataSource(databaseConfig, getID());
+    dataSource = new DataSourceFactory().createNewDataSource(databaseConfig, getID(), getDatabaseSchema());
     if (migrateDatabase) {
       migrate(migrateToNewViolationModel);
     }
@@ -50,6 +50,11 @@ public class DefaultDataMartDataStore
     isInitialized = true;
 
     log.info("Initialized the {} data store in {} ms.", getID(), System.currentTimeMillis() - start);
+  }
+
+  @Override
+  public String getDatabaseSchema() {
+    return ID;
   }
 
   @Override

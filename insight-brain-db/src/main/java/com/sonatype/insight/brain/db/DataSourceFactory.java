@@ -9,7 +9,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.sql.DataSource;
 
 import com.sonatype.insight.db.AbstractDataSourceFactory;
@@ -41,10 +40,10 @@ public class DataSourceFactory
   }
 
   @Override
-  protected DataSource loadDataSource(DatabaseConfig databaseConfig, String databaseName) {
-    DataSource dataSource = super.loadDataSource(databaseConfig, databaseName);
+  protected DataSource loadDataSource(DatabaseConfig databaseConfig, String databaseSchema) {
+    DataSource dataSource = super.loadDataSource(databaseConfig, databaseSchema);
     DatabaseEngine databaseEngine = getDatabaseEngine(dataSource);
-    boolean isNew = !DatabaseUtil.schemaExists(dataSource, databaseName);
+    boolean isNew = !DatabaseUtil.schemaExists(dataSource, databaseSchema);
     logDatabaseSettings(dataSource, databaseEngine);
     newDataSources.put(dataSource, isNew);
 
@@ -70,8 +69,9 @@ public class DataSourceFactory
     throw new DatabaseException("Unsupported database engine: " + databaseProductName);
   }
 
-  public static boolean populateDatabaseSchema(DataSource dataSource, String databaseName) {
-    return new DataSourceFactory().populateDatabaseSchema(dataSource, getDatabaseEngine(dataSource), databaseName);
+  public static boolean populateDatabaseSchema(DataSource dataSource, String dataStoreId, String databaseSchema) {
+    return new DataSourceFactory().populateDbSchema(dataSource, getDatabaseEngine(dataSource), dataStoreId,
+        databaseSchema);
   }
 
   public static boolean hasNewDataSource() {

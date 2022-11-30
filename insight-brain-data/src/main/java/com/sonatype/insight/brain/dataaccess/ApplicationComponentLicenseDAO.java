@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
 import com.sonatype.insight.brain.model.Organization;
@@ -58,7 +59,7 @@ public class ApplicationComponentLicenseDAO
    * by {@link ComponentIdentifier}.
    * An effective license may come from an override (made by application, organization or root organization scope) or an
    * existing record in the table application_component_license (found during evaluation).
-   * 
+   *
    * @param applicationId Application ID to query.
    * @param stageTypeIds Stage type IDs to query.
    * @return A list of {@link ApplicationComponentLicensesDTO} where a {@link ComponentIdentifier} has the list of
@@ -76,7 +77,7 @@ public class ApplicationComponentLicenseDAO
    * by {@link ComponentIdentifier}.
    * An effective license may come from an override (made by application, organization or root organization scope) or an
    * existing record in the table application_component_license (found during evaluation).
-   * 
+   *
    * @param applicationIds Application IDs to query.
    * @param stageTypeIds Stage type IDs to query.
    * @return A list of {@link ApplicationComponentLicensesDTO} where a {@link ComponentIdentifier} has the list of
@@ -95,29 +96,32 @@ public class ApplicationComponentLicenseDAO
           "  ac.component_id_coordinates_json," + //
           "  STRING_AGG(DISTINCT COALESCE(" + (!isOnlyOrganizationRootScope ? "li.license_id, li2.license_id, " : "") +
           "    li3.license_id, acl.effective_license_id), CHR(10)) licenses" +
-          " FROM insight_brain_ods.application_component ac" + //
-          "   INNER JOIN insight_brain_ods.application a" + //
+          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component ac" + //
+          "   INNER JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".application a" + //
           "     ON a.application_id = ac.application_id" + //
           (!isOnlyOrganizationRootScope ?
           "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
-          "              FROM insight_brain_ods.license_override lo, insight_brain_ods.license_override_license lol" +
+          "              FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override lo, " + //
+          "              " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override_license lol" + //
           "              WHERE lol.license_override_id = lo.license_override_id) li" + //
           "     ON li.owner_id = ac.application_id" + //
           "     AND li.component_id_format = ac.component_id_format" + //
           "     AND li.component_id_coordinates_json = ac.component_id_coordinates_json" + //
           "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
-          "              FROM insight_brain_ods.license_override lo, insight_brain_ods.license_override_license lol" +
+          "              FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override lo, " + //
+          "              " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override_license lol" + //
           "              WHERE lol.license_override_id = lo.license_override_id) li2" + //
           "     ON li2.owner_id = a.organization_id" + //
           "     AND li2.component_id_format = ac.component_id_format" + //
           "     AND li2.component_id_coordinates_json = ac.component_id_coordinates_json" : "") + //
           "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
-          "              FROM insight_brain_ods.license_override lo, insight_brain_ods.license_override_license lol" +
+          "              FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override lo, " + //
+          "              " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override_license lol" + //
           "              WHERE lol.license_override_id = lo.license_override_id) li3" + //
           "     ON li3.owner_id = ?1" + //
           "     AND li3.component_id_format = ac.component_id_format" + //
           "     AND li3.component_id_coordinates_json = ac.component_id_coordinates_json" + //
-          "   LEFT JOIN insight_brain_ods.application_component_license acl" + //
+          "   LEFT JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component_license acl" + //
           "     ON acl.application_component_id = ac.application_component_id" + //
           " WHERE ac.stage_type_id IN " + buildPositionalParameters(stageTypeIds, 2) + //
           (!requiresManualFilter

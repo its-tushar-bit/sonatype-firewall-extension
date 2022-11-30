@@ -54,6 +54,10 @@ public class AggregationDataStoreProvider
     return getInstance().getDatabaseConfig();
   }
 
+  public static String getDatabaseSchema() {
+    return getInstance().getDatabaseSchema();
+  }
+
   public static EntityManagerFactory getJPAEntityManagerFactory() {
     return getInstance().getJPAEntityManagerFactory();
   }

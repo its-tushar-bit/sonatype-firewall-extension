@@ -18,7 +18,6 @@ import java.util.function.IntConsumer;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
@@ -45,14 +44,21 @@ public class DatabaseMigrator
 
   private static final AtomicBoolean forceEnableMigration = new AtomicBoolean();
 
-  public void migrate(DatabaseConfig databaseConfig, String databaseName, DataSource dataSource) {
-    migrate(databaseConfig, databaseName, dataSource, null /* upgradeGuard */);
+  public void migrate(
+      DatabaseConfig databaseConfig,
+      String dataStoreId,
+      String databaseSchema,
+      DataSource dataSource)
+  {
+    migrate(databaseConfig, databaseSchema, dataStoreId, dataSource, null /* upgradeGuard */);
   }
 
-  public void migrate(DatabaseConfig databaseConfig,
-                      String databaseName,
-                      DataSource dataSource,
-                      IntConsumer upgradeGuard)
+  public void migrate(
+      DatabaseConfig databaseConfig,
+      String dataStoreId,
+      String databaseSchema,
+      DataSource dataSource,
+      IntConsumer upgradeGuard)
   {
     if (databaseConfig == null) {
       // In memory database, nothing to migrate.
@@ -64,11 +70,11 @@ public class DatabaseMigrator
     }
 
     try {
-      int desiredVersion = getDesiredVersion(databaseName);
+      int desiredVersion = getDesiredVersion(dataStoreId);
 
-      if (DataSourceFactory.populateDatabaseSchema(dataSource, databaseName)) {
+      if (DataSourceFactory.populateDatabaseSchema(dataSource, dataStoreId, databaseSchema)) {
         // This is a new database, nothing to migrate here.
-        DatabaseUtil.updateDatabaseSchemaVersion(dataSource, databaseName, desiredVersion);
+        DatabaseUtil.updateDatabaseSchemaVersion(dataSource, databaseSchema, desiredVersion);
         return;
       }
 
@@ -76,8 +82,8 @@ public class DatabaseMigrator
 
       // The database exists and it may require migration.
       int currentVersion;
-      if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseName)) {
-        currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName);
+      if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseSchema)) {
+        currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseSchema);
       }
       else {
         File databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
@@ -93,10 +99,11 @@ public class DatabaseMigrator
         }
       }
 
-      log.info("Current version of database {}: {}", databaseName, currentVersion);
+      log.info("Current version of database schema {}/{}: {}", dataStoreId, databaseSchema, currentVersion);
       if (currentVersion > desiredVersion) {
-        throw new IllegalStateException("Database schema " + databaseName + " was created by a newer product version. "
-            + "Please upgrade your IQ Server or restore a database backup taken by your current version.");
+        throw new IllegalStateException(
+            "Database schema " + databaseSchema + " was created by a newer product version. "
+                + "Please upgrade your IQ Server or restore a database backup taken by your current version.");
       }
 
       if (currentVersion == desiredVersion) {
@@ -107,7 +114,8 @@ public class DatabaseMigrator
         upgradeGuard.accept(currentVersion);
       }
 
-      log.info("Migrating database schema {} to version: {}", databaseName, desiredVersion);
+      log.info("Migrating database schema {} from version {} to version: {}", databaseSchema, currentVersion,
+          desiredVersion);
 
       File backupDir = null;
       DatabaseEngine databaseEngine = DataSourceFactory.getDatabaseEngine(dataSource);
@@ -120,18 +128,18 @@ public class DatabaseMigrator
               "Cannot migrate database. The backup directory '" + backupDir.getAbsolutePath() + "' already exists"
                   + ", indicating that a previous migration failed. Please contact support for further assistance.");
         }
-        log.info("Creating backup of database {} in {}", databaseName, backupDir);
+        log.info("Creating backup of database schema {} in {}", databaseSchema, backupDir);
         backup(databaseDir, databasePath.getName(), backupDir);
       }
 
-      String setSchemaSql = databaseEngine.buildSetSchemaSql(databaseName);
+      String setSchemaSql = databaseEngine.buildSetSchemaSql(databaseSchema);
       for (int i = currentVersion + 1; i <= desiredVersion; i++) {
-        String scriptName = getIncrementalFileName(databaseName, "sql", i);
+        String scriptName = getIncrementalFileName(dataStoreId, "sql", i);
         runScript(dataSource, setSchemaSql, scriptName);
-        String postIncrementalMigratorFileName = getIncrementalFileName(databaseName, "cls", i);
+        String postIncrementalMigratorFileName = getIncrementalFileName(dataStoreId, "cls", i);
         runPostIncrementalMigrator(postIncrementalMigratorFileName, dataSource);
-        if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseName)) {
-          DatabaseUtil.updateDatabaseSchemaVersion(dataSource, databaseName, i);
+        if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseSchema)) {
+          DatabaseUtil.updateDatabaseSchemaVersion(dataSource, databaseSchema, i);
         }
         else {
           FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(i));
@@ -143,7 +151,7 @@ public class DatabaseMigrator
         fileCleaner.delete(databaseVersionFile);
       }
       if (backupDir != null) {
-        log.info("Deleting backup of database {} from {}", databaseName, backupDir);
+        log.info("Deleting backup of database {} from {}", databaseSchema, backupDir);
         fileCleaner.delete(backupDir);
       }
     }
@@ -153,19 +161,20 @@ public class DatabaseMigrator
   }
 
   // Visible for testing
-  public int getDesiredVersion(String databaseName) {
-    return DatabaseMigrator.determineDesiredVersion(databaseName);
+  public int getDesiredVersion(String dataStoreId) {
+    return DatabaseMigrator.determineDesiredVersion(dataStoreId);
   }
 
-  private static String getIncrementalFileName(String databaseName, String extension, int scriptIndex) {
-    return "/db/" + databaseName + "/schema_incremental_" + String.format("%1$04d", scriptIndex) + "." + extension;
+  private static String getIncrementalFileName(String dataStoreId, String extension, int scriptIndex) {
+    return "/db/" + dataStoreId + "/schema_incremental_" + String.format("%1$04d", scriptIndex) + "." + extension;
   }
 
   // Public visibility for tests only.
-  public static int determineDesiredVersion(String databaseName) {
+  public static int determineDesiredVersion(String dataStoreId) {
     boolean foundScripts = false;
     for (int version = 1; version < 10000; version++) {
-      Resource incrementalScript = loadIncrementalScriptResource(getIncrementalFileName(databaseName, "sql", version));
+      Resource incrementalScript =
+          loadIncrementalScriptResource(getIncrementalFileName(dataStoreId, "sql", version));
       if (incrementalScript.exists()) {
         foundScripts = true;
       }

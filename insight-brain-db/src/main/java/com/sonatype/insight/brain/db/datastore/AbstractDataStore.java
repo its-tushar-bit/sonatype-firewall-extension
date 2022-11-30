@@ -44,7 +44,7 @@ public abstract class AbstractDataStore
 
   @Override
   public void migrate(final Boolean migrateToNewViolationModel) {
-    new DatabaseMigrator().migrate(databaseConfig, getID(), dataSource,
+    new DatabaseMigrator().migrate(databaseConfig, getID(), getDatabaseSchema(), dataSource,
         getUpgradeGuard(migrateToNewViolationModel));
   }
 

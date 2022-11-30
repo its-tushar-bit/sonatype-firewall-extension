@@ -34,6 +34,11 @@ public class MultiTenantOperationalDataStore
   }
 
   @Override
+  public String getDatabaseSchema() {
+    return null;
+  }
+
+  @Override
   public EntityManagerFactory getJPAEntityManagerFactory() {
     return null;
   }

@@ -56,7 +56,7 @@ public class DefaultOperationalDataStore
     long start = System.currentTimeMillis();
 
     this.databaseConfig = databaseConfig;
-    dataSource = new DataSourceFactory().newDataSource(databaseConfig, getID());
+    dataSource = new DataSourceFactory().createNewDataSource(databaseConfig, getID(), getDatabaseSchema());
     isDatabaseEmbedded = H2DatabaseEngine.class.equals(DataSourceFactory.getDatabaseEngine(dataSource).getClass());
 
     if (migrateDatabase) {
@@ -90,6 +90,11 @@ public class DefaultOperationalDataStore
     isInitialized = true;
 
     log.info("Initialized the {} data store in {} ms.", getID(), System.currentTimeMillis() - start);
+  }
+
+  @Override
+  public String getDatabaseSchema() {
+    return ID;
   }
 
   @Override

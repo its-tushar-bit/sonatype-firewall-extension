@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -196,28 +197,31 @@ public class ApplicationComponentDAO
   {
     try (TransactionContext tx = createTransactionContext()) {
       String sQuery = "SELECT DISTINCT ac.application_id, ac.stage_type_id" + //
-          " FROM insight_brain_ods.application_component ac" + //
-          "   INNER JOIN insight_brain_ods.application a" + //
+          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component ac" + //
+          "   INNER JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".application a" + //
           "     ON a.application_id = ac.application_id" + //
           "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
-          "              FROM insight_brain_ods.license_override lo, insight_brain_ods.license_override_license lol" +
+          "              FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override lo, " +
+          "              " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override_license lol" +
           "              WHERE lol.license_override_id = lo.license_override_id) li" + //
           "     ON li.owner_id = ac.application_id" + //
           "     AND li.component_id_format = ac.component_id_format" + //
           "     AND li.component_id_coordinates_json = ac.component_id_coordinates_json" + //
           "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
-          "              FROM insight_brain_ods.license_override lo, insight_brain_ods.license_override_license lol" +
+          "              FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override lo, " +
+          "              " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override_license lol" +
           "              WHERE lol.license_override_id = lo.license_override_id) li2" + //
           "     ON li2.owner_id = a.organization_id" + //
           "     AND li2.component_id_format = ac.component_id_format" + //
           "    AND li2.component_id_coordinates_json = ac.component_id_coordinates_json" + //
           "   LEFT JOIN (SELECT lo.owner_id, lo.component_id_format, lo.component_id_coordinates_json, lol.license_id" +
-          "              FROM insight_brain_ods.license_override lo, insight_brain_ods.license_override_license lol" +
+          "              FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override lo, " +
+          "              " + OperationalDataStoreProvider.getDatabaseSchema() + ".license_override_license lol" +
           "              WHERE lol.license_override_id = lo.license_override_id) li3" + //
           "     ON li3.owner_id = ?1" + //
           "     AND li3.component_id_format = ac.component_id_format" + //
           "    AND li3.component_id_coordinates_json = ac.component_id_coordinates_json" + //
-          "   LEFT JOIN insight_brain_ods.application_component_license acl" + //
+          "   LEFT JOIN " + OperationalDataStoreProvider.getDatabaseSchema() + ".application_component_license acl" + //
           "     ON acl.application_component_id = ac.application_component_id" + //
           " WHERE ac.stage_type_id IN " + buildPositionalParameters(stageTypeIds, 2) + //
           " AND COALESCE(li.license_id, li2.license_id, li3.license_id, acl.effective_license_id) IN " + //

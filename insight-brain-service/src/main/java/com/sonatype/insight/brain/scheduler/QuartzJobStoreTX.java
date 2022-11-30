@@ -15,6 +15,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
@@ -73,7 +74,7 @@ public class QuartzJobStoreTX
   private static final String DATA_SOURCE_NAME = "ods";
 
   // Visible for testing
-  static final String TABLE_PREFIX = OperationalDataStore.ID + ".QRTZ_";
+  static final String TABLE_PREFIX = OperationalDataStoreProvider.getDatabaseSchema() + ".QRTZ_";
 
   private final ProductLicense productLicense;
 
@@ -101,7 +102,7 @@ public class QuartzJobStoreTX
   // Visible for testing
   void initialize() throws InvalidConfigurationException {
     setDataSource(DATA_SOURCE_NAME);
-    setTablePrefix(OperationalDataStore.ID + ".QRTZ_");
+    setTablePrefix(OperationalDataStoreProvider.getDatabaseSchema() + ".QRTZ_");
     setUseProperties("true");
     setClusterCheckinInterval(CLUSTER_CHECKIN_INTERVAL_MILLIS);
     DatabaseEngine dbEngine = DataSourceFactory.getDatabaseEngine(operationalDataStore.getDataSource());

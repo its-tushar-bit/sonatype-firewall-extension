@@ -110,6 +110,11 @@ public interface DataStore
   DataSource getDataSource();
 
   /**
+   * @return the database schema used by this data store
+   */
+  String getDatabaseSchema();
+
+  /**
    * @return the {@link DatabaseConfig} for this data store
    */
   DatabaseConfig getDatabaseConfig();

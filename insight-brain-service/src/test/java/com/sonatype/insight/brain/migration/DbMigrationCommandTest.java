@@ -253,7 +253,7 @@ public class DbMigrationCommandTest
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
     initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
-        DatabaseName.ods, OperationalDataStore.ID, databaseConfig -> {
+        DatabaseName.ods, OperationalDataStore.ID, OperationalDataStoreProvider.getDatabaseSchema(), databaseConfig -> {
           OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
           return OperationalDataStoreProvider.getDataSource();
         }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -317,7 +317,7 @@ public class DbMigrationCommandTest
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
     initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
-        DatabaseName.ods, OperationalDataStore.ID, databaseConfig -> {
+        DatabaseName.ods, OperationalDataStore.ID, OperationalDataStoreProvider.getDatabaseSchema(), databaseConfig -> {
           OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
           return OperationalDataStoreProvider.getDataSource();
         }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -340,7 +340,7 @@ public class DbMigrationCommandTest
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
     initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
-        DatabaseName.ods, OperationalDataStore.ID, databaseConfig -> {
+        DatabaseName.ods, OperationalDataStore.ID, OperationalDataStoreProvider.getDatabaseSchema(), databaseConfig -> {
           OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
           return OperationalDataStoreProvider.getDataSource();
         }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -363,7 +363,7 @@ public class DbMigrationCommandTest
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
     initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
-        DatabaseName.ods, OperationalDataStore.ID, databaseConfig -> {
+        DatabaseName.ods, OperationalDataStore.ID, OperationalDataStoreProvider.getDatabaseSchema(), databaseConfig -> {
           OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
           return OperationalDataStoreProvider.getDataSource();
         }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -388,7 +388,7 @@ public class DbMigrationCommandTest
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
     initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
-        DatabaseName.ods, OperationalDataStore.ID, databaseConfig -> {
+        DatabaseName.ods, OperationalDataStore.ID, OperationalDataStoreProvider.getDatabaseSchema(), databaseConfig -> {
           OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
           return OperationalDataStoreProvider.getDataSource();
         }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -465,7 +465,7 @@ public class DbMigrationCommandTest
     databaseDir.mkdirs();
     copyDatabase(databaseDir, getClass().getSimpleName() + "/h2");
     initH2DatabaseToDesiredVersion(databaseDir, OperationalDataStore.LOCK_TABLE_DATABASE_VERSION,
-        DatabaseName.ods, OperationalDataStore.ID, databaseConfig -> {
+        DatabaseName.ods, OperationalDataStore.ID, OperationalDataStoreProvider.getDatabaseSchema(), databaseConfig -> {
           OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
           return OperationalDataStoreProvider.getDataSource();
         }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -531,7 +531,7 @@ public class DbMigrationCommandTest
       }
       initPostgresToDesiredVersion(getClass().getSimpleName() + "/postgres/ods.sql",
           OperationalDataStore.LOCK_TABLE_DATABASE_VERSION, postgres.getDatabaseConfig(),
-          OperationalDataStore.ID, databaseConfig -> {
+          OperationalDataStore.ID, OperationalDataStoreProvider.getDatabaseSchema(), databaseConfig -> {
             OperationalDataStoreProvider.initWithoutMigration(databaseConfig);
             return OperationalDataStoreProvider.getDataSource();
           }, OperationalDataStoreProvider.getUpgradeGuard(true));
@@ -600,6 +600,7 @@ public class DbMigrationCommandTest
       File databaseDir,
       int desiredDbVersion,
       DatabaseName databaseName,
+      String dataStoreId,
       String databaseSchemaName,
       Function<DatabaseConfig, DataSource> databaseConfigToDataSourceFunction,
       IntConsumer upgradeGuard)
@@ -611,7 +612,7 @@ public class DbMigrationCommandTest
       when(spyDatabaseMigrator.getDesiredVersion(databaseSchemaName)).thenReturn(desiredDbVersion);
 
       DataSource dataSource = databaseConfigToDataSourceFunction.apply(databaseConfig);
-      spyDatabaseMigrator.migrate(databaseConfig, databaseSchemaName, dataSource, upgradeGuard);
+      spyDatabaseMigrator.migrate(databaseConfig, dataStoreId, databaseSchemaName, dataSource, upgradeGuard);
       assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseSchemaName)).isEqualTo(desiredDbVersion);
       return databaseDir;
     }
@@ -624,6 +625,7 @@ public class DbMigrationCommandTest
       String databaseInitialSqlFile,
       int desiredDbVersion,
       DatabaseConfig databaseConfig,
+      String dataStoreId,
       String databaseSchemaName,
       Function<DatabaseConfig, DataSource> databaseConfigToDataSourceFunction,
       IntConsumer upgradeGuard) throws Exception
@@ -642,7 +644,7 @@ public class DbMigrationCommandTest
       when(spyDatabaseMigrator.getDesiredVersion(databaseSchemaName)).thenReturn(desiredDbVersion);
 
       DataSource dataSource = databaseConfigToDataSourceFunction.apply(databaseConfig);
-      spyDatabaseMigrator.migrate(databaseConfig, databaseSchemaName, dataSource, upgradeGuard);
+      spyDatabaseMigrator.migrate(databaseConfig, dataStoreId, databaseSchemaName, dataSource, upgradeGuard);
       assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseSchemaName)).isEqualTo(desiredDbVersion);
     }
     finally {

@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.DatamartProvider;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
@@ -100,7 +101,8 @@ public final class DatabaseProvisionUtils
   }
 
   public boolean isSchemaVersionTableExists() {
-    return DatabaseUtil.schemaVersionTableExists(operationalDataStore.getDataSource(), operationalDataStore.getID());
+    return DatabaseUtil.schemaVersionTableExists(operationalDataStore.getDataSource(),
+        operationalDataStore.getDatabaseSchema());
   }
 
   public boolean isMigrationEnabledOrHasNewDataSource() {
@@ -108,10 +110,11 @@ public final class DatabaseProvisionUtils
   }
 
   public boolean isMigrationNeeded() {
-    return isMigrationNeeded(operationalDataStore.getDataSource(), operationalDataStore.getID())
-        || isMigrationNeeded(DatamartProvider.getDataSource(), DataMartDataStore.ID)
-        || isMigrationNeeded(ThirdPartyScansProvider.getDataSource(), ThirdPartyScansDataStore.ID)
-        || isMigrationNeeded(AggregationDataStoreProvider.getDataSource(), AggregationDataStore.ID);
+    return isMigrationNeeded(operationalDataStore.getDataSource(), OperationalDataStoreProvider.getDatabaseSchema())
+        || isMigrationNeeded(DatamartProvider.getDataSource(), DatamartProvider.getDatabaseSchema())
+        || isMigrationNeeded(ThirdPartyScansProvider.getDataSource(), ThirdPartyScansProvider.getDatabaseSchema())
+        || isMigrationNeeded(AggregationDataStoreProvider.getDataSource(),
+        AggregationDataStoreProvider.getDatabaseSchema());
   }
 
   private boolean isMigrationNeeded(DataSource dataSource, String databaseSchemaName) {

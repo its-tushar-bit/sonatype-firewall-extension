@@ -105,6 +105,8 @@ class KeycloakServer
             if (i <= 0) {
               throw e;
             }
+            log.warn("Failed to pull docker image {}. Will retry. Error: {}", image, e.getMessage(), e);
+            Thread.sleep(5000);
           }
         }
       }

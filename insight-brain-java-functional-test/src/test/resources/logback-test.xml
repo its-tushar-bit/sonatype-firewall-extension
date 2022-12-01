@@ -22,4 +22,5 @@
 
   <logger name="com.sonatype" level="DEBUG" />
   <logger name="com.sonatype.insight.test.reverseproxy.jetty" level="INFO" />
+  <logger name="com.spotify.docker.client" level="DEBUG" />
 </configuration>

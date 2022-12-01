@@ -14,6 +14,7 @@ logging:
     "com.sonatype": DEBUG
     "com.sonatype.insight.audit": "OFF"
     "com.sonatype.insight.test.reverseproxy.jetty": INFO
+    "com.spotify.docker.client": DEBUG
     "org.apache.directory": ERROR
   appenders:
     - type: console

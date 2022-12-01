@@ -96,7 +96,7 @@ class KeycloakServer
         dockerClient.inspectImage(image);
       }
       catch (ImageNotFoundException ignored) {
-        for (int i = 2;; i--) {
+        for (int i = 5;; i--) {
           try {
             dockerClient.pull(image);
             break;

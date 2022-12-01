@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -26,8 +27,15 @@ public class AttributionReportTemplateDAO
     return get(tx, sQuery, id);
   }
 
+  private void checkAttributionReportTemplateNameLength(AttributionReportTemplate attributionReportTemplate) {
+    if (attributionReportTemplate.getTemplateName().length() > 250) {
+      throw new InvalidNameException("Report template name is too long");
+    }
+  }
+
   @Override
   public void insert(TransactionContext tx, AttributionReportTemplate attributionReportTemplate) {
+    checkAttributionReportTemplateNameLength(attributionReportTemplate);
     if (attributionReportTemplate.getLastUpdatedAt() == null) {
       attributionReportTemplate.setLastUpdatedAt(new Date());
     }
@@ -36,6 +44,7 @@ public class AttributionReportTemplateDAO
 
   @Override
   public void update(TransactionContext tx, AttributionReportTemplate attributionReportTemplate) {
+    checkAttributionReportTemplateNameLength(attributionReportTemplate);
     if (getById(tx, attributionReportTemplate.getId()) == null) {
       throw new BadRequestException(
           "Cannot update attribution report template with id " + attributionReportTemplate.getId() +

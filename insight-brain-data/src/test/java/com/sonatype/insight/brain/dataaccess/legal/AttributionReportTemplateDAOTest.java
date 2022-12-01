@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -208,5 +209,41 @@ public class AttributionReportTemplateDAOTest
         .withMessageContaining(
             "Cannot update attribution report template with id " + attributionReportTemplate.getId() +
                 " because it does not exist.");
+  }
+
+  @Test
+  public void testInsert_TemplateNameTooLong() {
+    AttributionReportTemplate attributionReportTemplate =
+        new AttributionReportTemplate("my templatemy templatemy templatemy templatemy templatemy " +
+            "templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy " +
+            "templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy " +
+            "templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy " +
+            "templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy " +
+            "template", "title", "header",
+            "footer", false, false, false,
+            false, false);
+
+    assertThatExceptionOfType(InvalidNameException.class)
+        .isThrownBy(() -> dao.insert(attributionReportTemplate))
+        .withMessageContaining(
+            "Report template name is too long");
+  }
+
+  @Test
+  public void testUpdate_TemplateNameTooLong() {
+    AttributionReportTemplate attributionReportTemplate =
+        new AttributionReportTemplate("my templatemy templatemy templatemy templatemy templatemy " +
+            "templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy " +
+            "templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy " +
+            "templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy " +
+            "templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy templatemy " +
+            "template", "title", "header",
+            "footer", false, false, false,
+            false, false);
+
+    assertThatExceptionOfType(InvalidNameException.class)
+        .isThrownBy(() -> dao.update(attributionReportTemplate))
+        .withMessageContaining(
+            "Report template name is too long");
   }
 }

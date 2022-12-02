@@ -26,13 +26,15 @@ different tenants.
 
 Getting to our solution requires understanding two things:
 
-1. There are only two entry points for code to be executed. A http request (which comes through `TenantUrlFilter`) or a
+1. There are only two entry points* for code to be executed. A http request (which comes through `TenantUrlFilter`) or a
    quartz job (which will go through `TenantContextJobListener`). These are the only two places that actually need to
    change/set the tenant. Both of these entry points are under our direct control and are therefore trusted.
 2. Its not actually setting the tenant we need to secure. What we actually want to do is ensure that a request or job
    for TenantA can never read or update data from TenantB. We also control the access to the database and file system,
    and both of those routes must call `getTenant()` before they can get data for that specific tenant. So actually it is
    `getTenant()` where we need to do the check/validation.
+   
+* _There are likely other entry points that haven't yet been explored. For example, integrations like SCM and JIRA._
 
 ### Approach
 

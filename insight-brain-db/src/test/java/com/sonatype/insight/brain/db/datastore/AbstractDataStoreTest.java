@@ -121,8 +121,8 @@ public abstract class AbstractDataStoreTest
       initDatabase(databaseConfig);
 
       int desiredDbVersion = DatabaseMigrator.determineDesiredVersion(dataStore.getID());
-      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID())).isEqualTo(
-          desiredDbVersion);
+      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID(),
+          dataStore.getDatabaseSchema())).isEqualTo(desiredDbVersion);
     }
   }
 }

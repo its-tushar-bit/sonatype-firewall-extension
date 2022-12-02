@@ -447,8 +447,9 @@ public class DbMigrationCommandTest
         String.valueOf(1));
     ThirdPartyScansProvider.initWithoutMigration(
         getH2DatabaseConfig(databaseDir, DatabaseName.third_party_scans.name()));
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(ThirdPartyScansProvider.getDataSource(),
-        ThirdPartyScansDataStore.ID)).isEqualTo(1);
+    assertThat(
+        DatabaseUtil.getDatabaseSchemaVersion(ThirdPartyScansProvider.getDataSource(), ThirdPartyScansDataStore.ID,
+            ThirdPartyScansProvider.getDatabaseSchema())).isEqualTo(1);
     DataSourceFactory.clear_ForTestsOnly();
     DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
     when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
@@ -474,12 +475,15 @@ public class DbMigrationCommandTest
     assertThat(readDatabaseVersion(getDatabaseVersionFile(databaseDir, DatabaseName.dm.name()))).isEqualTo(
         String.valueOf(1));
     OperationalDataStoreProvider.initWithoutMigration(getH2DatabaseConfig(databaseDir, DatabaseName.ods.name()));
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(),
-        OperationalDataStore.ID)).isEqualTo(OperationalDataStore.LOCK_TABLE_DATABASE_VERSION);
+    assertThat(
+        DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(), OperationalDataStore.ID,
+            OperationalDataStoreProvider.getDatabaseSchema())).isEqualTo(
+        OperationalDataStore.LOCK_TABLE_DATABASE_VERSION);
     ThirdPartyScansProvider.initWithoutMigration(
         getH2DatabaseConfig(databaseDir, DatabaseName.third_party_scans.name()));
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(ThirdPartyScansProvider.getDataSource(),
-        ThirdPartyScansDataStore.ID)).isEqualTo(1);
+    assertThat(
+        DatabaseUtil.getDatabaseSchemaVersion(ThirdPartyScansProvider.getDataSource(), ThirdPartyScansDataStore.ID,
+            ThirdPartyScansProvider.getDatabaseSchema())).isEqualTo(1);
     DataSourceFactory.clear_ForTestsOnly();
     DbMigrationCommand spyDbMigrationCommand = spy(new DbMigrationCommand(spyDatabaseProvisionUtils));
     when(spyDbMigrationCommand.getAttemptsToWaitForLastCheckinToNotBeRecent()).thenReturn(0);
@@ -553,17 +557,20 @@ public class DbMigrationCommandTest
   }
 
   private void assertMigrated() {
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(),
-        OperationalDataStore.ID)).isEqualTo(
+    assertThat(
+        DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(), OperationalDataStore.ID,
+            OperationalDataStoreProvider.getDatabaseSchema())).isEqualTo(
         DatabaseMigrator.determineDesiredVersion(OperationalDataStore.ID));
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(AggregationDataStoreProvider.getDataSource(),
-        AggregationDataStore.ID)).isEqualTo(
+    assertThat(
+        DatabaseUtil.getDatabaseSchemaVersion(AggregationDataStoreProvider.getDataSource(), AggregationDataStore.ID,
+            AggregationDataStoreProvider.getDatabaseSchema())).isEqualTo(
         DatabaseMigrator.determineDesiredVersion(AggregationDataStore.ID));
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(DatamartProvider.getDataSource(),
-        DataMartDataStore.ID)).isEqualTo(
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(DatamartProvider.getDataSource(), DataMartDataStore.ID,
+        DatamartProvider.getDatabaseSchema())).isEqualTo(
         DatabaseMigrator.determineDesiredVersion(DataMartDataStore.ID));
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(ThirdPartyScansProvider.getDataSource(),
-        ThirdPartyScansDataStore.ID)).isEqualTo(
+    assertThat(
+        DatabaseUtil.getDatabaseSchemaVersion(ThirdPartyScansProvider.getDataSource(), ThirdPartyScansDataStore.ID,
+            ThirdPartyScansProvider.getDatabaseSchema())).isEqualTo(
         DatabaseMigrator.determineDesiredVersion(ThirdPartyScansDataStore.ID));
   }
 
@@ -613,7 +620,8 @@ public class DbMigrationCommandTest
 
       DataSource dataSource = databaseConfigToDataSourceFunction.apply(databaseConfig);
       spyDatabaseMigrator.migrate(databaseConfig, dataStoreId, databaseSchemaName, dataSource, upgradeGuard);
-      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseSchemaName)).isEqualTo(desiredDbVersion);
+      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchemaName)).isEqualTo(
+          desiredDbVersion);
       return databaseDir;
     }
     finally {
@@ -645,7 +653,8 @@ public class DbMigrationCommandTest
 
       DataSource dataSource = databaseConfigToDataSourceFunction.apply(databaseConfig);
       spyDatabaseMigrator.migrate(databaseConfig, dataStoreId, databaseSchemaName, dataSource, upgradeGuard);
-      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseSchemaName)).isEqualTo(desiredDbVersion);
+      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchemaName)).isEqualTo(
+          desiredDbVersion);
     }
     finally {
       DataSourceFactory.clear_ForTestsOnly();

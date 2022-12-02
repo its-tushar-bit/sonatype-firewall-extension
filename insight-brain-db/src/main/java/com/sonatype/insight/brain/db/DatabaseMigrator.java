@@ -74,7 +74,7 @@ public class DatabaseMigrator
 
       if (DataSourceFactory.populateDatabaseSchema(dataSource, dataStoreId, databaseSchema)) {
         // This is a new database, nothing to migrate here.
-        DatabaseUtil.updateDatabaseSchemaVersion(dataSource, databaseSchema, desiredVersion);
+        DatabaseUtil.updateDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema, desiredVersion);
         return;
       }
 
@@ -83,7 +83,7 @@ public class DatabaseMigrator
       // The database exists and it may require migration.
       int currentVersion;
       if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseSchema)) {
-        currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseSchema);
+        currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema);
       }
       else {
         File databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
@@ -139,7 +139,7 @@ public class DatabaseMigrator
         String postIncrementalMigratorFileName = getIncrementalFileName(dataStoreId, "cls", i);
         runPostIncrementalMigrator(postIncrementalMigratorFileName, dataSource);
         if (DatabaseUtil.schemaVersionTableExists(dataSource, databaseSchema)) {
-          DatabaseUtil.updateDatabaseSchemaVersion(dataSource, databaseSchema, i);
+          DatabaseUtil.updateDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema, i);
         }
         else {
           FileUtils.fileWrite(databaseVersionFile, "UTF-8", String.valueOf(i));

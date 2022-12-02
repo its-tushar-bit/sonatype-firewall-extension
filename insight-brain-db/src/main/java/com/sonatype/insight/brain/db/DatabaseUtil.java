@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.db;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -58,10 +59,40 @@ public class DatabaseUtil
     }
   }
 
-  public static int getDatabaseSchemaVersion(DataSource dataSource, String databaseSchema) {
+  private static boolean tableExistsWithColumn(
+      final DataSource dataSource,
+      final String databaseSchema,
+      final String tableName,
+      final String columnName)
+  {
+    boolean tableExists = tableExists(dataSource, databaseSchema, tableName);
+    if (tableExists) {
+      try (Connection connection = dataSource.getConnection()) {
+        DatabaseMetaData metaData = connection.getMetaData();
+        ResultSet rs = metaData.getColumns(null, databaseSchema, tableName, columnName);
+        return rs.next();
+      }
+      catch (Exception e) {
+        throw new IllegalStateException(
+            String.format("Failed attempt to check if %s.%s table exists.", databaseSchema, tableName), e);
+      }
+    }
+    return false;
+  }
+
+  public static int getDatabaseSchemaVersion(DataSource dataSource, String dataStoreId, String databaseSchema) {
+    String sql = "SELECT * FROM " + databaseSchema + ".schema_version";
+    if (tableExistsWithColumn(dataSource, databaseSchema, "schema_version", "data_store_id")) {
+      // as of migration 271 the schema_version has two columns: data_store_id, and schema_version
+      sql += " WHERE data_store_id = ?";
+    }
+
     try (Connection connection = dataSource.getConnection();
-         Statement statement = connection.createStatement();
-         ResultSet result = statement.executeQuery("SELECT * FROM " + databaseSchema + ".schema_version")) {
+         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+      if (preparedStatement.getParameterMetaData().getParameterCount() == 1) {
+        preparedStatement.setString(1, dataStoreId);
+      }
+      ResultSet result = preparedStatement.executeQuery();
       if (result.next() && result.isLast()) {
         return result.getInt("schema_version");
       }
@@ -75,11 +106,25 @@ public class DatabaseUtil
     }
   }
 
-  public static void updateDatabaseSchemaVersion(DataSource dataSource, String databaseSchema, int schemaVersion) {
-    try (Connection connection = dataSource.getConnection(); PreparedStatement preparedStatement = connection
-        .prepareStatement("UPDATE " + databaseSchema + ".schema_version SET schema_version = ?")) {
+  public static void updateDatabaseSchemaVersion(
+      DataSource dataSource,
+      String dataStoreId,
+      String databaseSchema,
+      int schemaVersion)
+  {
+    String sql = "UPDATE " + databaseSchema + ".schema_version SET schema_version = ?";
+    if (tableExistsWithColumn(dataSource, databaseSchema, "schema_version", "data_store_id")) {
+      // as of migration 271 the schema_version has two columns: data_store_id, and schema_version
+      sql += " WHERE data_store_id = ?";
+    }
+
+    try (Connection connection = dataSource.getConnection();
+         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
       connection.setAutoCommit(true);
       preparedStatement.setInt(1, schemaVersion);
+      if (preparedStatement.getParameterMetaData().getParameterCount() == 2) {
+        preparedStatement.setString(2, dataStoreId);
+      }
       int updated = preparedStatement.executeUpdate();
       if (updated != 1) {
         throw new IllegalStateException(

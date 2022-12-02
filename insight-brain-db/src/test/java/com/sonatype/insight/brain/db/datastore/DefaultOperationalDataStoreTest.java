@@ -44,8 +44,8 @@ public class DefaultOperationalDataStoreTest
 
     assertThat(databaseVersionFile).doesNotExist();
     int desiredDbVersion = DatabaseMigrator.determineDesiredVersion(OperationalDataStore.ID);
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID()))
-        .isEqualTo(desiredDbVersion);
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID(),
+        dataStore.getDatabaseSchema())).isEqualTo(desiredDbVersion);
   }
 
   @Test
@@ -87,8 +87,7 @@ public class DefaultOperationalDataStoreTest
     dataStore.initWithMigration(getDatabaseConfig(databaseDir, "ods"), false);
 
     int desiredDbVersion = DatabaseMigrator.determineDesiredVersion(OperationalDataStore.ID);
-    assertThat(DatabaseUtil
-        .getDatabaseSchemaVersion(dataStore.getDataSource(), OperationalDataStore.ID))
-        .isEqualTo(desiredDbVersion);
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID(),
+        dataStore.getDatabaseSchema())).isEqualTo(desiredDbVersion);
   }
 }

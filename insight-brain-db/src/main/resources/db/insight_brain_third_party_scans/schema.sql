@@ -1,5 +1,5 @@
 -- For tests only
-CREATE TABLE test_table (
+CREATE TABLE IF NOT EXISTS test_table (
   test_table_id varchar(50) NOT NULL,
   name varchar(50) NOT NULL
 );
@@ -87,7 +87,8 @@ CREATE TABLE third_party_vulnerability (
   CONSTRAINT third_party_vulnerability_refid_uk UNIQUE (ref_id)
 );
 
-CREATE TABLE schema_version (
+CREATE TABLE IF NOT EXISTS schema_version (
+  data_store_id varchar(32) NOT NULL,
   schema_version int NOT NULL
 );
-INSERT INTO schema_version (schema_version) VALUES (1);
+INSERT INTO schema_version (data_store_id , schema_version) VALUES ('insight_brain_third_party_scans', -1);

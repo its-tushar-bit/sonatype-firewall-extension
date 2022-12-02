@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import io.dropwizard.cli.Cli;
@@ -80,7 +81,7 @@ public class ExportEmbeddedDatabaseCommand
       throw new BadRequestException("The server needs to have been started normally once before"
           + " in order to complete the required upgrade steps.");
     }
-    if (DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(),
+    if (DatabaseUtil.getDatabaseSchemaVersion(OperationalDataStoreProvider.getDataSource(), OperationalDataStore.ID,
         OperationalDataStoreProvider.getDatabaseSchema()) <= 0) {
       throw new BadRequestException("The database from the work directory " + config.getSonatypeWork().getAbsolutePath()
           + " is empty. Please verify you specified the correct config.yml file.");

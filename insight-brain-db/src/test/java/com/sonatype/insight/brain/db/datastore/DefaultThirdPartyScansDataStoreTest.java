@@ -30,8 +30,7 @@ public class DefaultThirdPartyScansDataStoreTest
     initDatabase(getDatabaseConfig(databaseDir, "third_party_scans"));
 
     int desiredDbVersion = DatabaseMigrator.determineDesiredVersion(dataStore.getID());
-    assertThat(
-        DatabaseUtil.getDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID()))
-        .isEqualTo(desiredDbVersion);
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID(),
+        dataStore.getDatabaseSchema())).isEqualTo(desiredDbVersion);
   }
 }

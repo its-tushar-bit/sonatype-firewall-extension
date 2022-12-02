@@ -118,12 +118,12 @@ public class DatabaseMigratorTest
     DatabaseConfig databaseConfig = getDatabaseConfig(databaseDir, "test");
     String databaseName = "testMigrate_VersionUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript";
     DataSource dataSource = new DataSourceFactory().createNewDataSource(databaseConfig, databaseName, databaseName);
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isEqualTo(1);
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName, databaseName)).isEqualTo(1);
 
     // Should fail to upgrade to version 3 because it tries to drop a non-existing table
     assertThatThrownBy(() -> new DatabaseMigrator().migrate(databaseConfig, databaseName, databaseName, dataSource))
         .isInstanceOf(ScriptStatementFailedException.class);
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isEqualTo(2);
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName, databaseName)).isEqualTo(2);
   }
 
   @Test
@@ -283,7 +283,8 @@ public class DatabaseMigratorTest
 
       File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
       assertThat(databaseVersionFile).doesNotExist();
-      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID)).isEqualTo(
+      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID,
+          OperationalDataStoreProvider.getDatabaseSchema())).isEqualTo(
           DatabaseMigrator.determineDesiredVersion(OperationalDataStore.ID));
     }
     finally {
@@ -305,7 +306,8 @@ public class DatabaseMigratorTest
 
     File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
     assertThat(databaseVersionFile).doesNotExist();
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID)).isEqualTo(
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID,
+        OperationalDataStoreProvider.getDatabaseSchema())).isEqualTo(
         DatabaseMigrator.determineDesiredVersion(OperationalDataStore.ID));
   }
 
@@ -348,7 +350,8 @@ public class DatabaseMigratorTest
 
       File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
       assertThat(databaseVersionFile).doesNotExist();
-      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID)).isEqualTo(
+      assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID,
+          OperationalDataStoreProvider.getDatabaseSchema())).isEqualTo(
           DatabaseMigrator.determineDesiredVersion(OperationalDataStore.ID));
     }
     finally {
@@ -373,7 +376,8 @@ public class DatabaseMigratorTest
 
     File databaseVersionFile = H2DatabaseUtil.getDatabaseVersionFile(H2DatabaseUtil.getDatabasePath(databaseConfig));
     assertThat(databaseVersionFile).doesNotExist();
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID)).isEqualTo(
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, OperationalDataStore.ID,
+        OperationalDataStoreProvider.getDatabaseSchema())).isEqualTo(
         DatabaseMigrator.determineDesiredVersion(OperationalDataStore.ID));
   }
 
@@ -404,7 +408,7 @@ public class DatabaseMigratorTest
     new DatabaseMigrator().migrate(databaseConfig, databaseName, databaseName, dataSource);
 
     assertThat(DatabaseUtil.schemaExists(dataSource, databaseName)).isTrue();
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName)).isEqualTo(
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseName, databaseName)).isEqualTo(
         DatabaseMigrator.determineDesiredVersion(databaseName));
   }
 

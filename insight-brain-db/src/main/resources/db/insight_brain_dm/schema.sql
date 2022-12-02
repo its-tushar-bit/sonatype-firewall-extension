@@ -1,5 +1,5 @@
 -- For tests only
-CREATE TABLE test_table (
+CREATE TABLE IF NOT EXISTS test_table (
   test_table_id varchar(50) NOT NULL,
   name varchar(50) NOT NULL
 );
@@ -35,7 +35,8 @@ CREATE TABLE multi_license_license (
   CONSTRAINT multi_license_license_license_fk FOREIGN KEY (license_id) REFERENCES license(license_id)
 );
 
-CREATE TABLE schema_version (
+CREATE TABLE IF NOT EXISTS schema_version (
+  data_store_id varchar(32) NOT NULL,
   schema_version int NOT NULL
 );
-INSERT INTO schema_version (schema_version) VALUES (-1);
+INSERT INTO schema_version (data_store_id , schema_version) VALUES ('insight_brain_dm', -1);

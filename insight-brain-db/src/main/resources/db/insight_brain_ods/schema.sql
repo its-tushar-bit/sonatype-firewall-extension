@@ -1,5 +1,5 @@
 -- For tests only
-CREATE TABLE test_table (
+CREATE TABLE IF NOT EXISTS test_table (
   test_table_id varchar(50) NOT NULL,
   name varchar(50) NOT NULL
 );
@@ -700,10 +700,11 @@ CREATE TABLE source_control_configuration (
   CONSTRAINT source_control_configuration_pk PRIMARY KEY (source_control_configuration_id)
 );
 
-CREATE TABLE schema_version (
+CREATE TABLE IF NOT EXISTS schema_version (
+  data_store_id varchar(32) NOT NULL,
   schema_version int NOT NULL
 );
-INSERT INTO schema_version (schema_version) VALUES (-1);
+INSERT INTO schema_version (data_store_id , schema_version) VALUES ('insight_brain_ods', -1);
 
 CREATE TABLE migration_tracker (
     migration_tracker_id varchar(100) NOT NULL,

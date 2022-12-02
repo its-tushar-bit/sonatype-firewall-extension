@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.DatamartProvider;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
@@ -74,7 +73,8 @@ public final class DatabaseProvisionUtils
     boolean schemaVersionTableExists = isSchemaVersionTableExists();
     if (schemaVersionTableExists) {
       schemaVersion =
-          DatabaseUtil.getDatabaseSchemaVersion(operationalDataStore.getDataSource(), operationalDataStore.getID());
+          DatabaseUtil.getDatabaseSchemaVersion(operationalDataStore.getDataSource(), operationalDataStore.getID(),
+              operationalDataStore.getDatabaseSchema());
     }
     boolean isMigrationEnabledOrHasNewDataSource = isMigrationEnabledOrHasNewDataSource();
     // -1 indicates a new database which needs to be "migrated" to have its schema version inserted
@@ -110,18 +110,21 @@ public final class DatabaseProvisionUtils
   }
 
   public boolean isMigrationNeeded() {
-    return isMigrationNeeded(operationalDataStore.getDataSource(), OperationalDataStoreProvider.getDatabaseSchema())
-        || isMigrationNeeded(DatamartProvider.getDataSource(), DatamartProvider.getDatabaseSchema())
-        || isMigrationNeeded(ThirdPartyScansProvider.getDataSource(), ThirdPartyScansProvider.getDatabaseSchema())
-        || isMigrationNeeded(AggregationDataStoreProvider.getDataSource(),
-        AggregationDataStoreProvider.getDatabaseSchema());
+    return isMigrationNeeded(operationalDataStore.getDataSource(), operationalDataStore.getID(),
+        operationalDataStore.getDatabaseSchema())
+        || isMigrationNeeded(dataMartDataStore.getDataSource(), dataMartDataStore.getID(),
+        dataMartDataStore.getDatabaseSchema())
+        || isMigrationNeeded(thirdPartyScansDataStore.getDataSource(), thirdPartyScansDataStore.getID(),
+        thirdPartyScansDataStore.getDatabaseSchema())
+        || isMigrationNeeded(aggregationDataStore.getDataSource(), aggregationDataStore.getID(),
+        aggregationDataStore.getDatabaseSchema());
   }
 
-  private boolean isMigrationNeeded(DataSource dataSource, String databaseSchemaName) {
+  private boolean isMigrationNeeded(DataSource dataSource, String dataStoreId, String databaseSchemaName) {
     if (!DatabaseUtil.schemaExists(dataSource, databaseSchemaName)) {
       return true;
     }
-    int currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, databaseSchemaName);
+    int currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchemaName);
     int desiredVersion = DatabaseMigrator.determineDesiredVersion(databaseSchemaName);
     return currentVersion < desiredVersion;
   }

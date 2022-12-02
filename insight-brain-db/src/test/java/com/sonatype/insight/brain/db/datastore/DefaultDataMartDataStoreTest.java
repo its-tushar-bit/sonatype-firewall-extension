@@ -34,7 +34,7 @@ public class DefaultDataMartDataStoreTest
 
     assertThat(databaseVersionFile).doesNotExist();
     int desiredDbVersion = DatabaseMigrator.determineDesiredVersion(dataStore.getID());
-    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID()))
-        .isEqualTo(desiredDbVersion);
+    assertThat(DatabaseUtil.getDatabaseSchemaVersion(dataStore.getDataSource(), dataStore.getID(),
+        dataStore.getDatabaseSchema())).isEqualTo(desiredDbVersion);
   }
 }

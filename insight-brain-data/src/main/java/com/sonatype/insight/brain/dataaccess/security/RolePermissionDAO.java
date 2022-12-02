@@ -20,13 +20,33 @@ import com.sonatype.insight.brain.model.security.RolePermission;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @since 1.7
  */
 public class RolePermissionDAO
     extends AbstractOperationalSqlDAO<RolePermission>
 {
+  private static final Logger log = LoggerFactory.getLogger(RolePermissionDAO.class);
+
   private static volatile Map<Permission, Set<String>> roleIdsByPermission;
+
+  private static Runnable clearRolePermissionCacheForAllOtherNodes =
+      () -> log.warn("Clear role permission cache for all other nodes not set.");
+
+  public static Runnable getClearRolePermissionCacheForAllOtherNodes() {
+    return clearRolePermissionCacheForAllOtherNodes;
+  }
+
+  public static void setClearRolePermissionCacheForAllOtherNodes(Runnable clearRolePermissionCacheForAllOtherNodes) {
+    RolePermissionDAO.clearRolePermissionCacheForAllOtherNodes = clearRolePermissionCacheForAllOtherNodes;
+  }
+
+  public static void clearRolePermissionCache() {
+    roleIdsByPermission = null;
+  }
 
   List<RolePermission> getByRoleId(String roleId) {
     try (TransactionContext tx = createTransactionContext()) {
@@ -42,7 +62,8 @@ public class RolePermissionDAO
   @Override
   public void insert(TransactionContext tx, RolePermission entity) {
     super.insert(tx, entity);
-    roleIdsByPermission = null;
+    clearRolePermissionCache();
+    clearRolePermissionCacheForAllOtherNodes.run();
   }
 
   @Override
@@ -53,7 +74,8 @@ public class RolePermissionDAO
   @Override
   public void delete(TransactionContext tx, RolePermission entity) {
     super.delete(tx, entity);
-    roleIdsByPermission = null;
+    clearRolePermissionCache();
+    clearRolePermissionCacheForAllOtherNodes.run();
   }
 
   public void setPermissionsForRole(String roleId, Set<Permission> permissions) {

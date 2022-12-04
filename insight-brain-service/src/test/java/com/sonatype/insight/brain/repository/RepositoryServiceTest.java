@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -283,7 +284,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     String pathname = "path1";
     RepositoryComponent repositoryComponent1 = tempEntity.newRepositoryComponent(repository.getId(), pathname);
     RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(),
-        8, pathname, false /* isWaived */, Action.ID_FAIL, policy.getId(), policy.getName(),
+        8, pathname, true /* isWaived */, Action.ID_FAIL, policy.getId(), policy.getName(),
         repositoryComponent1.getComponentIdentifier());
     RepositoryComponent repositoryComponent2 = tempEntity.newRepositoryComponent(repository.getId(), "path2");
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path2", false/* isWaived */, "policyId2",
@@ -313,6 +314,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
         .isEqualTo(repositoryPolicyViolation.getThreatCategory());
     assertThat(repositoryPolicyViolationDTO.constraintFactsJson)
         .isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
+    assertThat(repositoryPolicyViolationDTO.waived).isEqualTo(repositoryPolicyViolation.isWaived());
     assertThat(repositoryPolicyViolationDTO.policyActionTypeId).isEqualTo(repositoryPolicyViolation.getActionTypeId());
     assertThat(repositoryPolicyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
   }
@@ -352,6 +354,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
         .isEqualTo(repositoryPolicyViolation.getThreatCategory());
     assertThat(repositoryPolicyViolationDTO.constraintFactsJson)
         .isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
+    assertThat(repositoryPolicyViolationDTO.waived).isEqualTo(repositoryPolicyViolation.isWaived());
     assertThat(repositoryPolicyViolationDTO.policyActionTypeId).isEqualTo(repositoryPolicyViolation.getActionTypeId());
     assertThat(repositoryPolicyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
   }
@@ -372,7 +375,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
     String pathname = "path1";
     RepositoryComponent repositoryComponent1 = tempEntity.newRepositoryComponent(repository.getId(), pathname);
     RepositoryPolicyViolation repositoryPolicyViolation =
-        tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, pathname, false /* isWaived */, Action.ID_FAIL,
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, pathname, true /* isWaived */, Action.ID_FAIL,
             policy.getId(), policy.getName(), repositoryComponent1.getComponentIdentifier());
 
     RepositoryPolicyViolationDTO repositoryPolicyViolationDTO =
@@ -396,6 +399,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
         .isEqualTo(repositoryPolicyViolation.getThreatCategory());
     assertThat(repositoryPolicyViolationDTO.constraintFactsJson)
         .isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
+    assertThat(repositoryPolicyViolationDTO.waived).isEqualTo(repositoryPolicyViolation.isWaived());
     assertThat(repositoryPolicyViolationDTO.policyActionTypeId).isEqualTo(repositoryPolicyViolation.getActionTypeId());
     assertThat(repositoryPolicyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
   }
@@ -457,6 +461,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
         .isEqualTo(repositoryPolicyViolation.getThreatCategory());
     assertThat(repositoryPolicyViolationDTO.constraintFactsJson)
         .isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
+    assertThat(repositoryPolicyViolationDTO.waived).isEqualTo(repositoryPolicyViolation.isWaived());
     assertThat(repositoryPolicyViolationDTO.policyActionTypeId).isEqualTo(repositoryPolicyViolation.getActionTypeId());
     assertThat(repositoryPolicyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
   }

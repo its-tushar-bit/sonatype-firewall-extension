@@ -19,6 +19,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -532,6 +533,7 @@ public class RepositoryService
         repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getPolicyId(),
         repositoryPolicyViolation.getPolicyName(), policyOwner, repositoryPolicyViolation.getThreatLevel(),
         repositoryPolicyViolation.getThreatCategory(), constraints, repositoryPolicyViolation.getConstraintFactsJson(),
-        repositoryPolicyViolation.getActionTypeId(), repositoryPolicyViolation.getTime());
+        repositoryPolicyViolation.isWaived(), repositoryPolicyViolation.getActionTypeId(),
+        repositoryPolicyViolation.getTime());
   }
 }

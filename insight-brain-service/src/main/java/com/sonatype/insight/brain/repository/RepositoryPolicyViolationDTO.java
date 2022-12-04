@@ -45,6 +45,8 @@ public class RepositoryPolicyViolationDTO
 
   public String constraintFactsJson;
 
+  public boolean waived;
+
   public String policyActionTypeId;
 
   @JsonSerialize(using = ISODateSerializer.class)
@@ -66,6 +68,7 @@ public class RepositoryPolicyViolationDTO
       PolicyThreatCategory policyThreatCategory,
       List<PolicyThreats.PolicyConstraint> constraints,
       String constraintFactsJson,
+      boolean waived,
       String policyActionTypeId,
       Date lastReported)
   {
@@ -85,6 +88,7 @@ public class RepositoryPolicyViolationDTO
     this.policyThreatCategory = policyThreatCategory;
     this.constraints = constraints;
     this.constraintFactsJson = constraintFactsJson;
+    this.waived = waived;
     this.policyActionTypeId = policyActionTypeId;
     this.lastReported = lastReported;
   }

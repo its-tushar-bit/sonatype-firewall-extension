@@ -174,6 +174,7 @@ public class RepositoryResourceTest
         .isEqualTo(repositoryPolicyViolation.getThreatCategory());
     assertThat(repositoryPolicyViolationDTO.constraintFactsJson)
         .isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
+    assertThat(repositoryPolicyViolationDTO.waived).isEqualTo(repositoryPolicyViolation.isWaived());
     assertThat(repositoryPolicyViolationDTO.policyActionTypeId).isEqualTo(repositoryPolicyViolation.getActionTypeId());
     assertThat(repositoryPolicyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
   }
@@ -210,6 +211,7 @@ public class RepositoryResourceTest
         .isEqualTo(repositoryPolicyViolation.getThreatCategory());
     assertThat(repositoryPolicyViolationDTO.constraintFactsJson)
         .isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
+    assertThat(repositoryPolicyViolationDTO.waived).isEqualTo(repositoryPolicyViolation.isWaived());
     assertThat(repositoryPolicyViolationDTO.policyActionTypeId).isEqualTo(repositoryPolicyViolation.getActionTypeId());
     assertThat(repositoryPolicyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
   }

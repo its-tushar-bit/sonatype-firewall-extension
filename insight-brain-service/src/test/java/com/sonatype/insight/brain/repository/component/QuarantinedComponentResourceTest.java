@@ -323,7 +323,7 @@ public class QuarantinedComponentResourceTest
     constraintFacts.add(constraintFact);
     RepositoryPolicyViolation repositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent.getPathname(),
-            "hash", constraintFacts, false, Action.ID_FAIL, "policyid", "policyname",
+            "hash", constraintFacts, false /* isWaived */, Action.ID_FAIL, "policyid", "policyname",
             repositoryComponent.getComponentIdentifier(), date, null, null,
             null);
     final QuarantinedComponentAccess quarantinedComponentAccess =
@@ -362,6 +362,7 @@ public class QuarantinedComponentResourceTest
         conditionFact.getSummary());
     assertThat(policyViolationDTO.constraintFactsJson).isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
 
+    assertThat(policyViolationDTO.waived).isEqualTo(repositoryPolicyViolation.isWaived());
     assertThat(policyViolationDTO.policyActionTypeId).isEqualTo(Action.ID_FAIL);
     assertThat(policyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
   }
@@ -381,8 +382,8 @@ public class QuarantinedComponentResourceTest
     constraintFact.addConditionFact(conditionFact);
     constraintFacts.add(constraintFact);
     RepositoryPolicyViolation repositoryPolicyViolation = tempEntity.newRepositoryPolicyViolation(repository.getId(), 5,
-        repositoryComponent.getPathname(), "hash", constraintFacts, false, Action.ID_FAIL, "policyid", "policyname",
-        repositoryComponent.getComponentIdentifier(), date, null, null, null);
+        repositoryComponent.getPathname(), "hash", constraintFacts, false /* isWaived */, Action.ID_FAIL, "policyid",
+        "policyname", repositoryComponent.getComponentIdentifier(), date, null, null, null);
     QuarantinedComponentAccess quarantinedComponentAccess =
         tempEntity.newQuarantinedComponentAccess(repository.getId(), repositoryComponent.getId());
     String encodedToken = encodeToken(quarantinedComponentAccess);
@@ -426,6 +427,7 @@ public class QuarantinedComponentResourceTest
         .isEqualTo(conditionFact.getSummary());
     assertThat(policyViolationDTO.constraintFactsJson).isEqualTo(repositoryPolicyViolation.getConstraintFactsJson());
 
+    assertThat(policyViolationDTO.waived).isEqualTo(repositoryPolicyViolation.isWaived());
     assertThat(policyViolationDTO.policyActionTypeId).isEqualTo(Action.ID_FAIL);
     assertThat(policyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
   }

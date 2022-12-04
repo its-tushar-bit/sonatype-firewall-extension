@@ -330,11 +330,11 @@ public class QuarantinedComponentServiceTest
     constraintFacts.add(constraintFact);
     Policy policy1 = tempEntity.newPolicy();
     RepositoryPolicyViolation violation1 = tempEntity.newRepositoryPolicyViolation(repository.getId(), 5,
-        repositoryComponent.getPathname(), "hash", constraintFacts, false, Action.ID_FAIL, policy1.getId(),
-        policy1.getName(), repositoryComponent.getComponentIdentifier(), date, null, null, null);
+        repositoryComponent.getPathname(), "hash", constraintFacts, false /* isWaived */, Action.ID_FAIL,
+        policy1.getId(), policy1.getName(), repositoryComponent.getComponentIdentifier(), date, null, null, null);
     RepositoryPolicyViolation violation2 =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), 10, repositoryComponent.getPathname(),
-            "hash", constraintFacts, false, Action.ID_FAIL, "policyid_2",
+            "hash", constraintFacts, false /* isWaived */, Action.ID_FAIL, "policyid_2",
             "policyname_2", repositoryComponent.getComponentIdentifier(), date, null,
             null, null);
     QuarantinedComponentAccess quarantinedComponentAccess =
@@ -366,6 +366,7 @@ public class QuarantinedComponentServiceTest
     assertThat(policyViolationDTO.constraints.get(0).conditions.get(0).conditionSummary).isEqualTo(
         conditionFact.getSummary());
     assertThat(policyViolationDTO.constraintFactsJson).isEqualTo(violation2.getConstraintFactsJson());
+    assertThat(policyViolationDTO.waived).isEqualTo(violation2.isWaived());
     assertThat(policyViolationDTO.policyActionTypeId).isEqualTo(Action.ID_FAIL);
     assertThat(policyViolationDTO.lastReported).isEqualTo(violation2.getTime());
 
@@ -386,6 +387,7 @@ public class QuarantinedComponentServiceTest
     assertThat(policyViolationDTO.constraints.get(0).conditions.get(0).conditionSummary)
         .isEqualTo(conditionFact.getSummary());
     assertThat(policyViolationDTO.constraintFactsJson).isEqualTo(violation1.getConstraintFactsJson());
+    assertThat(policyViolationDTO.waived).isEqualTo(violation1.isWaived());
     assertThat(policyViolationDTO.policyActionTypeId).isEqualTo(Action.ID_FAIL);
     assertThat(policyViolationDTO.lastReported).isEqualTo(violation1.getTime());
 

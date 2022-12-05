@@ -76,7 +76,9 @@ export default function ApplyLabelModal({
                 isChecked={labelScopeToSave.labelScopeId === id && labelScopeToSave.labelScopeType === type}
                 radioId={`scope-id-${id}`}
               >
-                <span className="apply-label-modal__scope-level">{type} - </span>
+                <span className="apply-label-modal__scope-level">
+                  {type === 'repository_container' ? ' ' : `${type} - `}
+                </span>
                 {name}
               </NxRadio>
             ))}

@@ -15,13 +15,14 @@ import {
   selectSelectedLabelDetails,
   selectShowApplyLabelModal,
 } from '../../componentDetailsSelectors';
+import { selectFirewallComponentName } from 'MainRoot/firewall/firewallSelectors';
 import { actions } from '../../componentDetailsSlice';
 import ApplyLabelModal from './ApplyLabelModal';
 
 function mapStateToProps(state) {
   return {
     applicableLabelScopes: selectApplicableLabelScopes(state),
-    componentName: selectComponentName(state),
+    componentName: selectComponentName(state) || selectFirewallComponentName(state),
     labelScopeToSave: selectLabelScopeToSave(state),
     loadError: selectApplicableLabelScopesLoadError(state),
     loading: selectIsApplyLabelModalLoading(state),

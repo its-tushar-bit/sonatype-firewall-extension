@@ -19,6 +19,7 @@ import FirewallOverview from './overview/FirewallOverview';
 import FirewallPolicyViolations from './policyViolations/FirewallPolicyViolations';
 import FirewallSecurityTab from 'MainRoot/firewall/firewallComponentDetailsPage/security/FirewallSecurityTab';
 import FirewallLegalTab from 'MainRoot/firewall/firewallComponentDetailsPage/legal/FirewallLegalTab';
+import FirewallLabelsTab from 'MainRoot/firewall/firewallComponentDetailsPage/labels/FirewallLabelsTab';
 
 import { faSync } from '@fortawesome/pro-solid-svg-icons';
 
@@ -27,7 +28,7 @@ export const tabsConfiguration = [
   createTabConfiguration('violations', 'Policy Violations', <FirewallPolicyViolations />),
   createTabConfiguration('security', 'Security', <FirewallSecurityTab />),
   createTabConfiguration('legal', 'Legal', <FirewallLegalTab />),
-  createTabConfiguration('labels', 'Labels'),
+  createTabConfiguration('labels', 'Labels', <FirewallLabelsTab />),
 ];
 
 export default function FirewallComponentDetailsPage(props) {
@@ -39,6 +40,8 @@ export default function FirewallComponentDetailsPage(props) {
     loadComponentPolicyViolations,
     loadExistingWaiversData,
     reevaluateComponent,
+    firewallLoadApplicableLabels,
+    labels,
   } = props;
   const { tabId } = routeParams;
   const { componentDetails, isLoadingComponentDetails, componentDetailsError } = componentDetailsPageResponseState;
@@ -49,6 +52,7 @@ export default function FirewallComponentDetailsPage(props) {
     loadComponentDetails(routeParams);
     loadComponentPolicyViolations(routeParams.pathname, routeParams.repositoryId);
     loadExistingWaiversData('repository', routeParams.repositoryId, routeParams.componentHash);
+    firewallLoadApplicableLabels();
   }, []);
 
   const handleTabChange = (tabIdToMoveTo) => {
@@ -87,12 +91,7 @@ export default function FirewallComponentDetailsPage(props) {
                 </NxTooltip>
               </div>
               <ComponentDetailsReportInfo {...componentDetails?.metadata} />
-              <ComponentDetailsTags
-                format={componentDetails?.componentIdentifier?.format}
-                dependencyType={componentDetails?.dependencyType}
-                isInnerSource={componentDetails?.isInnerSource}
-                labels={componentDetails?.labels}
-              />
+              <ComponentDetailsTags format={componentDetails?.componentIdentifier?.format} labels={labels} />
             </ComponentDetailsHeader>
           )}
         </NxLoadWrapper>
@@ -130,4 +129,6 @@ FirewallComponentDetailsPage.propTypes = {
     componentDetailsError: PropTypes.string,
   }).isRequired,
   reevaluateComponent: PropTypes.func,
+  firewallLoadApplicableLabels: PropTypes.func,
+  labels: PropTypes.array,
 };

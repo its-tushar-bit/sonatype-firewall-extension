@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViola
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ManageLabelsContentTab;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -38,6 +39,8 @@ public class FirewallComponentDetailsPage
   private static final String SECURITY_TAB_ID = "security";
 
   private static final String LEGAL_TAB_ID = "legal";
+
+  private static final String LABELS_TAB_ID = "labels";
 
   public FirewallComponentDetailsPage() {
     super(ROOT);
@@ -76,6 +79,10 @@ public class FirewallComponentDetailsPage
 
   public static String urlLegalTab(RepositoryComponent component) {
     return getBaseUrl(component, LEGAL_TAB_ID);
+  }
+
+  public static String urlLabelsTab(RepositoryComponent component) {
+    return getBaseUrl(component, LABELS_TAB_ID);
   }
 
   public SelenideElement title() {
@@ -200,5 +207,9 @@ public class FirewallComponentDetailsPage
 
   public SelenideElement getDeleteWaiverModalButton() {
     return child("#delete-waiver-modal-continue-button");
+  }
+
+  public ManageLabelsContentTab labelsContent() {
+    return new ManageLabelsContentTab("#component-details-labels-tab-content");
   }
 }

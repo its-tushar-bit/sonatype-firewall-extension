@@ -672,8 +672,8 @@ export function getSessionUrl() {
   return uriTemplate`/rest/user/session`;
 }
 
-export function getComponentLabels(ownerId, componentHash) {
-  return uriTemplate`/rest/label/component/application/${ownerId}/${componentHash}`;
+export function getComponentLabels(ownerId, componentHash, ownerType = 'application') {
+  return uriTemplate`/rest/label/component/${ownerType}/${ownerId}/${componentHash}`;
 }
 
 export function removeLabel(ownerType, ownerId, componentHash, labelId) {

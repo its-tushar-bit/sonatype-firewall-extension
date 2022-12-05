@@ -31,7 +31,8 @@ describe('FirewallComponentDetailsPage', function () {
     onTabChangeSpy,
     loadComponentPolicyViolationsSpy,
     loadExistingWaiversDataSpy,
-    reevaluateComponentSpy;
+    reevaluateComponentSpy,
+    firewallLoadApplicableLabelsSpy;
 
   const setCustomComponentDetailsPageResponseStateParamsOnMinimalProps = (key, value) => ({
     ...minimalProps,
@@ -44,6 +45,7 @@ describe('FirewallComponentDetailsPage', function () {
     loadComponentPolicyViolationsSpy = jasmine.createSpy('loadComponentPolicyViolations');
     loadExistingWaiversDataSpy = jasmine.createSpy('loadExistingWaiversData');
     reevaluateComponentSpy = jasmine.createSpy('reevaluateComponent');
+    firewallLoadApplicableLabelsSpy = jasmine.createSpy('firewallLoadApplicableLabels');
 
     spyOn(ComponentDetailsTabsFile, 'default').and.returnValue(<div>Tabs</div>);
 
@@ -67,6 +69,7 @@ describe('FirewallComponentDetailsPage', function () {
       loadComponentPolicyViolations: loadComponentPolicyViolationsSpy,
       loadExistingWaiversData: loadExistingWaiversDataSpy,
       reevaluateComponent: reevaluateComponentSpy,
+      firewallLoadApplicableLabels: firewallLoadApplicableLabelsSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(FirewallComponentDetailsPage, minimalProps);

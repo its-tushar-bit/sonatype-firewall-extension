@@ -36,6 +36,7 @@ import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ManageLabelsContentTab;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
@@ -54,6 +55,7 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -74,7 +76,9 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -1862,5 +1866,135 @@ public class FirewallComponentDetailsPageTest
     ComponentWaiversPopoverTable componentWaiversTableRefreshed =
         componentWaiversPopoverRefreshed.componentWaiversPopoverTable();
     componentWaiversTableRefreshed.getRows().get(0).shouldHave(text("No existing component waivers"));
+  }
+
+  private String[] expectedLabelsTexts = {"Label 1", "Label 2", "Label 3"};
+
+  private ArrayList<Label> generateApplicableLabels() {
+    ArrayList<Label> labelsList = new ArrayList<Label>();
+    labelsList.add(tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, expectedLabelsTexts[0], Color.dark_blue));
+    labelsList.add(tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, expectedLabelsTexts[1], Color.dark_red));
+    labelsList.add(tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, expectedLabelsTexts[2], Color.dark_green));
+    return labelsList;
+  }
+
+  private void setLabelsAsApplied(RepositoryComponent component, ArrayList<Label> labelsList) {
+    tempEntity.newComponentLabel(Organization.ROOT_ORGANIZATION_ID, labelsList.get(0).getId(), component.getHash());
+    tempEntity.newComponentLabel(RepositoryContainer.REPOSITORY_CONTAINER_ID, labelsList.get(1).getId(),
+        component.getHash());
+    tempEntity.newComponentLabel(component.getRepositoryId(), labelsList.get(2).getId(), component.getHash());
+  }
+
+  private void addAppliedLabelsFromApplicableList(ManageLabelsContentTab manageLabels, int labelIndex, int scopeIndex) {
+    manageLabels.applicableLabels().get(labelIndex).should(exist).click();
+    manageLabels.addLabelModal().should(exist);
+    manageLabels.addLabelModal().labelsScopeRadioButton(scopeIndex).should(exist).click();
+    manageLabels.addLabelModal().submitButton().shouldBe(enabled).click();
+    NxSubmitMask.seeAndWaitForDismissal();
+  }
+
+  @Test 
+  public void tesLabelsTab_displayApplicableLabels() {
+    RepositoryComponent component = setupAllTestData();    
+    generateApplicableLabels();
+    refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
+    ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
+    manageLabels.shouldBe(visible);
+    
+    manageLabels.applicableLabels().shouldHaveSize(3);
+    manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
+    assertThat(manageLabels.applicableLabels().get(0).getAttribute("className")).contains("nx-selectable-color--blue");
+    manageLabels.applicableLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
+    assertThat(manageLabels.applicableLabels().get(1).getAttribute("className")).contains("nx-selectable-color--red");
+    manageLabels.applicableLabelText(2).shouldHave(text(expectedLabelsTexts[2]));
+    assertThat(manageLabels.applicableLabels().get(2).getAttribute("className")).contains("nx-selectable-color--green");
+    manageLabels.appliedLabels().shouldHaveSize(0);
+  }
+
+  @Test
+  public void testLabelsTab_displayAppliedLabels() {
+    RepositoryComponent component = setupAllTestData();    
+    ArrayList<Label> labelsList = generateApplicableLabels();
+    setLabelsAsApplied(component, labelsList);
+    refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
+    ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
+    manageLabels.shouldBe(visible);
+    manageLabels.applicableLabels().shouldHaveSize(0);
+    manageLabels.appliedLabels().shouldHaveSize(3);
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
+    assertThat(manageLabels.appliedLabels().get(0).getAttribute("className")).contains("nx-selectable-color--green");
+    manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
+    assertThat(manageLabels.appliedLabels().get(1).getAttribute("className")).contains("nx-selectable-color--red");
+    manageLabels.appliedLabelText(2).shouldHave(text(expectedLabelsTexts[0]));
+    assertThat(manageLabels.appliedLabels().get(2).getAttribute("className")).contains("nx-selectable-color--blue");
+  }
+    
+  @Test
+  public void testLabelsTab_addLabels() {
+    RepositoryComponent component = setupAllTestData();    
+    generateApplicableLabels();
+    refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
+    ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
+    
+    manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
+    addAppliedLabelsFromApplicableList(manageLabels, 0,
+        ManageLabelsContentTab.RepositoryComponentLabelsScopes.ROOT_ORGANIZATION.ordinal());
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
+
+    manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[1]));
+    addAppliedLabelsFromApplicableList(manageLabels, 0,
+        ManageLabelsContentTab.RepositoryComponentLabelsScopes.ALL_REPOSITORIES.ordinal());
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[1]));
+
+    manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
+    addAppliedLabelsFromApplicableList(manageLabels, 0,
+        ManageLabelsContentTab.RepositoryComponentLabelsScopes.REPOSITORY.ordinal());
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
+
+    manageLabels.applicableLabels().shouldHaveSize(0);
+    manageLabels.appliedLabels().shouldHaveSize(3);
+  }
+
+  private void removeAppliedLabel(ManageLabelsContentTab manageLabels, int labelIndex) {
+    manageLabels.appliedLabels().get(labelIndex).should(exist).click();
+    manageLabels.removeLabelModal().should(exist);
+    manageLabels.removeLabelModal().confirmRemoveButton().should(exist).click();
+    NxSubmitMask.seeAndWaitForDismissal(); 
+  }
+
+  @Test
+  public void testLabelsTab_removeLabels() {
+    RepositoryComponent component = setupAllTestData();    
+    ArrayList<Label> labelsList = generateApplicableLabels();
+    setLabelsAsApplied(component, labelsList);
+    refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
+    ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
+    
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
+    manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
+    manageLabels.appliedLabelText(2).shouldHave(text(expectedLabelsTexts[0]));
+    
+    removeAppliedLabel(manageLabels, 0);
+    
+    manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[1]));
+    manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[0]));
+    
+    eyesWatcher.eyesCheck("Labels Tab");
+
+    removeAppliedLabel(manageLabels, 0);
+    
+    manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[1]));
+    manageLabels.applicableLabelText(1).shouldHave(text(expectedLabelsTexts[2]));
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
+
+    removeAppliedLabel(manageLabels, 0);
+    
+    manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
+    manageLabels.applicableLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
+    manageLabels.applicableLabelText(2).shouldHave(text(expectedLabelsTexts[2]));
+
+    manageLabels.applicableLabels().shouldHaveSize(3);
+    manageLabels.appliedLabels().shouldHaveSize(0);
   }
 }

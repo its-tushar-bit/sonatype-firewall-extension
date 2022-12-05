@@ -23,7 +23,7 @@ import { selectComponentDetailsRequestData } from './overview/overviewSelectors'
 import { Messages } from '../utilAngular/CommonServices';
 import { toggleBooleanProp } from '../util/reduxUtil';
 import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRouterCurrentParams, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import {
   selectComponentDetails,
@@ -66,7 +66,7 @@ export const initialState = Object.freeze({
   dependencyTreeSubset: null,
 });
 
-const mutatePendingLoads = curryN(3, function mutatePendingLoads(setMutator, loads, state) {
+const mutatePendingLoads = curryN(3, (setMutator, loads, state) => {
   const { pendingLoads } = state;
   const newPendingLoads = new Set(pendingLoads);
 
@@ -92,14 +92,16 @@ const flattenLabelsToSingleArray = (labelsByOwner) => {
 
 const flattenScopesToSingleArray = (topLevelScope) => {
   let flattenedScopesArray = [topLevelScope];
-  topLevelScope.children.forEach(function (childScope) {
-    flattenedScopesArray.push(childScope);
-    if (childScope.children) {
-      childScope.children.forEach(function (nextChild) {
-        flattenedScopesArray.push(nextChild);
-      });
-    }
-  });
+  if (topLevelScope.children) {
+    topLevelScope.children.forEach(function (childScope) {
+      flattenedScopesArray.push(childScope);
+      if (childScope.children) {
+        childScope.children.forEach(function (nextChild) {
+          flattenedScopesArray.push(nextChild);
+        });
+      }
+    });
+  }
   return flattenedScopesArray;
 };
 
@@ -119,6 +121,16 @@ const handleRemoveLabelTag = (labelDetails, ownerType) => {
 
 const loadComponentDetailsRequested = (state) => {
   return setPendingLoads(['labels'], state);
+};
+
+const loadComponentLabelsFullfilled = (state, { payload }) => {
+  const labelsByOwner = payload?.data?.labelsByOwner || [];
+  const labels = flattenLabelsToSingleArray(labelsByOwner);
+  return unsetPendingLoads(['labels'], {
+    ...state,
+    labels: labels,
+    loadError: null,
+  });
 };
 
 const loadComponentDetailsFulfilled = (state, { payload }) => {
@@ -142,6 +154,22 @@ function loadComponentDetailsFailed(state, { payload }) {
   return unsetPendingLoads(['labels'], { ...state, loadError: Messages.getHttpErrorMessage(payload) });
 }
 
+let loadFirewallComponentDetailsLabelsCancelToken = null;
+const loadFirewallComponentDetailsLabels = createAsyncThunk(
+  `${REDUCER_NAME}/loadFirewallComponentDetailsLabels`,
+  (_, { dispatch, getState }) => {
+    const isPending = selectIsLabelsLoading(getState());
+
+    if (isPending) {
+      loadFirewallComponentDetailsLabelsCancelToken?.cancel(HTTP_CLIENT_CLOSED_REQUEST);
+    }
+
+    loadFirewallComponentDetailsLabelsCancelToken = axios.CancelToken.source();
+
+    dispatch(loadFirewallComponentDetailsLabelsWithCancelToken(loadFirewallComponentDetailsLabelsCancelToken.token));
+  }
+);
+
 let loadComponentDetailsCancelToken = null;
 const loadComponentDetails = createAsyncThunk(`${REDUCER_NAME}/loadComponentDetails`, (_, { dispatch, getState }) => {
   const isPending = selectIsLabelsLoading(getState());
@@ -155,17 +183,33 @@ const loadComponentDetails = createAsyncThunk(`${REDUCER_NAME}/loadComponentDeta
   dispatch(loadComponentDetailsWithCancelToken(loadComponentDetailsCancelToken.token));
 });
 
+const loadFirewallComponentDetailsLabelsWithCancelToken = createAsyncThunk(
+  `${REDUCER_NAME}/loadFirewallComponentDetailsLabelsWithCancelToken`,
+  (cancelToken, { getState, rejectWithValue }) => {
+    const currentState = getState();
+    const { repositoryId, componentHash } = currentState.router.currentParams;
+    return axios
+      .get(getComponentLabels(repositoryId, componentHash, 'repository'), { cancelToken })
+      .then((results) => {
+        return results;
+      })
+      .catch(rejectWithValue);
+  }
+);
+
 const loadComponentDetailsWithCancelToken = createAsyncThunk(
   `${REDUCER_NAME}/loadComponentDetailsWithCancelToken`,
   (cancelToken, { getState, dispatch, rejectWithValue }) => {
     return dispatch(loadReportIfNeeded())
       .then(() => {
-        const { publicId, hash } = getState().router.currentParams;
-        return axios.get(getComponentLabels(publicId, hash), { cancelToken });
+        const currentState = getState();
+        const { publicId, hash } = currentState.router.currentParams;
+        return axios.get(getComponentLabels(publicId, hash, 'application'), { cancelToken });
       })
       .then((results) => {
-        const dependencyTree = selectDependencyTreeData(getState());
-        const { hash } = selectComponentDetails(getState());
+        const currentState = getState();
+        const dependencyTree = selectDependencyTreeData(currentState);
+        const { hash } = selectComponentDetails(currentState);
 
         return {
           ...results,
@@ -226,12 +270,35 @@ const loadApplicableLabels = createAsyncThunk(`${REDUCER_NAME}/loadApplicableLab
   dispatch(loadApplicableLabelsWithCancelToken(loadApplicableLabelsCancelToken.token));
 });
 
+const firewallLoadApplicableLabels = createAsyncThunk(
+  `${REDUCER_NAME}/firewallLoadApplicableLabels`,
+  (_, { getState, dispatch }) => {
+    const isPending = selectIsApplicableLabelsLoading(getState());
+
+    if (isPending) {
+      loadApplicableLabelsCancelToken?.cancel(HTTP_CLIENT_CLOSED_REQUEST);
+    }
+
+    loadApplicableLabelsCancelToken = axios.CancelToken.source();
+
+    dispatch(firewallLoadApplicableLabelsWithCancelToken(loadApplicableLabelsCancelToken.token));
+  }
+);
+
 const loadApplicableLabelsWithCancelToken = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicableLabelsWithCancelToken`,
   (cancelToken, { getState, rejectWithValue }) => {
-    const { publicId } = getState().router.currentParams;
-
+    const currentState = getState();
+    const { publicId } = currentState.router.currentParams;
     return axios.get(getApplicableLabelsUrl('application', publicId), { cancelToken }).catch(rejectWithValue);
+  }
+);
+
+const firewallLoadApplicableLabelsWithCancelToken = createAsyncThunk(
+  `${REDUCER_NAME}/loadApplicableLabelsWithCancelToken`,
+  (cancelToken, { getState, rejectWithValue }) => {
+    const { repositoryId } = getState().router.currentParams;
+    return axios.get(getApplicableLabelsUrl('repository', repositoryId), { cancelToken }).catch(rejectWithValue);
   }
 );
 
@@ -267,10 +334,15 @@ const loadApplicableLabelsFailed = (state, { payload }) => {
 const loadApplicableLabelScopes = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicableLabelScopes`,
   (_, { getState, rejectWithValue }) => {
-    const { componentDetails, router } = getState();
-    const { id } = componentDetails.selectedLabelDetails;
-    const { publicId } = router.currentParams;
-    return axios.get(getApplicableLabelScopesUrl('application', publicId, id)).catch(rejectWithValue);
+    const currentState = getState();
+    const { componentDetails, router } = currentState;
+    const { id: labelId } = componentDetails.selectedLabelDetails;
+    const { publicId, repositoryId } = router.currentParams;
+    if (selectIsFirewall(currentState)) {
+      return axios.get(getApplicableLabelScopesUrl('repository', repositoryId, labelId)).catch(rejectWithValue);
+    } else {
+      return axios.get(getApplicableLabelScopesUrl('application', publicId, labelId)).catch(rejectWithValue);
+    }
   }
 );
 
@@ -301,17 +373,22 @@ const saveApplyLabelScope = createAsyncThunk(
   (_, { dispatch, getState, rejectWithValue }) => {
     const { componentDetails, router } = getState();
     const payload = componentDetails.selectedLabelDetails;
-    const { hash } = router.currentParams;
+    const { hash, componentHash } = router.currentParams;
     const { labelScopeType, labelScopeId } = componentDetails.labelScopeToSave;
+    const currentHash = hash || componentHash;
 
     return axios
-      .post(getSaveLabelScopeUrl(labelScopeType, labelScopeId, hash), payload)
+      .post(getSaveLabelScopeUrl(labelScopeType, labelScopeId, currentHash), payload)
       .then((results) => {
         setTimeout(() => {
           dispatch(actions.cancelApplyLabelModal());
           dispatch(actions.resetApplyLabelMaskState(null));
           dispatch(actions.resetLabelModalMaskState(null));
-          dispatch(actions.loadComponentDetails());
+          if (selectIsFirewall(getState())) {
+            dispatch(actions.loadFirewallComponentDetailsLabels());
+          } else {
+            dispatch(actions.loadComponentDetails());
+          }
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         return results;
       })
@@ -351,13 +428,17 @@ const saveApplyLabelScopeFailed = (state, { payload }) => {
 const removeAppliedLabel = createAsyncThunk(
   `${REDUCER_NAME}/removeLabel`,
   ({ ownerType, ownerId, id }, { dispatch, getState, rejectWithValue }) => {
-    const { hash } = getState().router.currentParams;
+    const { hash, componentHash } = getState().router.currentParams;
     return axios
-      .delete(removeLabel(ownerType, ownerId, hash, id))
+      .delete(removeLabel(ownerType, ownerId, hash || componentHash, id))
       .then(() => {
         setTimeout(() => {
           dispatch(actions.toggleShowRemoveLabelModal());
-          dispatch(loadComponentDetails());
+          if (selectIsFirewall(getState())) {
+            dispatch(loadFirewallComponentDetailsLabels());
+          } else {
+            dispatch(loadComponentDetails());
+          }
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
       })
       .catch(rejectWithValue);
@@ -466,6 +547,10 @@ const componentDetailsSlice = createSlice({
     [loadComponentDetailsWithCancelToken.fulfilled]: loadComponentDetailsFulfilled,
     [loadComponentDetailsWithCancelToken.rejected]: loadComponentDetailsFailed,
 
+    [loadFirewallComponentDetailsLabels.pending]: loadComponentDetailsRequested,
+    [loadFirewallComponentDetailsLabelsWithCancelToken.fulfilled]: loadComponentLabelsFullfilled,
+    [loadFirewallComponentDetailsLabelsWithCancelToken.rejected]: loadComponentDetailsFailed,
+
     [addProprietaryMatchers.pending]: addProprietaryMatchersRequested,
     [addProprietaryMatchers.fulfilled]: addProprietaryMatchersFulfilled,
     [addProprietaryMatchers.rejected]: addProprietaryMatchersFailed,
@@ -493,9 +578,11 @@ export const actions = {
   addProprietaryMatchers,
   handleAddLabelTag,
   loadComponentDetails,
+  loadFirewallComponentDetailsLabels,
   loadComponentDetailsWithCancelToken,
   onTabChange,
   loadApplicableLabels,
+  firewallLoadApplicableLabels,
   loadApplicableLabelsWithCancelToken,
   removeAppliedLabel,
   handleRemoveLabelTag,

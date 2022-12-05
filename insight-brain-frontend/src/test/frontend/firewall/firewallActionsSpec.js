@@ -101,6 +101,7 @@ import {
   getLicensesWithSyntheticFilterUrl,
   getComponentMultiLicensesUrl,
   getLicenseOverrideUrl,
+  getComponentLabels,
 } from '../../../main/frontend/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from '../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
@@ -203,6 +204,9 @@ describe('firewallActions', function () {
           repositoryId: 'repositoryId',
         }),
       }),
+      componentDetails: {
+        pendingLoads: new Set(),
+      },
     };
 
     store = SpecUtil.mockReduxStore(state);
@@ -1059,7 +1063,7 @@ describe('firewallActions', function () {
   });
 
   describe('loadComponentDetails', () => {
-    it('immediatly dispatches actions to retrieve the component details that matches with the params', function () {
+    it('immediatly dispatches actions to retrieve the component details that matches with the params', function (done) {
       const repositoryId = 'repositoryId',
         componentIdentifier =
           '{"format":"maven","coordinates":{"artifactId":"ant","classifier":"","extension":"jar","groupId":"ant","version":"1.6.3"}}',
@@ -1067,7 +1071,9 @@ describe('firewallActions', function () {
         matchState = 'exact',
         proprietary = true,
         identificationSource = 'sonatype',
-        scanId = 'scanId';
+        scanId = 'scanId',
+        ownerType = 'repository';
+
       const componentDetailsParams = {
         repositoryId,
         componentIdentifier,
@@ -1079,7 +1085,7 @@ describe('firewallActions', function () {
       };
       const requestParams = {
         clientType: 'ci',
-        ownerType: 'repository',
+        ownerType,
         ownerId: repositoryId,
         componentIdentifier,
         hash: componentHash,
@@ -1089,26 +1095,40 @@ describe('firewallActions', function () {
         scanId,
       };
       const componentDetailsUrl = getComponentDetailsUrl(requestParams);
-      const mockResponse = {
+      const componentDetailsUrlMockResponse = {
         hash: 'b7c953dd67e01c952d79',
         matchState: 'exact',
+      };
+      const componentLabelsUrl = getComponentLabels(repositoryId, componentHash, ownerType);
+      const componentLabelsUrlMockResponse = {
+        data: { labelsByOwner: [] },
       };
 
       mockAxiosCalls({
         get: {
           [componentDetailsUrl]: Promise.resolve({
-            data: mockResponse,
+            data: componentDetailsUrlMockResponse,
           }),
+          [componentLabelsUrl]: Promise.resolve(componentLabelsUrlMockResponse),
         },
       });
 
       store.dispatch(loadComponentDetails(componentDetailsParams)).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(6);
         expect(actions[0].type).toBe(FIREWALL_COMPONENT_DETAILS_REQUESTED);
         expect(actions[0].payload).toBeUndefined();
         expect(actions[1].type).toBe(FIREWALL_COMPONENT_DETAILS_FULFILLED);
-        expect(actions[1].payload).toBe(mockResponse);
+        expect(actions[1].payload).toBe(componentDetailsUrlMockResponse);
+        expect(actions[2].type).toBe('componentDetails/loadFirewallComponentDetailsLabels/pending');
+        expect(actions[2].payload).toBeUndefined();
+        expect(actions[3].type).toBe('componentDetails/loadFirewallComponentDetailsLabelsWithCancelToken/pending');
+        expect(actions[3].payload).toBeUndefined();
+        expect(actions[4].type).toBe('componentDetails/loadFirewallComponentDetailsLabels/fulfilled');
+        expect(actions[4].payload).toBeUndefined();
+        expect(actions[5].type).toBe('componentDetails/loadFirewallComponentDetailsLabelsWithCancelToken/fulfilled');
+        expect(actions[5].payload).toEqual(componentLabelsUrlMockResponse);
+        done();
       });
     });
     it('immediatly dispatches actions to handle a component details request error', function () {

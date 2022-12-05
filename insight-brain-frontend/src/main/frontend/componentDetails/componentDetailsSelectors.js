@@ -121,7 +121,9 @@ export const selectComponentSimilarMatches = createSelector(selectSelectedCompon
 
 export const selectApplicableLabels = createSelector(selectDetails, ({ applicableLabels }) => applicableLabels);
 
-export const selectLabels = createSelector(selectDetails, ({ labels }) => labels);
+export const selectLabels = createSelector(selectDetails, (componentDetails) => {
+  return componentDetails.labels;
+});
 
 export const selectLoadError = createSelector(selectDetails, ({ loadError }) => loadError);
 
@@ -189,3 +191,5 @@ export const selectShowRemoveLabelModal = createSelector(selectDetails, prop('sh
 export const selectRemoveAppliedLabelError = createSelector(selectDetails, prop('removeAppliedLabelError'));
 
 export const selectDependencyTreeSubset = createSelector(selectDetails, prop('dependencyTreeSubset'));
+
+export const selectSelectedLabelOwnerType = createSelector(selectDetails, prop('selectedLabelOwnerType'));

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
+import { actions as componentDetailsActions } from 'MainRoot/componentDetails/componentDetailsSlice';
 import FirewallComponentDetailsPage from './FirewallComponentDetailsPage';
 import {
   selectFirewallComponentDetailsPageRouteParams,
@@ -16,11 +17,13 @@ import {
   loadExistingWaiversData,
   reevaluateComponent,
 } from '../firewallActions';
+import { selectLabels } from 'MainRoot/componentDetails/componentDetailsSelectors';
 
 function mapStateToProps(state) {
   return {
     componentDetailsPageResponseState: selectFirewallComponentDetailsPage(state),
     routeParams: selectFirewallComponentDetailsPageRouteParams(state),
+    labels: selectLabels(state),
   };
 }
 
@@ -30,6 +33,7 @@ const mapDispatchToProps = {
   loadComponentPolicyViolations,
   loadExistingWaiversData,
   reevaluateComponent,
+  firewallLoadApplicableLabels: componentDetailsActions.firewallLoadApplicableLabels,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(FirewallComponentDetailsPage);

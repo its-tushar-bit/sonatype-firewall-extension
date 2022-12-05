@@ -13,6 +13,13 @@ import com.codeborne.selenide.ElementsCollection;
 public class ManageLabelsContentTab
     extends BasicElement<ManageLabelsContentTab>
 {
+  public enum RepositoryComponentLabelsScopes 
+  {
+    ROOT_ORGANIZATION,
+    ALL_REPOSITORIES,
+    REPOSITORY
+  }
+
   public ManageLabelsContentTab(String selector) {
     super(selector);
   }

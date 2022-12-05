@@ -28,3 +28,12 @@ export const currentFirewallComponentDetailsPageComponentVersion = createSelecto
   selectFirewallComponentDetailsPage,
   (componentDetailsPage) => componentDetailsPage.componentDetails.componentIdentifier.coordinates.version
 );
+
+export const selectFirewallComponentDetailsIsLoading = createSelector(
+  selectFirewallComponentDetailsPage,
+  prop('isLoadingComponentDetails')
+);
+
+export const selectFirewallComponentName = createSelector(selectFirewallComponentDetailsPage, ({ componentDetails }) =>
+  componentDetails?.displayName?.parts?.reduce((fullName, part) => fullName + part.value, '')
+);

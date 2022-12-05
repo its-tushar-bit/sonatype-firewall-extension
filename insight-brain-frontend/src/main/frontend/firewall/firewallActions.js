@@ -29,6 +29,7 @@ import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { actions as componentDetailsLicenseDetectionsTileActions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
 import { selectHash, selectRepositoryId } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { actions as componentDetailsActions } from 'MainRoot/componentDetails/componentDetailsSlice';
 
 export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';
 
@@ -426,6 +427,7 @@ export function loadComponentDetails(componentDetailsParams) {
     return axios
       .get(getComponentDetailsUrl(requestParams))
       .then(({ data }) => dispatch(loadComponentDetailsFulfilled(data)))
+      .then(() => dispatch(componentDetailsActions.loadFirewallComponentDetailsLabels()))
       .catch((error) => {
         dispatch(loadComponentDetailsFailed(Messages.getHttpErrorMessage(error)));
       });

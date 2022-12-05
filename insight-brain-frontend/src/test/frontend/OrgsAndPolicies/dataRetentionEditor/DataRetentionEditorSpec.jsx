@@ -85,11 +85,11 @@ describe('Data Retention Editor component', () => {
           },
           source: {
             inheritPolicy: false,
-            enablePurging: true,
+            enablePurging: false,
           },
           build: {
             inheritPolicy: false,
-            enablePurging: true,
+            enablePurging: false,
           },
           'stage-release': {
             inheritPolicy: false,
@@ -245,11 +245,11 @@ describe('Data Retention Editor component', () => {
             },
             source: {
               inheritPolicy: false,
-              enablePurging: true,
+              enablePurging: false,
             },
             build: {
               inheritPolicy: false,
-              enablePurging: true,
+              enablePurging: false,
             },
             'stage-release': {
               inheritPolicy: false,
@@ -303,7 +303,7 @@ describe('Data Retention Editor component', () => {
             },
             build: {
               inheritPolicy: false,
-              enablePurging: true,
+              enablePurging: false,
             },
             'stage-release': {
               inheritPolicy: false,
@@ -403,6 +403,75 @@ describe('Data Retention Editor component', () => {
           });
           expect(updateButton).toHaveClassName('disabled');
         });
+
+        it('and both input fields are empty and input fields of different stage is updated', async () => {
+          axiosMock.onGet(getRetentionPoliciesUrl('org-id')).reply(200, {
+            applicationReports: {
+              stages: {
+                develop: {
+                  inheritPolicy: false,
+                  enablePurging: true,
+                  maxCount: 200,
+                  maxAge: '20 weeks',
+                },
+                source: {
+                  inheritPolicy: false,
+                  enablePurging: true,
+                  maxCount: 300,
+                  maxAge: '30 months',
+                },
+                build: {
+                  inheritPolicy: false,
+                  enablePurging: false,
+                },
+                'stage-release': {
+                  inheritPolicy: false,
+                  enablePurging: false,
+                },
+                release: {
+                  inheritPolicy: false,
+                  enablePurging: false,
+                },
+                operate: {
+                  inheritPolicy: false,
+                  enablePurging: false,
+                },
+                'continuous-monitoring': {
+                  inheritPolicy: false,
+                  enablePurging: false,
+                },
+              },
+            },
+            successMetrics: {
+              inheritPolicy: false,
+              enablePurging: false,
+            },
+          });
+          renderComponent();
+          const developFieldset = await screen.findByRole('group', { name: 'Develop' });
+          const customRadio = await within(developFieldset).findByRole('radio', {
+            name: /custom/i,
+          });
+          fireEvent.click(customRadio);
+          let updateButton = await screen.findByRole('button', {
+            name: /submit disabled: there are no changes to save/i,
+          });
+          expect(updateButton).toHaveClassName('disabled');
+
+          const sourceFieldset = await screen.findByRole('group', { name: 'Source' });
+          const sourceTextInputs = await within(sourceFieldset).findAllByRole('textbox');
+          const sourceAgeInput = sourceTextInputs[0];
+          fireEvent.change(sourceAgeInput, { target: { value: 20 } });
+          expect(sourceAgeInput.value).toBe('20');
+          expect(updateButton).toHaveClassName('disabled');
+
+          const developTextInputs = await within(developFieldset).findAllByRole('textbox');
+          const developAgeInput = developTextInputs[0];
+          fireEvent.change(developAgeInput, { target: { value: 16 } });
+
+          updateButton = await screen.findByRole('button', { name: 'Update' });
+          expect(updateButton).not.toHaveClassName('disabled');
+        });
       });
 
       it('when a stage with custom purging is changed then reverted back to the original value', async () => {
@@ -416,11 +485,11 @@ describe('Data Retention Editor component', () => {
               },
               source: {
                 inheritPolicy: false,
-                enablePurging: true,
+                enablePurging: false,
               },
               build: {
                 inheritPolicy: false,
-                enablePurging: true,
+                enablePurging: false,
               },
               'stage-release': {
                 inheritPolicy: false,
@@ -477,7 +546,7 @@ describe('Data Retention Editor component', () => {
                 },
                 build: {
                   inheritPolicy: false,
-                  enablePurging: true,
+                  enablePurging: false,
                 },
                 'stage-release': {
                   inheritPolicy: false,
@@ -620,7 +689,7 @@ describe('Data Retention Editor component', () => {
               },
               build: {
                 inheritPolicy: false,
-                enablePurging: true,
+                enablePurging: false,
               },
               'stage-release': {
                 inheritPolicy: false,

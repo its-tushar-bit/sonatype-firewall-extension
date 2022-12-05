@@ -84,6 +84,7 @@ const loadRetention = createAsyncThunk(`${REDUCER_NAME}/loadRetention`, (_, { ge
 const loadRetentionRequested = (state) => {
   state.loading = true;
   state.loadError = null;
+  state.submitError = null;
 };
 
 const loadRetentionFulfilled = (state, { payload }) => {
@@ -232,34 +233,48 @@ const setRadio = (state, { payload }) => {
     }
   }
   state.validationErrors[stage] = { age: null, count: null };
-  computeIsDirty(state, stage, val);
+  computeIsDirty(state);
 };
 
-const computeIsDirty = (state, stage, radioValChange) => {
+const computeIsDirty = (state) => {
   const successMetrics = state.successMetrics;
   const successMetricsServerData = state.successMetricsServerData;
   const appReports = state.applicationReports;
   const appReportsServerData = state.applicationReportsServerData;
 
-  if (stage === 'successMetrics') {
-    if (radioValChange === 'custom' && successMetrics.maxAge?.isPristine) {
-      state.isDirty = false;
-      return;
-    }
-  } else {
+  if (
+    successMetrics.enablePurging &&
+    !successMetrics.inheritPolicy &&
+    successMetrics.maxAge.isPristine &&
+    successMetrics.maxAge.trimmedValue === ''
+  ) {
+    state.isDirty = false;
+    return;
+  }
+
+  let incompleteFields = false;
+
+  for (const stage of Object.keys(appReports.stages)) {
+    const { enablePurging, inheritPolicy, maxAge, maxCount } = appReports.stages[stage];
     if (
-      radioValChange === 'custom' &&
-      appReports.stages[stage]?.maxAge?.isPristine &&
-      appReports.stages[stage]?.maxCount?.isPristine
+      enablePurging &&
+      !inheritPolicy &&
+      maxAge.isPristine &&
+      maxAge.trimmedValue === '' &&
+      maxCount.isPristine &&
+      maxCount.trimmedValue === ''
     ) {
-      state.isDirty = false;
-      return;
+      incompleteFields = true;
+      break;
     }
   }
-  state.isDirty = !equals(
-    changeToServerDataFormat(appReports, successMetrics),
-    changeToServerDataFormat(appReportsServerData, successMetricsServerData)
-  );
+
+  state.isDirty = incompleteFields
+    ? false
+    : !equals(
+        changeToServerDataFormat(appReports, successMetrics),
+        changeToServerDataFormat(appReportsServerData, successMetricsServerData)
+      );
 };
 
 const handleInputChange = (state, { payload }) => {
@@ -317,7 +332,7 @@ const handleInputChange = (state, { payload }) => {
     }
     state.applicationReports.stages[payload.stage] = stageSelector;
   }
-  computeIsDirty(state, payload.stage);
+  computeIsDirty(state);
 };
 
 const getMaxAgeLimit = (unit) => {

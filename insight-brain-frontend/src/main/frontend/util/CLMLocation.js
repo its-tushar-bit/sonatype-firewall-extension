@@ -736,8 +736,10 @@ export function getUsersRepositoryRoleMappingUrl(query) {
   return uriTemplate`/rest/user/repository_container/query?q=${query}`;
 }
 
-export function getUsersRoleMappingUrl(ownerType, ownerId, query) {
-  return uriTemplate`/rest/user/${ownerType}/${ownerId}/query?q=${query}`;
+export function getUsersRoleMappingUrl(ownerType, ownerId, query, groups = true) {
+  const params = { q: query, groups };
+
+  return uriTemplate`/rest/user/${ownerType}/${ownerId}/query?` + toURIParams(params);
 }
 
 export function getCreateOrDeleteAccessUrl(ownerType, ownerId, roleId) {

@@ -15,53 +15,41 @@ import static com.codeborne.selenide.Selenide.$$;
 
 public class SelectContactModal
 {
-  private static final String ROOT = "#select-application-contact-modal";
+  private static final String ROOT = "#select-contact-modal";
 
   public static Condition headerText() {
     return text("Select Contact");
   }
 
   public static SelenideElement header() {
-    return $(ROOT + " .iq-modal-header");
+    return $(ROOT + " .nx-modal-header");
   }
 
   public static SelenideElement body() {
-    return $(ROOT + " .iq-modal-content");
-  }
-
-  public static SelenideElement currentUserLabel() {
-    return $(ROOT + " #current-contact");
+    return $(ROOT + " .nx-modal-content");
   }
 
   public static SelenideElement searchBox() {
-    return $(ROOT + " #user-search-input");
-  }
-
-  public static SelenideElement searchButton() {
-    return $(ROOT + " #user-search-button");
+    return $(ROOT + " input[role=combobox]");
   }
 
   public static ElementsCollection users() {
-    return $$(ROOT + " iq-radio");
+    return $$(ROOT + " .nx-dropdown-menu button[role=option]");
   }
 
   public static SelenideElement updateButton() {
-    return $(ROOT + " .iq-btn--primary");
+    return $(ROOT + " .nx-btn--primary");
   }
 
   public static SelenideElement cancelButton() {
-    return $(ROOT + " #cancel-select-contact-button");
+    return $(ROOT + " .nx-btn--secondary");
   }
 
   public static SelenideElement removeButton() {
-    return $(ROOT + " .iq-btn--tertiary");
+    return $(ROOT + " .nx-btn--primary");
   }
 
-  public static IqRadio userRadio(final String usersName) {
-    SelenideElement item = $$(ROOT + " iq-radio").findBy(text(usersName));
-    if (item != null) {
-      return new IqRadio(item);
-    }
-    return null;
+  public static SelenideElement userContact(final String usersName) {
+    return $$(ROOT + " .nx-dropdown-menu button[role=option]").findBy(text(usersName));
   }
 }

@@ -24,9 +24,7 @@ import ownerTreeView from './navigation/owner.tree.view.directive';
 import MonitoredStageService from './utility/monitored.stage.service';
 import ConfigurationTileController from './repositories/repositories.configuration.tile.controller';
 import OwnerImageDirective from './summary/owner.image.directive';
-import SelectApplicationContactService from './summary/select.application.contact.service';
 import OwnerSummaryController from './summary/owner.summary.controller';
-import SelectApplicationContactController from './summary/select.application.contact.controller';
 import NumberInputWithStringValue from './utility/number.input.with.string.value';
 import SameOwnerEditSref from './utility/same.owner.edit.sref.directive';
 import SameOwnerViewSref from './utility/same.owner.view.sref.directive';
@@ -66,6 +64,7 @@ import MoveApplicationModal from 'MainRoot/OrgsAndPolicies/moveApplicationModal/
 import DataRetentionEditor from 'MainRoot/OrgsAndPolicies/dataRetentionEditor/DataRetentionEditor';
 import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
 import LicenseThreatGroupSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/LicenseThreatGroupSummaryTile';
+import SelectContactModal from 'MainRoot/OrgsAndPolicies/selectContactModal/SelectContactModal';
 import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/EvaluateApplicationModal';
 import RepositoriesPills from 'MainRoot/owner.manager/repositories/RepositoriesPills/RepositoriesPills';
 
@@ -95,10 +94,8 @@ export default angular
   .service('monitored.stage.service', MonitoredStageService)
   .controller('repositories.configuration.tile.controller', ConfigurationTileController)
   .directive('ownerImage', OwnerImageDirective)
-  .service('SelectApplicationContactService', SelectApplicationContactService)
   .controller('OwnerSummaryController', OwnerSummaryController)
   .controller('OwnerSummaryTilesContainerController', OwnerSummaryTilesContainerController)
-  .controller('select.application.contact.controller', SelectApplicationContactController)
   .service('SourceControlService', SourceControlService)
   .directive('numberInputWithStringValue', NumberInputWithStringValue)
   .directive('sameOwnerEditSref', SameOwnerEditSref)
@@ -143,6 +140,7 @@ export default angular
     'licenseThreatGroupSummaryTile',
     iqReact2Angular(LicenseThreatGroupSummaryTile, [], ['$ngRedux', '$state'])
   )
+  .component('selectContactModal', iqReact2Angular(SelectContactModal, [], ['$ngRedux']))
   .component('evaluateApplicationModal', iqReact2Angular(EvaluateApplicationModal, [], ['$ngRedux']))
   .component('repositoriesPills', iqReact2Angular(RepositoriesPills, [], []))
   .config([

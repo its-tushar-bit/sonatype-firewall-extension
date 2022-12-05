@@ -252,7 +252,7 @@ describe('access', () => {
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionType('access/loadFetchUsers/pending');
         expect(axios.get).toHaveBeenCalledTimes(1);
-        expect(axios.get).toHaveBeenCalledWith('/rest/user/application/application/query?q=search');
+        expect(axios.get).toHaveBeenCalledWith('/rest/user/application/application/query?q=search&groups=true');
         expect(actions).toHaveActionTypesInOrder(['access/loadFetchUsers/pending', 'access/loadFetchUsers/fulfilled']);
         done();
       });
@@ -268,7 +268,7 @@ describe('access', () => {
         const actions = store.getActions();
         expect(axios.get).toHaveBeenCalledTimes(1);
         expect(actions.length).toBe(2);
-        expect(axios.get).toHaveBeenCalledWith('/rest/user/application/application/query?q=search');
+        expect(axios.get).toHaveBeenCalledWith('/rest/user/application/application/query?q=search&groups=true');
         expect(actions).toHaveActionTypesInOrder(['access/loadFetchUsers/pending', 'access/loadFetchUsers/rejected']);
         done();
       });

@@ -14,6 +14,7 @@ import { actions as evaluateApplicationActions } from 'MainRoot/OrgsAndPolicies/
 import copyIdToClipboardAction from 'MainRoot/OrgsAndPolicies/copyIdToClipboardToast/copyIdToClipboardSlice';
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
+import { actions as contactActions } from 'MainRoot/OrgsAndPolicies/selectContactModal/selectContactModalSlice';
 import { actions as changeApplicationIdActions } from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSlice';
 import { actions as importPoliciesActions } from 'MainRoot/OrgsAndPolicies/importPoliciesModal/importPoliciesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
@@ -36,6 +37,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 import { selectImportPoliciesSlice } from 'MainRoot/OrgsAndPolicies/importPoliciesModal/importPoliciesSelectors';
 import { selectMoveApplicationSlice } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSelectors';
+import { selectContactSlice } from 'MainRoot/OrgsAndPolicies/selectContactModal/selectContactModalSelectors';
 import { selectEvaluateApplicationSlice } from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/evaluateApplicationSelectors';
 
 export default function OwnerSummaryController(
@@ -46,7 +48,6 @@ export default function OwnerSummaryController(
   $window,
   CLMLocations,
   CLMContextLocations,
-  SelectApplicationContactService,
   ownerConstant,
   EventNameConstant,
   PermissionService,
@@ -96,6 +97,7 @@ export default function OwnerSummaryController(
     openRevokeGrandfatheringModal: revokeGrandfatheringActions.openModal,
     openImportPoliciesModal: importPoliciesActions.openModal,
     openMoveApplicationModal: moveApplicationActions.openMoveAppModal,
+    openContactAppModal: contactActions.openContactModal,
     openOwnerModal: ownerModalActions.openEditModal,
     openEvaluateApplicationModal: evaluateApplicationActions.openEvaluateAppModal,
     copyToClipboard: copyIdToClipboardAction,
@@ -120,6 +122,13 @@ export default function OwnerSummaryController(
     $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
     $scope.$on(EventNameConstant.OWNER_UPDATED, doLoad);
     $scope.$watch('vm.isShowSuccessMoveAppModal', (currentValue, oldValue) => {
+      // triggers doLoad func only when modal closes, i.e. mask going from true to null
+      if (!currentValue && oldValue) {
+        vm.doLoad();
+      }
+    });
+
+    $scope.$watch('vm.isShowSuccessSelectContactModal', (currentValue, oldValue) => {
       // triggers doLoad func only when modal closes, i.e. mask going from true to null
       if (!currentValue && oldValue) {
         vm.doLoad();
@@ -212,7 +221,7 @@ export default function OwnerSummaryController(
   }
 
   function selectContact(owner) {
-    SelectApplicationContactService.open(owner);
+    vm.openContactAppModal(owner);
   }
 
   function changeApplicationId() {
@@ -294,6 +303,7 @@ const mapStateToThis = (state) => ({
   grandfatheringStatusMessage: selectGrandfatheringStatusMessage(state),
   isShowSuccessImportPoliciesModal: selectImportPoliciesSlice(state).submitMaskState,
   isShowSuccessMoveAppModal: selectMoveApplicationSlice(state).isShowSuccessModal,
+  isShowSuccessSelectContactModal: selectContactSlice(state).submitMaskState,
   scanId: selectEvaluateApplicationSlice(state).evaluationStatus.scanId,
 });
 
@@ -305,7 +315,6 @@ OwnerSummaryController.$inject = [
   '$window',
   'CLMLocations',
   'CLMContextLocations',
-  'SelectApplicationContactService',
   'owner.constant',
   'event.name.constant',
   'PermissionService',

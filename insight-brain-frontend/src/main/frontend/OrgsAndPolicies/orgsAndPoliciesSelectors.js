@@ -18,6 +18,7 @@ export const selectOrgsAndPoliciesSlice = prop('orgsAndPolicies');
 export const selectRootSlice = createSelector(selectOrgsAndPoliciesSlice, prop('root'));
 
 export const selectSelectedOwner = createSelector(selectRootSlice, prop('selectedOwner'));
+export const selectSelectedOwnerContact = createSelector(selectSelectedOwner, prop('contact'));
 export const selectSelectedOwnerName = createSelector(
   selectSelectedOwner,
   selectIsRepositories,

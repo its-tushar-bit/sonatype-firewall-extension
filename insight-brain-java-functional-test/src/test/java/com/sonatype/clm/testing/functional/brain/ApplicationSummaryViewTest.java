@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTil
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.utils.InputUtils;
 import com.sonatype.clm.testing.functional.utils.NxColor;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -81,7 +82,6 @@ public class ApplicationSummaryViewTest
     SelectContactModal.body().shouldBe(visible);
     SelectContactModal.header().shouldHave(SelectContactModal.headerText());
     SelectContactModal.users().shouldHaveSize(0);
-    SelectContactModal.searchButton().shouldBe(disabled);
     SelectContactModal.cancelButton().shouldBe(visible).click();
     SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldNotHave(text(tempUser.calculateDisplayName()));
@@ -89,16 +89,14 @@ public class ApplicationSummaryViewTest
     ActionDropDown.actionButton().click();
     ActionDropDown.selectContact().click();
     SelectContactModal.searchBox().shouldBe(visible).val("*");
-    SelectContactModal.searchButton().shouldBe(enabled).click();
     SelectContactModal.users().shouldHaveSize(2).shouldHave(texts("Admin Builtin", tempUser.calculateDisplayName()));
 
     // wildcard suffix search narrows search results
     SelectContactModal.searchBox().val(tempUser.getFirstName() + "*");
-    SelectContactModal.searchButton().click();
     SelectContactModal.users().shouldHaveSize(1).shouldHave(texts(tempUser.calculateDisplayName()));
     // update contact
     SelectContactModal.updateButton().shouldHave(DISABLED);
-    SelectContactModal.userRadio(tempUser.calculateDisplayName()).click();
+    SelectContactModal.userContact(tempUser.calculateDisplayName()).click();
     SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
     SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
@@ -106,24 +104,15 @@ public class ApplicationSummaryViewTest
     refresh();
     OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
     eyesWatcher.eyesCheck("Contact selected");
-    // attempt removal but cancel out of confirmation dialog
+
+    // remove contact
     ActionDropDown.actionButton().click();
     ActionDropDown.selectContact().shouldBe(visible).click();
-    SelectContactModal.currentUserLabel().shouldHave(text(tempUser.calculateDisplayName()));
-    SelectContactModal.searchBox().val("preserves modal state");
-    SelectContactModal.removeButton().shouldBe(visible, enabled).click();
-    SelectContactModal.body().shouldBe(hidden);
-    RemoveModal.body().shouldBe(visible).shouldHave(RemoveModal.bodyText(tempUser.calculateDisplayName()));
-    RemoveModal.header().shouldHave(RemoveModal.headerText("Contact"));
-    RemoveModal.cancelButton().click();
-    RemoveModal.body().shouldBe(hidden);
-    SelectContactModal.body().shouldBe(visible);
-    SelectContactModal.searchBox().shouldHave(value("preserves modal state"));
-    // remove contact
-    SelectContactModal.removeButton().click();
-    RemoveModal.continueButton().click();
+    SelectContactModal.searchBox().click();
+    SelectContactModal.searchBox().shouldBe(focused);
+    InputUtils.clearInput(SelectContactModal.searchBox());
+    SelectContactModal.updateButton().shouldBe(enabled).click();
     FormMask.seeAndWaitForDismissal();
-    RemoveModal.body().shouldBe(hidden);
     SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldNotHave(text(tempUser.calculateDisplayName()));
   }
@@ -138,10 +127,9 @@ public class ApplicationSummaryViewTest
     ActionDropDown.selectContact().shouldBe(visible).click();
     SelectContactModal.body().shouldBe(visible);
     SelectContactModal.searchBox().shouldBe(focused).val(tempUser.getFirstName() + "*");
-    SelectContactModal.searchButton().click();
     SelectContactModal.users().shouldHaveSize(1).shouldHave(texts(tempUser.calculateDisplayName()));
     // update contact
-    SelectContactModal.userRadio(tempUser.calculateDisplayName()).click();
+    SelectContactModal.userContact(tempUser.calculateDisplayName()).click();
     SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
     SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));

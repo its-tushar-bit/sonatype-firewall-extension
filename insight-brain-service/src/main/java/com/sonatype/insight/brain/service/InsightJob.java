@@ -6,12 +6,13 @@
 package com.sonatype.insight.brain.service;
 
 import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.tenancy.TenantJob;
 
 import org.quartz.Job;
 import org.slf4j.Logger;
 
 public interface InsightJob
-    extends Job
+    extends Job, TenantJob
 {
   default void execute(Runnable apply, Logger log, String errorDescription) {
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {

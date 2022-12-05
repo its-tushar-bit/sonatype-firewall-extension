@@ -18,7 +18,7 @@ public interface TenantJob
     All future Quartz jobs should make use of register.
 
     Register is still called on start through the use of
-    {@link com.sonatype.insight.brain.tenancy.QuartzJobInitiailizer}
+    {@link com.sonatype.insight.brain.service.DefaultQuartzJobInitiailizer}
    */
   default void register() {
     // noop

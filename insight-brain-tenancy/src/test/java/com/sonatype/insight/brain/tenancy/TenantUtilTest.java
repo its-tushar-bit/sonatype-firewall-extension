@@ -42,6 +42,12 @@ public class TenantUtilTest
   }
 
   @Test
+  public void shouldReturnGlobalTrue_whenGlobalSlug() {
+    assertThat(TenantUtil.isGlobalTenant("global")).isTrue();
+    assertThat(TenantUtil.isGlobalTenant("notglobal")).isFalse();
+  }
+
+  @Test
   public void shouldExtractTenantNameFromUrl() {
     assertThat(TenantUtil.getTenantName("tenant1.mtiq.cloudy.sonatype.dev")).isEqualTo("tenant1");
     assertThat(TenantUtil.getTenantName("tenant2.staging.mtiq.cloudy.sonatype.dev")).isEqualTo("tenant2");

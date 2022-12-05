@@ -84,7 +84,7 @@ public class DefaultExecutorThreadPools
   private LoadingCache<Thread, ForkJoinPool> singleThreadedPoolCache = CacheBuilder.newBuilder().weakKeys()
       .build(CacheLoader.from(key -> namedForkJoinPool(SINGLE_THREAD_COUNT, SINGLE_THREAD_PREFIX)));
 
-  private ForkJoinPool namedForkJoinPool(int threadCount, String namePrefix) {
+  protected ForkJoinPool namedForkJoinPool(int threadCount, String namePrefix) {
     final ForkJoinWorkerThreadFactory factory = pool -> {
       final ForkJoinWorkerThread worker = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
       worker.setName(namePrefix + worker.getPoolIndex());

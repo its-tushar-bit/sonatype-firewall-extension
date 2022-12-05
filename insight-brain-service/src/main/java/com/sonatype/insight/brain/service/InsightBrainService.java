@@ -119,7 +119,7 @@ public class InsightBrainService
 
   private static long startTime;
 
-  private DatabaseProvisionUtils databaseProvisionUtils;
+  protected DatabaseProvisionUtils databaseProvisionUtils;
 
   public static void main(final String[] args) {
     try {
@@ -409,7 +409,7 @@ public class InsightBrainService
         new EnvironmentVariableSubstitutor(false, true)));
   }
 
-  private <T extends ObjectMapper> T configureObjectMapper(T objectMapper) {
+  protected <T extends ObjectMapper> T configureObjectMapper(T objectMapper) {
     // Use an object mapper mostly matching the default for Dropwizard version 1.2.2 i.e.
     // https://github.com/dropwizard/dropwizard/blob/v1.2.2/
     //   dropwizard-jackson/src/main/java/io/dropwizard/jackson/Jackson.java#L65
@@ -459,7 +459,7 @@ public class InsightBrainService
     log.debug("Features flags: {}", config.getFeatures());
   }
 
-  private void addServletFilter(Environment env, Class<? extends Filter> filterType, String... urlPatterns) {
+  protected void addServletFilter(Environment env, Class<? extends Filter> filterType, String... urlPatterns) {
     addServletFilter(env, false, filterType, urlPatterns);
   }
 

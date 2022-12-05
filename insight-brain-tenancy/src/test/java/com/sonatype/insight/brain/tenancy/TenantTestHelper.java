@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import java.util.function.Consumer;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class TenantTestHelper
 {
   /**
@@ -22,5 +26,21 @@ public class TenantTestHelper
 
   public static void setTenant(final Tenant tenant) {
     TenantThreadLocal.setTenant(tenant);
+  }
+
+  public static void assertTenantSet(Tenant tenant) {
+    assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(tenant);
+  }
+
+  public static void testAs(Tenant tenant, Consumer<Tenant> test) {
+    Tenant currentTenant = TenantThreadLocal.getTenantWithoutValidation();
+    try {
+      TenantThreadLocal.setTenant(tenant);
+
+      test.accept(tenant);
+    }
+    finally {
+      TenantThreadLocal.setTenant(currentTenant);
+    }
   }
 }

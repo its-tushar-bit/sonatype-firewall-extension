@@ -27,8 +27,9 @@ public class TenantUtil
   // visible for testing
   static boolean isMultiTenant;
 
-  static {
-    isMultiTenant = Boolean.parseBoolean(System.getenv("MULTI_TENANT"));
+  public static void setMultiTenantMode() {
+    // Intentionally can only be set to true to prevent this being abused
+    isMultiTenant = true;
   }
 
   public static boolean isMultiTenant() {
@@ -41,6 +42,10 @@ public class TenantUtil
 
   public static boolean isGlobalTenant() {
     return Tenant.GLOBAL_TENANT.equals(validateTenant(TenantThreadLocal.getTenant()));
+  }
+
+  public static boolean isGlobalTenant(String tenantSlug) {
+    return Tenant.GLOBAL_TENANT.tenantSlug.equals(tenantSlug);
   }
 
   static Tenant validateTenant(Tenant tenant) {

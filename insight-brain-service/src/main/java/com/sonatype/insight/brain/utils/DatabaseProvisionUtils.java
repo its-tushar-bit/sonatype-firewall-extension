@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.db.DatabaseConfig;
 
-public final class DatabaseProvisionUtils
+public class DatabaseProvisionUtils
 {
   private final OperationalDataStore operationalDataStore;
 

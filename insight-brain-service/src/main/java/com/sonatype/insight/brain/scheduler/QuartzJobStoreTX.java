@@ -14,7 +14,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
-import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -105,7 +105,7 @@ public class QuartzJobStoreTX
     setTablePrefix(OperationalDataStoreProvider.getDatabaseSchema() + ".QRTZ_");
     setUseProperties("true");
     setClusterCheckinInterval(CLUSTER_CHECKIN_INTERVAL_MILLIS);
-    DatabaseEngine dbEngine = DataSourceFactory.getDatabaseEngine(operationalDataStore.getDataSource());
+    DatabaseEngine dbEngine = DatabaseUtil.getDatabaseEngine(operationalDataStore.getDataSource());
     if (H2DatabaseEngine.INSTANCE.equals(dbEngine)) {
       setIsClustered(false);
       setDriverDelegateClass(QuartzHSQLDBDelegate.class.getName());

@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.util.Map;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -87,7 +86,7 @@ class DbDiagnostics
 
   private static Map<String, String> getDatabaseSettings(DataSource dataSource) {
     try (Connection connection = dataSource.getConnection()) {
-      return DataSourceFactory.getDatabaseEngine(dataSource).getDatabaseSettings(connection);
+      return DatabaseUtil.getDatabaseEngine(dataSource).getDatabaseSettings(connection);
     }
     catch (Exception e) {
       throw new IllegalStateException("Failed attempt to get database settings.", e);

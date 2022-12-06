@@ -72,7 +72,7 @@ public class DatabaseMigrator
     try {
       int desiredVersion = getDesiredVersion(dataStoreId);
 
-      if (DataSourceFactory.populateDatabaseSchema(dataSource, dataStoreId, databaseSchema)) {
+      if (isNewDatabase(dataSource, DatabaseUtil.getDatabaseEngine(dataSource), dataStoreId, databaseSchema)) {
         // This is a new database, nothing to migrate here.
         DatabaseUtil.updateDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchema, desiredVersion);
         return;
@@ -118,7 +118,7 @@ public class DatabaseMigrator
           desiredVersion);
 
       File backupDir = null;
-      DatabaseEngine databaseEngine = DataSourceFactory.getDatabaseEngine(dataSource);
+      DatabaseEngine databaseEngine = DatabaseUtil.getDatabaseEngine(dataSource);
       if (H2DatabaseEngine.INSTANCE.equals(databaseEngine)) {
         File databasePath = H2DatabaseUtil.getDatabasePath(databaseConfig);
         File databaseDir = databasePath.getParentFile();
@@ -158,6 +158,18 @@ public class DatabaseMigrator
     catch (IOException | SQLException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private boolean isNewDatabase(
+      DataSource dataSource,
+      DatabaseEngine databaseEngine,
+      String dataStoreId,
+      String databaseSchema)
+  {
+    // populateDbSchema returns true if the db is new and populated
+    // TODO: CLM-23241 tracks improving that method to have a clearer intent
+    return new DataSourceFactory().populateDbSchema(dataSource, databaseEngine, dataStoreId,
+        databaseSchema);
   }
 
   // Visible for testing

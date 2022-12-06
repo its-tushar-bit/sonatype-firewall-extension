@@ -14,6 +14,7 @@ import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.SqlCallCounterMetrics;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -57,7 +58,7 @@ public class DefaultOperationalDataStore
 
     this.databaseConfig = databaseConfig;
     dataSource = new DataSourceFactory().createNewDataSource(databaseConfig, getID(), getDatabaseSchema());
-    isDatabaseEmbedded = H2DatabaseEngine.class.equals(DataSourceFactory.getDatabaseEngine(dataSource).getClass());
+    isDatabaseEmbedded = H2DatabaseEngine.class.equals(DatabaseUtil.getDatabaseEngine(dataSource).getClass());
 
     if (migrateDatabase) {
       migrate(migrateToNewViolationModel);

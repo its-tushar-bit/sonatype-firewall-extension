@@ -9,10 +9,15 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.db.DatabaseEngine;
+import com.sonatype.insight.db.DatabaseException;
+import com.sonatype.insight.db.H2DatabaseEngine;
+import com.sonatype.insight.db.PostgresDatabaseEngine;
 
 public class DatabaseUtil
 {
@@ -167,5 +172,24 @@ public class DatabaseUtil
       throw new IllegalStateException(e.getMessage(), e);
     }
     return null;
+  }
+
+  public static DatabaseEngine getDatabaseEngine(DataSource dataSource) {
+    try (Connection conn = dataSource.getConnection()) {
+      return getDatabaseEngineFromName(conn.getMetaData().getDatabaseProductName());
+    }
+    catch (SQLException e) {
+      throw new DatabaseException(e);
+    }
+  }
+
+  static DatabaseEngine getDatabaseEngineFromName(String databaseProductName) {
+    if ("h2".equalsIgnoreCase(databaseProductName)) {
+      return H2DatabaseEngine.INSTANCE;
+    }
+    if ("postgresql".equalsIgnoreCase(databaseProductName)) {
+      return PostgresDatabaseEngine.INSTANCE;
+    }
+    throw new DatabaseException("Unsupported database engine: " + databaseProductName);
   }
 }

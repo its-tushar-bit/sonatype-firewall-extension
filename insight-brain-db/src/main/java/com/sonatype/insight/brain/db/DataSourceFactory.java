@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.db;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.sql.DataSource;
@@ -14,9 +13,6 @@ import javax.sql.DataSource;
 import com.sonatype.insight.db.AbstractDataSourceFactory;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
-import com.sonatype.insight.db.DatabaseException;
-import com.sonatype.insight.db.H2DatabaseEngine;
-import com.sonatype.insight.db.PostgresDatabaseEngine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,36 +38,12 @@ public class DataSourceFactory
   @Override
   protected DataSource loadDataSource(DatabaseConfig databaseConfig, String databaseSchema) {
     DataSource dataSource = super.loadDataSource(databaseConfig, databaseSchema);
-    DatabaseEngine databaseEngine = getDatabaseEngine(dataSource);
+    DatabaseEngine databaseEngine = DatabaseUtil.getDatabaseEngine(dataSource);
     boolean isNew = !DatabaseUtil.schemaExists(dataSource, databaseSchema);
     logDatabaseSettings(dataSource, databaseEngine);
     newDataSources.put(dataSource, isNew);
 
     return dataSource;
-  }
-
-  public static DatabaseEngine getDatabaseEngine(DataSource dataSource) {
-    try (Connection conn = dataSource.getConnection()) {
-      return getDatabaseEngineFromName(conn.getMetaData().getDatabaseProductName());
-    }
-    catch (SQLException e) {
-      throw new DatabaseException(e);
-    }
-  }
-
-  static DatabaseEngine getDatabaseEngineFromName(String databaseProductName) {
-    if ("h2".equalsIgnoreCase(databaseProductName)) {
-      return H2DatabaseEngine.INSTANCE;
-    }
-    if ("postgresql".equalsIgnoreCase(databaseProductName)) {
-      return PostgresDatabaseEngine.INSTANCE;
-    }
-    throw new DatabaseException("Unsupported database engine: " + databaseProductName);
-  }
-
-  public static boolean populateDatabaseSchema(DataSource dataSource, String dataStoreId, String databaseSchema) {
-    return new DataSourceFactory().populateDbSchema(dataSource, getDatabaseEngine(dataSource), dataStoreId,
-        databaseSchema);
   }
 
   public static boolean hasNewDataSource() {

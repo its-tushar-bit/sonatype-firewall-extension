@@ -12,15 +12,15 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DataSourceFactoryTest
+public class DatabaseUtilTest
 {
   @Test
   public void testGetDatabaseEngine_H2() {
-    assertThat(DataSourceFactory.getDatabaseEngineFromName("h2")).isEqualTo(H2DatabaseEngine.INSTANCE);
+    assertThat(DatabaseUtil.getDatabaseEngineFromName("h2")).isEqualTo(H2DatabaseEngine.INSTANCE);
   }
 
   @Test
   public void testGetDatabaseEngine_PostgreSQL() {
-    assertThat(DataSourceFactory.getDatabaseEngineFromName("PostgreSQL")).isEqualTo(PostgresDatabaseEngine.INSTANCE);
+    assertThat(DatabaseUtil.getDatabaseEngineFromName("PostgreSQL")).isEqualTo(PostgresDatabaseEngine.INSTANCE);
   }
 }

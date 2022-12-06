@@ -54,6 +54,10 @@ public class BrainInjectedTest
   public void setUp()
       throws Exception
   {
+    String sisuUrlCaches = System.getProperty("sisu.url.caches");
+    if (sisuUrlCaches == null) {
+      System.setProperty("sisu.url.caches", "true");
+    }
     Guice.createInjector(new WireModule(new DataStoreTestModule(), new SetUpModule(), spaceModule()));
   }
 

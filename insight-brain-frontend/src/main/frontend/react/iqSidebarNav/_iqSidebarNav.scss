@@ -48,3 +48,16 @@ iq-sidebar-nav {
   padding: 0 var(--nx-spacing-3x);
   vertical-align: bottom;
 }
+
+.nx-global-sidebar__label-container {
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+.nx-global-sidebar__hidden-label {
+  display: block;
+  font-weight: 600;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}

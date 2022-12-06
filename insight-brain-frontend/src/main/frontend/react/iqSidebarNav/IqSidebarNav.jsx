@@ -174,7 +174,10 @@ function IqSidebarNav(props) {
               icon={faDatabase}
               text={
                 <>
-                  <span>Data Insights</span>
+                  <span className="nx-global-sidebar__label-container">
+                    <span>Data Insights</span>
+                    <span className="nx-global-sidebar__hidden-label">Data Insights</span>
+                  </span>
                   <span className="nx-global-sidebar__navigation-badge">Labs</span>
                 </>
               }

@@ -308,10 +308,12 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('href', 'href-dataInsights');
       expect(navLink).toHaveProp('isSelected', false);
 
-      const text = navLink.find('.nx-global-sidebar__navigation-text span:first-child').text();
+      const text = navLink.find('.nx-global-sidebar__label-container span:first-child').text();
+      const hiddenText = navLink.find('.nx-global-sidebar__hidden-label').text();
       const badgeText = navLink.find('.nx-global-sidebar__navigation-badge').text();
 
       expect(text).toEqual('Data Insights');
+      expect(hiddenText).toEqual('Data Insights');
       expect(badgeText).toEqual('Labs');
     });
 

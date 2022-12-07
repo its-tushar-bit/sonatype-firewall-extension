@@ -208,7 +208,7 @@ public abstract class AbstractPolicyEditorTest
         "pypi:MarkupSafe:1.1.0:cp37:tar.gz");
     assertCondition(constraint.getConditions().get(4), LabelConditionType.ID, "is", sampleLabel.getId());
     assertCondition(constraint.getConditions().get(5),
-            LicenseConditionType.ID, "is", "Abstyles");
+            LicenseConditionType.ID, "is", "ABBYY-RTR-SDK-LA");
     assertCondition(constraint.getConditions().get(6), LicenseStatusConditionType.ID, "is not",
         LicenseOverrideStatus.CONFIRMED.name());
     assertCondition(constraint.getConditions().get(7), LicenseThreatGroupConditionType.ID, "is",
@@ -1269,7 +1269,7 @@ public abstract class AbstractPolicyEditorTest
         addDropdownCondition(newConstraint, LicenseConditionType.class, 5, conditionTypesOptionMap);
     licenseCondition.operator().shouldHave(text("is"));
     licenseCondition.value().shouldHave(text("0BSD")).click();
-    licenseCondition.value().listItem(5).shouldHave(text("Abstyles")).click();
+    licenseCondition.value().listItem(5).shouldHave(text("ABBYY-RTR-SDK-LA")).click();
 
     DropdownConditionEditSection licenseStatus =
         addDropdownCondition(newConstraint, LicenseStatusConditionType.class, 6, conditionTypesOptionMap);

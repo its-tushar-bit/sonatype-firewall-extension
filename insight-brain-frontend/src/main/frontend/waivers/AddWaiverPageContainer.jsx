@@ -22,9 +22,21 @@ import {
   openVulnerabilityDetailsModal,
   closeVulnerabilityDetailsModal,
 } from '../vulnerabilityDetails/vulnerabilityDetailsModalActions';
+import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 
 function mapStateToProps(state) {
   const { addWaiver, violation, router, user } = state;
+  const isFirewall = selectIsFirewall(state);
+  const {
+    repositoryId,
+    componentIdentifier,
+    componentHash,
+    matchState,
+    proprietary,
+    identificationSource,
+    pathname,
+  } = selectFirewallComponentDetailsPageRouteParams(state);
   return {
     ...addWaiver,
     ...pick(['violationDetails'], violation),
@@ -32,6 +44,14 @@ function mapStateToProps(state) {
     prevStateName: router.prevState.name,
     prevParams: router.prevParams,
     currentUser: user?.currentUser?.displayName,
+    isFirewall,
+    repositoryId,
+    componentIdentifier,
+    componentHash,
+    matchState,
+    proprietary,
+    identificationSource,
+    pathname,
   };
 }
 

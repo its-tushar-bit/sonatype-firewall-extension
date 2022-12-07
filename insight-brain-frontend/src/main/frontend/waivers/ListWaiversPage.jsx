@@ -38,7 +38,17 @@ export default function ListWaiversPage(props) {
     ...backButtonProps
   } = props;
 
-  const { violationId } = backButtonProps;
+  const {
+    violationId,
+    repositoryPolicyId,
+    componentIdentifier,
+    hash,
+    matchState,
+    proprietary,
+    identificationSource,
+    pathname,
+    isFirewall,
+  } = backButtonProps;
 
   function load() {
     if (violationId) {
@@ -56,7 +66,24 @@ export default function ListWaiversPage(props) {
     violationDetails
   );
 
-  const redirectToAddWaiverPage = () => hasPermissionForAppWaivers && stateGo('addWaiver', { violationId });
+  const redirectToAddWaiverPage = () => {
+    if (isFirewall) {
+      return (
+        hasPermissionForAppWaivers &&
+        stateGo('firewall.addWaiver', {
+          repositoryId: repositoryPolicyId,
+          componentIdentifier,
+          componentHash: hash,
+          matchState,
+          violationId,
+          proprietary,
+          identificationSource,
+          pathname,
+        })
+      );
+    }
+    return hasPermissionForAppWaivers && stateGo('addWaiver', { violationId });
+  };
 
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
 

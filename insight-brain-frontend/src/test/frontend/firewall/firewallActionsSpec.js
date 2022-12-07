@@ -201,7 +201,21 @@ describe('firewallActions', function () {
       router: Object.freeze({
         currentParams: Object.freeze({
           componentHash: 'componentHash',
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'ant',
+              classifier: '',
+              extension: 'jar',
+              groupId: 'ant',
+              version: '1.6',
+            },
+          },
           repositoryId: 'repositoryId',
+          matchState: 'matchState',
+          proprietary: 'proprietary',
+          identificationSource: 'identificationSource',
+          pathname: 'pathname',
         }),
       }),
       componentDetails: {
@@ -1404,13 +1418,30 @@ describe('firewallActions', function () {
 
       const actions = store.getActions();
 
-      expect(actions).toHaveAction({
-        type: '@@reduxUiRouter/stateGo',
-        payload: {
-          to: 'firewall.violationWaivers',
-          params: { hash: 'componentHash', violationId: 'policyViolationId', repositoryPolicyId: 'repositoryId' },
-          options: undefined,
+      expect(actions.length).toBe(2);
+      expect(actions[0].type).toBe('@@reduxUiRouter/stateGo');
+      expect(actions[0].payload).toEqual({
+        to: 'firewall.violationWaivers',
+        params: {
+          componentHash: 'componentHash',
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'ant',
+              classifier: '',
+              extension: 'jar',
+              groupId: 'ant',
+              version: '1.6',
+            },
+          },
+          violationId: 'policyViolationId',
+          repositoryId: 'repositoryId',
+          matchState: 'matchState',
+          proprietary: 'proprietary',
+          identificationSource: 'identificationSource',
+          pathname: 'pathname',
         },
+        options: undefined,
       });
     });
   });

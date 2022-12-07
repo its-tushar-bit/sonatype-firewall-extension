@@ -6,6 +6,8 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 import configureStore from 'redux-mock-store';
+import * as routeSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
+import * as firewallSelectors from 'MainRoot/firewall/firewallSelectors';
 
 import AddWaiverPage from '../../../main/frontend/waivers/AddWaiverPage';
 
@@ -48,6 +50,25 @@ describe('AddWaiverPageContainer', function () {
     setExpiryTimeMock = jasmine.createSpy('setExpiryTime').and.returnValue({
       type: 'ADD_WAIVER_SET_EXPIRY_TIME',
     });
+    spyOn(routeSelectors, 'selectIsFirewall').and.returnValue(false);
+    spyOn(firewallSelectors, 'selectFirewallComponentDetailsPageRouteParams').and.returnValue({
+      componentHash: 'componentHash',
+      componentIdentifier: {
+        format: 'maven',
+        coordinates: {
+          artifactId: 'ant',
+          classifier: '',
+          extension: 'jar',
+          groupId: 'ant',
+          version: '1.6',
+        },
+      },
+      repositoryId: 'repositoryId',
+      matchState: 'matchState',
+      proprietary: 'proprietary',
+      identificationSource: 'identificationSource',
+      pathname: 'pathname',
+    });
 
     AddWaiverPageContainer = require('inject-loader!../../../main/frontend/waivers/AddWaiverPageContainer')({
       './waiverActions': {
@@ -78,6 +99,22 @@ describe('AddWaiverPageContainer', function () {
       router: {
         currentParams: {
           violationId: 'foo',
+          componentHash: 'componentHash',
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'ant',
+              classifier: '',
+              extension: 'jar',
+              groupId: 'ant',
+              version: '1.6',
+            },
+          },
+          repositoryId: 'repositoryId',
+          matchState: 'matchState',
+          proprietary: 'proprietary',
+          identificationSource: 'identificationSource',
+          pathname: 'pathname',
         },
         prevState: {
           name: 'prevStateName',

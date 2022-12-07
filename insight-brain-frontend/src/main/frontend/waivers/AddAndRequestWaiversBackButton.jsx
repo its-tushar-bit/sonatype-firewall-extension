@@ -11,7 +11,7 @@ import { originNamesForAddRequestPages } from 'MainRoot/util/waiverUtils';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function AddAndRequestWaiversBackButton(props) {
-  const { violationId, prevStateName, prevParams } = props;
+  const { violationId, prevStateName, prevParams, isFirewall } = props;
   const { hash, scanId, publicId, sidebarReference, type, repositoryPolicyId } = prevParams;
 
   const uiRouterState = useRouterState();
@@ -49,7 +49,7 @@ export default function AddAndRequestWaiversBackButton(props) {
   */
 
   // No previous state information
-  if (!prevStateName) {
+  if (!prevStateName && !isFirewall) {
     backButtonHref = uiRouterState.href(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, { violationId });
   }
 
@@ -75,11 +75,10 @@ export default function AddAndRequestWaiversBackButton(props) {
     }
   }
   // Navigated from Firewall Component Details Page
-  else if (prevStateName === originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS) {
+  else if (prevStateName === originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS || isFirewall) {
     backButtonHref = uiRouterState.href(originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS, {
-      hash,
+      ...props,
       violationId,
-      repositoryPolicyId,
     });
     //Navigated from a shareable URL
   }

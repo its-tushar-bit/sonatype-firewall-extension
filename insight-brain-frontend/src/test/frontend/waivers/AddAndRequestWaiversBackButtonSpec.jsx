@@ -278,9 +278,12 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
 
       expect(routerContext.useRouterState).toHaveBeenCalled();
       expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS, {
-        hash: 'hash',
         violationId: 'violationId',
-        repositoryPolicyId: 'repositoryPolicyId',
+        prevStateName: 'firewall.violationWaivers',
+        prevParams: {
+          hash: 'hash',
+          repositoryPolicyId: 'repositoryPolicyId',
+        },
       });
       expect(component).toMatchSelector(MenuBarBackButton);
       expect(component).toHaveProp('text', 'Back to Waivers');

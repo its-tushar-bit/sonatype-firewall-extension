@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.IqVulnerabilityModal;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -115,5 +116,9 @@ public class AddWaiverPage
 
   public SelenideElement submitError() {
     return child(".nx-footer .nx-alert");
+  }
+
+  public NxBackButton backButton() {
+    return new NxBackButton("#menu-bar__back-button-container");
   }
 }

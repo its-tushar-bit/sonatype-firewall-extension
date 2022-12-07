@@ -345,14 +345,7 @@ public class DashboardWaiversTest
 
     headers.scopeHeader().click();
 
-    /* This is weird as we are asserting that Application - App 1 would be the first result.
-       However, the container repo should be the first.
-       This is because it's scope name is 'All Repositories' which comes before the applications.
-       However, this does not work as expected in the view,
-       therefore in the above lines we are asserting that the first waiver would be application 1.
-       See https://issues.sonatype.org/browse/CLM-23015 for more details.
-       */
-    table.firstWaiver().scope().shouldHave(text("Application - App 1"));
+    table.firstWaiver().scope().shouldHave(text("All Repositories"));
     table.lastWaiver().scope().shouldHave(text(" ")); // todo: fix no scope description for container
 
     DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Waivers Data")).click();

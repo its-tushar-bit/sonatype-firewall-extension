@@ -44,12 +44,29 @@ export default function AddWaiverPage(props) {
     setExpiryTime,
     setCustomExpiryTime,
     cancelAction,
+    // Firewall params
+    isFirewall,
+    repositoryId,
+    componentIdentifier,
+    componentHash,
+    matchState,
+    proprietary,
+    identificationSource,
+    pathname,
   } = props;
 
   const backButtonProps = {
     violationId,
     prevStateName,
     prevParams,
+    isFirewall,
+    repositoryId,
+    componentIdentifier,
+    componentHash,
+    matchState,
+    proprietary,
+    identificationSource,
+    pathname,
   };
 
   function load() {
@@ -150,4 +167,5 @@ AddWaiverPage.propTypes = {
   cancelAction: PropTypes.func.isRequired,
   closeVulnerabilityDetailsModal: PropTypes.func.isRequired,
   currentUser: PropTypes.string,
+  componentDetails: PropTypes.object,
 };

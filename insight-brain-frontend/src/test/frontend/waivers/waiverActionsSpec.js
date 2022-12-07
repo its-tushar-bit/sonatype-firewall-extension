@@ -77,7 +77,7 @@ import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { FIREWALL_LOAD_EXISTING_WAIVERS_DATA_REQUESTED } from 'MainRoot/firewall/firewallActions';
 
 describe('waiverActions', function () {
-  let store, mockAxiosCalls, selectIsPrevFirewallSpy, mock;
+  let store, mockAxiosCalls, mock;
 
   beforeEach(function () {
     const state = {
@@ -104,9 +104,6 @@ describe('waiverActions', function () {
     store = SpecUtil.mockReduxStore(state);
     mock = axiosMockAdapter();
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-    spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
-    selectIsPrevFirewallSpy = spyOn(routerSelectors, 'selectIsPrevFirewall').and.returnValue(false);
-    spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
   });
 
   describe('saveWaiverAndRedirect', function () {
@@ -415,6 +412,9 @@ describe('waiverActions', function () {
 
   describe('loadAddWaiverData', function () {
     it('immediately dispatches a WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED action', function () {
+      spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+      spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
+      spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
       store.dispatch(loadAddWaiverData('foo'));
 
       expect(store.getActions().length).toBe(1);
@@ -422,6 +422,9 @@ describe('waiverActions', function () {
     });
 
     it('calls fetchCrossStageViolation actionCreator', function (done) {
+      spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+      spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
+      spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
       const violationDetailsUrl = getViolationDetailsUrl('foo'),
         violationDetails = {
           applicationPublicId: 'appPublicId',
@@ -444,6 +447,9 @@ describe('waiverActions', function () {
 
     describe('when fetchCrossStageViolation succeeds', function () {
       it('calls loadOwnerContextHierarchy', function (done) {
+        spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+        spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
+        spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
         const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
           ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
           violationDetails = {
@@ -480,6 +486,9 @@ describe('waiverActions', function () {
 
       describe('when loadOwnerContextHierarchy fails', function () {
         it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED', function (done) {
+          spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+          spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
+          spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
           const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
             ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('application', 'appPublicId', 'policyId'),
             violationDetails = {
@@ -510,7 +519,9 @@ describe('waiverActions', function () {
     });
 
     it('calls fetchCrossStageViolationAddWaiver actionCreator', function (done) {
-      selectIsPrevFirewallSpy.and.returnValue(true);
+      spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(true);
+      spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
+      spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
       const repositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'foo'),
         violationDetails = {
           repositoryPolicyId: 'repositoryId',
@@ -534,7 +545,9 @@ describe('waiverActions', function () {
 
     describe('when fetchCrossStageViolationAddWaiver succeeds', function () {
       it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED', function (done) {
-        selectIsPrevFirewallSpy.and.returnValue(true);
+        spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(true);
+        spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
+        spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
         const loadRepositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'foo'),
           ownerContextHierarchyUrl = getOwnerContextHierarchyUrl('repository', 'repositoryId', 'policyId'),
           incomingData = {
@@ -646,7 +659,9 @@ describe('waiverActions', function () {
 
     describe('when fetchCrossStageViolationAddWaiver fails', function () {
       it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED', function (done) {
-        selectIsPrevFirewallSpy.and.returnValue(true);
+        spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(true);
+        spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
+        spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
         const applicableWaiversUrl = getApplicableWaiversUrl('foo');
         const loadRepositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'foo');
         mockAxiosCalls({
@@ -671,6 +686,9 @@ describe('waiverActions', function () {
 
     describe('when fetchCrossStageViolation fails', function () {
       it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED', function (done) {
+        spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+        spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
+        spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
         const applicableWaiversUrl = '/api/v2/policyViolations/foo/applicableWaivers';
         const loadViolationDetailsUrl = '/api/v2/policyViolations/crossStage/?constituentId=foo';
         mockAxiosCalls({
@@ -698,6 +716,7 @@ describe('waiverActions', function () {
     let selectPreviousRouteNameSpy;
     beforeEach(() => {
       selectPreviousRouteNameSpy = spyOn(routerSelectors, 'selectPreviousRouteName').and.returnValue('abc');
+      spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
     });
 
     it('immediately dispatches a WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED action', function () {

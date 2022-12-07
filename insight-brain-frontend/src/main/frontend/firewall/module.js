@@ -86,8 +86,17 @@ function routes($stateProvider) {
       },
     })
     .state('firewall.violationWaivers', {
-      url: '/firewall/repository/{repositoryPolicyId}/{hash}/waivers/{violationId}',
+      url:
+        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/waivers/{violationId}?proprietary&identificationSource&pathname',
       component: 'listWaiversPage',
+    })
+    .state('firewall.addWaiver', {
+      url:
+        '/firewall/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/addWaiver/{violationId}?proprietary&identificationSource&pathname',
+      component: 'addWaiverPage',
+      data: {
+        title: 'Add Waiver',
+      },
     });
 }
 

@@ -6,36 +6,51 @@
 
 import { connect } from 'react-redux';
 import ListWaiversPage from './ListWaiversPage';
-import { pick } from 'ramda';
+import { pick, prop } from 'ramda';
 import { setWaiverToDelete, loadApplicableWaivers, loadManageWaiversData } from './waiverActions';
 import { stateGo } from '../reduxUiRouter/routerActions';
-import { selectIsFirewall } from '../reduxUiRouter/routerSelectors';
+import { selectIsFirewall, selectRepositoryId } from '../reduxUiRouter/routerSelectors';
 import { stringifyPathName, stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
+import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 
 function mapStateToProps(state) {
+  let pathname, matchState, componentIdentifier, hash;
   const { violation, manageWaivers, router, deleteWaiver, firewall } = state;
   const { showManageWaiverPage, componentDetails } = firewall.componentDetailsPage;
+  const isFirewall = selectIsFirewall(state);
+  const componentDetailsPageRouteParams = selectFirewallComponentDetailsPageRouteParams(state);
   const selectViolationDetails = showManageWaiverPage ? firewall.componentDetailsPage : violation;
-  const matchState = showManageWaiverPage ? componentDetails.matchState : null;
-  const pathname = showManageWaiverPage
-    ? stringifyPathName(firewall.componentDetailsPage.componentDetails.componentIdentifier)
-    : null;
-  const componentIdentifier = showManageWaiverPage
-    ? stringifyComponentIdentifier(componentDetails.componentIdentifier, componentDetails.matchState)
-    : null;
+
+  if (isFirewall) {
+    matchState = componentDetailsPageRouteParams.matchState;
+    pathname = componentDetailsPageRouteParams.pathname;
+    componentIdentifier = componentDetailsPageRouteParams.componentIdentifier;
+    hash = componentDetailsPageRouteParams.componentHash;
+  } else {
+    matchState = showManageWaiverPage ? componentDetails.matchState : null;
+    pathname = showManageWaiverPage
+      ? stringifyPathName(firewall.componentDetailsPage.componentDetails.componentIdentifier)
+      : null;
+    componentIdentifier = showManageWaiverPage
+      ? stringifyComponentIdentifier(componentDetails.componentIdentifier, componentDetails.matchState)
+      : null;
+    hash = prop('hash', router.currentParams);
+  }
 
   return {
     ...pick(['activeWaivers', 'expiredWaivers'], violation),
     ...pick(['violationDetails'], selectViolationDetails),
-    ...pick(['violationId', 'sidebarReference', 'type', 'hash', 'scanId', 'publicId'], router.currentParams),
+    ...pick(['violationId', 'sidebarReference', 'type', 'scanId', 'publicId'], router.currentParams),
     ...manageWaivers,
     ...pick(['waiverToDelete'], deleteWaiver),
     ...pick(['showManageWaiverPage'], firewall.componentDetailsPage),
+    hash,
     matchState,
-    isCurrentRouteName: selectIsFirewall(state),
-    repositoryPolicyId: router.currentParams.repositoryPolicyId,
+    isCurrentRouteName: isFirewall,
+    repositoryPolicyId: isFirewall ? selectRepositoryId(state) : router.currentParams.repositoryPolicyId,
     pathname,
     componentIdentifier,
+    isFirewall,
   };
 }
 

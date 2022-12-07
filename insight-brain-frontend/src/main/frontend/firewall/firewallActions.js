@@ -30,6 +30,7 @@ import { stateGo } from '../reduxUiRouter/routerActions';
 import { actions as componentDetailsLicenseDetectionsTileActions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
 import { selectHash, selectRepositoryId } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as componentDetailsActions } from 'MainRoot/componentDetails/componentDetailsSlice';
+import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 
 export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';
 
@@ -538,15 +539,27 @@ export function onComponentDetailsPageTabChange(tabId) {
   };
 }
 
-export function onGoToFirewallWaiversPage(policyViolationId) {
+export function onGoToFirewallWaiversPage(violationId) {
   return (dispatch, getState) => {
-    const componentHash = selectHash(getState());
-    const repositoryId = selectRepositoryId(getState());
+    const {
+      repositoryId,
+      componentIdentifier,
+      componentHash,
+      matchState,
+      proprietary,
+      identificationSource,
+      pathname,
+    } = selectFirewallComponentDetailsPageRouteParams(getState());
     dispatch(
       stateGo('firewall.violationWaivers', {
-        hash: componentHash,
-        violationId: policyViolationId,
-        repositoryPolicyId: repositoryId,
+        repositoryId,
+        componentIdentifier,
+        componentHash,
+        matchState,
+        violationId,
+        proprietary,
+        identificationSource,
+        pathname,
       })
     );
     dispatch(isShowManageWaiverPage(true));

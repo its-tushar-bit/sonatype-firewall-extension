@@ -18,9 +18,10 @@ import { convertToWaiverViolationFormat } from '../util/waiverUtils';
 import { selectComponentViolations } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { loadPermissionForAppWaivers } from 'MainRoot/waivers/waiverActions';
 import {
-  selectRepositoryPolicyId,
   selectIsFirewall,
   selectPrevRepositoryPolicyId,
+  selectRepositoryId,
+  selectRepositoryPolicyId,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED = 'VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED';
@@ -78,7 +79,8 @@ export function fetchCrossStageViolation(id) {
       return Promise.resolve(violationDetails);
     }
 
-    const repositoryId = selectIsFirewall(state) ? selectRepositoryPolicyId(state) : null;
+    const repositoryId = selectIsFirewall(state) ? selectRepositoryId(state) : selectRepositoryPolicyId(state);
+
     const getDataUrl = selectIsFirewall(state)
       ? getRepositoryPolicyViolationUrl(repositoryId, id)
       : getViolationDetailsUrl(id);
@@ -103,7 +105,7 @@ export function fetchCrossStageViolationAddWaiver(id) {
   return function (dispatch, getState) {
     const state = getState();
 
-    const repositoryId = selectPrevRepositoryPolicyId(state);
+    const repositoryId = selectIsFirewall(state) ? selectRepositoryId(state) : selectPrevRepositoryPolicyId(state);
 
     return axios.get(getRepositoryPolicyViolationUrl(repositoryId, id)).then(({ data }) => {
       const violationData = convertToWaiverViolationFormat(data);

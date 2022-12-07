@@ -46,6 +46,7 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.Vulnerabili
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
+import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTableRow;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
@@ -1996,5 +1997,189 @@ public class FirewallComponentDetailsPageTest
 
     manageLabels.applicableLabels().shouldHaveSize(3);
     manageLabels.appliedLabels().shouldHaveSize(0);
+  }
+
+  @Test
+  public void testBackButtonWorksWhenPageIsRefreshed() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+
+    manageWaiversButton.click();
+
+    // This refresh is added to test if the page gets broken when is refreshed.
+    // This issue was found doing manual testing.
+    refresh();
+
+    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
+    waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
+    waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
+    waiversForViolationPage.backButton().click();
+
+    firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
+  }
+
+  @Test
+  public void testTraverseListWaiverAddWaiversPagesUsingBackButton() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.title().shouldHave(text("Waivers for Violation"));
+    listWaiversPage.backButton().shouldHave(text("Back to Component Details"));
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.artifactName().shouldHave(text("abi.cli"));
+    addWaiverPage.backButton().shouldBe(text("Back to Waivers"));
+    addWaiverPage.backButton().click();
+
+    // Checks that Back Button text doesn't change
+    listWaiversPage.backButton().shouldHave(text("Back to Component Details"));
+    listWaiversPage.backButton().click();
+
+    firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
+  }
+
+  @Test
+  public void testAddWaiverAllRepositoriesIsShownInExistingWaiversPopover() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+    violationRow1Cells.get(3).click();
+    policyViolationDetailPopover.shouldBe(visible);
+
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    NxRadio chosenScope = addWaiverPage.scope(1);
+    chosenScope.label().shouldHave(text("All Repositories"));
+    chosenScope.click();
+
+    NxRadio chosenComponent = addWaiverPage.component(2);
+    chosenComponent.label().shouldHave(text("All Components"));
+    chosenComponent.click();
+
+    addWaiverPage.comments().setValue("Some comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    addWaiverPage.submitError().shouldNotBe(visible);
+
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldNotBe(visible);
+    listWaiversPage.waiverListTable().rows().shouldHaveSize(1);
+    listWaiversPage.waiverListTable().row(1).scope().shouldHave(text("All Repositories"));
+    listWaiversPage.backButton().click();
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    SelenideElement viewAllComponentWaiversButton = firewallComponentDetailsPage.getViewAllComponentWaiversButton();
+    viewAllComponentWaiversButton.click();
+
+    ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
+    ComponentWaiversPopoverTableRow row = componentWaiversTable.row(1);
+
+    row.scope().shouldHave(text("All Repositories"));
+  }
+
+  @Test
+  public void testAddWaiversAndRemoveThemFromExistingWaiversPopovers() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+    violationRow1Cells.get(3).click();
+    policyViolationDetailPopover.shouldBe(visible);
+
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.scope(1).click();
+    addWaiverPage.component(1).click();
+
+    addWaiverPage.comments().setValue("Some comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+
+    addWaiverPage.scope(2).click();
+    addWaiverPage.component(1).click();
+
+    addWaiverPage.comments().setValue("test comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    listWaiversPage.backButton().click();
+    waitUntilSpinnersGone();
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+
+    firewallComponentDetailsPage.firewallWaiversButton().click();
+
+    ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
+    ComponentWaiversPopoverTableRow row = componentWaiversTable.row(2);
+    row.deleteButton().click();
+
+    firewallComponentDetailsPage.getDeleteWaiverModal().shouldBe(visible);
+    firewallComponentDetailsPage.getDeleteWaiverModalButton().click();
+
+    componentWaiversTable.getRows().shouldHaveSize(2);
   }
 }

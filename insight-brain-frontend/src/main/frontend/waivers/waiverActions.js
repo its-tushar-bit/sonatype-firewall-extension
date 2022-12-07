@@ -31,8 +31,8 @@ import {
   selectPreviousRouteName,
   selectHash,
   selectIsFirewall,
-  selectIsPrevFirewall,
   selectPrevRepositoryPolicyId,
+  selectRepositoryId,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
 import { loadExistingWaiversData } from 'MainRoot/firewall/firewallActions';
@@ -139,8 +139,11 @@ export const saveWaiverAndLoadPolicyViolationData = (
  */
 export function loadAddWaiverData(violationId) {
   return (dispatch, getState) => {
-    const isCurrentRouteName = selectIsPrevFirewall(getState());
-    const repositoryPolicyId = selectPrevRepositoryPolicyId(getState());
+    const isCurrentRouteName = selectIsFirewall(getState());
+    const repositoryPolicyId = selectIsFirewall(getState())
+      ? selectRepositoryId(getState())
+      : selectPrevRepositoryPolicyId(getState());
+
     const fetchCrossStage = isCurrentRouteName ? fetchCrossStageViolationAddWaiver : fetchCrossStageViolation;
     dispatch(loadAddWaiverDataRequested());
     return dispatch(fetchCrossStage(violationId))
@@ -174,7 +177,7 @@ export function loadManageWaiversData(violationId) {
     return dispatch(fetchCrossStageViolation(violationId))
       .then(() =>
         selectIsFirewall(getState())
-          ? getAddWaiverPermissionForRepository(getState().router.currentParams.repositoryPolicyId)
+          ? getAddWaiverPermissionForRepository(selectRepositoryId(getState()))
           : loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId)
       )
       .then(compose(dispatch, loadManageWaiversDataFulfilled))
@@ -320,8 +323,9 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
           currentState.name === 'firewall.componentDetailsPage.violations' ||
           currentState.name === 'firewall.componentDetailsPage.legal'
         ) {
-          const hash = selectHash(router);
-          dispatch(loadExistingWaiversData(ownerType, ownerId, hash));
+          const hash = selectHash(getState());
+          const ownerId = selectRepositoryId(getState());
+          dispatch(loadExistingWaiversData('repository', ownerId, hash));
         } else {
           if (!reloadComponentWaivers) {
             dispatch(loadApplicableWaivers(policyViolationId));

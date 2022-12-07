@@ -6,4 +6,4 @@
 
 @Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library', 'skyfall-jenkins-shared']) _
 
-firewallAuditAndQuarantine()
+firewallNamespaceConfusionPrevention()

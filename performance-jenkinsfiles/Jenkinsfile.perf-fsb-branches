@@ -4,6 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@Library(['jenkins-shared', 'iq-pipeline-library', 'skyfall-jenkins-shared']) _
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library', 'skyfall-jenkins-shared']) _
 
 iqServerFeatureSnapshotBuildsPipeline()

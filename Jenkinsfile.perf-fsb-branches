@@ -4,60 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@Library(['jenkins-shared', 'iq-pipeline-library']) _
+@Library(['jenkins-shared', 'iq-pipeline-library', 'skyfall-jenkins-shared']) _
 
-pipeline {
-  agent {
-    label InsightConstants.AGENT_LABEL
-  }
-
-  options {
-    buildDiscarder(logRotator(numToKeepStr: '10'))
-  }
-
-  parameters {
-    choice(name: 'DATABASE_GROUP', choices: ['H2', 'PostgreSQL', 'PostgreSQL-RDS'],
-        description: 'Defines the type of database to be used')
-    text(name: 'TARGET_ENDPOINTS', defaultValue: 'DEFAULT',
-        description: 'JSON string that defines the target endpoints for the test. Leave the value DEFAULT to use the default endpoints')
-  }
-
-  stages {
-    stage('Load parameters') {
-      steps {
-        script {
-          if (env.BUILD_NUMBER.equals("1")) {
-            currentBuild.displayName = 'Parameter loading. Refresh the page and build again.'
-            currentBuild.result = 'ABORTED'
-            error('Stopping initial triggered build as we only want to get the parameters')
-          }
-        }
-      }
-    }
-
-    stage('Test performance') {
-      steps {
-        script {
-          def built = build job: '../Test-performance',
-              parameters: [
-                      string(name: 'BRANCH_NAME', value: "${env.BRANCH_NAME}"),
-                      string(name: 'DATABASE_GROUP', value: "${DATABASE_GROUP}"),
-                      text(name: 'TARGET_ENDPOINTS', value: "${TARGET_ENDPOINTS}")
-              ],
-              wait: true
-          copyArtifacts(projectName: '../Test-performance', selector: specific("${built.number}"));
-        }
-
-        archiveArtifacts artifacts: 'small-terraform1.tfstate'
-        archiveArtifacts artifacts: 'smallAWSPerfRun1/perf_results*'
-        archiveArtifacts artifacts: 'small-terraform2.tfstate'
-        archiveArtifacts artifacts: 'smallAWSPerfRun2/perf_results*'
-        archiveArtifacts artifacts: 'small-terraform3.tfstate'
-        archiveArtifacts artifacts: 'smallAWSPerfRun3/perf_results*'
-        archiveArtifacts artifacts: 'process-fsb-results/report-of-small-*-environment.pdf'
-        archiveArtifacts artifacts: 'process-fsb-results/report-of-medium-*-environment.pdf'
-        archiveArtifacts artifacts: 'process-fsb-results/report-of-large-*-environment.pdf'
-      }
-    }
-  }
-}
+iqServerFeatureSnapshotBuildsPipeline()

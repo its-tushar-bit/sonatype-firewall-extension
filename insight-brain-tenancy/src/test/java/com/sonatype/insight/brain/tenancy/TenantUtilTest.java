@@ -62,15 +62,7 @@ public class TenantUtilTest
   }
 
   @Test
-  public void rootRequestsShouldBeGlobal() {
-    assertThat(TenantUtil.getTenantName("mtiq.cloudy.sonatype.dev")).isEqualTo("global");
-    assertThat(TenantUtil.getTenantName("staging.mtiq.cloudy.sonatype.dev")).isEqualTo("global");
-    assertThat(TenantUtil.getTenantName("cloud-dev.sonatype.com")).isEqualTo("global");
-    assertThat(TenantUtil.getTenantName("nexus.local")).isEqualTo("global");
-  }
-
-  @Test
   public void shouldThrowRuntimeExceptionForInvalidUrl() {
-    assertThatThrownBy(() -> TenantUtil.getTenantName("invalid.url")).isInstanceOf(RuntimeException.class);
+    assertThatThrownBy(() -> TenantUtil.getTenantName("invalid-url")).isInstanceOf(RuntimeException.class);
   }
 }

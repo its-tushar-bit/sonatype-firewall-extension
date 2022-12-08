@@ -13,13 +13,6 @@ public class TenantUtil
 {
   private static final Logger log = LoggerFactory.getLogger(TenantUtil.class);
 
-  private static final String[] SUPPORTED_URLS = new String[]{
-      "staging.mtiq.cloudy.sonatype.dev",
-      "mtiq.cloudy.sonatype.dev",
-      "cloud-dev.sonatype.com",
-      "nexus.local"
-  };
-
   /**
    * Is the server running in multi-tenant Saas mode? Default false. Package protected so can be overridden in Tests.
    * See @{link TenantTestHelper}.
@@ -101,22 +94,16 @@ public class TenantUtil
     log.warn("----------------------------------------------------------------------------------------------------");
   }
 
+  /**
+   * Extracts the tenant slug from the vanity url. The first part of the URL (before the first .) is the tenant slug.
+   *
+   * @param serverName - server name not including http://
+   * @return the tenant slug
+   */
   public static String getTenantName(final String serverName) {
     validateTenantName(serverName);
 
-    for (String supportedUrl : SUPPORTED_URLS) {
-      if (serverName.equals(supportedUrl)) {
-        // this is a root request
-        return Tenant.GLOBAL_TENANT.tenantSlug;
-      }
-    }
-
-    String val = serverName;
-    for (String supportedUrl : SUPPORTED_URLS) {
-      val = val.replace("." + supportedUrl, "");
-    }
-
-    return val;
+    return serverName.substring(0, serverName.indexOf("."));
   }
 
   private static void validateTenantName(String serverName) {
@@ -125,15 +112,13 @@ public class TenantUtil
     }
 
     if (!isSupportedUrl(serverName)) {
-      throw new RuntimeException("Unsupported URL. Supported URLS are: " + SUPPORTED_URLS);
+      throw new RuntimeException("Unsupported URL. Supported URLs must contain a tenant identifying slug");
     }
   }
 
   private static boolean isSupportedUrl(String serverName) {
-    for (String supportedUrl : SUPPORTED_URLS) {
-      if (serverName.contains(supportedUrl)) {
-        return true;
-      }
+    if (serverName.contains(".")) {
+      return true;
     }
 
     return false;

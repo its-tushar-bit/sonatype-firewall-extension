@@ -5,16 +5,15 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import java.util.HashMap;
 import java.util.Map;
-
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public class TenantReference<T>
 {
   private final Supplier<T> initializer;
 
-  private Map<Tenant, T> tenantMap = new HashMap<>();
+  private Map<Tenant, T> tenantMap = new ConcurrentHashMap<>();
 
   public TenantReference() {
     this.initializer = null;
@@ -27,14 +26,11 @@ public class TenantReference<T>
   public T get() {
     Tenant tenant = TenantThreadLocal.getTenant();
 
-    T result = tenantMap.get(tenant);
-    if (initializer != null && result == null) {
-      T initialValue = initializer.get();
-      set(initialValue);
-      return initialValue;
+    if (initializer != null) {
+      return tenantMap.computeIfAbsent(tenant, t -> initializer.get());
     }
     else {
-      return result;
+      return tenantMap.get(tenant);
     }
   }
 

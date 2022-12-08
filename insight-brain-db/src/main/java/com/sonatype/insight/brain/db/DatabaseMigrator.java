@@ -44,6 +44,16 @@ public class DatabaseMigrator
 
   private static final AtomicBoolean forceEnableMigration = new AtomicBoolean();
 
+  private final DataSourceFactory dataSourceFactory;
+
+  public DatabaseMigrator() {
+    this.dataSourceFactory = new DataSourceFactory();
+  }
+
+  public DatabaseMigrator(final DataSourceFactory dataSourceFactory) {
+    this.dataSourceFactory = dataSourceFactory;
+  }
+
   public void migrate(
       DatabaseConfig databaseConfig,
       String dataStoreId,
@@ -168,7 +178,7 @@ public class DatabaseMigrator
   {
     // populateDbSchema returns true if the db is new and populated
     // TODO: CLM-23241 tracks improving that method to have a clearer intent
-    return new DataSourceFactory().populateDbSchema(dataSource, databaseEngine, dataStoreId,
+    return dataSourceFactory.populateDbSchema(dataSource, databaseEngine, dataStoreId,
         databaseSchema);
   }
 

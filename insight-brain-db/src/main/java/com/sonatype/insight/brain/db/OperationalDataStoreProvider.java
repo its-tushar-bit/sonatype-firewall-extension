@@ -27,7 +27,7 @@ public class OperationalDataStoreProvider
 
   public static OperationalDataStore getInstance() {
     if (INSTANCE == null) {
-      INSTANCE = new DefaultOperationalDataStore();
+      INSTANCE = new DefaultOperationalDataStore(new DataSourceFactory(), new DatabaseMigrator());
     }
     return INSTANCE;
   }

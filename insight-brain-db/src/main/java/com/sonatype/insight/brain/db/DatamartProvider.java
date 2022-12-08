@@ -18,7 +18,7 @@ public class DatamartProvider
 
   public static DataMartDataStore getInstance() {
     if (INSTANCE == null) {
-      INSTANCE = new DefaultDataMartDataStore();
+      INSTANCE = new DefaultDataMartDataStore(new DataSourceFactory(), new DatabaseMigrator());
     }
     return INSTANCE;
   }

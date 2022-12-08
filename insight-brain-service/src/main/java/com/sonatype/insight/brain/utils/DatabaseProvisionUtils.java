@@ -105,7 +105,7 @@ public class DatabaseProvisionUtils
         operationalDataStore.getDatabaseSchema());
   }
 
-  public boolean isMigrationEnabledOrHasNewDataSource() {
+  private boolean isMigrationEnabledOrHasNewDataSource() {
     return DatabaseMigrator.isMigrationEnabled() || DataSourceFactory.hasNewDataSource();
   }
 

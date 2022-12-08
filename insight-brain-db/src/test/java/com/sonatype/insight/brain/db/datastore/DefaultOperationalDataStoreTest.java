@@ -9,6 +9,7 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
+import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -28,7 +29,7 @@ public class DefaultOperationalDataStoreTest
 
   @Override
   protected DataStore createTestDataStore() {
-    return new DefaultOperationalDataStore();
+    return new DefaultOperationalDataStore(new DataSourceFactory(), new DatabaseMigrator());
   }
 
   @Test

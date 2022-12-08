@@ -21,7 +21,7 @@ public class AggregationDataStoreProvider
 
   public static AggregationDataStore getInstance() {
     if (INSTANCE == null) {
-      INSTANCE = new DefaultAggregationDataStore();
+      INSTANCE = new DefaultAggregationDataStore(new DataSourceFactory(), new DatabaseMigrator());
     }
     return INSTANCE;
   }

@@ -16,7 +16,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import javax.sql.DataSource;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;

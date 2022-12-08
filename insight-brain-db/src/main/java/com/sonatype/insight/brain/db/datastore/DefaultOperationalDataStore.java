@@ -14,6 +14,7 @@ import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.SqlCallCounterMetrics;
@@ -43,6 +44,13 @@ public class DefaultOperationalDataStore
 
   private Boolean isDatabaseEmbedded;
 
+  public DefaultOperationalDataStore(
+      final DataSourceFactory dataSourceFactory,
+      final DatabaseMigrator databaseMigrator)
+  {
+    super(dataSourceFactory, databaseMigrator);
+  }
+
   @Override
   protected synchronized void init(
       DatabaseConfig databaseConfig,
@@ -57,7 +65,7 @@ public class DefaultOperationalDataStore
     long start = System.currentTimeMillis();
 
     this.databaseConfig = databaseConfig;
-    dataSource = new DataSourceFactory().createNewDataSource(databaseConfig, getID(), getDatabaseSchema());
+    dataSource = dataSourceFactory.createNewDataSource(databaseConfig, getID(), getDatabaseSchema());
     isDatabaseEmbedded = H2DatabaseEngine.class.equals(DatabaseUtil.getDatabaseEngine(dataSource).getClass());
 
     if (migrateDatabase) {

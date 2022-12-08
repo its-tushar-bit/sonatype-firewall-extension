@@ -18,7 +18,7 @@ public class ThirdPartyScansProvider
 
   public static ThirdPartyScansDataStore getInstance() {
     if (INSTANCE == null) {
-      INSTANCE = new DefaultThirdPartyScansDataStore();
+      INSTANCE = new DefaultThirdPartyScansDataStore(new DataSourceFactory(), new DatabaseMigrator());
     }
     return INSTANCE;
   }

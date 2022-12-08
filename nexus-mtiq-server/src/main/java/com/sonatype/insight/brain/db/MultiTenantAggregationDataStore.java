@@ -5,40 +5,79 @@
  */
 package com.sonatype.insight.brain.db;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 
 import com.sonatype.insight.brain.db.datastore.AbstractDataStore;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.db.DatabaseConfig;
 
-/**
- * TODO - multi-tenant implementation
- */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MultiTenantAggregationDataStore
     extends AbstractDataStore
     implements AggregationDataStore
 {
+  private static final Logger log = LoggerFactory.getLogger(MultiTenantAggregationDataStore.class);
+
+  private final Map<Tenant, EntityManagerFactory> entityManagerFactoryMap = new ConcurrentHashMap<>();
+
+  private final Map<Tenant, Boolean> isInitializedMap = new ConcurrentHashMap<>();
+
+  public MultiTenantAggregationDataStore(
+      final MultiTenantDataSourceFactory dataSourceFactory,
+      final DatabaseMigrator databaseMigrator)
+  {
+    super(dataSourceFactory, databaseMigrator);
+  }
+
   @Override
   protected void init(
       final DatabaseConfig databaseConfig,
       final boolean migrateDatabase,
       final Boolean migrateToNewViolationModel)
   {
-    // TODO
+    if (isInitialized()) {
+      return;
+    }
+
+    log.info("Initializing the {} data store.", getID());
+    long start = System.currentTimeMillis();
+
+    this.databaseConfig = databaseConfig;
+    dataSource = dataSourceFactory.createNewDataSource(databaseConfig, getID(), getDatabaseSchema());
+    if (migrateDatabase) {
+      migrate(migrateToNewViolationModel);
+    }
+    Map<String, Object> props = new LinkedHashMap<>();
+    props.put("openjpa.ConnectionFactory", dataSource);
+    props.put("openjpa.jdbc.Schema", getDatabaseSchema());
+
+    entityManagerFactoryMap.put(TenantThreadLocal.getTenant(),
+        Persistence.createEntityManagerFactory("InsightBrainAggregation", props));
+    isInitializedMap.put(TenantThreadLocal.getTenant(), true);
+
+    log.info("Initialized the {} data store in {} ms.", getID(), System.currentTimeMillis() - start);
   }
 
   @Override
   protected boolean isInitialized() {
-    return false;
+    return Boolean.TRUE.equals(isInitializedMap.get(TenantThreadLocal.getTenant()));
   }
 
   @Override
   public String getDatabaseSchema() {
-    return null;
+    return TenantThreadLocal.getTenant().databaseSchema;
   }
 
   @Override
   public EntityManagerFactory getJPAEntityManagerFactory() {
-    return null;
+    return entityManagerFactoryMap.get(TenantThreadLocal.getTenant());
   }
 }

@@ -28,6 +28,8 @@ import com.sonatype.insight.brain.audit.AuditFilter;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
@@ -71,6 +73,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.cli.Cli;
+import io.dropwizard.cli.Command;
 import io.dropwizard.cli.ServerCommand;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.configuration.DefaultConfigurationFactoryFactory;
@@ -177,7 +180,7 @@ public class InsightBrainService
     databaseProvisionUtils = createDatabaseProvisionUtils();
 
     final Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(this);
-    bootstrap.addCommand(new DbMigrationCommand(databaseProvisionUtils));
+    bootstrap.addCommand(createDbMigrationCommand(databaseProvisionUtils));
     bootstrap.addCommand(new ServerCommand<InsightConfig>(this)
     {
       private volatile InsightFileLock insightFileLock;
@@ -221,16 +224,24 @@ public class InsightBrainService
     cli.run(arguments);
   }
 
+  protected Command createDbMigrationCommand(final DatabaseProvisionUtils databaseProvisionUtils) {
+    return new DbMigrationCommand(databaseProvisionUtils);
+  }
+
   /**
    * Provisioning of the database happens before the application is booted by DropWizard, or seen by Guice. The
    * {@link DatabaseProvisionUtils} is responsible for this provisioning which includes establishing database
    * connections, populating empty/new databases, as well as possibly doing migrations if required.
    */
   protected DatabaseProvisionUtils createDatabaseProvisionUtils() {
-    OperationalDataStore operationalDataStore = new DefaultOperationalDataStore();
-    AggregationDataStore aggregationDataStore = new DefaultAggregationDataStore();
-    DataMartDataStore dataMartDataStore = new DefaultDataMartDataStore();
-    ThirdPartyScansDataStore thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore();
+    DataSourceFactory dataSourceFactory = new DataSourceFactory();
+    DatabaseMigrator databaseMigrator = new DatabaseMigrator(dataSourceFactory);
+
+    OperationalDataStore operationalDataStore = new DefaultOperationalDataStore(dataSourceFactory, databaseMigrator);
+    AggregationDataStore aggregationDataStore = new DefaultAggregationDataStore(dataSourceFactory, databaseMigrator);
+    DataMartDataStore dataMartDataStore = new DefaultDataMartDataStore(dataSourceFactory, databaseMigrator);
+    ThirdPartyScansDataStore thirdPartyScansDataStore =
+        new DefaultThirdPartyScansDataStore(dataSourceFactory, databaseMigrator);
 
     // Populate the legacy classes
     OperationalDataStoreProvider.setInstance(operationalDataStore);

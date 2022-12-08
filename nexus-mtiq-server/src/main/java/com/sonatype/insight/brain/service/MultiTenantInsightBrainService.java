@@ -9,21 +9,24 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
+import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatamartProvider;
+import com.sonatype.insight.brain.db.MultiTenantAggregationDataStore;
+import com.sonatype.insight.brain.db.MultiTenantDataMartDataStore;
+import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
+import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
+import com.sonatype.insight.brain.db.MultiTenantThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
-import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore;
-import com.sonatype.insight.brain.db.datastore.DefaultDataMartDataStore;
-import com.sonatype.insight.brain.db.datastore.DefaultOperationalDataStore;
-import com.sonatype.insight.brain.db.datastore.DefaultThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
-import com.sonatype.insight.brain.tenancy.MultiTenantQuartzJobInitializer;
 import com.sonatype.insight.brain.tenancy.MultiTenantExecutorThreadPools;
+import com.sonatype.insight.brain.tenancy.MultiTenantQuartzJobInitializer;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
@@ -33,12 +36,15 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.Singleton;
+import io.dropwizard.cli.Command;
 import io.dropwizard.setup.Environment;
 
 public class MultiTenantInsightBrainService
     extends InsightBrainService
 {
   public static void main(final String[] args) {
+    TenantManager.initGlobalTenant();
+
     try {
       setupServerLogging(args);
 
@@ -59,11 +65,18 @@ public class MultiTenantInsightBrainService
 
   @Override
   protected DatabaseProvisionUtils createDatabaseProvisionUtils() {
-    // TODO MTIQ: Using default data stores so that we can run and test but this should use the MultiTenant* variants
-    OperationalDataStore operationalDataStore = new DefaultOperationalDataStore();
-    AggregationDataStore aggregationDataStore = new DefaultAggregationDataStore();
-    DataMartDataStore dataMartDataStore = new DefaultDataMartDataStore();
-    ThirdPartyScansDataStore thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore();
+    MultiTenantDataSourceFactory multiTenantDataSourceFactory = new MultiTenantDataSourceFactory();
+
+    DatabaseMigrator databaseMigrator = new DatabaseMigrator(multiTenantDataSourceFactory);
+
+    OperationalDataStore operationalDataStore =
+        new MultiTenantOperationalDataStore(multiTenantDataSourceFactory, databaseMigrator);
+    AggregationDataStore aggregationDataStore =
+        new MultiTenantAggregationDataStore(multiTenantDataSourceFactory, databaseMigrator);
+    DataMartDataStore dataMartDataStore =
+        new MultiTenantDataMartDataStore(multiTenantDataSourceFactory, databaseMigrator);
+    ThirdPartyScansDataStore thirdPartyScansDataStore =
+        new MultiTenantThirdPartyScansDataStore(multiTenantDataSourceFactory, databaseMigrator);
 
     // Populate the legacy classes
     OperationalDataStoreProvider.setInstance(operationalDataStore);
@@ -114,6 +127,11 @@ public class MultiTenantInsightBrainService
     };
 
     return Arrays.asList(bindings, authc, authz, dbModule, buildMultiTenantModule());
+  }
+
+  @Override
+  protected Command createDbMigrationCommand(final DatabaseProvisionUtils databaseProvisionUtils) {
+    return new MultiTenantDbMigrationCommand(databaseProvisionUtils);
   }
 
   private Module buildMultiTenantModule() {

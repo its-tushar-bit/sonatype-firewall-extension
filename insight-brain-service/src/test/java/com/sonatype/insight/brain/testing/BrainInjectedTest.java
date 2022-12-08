@@ -9,6 +9,8 @@ import java.util.Properties;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
@@ -86,10 +88,10 @@ public class BrainInjectedTest
 
     @Override
     public Statement apply(final Statement base, final Description description) {
-      operationalDataStore = new DefaultOperationalDataStore();
-      aggregationDataStore = new DefaultAggregationDataStore();
-      dataMartDataStore = new DefaultDataMartDataStore();
-      thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore();
+      operationalDataStore = new DefaultOperationalDataStore(new DataSourceFactory(), new DatabaseMigrator());
+      aggregationDataStore = new DefaultAggregationDataStore(new DataSourceFactory(), new DatabaseMigrator());
+      dataMartDataStore = new DefaultDataMartDataStore(new DataSourceFactory(), new DatabaseMigrator());
+      thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore(new DataSourceFactory(), new DatabaseMigrator());
 
       OperationalDataStoreProvider.setInstance(operationalDataStore);
       AggregationDataStoreProvider.setInstance(aggregationDataStore);

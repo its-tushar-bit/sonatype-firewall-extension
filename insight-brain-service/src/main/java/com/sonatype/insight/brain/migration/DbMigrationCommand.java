@@ -55,8 +55,12 @@ public class DbMigrationCommand
     }
   }
 
+  protected boolean quartzSchedulerStateTableExists() {
+    return DatabaseUtil.quartzSchedulerStateTableExists(OperationalDataStoreProvider.getDataSource());
+  }
+
   void tryCheckLastCheckinTimeNotRecent(int attemptsToWait) {
-    if (!DatabaseUtil.quartzSchedulerStateTableExists(OperationalDataStoreProvider.getDataSource())) {
+    if (!quartzSchedulerStateTableExists()) {
       return;
     }
     int attemptedToWait = 0;

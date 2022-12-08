@@ -11,6 +11,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.slf4j.Logger;
@@ -26,6 +27,10 @@ public class DefaultDataMartDataStore
 
   private volatile boolean isInitialized = false;
 
+  public DefaultDataMartDataStore(final DataSourceFactory dataSourceFactory, final DatabaseMigrator databaseMigrator) {
+    super(dataSourceFactory, databaseMigrator);
+  }
+
   @Override
   protected synchronized void init(
       final DatabaseConfig databaseConfig,
@@ -40,7 +45,7 @@ public class DefaultDataMartDataStore
     long start = System.currentTimeMillis();
 
     this.databaseConfig = databaseConfig;
-    dataSource = new DataSourceFactory().createNewDataSource(databaseConfig, getID(), getDatabaseSchema());
+    dataSource = dataSourceFactory.createNewDataSource(databaseConfig, getID(), getDatabaseSchema());
     if (migrateDatabase) {
       migrate(migrateToNewViolationModel);
     }

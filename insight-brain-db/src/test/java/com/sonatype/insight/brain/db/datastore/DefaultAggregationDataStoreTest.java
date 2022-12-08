@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.db.datastore;
 
 import java.io.File;
 
+import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 
@@ -19,7 +20,7 @@ public class DefaultAggregationDataStoreTest
 {
   @Override
   protected DataStore createTestDataStore() {
-    return new DefaultAggregationDataStore();
+    return new DefaultAggregationDataStore(new DataSourceFactory(), new DatabaseMigrator());
   }
 
   @Test

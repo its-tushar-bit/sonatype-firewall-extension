@@ -13,7 +13,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import javax.sql.DataSource;
 
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.DatabaseException;
 import com.sonatype.insight.db.H2DatabaseEngine;
@@ -26,11 +25,11 @@ public class DatabaseUtil
   }
 
   public static boolean quartzSchedulerStateTableExists(DataSource dataSource) {
-    return tableExists(dataSource, OperationalDataStore.ID, "qrtz_scheduler_state");
+    return tableExists(dataSource, OperationalDataStoreProvider.getDatabaseSchema(), "qrtz_scheduler_state");
   }
 
   public static boolean systemConfigurationPropertyTableExists(DataSource dataSource) {
-    return tableExists(dataSource, OperationalDataStore.ID, "system_configuration_property");
+    return tableExists(dataSource, OperationalDataStoreProvider.getDatabaseSchema(), "system_configuration_property");
   }
 
   public static boolean tableExists(DataSource dataSource, String databaseSchema, String tableName) {
@@ -103,7 +102,8 @@ public class DatabaseUtil
       }
       else {
         throw new IllegalStateException(
-            databaseSchema + " schema_version table should have 1 entry but has " + result.getRow() + ".");
+            databaseSchema + ".schema_version table should have 1 result for " + dataStoreId + " but has " +
+                result.getRow() + ".");
       }
     }
     catch (Exception e) {

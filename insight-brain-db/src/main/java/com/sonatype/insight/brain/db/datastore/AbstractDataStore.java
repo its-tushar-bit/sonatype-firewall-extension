@@ -9,6 +9,7 @@ import java.util.function.IntConsumer;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.db.DatabaseConfig;
 
@@ -21,6 +22,15 @@ public abstract class AbstractDataStore
   protected DataSource dataSource;
 
   protected DatabaseConfig databaseConfig;
+
+  protected final DataSourceFactory dataSourceFactory;
+
+  private final DatabaseMigrator databaseMigrator;
+
+  public AbstractDataStore(final DataSourceFactory dataSourceFactory, final DatabaseMigrator databaseMigrator) {
+    this.dataSourceFactory = dataSourceFactory;
+    this.databaseMigrator = databaseMigrator;
+  }
 
   @Override
   public void initWithMigration(final DatabaseConfig databaseConfig, final Boolean migrateToNewViolationModel) {
@@ -44,7 +54,7 @@ public abstract class AbstractDataStore
 
   @Override
   public void migrate(final Boolean migrateToNewViolationModel) {
-    new DatabaseMigrator().migrate(databaseConfig, getID(), getDatabaseSchema(), dataSource,
+    databaseMigrator.migrate(databaseConfig, getID(), getDatabaseSchema(), dataSource,
         getUpgradeGuard(migrateToNewViolationModel));
   }
 

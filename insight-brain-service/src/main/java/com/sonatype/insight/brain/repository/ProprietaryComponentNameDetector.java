@@ -6,8 +6,7 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -30,10 +29,6 @@ public class ProprietaryComponentNameDetector
 {
   private static final Logger log = LoggerFactory.getLogger(ProprietaryComponentNameDetector.class);
 
-  private final ConcurrentMap<String, ComponentNameMatcher> matchersByFormat = new ConcurrentHashMap<>();
-
-  private final ConcurrentMap<String, Object> locksByFormat = new ConcurrentHashMap<>();
-
   private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO;
 
   @Inject
@@ -41,47 +36,22 @@ public class ProprietaryComponentNameDetector
     this.proprietaryComponentNamePatternDAO = proprietaryComponentNamePatternDAO;
   }
 
-  public ProprietaryComponentName findProprietaryComponentName(ComponentIdentifier componentIdentifier) {
+  public ProprietaryComponentName findProprietaryComponentName(
+      Map<String, ComponentNameMatcher> matchersByFormat,
+      ComponentIdentifier componentIdentifier)
+  {
     if (componentIdentifier == null) {
       return null;
     }
     PackageUrlIdentifier purlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
     String namespace = purlIdentifier.getNamespace();
     String name = purlIdentifier.getName();
-    return findProprietaryComponentName(componentIdentifier.getFormat(), namespace, name);
-  }
-
-  private ProprietaryComponentName findProprietaryComponentName(String format, String namespace, String name) {
-    return getMatcher(format).findMatch(namespace, name);
+    return matchersByFormat.computeIfAbsent(componentIdentifier.getFormat(), this::getMatcher)
+        .findMatch(namespace, name);
   }
 
   private ComponentNameMatcher getMatcher(String format) {
-    ComponentNameMatcher matcher = matchersByFormat.get(format);
-    if (isMatcherStale(matcher)) {
-      synchronized (locksByFormat.computeIfAbsent(format, key -> new Object())) {
-        matcher = matchersByFormat.get(format);
-        if (isMatcherStale(matcher)) {
-          long start = System.currentTimeMillis();
-          Collection<ProprietaryComponentNamePattern> patterns = proprietaryComponentNamePatternDAO.getByFormat(format);
-          matcher = new ComponentNameMatcher(format, patterns);
-          log.debug("Created matcher for {} proprietary component names ({}) in {} ms", patterns.size(), format,
-              System.currentTimeMillis() - start);
-          matchersByFormat.put(format, matcher);
-        }
-      }
-    }
-    return matcher;
-  }
-
-  private boolean isMatcherStale(ComponentNameMatcher matcher) {
-    if (matcher == null) {
-      return true;
-    }
-    if (!proprietaryComponentNamePatternDAO.isDatabaseEmbedded()
-        && System.currentTimeMillis() - matcher.getCreateTime() > 60_000 * 3) {
-      return true;
-    }
-    return false;
+    return new ComponentNameMatcher(format, proprietaryComponentNamePatternDAO.getByFormat(format));
   }
 
   public int addPatterns(String format, Collection<ProprietaryComponentNamePattern> patterns) {
@@ -116,10 +86,5 @@ public class ProprietaryComponentNameDetector
           repositoryManagerInstanceId);
       proprietaryComponentNamePatternDAO.deleteByRepository(repositoryManagerInstanceId, repositoryPublicId);
     }
-    invalidateMatchers();
-  }
-
-  private void invalidateMatchers() {
-    matchersByFormat.clear();
   }
 }

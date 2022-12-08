@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePatte
  * structure suitable for efficient matching, this also indicates whether a given pattern is new and hence needs to be
  * persisted, thereby avoiding costly database trips.
  */
-class ComponentNameMatcher
+public class ComponentNameMatcher
 {
   private static final Pattern PYPI_TO_DASH_REGEX = Pattern.compile("[-_.]+");
 

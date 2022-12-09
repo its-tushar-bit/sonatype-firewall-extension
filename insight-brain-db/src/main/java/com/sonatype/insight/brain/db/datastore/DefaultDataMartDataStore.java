@@ -12,6 +12,7 @@ import javax.persistence.Persistence;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.slf4j.Logger;
@@ -29,6 +30,8 @@ public class DefaultDataMartDataStore
 
   public DefaultDataMartDataStore(final DataSourceFactory dataSourceFactory, final DatabaseMigrator databaseMigrator) {
     super(dataSourceFactory, databaseMigrator);
+    // Populate the legacy class
+    DatamartProvider.setInstance(this);
   }
 
   @Override

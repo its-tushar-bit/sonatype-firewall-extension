@@ -49,6 +49,8 @@ public class DefaultOperationalDataStore
       final DatabaseMigrator databaseMigrator)
   {
     super(dataSourceFactory, databaseMigrator);
+    // Populate the legacy class
+    OperationalDataStoreProvider.setInstance(this);
   }
 
   @Override

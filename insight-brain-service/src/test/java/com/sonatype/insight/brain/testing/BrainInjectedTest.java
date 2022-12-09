@@ -8,12 +8,8 @@ package com.sonatype.insight.brain.testing; // note: this class is in this packa
 import java.util.Properties;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
-import com.sonatype.insight.brain.db.DatamartProvider;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.DefaultAggregationDataStore;
@@ -92,12 +88,6 @@ public class BrainInjectedTest
       aggregationDataStore = new DefaultAggregationDataStore(new DataSourceFactory(), new DatabaseMigrator());
       dataMartDataStore = new DefaultDataMartDataStore(new DataSourceFactory(), new DatabaseMigrator());
       thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore(new DataSourceFactory(), new DatabaseMigrator());
-
-      OperationalDataStoreProvider.setInstance(operationalDataStore);
-      AggregationDataStoreProvider.setInstance(aggregationDataStore);
-      DatamartProvider.setInstance(dataMartDataStore);
-      ThirdPartyScansProvider.setInstance(thirdPartyScansDataStore);
-
       return super.apply(base, description);
     }
   }

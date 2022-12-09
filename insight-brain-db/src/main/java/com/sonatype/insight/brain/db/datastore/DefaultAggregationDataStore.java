@@ -10,6 +10,7 @@ import java.util.Map;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
+import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -35,6 +36,8 @@ public class DefaultAggregationDataStore
       final DatabaseMigrator databaseMigrator)
   {
     super(dataSourceFactory, databaseMigrator);
+    // Populate the legacy class
+    AggregationDataStoreProvider.setInstance(this);
   }
 
   @Override

@@ -12,6 +12,7 @@ import javax.persistence.Persistence;
 
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
+import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.slf4j.Logger;
@@ -32,6 +33,8 @@ public class DefaultThirdPartyScansDataStore
       final DatabaseMigrator databaseMigrator)
   {
     super(dataSourceFactory, databaseMigrator);
+    // Populate the legacy class
+    ThirdPartyScansProvider.setInstance(this);
   }
 
   @Override

@@ -243,12 +243,6 @@ public class InsightBrainService
     ThirdPartyScansDataStore thirdPartyScansDataStore =
         new DefaultThirdPartyScansDataStore(dataSourceFactory, databaseMigrator);
 
-    // Populate the legacy classes
-    OperationalDataStoreProvider.setInstance(operationalDataStore);
-    AggregationDataStoreProvider.setInstance(aggregationDataStore);
-    DatamartProvider.setInstance(dataMartDataStore);
-    ThirdPartyScansProvider.setInstance(thirdPartyScansDataStore);
-
     return new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
         thirdPartyScansDataStore);
   }

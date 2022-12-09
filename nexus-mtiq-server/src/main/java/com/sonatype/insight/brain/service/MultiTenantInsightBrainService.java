@@ -78,12 +78,6 @@ public class MultiTenantInsightBrainService
     ThirdPartyScansDataStore thirdPartyScansDataStore =
         new MultiTenantThirdPartyScansDataStore(multiTenantDataSourceFactory, databaseMigrator);
 
-    // Populate the legacy classes
-    OperationalDataStoreProvider.setInstance(operationalDataStore);
-    AggregationDataStoreProvider.setInstance(aggregationDataStore);
-    DatamartProvider.setInstance(dataMartDataStore);
-    ThirdPartyScansProvider.setInstance(thirdPartyScansDataStore);
-
     return new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
         thirdPartyScansDataStore);
   }

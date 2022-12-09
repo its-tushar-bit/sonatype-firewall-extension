@@ -20,7 +20,7 @@ public class TenantAwareOneTimeCallableTest
 {
   @Test
   public void shouldCallWrappedCallable_usingTenantSetAtCreationTime() throws Exception {
-    Callable mockCallable = mock(Callable.class);
+    Callable<?> mockCallable = mock(Callable.class);
 
     Tenant expectedTenant = new Tenant("correcttenant");
     TenantThreadLocal.setTenant(expectedTenant);
@@ -30,7 +30,7 @@ public class TenantAwareOneTimeCallableTest
       return null;
     });
 
-    TenantAwareOneTimeCallable callable = new TenantAwareOneTimeCallable(mockCallable);
+    TenantAwareOneTimeCallable<?> callable = new TenantAwareOneTimeCallable<>(mockCallable);
 
     TenantThreadLocal.setTenant(new Tenant("wrongtenant"));
 
@@ -42,9 +42,9 @@ public class TenantAwareOneTimeCallableTest
 
   @Test
   public void shouldFail_whenReused() throws Exception {
-    Callable mockCallable = mock(Callable.class);
+    Callable<?> mockCallable = mock(Callable.class);
 
-    TenantAwareOneTimeCallable callable = new TenantAwareOneTimeCallable(mockCallable);
+    TenantAwareOneTimeCallable<?> callable = new TenantAwareOneTimeCallable<>(mockCallable);
     callable.call();
 
     assertThatThrownBy(callable::call)

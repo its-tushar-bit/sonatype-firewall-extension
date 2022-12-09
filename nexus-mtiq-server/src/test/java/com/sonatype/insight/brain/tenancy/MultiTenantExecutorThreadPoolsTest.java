@@ -37,7 +37,7 @@ public class MultiTenantExecutorThreadPoolsTest
   Runnable mockRunnable;
 
   @Mock
-  Callable mockCallable;
+  Callable<?> mockCallable;
 
   MultiTenantExecutorThreadPools underTest;
 
@@ -93,14 +93,14 @@ public class MultiTenantExecutorThreadPoolsTest
 
   @Test
   public void submitForkJoinTaskShouldFail() {
-    ForkJoinTask mockTask = mock(ForkJoinTask.class);
+    ForkJoinTask<?> mockTask = mock(ForkJoinTask.class);
 
     assertThatThrownBy(() -> pool.submit(mockTask)).isInstanceOf(RuntimeException.class);
   }
 
   @Test
   public void executeForkJoinTaskShouldFail() {
-    ForkJoinTask mockTask = mock(ForkJoinTask.class);
+    ForkJoinTask<?> mockTask = mock(ForkJoinTask.class);
 
     assertThatThrownBy(() -> pool.execute(mockTask)).isInstanceOf(RuntimeException.class);
   }

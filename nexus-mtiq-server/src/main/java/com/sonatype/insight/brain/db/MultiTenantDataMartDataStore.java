@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.db;
 
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
+import com.sonatype.insight.brain.tenancy.Tenant;
 
 public class MultiTenantDataMartDataStore
     extends AbstractMultiTenantDataStore
@@ -23,5 +24,11 @@ public class MultiTenantDataMartDataStore
   @Override
   protected String getFactoryName() {
     return "InsightBrainDM";
+  }
+
+  @Override
+  public String getDatabaseSchema() {
+    // The DataMart resides in the global schema in MTIQ
+    return Tenant.GLOBAL_TENANT.databaseSchema;
   }
 }

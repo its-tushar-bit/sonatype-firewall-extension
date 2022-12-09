@@ -9,7 +9,7 @@ import { useDispatch } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import { sort } from 'ramda';
 import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
-import { waiverType } from '../../../../util/waiverUtils';
+import { waiverType, mapApplicableWaiversToViolations } from 'MainRoot/util/waiverUtils';
 import FirewallPolicyViolationsTableRow from './FirewallPolicyViolationsTableRow';
 import PolicyViolationDetailsPopover from './FirewallPolicyViolationDetailsPopover';
 import FirewallExistingWaiversPopover from './FirewallExistingWaiversPopover';
@@ -29,9 +29,9 @@ export default function FirewallPolicyViolationsTable({
   componentNameWithoutVersion,
   waivers,
   waiverToDelete,
-  setWaiverToDelete,
 }) {
-  const orderedViolations = violations ? sortPolicyByThreat(violations) : [];
+  const mutatedViolations = mapApplicableWaiversToViolations(waivers, violations);
+  const orderedViolations = violations ? sortPolicyByThreat(mutatedViolations) : [];
   const [showViolationsDetailPopover, showPopover] = useState(false);
   const [selectPolicyId, savePolicyId] = useState('');
   const dispatch = useDispatch();
@@ -53,9 +53,9 @@ export default function FirewallPolicyViolationsTable({
           </NxTableRow>
         </NxTableHead>
         <NxTableBody emptyMessage="No policy violations">
-          {orderedViolations.map((violation, index) => (
+          {orderedViolations.map((violation) => (
             <FirewallPolicyViolationsTableRow
-              key={index}
+              key={violation.policyViolationId}
               showPopover={showPopover}
               orderedViolations={orderedViolations}
               violation={violation}

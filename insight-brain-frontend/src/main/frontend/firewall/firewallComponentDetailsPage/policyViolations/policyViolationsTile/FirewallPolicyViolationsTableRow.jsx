@@ -5,8 +5,10 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
+import classnames from 'classnames';
 import { NxTableCell, NxTableRow, NxThreatIndicator, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faExclamationCircle, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import FirewallPolicyViolationsWaiverIndicators from './FirewallPolicyViolationsWaiverIndicators';
 
 export default function FirewallPolicyViolationsTableRow({
   violation,
@@ -14,11 +16,16 @@ export default function FirewallPolicyViolationsTableRow({
   showPopover,
   savePolicyId,
 }) {
-  const { policyThreatLevel, policyName, constraints, policyViolationId } = violation;
+  const { policyThreatLevel, policyName, constraints, policyViolationId, waived } = violation;
   const [constraintFacts] = constraints;
   const conditionFacts = [...constraintFacts.conditions];
   const PROXY_FAILING_FLAG = 'fail';
   const PROXY_WARNING_FLAG = 'warn';
+
+  const isRemediated = waived;
+  const rowClassNames = classnames('iq-policy-violation-row', {
+    'iq-policy-violation-row--remediated': isRemediated,
+  });
 
   const setPolicyViolationIdToShow = () => {
     showPopover(true);
@@ -26,8 +33,8 @@ export default function FirewallPolicyViolationsTableRow({
   };
 
   return (
-    <NxTableRow className="iq-policy-violation-row" isClickable onClick={setPolicyViolationIdToShow}>
-      <NxTableCell>
+    <NxTableRow className={rowClassNames} isClickable onClick={setPolicyViolationIdToShow}>
+      <NxTableCell className={classnames({ disabled: isRemediated })}>
         <NxThreatIndicator policyThreatLevel={policyThreatLevel} />
         <span className="nx-threat-number">{policyThreatLevel}</span>
       </NxTableCell>
@@ -58,7 +65,9 @@ export default function FirewallPolicyViolationsTableRow({
           <p key={index}>{conditionFact.conditionReason}</p>
         ))}
       </NxTableCell>
-      <NxTableCell className="iq-policy-violation-row__actions-and-indicators-cell"></NxTableCell>
+      <NxTableCell className="iq-policy-violation-row__actions-and-indicators-cell">
+        <FirewallPolicyViolationsWaiverIndicators violation={violation} />
+      </NxTableCell>
       <NxTableCell chevron />
     </NxTableRow>
   );
@@ -71,6 +80,7 @@ FirewallPolicyViolationsTableRow.propTypes = {
     policyName: PropTypes.string.isRequired,
     policyThreatLevel: PropTypes.number.isRequired,
     policyThreatCategory: PropTypes.string.isRequired,
+    waived: PropTypes.bool.isRequired,
     constraints: PropTypes.arrayOf(
       PropTypes.shape({
         constraintId: PropTypes.string.isRequired,

@@ -36,6 +36,7 @@ export default function ViolationPage(props) {
     onGoToFirewallWaiversPage,
     loadFirewallViolationDetails,
     hasPermissionForAppWaivers,
+    loadApplicableWaivers,
   } = props;
 
   const error = props.violationDetailsError || props.stageTypesError;
@@ -70,6 +71,7 @@ export default function ViolationPage(props) {
       loadViolation(selectedViolationId);
     } else {
       loadFirewallViolationDetails(selectPolicyId);
+      loadApplicableWaivers(selectPolicyId);
       if (conditionTriggerReference) {
         loadFirewallPolicyVulnerabilityDetails(conditionTriggerReference.value);
       }
@@ -141,6 +143,7 @@ export const violationPageTypes = {
   goToWaivers: PropTypes.func.isRequired,
   onGoToFirewallWaiversPage: PropTypes.func.isRequired,
   loadFirewallViolationDetails: PropTypes.func.isRequired,
+  loadApplicableWaivers: PropTypes.func.isRequired,
   isFromPolicyViolations: PropTypes.bool,
   isFirewallContext: PropTypes.bool,
   policyViolations: PropTypes.array,

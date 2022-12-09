@@ -179,7 +179,7 @@ export default function ViolationDetailsTile(props) {
             <div className="nx-tile__actions">{manageWaiversButton}</div>
             <ActiveWaiversIndicator
               activeWaiverCount={activeWaivers.length}
-              waived={isFirewallContext ? null : violationDetails.waived}
+              waived={isFirewallContext ? policyDetail.waived : violationDetails.waived}
               showUnapplied={isFromPolicyViolations}
             />
           </Fragment>

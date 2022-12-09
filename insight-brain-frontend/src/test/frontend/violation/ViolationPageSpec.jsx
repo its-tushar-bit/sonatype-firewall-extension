@@ -20,7 +20,8 @@ describe('ViolationPage', function () {
     getShallowComponent,
     getMountedComponent,
     loadFirewallPolicyVulnerabilityDetailsSpy,
-    loadFirewallViolationDetailsSpy;
+    loadFirewallViolationDetailsSpy,
+    loadApplicableWaiversSpy;
 
   beforeEach(function () {
     loadViolationSpy = jasmine.createSpy('loadViolation');
@@ -28,6 +29,7 @@ describe('ViolationPage', function () {
     stateGoSpy = jasmine.createSpy('stateGo');
     loadFirewallPolicyVulnerabilityDetailsSpy = jasmine.createSpy('loadFirewallPolicyVulnerabilityDetails');
     loadFirewallViolationDetailsSpy = jasmine.createSpy('loadFirewallViolationDetails');
+    loadApplicableWaiversSpy = jasmine.createSpy('loadApplicableWaivers');
 
     minimalProps = {
       $state: {
@@ -163,6 +165,7 @@ describe('ViolationPage', function () {
       selectPolicyId: '02a6107559a94c39b04d4ec8374b9508',
       loadFirewallPolicyVulnerabilityDetails: loadFirewallPolicyVulnerabilityDetailsSpy,
       loadFirewallViolationDetails: loadFirewallViolationDetailsSpy,
+      loadApplicableWaivers: loadApplicableWaiversSpy,
       hasPermissionForAppWaivers: true,
     };
 
@@ -319,5 +322,11 @@ describe('ViolationPage', function () {
     const component = getMountedComponent();
     component.setProps({ isFirewallContext: true });
     expect(loadFirewallViolationDetailsSpy).toHaveBeenCalledWith('02a6107559a94c39b04d4ec8374b9508');
+  });
+
+  it('calls loadApplicableWaivers with params', function () {
+    const component = getMountedComponent();
+    component.setProps({ isFirewallContext: true });
+    expect(loadApplicableWaiversSpy).toHaveBeenCalledWith('02a6107559a94c39b04d4ec8374b9508');
   });
 });

@@ -51,6 +51,7 @@ import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -887,7 +888,7 @@ public class FirewallComponentDetailsPageTest
     securityLowViolationCells.get(1).shouldHave(text("Security-Low"));
     securityLowViolationCells.get(2).shouldHave(text("Security-low constraint"));
     securityLowViolationCells.get(3).shouldHave(text("security vulnerability severity >= 4.3"));
-    securityLowViolationCells.get(4).shouldBe(empty);
+    securityLowViolationCells.get(4).shouldHave(text("1 Active Waiver"));
 
     ElementsCollection licenseViolationCells = policyViolationsTable.getRows().get(2).findAll(By.tagName("td"));
     licenseViolationCells.get(0).shouldHave(text("5"));
@@ -1997,6 +1998,131 @@ public class FirewallComponentDetailsPageTest
 
     manageLabels.applicableLabels().shouldHaveSize(3);
     manageLabels.appliedLabels().shouldHaveSize(0);
+  }
+
+  @Test
+  public void tesAvailable_ActiveWaiverInTableRow() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable =
+        FirewallComponentDetailsPage.getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(6);
+
+    ElementsCollection policyViolationCells = policyViolationsTable.getRows().get(1).findAll(By.tagName("td"));
+    policyViolationCells.get(0).shouldHave(text("6"));
+    policyViolationCells.get(1).shouldHave(text("Security-Low"));
+    policyViolationCells.get(2).shouldHave(text("Security-low constraint"));
+    policyViolationCells.get(3).shouldHave(text("security vulnerability severity >= 4.3"));
+    policyViolationCells.get(4).shouldBe(text("1 Active Waiver"));
+  }
+
+  @Test
+  public void testOpenPageViolationDetailsFromTableRow_NotActiveWaivers() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    violationDetailsPage.detailsTile().shouldBe(visible);
+    violationDetailsPage.detailsTile().waiversIndicator().shouldBe(visible).shouldHave(text("0 Active Waivers"));
+  }
+
+  @Test
+  public void testOpenPageViolationDetailsFromTableRow_ActiveWaiver() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(2);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    
+    ViolationDetailsPage violationDetailsPage = new ViolationDetailsPage();
+    violationDetailsPage.detailsTile().shouldBe(visible);
+    violationDetailsPage.detailsTile().waiversIndicator().shouldBe(visible).shouldHave(text("1 Active Waiver"));
+  }
+
+  @Test
+  public void tesAvailable_UnappliedWaiverInTableRow() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    violationRow1Cells.get(3).click();
+
+    policyViolationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+    
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.availableScopes().shouldHaveSize(3);
+    NxRadio chosenScope = addWaiverPage.scope(0);
+    chosenScope.label().shouldHave(text("Repository - repositoryPublicId"));
+    chosenScope.click();
+    addWaiverPage.availableComponents().shouldHaveSize(3);
+    NxRadio chosenComponent = addWaiverPage.component(2);
+    chosenComponent.label().shouldHave(text("All Components"));
+    chosenComponent.click();
+    addWaiverPage.comments().setValue("Some comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    addWaiverPage.submitError().shouldNotBe(visible);
+
+    listWaiversPage.backButton().shouldHave(text("Back to Component Details")).click();
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(6);
+
+    ElementsCollection securityViolationCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
+    securityViolationCells.shouldHaveSize(6);
+    securityViolationCells.get(0).shouldHave(text("10"));
+    securityViolationCells.get(1).shouldHave(text("Security-High"));
+    securityViolationCells.get(2).shouldHave(text("Security constraint"));
+    securityViolationCells.get(3).shouldHave(text("security vulnerability severity >= 9.1"));
+    securityViolationCells.get(4).shouldHave(text("Unapplied Waiver"));
   }
 
   @Test

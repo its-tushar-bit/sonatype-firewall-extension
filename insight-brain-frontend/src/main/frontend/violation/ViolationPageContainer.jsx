@@ -13,6 +13,7 @@ import ViolationPage from './ViolationPage';
 import { selectSelectedViolationId } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { actions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
 import { onGoToFirewallWaiversPage, loadFirewallViolationDetails } from '../firewall/firewallActions';
+import { loadApplicableWaivers } from 'MainRoot/waivers/waiverActions';
 
 function mapStateToProps(state, showViolationsDetailPopover) {
   const { stages, violation, firewall } = state;
@@ -57,6 +58,7 @@ const mapDispatchToProps = {
   goToWaivers: actions.goToWaivers,
   onGoToFirewallWaiversPage: onGoToFirewallWaiversPage,
   loadFirewallViolationDetails: loadFirewallViolationDetails,
+  loadApplicableWaivers: loadApplicableWaivers,
 };
 
 const ViolationPageContainer = connect(mapStateToProps, mapDispatchToProps)(ViolationPage);

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { map, prop } from 'ramda';
+import { map, prop, equals } from 'ramda';
 import { getFutureDate } from './jsUtil';
 import { STANDARD_DATE_FORMAT, formatDate } from './dateUtils';
 import * as PropTypes from 'prop-types';
@@ -183,6 +183,24 @@ export const formatWaiverDetails = (waiver) => {
     vulnerabilityId,
     component,
   };
+};
+
+export const mapApplicableWaiversToViolations = (componentWaivers, allViolations) => {
+  // the waivers are already filtered for the component so there's no need for a hash matcher
+  const matchesPolicyId = (waiver, violation) => waiver.policyId === violation.policyId;
+  const matchesConstraintFacts = (waiver, violation) =>
+    waiver.constraintFactsJson != null && equals(waiver.constraintFactsJson, violation.constraintFactsJson);
+
+  const waiverIsApplicableToViolation = (waiver, violation) => {
+    return matchesPolicyId(waiver, violation) && matchesConstraintFacts(waiver, violation);
+  };
+
+  return allViolations?.map((violation) => ({
+    ...violation,
+    applicableWaivers: componentWaivers
+      .filter((waiver) => waiverIsApplicableToViolation(waiver, violation))
+      .map((waiver) => waiver.policyWaiverId),
+  }));
 };
 
 export const waiverType = {

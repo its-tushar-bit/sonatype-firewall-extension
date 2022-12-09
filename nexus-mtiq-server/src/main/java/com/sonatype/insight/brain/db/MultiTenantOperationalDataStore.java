@@ -60,6 +60,7 @@ public class MultiTenantOperationalDataStore
     dataSource.setUsername(databaseConfig.getUsername());
     dataSource.setPassword(databaseConfig.getPassword());
     dataSource.setMaxTotal(maxConnections);
+    dataSource.addConnectionProperty("ApplicationName", DatabaseUtil.generateApplicationNameWithHost("IQ-locks"));
     props.put("openjpa.ConnectionFactory", dataSource);
     entityManagerFactoryForLocks.put(TenantThreadLocal.getTenant(),
         Persistence.createEntityManagerFactory("InsightBrainODS", props));

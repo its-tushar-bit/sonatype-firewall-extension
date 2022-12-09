@@ -89,13 +89,15 @@ public class DefaultOperationalDataStore
     else {
       // smallest pool size should still support max nesting level of locks
       int maxConnections = Math.max(5, Optional.ofNullable(databaseConfig.getMaxConnections()).orElse(50));
-      BasicDataSource dataSource = new BasicDataSource();
-      dataSource.setDriverClassName(databaseConfig.getDriverClassName());
-      dataSource.setUrl(databaseConfig.getUrl());
-      dataSource.setUsername(databaseConfig.getUsername());
-      dataSource.setPassword(databaseConfig.getPassword());
-      dataSource.setMaxTotal(maxConnections);
-      props.put("openjpa.ConnectionFactory", dataSource);
+      BasicDataSource dataSourceForLocks = new BasicDataSource();
+      dataSourceForLocks.setDriverClassName(databaseConfig.getDriverClassName());
+      dataSourceForLocks.setUrl(databaseConfig.getUrl());
+      dataSourceForLocks.setUsername(databaseConfig.getUsername());
+      dataSourceForLocks.setPassword(databaseConfig.getPassword());
+      dataSourceForLocks.setMaxTotal(maxConnections);
+      dataSourceForLocks.addConnectionProperty("ApplicationName",
+          DatabaseUtil.generateApplicationNameWithHost("IQ-locks"));
+      props.put("openjpa.ConnectionFactory", dataSourceForLocks);
       entityManagerFactoryForLocks = Persistence.createEntityManagerFactory("InsightBrainODS", props);
     }
     isInitialized = true;

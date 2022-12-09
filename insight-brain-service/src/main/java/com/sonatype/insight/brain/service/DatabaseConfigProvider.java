@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 
 import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.slf4j.Logger;
@@ -56,7 +57,7 @@ public class DatabaseConfigProvider
       long dbCacheSizeInBytes = 16L * 1024 * 1024;
       if (config.getDbCacheSizePercent() != null) {
         dbCacheSizeInBytes = getMaxMemory() * config.getDbCacheSizePercent() / 100;
-        // CLM-8847 enforce a maximum cache size due to a possible overflow problem in h2 
+        // CLM-8847 enforce a maximum cache size due to a possible overflow problem in h2
         // see https://github.com/h2database/h2database/issues/630 for more details
         if (dbCacheSizeInBytes > MAX_CACHE_SIZE_BYTES) {
           log.info("Cache size {} bytes for ods h2 database is too large, restricting to {} bytes", dbCacheSizeInBytes,
@@ -107,6 +108,7 @@ public class DatabaseConfigProvider
     if (!DatabaseName.ods.equals(databaseName)) {
       databaseConfig.setMaxIdleConnections(3);
     }
+    databaseConfig.setApplicationName(DatabaseUtil.generateApplicationNameWithHost("IQ"));
     return databaseConfig;
   }
 }

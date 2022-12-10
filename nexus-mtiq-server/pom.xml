@@ -31,6 +31,11 @@
       <version>${project.version}</version>
       <classifier>server</classifier>
     </dependency>
+    <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-json-logging</artifactId>
+      <version>${dropwizard.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>
@@ -96,6 +101,7 @@
               <artifactSet>
                 <includes>
                   <include>com.sonatype.insight.brain:insight-brain-service</include>
+                  <include>io.dropwizard:dropwizard-json-logging</include>
                 </includes>
               </artifactSet>
               <transformers>

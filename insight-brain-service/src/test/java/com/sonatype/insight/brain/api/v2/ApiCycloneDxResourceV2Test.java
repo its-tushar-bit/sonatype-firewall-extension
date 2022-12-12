@@ -170,6 +170,18 @@ public class ApiCycloneDxResourceV2Test
   }
 
   @Test
+  public void testGetByReportId_Empty_Xml() throws Exception {
+    String sourceReportDir = "/" + getClass().getSimpleName() + "-empty/report";
+    HttpResponse response =
+        getHttpRequestByReportId(
+            ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION,
+            Version.VERSION_14,
+            MediaType.APPLICATION_XML,
+            sourceReportDir).get();
+    assertValidEmptyResponse(response, "xml");
+  }
+
+  @Test
   public void testGetByReportId_With_Version_1_3_Xml() throws Exception {
     HttpResponse response =
         getHttpRequestByReportId(ApiCycloneDxResourceV2.GET_BY_REPORT_PATH_WITH_VERSION, Version.VERSION_13,
@@ -303,6 +315,23 @@ public class ApiCycloneDxResourceV2Test
     assertThat(bom.getSpecVersion()).isEqualTo(version.getVersionString());
     assertThat(bom.getComponents()).hasSize(3);
     assertThat(response.getHeader(HttpHeaders.CONTENT_TYPE)).isEqualTo(contentType);
+  }
+
+  private void assertValidEmptyResponse(HttpResponse response, String format)
+      throws URISyntaxException, IOException, ParseException
+  {
+    assertResponseStatus(200, response);
+    byte[] actualBytes = response.getBodyText().getBytes(StandardCharsets.UTF_8);
+    Parser parser = BomParserFactory.createParser(actualBytes);
+    Bom actualBom = parser.parse(actualBytes);
+    byte[] expectedBytes =
+        Files.readAllBytes(Paths.get(getClass().getResource(
+            "/" + getClass().getSimpleName() + "-empty/sbom/sbom." + format).toURI()));
+    parser = BomParserFactory.createParser(expectedBytes);
+    Bom expectedBom = parser.parse(expectedBytes);
+    assertThat(actualBom).usingRecursiveComparison()
+        .ignoringFieldsMatchingRegexes("(externalReferences|serialNumber|metadata.timestamp)")
+        .isEqualTo(expectedBom);
   }
 
   private void assertValidMavenResponse(HttpResponse response, String format)

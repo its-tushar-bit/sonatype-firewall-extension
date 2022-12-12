@@ -223,7 +223,7 @@ public class ApiCycloneDxServiceV2
     if (policyEvaluation != null) {
       Metadata metadata = new Metadata();
       metadata.setTimestamp(policyEvaluation.getTime());
-      if (ObjectUtils.allNotNull(dependenciesData, dependenciesData.getPackageUrl())) {
+      if (dependenciesData != null && dependenciesData.getPackageUrl() != null) {
         ApiReportComponentDTOV2 component = new ApiReportComponentDTOV2();
         component.packageUrl = dependenciesData.getPackageUrl();
         Component parentComponent = createComponent(dependenciesData.getPackageUrl(), Type.APPLICATION);

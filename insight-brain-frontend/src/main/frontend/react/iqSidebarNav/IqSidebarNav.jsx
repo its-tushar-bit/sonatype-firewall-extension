@@ -171,14 +171,17 @@ function IqSidebarNav(props) {
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('dataInsights')}
               id="data-insights-navigation-button"
+              className="iq-data-insights-nav-link"
               icon={faDatabase}
               text={
                 <>
-                  <span className="nx-global-sidebar__label-container">
-                    <span>Data Insights</span>
-                    <span className="nx-global-sidebar__hidden-label">Data Insights</span>
+                  <span>Data Insights</span>
+                  <span className="iq-data-insights-nav-link__navigation-badge">
+                    {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
+                    <span className="iq-data-insights-nav-link__tooltip-only-text"> (</span>
+                    Labs
+                    <span className="iq-data-insights-nav-link__tooltip-only-text">)</span>
                   </span>
-                  <span className="nx-global-sidebar__navigation-badge">Labs</span>
                 </>
               }
               href={dataInsightsHref}

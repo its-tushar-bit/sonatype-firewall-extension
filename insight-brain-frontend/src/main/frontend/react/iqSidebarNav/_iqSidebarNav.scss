@@ -34,30 +34,42 @@ iq-sidebar-nav {
   }
 }
 
-.nx-global-sidebar__navigation-badge {
-  $height: 22.5px;
+.iq-data-insights-nav-link {
+  &.nx-global-sidebar__navigation-link {
+    &,
+    .nx-global-sidebar__navigation-text {
+      align-items: baseline;
+      display: flex;
+    }
+  }
 
-  background-color: var(--nx-swatch-yellow-60);
-  border-radius: calc(#{$height} / 2);
-  color: var(--nx-color-text-dark);
-  display: inline-block;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: $height;
-  margin-left: var(--nx-spacing-2x);
-  padding: 0 var(--nx-spacing-3x);
-  vertical-align: bottom;
-}
+  .nx-global-sidebar__navigation-text {
+    flex: 1;
+  }
 
-.nx-global-sidebar__label-container {
-  display: inline-block;
-  vertical-align: bottom;
-}
+  > .nx-icon {
+    // the vertical-align that is set on FA icons doesn't work in flexbox.
+    // Replicate is as relative positioning
+    position: relative;
+    top: 0.125em;
+  }
 
-.nx-global-sidebar__hidden-label {
-  display: block;
-  font-weight: 600;
-  height: 0;
-  overflow: hidden;
-  visibility: hidden;
+  &__navigation-badge {
+    $height: 22.5px;
+
+    background-color: var(--nx-swatch-yellow-60);
+    border-radius: calc(#{$height} / 2);
+    color: var(--nx-color-text-dark);
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: $height;
+    margin-left: auto;
+    padding: 0 var(--nx-spacing-3x);
+    vertical-align: bottom;
+  }
+
+  &__tooltip-only-text {
+    display: none;
+  }
 }

@@ -10,25 +10,25 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.service.QuartzJobInitializer;
+import com.sonatype.insight.brain.service.TenantManagedInitializer;
 
 @Named
 @Singleton
-public class MultiTenantQuartzJobInitializer
-    implements QuartzJobInitializer
+public class MultiTenantTenantManagedInitializer
+    implements TenantManagedInitializer
 {
-  private final Collection<TenantJob> tenantLifecycles;
+  private final Collection<TenantManaged> tenantLifecycles;
 
   @Inject
-  public MultiTenantQuartzJobInitializer(final Collection<TenantJob> tenantLifecycles) {
+  public MultiTenantTenantManagedInitializer(final Collection<TenantManaged> tenantLifecycles) {
     this.tenantLifecycles = tenantLifecycles;
   }
 
   @Override
   public void start() throws Exception {
     // Only global lifecycle jobs are initialized on startup in multi-tenant mode
-    for (TenantJob tenantLifecycle : tenantLifecycles) {
-      if (tenantLifecycle instanceof GlobalTenantJob) {
+    for (TenantManaged tenantLifecycle : tenantLifecycles) {
+      if (tenantLifecycle instanceof GlobalTenantManaged) {
         TenantThreadLocal.runAsGlobal(() -> {
           tenantLifecycle.register();
           return null;
@@ -39,8 +39,8 @@ public class MultiTenantQuartzJobInitializer
 
   @Override
   public void stop() throws Exception {
-    for (TenantJob tenantLifecycle : tenantLifecycles) {
-      if (tenantLifecycle instanceof GlobalTenantJob) {
+    for (TenantManaged tenantLifecycle : tenantLifecycles) {
+      if (tenantLifecycle instanceof GlobalTenantManaged) {
         TenantThreadLocal.runAsGlobal(() -> {
           tenantLifecycle.deregister();
           return null;

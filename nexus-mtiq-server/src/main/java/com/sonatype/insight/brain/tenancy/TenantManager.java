@@ -31,7 +31,7 @@ public class TenantManager
 
   private final Map<Tenant, Boolean> registeredTenants = new ConcurrentHashMap<>();
 
-  private final Collection<TenantJob> tenantJobs;
+  private final Collection<TenantManaged> tenantManagedBeans;
 
   private final InsightConfig insightConfig;
 
@@ -41,12 +41,12 @@ public class TenantManager
 
   @Inject
   public TenantManager(
-      final Collection<TenantJob> tenantJobs,
+      final Collection<TenantManaged> tenantManagedBeans,
       final InsightConfig insightConfig,
       final TenantLifecycle tenantLifecycle,
       final DatabaseProvisionUtils databaseProvisionUtils)
   {
-    this.tenantJobs = tenantJobs;
+    this.tenantManagedBeans = tenantManagedBeans;
     this.insightConfig = insightConfig;
     this.tenantLifecycle = tenantLifecycle;
     this.databaseProvisionUtils = databaseProvisionUtils;
@@ -114,13 +114,13 @@ public class TenantManager
   }
 
   private void setupTenantJobs() {
-    for (TenantJob tenantJob : tenantJobs) {
-      if (tenantJob instanceof GlobalTenantJob) {
+    for (TenantManaged tenantManaged : tenantManagedBeans) {
+      if (tenantManaged instanceof GlobalTenantManaged) {
         // Global lifecycles are not set here. See QuartzJobInitializer for that.
         continue;
       }
 
-      tenantJob.register();
+      tenantManaged.register();
     }
   }
 

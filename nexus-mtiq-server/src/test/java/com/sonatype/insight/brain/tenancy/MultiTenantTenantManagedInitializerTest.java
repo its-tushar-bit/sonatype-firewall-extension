@@ -14,17 +14,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-public class MultiTenantQuartzJobInitializerTest
+public class MultiTenantTenantManagedInitializerTest
     extends MultiTenantTest
 {
   @Test
   public void shouldCallRegisterOnStart_whenGlobalTenantJob() throws Exception {
-    TenantJob job1 = mock(TenantJob.class);
-    TenantJob job2 = mock(GlobalTenantJob.class);
-    TenantJob job3 = mock(GlobalTenantJob.class);
+    TenantManaged job1 = mock(TenantManaged.class);
+    TenantManaged job2 = mock(GlobalTenantManaged.class);
+    TenantManaged job3 = mock(GlobalTenantManaged.class);
 
-    MultiTenantQuartzJobInitializer initializer =
-        new MultiTenantQuartzJobInitializer(ImmutableList.of(job1, job2, job3));
+    MultiTenantTenantManagedInitializer initializer =
+        new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2, job3));
 
     initializer.start();
 
@@ -35,10 +35,11 @@ public class MultiTenantQuartzJobInitializerTest
 
   @Test
   public void shouldCallDeregisterOnStop() throws Exception {
-    TenantJob job1 = mock(TenantJob.class);
-    TenantJob job2 = mock(TenantJob.class);
+    TenantManaged job1 = mock(TenantManaged.class);
+    TenantManaged job2 = mock(TenantManaged.class);
 
-    MultiTenantQuartzJobInitializer initializer = new MultiTenantQuartzJobInitializer(ImmutableList.of(job1, job2));
+    MultiTenantTenantManagedInitializer
+        initializer = new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2));
 
     initializer.stop();
 
@@ -50,14 +51,14 @@ public class MultiTenantQuartzJobInitializerTest
   public void registerShouldRunAsGlobalTenant() throws Exception {
     TenantThreadLocal.setGlobalTenant();
 
-    TenantJob job = mock(GlobalTenantJob.class);
+    TenantManaged job = mock(GlobalTenantManaged.class);
 
     doAnswer(invocationOnMock -> {
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(Tenant.GLOBAL_TENANT);
       return null;
     }).when(job).register();
 
-    MultiTenantQuartzJobInitializer initializer = new MultiTenantQuartzJobInitializer(ImmutableList.of(job));
+    MultiTenantTenantManagedInitializer initializer = new MultiTenantTenantManagedInitializer(ImmutableList.of(job));
 
     initializer.start();
 
@@ -68,14 +69,14 @@ public class MultiTenantQuartzJobInitializerTest
   public void deregisterShouldRunAsGlobalTenant() throws Exception {
     TenantThreadLocal.setGlobalTenant();
 
-    TenantJob job = mock(GlobalTenantJob.class);
+    TenantManaged job = mock(GlobalTenantManaged.class);
 
     doAnswer(invocationOnMock -> {
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(Tenant.GLOBAL_TENANT);
       return null;
     }).when(job).deregister();
 
-    MultiTenantQuartzJobInitializer initializer = new MultiTenantQuartzJobInitializer(ImmutableList.of(job));
+    MultiTenantTenantManagedInitializer initializer = new MultiTenantTenantManagedInitializer(ImmutableList.of(job));
 
     initializer.stop();
 

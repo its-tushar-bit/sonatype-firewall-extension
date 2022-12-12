@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.tenancy.MultiTenantExecutorThreadPools;
-import com.sonatype.insight.brain.tenancy.MultiTenantQuartzJobInitializer;
+import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
@@ -136,7 +136,7 @@ public class MultiTenantInsightBrainService
         bind(ExecutorThreadPools.class).to(MultiTenantExecutorThreadPools.class);
         requestStaticInjection(ExecutorThreadPools.class);
 
-        bind(QuartzJobInitializer.class).to(MultiTenantQuartzJobInitializer.class).in(Singleton.class);
+        bind(TenantManagedInitializer.class).to(MultiTenantTenantManagedInitializer.class).in(Singleton.class);
         bind(DatabaseProvisionUtils.class).toInstance(databaseProvisionUtils);
 
         bind(ApplicationLifecycle.class).to(MultiTenantApplicationLifecycle.class);

@@ -8,9 +8,9 @@ package com.sonatype.insight.brain.service;
 import io.dropwizard.lifecycle.Managed;
 
 /**
- * Responsible for setting up (on startup) and tearing down (on shutdown) quartz jobs.
+ * Responsible for setting up (on startup) and tearing down (on shutdown) tenant managed beans.
  */
-public interface QuartzJobInitializer
+public interface TenantManagedInitializer
     extends Managed
 {
 }

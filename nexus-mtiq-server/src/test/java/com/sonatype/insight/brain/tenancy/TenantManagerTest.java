@@ -39,7 +39,7 @@ public class TenantManagerTest
   static final String TENANT_NAME = "tenant";
 
   @Mock
-  TenantJob job;
+  TenantManaged job;
 
   @Mock
   InsightConfig config;
@@ -50,7 +50,7 @@ public class TenantManagerTest
   @Mock
   DatabaseProvisionUtils databaseProvisionUtils;
 
-  List<TenantJob> tenantJobs;
+  List<TenantManaged> tenantManagedBeans;
 
   Tenant tenant = new Tenant(TENANT_NAME);
 
@@ -61,10 +61,10 @@ public class TenantManagerTest
   public void setup() {
     super.setup();
 
-    tenantJobs = new ArrayList<>();
-    tenantJobs.add(job);
+    tenantManagedBeans = new ArrayList<>();
+    tenantManagedBeans.add(job);
 
-    underTest = new TenantManager(tenantJobs, config, lifecycle, databaseProvisionUtils);
+    underTest = new TenantManager(tenantManagedBeans, config, lifecycle, databaseProvisionUtils);
   }
 
   @Test
@@ -125,9 +125,9 @@ public class TenantManagerTest
 
   @Test
   public void shouldNotRegister_globalTenantJobs() throws Exception {
-    GlobalTenantJob mockGlobalTenantJob = mock(GlobalTenantJob.class);
+    GlobalTenantManaged mockGlobalTenantJob = mock(GlobalTenantManaged.class);
 
-    tenantJobs.add(mockGlobalTenantJob);
+    tenantManagedBeans.add(mockGlobalTenantJob);
 
     setTenantAndAssertRegistration();
 

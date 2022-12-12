@@ -10,7 +10,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.tenancy.TenantJob;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
 
 /**
  * This class ensure that, in a single tenant deployment, job registration/creation happens at startup and
@@ -23,26 +23,26 @@ import com.sonatype.insight.brain.tenancy.TenantJob;
  */
 @Named
 @Singleton
-public class DefaultQuartzJobInitializer
-    implements QuartzJobInitializer
+public class DefaultTenantManagedInitializer
+    implements TenantManagedInitializer
 {
   private final Collection<InsightJob> tenantLifecycles;
 
   @Inject
-  public DefaultQuartzJobInitializer(final Collection<InsightJob> tenantLifecycles) {
+  public DefaultTenantManagedInitializer(final Collection<InsightJob> tenantLifecycles) {
     this.tenantLifecycles = tenantLifecycles;
   }
 
   @Override
   public void start() throws Exception {
-    for (TenantJob tenantLifecycle : tenantLifecycles) {
+    for (TenantManaged tenantLifecycle : tenantLifecycles) {
       tenantLifecycle.register();
     }
   }
 
   @Override
   public void stop() throws Exception {
-    for (TenantJob tenantLifecycle : tenantLifecycles) {
+    for (TenantManaged tenantLifecycle : tenantLifecycles) {
       tenantLifecycle.deregister();
     }
   }

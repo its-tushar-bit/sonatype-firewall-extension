@@ -11,14 +11,14 @@ import org.junit.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-public class DefaultQuartzJobInitializerTest
+public class DefaultTenantManagedInitializerTest
 {
   @Test
   public void shouldCallRegisterOnStart() throws Exception {
     InsightJob job1 = mock(InsightJob.class);
     InsightJob job2 = mock(InsightJob.class);
 
-    DefaultQuartzJobInitializer initializer = new DefaultQuartzJobInitializer(ImmutableList.of(job1, job2));
+    DefaultTenantManagedInitializer initializer = new DefaultTenantManagedInitializer(ImmutableList.of(job1, job2));
 
     initializer.start();
 
@@ -31,7 +31,7 @@ public class DefaultQuartzJobInitializerTest
     InsightJob job1 = mock(InsightJob.class);
     InsightJob job2 = mock(InsightJob.class);
 
-    DefaultQuartzJobInitializer initializer = new DefaultQuartzJobInitializer(ImmutableList.of(job1, job2));
+    DefaultTenantManagedInitializer initializer = new DefaultTenantManagedInitializer(ImmutableList.of(job1, job2));
 
     initializer.stop();
 

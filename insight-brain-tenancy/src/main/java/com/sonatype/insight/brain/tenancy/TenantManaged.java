@@ -6,16 +6,16 @@
 package com.sonatype.insight.brain.tenancy;
 
 /**
- * For quartz jobs that should run as an individual tenant
+ * For beans that should run as an individual tenant
  */
-public interface TenantJob
+public interface TenantManaged
 {
   /**
     Before the introduction of this class the dropwizard start() method was used for initialzation of jobs. The problem
     with that is it can't be used for tenant provisioning because it ties the initialization to the boot of the
     application (tenants are initialized at some unknown point in time after boot).
 
-    All future Quartz jobs should make use of register.
+    Note: All future Quartz jobs should be TenantManaged.
 
     Register is still called on start through the use of
     {@link com.sonatype.insight.brain.service.DefaultQuartzJobInitiailizer}

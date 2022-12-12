@@ -39,7 +39,7 @@ public class SuggestionIndexCleanerTest
     searchIndexDir.mkdirs();
     searchIndexFile.createNewFile();
 
-    suggestionIndexCleaner.start();
+    suggestionIndexCleaner.register();
 
     // Assert suggestion index directory and files are deleted.
     assertThat(searchSuggesterDir).doesNotExist();
@@ -56,7 +56,7 @@ public class SuggestionIndexCleanerTest
     searchIndexDir.mkdirs();
     searchIndexFile.createNewFile();
 
-    suggestionIndexCleaner.start();
+    suggestionIndexCleaner.register();
 
     // We do not want to delete any unrelated files
     assertThat(searchIndexFile).exists();

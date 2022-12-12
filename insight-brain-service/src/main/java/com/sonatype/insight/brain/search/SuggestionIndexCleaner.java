@@ -14,8 +14,8 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
 
-import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class SuggestionIndexCleaner
-    implements Managed
+    implements TenantManaged
 {
   private static final Logger log = LoggerFactory.getLogger(SuggestionIndexCleaner.class);
 
@@ -40,7 +40,7 @@ public class SuggestionIndexCleaner
   }
 
   @Override
-  public void start() {
+  public void register() {
     File searchSuggesterDir = getSearchSuggesterDir();
 
     try {
@@ -53,10 +53,5 @@ public class SuggestionIndexCleaner
 
   File getSearchSuggesterDir() {
     return new File(insightWork.getSearchDir(), "suggester");
-  }
-
-  @Override
-  public void stop() throws Exception {
-    // noop
   }
 }

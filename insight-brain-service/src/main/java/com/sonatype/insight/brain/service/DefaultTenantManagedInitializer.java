@@ -26,23 +26,23 @@ import com.sonatype.insight.brain.tenancy.TenantManaged;
 public class DefaultTenantManagedInitializer
     implements TenantManagedInitializer
 {
-  private final Collection<InsightJob> tenantLifecycles;
+  private final Collection<TenantManaged> tenantManagedBeans;
 
   @Inject
-  public DefaultTenantManagedInitializer(final Collection<InsightJob> tenantLifecycles) {
-    this.tenantLifecycles = tenantLifecycles;
+  public DefaultTenantManagedInitializer(final Collection<TenantManaged> tenantManagedBeans) {
+    this.tenantManagedBeans = tenantManagedBeans;
   }
 
   @Override
   public void start() throws Exception {
-    for (TenantManaged tenantLifecycle : tenantLifecycles) {
+    for (TenantManaged tenantLifecycle : tenantManagedBeans) {
       tenantLifecycle.register();
     }
   }
 
   @Override
   public void stop() throws Exception {
-    for (TenantManaged tenantLifecycle : tenantLifecycles) {
+    for (TenantManaged tenantLifecycle : tenantManagedBeans) {
       tenantLifecycle.deregister();
     }
   }

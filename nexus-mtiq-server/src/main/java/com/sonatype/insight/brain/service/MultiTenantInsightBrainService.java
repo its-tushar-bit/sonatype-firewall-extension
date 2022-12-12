@@ -140,7 +140,13 @@ public class MultiTenantInsightBrainService
         bind(DatabaseProvisionUtils.class).toInstance(databaseProvisionUtils);
 
         bind(ApplicationLifecycle.class).to(MultiTenantApplicationLifecycle.class);
+        bind(InsightConfig.class).to(MultiTenantInsightConfig.class);
       }
     };
+  }
+
+  @Override
+  public Class getConfigurationClass() {
+    return MultiTenantInsightConfig.class;
   }
 }

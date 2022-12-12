@@ -77,7 +77,7 @@ public class InsightConfig
 
   @NotNull
   @JsonProperty
-  private String sonatypeWork = "sonatype-work/clm-server";
+  protected String sonatypeWork = "sonatype-work/clm-server";
 
   /**
    * @since 1.99

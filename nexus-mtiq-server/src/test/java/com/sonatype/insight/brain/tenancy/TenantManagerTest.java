@@ -8,8 +8,9 @@ package com.sonatype.insight.brain.tenancy;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.service.ApplicationLifecycle;
+import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import org.junit.Before;
@@ -23,6 +24,8 @@ import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSe
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -42,7 +45,7 @@ public class TenantManagerTest
   InsightConfig config;
 
   @Mock
-  ApplicationLifecycle lifecycle;
+  TenantLifecycle lifecycle;
 
   @Mock
   DatabaseProvisionUtils databaseProvisionUtils;
@@ -105,7 +108,7 @@ public class TenantManagerTest
     underTest.setTenant(GLOBAL_TENANT);
 
     verify(job, never()).register();
-    verify(lifecycle, never()).boot();
+    verify(lifecycle, never()).bootTenant();
   }
 
   @Test
@@ -117,7 +120,7 @@ public class TenantManagerTest
 
     // Verify that the registration code wasn't called again
     verify(job, times(1)).register();
-    verify(lifecycle, times(1)).boot();
+    verify(lifecycle, times(1)).bootTenant();
   }
 
   @Test
@@ -140,7 +143,7 @@ public class TenantManagerTest
     underTest.setTenant(tenant);
 
     verify(job).register();
-    verify(lifecycle).boot();
-    verify(databaseProvisionUtils).initializeDatabasesWithoutMigration(config);
+    verify(lifecycle).bootTenant();
+    verify(databaseProvisionUtils).initializeDatabases(eq(config), any(DatabaseConfigProvider.class));
   }
 }

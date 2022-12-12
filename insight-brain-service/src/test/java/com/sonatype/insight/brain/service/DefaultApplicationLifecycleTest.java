@@ -22,11 +22,11 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 
-public class ApplicationLifecycleTest
+public class DefaultApplicationLifecycleTest
     extends AbstractComponentTest
 {
   @Inject
-  private ApplicationLifecycle lifecycle;
+  private DefaultApplicationLifecycle lifecycle;
 
   @Inject
   private InsightConfig config;

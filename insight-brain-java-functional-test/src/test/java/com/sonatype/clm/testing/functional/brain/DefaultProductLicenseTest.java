@@ -24,7 +24,7 @@ import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
-public class ProductLicenseTest
+public class DefaultProductLicenseTest
     extends AbstractFunctionalTest
 {
   private static final String FINGERPRINT_PATTERN = "[0-9a-fA-F]+";

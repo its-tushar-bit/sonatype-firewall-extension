@@ -304,7 +304,7 @@ public class TestInsightBrainService
 
     disableForTesting();
 
-    getInstance(ApplicationLifecycle.class).boot();
+    getInstance(DefaultApplicationLifecycle.class).boot();
   }
 
   @Override

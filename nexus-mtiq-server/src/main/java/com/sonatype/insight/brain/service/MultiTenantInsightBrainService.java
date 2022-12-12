@@ -90,10 +90,10 @@ public class MultiTenantInsightBrainService
   }
 
   @Override
-  protected void customize(InsightConfig config, Environment env) {
-    super.customize(config, env);
-
+  protected void addServletFilters(Environment env) {
     addServletFilter(env, TenantUrlFilter.class, "/*");
+
+    super.addServletFilters(env);
   }
 
   @Override
@@ -138,6 +138,8 @@ public class MultiTenantInsightBrainService
 
         bind(QuartzJobInitializer.class).to(MultiTenantQuartzJobInitializer.class).in(Singleton.class);
         bind(DatabaseProvisionUtils.class).toInstance(databaseProvisionUtils);
+
+        bind(ApplicationLifecycle.class).to(MultiTenantApplicationLifecycle.class);
       }
     };
   }

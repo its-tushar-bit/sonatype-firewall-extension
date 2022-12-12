@@ -26,7 +26,7 @@ public class ApplicationLifecycleAuditTest
     extends AbstractComponentAuditTest
 {
   @Inject
-  private ApplicationLifecycle lifecycle;
+  private DefaultApplicationLifecycle lifecycle;
 
   private File configFile;
 

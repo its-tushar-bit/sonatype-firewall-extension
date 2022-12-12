@@ -12,8 +12,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.service.ApplicationLifecycle;
+import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class TenantManager
 
   private final InsightConfig insightConfig;
 
-  private final ApplicationLifecycle applicationLifecycle;
+  private final TenantLifecycle tenantLifecycle;
 
   private final DatabaseProvisionUtils databaseProvisionUtils;
 
@@ -42,12 +43,12 @@ public class TenantManager
   public TenantManager(
       final Collection<TenantJob> tenantJobs,
       final InsightConfig insightConfig,
-      final ApplicationLifecycle applicationLifecycle,
+      final TenantLifecycle tenantLifecycle,
       final DatabaseProvisionUtils databaseProvisionUtils)
   {
     this.tenantJobs = tenantJobs;
     this.insightConfig = insightConfig;
-    this.applicationLifecycle = applicationLifecycle;
+    this.tenantLifecycle = tenantLifecycle;
     this.databaseProvisionUtils = databaseProvisionUtils;
   }
 
@@ -105,20 +106,11 @@ public class TenantManager
     log.info("Registering tenant {}", tenant.tenantSlug);
 
     long start = runAndLogTime("database init", tenant, System.currentTimeMillis(),
-        () -> databaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig));
+        () -> databaseProvisionUtils.initializeDatabases(insightConfig, new DatabaseConfigProvider(insightConfig)));
 
     start = runAndLogTime("jobs init", tenant, start, this::setupTenantJobs);
 
-    runAndLogTime("app boot", tenant, start, this::applicationBoot);
-  }
-
-  private void applicationBoot() {
-    try {
-      applicationLifecycle.boot();
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    runAndLogTime("app boot", tenant, start, tenantLifecycle::bootTenant);
   }
 
   private void setupTenantJobs() {

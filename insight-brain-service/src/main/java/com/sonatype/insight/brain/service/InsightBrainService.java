@@ -449,6 +449,13 @@ public class InsightBrainService
     env.servlets().addServlet(PingServlet.class.getSimpleName(), PingServlet.class)
         .addMapping(PublicApiPaths.PING_RESOURCE_PATH);
 
+    addServletFilters(env);
+
+    log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());
+    log.debug("Features flags: {}", config.getFeatures());
+  }
+
+  protected void addServletFilters(Environment env) {
     addServletFilter(env, true, ServerHeaderFilter.class, ServerHeaderFilter.URL_PATTERNS);
     addServletFilter(env, BaseUrlFilter.class, "/*");
     addServletFilter(env, AuditFilter.class, AuditFilter.URL_PATTERNS);
@@ -459,9 +466,6 @@ public class InsightBrainService
     addServletFilter(env, AuthenticationLoggingFilter.class, AuthenticationLoggingFilter.URL_PATTERN);
     addServletFilter(env, CspHeaderFilter.class, CspHeaderFilter.URL_PATTERN);
     addServletFilter(env, CspFrameHeaderFilter.class, CspFrameHeaderFilter.URL_PATTERN);
-
-    log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());
-    log.debug("Features flags: {}", config.getFeatures());
   }
 
   protected void addServletFilter(Environment env, Class<? extends Filter> filterType, String... urlPatterns) {

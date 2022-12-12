@@ -30,7 +30,7 @@ import org.sonatype.licensing.product.ProductLicenseKey;
 @Named
 @Singleton
 public class TestProductLicense
-    extends ProductLicense
+    extends DefaultProductLicense
 {
   private final TestProductLicenseManager testProductLicenseManager;
 

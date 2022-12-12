@@ -11,16 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantTestHelper
 {
-  /**
-   * {@link TenantUtil#isMultiTenant} is a static for ease of use. However, in tests we need to toggle this as needed.
-   *
-   * @param isMultiTenant Should multi-tenant mode be set
-   */
-  public static void setMultiTenantModeForTest(boolean isMultiTenant) {
-    TenantUtil.isMultiTenant = isMultiTenant;
-  }
-
-  public static void setGlobalTenant() {
+  public static void initMultiTenantMode() {
     TenantThreadLocal.setGlobalTenant();
   }
 

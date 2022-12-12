@@ -14,8 +14,6 @@ public class TenantReferenceTest
 {
   @Test
   public void shouldSetValueDependingOnTenant() {
-    TenantTestHelper.setMultiTenantModeForTest(true);
-
     Tenant tenant1 = new Tenant("tenant1");
     Tenant tenant2 = new Tenant("tenant2");
     String value1 = "value1";

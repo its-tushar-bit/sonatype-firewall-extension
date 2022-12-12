@@ -66,7 +66,6 @@ public class MultiTenantQuartzJobInitializerTest
 
   @Test
   public void deregisterShouldRunAsGlobalTenant() throws Exception {
-    TenantUtil.setMultiTenantMode();
     TenantThreadLocal.setGlobalTenant();
 
     TenantJob job = mock(GlobalTenantJob.class);

@@ -5,24 +5,12 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 
 public abstract class MultiTenantTest
 {
-  @BeforeClass
-  public static void classSetup() {
-    TenantTestHelper.setMultiTenantModeForTest(true);
-  }
-
-  @AfterClass
-  public static void tearDown() {
-    TenantTestHelper.setMultiTenantModeForTest(false);
-  }
-
   @Before
   public void setup() {
-    TenantThreadLocal.setGlobalTenant();
+    TenantTestHelper.initMultiTenantMode();
   }
 }

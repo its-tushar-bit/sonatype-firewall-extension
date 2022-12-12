@@ -57,8 +57,6 @@ public class TenantManager
    * set to the global tenant.
    */
   public static void initGlobalTenant() {
-    TenantUtil.setMultiTenantMode();
-
     TenantThreadLocal.setGlobalTenant();
   }
 

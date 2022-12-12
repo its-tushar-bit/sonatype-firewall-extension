@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.tenancy;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -25,14 +26,14 @@ public class TenantUtilTest
 
   @Test
   public void shouldReturnSingleTenantTrue_whenMultiTenantFalse() {
-    TenantUtil.isMultiTenant = false;
+    TenantThreadLocal.setTenant(SINGLE_TENANT);
 
     try {
       assertThat(TenantUtil.isMultiTenant()).isFalse();
       assertThat(TenantUtil.isSingleTenant()).isTrue();
     }
     finally {
-      TenantUtil.isMultiTenant = true;
+      TenantThreadLocal.setGlobalTenant();
     }
   }
 

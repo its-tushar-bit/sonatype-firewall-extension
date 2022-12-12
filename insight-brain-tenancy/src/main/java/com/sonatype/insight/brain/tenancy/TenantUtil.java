@@ -9,36 +9,27 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
+import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
+
 public class TenantUtil
 {
   private static final Logger log = LoggerFactory.getLogger(TenantUtil.class);
 
-  /**
-   * Is the server running in multi-tenant Saas mode? Default false. Package protected so can be overridden in Tests.
-   * See @{link TenantTestHelper}.
-   */
-  // visible for testing
-  static boolean isMultiTenant;
-
-  public static void setMultiTenantMode() {
-    // Intentionally can only be set to true to prevent this being abused
-    isMultiTenant = true;
-  }
-
   public static boolean isMultiTenant() {
-    return isMultiTenant;
+    return !isSingleTenant();
   }
 
   public static boolean isSingleTenant() {
-    return !isMultiTenant();
+    return SINGLE_TENANT.equals(TenantThreadLocal.getTenantWithoutValidation());
   }
 
   public static boolean isGlobalTenant() {
-    return Tenant.GLOBAL_TENANT.equals(validateTenant(TenantThreadLocal.getTenant()));
+    return GLOBAL_TENANT.equals(validateTenant(TenantThreadLocal.getTenant()));
   }
 
   public static boolean isGlobalTenant(String tenantSlug) {
-    return Tenant.GLOBAL_TENANT.tenantSlug.equals(tenantSlug);
+    return GLOBAL_TENANT.tenantSlug.equals(tenantSlug);
   }
 
   static Tenant validateTenant(Tenant tenant) {
@@ -52,10 +43,10 @@ public class TenantUtil
    */
   public static Tenant validateTenantForType(Class clazz, Tenant tenant) {
     if (!isMultiTenant()) {
-      return Tenant.SINGLE_TENANT;
+      return SINGLE_TENANT;
     }
 
-    Tenant defaultTenant = Tenant.GLOBAL_TENANT;
+    Tenant defaultTenant = GLOBAL_TENANT;
 
     // If we are here we are multi-tenant and a tenant setting is REQUIRED
     if (tenant == null) {
@@ -70,12 +61,12 @@ public class TenantUtil
       return tenant;
     }
 
-    if (GlobalTenantJob.class.isAssignableFrom(clazz) && !Tenant.GLOBAL_TENANT.equals(tenant)) {
+    if (GlobalTenantJob.class.isAssignableFrom(clazz) && !GLOBAL_TENANT.equals(tenant)) {
       logTenancyIssue("GlobalTenantJob was invoked which expects a global tenant to be set but instead a specific " +
           "tenant was set");
     }
     else if (!GlobalTenantJob.class.isAssignableFrom(clazz) && TenantJob.class.isAssignableFrom(clazz) &&
-        Tenant.GLOBAL_TENANT.equals(tenant)) {
+        GLOBAL_TENANT.equals(tenant)) {
       logTenancyIssue("TenantJob was invoked which expects a specific tenant to be set but instead global " +
           "tenant was set");
     }

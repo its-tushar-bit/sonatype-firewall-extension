@@ -9,6 +9,8 @@ import java.util.function.Supplier;
 
 import org.slf4j.MDC;
 
+import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
+import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantUtil.isMultiTenant;
 
 /**
@@ -18,6 +20,10 @@ import static com.sonatype.insight.brain.tenancy.TenantUtil.isMultiTenant;
 public class TenantThreadLocal
 {
   private static final ThreadLocal<Tenant> tenantThreadLocal = new InheritableThreadLocal<>();
+
+  static {
+    tenantThreadLocal.set(SINGLE_TENANT);
+  }
 
   /**
    * Returns the tenant from the ThreadLocal. TenantManager in the insight-brain-service module should ALWAYS be
@@ -38,11 +44,6 @@ public class TenantThreadLocal
    * needed.
    */
   static Tenant getTenantWithoutValidation() {
-    // If this is not a multi-tenant deployment, this is a no-op and go no further
-    if (!isMultiTenant()) {
-      return Tenant.SINGLE_TENANT;
-    }
-
     return tenantThreadLocal.get();
   }
 
@@ -59,7 +60,7 @@ public class TenantThreadLocal
     }
 
     // Everyone has access to the global tenant.
-    if (tenant.equals(Tenant.GLOBAL_TENANT)) {
+    if (tenant.equals(GLOBAL_TENANT)) {
       return;
     }
 
@@ -75,7 +76,7 @@ public class TenantThreadLocal
    * this method being used to work around the tenant security.
    */
   static Tenant cloneTenant(Tenant tenant) {
-    if (tenant == Tenant.GLOBAL_TENANT || tenant == Tenant.SINGLE_TENANT) {
+    if (GLOBAL_TENANT.equals(tenant) || SINGLE_TENANT.equals(tenant)) {
       // Never create new instances of the system tenants
       return tenant;
     }
@@ -111,14 +112,11 @@ public class TenantThreadLocal
    * insight-brain-service to set the tenant
    */
   static void setGlobalTenant() {
-    if (!TenantUtil.isMultiTenant()) {
-      throw new RuntimeException("You cannot set the global tenant outside a multi-tenant IQ deployment");
-    }
-    setTenant(Tenant.GLOBAL_TENANT);
+    setTenant(GLOBAL_TENANT);
   }
 
   public static <T> T runAsGlobal(Supplier<T> supplier) {
-    return runAs(Tenant.GLOBAL_TENANT, supplier);
+    return runAs(GLOBAL_TENANT, supplier);
   }
 
   /**
@@ -140,7 +138,7 @@ public class TenantThreadLocal
     }
     finally {
       if (previous == null) {
-        previous = Tenant.GLOBAL_TENANT;
+        previous = GLOBAL_TENANT;
       }
 
       setTenantWithoutValidation(previous);

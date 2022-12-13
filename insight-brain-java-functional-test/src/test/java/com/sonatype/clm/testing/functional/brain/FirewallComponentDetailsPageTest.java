@@ -1526,7 +1526,8 @@ public class FirewallComponentDetailsPageTest
     waiversForViolationPage.componentName().shouldHave(text("com.lingocoder : abi.cli : 0.5.2"));
     waiversForViolationPage.waiverListTable().rows().shouldHaveSize(1);
   }
-  
+
+  @Test
   public void testComponentReEvaluation() throws Exception {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();

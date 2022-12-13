@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -18,6 +19,8 @@ import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import io.dropwizard.lifecycle.Managed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This runs on when a new tenant is 'booted' and is responsible for initializing anything the tenant needs.
@@ -27,6 +30,8 @@ import io.dropwizard.lifecycle.Managed;
 public class TenantLifecycle
     implements Managed
 {
+  private static final Logger log = LoggerFactory.getLogger(TenantLifecycle.class);
+
   private final DataMigrator dataMigrator;
 
   private final CLMLicenseManager licenseManager;
@@ -72,6 +77,8 @@ public class TenantLifecycle
 
       licenseManager.loadLicense();
 
+      maybeLoadLicenseFile();
+
       // This call must come after the DataMigrator. Specifically, the RootOrganizationConfigMigrator as the sample data
       // will interfere with its decision to determine a fresh install and mistakenly trigger the root org migration.
       newInstancePopulator.populateIfNewInstance();
@@ -81,7 +88,27 @@ public class TenantLifecycle
     }
   }
 
-  private DatabaseProvisionUtils getDatabaseProvisionUtils() {
+  /**
+   * In a multi tenant environment license files are no longer loaded on startup (with the application lifecycle)
+   * instead they are installed/loaded per-tenant. Mostly we expect licenses to be installed via the app itself, however
+   * we're retaining this functionality in case we need to use and also to help with integration testing
+   */
+  private void maybeLoadLicenseFile() {
+    try {
+      if (config.getLicenseFile() != null) {
+        // Cannot make use of config.getLicenseFile() directly because that is per application rather than per tenant
+        // The licenseFile attribute in the config.yml has a different purpose in MTIQ and is only the file name, not
+        // the path to the file, the file must go into the per-tenant folder in sonatype-work
+        licenseManager.installLicenseIfUnlicensed(
+            new File(config.getSonatypeWork(), config.getLicenseFile()).getPath());
+      }
+    }
+    catch (Exception e) {
+      log.warn("The license {} could not be installed", config.getLicenseFile(), e);
+    }
+  }
+
+  protected DatabaseProvisionUtils getDatabaseProvisionUtils() {
     return new DatabaseProvisionUtils(operationalDataStore,
         aggregationDataStore,
         dataMartDataStore,

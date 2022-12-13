@@ -16,6 +16,7 @@ import javax.sql.DataSource;
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatabaseUtil;
+import com.sonatype.insight.brain.db.DbApplicationNameGenerator;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.SqlCallCounterMetrics;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -96,7 +97,7 @@ public class DefaultOperationalDataStore
       dataSourceForLocks.setPassword(databaseConfig.getPassword());
       dataSourceForLocks.setMaxTotal(maxConnections);
       dataSourceForLocks.addConnectionProperty("ApplicationName",
-          DatabaseUtil.generateApplicationNameWithHost("IQ-locks"));
+          new DbApplicationNameGenerator().generateApplicationNameWithHost("IQ-locks"));
       props.put("openjpa.ConnectionFactory", dataSourceForLocks);
       entityManagerFactoryForLocks = Persistence.createEntityManagerFactory("InsightBrainODS", props);
     }

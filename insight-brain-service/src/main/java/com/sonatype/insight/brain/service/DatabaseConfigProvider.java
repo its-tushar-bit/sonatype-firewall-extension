@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 
 import com.sonatype.insight.brain.db.DatabaseName;
-import com.sonatype.insight.brain.db.DatabaseUtil;
+import com.sonatype.insight.brain.db.DbApplicationNameGenerator;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.slf4j.Logger;
@@ -108,7 +108,7 @@ public class DatabaseConfigProvider
     if (!DatabaseName.ods.equals(databaseName)) {
       databaseConfig.setMaxIdleConnections(3);
     }
-    databaseConfig.setApplicationName(DatabaseUtil.generateApplicationNameWithHost("IQ"));
+    databaseConfig.setApplicationName(new DbApplicationNameGenerator().generateApplicationNameWithHost("IQ"));
     return databaseConfig;
   }
 }

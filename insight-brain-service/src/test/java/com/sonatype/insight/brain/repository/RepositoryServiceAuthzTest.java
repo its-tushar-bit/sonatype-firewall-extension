@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -441,5 +442,26 @@ public class RepositoryServiceAuthzTest
     login();
     repositoryService.getPolicyEvaluationTimestamps(repo.getId(),
         ComponentIdentifier.createNpmCoordinates("packageId", "version"));
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatterns_Authorized() {
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+    request.page = 1;
+    request.pageSize = 1;
+    repositoryService.getProprietaryComponentNamePatterns(request);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetProprietaryComponentNamePatterns_Unauthenticated() {
+    repositoryService.getProprietaryComponentNamePatterns(null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetProprietaryComponentNamePatterns_Unauthorized() {
+    login();
+    repositoryService.getProprietaryComponentNamePatterns(null);
   }
 }

@@ -43,6 +43,22 @@ public class ProprietaryComponentNamePattern
     setFormat(format);
   }
 
+  public ProprietaryComponentNamePattern(
+      String id,
+      String format,
+      String namespacePattern,
+      String namePattern,
+      String repositoryManagerInstanceId,
+      String repositoryPublicId)
+  {
+    this.id = id;
+    this.format = format;
+    this.namespacePattern = namespacePattern;
+    this.namePattern = namePattern;
+    this.repositoryManagerInstanceId = repositoryManagerInstanceId;
+    this.repositoryPublicId = repositoryPublicId;
+  }
+
   @Override
   public String getId() {
     return id;

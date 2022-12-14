@@ -195,6 +195,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
+import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -3799,6 +3800,20 @@ public class TemporaryEntity
     sourceControlPullRequestResultDAO.insert(sourceControlPullRequestResult);
     sourceControlPullRequestResults.add(sourceControlPullRequestResult);
     return sourceControlPullRequestResult;
+  }
+
+  public ProprietaryComponentNamePattern newProprietaryComponentNamePattern(
+      String repositoryManagerInstanceId,
+      String repositoryPublicId,
+      String format,
+      String namespacePattern,
+      String namePattern)
+  {
+    ProprietaryComponentNamePattern proprietaryComponentNamePattern =
+        new ProprietaryComponentNamePattern(format).withNamePattern(namePattern).withNamespacePattern(namespacePattern)
+            .withRepository(repositoryManagerInstanceId, repositoryPublicId);
+    proprietaryComponentNamePatternDAO.insert(proprietaryComponentNamePattern);
+    return proprietaryComponentNamePattern;
   }
 }
 

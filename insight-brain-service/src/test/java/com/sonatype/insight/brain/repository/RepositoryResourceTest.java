@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 
@@ -15,6 +16,7 @@ import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.Componen
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dto.repository.RepositoriesDTO;
@@ -23,9 +25,11 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
@@ -214,5 +218,43 @@ public class RepositoryResourceTest
     assertThat(repositoryPolicyViolationDTO.waived).isEqualTo(repositoryPolicyViolation.isWaived());
     assertThat(repositoryPolicyViolationDTO.policyActionTypeId).isEqualTo(repositoryPolicyViolation.getActionTypeId());
     assertThat(repositoryPolicyViolationDTO.lastReported).isEqualTo(repositoryPolicyViolation.getTime());
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatterns() throws Exception {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    repo = tempEntity.newRepository(repoManager, "testRepoPublicId");
+    ProprietaryComponentNamePattern pattern1 = tempEntity.newProprietaryComponentNamePattern(
+        repoManager.getInstanceId(), repo.getPublicId(), "maven", "testNamespacePattern1", "testNamePattern1");
+    tempEntity.newProprietaryComponentNamePattern(
+        repoManager.getInstanceId(), repo.getPublicId(), "maven", "testNamespacePattern2", "testNamePattern2");
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+    request.page = 1;
+    request.pageSize = 1;
+    request.searchFilters = Collections
+        .singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
+            ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
+            "testNamePattern"));
+    request.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
+        ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
+        true /* asc */, 1 /* sortPriority */));
+
+    HttpResponse response =
+        restRequest().path(RepositoryResource.RESOURCE_PATH, RepositoryResource.PROPRIETARY_COMPONENT_NAME_PATTERN_PATH)
+            .body(request).post();
+
+    assertResponseStatus(200, response);
+    ProprietaryComponentNamePatternsPage proprietaryComponentNamePatternsPage =
+        response.getBody(ProprietaryComponentNamePatternsPage.class);
+    assertThat(proprietaryComponentNamePatternsPage.hasNextPage).isTrue();
+    assertThat(proprietaryComponentNamePatternsPage.proprietaryComponentNamePatterns).hasSize(1);
+    ProprietaryComponentNamePatternDTO patternDTO =
+        proprietaryComponentNamePatternsPage.proprietaryComponentNamePatterns.get(0);
+    assertThat(patternDTO.id).isEqualTo(pattern1.getId());
+    assertThat(patternDTO.repositoryManagerInstanceId).isEqualTo(repoManager.getInstanceId());
+    assertThat(patternDTO.repositoryPublicId).isEqualTo(repo.getPublicId());
+    assertThat(patternDTO.format).isEqualTo(pattern1.getFormat());
+    assertThat(patternDTO.namespacePattern).isEqualTo(pattern1.getNamespacePattern());
+    assertThat(patternDTO.namePattern).isEqualTo(pattern1.getNamePattern());
   }
 }

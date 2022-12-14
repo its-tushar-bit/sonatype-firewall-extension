@@ -35,6 +35,8 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -44,8 +46,10 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
@@ -81,6 +85,9 @@ public class RepositoryService
   private static final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
   private static final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+
+  private static final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
+      new ProprietaryComponentNamePatternDAO();
 
   private static final PolicyDAO policyDAO = new PolicyDAO();
 
@@ -535,5 +542,60 @@ public class RepositoryService
         repositoryPolicyViolation.getThreatCategory(), constraints, repositoryPolicyViolation.getConstraintFactsJson(),
         repositoryPolicyViolation.isWaived(), repositoryPolicyViolation.getActionTypeId(),
         repositoryPolicyViolation.getTime());
+  }
+
+  public ProprietaryComponentNamePatternsPage getProprietaryComponentNamePatterns(
+      ProprietaryComponentNamePatternRequest request)
+  {
+    checkReadPermission(RepositoryContainer.SINGLETON);
+
+    log.debug("Getting proprietary component name patterns");
+
+    if (request == null) {
+      throw new BadRequestException("Missing request parameters");
+    }
+    
+    ProprietaryComponentNamePatternFilter filter = validateAndInitializeFilter(request);
+
+    List<ProprietaryComponentNamePattern> proprietaryComponentNamePatterns =
+        proprietaryComponentNamePatternDAO.getByFilter(filter);
+    
+    ProprietaryComponentNamePatternsPage result = new ProprietaryComponentNamePatternsPage();
+
+    int iPattern = 1;
+    for (ProprietaryComponentNamePattern proprietaryComponentNamePattern : proprietaryComponentNamePatterns) {
+      if (iPattern <= request.pageSize) {
+        result.proprietaryComponentNamePatterns
+            .add(new ProprietaryComponentNamePatternDTO(proprietaryComponentNamePattern));
+      }
+      else {
+        result.hasNextPage = true;
+        break;
+      }
+
+      iPattern++;
+    }
+
+    return result;
+  }
+
+  @Authorize(permission = Permission.READ)
+  void checkReadPermission(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner) {
+  }
+
+  ProprietaryComponentNamePatternFilter validateAndInitializeFilter(
+      ProprietaryComponentNamePatternRequest request)
+  {
+    if (request.page <= 0 || request.pageSize <= 0) {
+      throw new BadRequestException("Page and Page size must be greater than 0");
+    }
+
+    ProprietaryComponentNamePatternFilter filter = new ProprietaryComponentNamePatternFilter();
+    filter.page = request.page;
+    filter.pageSize = request.pageSize;
+    filter.searchFilters = request.searchFilters;
+    filter.sortFields = request.sortFields;
+
+    return filter;
   }
 }

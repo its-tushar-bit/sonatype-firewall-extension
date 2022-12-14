@@ -32,6 +32,7 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -46,6 +47,7 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
+import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -944,5 +946,100 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(policyEvaluationTimestampsDTO.quarantineTime).isNull();
     assertThat(policyEvaluationTimestampsDTO.unquarantineTime).isNull();
     assertThat(policyEvaluationTimestampsDTO.autoUnquarantined).isNull();
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatterns_NullRequest() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatterns(null))
+        .withMessage("Missing request parameters");
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatterns_ValidatesPageNumber() {
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+
+    request.page = 0;
+    request.pageSize = 1;
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatterns(request))
+        .withMessage("Page and Page size must be greater than 0");
+
+    request.page = -1;
+    request.pageSize = 1;
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatterns(request))
+        .withMessage("Page and Page size must be greater than 0");
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatterns_ValidatesPageSize() {
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+
+    request.page = 1;
+    request.pageSize = 0;
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatterns(request))
+        .withMessage("Page and Page size must be greater than 0");
+
+    request.page = 1;
+    request.pageSize = -1;
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> repositoryService.getProprietaryComponentNamePatterns(request))
+        .withMessage("Page and Page size must be greater than 0");
+  }
+
+  @Test
+  public void testGetProprietaryComponentNamePatterns() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo = tempEntity.newRepository(repoManager, "testRepoPublicId");
+    ProprietaryComponentNamePattern pattern1 = tempEntity.newProprietaryComponentNamePattern(
+        repoManager.getInstanceId(), repo.getPublicId(), "maven", "testNamespacePattern1", "testNamePattern1");
+    ProprietaryComponentNamePattern pattern2 = tempEntity.newProprietaryComponentNamePattern(
+        repoManager.getInstanceId(), repo.getPublicId(), "maven", "testNamespacePattern2", "testNamePattern2");
+
+    // Result must indicate next page exists
+    ProprietaryComponentNamePatternRequest request = new ProprietaryComponentNamePatternRequest();
+    request.page = 1;
+    request.pageSize = 1;
+    request.searchFilters = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
+        ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
+        "testNamePattern"));
+    request.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
+        ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
+        true /* asc */, 1 /* sortPriority */));
+
+    ProprietaryComponentNamePatternsPage result = repositoryService.getProprietaryComponentNamePatterns(request);
+    assertThat(result.hasNextPage).isTrue();
+    assertThat(result.proprietaryComponentNamePatterns).hasSize(1);
+    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(0), pattern1);
+
+    // Result must indicate next page doesn't exist
+    request.page = 1;
+    request.pageSize = 2;
+    request.searchFilters = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SearchFilter(
+        ProprietaryComponentNamePatternFilter.SearchFilter.FilterableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
+        "testNamePattern"));
+    request.sortFields = Collections.singletonList(new ProprietaryComponentNamePatternFilter.SortField(
+        ProprietaryComponentNamePatternFilter.SortField.SortableField.PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME,
+        true /* asc */, 1 /* sortPriority */));
+
+    result = repositoryService.getProprietaryComponentNamePatterns(request);
+    assertThat(result.hasNextPage).isFalse();
+    assertThat(result.proprietaryComponentNamePatterns).hasSize(2);
+    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(0), pattern1);
+    assertProprietaryComponentNamePattern(result.proprietaryComponentNamePatterns.get(1), pattern2);
+  }
+
+  private void assertProprietaryComponentNamePattern(
+      ProprietaryComponentNamePatternDTO actual,
+      ProprietaryComponentNamePattern expected)
+  {
+    assertThat(actual.namespacePattern).isEqualTo(expected.getNamespacePattern());
+    assertThat(actual.namePattern).isEqualTo(expected.getNamePattern());
+    assertThat(actual.id).isEqualTo(expected.getId());
+    assertThat(actual.repositoryManagerInstanceId).isEqualTo(expected.getRepositoryManagerInstanceId());
+    assertThat(actual.repositoryPublicId).isEqualTo(expected.getRepositoryPublicId());
+    assertThat(actual.format).isEqualTo(expected.getFormat());
   }
 }

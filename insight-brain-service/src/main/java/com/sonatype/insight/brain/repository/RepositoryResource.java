@@ -53,6 +53,8 @@ public class RepositoryResource
 
   static final String POLICY_VIOLATION_PATH = REPOSITORY_PATH + "/policyViolation/{repositoryPolicyViolationId}";
 
+  static final String PROPRIETARY_COMPONENT_NAME_PATTERN_PATH = RESOURCE_PATH + "/proprietaryComponentNamePattern";
+
   private RepositoryService repositoryService;
 
   @Inject
@@ -158,5 +160,18 @@ public class RepositoryResource
       @PathParam("repositoryPolicyViolationId") String repositoryPolicyViolationId)
   {
     return repositoryService.getPolicyViolation(repositoryId, repositoryPolicyViolationId);
+  }
+
+  /**
+   * @since 1.152
+   */
+  @POST
+  @Path(PROPRIETARY_COMPONENT_NAME_PATTERN_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  public ProprietaryComponentNamePatternsPage getProprietaryComponentNamePatterns(
+      ProprietaryComponentNamePatternRequest request)
+  {
+    return repositoryService.getProprietaryComponentNamePatterns(request);
   }
 }

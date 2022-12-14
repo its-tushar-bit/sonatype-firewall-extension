@@ -88,10 +88,12 @@ import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflic
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCweConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityResearchConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.valuetype.SecurityVulnerabilityResearch;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
@@ -1931,6 +1933,8 @@ public class ScanPolicyEvaluatorTest
         "ACKNOWLEDGED");
     Condition securityVulnerabilityCweCondition = new Condition(SecurityVulnerabilityCweConditionType.ID, "is", "770");
     Condition vulnerabilityGroupCondition = new Condition(VulnerabilityGroupConditionType.ID, "is", vg.getId());
+    Condition securityVulnerabilityResearchCondition = new Condition(SecurityVulnerabilityResearchConditionType.ID,
+        "is", SecurityVulnerabilityResearch.DEEP_DIVE_RESEARCH.getId());
     Condition packageUrlCondition = new Condition(PackageUrlConditionType.ID, "matches", "pkg:maven/*/*@*");
     Condition componentCategoryCondition = new Condition(ComponentCategoryConditionType.ID, "is not", "113");
     Condition hygieneCondition = new Condition(HygieneRatingConditionType.ID, "is not", "1");
@@ -1947,8 +1951,8 @@ public class ScanPolicyEvaluatorTest
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
         licenseThreatGroupLevelCondition, matchStateCondition, proprietaryCondition, relativePopularityCondition,
         securityVulnerabilitySeverityCondition, securityVulnerabilityStatusCondition, securityVulnerabilityCweCondition,
-        vulnerabilityGroupCondition, packageUrlCondition, componentCategoryCondition, hygieneCondition,
-        dataSourceCondition, dependencyCondition,
+        vulnerabilityGroupCondition, securityVulnerabilityResearchCondition, packageUrlCondition,
+        componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
         componentFormatCondition, vulnerabilityCategoryCondition, integrityCondition,
         securityVulnerabilitySourceCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);

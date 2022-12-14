@@ -23,7 +23,8 @@
     "cvssVectorSource" : null,
     "matchState" : "exact",
     "proprietary" : false,
-    "vulnerabilityCategories" : ["malicious_code"]
+    "vulnerabilityCategories" : ["malicious_code"],
+    "researchType": "DEEP_DIVE"
   }, {
     "componentIdentifier" : {
       "format" : "maven",

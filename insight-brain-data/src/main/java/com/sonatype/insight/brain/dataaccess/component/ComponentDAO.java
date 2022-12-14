@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityResearchType;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -451,6 +452,8 @@ public class ComponentDAO
               .getByName(statusString);
           final List<String> vulnerabilityCategories =
               JsonUtils.getStringListFromArray(securityVulnerabilityJson.get("vulnerabilityCategories"));
+          final String researchType =
+              JsonUtils.getNullableString(securityVulnerabilityJson.get("researchType"));
           final List<String> aliases = JsonUtils.getStringListFromArray(securityVulnerabilityJson.get("aliases"));
           final String cweString = JsonUtils.getNullableString(securityVulnerabilityJson.get("cwe"));
           final String cvssVectorString =
@@ -476,6 +479,7 @@ public class ComponentDAO
                 securityVulnerability.addVulnerabilityCategory(category);
               }
             }
+            securityVulnerability.setResearchType(SecurityVulnerabilityResearchType.getResearchType(researchType));
             if (aliases != null) {
               for (String alias : aliases) {
                 securityVulnerability.addAlias(alias);

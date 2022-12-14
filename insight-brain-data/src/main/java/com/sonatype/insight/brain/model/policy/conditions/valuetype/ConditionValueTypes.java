@@ -37,6 +37,7 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new SecurityVulnerabilityCategoryValueType());
     allConditionValueTypes.add(new SecurityVulnerabilitySourceValueType());
     allConditionValueTypes.add(new SecurityVulnerabilityCweValueType());
+    allConditionValueTypes.add(new SecurityVulnerabilityResearchValueType());
     allConditionValueTypes.add(new IacControlValueType());
     allConditionValueTypes.add(new VulnerabilityGroupValueType(ownerId));
     return allConditionValueTypes;

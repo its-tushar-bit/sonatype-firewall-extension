@@ -57,6 +57,9 @@ public class ConditionTypes
   public static final SecurityVulnerabilitySourceConditionType SecurityVulnerabilitySourceConditionType =
       new SecurityVulnerabilitySourceConditionType();
 
+  public static final SecurityVulnerabilityResearchConditionType SecurityVulnerabilityResearchConditionType =
+      new SecurityVulnerabilityResearchConditionType();
+
   public static final ProprietaryConditionType ProprietaryConditionType = new ProprietaryConditionType();
 
   public static final ProprietaryNameConflictConditionType ProprietaryNameConflictConditionType =
@@ -113,6 +116,7 @@ public class ConditionTypes
     add(SecurityVulnerabilityCweConditionType);
     add(SecurityVulnerabilitySourceConditionType);
     add(VulnerabilityGroupConditionType);
+    add(SecurityVulnerabilityResearchConditionType);
     add(DataSourceConditionType);
     add(DependencyTypeConditionType);
     addDisabledConditionType(IacControlConditionType);

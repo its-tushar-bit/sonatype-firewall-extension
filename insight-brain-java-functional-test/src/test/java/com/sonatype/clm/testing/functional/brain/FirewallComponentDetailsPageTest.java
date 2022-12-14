@@ -51,6 +51,8 @@ import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage.DeleteWaiverModal;
+import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListTable;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
@@ -2302,5 +2304,61 @@ public class FirewallComponentDetailsPageTest
     firewallComponentDetailsPage.getDeleteWaiverModalButton().click();
 
     componentWaiversTable.getRows().shouldHaveSize(2);
+  }
+
+  @Test
+  public void testDeletesWaiverAfterReevaluation() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+    policyViolationsTable.getCellsByNthRow(1).get(3).click();
+    policyViolationDetailPopover.shouldBe(visible);
+
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.scope(1).click();
+    addWaiverPage.component(1).click();
+
+    addWaiverPage.comments().setValue("Some comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    listWaiversPage.backButton().click();
+    waitUntilSpinnersGone();
+
+    firewallComponentDetailsPage.reevaluateButton().click();
+    waitUntilSpinnersGone();
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+
+    policyViolationsTable.getCellsByNthRow(1).get(3).click();
+    policyViolationDetailPopover.shouldBe(visible);
+    manageWaiversButton.click();
+
+    // Sanity Check
+    listWaiversPage.waiverListTable().rows().shouldHaveSize(1);
+
+    WaiverListTable waiverListTable = listWaiversPage.waiverListTable();
+    waiverListTable.row(1).deleteButton().click();
+
+    DeleteWaiverModal modal = listWaiversPage.deleteWaiverModal();
+    modal.root().shouldBe(visible);
+    modal.header().shouldHave(text("Delete Waiver"));
+    modal.message().shouldHave(text("Are you sure you want to delete this waiver?"));
+    modal.yesButton().click();
+
+    listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
   }
 }

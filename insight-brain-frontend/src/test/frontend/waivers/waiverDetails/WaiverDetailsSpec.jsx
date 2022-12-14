@@ -8,6 +8,7 @@ import { render, screen, fireEvent, axiosMockAdapter, waitFor } from 'TestRoot/S
 import { getWaiverDetailsUrl, deleteWaiverUrl } from 'MainRoot/util/CLMLocation';
 import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
 import WaiverDetails from 'MainRoot/waivers/waiverDetails/WaiverDetails';
+import * as routeSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('When the WaiverDetailsPage', function () {
   let axiosMock,
@@ -199,6 +200,7 @@ describe('When the WaiverDetailsPage', function () {
 
   describe('when pressing the delete button', () => {
     it('successfully delete a waiver', async () => {
+      spyOn(routeSelectors, 'selectIsFirewall').and.returnValue(false);
       axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverDetails);
       axiosMock.onDelete(expectedDeleteWaiverUrl).reply(204);
 

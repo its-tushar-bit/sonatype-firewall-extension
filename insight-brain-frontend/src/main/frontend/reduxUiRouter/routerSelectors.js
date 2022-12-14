@@ -34,6 +34,7 @@ export const selectIsPrevFirewall = createSelector(selectPreviousRouteName, name
 export const selectOrganizationId = createSelector(selectRouterCurrentParams, propOr('', 'organizationId'));
 export const selectApplicationId = createSelector(selectRouterCurrentParams, propOr('', 'applicationPublicId'));
 export const selectRepositoryId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryId'));
+export const selectViolationId = createSelector(selectRouterCurrentParams, propOr('', 'violationId'));
 export const selectHash = createSelector(selectRouterCurrentParams, propOr('', 'componentHash'));
 export const selectRepositoryPolicyId = createSelector(selectRouterCurrentParams, propOr('', 'repositoryPolicyId'));
 export const selectPrevRepositoryPolicyId = createSelector(selectRouterPrevParams, propOr('', 'repositoryPolicyId'));

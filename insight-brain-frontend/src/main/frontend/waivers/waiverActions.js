@@ -33,6 +33,7 @@ import {
   selectIsFirewall,
   selectPrevRepositoryPolicyId,
   selectRepositoryId,
+  selectViolationId,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
 import { loadExistingWaiversData } from 'MainRoot/firewall/firewallActions';
@@ -302,9 +303,15 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
   return (dispatch, getState) => {
     dispatch(deleteWaiverRequested());
 
+    let policyViolationId;
     const { violation, componentDetailsPolicyViolations, router, sidebarNavList } = getState();
     const { reloadComponentWaivers } = componentDetailsPolicyViolations;
-    const policyViolationId = path(['violationDetails', 'policyViolationId'], violation);
+
+    if (selectIsFirewall(getState())) {
+      policyViolationId = selectViolationId(getState());
+    } else {
+      policyViolationId = path(['violationDetails', 'policyViolationId'], violation);
+    }
     const endpointUrl = deleteWaiverUrl(ownerType, ownerId, waiverId);
 
     return axios

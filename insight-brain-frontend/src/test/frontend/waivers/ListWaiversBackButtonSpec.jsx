@@ -20,13 +20,14 @@ describe('ListWaiversBackButton', function () {
       componentHash: 'componentHash',
       matchState: 'matchState',
       pathname: 'pathname',
+      tabId: 'violations',
       isFirewall: false,
     };
     hrefSpy = jasmine.createSpy('href').and.callFake((stateName) => {
       switch (stateName) {
         case 'applicationReport.componentDetails.violations':
           return 'componentDetailsHref';
-        case 'firewall.componentDetailsPage':
+        case `firewall.componentDetailsPage.violations`:
           return 'firewallComponentDetailsPageHref';
         default:
           return 'violationDetailsHref';
@@ -149,7 +150,7 @@ describe('ListWaiversBackButton', function () {
     });
 
     expect(routerContext.useRouterState).toHaveBeenCalled();
-    expect(hrefSpy).toHaveBeenCalledWith('firewall.componentDetailsPage', {
+    expect(hrefSpy).toHaveBeenCalledWith('firewall.componentDetailsPage.violations', {
       repositoryId: 'repositoryPolicyId',
       componentIdentifier: 'componentIdentifier',
       componentHash: 'hash',

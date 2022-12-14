@@ -48,6 +48,7 @@ export default function ListWaiversPage(props) {
     identificationSource,
     pathname,
     isFirewall,
+    tabId,
   } = backButtonProps;
 
   function load() {
@@ -79,6 +80,7 @@ export default function ListWaiversPage(props) {
           proprietary,
           identificationSource,
           pathname,
+          tabId,
         })
       );
     }

@@ -53,6 +53,7 @@ export default function AddWaiverPage(props) {
     proprietary,
     identificationSource,
     pathname,
+    tabId,
   } = props;
 
   const backButtonProps = {
@@ -67,6 +68,7 @@ export default function AddWaiverPage(props) {
     proprietary,
     identificationSource,
     pathname,
+    tabId,
   };
 
   function load() {

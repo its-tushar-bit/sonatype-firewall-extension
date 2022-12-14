@@ -23,6 +23,7 @@ export default function ListWaiversBackButton(props) {
     matchState,
     pathname,
     isFirewall,
+    tabId,
   } = props;
 
   const componentDetailsPropsPresent = hash && scanId && publicId && previousRouterStateNameForComponentDetails;
@@ -38,7 +39,7 @@ export default function ListWaiversBackButton(props) {
   } else {
     if (isFirewall) {
       backButtonTitle = 'Back to Component Details';
-      backButtonHref = uiRouterState.href('firewall.componentDetailsPage', {
+      backButtonHref = uiRouterState.href(`firewall.componentDetailsPage.${tabId}`, {
         repositoryId: repositoryPolicyId,
         componentIdentifier,
         componentHash: hash,
@@ -67,4 +68,5 @@ ListWaiversBackButton.propTypes = {
   componentIdentifier: PropTypes.string,
   repositoryPolicyId: PropTypes.string,
   isFirewall: PropTypes.bool,
+  tabId: PropTypes.string,
 };

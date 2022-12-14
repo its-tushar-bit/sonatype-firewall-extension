@@ -36,6 +36,7 @@ function mapStateToProps(state) {
     proprietary,
     identificationSource,
     pathname,
+    tabId,
   } = selectFirewallComponentDetailsPageRouteParams(state);
   return {
     ...addWaiver,
@@ -52,6 +53,7 @@ function mapStateToProps(state) {
     proprietary,
     identificationSource,
     pathname,
+    tabId,
   };
 }
 

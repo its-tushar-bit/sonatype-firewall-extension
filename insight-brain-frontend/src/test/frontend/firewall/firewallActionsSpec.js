@@ -1440,6 +1440,7 @@ describe('firewallActions', function () {
           proprietary: 'proprietary',
           identificationSource: 'identificationSource',
           pathname: 'pathname',
+          tabId: undefined,
         },
         options: undefined,
       });

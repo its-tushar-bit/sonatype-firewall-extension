@@ -998,11 +998,7 @@ public class FirewallComponentDetailsPageTest
     listWaiversPage.backButton().shouldHave(text("Back to Component Details")).click();
     waitUntilSpinnersGone();
 
-    firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
-    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(0).shouldHave(text("Exact"));
-    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(1).shouldHave(text("Sonatype"));
-    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(2).shouldHave(text("Visit Project Website"));
-    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(3).shouldHave(text("Other"));
+    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
   }
 
   @Test
@@ -1836,11 +1832,7 @@ public class FirewallComponentDetailsPageTest
     listWaiversPage.backButton().shouldHave(text("Back to Component Details")).click();
     waitUntilSpinnersGone();
 
-    firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
-    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(0).shouldHave(text("Exact"));
-    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(1).shouldHave(text("Sonatype"));
-    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(2).shouldHave(text("Visit Project Website"));
-    firewallComponentDetailsPage.getComponentOverviewTileReadOnlyItemData(3).shouldHave(text("Other"));
+    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
   }
 
   @Test
@@ -2157,7 +2149,9 @@ public class FirewallComponentDetailsPageTest
     waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
     waiversForViolationPage.backButton().click();
 
-    firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+
+    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
   }
 
   @Test
@@ -2196,7 +2190,7 @@ public class FirewallComponentDetailsPageTest
     listWaiversPage.backButton().shouldHave(text("Back to Component Details"));
     listWaiversPage.backButton().click();
 
-    firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
+    firewallComponentDetailsPage.getPolicyViolationsComponent().shouldBe(visible);
   }
 
   @Test

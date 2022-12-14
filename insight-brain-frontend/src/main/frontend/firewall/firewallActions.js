@@ -549,6 +549,7 @@ export function onGoToFirewallWaiversPage(violationId) {
       proprietary,
       identificationSource,
       pathname,
+      tabId,
     } = selectFirewallComponentDetailsPageRouteParams(getState());
     dispatch(
       stateGo('firewall.violationWaivers', {
@@ -560,6 +561,7 @@ export function onGoToFirewallWaiversPage(violationId) {
         proprietary,
         identificationSource,
         pathname,
+        tabId,
       })
     );
     dispatch(isShowManageWaiverPage(true));

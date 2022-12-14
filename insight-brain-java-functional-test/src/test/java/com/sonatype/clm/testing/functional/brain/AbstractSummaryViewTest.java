@@ -326,8 +326,9 @@ public abstract class AbstractSummaryViewTest
     rows.get(0).shouldBe(text("Artifactory repository connection is disabled"));
     artifactoryRepositoryTile.editButton().shouldHave(text("Edit"));
 
-    eyesWatcher.eyesCheck(String.format("Artifactory repository tile disabled for %s %s", currentOwner.getType(),
-        currentOwner.getName()));
+    // Ignoring as it will be removed in https://github.com/sonatype/insight-brain/pull/8786
+    // eyesWatcher.eyesCheck(String.format("Artifactory repository tile disabled for %s %s", currentOwner.getType(),
+    //    currentOwner.getName()));
   }
 
   @Test

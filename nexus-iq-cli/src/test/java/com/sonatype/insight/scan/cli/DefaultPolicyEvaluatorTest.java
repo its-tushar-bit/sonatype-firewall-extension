@@ -174,19 +174,6 @@ public abstract class DefaultPolicyEvaluatorTest
   }
 
   @Test
-  public void testRun_IACTargetIsNotCheckedForFileExists() throws Exception {
-    tempEntity.newApplicationWithParent("the-app-id");
-
-    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
-        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
-        "iac://registry/image:tag");
-    withTestRunner(params)
-        .expectFailExit(2) // due to a scanning error
-        .expectPolicyEvaluationResult(newPolicyEvaluationResultForOneComponent())
-        .doPolicyEvaluationRun();
-  }
-
-  @Test
   public void testRun_SomeViolations() throws Exception {
     Application app = tempEntity.newApplicationWithParent("the-app-id");
     createPolicy(app.getId(), "Policy Name", Action.ID_WARN, 10);

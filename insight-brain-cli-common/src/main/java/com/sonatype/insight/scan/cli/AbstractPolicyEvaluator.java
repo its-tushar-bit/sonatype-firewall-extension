@@ -168,7 +168,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       throw new ExitException(1, message);
     }
     for (String scanTarget : params.getScanTargets()) {
-      if (isContainerTargetSoSkipFileExistsCheck(scanTarget) || isIacTargetSoSkipFileExistsCheck(scanTarget)) {
+      if (isContainerTargetSoSkipFileExistsCheck(scanTarget)) {
         continue;
       }
 

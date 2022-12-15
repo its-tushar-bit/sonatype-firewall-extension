@@ -68,6 +68,14 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-tenancy</artifactId>
+      <scope>test</scope>
+      <classifier>tests</classifier>
+      <version>${pom.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-mvel</artifactId>
     </dependency>
@@ -170,6 +178,10 @@
     <dependency>
       <groupId>javax.inject</groupId>
       <artifactId>javax.inject</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-tenancy</artifactId>
     </dependency>
   </dependencies>
 

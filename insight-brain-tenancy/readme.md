@@ -118,3 +118,9 @@ when finished. They cannot be reused, by design.
 
 Work that needs to run on a schedule will need its own context. The best way to handle this is to make use of Quartz
 which handles getting and setting the tenant. Custom scheduling outside of Quartz is not currently supported.
+
+### Configuration
+
+Configuration is per-tenant unless no value is found and then the system will fall back to the configuration table in 
+the global tenant schema. This allows us to provide meaningful defaults but also to override configuration for a
+given tenant.

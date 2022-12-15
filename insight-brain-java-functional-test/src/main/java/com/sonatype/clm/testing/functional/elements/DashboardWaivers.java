@@ -5,6 +5,9 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -46,6 +49,15 @@ public class DashboardWaivers
 
     public WaiverTile waiver(int index) {
       return new WaiverTile(childSelector(createSelector(".iq-dashboard-waiver", nthChild(index + 1))));
+    }
+
+    public List<WaiverTile> allWaivers() {
+      List<WaiverTile> allWaivers = new ArrayList<>();
+
+      for (int i = 0; i < waivers().size(); i++) {
+        allWaivers.add(new WaiverTile(childSelector(createSelector(".iq-dashboard-waiver", nthChild(i + 1)))));
+      }
+      return allWaivers;
     }
 
     public SelenideElement maxResultsMessage() {

@@ -12,6 +12,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.TreeMap;
 
@@ -109,6 +110,8 @@ public class DashboardWaiversTest
   private static final String NO_DATA_MSG =
       "No data available in the last 30 days given the applied filters and permissions.";
 
+  private static ResponseCopyHandler responseCopyHandler;
+
   private static final WaiversResults table = DashboardPage.waiversView().results();
 
   private static final WaiversHeaders headers = DashboardPage.waiversView().headers();
@@ -117,6 +120,11 @@ public class DashboardWaiversTest
   public static void beforeClass() {
     refreshOrOpen(DashboardPage.urlToWaivers());
     loginAsAdmin();
+
+    responseCopyHandler = new ResponseCopyHandler("/rest/dashboard/export/policyWaivers",
+        testCLMServer.getCLMServer().getPort());
+    reverseProxyServer.addHandler(responseCopyHandler);
+
   }
 
   @Before
@@ -125,10 +133,15 @@ public class DashboardWaiversTest
   }
 
   @Test
-  public void testWaiversTable() {
-    // no results
+  public void testWaiversTable_noDataMessage() {
+    // no data message check
     refreshOrOpen(DashboardPage.urlToWaivers());
     table.noDataMessage().shouldBe(visible).shouldHave(text(NO_DATA_MSG));
+  }
+
+  @Test
+  public void testWaiversTable_loadsAllWaiversWithoutFilters() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
 
     policyWaivers = createWaivers();
     refresh();
@@ -209,176 +222,134 @@ public class DashboardWaiversTest
     waiver5.policy().shouldHave(text("Policy 3"));
     waiver5.scope().shouldHave(text("Application - App 1"));
     waiver5.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
+  }
 
-    // check the csv export default sort order
-    ResponseCopyHandler responseCopyHandler = new ResponseCopyHandler("/rest/dashboard/export/policyWaivers",
-            testCLMServer.getCLMServer().getPort());
-    reverseProxyServer.addHandler(responseCopyHandler);
-    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Waivers Data")).click();
+  @Test
+  public void testWaiversTable_defaultCsvExport() {
+    // checks csv export when no filters are selected
+    refreshOrOpen(DashboardPage.urlToWaivers());
+
+    policyWaivers = createWaivers();
+    refresh();
+
+    String exportCsvData = exportWaiversCSV();
     DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
-    String exportCsv = new String(responseCopyHandler.consumeResponse());
-    DateFormat dateFormatCsv = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    dateFormatCsv.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-    //  create expected results
-    String waiver1String = policyWaivers.get(0).getId() + ",7," + dateFormatCsv.format(Date.from(twoDaysAgo)) +
-            "," + dateFormatCsv.format(Date.from(threeDaysFromNow)) + "," + policyWaivers.get(0).getPolicyId() +
-            ",Policy 1,,organization," + policyWaivers.get(0).getOwnerId() + "," + "Org 1,EXACT_COMPONENT,hash1," +
-            "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
-    String waiver2String = policyWaivers.get(1).getId() + ",3," + dateFormatCsv.format(Date.from(threeDaysAgo)) + "," +
-            dateFormatCsv.format(Date.from(fiveDaysFromNow)) + "," + policyWaivers.get(1).getPolicyId() +
-            ",Policy 3,,application," + policyWaivers.get(1).getOwnerId() + ",App 2,EXACT_COMPONENT,hash2," +
-            "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
-    String waiver3String = policyWaivers.get(3).getId() + ",9," + dateFormatCsv.format(Date.from(sixDaysAgo)) +
-            "," + dateFormatCsv.format(Date.from(sixDaysFromNow)) + "," + policyWaivers.get(3).getPolicyId() +
-            ",Policy 2,,organization," + policyWaivers.get(3).getOwnerId() + ",Org 1,ALL_COMPONENTS,hash4," +
-            "Group1 : Artifact1 : 1.2.3,testuser,Test User,org all components";
-    String waiver4String = policyWaivers.get(4).getId() + ",9," + dateFormatCsv.format(Date.from(sevenDaysAgo)) + "," +
-        dateFormatCsv.format(Date.from(sevenDaysFromNow)) + "," + policyWaivers.get(4).getPolicyId() +
-        ",Policy 2,,application," + policyWaivers.get(4).getOwnerId() + ",App 1,ALL_VERSIONS,hash5," +
-        "Group1 : Artifact1 : 1.2.3,testuser,Test User,app all versions";
-    String waiverRepoString =
-        policyWaivers.get(6).getId() + ",7," + dateFormatCsv.format(Date.from(nineDaysAgo)) + "," +
-            dateFormatCsv.format(Date.from(nineDaysFromNow)) + "," + policyWaivers.get(0).getPolicyId() +
-            ",Policy 1,,repository," + policyWaivers.get(6).getOwnerId() + ",Repository 1,EXACT_COMPONENT,hash7," +
-            "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
-    String waiverRepoContainerString =
-        policyWaivers.get(7).getId() + ",9," + dateFormatCsv.format(Date.from(fourteenDaysAgo)) + "," +
-            dateFormatCsv.format(Date.from(fourteenDaysFromNow)) + "," + policyWaivers.get(7).getPolicyId() +
-            ",Policy 2,,repository_container," + policyWaivers.get(7).getOwnerId() +
-            ",All Repositories,EXACT_COMPONENT,hash8," +
-            "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
-    String waiver5String = policyWaivers.get(5).getId() + ",4," + dateFormatCsv.format(Date.from(eightDaysAgo)) + "," +
-            dateFormatCsv.format(Date.from(eightDaysFromNow)) +  "," + policyWaivers.get(5).getPolicyId() +
-            ",Policy 4,,organization," + policyWaivers.get(5).getOwnerId() +
-            "," + rootOrg.getName() + ",EXACT_COMPONENT,hash6,Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
-    String waiver6String = policyWaivers.get(2).getId() + ",3," + dateFormatCsv.format(Date.from(fiveDaysAgo)) + ",," +
-            policyWaivers.get(2).getPolicyId() + ",Policy 3,,application," + policyWaivers.get(2).getOwnerId() +
-            ",App 1,EXACT_COMPONENT,hash3,Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
+    // by default the waivers are ordered by expiry
+    String[] expectedResults = buildExpectedCsvExportDataBySortColumn(policyWaivers, "expiry");
+    assertWaiversCsv(exportCsvData, expectedResults);
+  }
 
-    String[] expectedResults = new String[]{
-        waiver1String,
-        waiver2String,
-        waiver3String,
-        waiver4String,
-        waiver5String,
-        waiverRepoString,
-        waiverRepoContainerString,
-        waiver6String
-    };
-    assertWaiversCsv(exportCsv, expectedResults);
+  @Test
+  public void testWaiversTable_sortByThreat() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
 
+    policyWaivers = createWaivers();
+    refresh();
+
+    // sort by threat
     headers.threatHeader().click();
+
+    String exportCsvData = exportWaiversCSV();
+    DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
+
+    // assert table
     table.firstWaiver().threatNumber().shouldHave(text("9"));
     table.lastWaiver().threatNumber().shouldHave(text("3"));
 
-    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Waivers Data")).click();
-    exportCsv = new String(responseCopyHandler.consumeResponse());
-    expectedResults = new String[]{
-        waiver3String,
-        waiver4String,
-        waiverRepoContainerString,
-        waiver1String,
-        waiverRepoString,
-        waiver5String,
-        waiver2String,
-        waiver6String
-    };
-    assertWaiversCsv(exportCsv, expectedResults);
+    // assert csv export
+    String[] expectedResults = buildExpectedCsvExportDataBySortColumn(policyWaivers, "threat");
+    assertWaiversCsv(exportCsvData, expectedResults);
+  }
 
+  @Test
+  public void testWaiversTable_sortByCreatedDate() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+
+    policyWaivers = createWaivers();
+    refresh();
+
+    // sort by creation date
     headers.dateHeader().click();
+
+    String exportCsvData = exportWaiversCSV();
+    DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
+
+    // assert table
     table.firstWaiver().createTime().shouldHave(text(dateFormat.format(Date.from(fourteenDaysAgo))));
     table.lastWaiver().createTime().shouldHave(text(dateFormat.format(Date.from(twoDaysAgo))));
 
-    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Waivers Data")).click();
-    exportCsv = new String(responseCopyHandler.consumeResponse());
-    expectedResults = new String[]{
-        waiverRepoContainerString,
-        waiverRepoString,
-        waiver5String,
-        waiver4String,
-        waiver3String,
-        waiver6String,
-        waiver2String,
-        waiver1String
-    };
-    assertWaiversCsv(exportCsv, expectedResults);
+    // assert csv export
+    String[] expectedResults = buildExpectedCsvExportDataBySortColumn(policyWaivers, "createddate");
+    assertWaiversCsv(exportCsvData, expectedResults);
+  }
 
-    headers.expirationHeader().click();
-    table.firstWaiver().expiryTime().shouldHave(text(dateFormat.format(Date.from(threeDaysFromNow))));
-    table.lastWaiver().expiryTime().shouldHave(text("Never"));
+  @Test
+  public void testWaiversTable_sortByPolicy() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
 
-    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Waivers Data")).click();
-    exportCsv = new String(responseCopyHandler.consumeResponse());
-    expectedResults = new String[]{
-        waiver1String,
-        waiver2String,
-        waiver3String,
-        waiver4String,
-        waiver5String,
-        waiverRepoString,
-        waiverRepoContainerString,
-        waiver6String
-    };
-    assertWaiversCsv(exportCsv, expectedResults);
+    policyWaivers = createWaivers();
+    refresh();
 
+    // sort by policy
     headers.policyHeader().click();
     headers.policyHeader().sortArrows().shouldBeUp();
     headers.policyHeader().click();
     headers.policyHeader().sortArrows().shouldBeDown();
+
+    String exportCsvData = exportWaiversCSV();
+    DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
+
+    // assert table
     table.firstWaiver().policy().shouldHave(text("Policy 4"));
     table.lastWaiver().policy().shouldHave(text("Policy 1"));
 
-    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Waivers Data")).click();
-    exportCsv = new String(responseCopyHandler.consumeResponse());
-    expectedResults = new String[]{
-        waiver5String,
-        waiver2String,
-        waiver6String,
-        waiver3String,
-        waiver4String,
-        waiverRepoContainerString,
-        waiver1String,
-        waiverRepoString
-    };
-    assertWaiversCsv(exportCsv, expectedResults);
+    // assert csv export
+    String[] expectedResults = buildExpectedCsvExportDataBySortColumn(policyWaivers, "policy");
+    assertWaiversCsv(exportCsvData, expectedResults);
+  }
 
+  @Test
+  public void testWaiversTable_sortByScope() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+
+    policyWaivers = createWaivers();
+    refresh();
+
+    // sort by scope
     headers.scopeHeader().click();
 
     table.firstWaiver().scope().shouldHave(text("All Repositories"));
     table.lastWaiver().scope().shouldHave(text(" ")); // todo: fix no scope description for container
 
-    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Waivers Data")).click();
-    exportCsv = new String(responseCopyHandler.consumeResponse());
-    expectedResults = new String[]{
-        waiverRepoContainerString,
-        waiver4String,
-        waiver6String,
-        waiver2String,
-        waiver1String,
-        waiver3String,
-        waiver5String,
-        waiverRepoString,
-    };
-    assertWaiversCsv(exportCsv, expectedResults);
+    // assert csv export
+    String exportCsvData = exportWaiversCSV();
+    DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
 
+    String[] expectedResults = buildExpectedCsvExportDataBySortColumn(policyWaivers, "scope");
+    assertWaiversCsv(exportCsvData, expectedResults);
+  }
+
+  @Test
+  public void testWaiversTable_sortByComponent() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+
+    policyWaivers = createWaivers();
+    refresh();
+
+    // sort by component
     headers.componentHeader().click();
+
+    String exportCsvData = exportWaiversCSV();
+    DashboardPage.dashboardContainer().shouldBe(visible); // still on dashboard page
+
+    // assert table
     table.firstWaiver().component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
     table.lastWaiver().component().shouldHave(text("All Components"));
 
-    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Waivers Data")).click();
-    exportCsv = new String(responseCopyHandler.consumeResponse());
-    expectedResults = new String[]{
-        waiver1String,
-        waiver2String,
-        waiver3String,
-        waiver4String,
-        waiver5String,
-        waiverRepoString,
-        waiverRepoContainerString,
-        waiver6String
-    };
-    assertWaiversCsv(exportCsv, expectedResults);
+    // assert csv export
+    String[] expectedResults = buildExpectedCsvExportDataBySortColumn(policyWaivers, "component");
+    assertWaiversCsv(exportCsvData, expectedResults);
   }
 
   private void assertWaiversCsv(String csv, String[] expectedSortedResults) {
@@ -850,5 +821,100 @@ public class DashboardWaiversTest
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.apply();
     DashboardFilters.closeButton().click();
+  }
+
+  private String exportWaiversCSV() {
+    DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Waivers Data")).click();
+    return new String(responseCopyHandler.consumeResponse());
+  }
+
+  private String[] buildExpectedCsvExportDataBySortColumn(List<PolicyWaiver> policyWaivers, String sortByColumn) {
+    DateFormat dateFormatCsv = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    dateFormatCsv.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+    PolicyWaiver policyWaiver = policyWaivers.get(0);
+    PolicyWaiver policyWaiver1 = policyWaivers.get(1);
+    PolicyWaiver policyWaiver2 = policyWaivers.get(2);
+    PolicyWaiver policyWaiver3 = policyWaivers.get(3);
+    PolicyWaiver policyWaiver4 = policyWaivers.get(4);
+    PolicyWaiver policyWaiver5 = policyWaivers.get(5);
+    PolicyWaiver policyWaiver6 = policyWaivers.get(6);
+    PolicyWaiver policyWaiver7 = policyWaivers.get(7);
+
+    String waiver1String = policyWaiver.getId() + ",7," + dateFormatCsv.format(Date.from(twoDaysAgo)) +
+        "," + dateFormatCsv.format(Date.from(threeDaysFromNow)) + "," + policyWaiver.getPolicyId() +
+        ",Policy 1,,organization," + policyWaiver.getOwnerId() + "," + "Org 1,EXACT_COMPONENT,hash1," +
+        "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
+
+    String waiver2String = policyWaiver1.getId() + ",3," + dateFormatCsv.format(Date.from(threeDaysAgo)) + "," +
+        dateFormatCsv.format(Date.from(fiveDaysFromNow)) + "," + policyWaiver1.getPolicyId() +
+        ",Policy 3,,application," + policyWaiver1.getOwnerId() + ",App 2,EXACT_COMPONENT,hash2," +
+        "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
+
+    String waiver3String = policyWaiver3.getId() + ",9," + dateFormatCsv.format(Date.from(sixDaysAgo)) +
+        "," + dateFormatCsv.format(Date.from(sixDaysFromNow)) + "," + policyWaiver3.getPolicyId() +
+        ",Policy 2,,organization," + policyWaiver3.getOwnerId() + ",Org 1,ALL_COMPONENTS,hash4," +
+        "Group1 : Artifact1 : 1.2.3,testuser,Test User,org all components";
+
+    String waiver4String = policyWaiver4.getId() + ",9," + dateFormatCsv.format(Date.from(sevenDaysAgo)) + "," +
+        dateFormatCsv.format(Date.from(sevenDaysFromNow)) + "," + policyWaiver4.getPolicyId() +
+        ",Policy 2,,application," + policyWaiver4.getOwnerId() + ",App 1,ALL_VERSIONS,hash5," +
+        "Group1 : Artifact1 : 1.2.3,testuser,Test User,app all versions";
+
+    String waiverRepoString =
+        policyWaiver6.getId() + ",7," + dateFormatCsv.format(Date.from(nineDaysAgo)) + "," +
+            dateFormatCsv.format(Date.from(nineDaysFromNow)) + "," + policyWaiver6.getPolicyId() +
+            ",Policy 1,,repository," + policyWaiver6.getOwnerId() + ",Repository 1,EXACT_COMPONENT,hash7," +
+            "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
+
+    String waiverRepoContainerString =
+        policyWaiver7.getId() + ",9," + dateFormatCsv.format(Date.from(fourteenDaysAgo)) + "," +
+            dateFormatCsv.format(Date.from(fourteenDaysFromNow)) + "," + policyWaiver7.getPolicyId() +
+            ",Policy 2,,repository_container," + policyWaiver7.getOwnerId() +
+            ",All Repositories,EXACT_COMPONENT,hash8," +
+            "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
+
+    String waiver5String = policyWaiver5.getId() + ",4," + dateFormatCsv.format(Date.from(eightDaysAgo)) + "," +
+        dateFormatCsv.format(Date.from(eightDaysFromNow)) + "," + policyWaiver5.getPolicyId() +
+        ",Policy 4,,organization," + policyWaiver5.getOwnerId() +
+        "," + rootOrg.getName() + ",EXACT_COMPONENT,hash6,Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
+
+    String waiver6String = policyWaiver2.getId() + ",3," + dateFormatCsv.format(Date.from(fiveDaysAgo)) + ",," +
+        policyWaiver2.getPolicyId() + ",Policy 3,,application," + policyWaiver2.getOwnerId() +
+        ",App 1,EXACT_COMPONENT,hash3,Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
+
+    switch (sortByColumn) {
+      case "threat":
+        return new String[]{
+            waiver3String, waiver4String, waiverRepoContainerString, waiver1String, waiverRepoString, waiver5String,
+            waiver2String, waiver6String
+        };
+      case "createddate":
+        return new String[]{
+            waiverRepoContainerString, waiverRepoString, waiver5String, waiver4String, waiver3String, waiver6String,
+            waiver2String, waiver1String
+        };
+      case "policy":
+        return new String[]{
+            waiver5String, waiver2String, waiver6String, waiver3String, waiver4String, waiverRepoContainerString,
+            waiver1String, waiverRepoString
+        };
+      case "scope":
+        return new String[]{
+            waiverRepoContainerString, waiver4String, waiver6String, waiver2String, waiver1String, waiver3String,
+            waiver5String, waiverRepoString
+        };
+      case "component":
+        return new String[]{
+            waiver1String, waiver2String, waiver3String, waiver4String, waiver5String, waiverRepoString,
+            waiverRepoContainerString, waiver6String
+        };
+      default:
+        // sort by expiry
+        return new String[]{
+            waiver1String, waiver2String, waiver3String, waiver4String, waiver5String, waiverRepoString,
+            waiverRepoContainerString, waiver6String
+        };
+    }
   }
 }

@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
@@ -62,6 +63,7 @@ import com.sonatype.insight.brain.security.InternalRealm;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
+import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -340,7 +342,7 @@ public class DashboardFilterTest
   }
 
   @Test
-  public void testFilters() throws Exception {
+  public void testFilters_defaultState() {
     DashboardPage.filterToggle().shouldBe(visible).click();
     ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
     manage.selectedFilterLabel().shouldHave(exactText("Default"));
@@ -357,8 +359,12 @@ public class DashboardFilterTest
     DashboardFilters.applyButton().shouldBe(DISABLED).hover();
     Tooltip.get().shouldHave(NO_CHANGES_MESSAGE);
     DashboardPage.violationsView().results().mask().shouldBe(hidden);
+  }
 
-    // check that counters get updated
+  @Test
+  public void testFilters_updateCountersWhenValuesAreSet() {
+    DashboardPage.filterToggle().shouldBe(visible).click();
+
     setSomeFilterValues();
 
     DashboardFilters.applyButton().shouldNotBe(DISABLED).hover();
@@ -380,15 +386,29 @@ public class DashboardFilterTest
     DashboardPage.violationsTab().click();
 
     assertNewCounterState();
+  }
 
-    // check revert
+  @Test
+  public void testFilters_shouldRevertFilters() {
+    DashboardPage.filterToggle().shouldBe(visible).click();
+    ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
+
+    // first set some filters and assert them before revert
+    setSomeFilterValues();
+    assertNewCounterState();
+
     DashboardFilters.revertButton().click();
+
     manage.selectedFilterLabel().shouldHave(exactText("Default"));
     manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
     assertDefaultFilterState();
     DashboardPage.violationsView().results().mask().shouldBe(hidden);
+  }
 
-    // make sure changes persist after save + reload
+  @Test
+  public void testFilters_shouldPersistFilterChanges() {
+    DashboardPage.filterToggle().shouldBe(visible).click();
+
     setSomeFilterValues();
     DashboardFilters.apply();
     DashboardPage.violationsView().results().mask().shouldBe(hidden);
@@ -401,18 +421,20 @@ public class DashboardFilterTest
     // assert stored filter
     List<com.sonatype.insight.brain.model.filter.DashboardFilter> filter = new DashboardFilterDAO()
         .getByUsernameAndRealmId("admin", InternalRealm.ID);
-    assertThat(filter.get(0).getFilter().replace("\r\n", "\n")).isEqualTo("{\n" +
-        "  \"minPolicyThreatLevel\" : 2,\n" +
-        "  \"maxPolicyThreatLevel\" : 7,\n" +
-        "  \"applicationFilters\" : [ \"" + firstApp.getId() + "\" ],\n" +
-        "  \"organizationFilters\" : [ ],\n" +
-        "  \"tagFilters\" : [ \"" + firstAppCategory1.getId() + "\" ],\n" +
-        "  \"policyThreatCategoryFilters\" : [ \"QUALITY\" ],\n" +
-        "  \"stageTypeFilters\" : [ \"release\" ],\n" +
-        "  \"maxDaysOld\" : 30,\n" +
-        "  \"policyViolationStates\" : [ \"OPEN\", \"WAIVED\", \"GRANDFATHERED\" ],\n" +
-        "  \"expirationDate\" : \"ALL\"\n" +
-        "}");
+
+    assertThat(filter.get(0).getFilter().replace("\r\n", "\n"))
+        .isEqualTo("{\n" +
+            "  \"minPolicyThreatLevel\" : 2,\n" +
+            "  \"maxPolicyThreatLevel\" : 7,\n" +
+            "  \"applicationFilters\" : [ \"" + firstApp.getId() + "\" ],\n" +
+            "  \"organizationFilters\" : [ ],\n" +
+            "  \"tagFilters\" : [ \"" + firstAppCategory1.getId() + "\" ],\n" +
+            "  \"policyThreatCategoryFilters\" : [ \"QUALITY\" ],\n" +
+            "  \"stageTypeFilters\" : [ \"release\" ],\n" +
+            "  \"maxDaysOld\" : 30,\n" +
+            "  \"policyViolationStates\" : [ \"OPEN\", \"WAIVED\", \"GRANDFATHERED\" ],\n" +
+            "  \"expirationDate\" : \"ALL\"\n" +
+            "}");
 
     // assert applied filters
     DashboardPage.violationsView().results().violations().shouldHaveSize(1);
@@ -421,104 +443,136 @@ public class DashboardFilterTest
     violation.threatNumber().shouldHave(text("2"));
     violation.policy().shouldHave(text("DashboardTestPolicy"));
     violation.application().shouldHave(text("DashboardTestAppOne"));
+  }
 
-    // enable app 2, but don't enable apps with no categories.  Results should not change
+  @Test
+  public void testFilters_shouldShowTooltipsWhenHoveringOnAppCategoryFilter() {
+    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardFilters.applicationCategoryFilter().twisty().click();
+
+    DashboardFilters.applicationCategoryFilter().getFilterCheckboxAt(0).hover();
+    Tooltip.get().shouldNotBe(visible);
+
+    DashboardFilters.applicationCategoryFilter().noCategory().hover();
+    Tooltip.get().shouldNotBe(visible);
+
+    DashboardFilters.applicationCategoryFilter().getFilterCheckboxAt(2).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("in DashboardTest"));
+
+    DashboardFilters.applicationCategoryFilter().getFilterCheckboxAt(3).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("in DashboardTest"));
+  }
+
+  @Test
+  public void testFilters_shouldFilterUncategorizedApplications() {
+    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardFilters.applicationCategoryFilter().twisty().click();
+
+    // select no category option
+    DashboardFilters.applicationCategoryFilter().noCategory().click();
+    DashboardFilters.applicationCategoryFilter().twisty().click();
+    DashboardFilters.apply();
+
+    DashboardPage.violationsView().results().violations().shouldHaveSize(1);
+    DashboardPage.violationsTab().counter().shouldHave(text("1"));
+    ViolationTile firstViolation = DashboardPage.violationsView().results().firstViolation();
+    firstViolation.threatNumber().shouldHave(text("10"));
+    firstViolation.policy().shouldHave(text("DashboardTestPolicy"));
+    firstViolation.application().shouldHave(text("DashboardTestAppTwo"));
+    firstViolation.component().shouldHave(text("unknown.jar"));
+
+    // check component tab
+    DashboardPage.componentsTab().click();
+    DashboardPage.componentsView().results().components().shouldHaveSize(1);
+    DashboardPage.componentsTab().counter().shouldHave(text("1"));
+
+    // check application tab
+    DashboardPage.applicationsTab().counter().shouldNot(exist);
+    DashboardPage.applicationsTab().click();
+    DashboardPage.applicationsView().results().applications().shouldHaveSize(1);
+    DashboardPage.applicationsTab().counter().shouldHave(text("1"));
+
+    // check waivers tab
+    DashboardPage.waiversTab().click();
+    DashboardPage.waiversView().results().waivers().shouldHaveSize(4);
+  }
+
+  @Test
+  public void testFilters_shouldFilterByApplication() {
+    DashboardPage.filterToggle().shouldBe(visible).click();
+
     DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.apply();
 
-    DashboardPage.violationsView().results().violations().shouldHaveSize(1);
-    DashboardPage.violationsTab().counter().shouldHave(text("1"));
-    violation = DashboardPage.violationsView().results().firstViolation();
+    ViolationTile violation = DashboardPage.violationsView().results().firstViolation();
     violation.threatNumber().shouldHave(text("2"));
     violation.policy().shouldHave(text("DashboardTestPolicy"));
     violation.application().shouldHave(text("DashboardTestAppOne"));
+  }
 
-    // enable "uncategorized applications" so that secondApp results show
-    DashboardFilters.applicationCategoryFilter().twisty().click();
-    DashboardFilters.applicationCategoryFilter().getFilterCheckboxAt(0).hover();
-    Tooltip.get().shouldNotBe(visible);
-    DashboardFilters.applicationCategoryFilter().noCategory().hover();
-    Tooltip.get().shouldNotBe(visible);
-    DashboardFilters.applicationCategoryFilter().getFilterCheckboxAt(2).hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("in DashboardTest"));
-    DashboardFilters.applicationCategoryFilter().getFilterCheckboxAt(3).hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("in DashboardTest"));
-    DashboardFilters.applicationCategoryFilter().noCategory().click();
-    DashboardFilters.applicationCategoryFilter().twisty().click();
-    DashboardFilters.apply();
-
-    DashboardPage.violationsView().results().violations().shouldHaveSize(2);
-    DashboardPage.violationsTab().counter().shouldHave(text("2"));
-    ViolationTile firstViolation = DashboardPage.violationsView().results().firstViolation();
-    firstViolation.threatNumber().shouldHave(text("3"));
-    firstViolation.policy().shouldHave(text("DashboardTestPolicy"));
-    firstViolation.application().shouldHave(text("DashboardTestAppTwo"));
-    firstViolation.component().shouldHave(text("Artifact2"));
-
-    ViolationTile secondViolation = DashboardPage.violationsView().results().lastViolation();
-    secondViolation.threatNumber().shouldHave(text("2"));
-    secondViolation.policy().shouldHave(text("DashboardTestPolicy"));
-    secondViolation.application().shouldHave(text("DashboardTestAppOne"));
-    secondViolation.component().shouldHave(text("Artifact1"));
-
-    // check other tabs
-    DashboardPage.componentsTab().click();
-    DashboardPage.componentsView().results().components().shouldHaveSize(2);
-    DashboardPage.violationsTab().counter().shouldHave(text("2"));
-    DashboardPage.componentsTab().counter().shouldHave(text("2"));
-    DashboardPage.applicationsTab().counter().shouldNot(exist);
-    DashboardPage.applicationsTab().click();
-    DashboardPage.applicationsView().results().applications().shouldHaveSize(2);
-    DashboardPage.violationsTab().counter().shouldHave(text("2"));
-    DashboardPage.componentsTab().counter().shouldHave(text("2"));
-    DashboardPage.applicationsTab().counter().shouldHave(text("2"));
-
-    // unselect all policy violation statuses
+  @Test
+  public void testFilters_filterByPolicyViolations() {
     DashboardPage.filterToggle().shouldBe(visible).click();
+
+    // this sets some other filters - should help testing feature with multiple other filters
+    setSomeFilterValues();
+
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().allItems().shouldBe(selected).click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
-    DashboardPage.applicationsView().resultsMask().shouldBe(visible);
 
     DashboardFilters.apply();
-    DashboardPage.applicationsView().resultsMask().shouldBe(hidden);
 
-    // check all tabs - should have the same results
-    DashboardPage.violationsTab().counter().shouldNot(exist);
+    DashboardPage.violationsTab().counter().shouldHave(text("1"));
     DashboardPage.componentsTab().counter().shouldNot(exist);
-    DashboardPage.applicationsTab().counter().shouldHave(text("2"));
+    DashboardPage.applicationsTab().counter().shouldNot(exist);
+    DashboardPage.waiversTab().counter().shouldNot(exist);
+
     DashboardPage.violationsTab().click();
-    DashboardPage.violationsView().results().violations().shouldHaveSize(2);
-    DashboardPage.violationsTab().counter().shouldHave(text("2"));
-    DashboardPage.componentsTab().counter().shouldNot(exist);
-    DashboardPage.applicationsTab().counter().shouldHave(text("2"));
-    DashboardPage.violationsView().results().firstViolation().component().shouldHave(text("Artifact2"));
-    DashboardPage.violationsView().results().lastViolation().component().shouldHave(text("Artifact1"));
+    DashboardPage.violationsView().results().violations().shouldHaveSize(1);
+    DashboardPage.violationsView().results().firstViolation().component()
+        .shouldHave(text("Group1 : Artifact1 : Version1"));
+
     DashboardPage.componentsTab().click();
-    DashboardPage.componentsView().results().components().shouldHaveSize(2);
-    DashboardPage.violationsTab().counter().shouldHave(text("2"));
-    DashboardPage.componentsTab().counter().shouldHave(text("2"));
-    DashboardPage.applicationsTab().counter().shouldHave(text("2"));
+    DashboardPage.componentsView().results().components().shouldHaveSize(1);
+    DashboardPage.violationsTab().counter().shouldHave(text("1"));
+    DashboardPage.componentsTab().counter().shouldHave(text("1"));
+
     DashboardPage.applicationsTab().click();
-    DashboardPage.applicationsView().results().applications().shouldHaveSize(2);
-    DashboardPage.violationsTab().counter().shouldHave(text("2"));
-    DashboardPage.componentsTab().counter().shouldHave(text("2"));
-    DashboardPage.applicationsTab().counter().shouldHave(text("2"));
+    DashboardPage.applicationsView().results().applications().shouldHaveSize(1);
+    DashboardPage.violationsTab().counter().shouldHave(text("1"));
+    DashboardPage.componentsTab().counter().shouldHave(text("1"));
+    DashboardPage.applicationsTab().counter().shouldHave(text("1"));
     DashboardPage.componentsTab().click();
+  }
+
+  @Test
+  public void testFilters_shouldFilterWaivedPolicyViolations() {
+    DashboardPage.filterToggle().shouldBe(visible).click();
+
+    // this sets some other filters - should help testing feature with multiple other filters
+    setSomeFilterValues();
 
     // filter WAIVED only
-    DashboardPage.filterToggle().shouldBe(visible).click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
+    DashboardFilters.policyViolationStateFilter().allItems().click();
     DashboardFilters.policyViolationStateFilter().waived().click();
     DashboardFilters.policyViolationStateFilter().twisty().click();
-    DashboardPage.componentsView().resultsMask().shouldBe(visible);
+
+    DashboardFilters.applicationFilter().twisty().click();
+    DashboardFilters.applicationFilter().checkboxItem(1).click();
+    DashboardFilters.applicationFilter().twisty().click();
+
+    DashboardFilters.applicationCategoryFilter().twisty().click();
+    DashboardFilters.applicationCategoryFilter().checkboxItem(1).click();
 
     DashboardFilters.apply();
     DashboardPage.componentsView().resultsMask().shouldBe(hidden);
 
     // components tab should have only waived component
+    DashboardPage.componentsTab().click();
     DashboardPage.componentsView().results().components().shouldHaveSize(1);
     DashboardPage.componentsView().results().firstComponent().shouldHave(text("Artifact2"));
 
@@ -532,16 +586,16 @@ public class DashboardFilterTest
     DashboardPage.applicationsTab().click();
     DashboardPage.applicationsView().results().applications().shouldHaveSize(1);
     DashboardPage.applicationsView().results().firstApplication().shouldHave(text("DashboardTestAppTwo"));
+  }
 
-    DashboardPage.filterToggle().shouldBe(visible).click();
-    selectDefaultFilter();
-    manage.selectedFilterLabel().shouldHave(exactText("Default"));
-    manage.selectedFilterDirtyAsterisk().shouldBe(hidden);
-    assertDefaultFilterState();
-
-    // filter GRANDFATHERED only
+  @Test
+  public void testFilters_shouldFilterGrandfatheredViolations() {
     DashboardPage.componentsTab().click();
     DashboardPage.filterToggle().shouldBe(visible).click();
+
+    selectDefaultFilter();
+
+    // filter GRANDFATHERED only
     DashboardFilters.policyViolationStateFilter().twisty().click();
     DashboardFilters.policyViolationStateFilter().open().click();
     DashboardFilters.policyViolationStateFilter().grandfathered().click();
@@ -942,95 +996,208 @@ public class DashboardFilterTest
   }
 
   @Test
-  public void testWaiverAppFilterIncludesParentOrgs() {
+  public void testWaiverAppFilter_specificApplicationIsSelected() {
     refreshOrOpen(DashboardPage.urlToWaivers());
     DashboardPage.filterToggle().shouldBe(visible).click();
 
-    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
-
-    WaiverTile firstWaiver = DashboardPage.waiversView().results().firstWaiver();
-    firstWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
-    WaiverTile lastWaiver = DashboardPage.waiversView().results().lastWaiver();
-    lastWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
-
+    // select a specific application to filter
     DashboardFilters.applicationFilter().twisty().click();
-    DashboardFilters.applicationFilter().checkboxItem(1).click();
-    DashboardFilters.apply();
-
-    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
-
-    firstWaiver = DashboardPage.waiversView().results().firstWaiver();
-    firstWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
-    lastWaiver = DashboardPage.waiversView().results().lastWaiver();
-    lastWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
-
-    DashboardFilters.applicationFilter().checkboxItem(1).click();
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.apply();
 
-    waiversTab().counter().shouldBe(visible).shouldHave(text("3"));
+    List<WaiverTile> allWaivers = DashboardPage.waiversView().results().allWaivers();
 
-    firstWaiver = DashboardPage.waiversView().results().firstWaiver();
-    firstWaiver.scope().shouldHave(text(rootOrg.getType().toString() + " - " + rootOrg.getName()));
-    lastWaiver = DashboardPage.waiversView().results().lastWaiver();
-    lastWaiver.scope().shouldHave(text(firstApp.getType().toString() + " - " + firstApp.getName()));
+    assertThat(allWaivers)
+        .as("It should include only first applications and parent org waivers")
+        .hasSize(3);
 
+    assertThat(
+        containsWaiverWithScope(allWaivers, firstApp))
+        .isTrue();
+
+    assertThat(
+        containsWaiverWithScope(allWaivers, secondApp))
+        .as("When filtering waives for first application," +
+            "It should not contain waivers on second application.")
+        .isFalse();
+
+    // check for a different application
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.applicationFilter().checkboxItem(3).click();
     DashboardFilters.apply();
 
     waiversTab().counter().shouldBe(visible).shouldHave(text("4"));
 
-    firstWaiver = DashboardPage.waiversView().results().firstWaiver();
-    firstWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
-    lastWaiver = DashboardPage.waiversView().results().lastWaiver();
-    lastWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+    assertThat(
+        containsWaiverWithScope(allWaivers, secondApp))
+        .as("It should contain waivers on second application.")
+        .isTrue();
 
-    DashboardFilters.applicationFilter().checkboxItem(3).click();
+    assertThat(
+        containsWaiverWithScope(allWaivers, firstApp))
+        .as("When filtering waivers for second application, " +
+            "it should not contain waivers on first application.")
+        .isFalse();
+  }
+
+  @Test
+  public void testWaiverAppFilter_allOptionSelected() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.filterToggle().shouldBe(visible).click();
+
+    // all waivers should be listed without filter
+    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+
+    // select All applications filter option
     DashboardFilters.applicationFilter().twisty().click();
+    DashboardFilters.applicationFilter().checkboxItem(1).click();
+    DashboardFilters.apply();
+
+    // all the waivers should be present after filtering.
+    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+  }
+
+  @Test
+  public void testWaiverAppCategoryFilter_allOptionSelected() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.filterToggle().shouldBe(visible).click();
+
+    // all waivers should be listed without filter
+    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+
+    // select All applications category filter option
     DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.applicationCategoryFilter().allItems().click();
     DashboardFilters.apply();
 
+    // all the waivers should be present after filtering.
+    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+  }
+
+  @Test
+  public void testWaiverAppCategoryFilter_noCategoryOptionSelected() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.filterToggle().shouldBe(visible).click();
+
+    // all waivers should be listed without filter
     waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
 
-    firstWaiver = DashboardPage.waiversView().results().firstWaiver();
-    firstWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
-    lastWaiver = DashboardPage.waiversView().results().lastWaiver();
-    lastWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
-
-    DashboardFilters.applicationCategoryFilter().allItems().click();
+    // select no category filter option
+    DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.applicationCategoryFilter().noCategory().click();
     DashboardFilters.apply();
 
     waiversTab().counter().shouldBe(visible).shouldHave(text("4"));
 
-    firstWaiver = DashboardPage.waiversView().results().firstWaiver();
-    firstWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
-    lastWaiver = DashboardPage.waiversView().results().lastWaiver();
-    lastWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+    List<WaiverTile> allWaivers = DashboardPage.waiversView().results().allWaivers();
+    assertThat(
+        containsWaiverWithScope(allWaivers, firstApp))
+        .as("It should not contain first app as it has been tagged")
+        .isFalse();
 
-    DashboardFilters.applicationCategoryFilter().noCategory().click();
+    assertThat(containsWaiverWithScope(allWaivers, secondApp))
+        .as("It should contain second app as it has not been tagged")
+        .isTrue();
+  }
+
+  @Test
+  public void testWaiverAppCategoryFilter_specificOptionSelected() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.filterToggle().shouldBe(visible).click();
+
+    // all waivers should be listed without filter
+    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+
+    // select no category filter option
+    DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.applicationCategoryFilter().checkboxItem(3).click();
     DashboardFilters.apply();
 
     waiversTab().counter().shouldBe(visible).shouldHave(text("3"));
 
-    firstWaiver = DashboardPage.waiversView().results().firstWaiver();
-    firstWaiver.scope().shouldHave(text(rootOrg.getType().toString() + " - " + rootOrg.getName()));
-    lastWaiver = DashboardPage.waiversView().results().lastWaiver();
-    lastWaiver.scope().shouldHave(text(firstApp.getType().toString() + " - " + firstApp.getName()));
+    List<WaiverTile> allWaivers = DashboardPage.waiversView().results().allWaivers();
+    assertThat(
+        containsWaiverWithScope(allWaivers, firstApp))
+        .as("It should contain first app as it has been tagged by selected category")
+        .isTrue();
 
+    assertThat(
+        containsWaiverWithScope(allWaivers, rootOrg))
+        .as("It should contain root org as it is the parent")
+        .isTrue();
+
+    assertThat(
+        containsWaiverWithScope(allWaivers, org))
+        .as("It should contain org as it is the parent")
+        .isTrue();
+
+    assertThat(containsWaiverWithScope(allWaivers, secondApp))
+        .as("It should not contain second app as it has not been tagged by selected category")
+        .isFalse();
+  }
+
+  @Test
+  public void testWaiverAppFilter_orderEntriesByExpiryDate() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.filterToggle().shouldBe(visible).click();
+
+    // select a specific application to filter
+    DashboardFilters.applicationFilter().twisty().click();
+    DashboardFilters.applicationFilter().checkboxItem(2).click();
+    DashboardFilters.apply();
+
+    WaiverTile firstWaiver = DashboardPage.waiversView().results().firstWaiver();
+    firstWaiver.scope().shouldHave(text(getWaiverDashboardTableScopeName(rootOrg)));
+    WaiverTile lastWaiver = DashboardPage.waiversView().results().lastWaiver();
+    lastWaiver.scope().shouldHave(text(getWaiverDashboardTableScopeName(firstApp)));
+  }
+
+  @Test
+  public void testWaiverAppCategoryFilter_orderEntriesByExpiryDate() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.filterToggle().shouldBe(visible).click();
+
+    // all waivers should be listed without filter
+    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+
+    // assert that waivers are by default sorted by expiry date
+    WaiverTile firstWaiver = DashboardPage.waiversView().results().firstWaiver();
+    firstWaiver.scope().shouldHave(text(getWaiverDashboardTableScopeName(secondApp)));
+
+    WaiverTile secondWaiver = DashboardPage.waiversView().results().waiver(1);
+    secondWaiver.scope().shouldHave(text(getWaiverDashboardTableScopeName(rootOrg)));
+
+    WaiverTile lastWaiver = DashboardPage.waiversView().results().lastWaiver();
+    lastWaiver.scope().shouldHave(text(getWaiverDashboardTableScopeName(secondApp)));
+
+    // filter by a category
+    DashboardFilters.applicationCategoryFilter().twisty().click();
     DashboardFilters.applicationCategoryFilter().checkboxItem(3).click();
-    DashboardFilters.applicationCategoryFilter().checkboxItem(4).click();
     DashboardFilters.apply();
 
     waiversTab().counter().shouldBe(visible).shouldHave(text("3"));
 
+    // assert items order after filtering.
     firstWaiver = DashboardPage.waiversView().results().firstWaiver();
-    firstWaiver.scope().shouldHave(text(rootOrg.getType().toString() + " - " + rootOrg.getName()));
+    firstWaiver.scope().shouldHave(text(getWaiverDashboardTableScopeName(rootOrg)));
+
     lastWaiver = DashboardPage.waiversView().results().lastWaiver();
-    lastWaiver.scope().shouldHave(text(firstApp.getType().toString() + " - " + firstApp.getName()));
+    lastWaiver.scope().shouldHave(text(getWaiverDashboardTableScopeName(firstApp)));
+  }
+
+  private boolean containsWaiverWithScope(List<WaiverTile> waivers, Owner owner) {
+    if (CollectionUtils.isEmpty(waivers)) {
+      return false;
+    }
+    return waivers.stream()
+        .anyMatch(waiverTile -> waiverTile.scope()
+            .getText()
+            .toLowerCase()
+            .contains(getWaiverDashboardTableScopeName(owner)));
+  }
+
+  private String getWaiverDashboardTableScopeName(Owner owner) {
+    return owner.getType().toString() + " - " + owner.getName().toLowerCase();
   }
 
   @Test

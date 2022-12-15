@@ -9,9 +9,8 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
-import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView.OwnerDetailTreeViewGroup;
-import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView.OwnerDetailTreeViewGroup.OwnerDetailTreeViewItem;
+import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
+import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar.OwnerDetailSidebarGroup;
 import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationCategoryEditorPage;
 import com.sonatype.clm.testing.functional.pages.CategoryEditorPage;
@@ -35,6 +34,8 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.hidden;
@@ -87,24 +88,25 @@ public abstract class AbstractOwnerDetailsEditingTest
 
   @Test
   public void testOwnerTreeViewDetails() {
-    assertThat(OwnerDetailTreeView.headerHref()).contains(OwnerSummaryPage.url(currentOwner));
+    assertThat(OwnerDetailSidebar.headerHref()).contains(OwnerSummaryPage.url(currentOwner));
 
     if (!OwnerType.REPOSITORY_CONTAINER.equals(currentOwner.getType())) {
-      OwnerDetailTreeView.header().shouldBe(visible).shouldHave(text(currentOwner.getName()));
-      testRouting_ApplicationCategories(OwnerDetailTreeView.applicationCategoryGroup());
-      testRouting_Policies(OwnerDetailTreeView.policyGroup());
-      testRouting_ComponentLabels(OwnerDetailTreeView.componentLabelGroup());
-      testRouting_LicenseThreatGroups(OwnerDetailTreeView.ltgGroup());
-      testRouting_Access(OwnerDetailTreeView.accessGroup());
+      OwnerDetailSidebar.header().shouldBe(visible).shouldHave(text(currentOwner.getName()));
+      testRouting_ApplicationCategories(OwnerDetailSidebar.applicationCategoryGroup());
+      testRouting_Policies(OwnerDetailSidebar.policyGroup());
+      testRouting_ComponentLabels(OwnerDetailSidebar.componentLabelGroup());
+      testRouting_LicenseThreatGroups(OwnerDetailSidebar.ltgGroup());
+      testRouting_Access(OwnerDetailSidebar.accessGroup());
+      testRouting_Monitoring(OwnerDetailSidebar.continuousMonitoring());
     }
     else {
-      OwnerDetailTreeView.header().shouldBe(visible).shouldHave(text("Repositories"));
-      OwnerDetailTreeView.applicationCategoryGroup().shouldBe(hidden);
-      OwnerDetailTreeView.policyGroup().shouldBe(hidden);
-      OwnerDetailTreeView.componentLabelGroup().shouldBe(hidden);
-      OwnerDetailTreeView.ltgGroup().shouldBe(hidden);
-      OwnerDetailTreeView.accessGroup().shouldBe(visible);
-      testRouting_Access(OwnerDetailTreeView.accessGroup());
+      OwnerDetailSidebar.header().shouldBe(visible).shouldHave(text("Repositories"));
+      OwnerDetailSidebar.applicationCategoryGroup().shouldBe(hidden);
+      OwnerDetailSidebar.policyGroup().shouldBe(hidden);
+      OwnerDetailSidebar.componentLabelGroup().shouldBe(hidden);
+      OwnerDetailSidebar.ltgGroup().shouldBe(hidden);
+      OwnerDetailSidebar.accessGroup().shouldBe(visible);
+      testRouting_Access(OwnerDetailSidebar.accessGroup());
     }
   }
 
@@ -115,10 +117,10 @@ public abstract class AbstractOwnerDetailsEditingTest
         .delete(membershipMappingDAO.getByContextIdAndRoleId(currentOwner.getId(), ROLES.get(0).getId()).get(0));
   }
 
-  private void testRouting_ApplicationCategories(OwnerDetailTreeViewGroup detailGroup) {
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
-    detailGroup.twisty().click();
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
+  private void testRouting_ApplicationCategories(OwnerDetailSidebarGroup detailGroup) {
+    detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
+    detailGroup.title().click();
+    detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--expanded"));
 
     if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
       detailGroup.items().shouldHaveSize(2);
@@ -130,7 +132,6 @@ public abstract class AbstractOwnerDetailsEditingTest
 
       detailGroup.item(1).shouldBe(visible).shouldHave(text(category.getName())).click();
       detailGroup.item(1).shouldBe(CLM.SELECTED);
-      detailGroup.item(1).icon().shouldBe(visible).shouldHave(cssClass(category.getColor().toString()));
       waitUntilUrl(CategoryEditorPage.urlToEdit(currentOwner.getPublicId(), category.getId()));
 
       back();
@@ -145,9 +146,9 @@ public abstract class AbstractOwnerDetailsEditingTest
       tempEntity.newTag(currentOwner.getParentOwnerId());
       refresh();
 
-      detailGroup.twisty().shouldBe(visible).shouldHave(CLM.EXPANDED);
-      detailGroup.twisty().click();
-      detailGroup.twisty().shouldBe(visible).shouldHave(CLM.COLLAPSED);
+      detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
+      detailGroup.title().click();
+      detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--expanded"));
       detailGroup.items().shouldHaveSize(1);
       detailGroup.item(0).shouldBe(visible).shouldNotHave(CLM.DISABLED).click();
 
@@ -156,16 +157,16 @@ public abstract class AbstractOwnerDetailsEditingTest
       back();
     }
 
-    detailGroup.twisty().click();
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
+    detailGroup.title().click();
+    detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
   }
 
-  private void testRouting_Policies(OwnerDetailTreeViewGroup detailGroup) {
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
-    detailGroup.twisty().click();
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
+  private void testRouting_Policies(OwnerDetailSidebarGroup detailGroup) {
+    detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
+    detailGroup.title().click();
+    detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--expanded"));
     if (currentOwner.getType().equals(OwnerType.ORGANIZATION)) {
-      detailGroup.items().shouldHaveSize(6);
+      detailGroup.items().shouldHaveSize(3);
       detailGroup.item(0).shouldBe(visible).click();
       detailGroup.item(0).shouldBe(CLM.SELECTED);
       waitUntilUrl(PolicyEditorPage.urlToCreate(currentOwner));
@@ -186,24 +187,21 @@ public abstract class AbstractOwnerDetailsEditingTest
 
       back();
     }
-    testMonitoring(detailGroup);
-    detailGroup.twisty().click();
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
+    detailGroup.title().click();
+    detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
   }
 
-  private void testMonitoring(OwnerDetailTreeViewGroup detailGroup) {
-    OwnerDetailTreeViewItem monitoredStage = detailGroup.item(detailGroup.items().size() - 2);
-    monitoredStage.icon().shouldBe(visible);
-    monitoredStage.shouldBe(visible).click();
-    monitoredStage.shouldBe(CLM.SELECTED);
+  private void testRouting_Monitoring(SelenideElement continuousMonitoringLink) {
+    continuousMonitoringLink.shouldBe(visible).click();
+    continuousMonitoringLink.shouldBe(CLM.SELECTED);
     waitUntilUrl(MonitoredStageEditorPage.url(currentOwner));
     back();
   }
 
-  private void testRouting_ComponentLabels(OwnerDetailTreeViewGroup detailGroup) {
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
-    detailGroup.twisty().click();
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
+  private void testRouting_ComponentLabels(OwnerDetailSidebarGroup detailGroup) {
+    detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
+    detailGroup.title().click();
+    detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--expanded"));
 
     detailGroup.items().shouldHaveSize(2);
     detailGroup.item(0).shouldBe(visible).click();
@@ -214,20 +212,19 @@ public abstract class AbstractOwnerDetailsEditingTest
 
     detailGroup.item(1).shouldBe(visible).shouldHave(text(label.getLabel())).click();
     detailGroup.item(1).shouldBe(CLM.SELECTED);
-    detailGroup.item(1).icon().shouldBe(visible).shouldHave(cssClass(label.getColor().toValue()));
     waitUntilUrl(LabelEditorPage.urlToEdit(currentOwner, label.getId()));
 
     back();
 
-    detailGroup.twisty().click();
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
+    detailGroup.title().click();
+    detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
   }
 
-  private void testRouting_LicenseThreatGroups(OwnerDetailTreeViewGroup detailGroup) {
+  private void testRouting_LicenseThreatGroups(OwnerDetailSidebarGroup detailGroup) {
     if (!currentOwner.getType().equals(OwnerType.APPLICATION)) {
-      detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
-      detailGroup.twisty().click();
-      detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
+      detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
+      detailGroup.title().click();
+      detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--expanded"));
 
       detailGroup.items().shouldHaveSize(3);
       detailGroup.item(0).shouldBe(visible).click();
@@ -248,18 +245,18 @@ public abstract class AbstractOwnerDetailsEditingTest
 
       back();
 
-      detailGroup.twisty().click();
-      detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
+      detailGroup.title().click();
+      detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
     }
     else {
-      detailGroup.twisty().shouldBe(hidden);
+      detailGroup.title().parent().shouldBe(hidden);
     }
   }
 
-  private void testRouting_Access(OwnerDetailTreeViewGroup detailGroup) {
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
-    detailGroup.twisty().click();
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.COLLAPSED);
+  private void testRouting_Access(OwnerDetailSidebarGroup detailGroup) {
+    detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
+    detailGroup.title().click();
+    detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--expanded"));
 
     detailGroup.items().shouldHaveSize(2);
     detailGroup.item(0).shouldBe(visible).click();
@@ -270,7 +267,6 @@ public abstract class AbstractOwnerDetailsEditingTest
 
     detailGroup.item(1).shouldBe(visible).shouldHave(text(ROLES.get(0).getName())).click();
     detailGroup.item(1).shouldBe(CLM.SELECTED);
-    detailGroup.item(1).icon().shouldBe(visible);
     waitUntilUrl(AccessEditorPage.urlToEdit(currentOwner, ROLES.get(0).getId()));
 
     for (int i = 1; i < ROLES.size(); i++) {
@@ -281,7 +277,7 @@ public abstract class AbstractOwnerDetailsEditingTest
 
     back();
 
-    detailGroup.twisty().click();
-    detailGroup.twisty().shouldBe(visible).shouldBe(CLM.EXPANDED);
+    detailGroup.title().click();
+    detailGroup.title().parent().shouldBe(visible).shouldHave(cssClass("nx-collapsible-items--collapsed"));
   }
 }

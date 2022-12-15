@@ -3,16 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { prop } from 'ramda';
+import { prop, propEq, find } from 'ramda';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { propSet } from 'MainRoot/util/reduxToolkitUtil';
 import { getOwnerDetailsUrl } from 'MainRoot/util/CLMLocation';
 
-import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
-import { selectIsRepositories } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectOwnerProperties, selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectIsApplication, selectIsRepositories } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
+import { actions as ownerDetailTreeActions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
+import { actions as applicationCategoriesActions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
+import { actions as applicationActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
+import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
 
 const REDUCER_NAME = 'ownerDetailTree';
 
@@ -44,6 +49,52 @@ const loadOwnerDetailsFailed = (state, { payload }) => {
   state.loadError = Messages.getHttpErrorMessage(payload);
 };
 
+const loadSidebar = createAsyncThunk(`${REDUCER_NAME}/loadRetention`, (_, { getState, rejectWithValue, dispatch }) => {
+  const state = getState();
+  const promises = [dispatch(ownerDetailTreeActions.loadOwnerDetails())];
+
+  const isApp = selectIsApplication(state);
+  const isRepositories = selectIsRepositories(state);
+
+  if (isApp) {
+    promises.push(dispatch(applicationActions.loadApplications()));
+    promises.push(dispatch(applicationCategoriesActions.loadApplicableCategories()));
+  } else if (!isRepositories) {
+    promises.push(dispatch(organizationsActions.loadOrganizations()));
+  }
+
+  return Promise.all(promises)
+    .then((results) => {
+      if (!isRepositories) {
+        const siblings = unwrapResult(results[1]);
+        const entityId = selectEntityId(state);
+        const owner = find(propEq(isApp ? 'publicId' : 'id', entityId))(siblings);
+        if (!owner) {
+          throw `Could not find an ${isApp ? 'application' : 'organization'} with ID ${entityId}.`;
+        }
+
+        dispatch(rootActions.setSelectedOwner(owner));
+      } else {
+        dispatch(rootActions.setSelectedOwner({ name: 'Repositories' }));
+      }
+    })
+    .catch(rejectWithValue);
+});
+
+const loadSideBarRequested = (state) => {
+  state.loading = true;
+  state.loadError = null;
+};
+
+const loadSideBarFulFilled = (state) => {
+  state.loading = false;
+};
+
+const loadSidebarFailed = (state, { payload }) => {
+  state.loading = false;
+  state.loadError = Messages.getHttpErrorMessage(payload);
+};
+
 const ownerDetailTreeSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -52,6 +103,9 @@ const ownerDetailTreeSlice = createSlice({
     setLoadError: propSet('loadError'),
   },
   extraReducers: {
+    [loadSidebar.pending]: loadSideBarRequested,
+    [loadSidebar.fulfilled]: loadSideBarFulFilled,
+    [loadSidebar.rejected]: loadSidebarFailed,
     [loadOwnerDetails.pending]: loadOwnerDetailsRequested,
     [loadOwnerDetails.fulfilled]: loadOwnerDetailsFulfilled,
     [loadOwnerDetails.rejected]: loadOwnerDetailsFailed,
@@ -61,6 +115,7 @@ const ownerDetailTreeSlice = createSlice({
 export const actions = {
   ...ownerDetailTreeSlice.actions,
   loadOwnerDetails,
+  loadSidebar,
 };
 
 export default ownerDetailTreeSlice.reducer;

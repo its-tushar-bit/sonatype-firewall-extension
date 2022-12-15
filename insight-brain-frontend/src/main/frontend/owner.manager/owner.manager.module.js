@@ -18,8 +18,6 @@ import roleMembershipModule from '../role.membership/role.membership.module';
 import AccessTileController from './access/access.tile.controller';
 import AccessTile from './access/access.tile.directive';
 import SameOwnerStateNavigationService from './utility/same.owner.state.navigation.service';
-import OwnerDetailTreeViewController from './navigation/owner.detail.tree.view.controller';
-import OwnerDetailTreeViewDirective from './navigation/owner.detail.tree.view.directive';
 import ownerTreeView from './navigation/owner.tree.view.directive';
 import MonitoredStageService from './utility/monitored.stage.service';
 import ConfigurationTileController from './repositories/repositories.configuration.tile.controller';
@@ -66,6 +64,7 @@ import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
 import LicenseThreatGroupSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/LicenseThreatGroupSummaryTile';
 import SelectContactModal from 'MainRoot/OrgsAndPolicies/selectContactModal/SelectContactModal';
 import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/EvaluateApplicationModal';
+import OwnerDetailSidebar from 'MainRoot/owner.manager/navigation/OwnerDetailSidebar';
 import RepositoriesPills from 'MainRoot/owner.manager/repositories/RepositoriesPills/RepositoriesPills';
 
 export default angular
@@ -87,8 +86,6 @@ export default angular
   ])
   .controller('AccessTileController', AccessTileController)
   .directive('accessTile', AccessTile)
-  .controller('OwnerDetailTreeViewController', OwnerDetailTreeViewController)
-  .directive('ownerDetailTreeView', OwnerDetailTreeViewDirective)
   .directive('ownerTreeView', ownerTreeView)
   .service('SameOwnerStateNavigationService', SameOwnerStateNavigationService)
   .service('monitored.stage.service', MonitoredStageService)
@@ -142,6 +139,7 @@ export default angular
   )
   .component('selectContactModal', iqReact2Angular(SelectContactModal, [], ['$ngRedux']))
   .component('evaluateApplicationModal', iqReact2Angular(EvaluateApplicationModal, [], ['$ngRedux']))
+  .component('ownerDetailSidebar', iqReact2Angular(OwnerDetailSidebar, [], ['$ngRedux', '$state']))
   .component('repositoriesPills', iqReact2Angular(RepositoriesPills, [], []))
   .config([
     '$stateProvider',
@@ -293,14 +291,6 @@ export default angular
             },
             component: 'proprietaryComponentConfiguration',
           })
-          .state('management.edit.' + ownerType.type + '.edit-license-threat-group', {
-            url: '/licenseThreatGroup/{licenseThreatGroupId}',
-            data: {
-              title: ownerType.name + ' License Threat Groups',
-              isDirty: ['orgsAndPolicies', 'licenseThreatGroups', 'isDirty'],
-            },
-            component: 'licenseThreatGroupEditor',
-          })
           .state('management.edit.' + ownerType.type + '.edit-source-control', {
             url: '/source-control',
             data: {
@@ -341,6 +331,14 @@ export default angular
             isDirty: ['orgsAndPolicies', 'licenseThreatGroups', 'isDirty'],
           },
           url: '/licenseThreatGroup',
+          component: 'licenseThreatGroupEditor',
+        })
+        .state('management.edit.organization.edit-license-threat-group', {
+          data: {
+            title: 'Organization License Threat Group',
+            isDirty: ['orgsAndPolicies', 'licenseThreatGroups', 'isDirty'],
+          },
+          url: '/licenseThreatGroup/{licenseThreatGroupId}',
           component: 'licenseThreatGroupEditor',
         })
         .state('management.edit.organization.edit-data-retention', {

@@ -1,0 +1,88 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+owner-detail-sidebar {
+  display: contents;
+
+  .nx-h3 {
+    @include nx-text-helpers.truncate-ellipsis;
+    padding-right: var(--nx-spacing-6x);
+    margin-bottom: 0;
+  }
+
+  .nx-h4 {
+    text-transform: initial;
+  }
+
+  .nx-collapsible-items--expanded {
+    border-radius: 6px 0px 0px 6px;
+    margin: var(--nx-spacing-6x) 0px var(--nx-spacing-6x);
+    max-width: 100%;
+
+    &.active {
+      background-color: var(--nx-swatch-indigo-97);
+    }
+  }
+
+  .nx-text-link {
+    transition-property: background-color, border;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
+
+    svg {
+      margin-left: 0;
+    }
+
+    &:hover,
+    &:focus {
+      color: initial;
+      border: 1px solid var(--nx-swatch-indigo-90);
+    }
+  }
+
+  a.iq-noncollapsible {
+    font-weight: 600;
+    color: var(--nx-color-text-dark);
+    padding: calc(var(--nx-spacing-base) - 1px) calc(var(--nx-spacing-2x) - 1px) calc(var(--nx-spacing-base) - 1px)
+      calc(var(--nx-spacing-6x) + var(--nx-spacing-base));
+
+    &:not(:last-of-type) {
+      margin-bottom: var(--nx-spacing-4x);
+    }
+
+    &:first-of-type {
+      margin-top: calc(0px - var(--nx-spacing-2x));
+    }
+
+    &.last {
+      margin-bottom: calc(0px - var(--nx-spacing-2x));
+    }
+
+    &.disabled {
+      text-decoration: none;
+    }
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .label-list-menu .nx-icon {
+    color: var(--nx-selectable-color-dark);
+  }
+
+  a.nx-text-link.nx-collapsible-items__child:not(.selected):hover {
+    background-color: white;
+  }
+  a.nx-text-link.nx-collapsible-items__child.disabled:hover {
+    background-color: initial;
+    text-decoration: none;
+  }
+}

@@ -9,7 +9,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NotificationsSection;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
-import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
+import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.MonitoredStageEditorPage;
@@ -86,7 +86,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL);
     assertNotLicensed(false);
   }
-  
+
   public void assertNotLicensed(boolean notificationsReadOnly) {
     refresh();
     Condition notLicensedTextOwnerSummary = text("Policy monitoring is not supported by your license");
@@ -100,11 +100,9 @@ public abstract class AbstractPolicyMonitoringEditorTest
     refreshOrOpen(MonitoredStageEditorPage.url(currentOwner));
     MonitoredStageEditorPage.unsupportedLicenseWarning().shouldHave(notLicensedText);
 
-    // disable the owner detail tree view item
+    // disable the owner detail sidebar item
     refreshOrOpen(PolicyEditorPage.urlToCreate(currentOwner));
-    OwnerDetailTreeView.policyGroup().item(2).shouldBe(DISABLED).hover();
-    int cmIndex = OwnerDetailTreeView.policyGroup().items().size() - 2;
-    OwnerDetailTreeView.policyGroup().item(cmIndex).shouldBe(DISABLED).hover();
+    OwnerDetailSidebar.continuousMonitoring().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Policy Monitoring is not supported by your license"));
     // disable continuous monitoring checkboxes in notification area
     ScrollUtil.scrollIntoView(PolicyEditorPage.notificationsSection().header());

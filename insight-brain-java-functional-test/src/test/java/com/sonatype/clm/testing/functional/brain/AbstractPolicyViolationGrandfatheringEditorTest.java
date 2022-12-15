@@ -7,7 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
+import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyViolationGrandfatheringEditorPage;
@@ -196,8 +196,8 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     refreshOrOpen(PolicyViolationGrandfatheringEditorPage.url(currentOwner));
     PolicyViolationGrandfatheringEditorPage.unsupportedLicenseWarning().shouldHave(notLicensedText);
 
-    // make sure the owner detail tree view item is disabled
-    OwnerDetailTreeView.policyGroup().item(1).shouldBe(DISABLED).hover();
+    // make sure the owner detail sidebar item is disabled
+    OwnerDetailSidebar.grandfathering().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldHave(notLicensedText);
   }
 

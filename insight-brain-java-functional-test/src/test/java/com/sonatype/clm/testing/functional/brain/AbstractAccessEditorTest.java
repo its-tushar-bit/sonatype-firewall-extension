@@ -96,7 +96,7 @@ public abstract class AbstractAccessEditorTest
   @Test
   public void testAddRole() {
     goFromSummaryToAddRole();
-    OwnerDetailTreeView.accessGroup().items().shouldHaveSize(3);
+    OwnerDetailSidebar.accessGroup().items().shouldHaveSize(3);
 
     AccessEditorPage accessEditorPage = new AccessEditorPage();
     AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
@@ -139,8 +139,8 @@ public abstract class AbstractAccessEditorTest
     addMembersForm.saveButton().shouldNotHave(cssClass("disabled")).click();
     FormMask.seeAndWaitForDismissal();
 
-    OwnerDetailTreeView.accessGroup().items().shouldHaveSize(4);
-    OwnerDetailTreeView.accessGroup().item(3).shouldHave(text(roleName));
+    OwnerDetailSidebar.accessGroup().items().shouldHaveSize(4);
+    OwnerDetailSidebar.accessGroup().item(3).shouldHave(text(roleName));
     assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - 2, accessEditorPage);
     assertThatRoleNotAvailableInDropdown(roleName, addMembersForm);
     List<MembershipMapping> membershipMappings = getMembershipMappings(currentOwner.getId(), roleName);
@@ -153,7 +153,7 @@ public abstract class AbstractAccessEditorTest
     Role role = APPLICATION_ROLES.get(0);
     goFromSummaryToEditRole(role);
 
-    OwnerDetailTreeView.accessGroup().item(1).shouldBe(CLM.SELECTED);
+    OwnerDetailSidebar.accessGroup().item(1).shouldBe(CLM.SELECTED);
 
     AccessEditorPage accessEditorPage = new AccessEditorPage();
     AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
@@ -193,8 +193,8 @@ public abstract class AbstractAccessEditorTest
     AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
     addMembersForm.addedItems().shouldHaveSize(1);
 
-    OwnerDetailTreeView.accessGroup().entryItems().shouldHave(sizeGreaterThan(0));
-    int initialNumAddedRoles = OwnerDetailTreeView.accessGroup().entryItems().size();
+    OwnerDetailSidebar.accessGroup().entryItems().shouldHave(sizeGreaterThan(0));
+    int initialNumAddedRoles = OwnerDetailSidebar.accessGroup().entryItems().size();
 
     addMembersForm.addedItems().get(0).click();
     addMembersForm.saveButton().shouldNotHave(cssClass("disabled")).click();
@@ -205,7 +205,7 @@ public abstract class AbstractAccessEditorTest
     deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();
     deleteModal.shouldBe(hidden);
-    OwnerDetailTreeView.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
+    OwnerDetailSidebar.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
     assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 2, accessEditorPage);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).isEmpty();
   }
@@ -219,8 +219,8 @@ public abstract class AbstractAccessEditorTest
     AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
 
     accessEditorPage.title().shouldBe(visible);
-    OwnerDetailTreeView.accessGroup().entryItems().shouldHave(sizeGreaterThan(0));
-    int initialNumAddedRoles = OwnerDetailTreeView.accessGroup().entryItems().size();
+    OwnerDetailSidebar.accessGroup().entryItems().shouldHave(sizeGreaterThan(0));
+    int initialNumAddedRoles = OwnerDetailSidebar.accessGroup().entryItems().size();
 
     addMembersForm.deleteRoleButton().click();
     NxDeleteModal deleteModal = addMembersForm.getDeleteModal();
@@ -231,7 +231,7 @@ public abstract class AbstractAccessEditorTest
     deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();
     deleteModal.shouldBe(hidden);
-    OwnerDetailTreeView.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
+    OwnerDetailSidebar.accessGroup().entryItems().shouldHaveSize(initialNumAddedRoles - 1);
     assertAddRoleInitialStateIsCorrect(APPLICATION_ROLES.size() - initialNumAddedRoles + 2, accessEditorPage);
     assertThat(getMembershipMappings(currentOwner.getId(), role.getName())).isEmpty();
   }
@@ -293,7 +293,7 @@ public abstract class AbstractAccessEditorTest
   private void assertAddRoleInitialStateIsCorrect(
           int numAvailableRoles, AccessEditorPage accessEditorPage)
   {
-    OwnerDetailTreeView.accessGroup().item(0).shouldBe(CLM.SELECTED);
+    OwnerDetailSidebar.accessGroup().item(0).shouldBe(CLM.SELECTED);
     accessEditorPage.title().shouldHave(AccessEditorPage.NEW_TITLE_TEXT);
     accessEditorPage.addMembersForm().roleSelect().listItems().shouldHaveSize(numAvailableRoles);
     accessEditorPage.addMembersForm().deleteRoleButton().shouldBe(hidden);

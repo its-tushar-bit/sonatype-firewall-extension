@@ -8,7 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.testing.functional.elements.IqAssociationEditor.AssociationEditorElement;
 import com.sonatype.clm.testing.functional.elements.IqAssociationEditor;
-import com.sonatype.clm.testing.functional.elements.OwnerDetailTreeView;
+import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
@@ -61,7 +61,7 @@ public class ApplicationPolicyEditorTest
     PolicyEditorPage.summarySection().policyName().input().clear();
     PolicyEditorPage.summarySection().policyName().input().sendKeys("policyName2");
     PolicyEditorPage.savePolicy();
-    OwnerDetailTreeView.backLink().shouldBe(visible).click();
+    OwnerDetailSidebar.backLink().shouldBe(visible).click();
     organizationNode.application(0).shouldBe(visible).click();
     OwnerSummaryPage.policyTile().localPolicy("policyName2").shouldBe(visible);
 

@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
@@ -83,6 +84,7 @@ public class ApiVulnerabiltyGroupService
           deleteVulnerabilitiesInGroupByGroupId(tx, currentGroup.getId());
           saveVulnerabilitiesInGroup(tx, apiVulnerabilityGroupDTO.getVulnIds(), currentGroup.getId());
           tx.commit();
+          auditVulnerabilityGroup(currentGroup);
           return currentGroup.getId();
         }
         else {
@@ -91,6 +93,7 @@ public class ApiVulnerabiltyGroupService
           vulnerabilityGroupDAO.insert(tx, vulnGroupObj);
           saveVulnerabilitiesInGroup(tx, apiVulnerabilityGroupDTO.getVulnIds(), vulnGroupObj.getId());
           tx.commit();
+          auditVulnerabilityGroup(vulnGroupObj);
           return vulnGroupObj.getId();
         }
       }
@@ -124,6 +127,7 @@ public class ApiVulnerabiltyGroupService
       if (currentGroup != null) {
         vulnerabilityGroupDAO.delete(currentGroup);
         sendVulnerabilityGroupTelemetryData(METHOD.DELETE_BY_ID, 0, new ArrayList<>());
+        auditVulnerabilityGroup(currentGroup);
         tx.commit();
       }
       else {
@@ -218,6 +222,10 @@ public class ApiVulnerabiltyGroupService
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.VULNERABILITY_GROUP_API);
     telemetryData.setAttributes(attributes);
     telemetrySender.send(telemetryData);
+  }
+
+  private void auditVulnerabilityGroup(VulnerabilityGroup vulnerabilityGroup) {
+    AuditData.get().setData("vulnerabilityGroup", vulnerabilityGroup);
   }
 
   enum METHOD

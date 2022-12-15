@@ -241,7 +241,10 @@ public enum AuditEvent
   DELETE_SOURCE_CONTROL_CONFIGURATION(Domain.SERVER_SOURCE_CONTROL, Type.DELETE),
 
   CONFIGURE_PROPERTIES(Domain.SERVER_PROPERTIES, Type.CONFIGURE),
-  DELETE_PROPERTIES(Domain.SERVER_PROPERTIES, Type.DELETE);
+  DELETE_PROPERTIES(Domain.SERVER_PROPERTIES, Type.DELETE),
+
+  SAVE_VULNERABILITY_GROUP(Domain.GOVERNANCE_VULNERABILITY_GROUP, Type.SAVE),
+  DELETE_VULNERABILITY_GROUP(Domain.GOVERNANCE_VULNERABILITY_GROUP, Type.DELETE);
 
   private final String domain;
 
@@ -353,6 +356,8 @@ public enum AuditEvent
         join(join(GOVERNANCE, "vulnerability-signatures"), "reachability");
     
     String GOVERNANCE_REPOSITORY_IDENTIFIED_COMPONENT = join(GOVERNANCE, "repository-identified-component");
+
+    String GOVERNANCE_VULNERABILITY_GROUP = join(GOVERNANCE, "vulnerability-group");
 
     String SECURITY = "security";
 

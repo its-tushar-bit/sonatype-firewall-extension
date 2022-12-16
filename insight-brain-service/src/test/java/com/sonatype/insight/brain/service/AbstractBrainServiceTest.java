@@ -271,6 +271,7 @@ public abstract class AbstractBrainServiceTest
           SystemConfigurationProperty.FORCE_BASE_URL,
           SystemConfigurationProperty.CSRF_PROTECTION,
           SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH,
+          SystemConfigurationProperty.PURGE_SCAN_FILES,
           SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH,
           SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH,
           SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS,

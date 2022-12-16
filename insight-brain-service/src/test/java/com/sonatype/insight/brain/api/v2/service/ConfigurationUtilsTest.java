@@ -233,4 +233,30 @@ public class ConfigurationUtilsTest
   public void testParseRepositoryList_duplicatedItems() {
     assertThat(ConfigurationUtils.parseRepositoryList("repo1,repo1,repo2")).isEqualTo("repo1,repo2");
   }
+
+  @Test
+  public void testPurgeScanFiles_InvalidValue() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> ConfigurationUtils.purgeScanFiles("foo-bar"))
+            .withMessageContaining(String.format(ConfigurationUtils.INVALID_PURGE_SCAN_FILES_VALUE_MSG, "foo-bar"));
+  }
+
+  @Test
+  public void testPurgeScanFiles_nullValue() {
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> ConfigurationUtils.purgeScanFiles(null))
+            .withMessageContaining(String.format(ConfigurationUtils.INVALID_PURGE_SCAN_FILES_VALUE_MSG, null));
+  }
+
+  @Test
+  public void testPurgeScanFiles_newScan() {
+    assertThat(ConfigurationUtils.purgeScanFiles(ConfigurationUtils.NEW_SCAN))
+            .isEqualTo(ConfigurationUtils.NEW_SCAN);
+  }
+
+  @Test
+  public void testPurgeScanFiles_withReports() {
+    assertThat(ConfigurationUtils.purgeScanFiles(ConfigurationUtils.WITH_REPORTS))
+            .isEqualTo(ConfigurationUtils.WITH_REPORTS);
+  }
 }

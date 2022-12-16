@@ -145,6 +145,8 @@ public class SystemConfigurationProperty
 
   public static final String SCAN_POM_FILES_IN_META_INF_DIRECTORY = "scanPomFilesInMetaInfDirectory";
 
+  public static final String PURGE_SCAN_FILES = "purgeScanFiles";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

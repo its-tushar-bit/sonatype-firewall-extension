@@ -46,9 +46,16 @@ public class ConfigurationUtils
   public static final String INVALID_CHARACTERS_ERROR_MSG = "The repository list must be comma-separated " +
       "and each repository can only contain alphanumeric characters, underscores, and hyphens. Invalid repository: %s";
 
+  public static final String INVALID_PURGE_SCAN_FILES_VALUE_MSG = "Provided value: [%s] " +
+          "for property purgeScanFiles is invalid";
+
   public static final String NONE_VALUE = "'none'";
 
-  private ConfigurationUtils() { }
+  public static final String WITH_REPORTS = "withReports";
+
+  public static final String NEW_SCAN = "newScan";
+
+  private ConfigurationUtils() {}
 
   public static String urlValueToString(Object value) {
     if (value == null) {
@@ -223,5 +230,14 @@ public class ConfigurationUtils
       }
     }
     return String.join(",", repositories);
+  }
+
+  public static Object purgeScanFiles(String purgeScan) {
+    if (NEW_SCAN.equals(purgeScan) || WITH_REPORTS.equals(purgeScan)) {
+      return purgeScan;
+    }
+    else {
+      throw new BadRequestException(String.format(INVALID_PURGE_SCAN_FILES_VALUE_MSG, purgeScan));
+    }
   }
 }

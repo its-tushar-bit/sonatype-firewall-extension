@@ -120,6 +120,7 @@ public class Configuration
 
   private void initializeValues() {
     updateValueByPropertyNames(CollectionUtils.asSet(
+        SystemConfigurationProperty.PURGE_SCAN_FILES,
         SystemConfigurationProperty.BASE_URL,
         SystemConfigurationProperty.FORCE_BASE_URL,
         SystemConfigurationProperty.HDS_URL,
@@ -243,6 +244,10 @@ public class Configuration
     }
     updateDefaultBranchMonitoringIfNeeded(currentSourceControlConfiguration, sourceControlConfiguration);
     updatePullRequestMonitoringIfNeeded(currentSourceControlConfiguration, sourceControlConfiguration);
+  }
+
+  public String getPurgeScanFiles() {
+    return (String) valueByPropertyName.get(SystemConfigurationProperty.PURGE_SCAN_FILES);
   }
 
   private void updateDefaultBranchMonitoringIfNeeded(

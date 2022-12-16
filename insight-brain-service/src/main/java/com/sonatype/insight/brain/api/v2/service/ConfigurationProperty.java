@@ -139,7 +139,10 @@ public class ConfigurationProperty
               Integer.MAX_VALUE)),
       new ConfigurationProperty(SystemConfigurationProperty.BFS_REPOSITORIES, String.class,
           (p, s) -> s,
-          (p, o) -> ConfigurationUtils.parseRepositoryList((String) o))
+          (p, o) -> ConfigurationUtils.parseRepositoryList((String) o)),
+      new ConfigurationProperty(SystemConfigurationProperty.PURGE_SCAN_FILES, String.class,
+          (p, s) -> s,
+          (p, o) -> (String) ConfigurationUtils.purgeScanFiles((String) o)),
   };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

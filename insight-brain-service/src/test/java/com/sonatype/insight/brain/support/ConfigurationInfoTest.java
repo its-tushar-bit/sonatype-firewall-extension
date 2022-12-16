@@ -76,7 +76,9 @@ public class ConfigurationInfoTest
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.FORCE_BASE_URL, String.valueOf(true));
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
         "[\"*first.com\",\"second.*\"]");
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.PURGE_SCAN_FILES, "newScan");
     configuration.configurationChanged(Sets.newHashSet(
+        SystemConfigurationProperty.PURGE_SCAN_FILES,
         SystemConfigurationProperty.BASE_URL,
         SystemConfigurationProperty.FORCE_BASE_URL,
         SystemConfigurationProperty.HDS_URL,
@@ -143,6 +145,7 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.FORCE_BASE_URL).asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST).asText())
         .isEqualTo("*first.com,second.*");
+    assertThat(configNode.get(SystemConfigurationProperty.PURGE_SCAN_FILES).asText()).isEqualTo("newScan");
   }
 
   @Test
@@ -181,5 +184,6 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.BASE_URL).asText()).isEqualTo("null");
     assertThat(configNode.get(SystemConfigurationProperty.FORCE_BASE_URL).asText()).isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST).asText()).isEqualTo("null");
+    assertThat(configNode.get(SystemConfigurationProperty.PURGE_SCAN_FILES).asText()).isEqualTo("null");
   }
 }

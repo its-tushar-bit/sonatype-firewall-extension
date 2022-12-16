@@ -22,7 +22,6 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.assertj.core.api.AbstractIntegerAssert;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Test;
@@ -588,18 +587,18 @@ public class DashboardPolicyWaiverDTOComparatorTest
       boolean greater
   )
   {
-    IntStream.range(0, dtos.size() - 1).forEachOrdered(i -> {
+    for (int i = 0; i < dtos.size() - 1; i++) {
       DashboardPolicyWaiverDTO current = dtos.get(i);
       DashboardPolicyWaiverDTO next = dtos.get(i + 1);
 
-      AbstractIntegerAssert assertion = assertThat(comparator.compare(current, next));
+      int compareResult = comparator.compare(current, next);
       if (greater) {
-        assertion.isGreaterThan(0);
+        assertThat(compareResult).isGreaterThan(0);
       }
       else {
-        assertion.isLessThan(0);
+        assertThat(compareResult).isLessThan(0);
       }
-    });
+    }
     assertThat(comparator.compare(dtos.get(dtos.size() - 1), dtos.get(dtos.size() - 1))).isEqualTo(0);
   }
 

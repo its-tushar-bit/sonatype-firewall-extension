@@ -53,8 +53,6 @@ public class ConfigurationUtils
 
   public static final String WITH_REPORTS = "withReports";
 
-  public static final String NEW_SCAN = "newScan";
-
   private ConfigurationUtils() {}
 
   public static String urlValueToString(Object value) {
@@ -233,7 +231,7 @@ public class ConfigurationUtils
   }
 
   public static Object purgeScanFiles(String purgeScan) {
-    if (NEW_SCAN.equals(purgeScan) || WITH_REPORTS.equals(purgeScan)) {
+    if (WITH_REPORTS.equals(purgeScan)) {
       return purgeScan;
     }
     else {

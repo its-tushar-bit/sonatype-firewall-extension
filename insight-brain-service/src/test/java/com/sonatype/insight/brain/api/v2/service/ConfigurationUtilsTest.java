@@ -249,12 +249,6 @@ public class ConfigurationUtilsTest
   }
 
   @Test
-  public void testPurgeScanFiles_newScan() {
-    assertThat(ConfigurationUtils.purgeScanFiles(ConfigurationUtils.NEW_SCAN))
-            .isEqualTo(ConfigurationUtils.NEW_SCAN);
-  }
-
-  @Test
   public void testPurgeScanFiles_withReports() {
     assertThat(ConfigurationUtils.purgeScanFiles(ConfigurationUtils.WITH_REPORTS))
             .isEqualTo(ConfigurationUtils.WITH_REPORTS);

@@ -17,11 +17,15 @@ import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
 public class InsightProxy
 {
+  private final Logger log = LoggerFactory.getLogger(InsightProxy.class);
+
   private final Configuration configuration;
 
   private final PasswordHandler passwordHandler;
@@ -43,6 +47,8 @@ public class InsightProxy
 
     ProxyServerConfiguration proxyServerConfiguration = configuration.getProxyServerConfiguration();
     if (proxyServerConfiguration != null) {
+      log.debug("proxyServerConfiguration: {}:{}", proxyServerConfiguration.getHostname(),
+          proxyServerConfiguration.getPort());
       httpConfig.setProxyHost(proxyServerConfiguration.getHostname());
       httpConfig.setProxyPort(proxyServerConfiguration.getPort());
       httpConfig.setProxyExcludeHosts(proxyServerConfiguration.getExcludeHostsList());
@@ -59,6 +65,9 @@ public class InsightProxy
         // TODO: do we need to support NTLM?
         httpConfig.setProxyAuth(proxyAuth);
       }
+    }
+    else {
+      log.debug("proxyServerConfiguration is null");
     }
 
     return httpConfig;

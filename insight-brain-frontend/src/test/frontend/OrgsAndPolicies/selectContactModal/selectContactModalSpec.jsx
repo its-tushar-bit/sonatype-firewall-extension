@@ -74,8 +74,16 @@ describe('SelectContactModal', () => {
   });
 
   it("didn't fetch all available users, if the user didn't provide any actions", () => {
+    axiosMock.onGet('/users').reply(function () {
+      fail("Fetched all available users, even user didn't provide any actions");
+      return [
+        200,
+        {
+          users: [{ id: 1, name: 'John Smith' }],
+        },
+      ];
+    });
     renderComponent();
-    expect(axiosMock.history.get.length).toBe(0);
   });
 
   it('shows warning message, if there are no available users', (done) => {

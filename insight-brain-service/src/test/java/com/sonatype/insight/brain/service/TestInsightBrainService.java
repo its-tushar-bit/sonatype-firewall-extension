@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.function.BiConsumer;
+
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
@@ -44,6 +45,7 @@ import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
+
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import io.dropwizard.configuration.ConfigurationException;
@@ -138,6 +140,10 @@ public class TestInsightBrainService
     testProxyServerConfiguration.setUsername(user);
     testProxyServerConfiguration
         .setPassword(new PasswordHandler(new DefaultPlexusCipher()).encryptPassword(pass.toCharArray()));
+  }
+
+  public void clearProxyServerConfiguration() {
+    testProxyServerConfiguration = null;
   }
 
   public void setConfigurator(Configurator configurator) {
@@ -282,6 +288,9 @@ public class TestInsightBrainService
 
     if (testProxyServerConfiguration != null) {
       new ProxyServerConfigurationDAO().set(testProxyServerConfiguration);
+    }
+    else {
+      new ProxyServerConfigurationDAO().delete();
     }
     insightConfig = config;
 

@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.policy.AbstractPolicyImportAuditTest;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class NewInstancePopulatorAuditTest
@@ -23,7 +22,6 @@ public class NewInstancePopulatorAuditTest
 {
   @Test
   @ManualServerInit
-  @Ignore // fix in CLM-23389 and un-ignore
   public void testPopulateIfNewInstance() throws Exception {
     PolicyExportResult policyExportResult = new PolicyExportResult();
     policyExportResult.policies = Arrays.asList(aComplexPolicy(), policy());
@@ -44,7 +42,6 @@ public class NewInstancePopulatorAuditTest
 
   @Test
   @ManualServerInit
-  @Ignore // fix in CLM-23389 and un-ignore
   public void testPopulateIfNewInstance_BadGateway() throws Exception {
     hdsRespondWith("Internal Server Error").andStatus(500).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
     initServer();

@@ -238,37 +238,6 @@ public class DefaultApiLegalReportResourceV2
   @Override
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @Path(MULTI_APPLICATION_REPORT_FROM_FILTER)
-  @Produces(MediaType.TEXT_HTML)
-  public String getLicenseLegalMultiApplicationReportFromActiveUserFilter(FormDataMultiPart formData) {
-    LegalCustomReportParameters.Builder reportParametersBuilder = LegalCustomReportParameters.builder();
-    try {
-      reportParametersBuilder.withTitle(requireMultiPartValue(formData, REPORT_FORM_TITLE))
-          .withHeader(getMultiPartValue(formData, REPORT_FORM_HEADER, ""))
-          .withFooter(getMultiPartValue(formData, REPORT_FORM_FOOTER, ""))
-          .withIncludeToc(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_TOC, "true")))
-          .withIncludeStandardLicenseTexts(
-              Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_STANDARD_LICENSE, "true")))
-          .withIncludeIncludeSonatypeSpecialLicenses(
-              Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_SONATYPE_SPECIAL_LICENSES,
-                  DEFAULT_VALUE_FALSE)))
-          .withIncludeAppendix(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_APPENDIX, "true")))
-          .withNoticeFiles(getNoticeFilesFromFormData(formData))
-          .withIncludeInnerSource(Boolean.parseBoolean(getMultiPartValue(formData, REPORT_FORM_INNER_SOURCE,
-              DEFAULT_VALUE_FALSE)))
-          .build();
-    }
-    catch (Exception ex) { // if we got exception at this point it's because of invalid request
-      Throwables.throwIfInstanceOf(ex, BadRequestException.class);
-      throw new BadRequestException(ex.getMessage());
-    }
-    return applicationAttributionReportBuilder
-        .generateLegalMultiApplicationAttributionReportFromActiveUserFilter(reportParametersBuilder.build());
-  }
-
-  @Override
-  @POST
-  @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path(MULTI_APPLICATION_REPORT_FROM_FILTER_TEMPLATE_PATH)
   @Produces(MediaType.TEXT_HTML)
   public String getLicenseLegalMultiApplicationReportFromActiveUserFilter(

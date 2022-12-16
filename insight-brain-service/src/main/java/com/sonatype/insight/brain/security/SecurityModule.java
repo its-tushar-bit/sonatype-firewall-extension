@@ -115,7 +115,7 @@ public class SecurityModule
     // Legal attribution report doesn't need CSRF check as it doesn't update server state (despite being POST form)
     manager.createChain("/api/v2/licenseLegalMetadata/application/*/stage/*/report",
         String.format(CUSTOM_CSRF_FILTERS, AntiCsrfFilter.FORM_POST_ALLOWED));
-    manager.createChain("/api/v2/licenseLegalMetadata/multiApplication/activeUserFilter/report",
+    manager.createChain("/rest/legal/attribution/multiApplication/activeUserFilter/report",
         String.format(CUSTOM_CSRF_FILTERS, AntiCsrfFilter.FORM_POST_ALLOWED));
 
     // The UI uses this path to get the config for anonymous access for the Quarantined Component View.

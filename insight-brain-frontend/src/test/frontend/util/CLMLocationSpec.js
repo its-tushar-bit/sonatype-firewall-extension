@@ -268,7 +268,7 @@ describe('CLMLocation.js', function () {
 
   it('should return the legal dashboard AttributionReportMultiApplication url', function () {
     expect(CLMLocation.getAttributionReportMultiApplicationUrl()).toBe(
-      '/api/v2/licenseLegalMetadata/multiApplication/activeUserFilter/report'
+      '/rest/legal/attribution/multiApplication/activeUserFilter/report'
     );
   });
 

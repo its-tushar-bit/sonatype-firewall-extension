@@ -889,7 +889,7 @@ export function getAttributionReportTemplateUrl(templateId) {
 }
 
 export function getAttributionReportMultiApplicationUrl() {
-  return uriTemplate`/api/v2/licenseLegalMetadata/multiApplication/activeUserFilter/report`;
+  return uriTemplate`/rest/legal/attribution/multiApplication/activeUserFilter/report`;
 }
 
 export const getSuccessMetricsChartDataUrl = (successMetricsReportId) =>

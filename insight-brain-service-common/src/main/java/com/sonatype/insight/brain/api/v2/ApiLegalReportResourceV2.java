@@ -30,8 +30,6 @@ public interface ApiLegalReportResourceV2
 
   String getLicenseLegalCustomMultiApplicationHTMLReport(FormDataMultiPart formData);
 
-  String getLicenseLegalMultiApplicationReportFromActiveUserFilter(FormDataMultiPart formData);
-
   String getLicenseLegalMultiApplicationReportFromActiveUserFilter(String templateId, ContainerRequest request);
 
   String getLicenseLegalMultiApplicationHTMLReport(

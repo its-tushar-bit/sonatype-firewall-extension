@@ -73,6 +73,7 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -147,6 +148,8 @@ public class ScanPolicyEvaluator
 
   private final CurrentUser currentUser;
 
+  private final Configuration configuration;
+
   @Inject
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
@@ -159,7 +162,8 @@ public class ScanPolicyEvaluator
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
       final ProductLicense productLicense,
       final SourceControlUtils sourceControlUtils,
-      final CurrentUser currentUser)
+      final CurrentUser currentUser,
+      final Configuration configuration)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -172,6 +176,7 @@ public class ScanPolicyEvaluator
     this.productLicense = productLicense;
     this.sourceControlUtils = sourceControlUtils;
     this.currentUser = currentUser;
+    this.configuration = configuration;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -543,9 +548,12 @@ public class ScanPolicyEvaluator
 
       results.activeViolations = filterActivePolicyViolations(results.allViolations);
 
-      if (!isReevaluation && lastPrimaryPolicyEvaluation != null) {
-        String previousScanId = lastPrimaryPolicyEvaluation.getScanId();
-        deletePreviousScanFile(appId, stage, previousScanId);
+      String purgeScanFiles = configuration.getPurgeScanFiles();
+      if (purgeScanFiles == null) {
+        if (!isReevaluation && lastPrimaryPolicyEvaluation != null) {
+          String previousScanId = lastPrimaryPolicyEvaluation.getScanId();
+          deletePreviousScanFile(appId, stage, previousScanId);
+        }
       }
 
       log.debug(

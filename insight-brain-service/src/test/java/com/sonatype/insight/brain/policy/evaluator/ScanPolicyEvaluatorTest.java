@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilitySource;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -110,6 +111,7 @@ import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
@@ -125,6 +127,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -136,6 +139,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.GRANDFATHER_TIME;
 import static java.time.Duration.ofSeconds;
@@ -183,6 +187,9 @@ public class ScanPolicyEvaluatorTest
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  @Inject
+  private Configuration configuration;
 
   @Override
   public void configure(Binder binder) {
@@ -571,6 +578,28 @@ public class ScanPolicyEvaluatorTest
     File scanFile2 = createScanFile(application, scanId2);
     scanPolicyEvaluator.evaluate(application, scanId2, stage, ScanTriggerType.CLI);
     assertThat(scanFile1).doesNotExist();
+    assertThat(scanFile2).isFile();
+  }
+
+  @Test
+  public void testEvaluate_DoesNotDeletePreviousScanFile_PurgeScanFilesWithReports() throws Exception {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.PURGE_SCAN_FILES, WITH_REPORTS);
+    configuration.configurationChanged(Sets.newHashSet(SystemConfigurationProperty.PURGE_SCAN_FILES));
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+
+    String scanId1 = simulateReportIsAvailable("report");
+    File scanFile1 = createScanFile(application, scanId1);
+    scanPolicyEvaluator.evaluate(application, scanId1, stage, ScanTriggerType.CLI);
+    assertThat(scanFile1).isFile();
+
+    // Make sure we don't have two evaluations at exactly the same time
+    waitForTimeAdvance();
+
+    String scanId2 = simulateReportIsAvailable("report");
+    File scanFile2 = createScanFile(application, scanId2);
+    scanPolicyEvaluator.evaluate(application, scanId2, stage, ScanTriggerType.CLI);
+    assertThat(scanFile1).isFile();
     assertThat(scanFile2).isFile();
   }
 

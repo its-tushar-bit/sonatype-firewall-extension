@@ -328,7 +328,8 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
           dispatch(loadTransitiveViolationWaivers(ownerId, scanId, hash));
         } else if (
           currentState.name === 'firewall.componentDetailsPage.violations' ||
-          currentState.name === 'firewall.componentDetailsPage.legal'
+          currentState.name === 'firewall.componentDetailsPage.legal' ||
+          currentState.name === 'firewall.componentDetailsPage.security'
         ) {
           const hash = selectHash(getState());
           const ownerId = selectRepositoryId(getState());

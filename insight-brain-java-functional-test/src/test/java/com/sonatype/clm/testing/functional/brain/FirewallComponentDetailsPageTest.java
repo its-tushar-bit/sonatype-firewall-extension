@@ -2361,4 +2361,61 @@ public class FirewallComponentDetailsPageTest
 
     listWaiversPage.waiverListTable().noWaiversMessage().shouldBe(visible);
   }
+
+  @Test
+  public void testAddWaiversAndRemoveItFromExistingWaiversPopoversInSecurityTab() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    FirewallPolicyViolationsTable policyViolationsTable = FirewallComponentDetailsPage
+        .getFirewallPolicyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+    violationRow1Cells.get(3).click();
+    policyViolationDetailPopover.shouldBe(visible);
+
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+    manageWaiversButton.click();
+
+    ListWaiversPage listWaiversPage = new ListWaiversPage();
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.scope(1).click();
+    addWaiverPage.component(1).click();
+
+    addWaiverPage.comments().setValue("Some comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
+
+    addWaiverPage.scope(2).click();
+    addWaiverPage.component(1).click();
+
+    addWaiverPage.comments().setValue("test comments");
+    addWaiverPage.saveButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    listWaiversPage.backButton().click();
+    waitUntilSpinnersGone();
+
+    refreshOrOpen(FirewallComponentDetailsPage.urlSecurityTab(component));
+
+    firewallComponentDetailsPage.firewallWaiversButton().click();
+
+    ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
+    ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
+    ComponentWaiversPopoverTableRow row = componentWaiversTable.row(2);
+    row.deleteButton().click();
+
+    firewallComponentDetailsPage.getDeleteWaiverModal().shouldBe(visible);
+    firewallComponentDetailsPage.getDeleteWaiverModalButton().click();
+
+    componentWaiversTable.getRows().shouldHaveSize(2);
+  }
 }

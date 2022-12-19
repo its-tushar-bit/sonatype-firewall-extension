@@ -32,6 +32,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
@@ -237,6 +238,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     eyesWatcher.eyesCheck();
   }
 
+  @Ignore
   @Test
   public void testScrollingToSelection() {
     Instant now = Instant.now();

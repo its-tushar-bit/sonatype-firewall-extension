@@ -35,14 +35,17 @@ import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.postgres.PostgresServer;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,6 +53,7 @@ import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 
+import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -70,6 +74,9 @@ public class ReportPurgerTest
 
   @Inject
   private DataRetentionPolicyDAO dataRetentionPolicyDAO;
+
+  @Inject
+  private Configuration configuration;
 
   @Mock
   private TaskScheduler taskSchedulerMock;
@@ -100,6 +107,16 @@ public class ReportPurgerTest
     }
   }
 
+  private void mockScanFile(String report) throws IOException {
+    Path scanDir = work.getScanDir(app.getId()).toPath();
+    if (!Files.exists(scanDir)) {
+      scanDir = Files.createDirectories(scanDir);
+    }
+
+    Path scanFile = scanDir.resolve("scan-" + report + ".xml.gz");
+    Files.createFile(scanFile);
+  }
+
   private Date daysAgo(int days) {
     return Date.from(ZonedDateTime.now().minusDays(days).toInstant());
   }
@@ -114,6 +131,42 @@ public class ReportPurgerTest
   public void init() {
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
+  }
+
+  @Test
+  public void testPurgeReports_ScanFilesPurged() throws IOException {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.PURGE_SCAN_FILES, WITH_REPORTS);
+    configuration.configurationChanged(Sets.newHashSet(SystemConfigurationProperty.PURGE_SCAN_FILES));
+
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, 1, null));
+    mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-0", daysAgo(600)));
+    mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-1", daysAgo(500)));
+    mockScanFile("report-0");
+    mockScanFile("report-1");
+
+    reportPurger.purgeReports();
+
+    // Latest report and scan file remains
+    // Previous report and scan file was deleted
+    assertThat(work.getReportDir(app.getId()).list()).containsExactly("report-1");
+    assertThat(work.getScanDir(app.getId()).list()).containsExactly("scan-report-1.xml.gz");
+  }
+
+  @Test
+  public void testPurgeReports_ScanFilesNotPurged() throws IOException {
+    dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, 1, null));
+    mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-0", daysAgo(600)));
+    mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-1", daysAgo(500)));
+    mockScanFile("report-0");
+    mockScanFile("report-1");
+
+    reportPurger.purgeReports();
+
+    // Latest report and scan file remains
+    // Previous report and scan file was deleted
+    assertThat(work.getReportDir(app.getId()).list()).containsExactly("report-1");
+    assertThat(work.getScanDir(app.getId()).list()).containsExactlyInAnyOrder("scan-report-0.xml.gz",
+        "scan-report-1.xml.gz");
   }
 
   @Test

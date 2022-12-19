@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.report;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
@@ -34,6 +35,7 @@ import javax.inject.Singleton;
 import javax.persistence.OptimisticLockException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -46,6 +48,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
 
@@ -115,6 +118,8 @@ public class ReportPurger
 
   public boolean disableForTesting;
 
+  private final Configuration configuration;
+
   @Inject
   public ReportPurger(
       InsightWork work,
@@ -122,7 +127,8 @@ public class ReportPurger
       ApplicationDAO applicationDAO,
       OwnerDAO ownerDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
-      TaskScheduler taskScheduler)
+      TaskScheduler taskScheduler,
+      Configuration configuration)
   {
     super("purgeObsoleteReports");
     this.work = work;
@@ -131,6 +137,7 @@ public class ReportPurger
     this.ownerDAO = ownerDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.taskScheduler = taskScheduler;
+    this.configuration = configuration;
     contextIds = Stream
         .concat(StageTypes.getAll().stream().map(StageType::getId).filter(stageId -> !Stage.ID_PROXY.equals(stageId)),
             Stream.of(DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING))
@@ -303,6 +310,17 @@ public class ReportPurger
   }
 
   private boolean purgeReport(Application application, String reportId) throws IOException {
+    String purgeScanFiles = configuration.getPurgeScanFiles();
+    if (ConfigurationUtils.WITH_REPORTS.equals(purgeScanFiles)) {
+      try {
+        File scanFile = work.getScanFile(application.getId(), reportId);
+        Files.deleteIfExists(scanFile.toPath());
+      }
+      catch (Exception suppressed) {
+        log.info("Failed to delete scan file for: " + reportId, suppressed);
+      }
+    }
+
     Path reportDir = work.getReportDir(application.getId(), reportId).toPath();
     if (!Files.exists(reportDir)) {
       ClusterLock.deleteForPolicyEvaluation(application, reportId);

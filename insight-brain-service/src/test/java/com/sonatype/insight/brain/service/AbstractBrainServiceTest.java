@@ -50,6 +50,8 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
@@ -103,6 +105,7 @@ import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 public abstract class AbstractBrainServiceTest
@@ -152,7 +155,7 @@ public abstract class AbstractBrainServiceTest
 
   protected static JiraClient mockJiraClient;
 
-  protected DatabaseProvisionUtils databaseProvisionUtils;
+  protected DatabaseContainer databaseContainer;
 
   public void setUpTestLicenseThreatGroups() {
     LicenseThreatGroupDataHelper.createTestLicenseThreatGroups(tempEntity);
@@ -164,6 +167,7 @@ public abstract class AbstractBrainServiceTest
 
     log.info("Before: {}", testName.getMethodName());
     initHds();
+    initDatabaseContainer();
     if (!isTestUsingManualServerInit()) {
       initServer();
     }
@@ -175,6 +179,16 @@ public abstract class AbstractBrainServiceTest
         tempEntity.setSavedProxyServerConfiguration(proxyServerConfiguration);
         getCLMServer().getInstance(ApiProxyServerConfigurationService.class).applyProxyServerConfigurationToClients();
       }
+    }
+  }
+
+  private void initDatabaseContainer() {
+    if (databaseContainer == null) {
+      DatabaseProvisionUtils databaseProvisionUtils =
+          spy(new DatabaseProvisionUtils(OperationalDataStoreProvider.getInstance(),
+              AggregationDataStoreProvider.getInstance(), DatamartProvider.getInstance(),
+              ThirdPartyScansProvider.getInstance()));
+      databaseContainer = new DatabaseContainer(new DataSourceFactory(), databaseProvisionUtils);
     }
   }
 
@@ -211,15 +225,9 @@ public abstract class AbstractBrainServiceTest
       testCLMServer = null;
     }
 
-    if (databaseProvisionUtils == null) {
-      databaseProvisionUtils = new DatabaseProvisionUtils(OperationalDataStoreProvider.getInstance(),
-          AggregationDataStoreProvider.getInstance(), DatamartProvider.getInstance(),
-          ThirdPartyScansProvider.getInstance());
-    }
-
     if (testCLMServer == null) {
       testCLMServer = new TestCLMServer(isProxyRequiredToReachHds(), getBrainModules(), configurator, hdsMockServer,
-          databaseProvisionUtils);
+          databaseContainer);
       testCLMServer.start();
     }
     setBaseUrl("http://localhost");

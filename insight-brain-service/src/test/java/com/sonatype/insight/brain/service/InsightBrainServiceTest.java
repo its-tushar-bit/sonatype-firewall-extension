@@ -103,10 +103,8 @@ public class InsightBrainServiceTest
 
   @Before
   public void before() throws JobPersistenceException {
-    databaseProvisionUtils = mock(DatabaseProvisionUtils.class);
     quartzJobStoreTX = mock(QuartzJobStoreTX.class);
     when(quartzJobStoreTX.getSchedulerStateRecords()).thenReturn(Collections.nCopies(2, null));
-    when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(true);
   }
 
   @After
@@ -374,6 +372,7 @@ public class InsightBrainServiceTest
   @Test
   @ManualServerInit
   public void testDesiredSchemaVersionMet() throws Exception {
+    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
     when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(false);
     when(databaseProvisionUtils.isSchemaVersionTableExists()).thenReturn(true);
     when(databaseProvisionUtils.isMigrationNeeded()).thenReturn(false);
@@ -387,6 +386,7 @@ public class InsightBrainServiceTest
   @Test
   @ManualServerInit
   public void testDesiredSchemaVersionUnmet() throws Exception {
+    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
     when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(false);
     when(databaseProvisionUtils.isSchemaVersionTableExists()).thenReturn(true);
     when(databaseProvisionUtils.isMigrationNeeded()).thenReturn(true);
@@ -409,6 +409,7 @@ public class InsightBrainServiceTest
   @Test
   @ManualServerInit
   public void testDesiredSchemaVersionNoSchema() throws Exception {
+    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
     when(databaseProvisionUtils.isInMemoryDatabase()).thenReturn(false);
     when(databaseProvisionUtils.isSchemaVersionTableExists()).thenReturn(false);
 
@@ -429,7 +430,7 @@ public class InsightBrainServiceTest
 
   @Test
   public void testStartupFailsIfSonatypeWorkIsInUse() {
-    TestCLMServer testCLMServerTwo = new TestCLMServer(false, null, null, null);
+    TestCLMServer testCLMServerTwo = new TestCLMServer(false, null, null, databaseContainer);
     try {
       assertThatExceptionOfType(IllegalStateException.class).isThrownBy(testCLMServerTwo::start)
           .withStackTraceContaining(

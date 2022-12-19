@@ -25,7 +25,7 @@ public class DatabaseConfigProvider
 
   private static final Logger log = LoggerFactory.getLogger(DatabaseConfigProvider.class);
 
-  private final InsightConfig config;
+  protected final InsightConfig config;
 
   private final Runtime runtime;
 

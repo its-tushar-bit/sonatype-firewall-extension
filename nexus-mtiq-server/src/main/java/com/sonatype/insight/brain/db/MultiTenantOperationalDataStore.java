@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.db;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -18,7 +17,6 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.db.DatabaseConfig;
 
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.openjpa.lib.jdbc.JDBCListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,21 +46,12 @@ public class MultiTenantOperationalDataStore
   {
     super.init(databaseConfig, migrateDatabase, migrateToNewViolationModel);
 
+    // Create database items for locks
+    MultiTenantDataSourceFactory multiTenantDataSourceFactory = (MultiTenantDataSourceFactory) dataSourceFactory;
+    DataSource locksDataSource = multiTenantDataSourceFactory.createLocksDataSource();
     Map<String, Object> props = new LinkedHashMap<>();
-    props.put("openjpa.ConnectionFactory", dataSource);
+    props.put("openjpa.ConnectionFactory", locksDataSource);
     props.put("openjpa.jdbc.Schema", getDatabaseSchema());
-
-    // smallest pool size should still support max nesting level of locks
-    int maxConnections = Math.max(5, Optional.ofNullable(databaseConfig.getMaxConnections()).orElse(50));
-    BasicDataSource dataSource = new BasicDataSource();
-    dataSource.setDriverClassName(databaseConfig.getDriverClassName());
-    dataSource.setUrl(databaseConfig.getUrl());
-    dataSource.setUsername(databaseConfig.getUsername());
-    dataSource.setPassword(databaseConfig.getPassword());
-    dataSource.setMaxTotal(maxConnections);
-    dataSource.addConnectionProperty("ApplicationName",
-        new DbApplicationNameGenerator().generateApplicationNameWithHost("IQ-locks"));
-    props.put("openjpa.ConnectionFactory", dataSource);
     entityManagerFactoryForLocks.put(TenantThreadLocal.getTenant(),
         Persistence.createEntityManagerFactory("InsightBrainODS", props));
   }

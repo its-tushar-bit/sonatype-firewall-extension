@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.service;
 
 import java.util.List;
 
+import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.test.networking.PortAllocator;
 
 import com.google.inject.Module;
@@ -43,7 +43,7 @@ public class TestCLMServer
       List<Module> modules,
       Configurator configurator,
       HdsMockServerRule hdsMockServer,
-      DatabaseProvisionUtils databaseProvisionUtils)
+      DatabaseContainer databaseContainer)
   {
     this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
 
@@ -51,15 +51,25 @@ public class TestCLMServer
     hdsMockServerOwned = false;
 
     brain = new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
-        hdsMockServer.getHttpUrl(), databaseProvisionUtils, isProxyRequiredToReachHds, modules).setConfigurator(
+        hdsMockServer.getHttpUrl(), databaseContainer, isProxyRequiredToReachHds, modules).setConfigurator(
         configurator);
   }
 
   public TestCLMServer(
       boolean isProxyRequiredToReachHds,
       List<Module> modules,
+      Configurator configurator)
+  {
+    // null for DatabaseContainer indicates that the default one will be created
+    // See TestInsightBrainService#createDatabaseContainer
+    this(isProxyRequiredToReachHds, modules, configurator, /* DatabaseContainer */ null);
+  }
+
+  public TestCLMServer(
+      boolean isProxyRequiredToReachHds,
+      List<Module> modules,
       Configurator configurator,
-      DatabaseProvisionUtils databaseProvisionUtils)
+      DatabaseContainer databaseContainer)
   {
     this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
 
@@ -69,7 +79,7 @@ public class TestCLMServer
     hdsMockServerOwned = true;
 
     brain = new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
-        "http://localhost:" + hdsMockServerPort, databaseProvisionUtils, isProxyRequiredToReachHds, modules)
+        "http://localhost:" + hdsMockServerPort, databaseContainer, isProxyRequiredToReachHds, modules)
         .setConfigurator(configurator);
   }
 

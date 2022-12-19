@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -122,7 +123,7 @@ public class InsightBrainService
 
   private static long startTime;
 
-  protected DatabaseProvisionUtils databaseProvisionUtils;
+  protected DatabaseContainer databaseContainer;
 
   public static void main(final String[] args) {
     try {
@@ -177,10 +178,10 @@ public class InsightBrainService
     startTime = System.currentTimeMillis();
     setSisuUrlCachesToTrueIfNotSet();
 
-    databaseProvisionUtils = createDatabaseProvisionUtils();
+    databaseContainer = createDatabaseContainer();
 
     final Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(this);
-    bootstrap.addCommand(createDbMigrationCommand(databaseProvisionUtils));
+    bootstrap.addCommand(createDbMigrationCommand(databaseContainer.getDatabaseProvisionUtils()));
     bootstrap.addCommand(new ServerCommand<InsightConfig>(this)
     {
       private volatile InsightFileLock insightFileLock;
@@ -228,12 +229,7 @@ public class InsightBrainService
     return new DbMigrationCommand(databaseProvisionUtils);
   }
 
-  /**
-   * Provisioning of the database happens before the application is booted by DropWizard, or seen by Guice. The
-   * {@link DatabaseProvisionUtils} is responsible for this provisioning which includes establishing database
-   * connections, populating empty/new databases, as well as possibly doing migrations if required.
-   */
-  protected DatabaseProvisionUtils createDatabaseProvisionUtils() {
+  protected DatabaseContainer createDatabaseContainer() {
     DataSourceFactory dataSourceFactory = new DataSourceFactory();
     DatabaseMigrator databaseMigrator = new DatabaseMigrator(dataSourceFactory);
 
@@ -243,8 +239,11 @@ public class InsightBrainService
     ThirdPartyScansDataStore thirdPartyScansDataStore =
         new DefaultThirdPartyScansDataStore(dataSourceFactory, databaseMigrator);
 
-    return new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
-        thirdPartyScansDataStore);
+    DatabaseProvisionUtils databaseProvisionUtils =
+        new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
+            thirdPartyScansDataStore);
+
+    return new DatabaseContainer(dataSourceFactory, databaseProvisionUtils);
   }
 
   @VisibleForTesting
@@ -273,6 +272,7 @@ public class InsightBrainService
   public void run(InsightConfig configuration, Environment environment) throws Exception {
     logServerInstanceMessage("Started " + getServerInstanceMessage());
 
+    DatabaseProvisionUtils databaseProvisionUtils = databaseContainer.getDatabaseProvisionUtils();
     databaseProvisionUtils.initializeDatabases(configuration, getDatabaseConfigProvider(configuration));
 
     validateMinimumSchemaVersion(databaseProvisionUtils);
@@ -519,6 +519,7 @@ public class InsightBrainService
         bind(AggregationDataStore.class).toInstance(AggregationDataStoreProvider.getInstance());
         bind(DataMartDataStore.class).toInstance(DatamartProvider.getInstance());
         bind(ThirdPartyScansDataStore.class).toInstance(ThirdPartyScansProvider.getInstance());
+        bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(config));
       }
     };
 

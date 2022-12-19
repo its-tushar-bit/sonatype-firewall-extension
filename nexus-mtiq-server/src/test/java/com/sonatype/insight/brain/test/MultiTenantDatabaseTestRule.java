@@ -10,12 +10,12 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.net.URI;
 
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.MultiTenantAggregationDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataMartDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
+import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
 import com.sonatype.insight.brain.db.MultiTenantThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.service.DatabaseConfigProvider;
-import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -50,7 +50,7 @@ public class MultiTenantDatabaseTestRule
 
   public DatabaseProvisionUtils databaseProvisionUtils;
 
-  public InsightConfig insightConfig;
+  public MultiTenantInsightConfig insightConfig;
 
   public PostgresServer postgresServer;
 
@@ -84,8 +84,11 @@ public class MultiTenantDatabaseTestRule
 
     postgresServer = new PostgresServer();
 
-    insightConfig = new InsightConfig();
-    insightConfig.setDatabase(getPostgresDatabaseConfig(postgresServer.getDatabaseConfig()));
+    insightConfig = new MultiTenantInsightConfig();
+    insightConfig.setMainDatabase(postgresServer.getDatabaseConfig());
+    insightConfig.setLocksDatabase(postgresServer.getDatabaseConfig()); // for testing use the same config for locks
+
+    multiTenantDataSourceFactory.setInsightConfig(insightConfig);
 
     if (initializeDatabase) {
       initializeDatabase();
@@ -102,21 +105,8 @@ public class MultiTenantDatabaseTestRule
   }
 
   public void initializeDatabase() {
-    DatabaseConfigProvider databaseConfigProvider = new DatabaseConfigProvider(insightConfig);
+    DatabaseConfigProvider databaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
     databaseProvisionUtils.initializeDatabases(insightConfig, databaseConfigProvider);
-  }
-
-  private com.sonatype.insight.brain.service.DatabaseConfig getPostgresDatabaseConfig(DatabaseConfig postgresConfig) {
-    com.sonatype.insight.brain.service.DatabaseConfig result =
-        new com.sonatype.insight.brain.service.DatabaseConfig();
-    result.setType("postgresql");
-    URI uri = URI.create(postgresConfig.getUrl().substring("jdbc:postgresql:".length()));
-    result.setHostname(uri.getHost());
-    result.setPort(uri.getPort());
-    result.setName(uri.getPath().substring(1));
-    result.setUsername(postgresConfig.getUsername());
-    result.setPassword(postgresConfig.getPassword());
-    return result;
   }
 
   private static <T extends Annotation> T isAnnotatedWith(final Description description, Class<T> clazz) {

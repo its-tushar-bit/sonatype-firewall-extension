@@ -26,10 +26,6 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
-import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
-import com.sonatype.insight.brain.db.DatamartProvider;
-import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.ThirdPartyScansProvider;
 import com.sonatype.insight.brain.jira.JiraService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -47,7 +43,6 @@ import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -118,8 +113,6 @@ public abstract class AbstractFunctionalTest
 
   protected static ReverseProxyServer reverseProxyServer;
 
-  protected static DatabaseProvisionUtils databaseProvisionUtils;
-
   private static final int VIEWPORT_WIDTH = 1366;
 
   private static final int VIEWPORT_HEIGHT = 1024;
@@ -141,9 +134,6 @@ public abstract class AbstractFunctionalTest
     licenseFingerprinter = new TestLicenseFingerprinter();
     testProductLicense = new TestProductLicense(productLicenseManager);
     jiraService = Mockito.mock(JiraService.class);
-    databaseProvisionUtils = new DatabaseProvisionUtils(OperationalDataStoreProvider.getInstance(),
-        AggregationDataStoreProvider.getInstance(), DatamartProvider.getInstance(),
-        ThirdPartyScansProvider.getInstance());
     initMocks();
 
     String contextPath = System.getProperty("iq.contextPath", "/iq-test");
@@ -153,7 +143,7 @@ public abstract class AbstractFunctionalTest
       public void configure(InsightConfig config) {
         ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
       }
-    }, databaseProvisionUtils);
+    });
     reverseProxyServer = new ReverseProxyServer(testCLMServer.getCLMServer().getPort());
 
     try {

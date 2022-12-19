@@ -9,11 +9,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
+import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.db.DatamartProvider;
 import com.sonatype.insight.brain.db.MultiTenantAggregationDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataMartDataStore;
 import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
+import com.sonatype.insight.brain.db.MultiTenantDatabaseConfigProvider;
 import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
 import com.sonatype.insight.brain.db.MultiTenantThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -64,7 +66,7 @@ public class MultiTenantInsightBrainService
   }
 
   @Override
-  protected DatabaseProvisionUtils createDatabaseProvisionUtils() {
+  protected DatabaseContainer createDatabaseContainer() {
     MultiTenantDataSourceFactory multiTenantDataSourceFactory = new MultiTenantDataSourceFactory();
 
     DatabaseMigrator databaseMigrator = new DatabaseMigrator(multiTenantDataSourceFactory);
@@ -78,8 +80,16 @@ public class MultiTenantInsightBrainService
     ThirdPartyScansDataStore thirdPartyScansDataStore =
         new MultiTenantThirdPartyScansDataStore(multiTenantDataSourceFactory, databaseMigrator);
 
-    return new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
-        thirdPartyScansDataStore);
+    DatabaseProvisionUtils databaseProvisionUtils =
+        new DatabaseProvisionUtils(operationalDataStore, aggregationDataStore, dataMartDataStore,
+            thirdPartyScansDataStore);
+
+    return new DatabaseContainer(multiTenantDataSourceFactory, databaseProvisionUtils);
+  }
+
+  @Override
+  protected DatabaseConfigProvider getDatabaseConfigProvider(final InsightConfig insightConfig) {
+    return new MultiTenantDatabaseConfigProvider(insightConfig);
   }
 
   @Override
@@ -87,6 +97,17 @@ public class MultiTenantInsightBrainService
     TenantManager.initGlobalTenant();
 
     super.run(arguments);
+  }
+
+  @Override
+  public void run(InsightConfig configuration, Environment environment) throws Exception {
+    // The MTIQ has additional control over the 'locks' DataSource object. The configuration for this comes from a
+    // custom property defined in MultiTenantInsightConfig which we then need to set into the factory.
+    MultiTenantDataSourceFactory dataSourceFactory =
+        (MultiTenantDataSourceFactory) databaseContainer.getDataSourceFactory();
+    dataSourceFactory.setInsightConfig((MultiTenantInsightConfig) configuration);
+
+    super.run(configuration, environment);
   }
 
   @Override
@@ -117,6 +138,8 @@ public class MultiTenantInsightBrainService
         bind(AggregationDataStore.class).toInstance(AggregationDataStoreProvider.getInstance());
         bind(DataMartDataStore.class).toInstance(DatamartProvider.getInstance());
         bind(ThirdPartyScansDataStore.class).toInstance(ThirdPartyScansProvider.getInstance());
+        bind(ThirdPartyScansDataStore.class).toInstance(ThirdPartyScansProvider.getInstance());
+        bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(config));
       }
     };
 
@@ -137,7 +160,7 @@ public class MultiTenantInsightBrainService
         requestStaticInjection(ExecutorThreadPools.class);
 
         bind(TenantManagedInitializer.class).to(MultiTenantTenantManagedInitializer.class).in(Singleton.class);
-        bind(DatabaseProvisionUtils.class).toInstance(databaseProvisionUtils);
+        bind(DatabaseProvisionUtils.class).toInstance(databaseContainer.getDatabaseProvisionUtils());
 
         bind(ApplicationLifecycle.class).to(MultiTenantApplicationLifecycle.class);
         bind(InsightConfig.class).to(MultiTenantInsightConfig.class);

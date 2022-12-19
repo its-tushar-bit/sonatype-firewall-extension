@@ -48,6 +48,8 @@ public class TenantLifecycle
 
   private final ThirdPartyScansDataStore thirdPartyScansDataStore;
 
+  private final DatabaseConfigProvider databaseConfigProvider;
+
   @Inject
   public TenantLifecycle(
       CLMLicenseManager licenseManager,
@@ -57,7 +59,8 @@ public class TenantLifecycle
       OperationalDataStore operationalDataStore,
       AggregationDataStore aggregationDataStore,
       DataMartDataStore dataMartDataStore,
-      ThirdPartyScansDataStore thirdPartyScansDataStore)
+      ThirdPartyScansDataStore thirdPartyScansDataStore,
+      DatabaseConfigProvider databaseConfigProvider)
   {
     this.dataMigrator = dataMigrator;
     this.licenseManager = licenseManager;
@@ -67,11 +70,12 @@ public class TenantLifecycle
     this.aggregationDataStore = aggregationDataStore;
     this.dataMartDataStore = dataMartDataStore;
     this.thirdPartyScansDataStore = thirdPartyScansDataStore;
+    this.databaseConfigProvider = databaseConfigProvider;
   }
 
   public void bootTenant() {
     try {
-      getDatabaseProvisionUtils().initializeDatabases(config, new DatabaseConfigProvider(config));
+      getDatabaseProvisionUtils().initializeDatabases(config, databaseConfigProvider);
 
       dataMigrator.migrate();
 

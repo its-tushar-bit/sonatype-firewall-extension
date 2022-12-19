@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
+import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
 import com.sonatype.insight.brain.git.PullRequestCommentPurger;
@@ -41,7 +42,6 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -96,8 +96,6 @@ public class TestInsightBrainService
 
   private String testHdsUrl;
 
-  private DatabaseProvisionUtils testDatabaseProvisionUtils;
-
   private ProxyServerConfiguration testProxyServerConfiguration;
 
   private Server testBrainServer;
@@ -125,8 +123,8 @@ public class TestInsightBrainService
     testHdsUrl = hdsUrl;
   }
 
-  public void setDatabaseProvisionUtils(final DatabaseProvisionUtils databaseProvisionUtils) {
-    this.testDatabaseProvisionUtils = databaseProvisionUtils;
+  public void setDatabaseContainer(final DatabaseContainer databaseContainer) {
+    this.databaseContainer = databaseContainer;
   }
 
   public ProxyServerConfiguration getTestProxyServerConfiguration() {
@@ -317,8 +315,12 @@ public class TestInsightBrainService
   }
 
   @Override
-  protected DatabaseProvisionUtils createDatabaseProvisionUtils() {
-    return testDatabaseProvisionUtils;
+  protected DatabaseContainer createDatabaseContainer() {
+    // If no DatabaseContainer was pre-configured then create the default one
+    if (databaseContainer == null) {
+      databaseContainer = super.createDatabaseContainer();
+    }
+    return databaseContainer;
   }
 
   /**

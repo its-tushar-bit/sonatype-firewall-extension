@@ -39,17 +39,21 @@ public class TenantManager
 
   private final DatabaseProvisionUtils databaseProvisionUtils;
 
+  private final DatabaseConfigProvider databaseConfigProvider;
+
   @Inject
   public TenantManager(
       final Collection<TenantManaged> tenantManagedBeans,
       final InsightConfig insightConfig,
       final TenantLifecycle tenantLifecycle,
-      final DatabaseProvisionUtils databaseProvisionUtils)
+      final DatabaseProvisionUtils databaseProvisionUtils,
+      final DatabaseConfigProvider databaseConfigProvider)
   {
     this.tenantManagedBeans = tenantManagedBeans;
     this.insightConfig = insightConfig;
     this.tenantLifecycle = tenantLifecycle;
     this.databaseProvisionUtils = databaseProvisionUtils;
+    this.databaseConfigProvider = databaseConfigProvider;
   }
 
   /**
@@ -106,7 +110,7 @@ public class TenantManager
     log.info("Registering tenant {}", tenant.tenantSlug);
 
     long start = runAndLogTime("database init", tenant, System.currentTimeMillis(),
-        () -> databaseProvisionUtils.initializeDatabases(insightConfig, new DatabaseConfigProvider(insightConfig)));
+        () -> databaseProvisionUtils.initializeDatabases(insightConfig, databaseConfigProvider));
 
     start = runAndLogTime("jobs init", tenant, start, this::setupTenantJobs);
 

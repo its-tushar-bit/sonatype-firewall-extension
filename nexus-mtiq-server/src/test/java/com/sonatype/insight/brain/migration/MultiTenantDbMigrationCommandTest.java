@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.db.MultiTenantDataSourceFactory;
 import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -49,7 +50,13 @@ public class MultiTenantDbMigrationCommandTest
   }
 
   private void setupTest(final DatabaseConfig databaseConfig, final boolean migrate) {
+    MultiTenantInsightConfig insightConfig = new MultiTenantInsightConfig();
+    insightConfig.setMainDatabase(databaseConfig);
+    insightConfig.setLocksDatabase(databaseConfig); // for testing use the same config for locks
+
     MultiTenantDataSourceFactory dataSourceFactory = new MultiTenantDataSourceFactory();
+    dataSourceFactory.setInsightConfig(insightConfig);
+
     DatabaseMigrator databaseMigrator = new DatabaseMigrator(dataSourceFactory);
 
     // only need ODS for this test

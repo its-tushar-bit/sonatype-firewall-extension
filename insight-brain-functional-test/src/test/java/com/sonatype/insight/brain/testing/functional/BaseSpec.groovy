@@ -11,6 +11,8 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider
+import com.sonatype.insight.brain.db.DataSourceFactory
+import com.sonatype.insight.brain.db.DatabaseContainer
 import com.sonatype.insight.brain.db.DatamartProvider
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider
 import com.sonatype.insight.brain.db.ThirdPartyScansProvider
@@ -20,8 +22,6 @@ import com.sonatype.insight.brain.model.security.Role
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache
 import com.sonatype.insight.brain.service.HdsMockServerRule
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.service.TestInsightBrainServiceRule
 import com.sonatype.insight.brain.testing.functional.utils.BrowserInfo
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils
@@ -84,14 +84,16 @@ extends GebReportingSpec {
   }
 
   def createServiceRule() {
+    DataSourceFactory dataSourceFactory = new DataSourceFactory()
     DatabaseProvisionUtils databaseProvisionUtils = new DatabaseProvisionUtils(
         OperationalDataStoreProvider.getInstance(),
         AggregationDataStoreProvider.getInstance(),
         DatamartProvider.getInstance(),
         ThirdPartyScansProvider.getInstance()
     )
+    DatabaseContainer databaseContainer = new DatabaseContainer(dataSourceFactory, databaseProvisionUtils);
     new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
-        "http://localhost:" + hdsPort, databaseProvisionUtils, false, getBrainModules())
+        "http://localhost:" + hdsPort, databaseContainer, false, getBrainModules())
   }
 
   def setupSpec() {

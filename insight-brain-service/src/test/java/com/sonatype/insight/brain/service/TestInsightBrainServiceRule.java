@@ -9,10 +9,10 @@ import java.net.URL;
 import java.util.List;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 import com.google.inject.Module;
@@ -36,7 +36,7 @@ public class TestInsightBrainServiceRule
 
   private final String hdsUrl;
 
-  private final DatabaseProvisionUtils databaseProvisionUtils;
+  private final DatabaseContainer databaseContainer;
 
   private final boolean isHdsProxyRequired;
 
@@ -46,17 +46,18 @@ public class TestInsightBrainServiceRule
 
   private TestInsightBrainService brain;
 
-  public TestInsightBrainServiceRule(int port,
-                                     int adminPort,
-                                     String hdsUrl,
-                                     DatabaseProvisionUtils databaseProvisionUtils,
-                                     boolean isHdsProxyRequired,
-                                     List<Module> modules)
+  public TestInsightBrainServiceRule(
+      int port,
+      int adminPort,
+      String hdsUrl,
+      DatabaseContainer databaseContainer,
+      boolean isHdsProxyRequired,
+      List<Module> modules)
   {
     this.port = port;
     this.adminPort = adminPort;
     this.hdsUrl = hdsUrl;
-    this.databaseProvisionUtils = databaseProvisionUtils;
+    this.databaseContainer = databaseContainer;
     this.isHdsProxyRequired = isHdsProxyRequired;
     this.modules = modules;
   }
@@ -81,7 +82,7 @@ public class TestInsightBrainServiceRule
     if (hdsUrl != null) {
       brain.setHdsUrl(hdsUrl);
     }
-    brain.setDatabaseProvisionUtils(databaseProvisionUtils);
+    brain.setDatabaseContainer(databaseContainer);
     if (isHdsProxyRequired) {
       brain.setProxyServerConfiguration("127.0.0.1", new URL(hdsUrl).getPort(), "proxyuser", "proxypass");
     }

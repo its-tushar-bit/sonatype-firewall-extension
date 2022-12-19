@@ -50,6 +50,9 @@ public class TenantManagerTest
   @Mock
   DatabaseProvisionUtils databaseProvisionUtils;
 
+  @Mock
+  DatabaseConfigProvider databaseConfigProvider;
+
   List<TenantManaged> tenantManagedBeans;
 
   Tenant tenant = new Tenant(TENANT_NAME);
@@ -64,7 +67,8 @@ public class TenantManagerTest
     tenantManagedBeans = new ArrayList<>();
     tenantManagedBeans.add(job);
 
-    underTest = new TenantManager(tenantManagedBeans, config, lifecycle, databaseProvisionUtils);
+    underTest =
+        new TenantManager(tenantManagedBeans, config, lifecycle, databaseProvisionUtils, databaseConfigProvider);
   }
 
   @Test

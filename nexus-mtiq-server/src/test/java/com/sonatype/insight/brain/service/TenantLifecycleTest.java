@@ -60,6 +60,9 @@ public class TenantLifecycleTest
   @Mock
   DatabaseProvisionUtils databaseProvisionUtils;
 
+  @Mock
+  DatabaseConfigProvider databaseConfigProvider;
+
   TenantLifecycle underTest;
 
   @Before
@@ -73,7 +76,8 @@ public class TenantLifecycleTest
         aggregationDataStore,
         dataMartDataStore,
         thirdPartyScansDataStore,
-        databaseProvisionUtils);
+        databaseProvisionUtils,
+        databaseConfigProvider);
   }
 
   @Test
@@ -118,10 +122,11 @@ public class TenantLifecycleTest
         AggregationDataStore aggregationDataStore,
         DataMartDataStore dataMartDataStore,
         ThirdPartyScansDataStore thirdPartyScansDataStore,
-        DatabaseProvisionUtils databaseProvisionUtils)
+        DatabaseProvisionUtils databaseProvisionUtils,
+        DatabaseConfigProvider databaseConfigProvider)
     {
       super(licenseManager, dataMigrator, newInstancePopulator, config, operationalDataStore, aggregationDataStore,
-          dataMartDataStore, thirdPartyScansDataStore);
+          dataMartDataStore, thirdPartyScansDataStore, databaseConfigProvider);
       this.databaseProvisionUtils = databaseProvisionUtils;
     }
 

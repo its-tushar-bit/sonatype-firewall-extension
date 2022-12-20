@@ -96,7 +96,8 @@ public class ApiPromoteScanServiceV2
       if (!scanFile.isFile()) {
         throw new BadRequestException("A scan with ID " + requestDTO.scanId +
             " does not exist on the server and may be obsolete. Note that only the most recent scan for the given" +
-            " stage can be promoted.");
+            " stage can be promoted by default. Set configuration purgeScanFiles to withReports to retain older" +
+            " scan files.");
       }
     }
     else {

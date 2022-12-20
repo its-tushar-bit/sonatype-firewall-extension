@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
 
-import io.dropwizard.lifecycle.Managed;
 import org.keycloak.adapters.saml.DefaultSamlDeployment;
 import org.keycloak.adapters.saml.DefaultSamlDeployment.DefaultIDP;
 import org.keycloak.adapters.saml.DefaultSamlDeployment.DefaultSingleLogoutService;
@@ -51,7 +50,7 @@ import static java.util.stream.Collectors.toList;
 @Singleton
 @DisallowConcurrentExecution
 public class SamlDeploymentManager
-    implements Managed, InsightJob
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(SamlDeploymentManager.class);
 
@@ -61,7 +60,7 @@ public class SamlDeploymentManager
   // A SAML assertion may have a "Conditions" element that may contain "NotBefore" and "NotOnOrAfter" attributes.
   // These attributes restrict when the assertion is considered valid. It is possible that the Identity Provider's clock
   // may be slightly out of sync with ours, which can result in us receiving an assertion that is immediately invalid.
-  // For example, if their clock is 1 second ahead of ours, we may receive the assertion before its "NotBefore" 
+  // For example, if their clock is 1 second ahead of ours, we may receive the assertion before its "NotBefore"
   // attribute allows. The allowed clock skew accounts for this possible divergence.
   static final int ALLOWED_CLOCK_SKEW_MILLISECONDS = 1000;
 
@@ -87,7 +86,7 @@ public class SamlDeploymentManager
   }
 
   @Override
-  public void start() {
+  public void register() {
     try {
       updateFromConfiguration();
     }
@@ -98,7 +97,7 @@ public class SamlDeploymentManager
   }
 
   @Override
-  public void stop() {
+  public void deregister() {
     // noop
   }
 

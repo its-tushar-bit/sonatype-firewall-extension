@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPol
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
 
-import io.dropwizard.lifecycle.Managed;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -25,7 +24,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class PersistedPolicyEvaluationPollingResultCleaner
-    implements Managed, InsightJob
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(PersistedPolicyEvaluationPollingResultCleaner.class);
 
@@ -56,7 +55,7 @@ public class PersistedPolicyEvaluationPollingResultCleaner
   }
 
   @Override
-  public void start() {
+  public void register() {
     if (disableForTesting) {
       return;
     }
@@ -65,7 +64,7 @@ public class PersistedPolicyEvaluationPollingResultCleaner
   }
 
   @Override
-  public void stop() {
+  public void deregister() {
     // noop
   }
 

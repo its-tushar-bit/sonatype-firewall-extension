@@ -124,3 +124,19 @@ which handles getting and setting the tenant. Custom scheduling outside of Quart
 Configuration is per-tenant unless no value is found and then the system will fall back to the configuration table in 
 the global tenant schema. This allows us to provide meaningful defaults but also to override configuration for a
 given tenant.
+
+### Bean Lifecycles
+
+* **Managed** - these are beans that follow the lifecycle of the application, start is called on application start and
+  stop is called when the application is shutdown.
+
+* **TenantManaged** - These are beans that follow the lifecycle of a tenant. Register is called when a tenant is booted
+  and deregister is called on both shutdown of the application and also removal of the tenant.
+
+* **InsightJob** - A bean that also represents a quartz job - All InsightJobs are TenantManaged (i.e. register is called
+  on them when the tenant is booted). This is convenient so that all quartz jobs, by default, get registered for each
+  tenant. Having the default this way around prevents new Quartz jobs (that should be per-tenant) accidentally being
+  global. To make a job global it has to be explicitly annotated with GlobalTenantJob
+
+* **GlobalTenantJob** - These are specifically quartz jobs (therefore implement InsightJob) which should NOT run
+  per-tenant. Mainly used for updating global cache data (like information from HDS)

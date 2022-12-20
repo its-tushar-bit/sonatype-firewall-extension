@@ -68,7 +68,7 @@ public class TenantManagerTest
     tenantManagedBeans.add(job);
 
     underTest =
-        new TenantManager(tenantManagedBeans, config, lifecycle, databaseProvisionUtils, databaseConfigProvider);
+        new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils, databaseConfigProvider);
   }
 
   @Test
@@ -129,7 +129,7 @@ public class TenantManagerTest
 
   @Test
   public void shouldNotRegister_globalTenantJobs() throws Exception {
-    GlobalTenantManaged mockGlobalTenantJob = mock(GlobalTenantManaged.class);
+    MockTenantManaged mockGlobalTenantJob = mock(MockTenantManaged.class);
 
     tenantManagedBeans.add(mockGlobalTenantJob);
 
@@ -149,5 +149,11 @@ public class TenantManagerTest
     verify(job).register();
     verify(lifecycle).bootTenant();
     verify(databaseProvisionUtils).initializeDatabases(eq(config), any(DatabaseConfigProvider.class));
+  }
+
+  private static class MockTenantManaged
+      implements TenantManaged, GlobalTenantJob
+  {
+    // We need a mock that implements GlobalTenantJob and TenantManaged
   }
 }

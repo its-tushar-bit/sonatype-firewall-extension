@@ -14,8 +14,8 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 
-import io.dropwizard.lifecycle.Managed;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class ClusterTelemetryTask
-    implements Managed, InsightJob
+    implements InsightJob, GlobalTenantJob
 {
   private static final Logger log = LoggerFactory.getLogger(ClusterTelemetryTask.class);
 
@@ -55,16 +55,11 @@ public class ClusterTelemetryTask
   }
 
   @Override
-  public void start() throws Exception {
+  public void register() {
     if (disableForTesting) {
       return;
     }
     taskScheduler.schedulePeriodicTask(ClusterTelemetryTask.class, NAME, Duration.ofDays(1));
-  }
-
-  @Override
-  public void stop() {
-    // noop
   }
 
   @Override

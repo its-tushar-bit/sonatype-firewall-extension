@@ -39,7 +39,6 @@ import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.dropwizard.lifecycle.Managed;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -61,7 +60,7 @@ import static java.util.stream.Collectors.toSet;
 @Singleton
 @DisallowConcurrentExecution
 public class PullRequestMonitor
-    implements Managed, InsightJob
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestMonitor.class);
 
@@ -135,7 +134,7 @@ public class PullRequestMonitor
   }
 
   @Override
-  public void start() throws Exception {
+  public void register() {
     if (disableForTesting) {
       return;
     }
@@ -185,7 +184,7 @@ public class PullRequestMonitor
   }
 
   @Override
-  public void stop() {
+  public void deregister() {
     if (!disableForTesting) {
       taskScheduler.unscheduleTask(TASK_NAME);
     }

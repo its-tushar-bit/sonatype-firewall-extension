@@ -104,7 +104,7 @@ public class AdvancedSearchConfigurationPageTest
     taskScheduler.start();
     IndexService indexService = testCLMServer.getCLMServer().getInstance(IndexService.class);
     indexService.disableForTesting = false;
-    indexService.start();
+    indexService.register();
 
     dao.update(new SystemConfigurationProperty(ADVANCED_SEARCH_ENABLED, "true"));
     refreshOrOpen(AdvancedSearchConfigurationPage.url());

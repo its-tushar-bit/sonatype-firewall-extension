@@ -72,7 +72,7 @@ public class ScanFileCleanerTest
   @Test
   public void testStartServer_NoMarker() {
     assertMarkerDoesNotExist();
-    scanFileCleaner.start();
+    scanFileCleaner.register();
 
     verify(taskSchedulerMock).scheduleOneTimeTask(ScanFileCleaner.class, ScanFileCleaner.NAME, LocalTime.of(23, 0));
   }
@@ -83,7 +83,7 @@ public class ScanFileCleanerTest
     insightWork.getWorkDir().toPath().resolve("obsoletescanfiles-cleaned").toFile().createNewFile();
     assertThat(scanFileCleaner.getObsoleteMarkerFile()).exists();
 
-    scanFileCleaner.start();
+    scanFileCleaner.register();
 
     assertMarkerExists();
     verifyNoInteractions(taskSchedulerMock);

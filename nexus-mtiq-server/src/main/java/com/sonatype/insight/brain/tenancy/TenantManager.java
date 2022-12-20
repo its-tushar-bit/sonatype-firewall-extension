@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.service.DatabaseConfigProvider;
@@ -35,7 +36,8 @@ public class TenantManager
 
   private final InsightConfig insightConfig;
 
-  private final TenantLifecycle tenantLifecycle;
+  // This is a provider to prevent circular dependencies between Guice beans
+  private final Provider<TenantLifecycle> tenantLifecycle;
 
   private final DatabaseProvisionUtils databaseProvisionUtils;
 
@@ -45,7 +47,7 @@ public class TenantManager
   public TenantManager(
       final Collection<TenantManaged> tenantManagedBeans,
       final InsightConfig insightConfig,
-      final TenantLifecycle tenantLifecycle,
+      final Provider<TenantLifecycle> tenantLifecycle,
       final DatabaseProvisionUtils databaseProvisionUtils,
       final DatabaseConfigProvider databaseConfigProvider)
   {
@@ -114,12 +116,12 @@ public class TenantManager
 
     start = runAndLogTime("jobs init", tenant, start, this::setupTenantJobs);
 
-    runAndLogTime("app boot", tenant, start, tenantLifecycle::bootTenant);
+    runAndLogTime("app boot", tenant, start, tenantLifecycle.get()::bootTenant);
   }
 
   private void setupTenantJobs() {
     for (TenantManaged tenantManaged : tenantManagedBeans) {
-      if (tenantManaged instanceof GlobalTenantManaged) {
+      if (tenantManaged instanceof GlobalTenantJob) {
         // Global lifecycles are not set here. See QuartzJobInitializer for that.
         continue;
       }
@@ -139,5 +141,9 @@ public class TenantManager
     log.info("Tenant {} {} completed in {}ms", tenant.tenantSlug, name, System.currentTimeMillis() - start);
 
     return System.currentTimeMillis();
+  }
+
+  public boolean isGlobalTenant() {
+    return TenantUtil.isGlobalTenant();
   }
 }

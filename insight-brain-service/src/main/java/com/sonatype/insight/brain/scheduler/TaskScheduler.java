@@ -80,7 +80,6 @@ public class TaskScheduler
     this.quartzTriggerListener = quartzTriggerListener;
   }
 
-  // Visible for testing
   SimpleThreadPool createThreadPool() {
     SimpleThreadPool simpleThreadPool = new SimpleThreadPool();
     simpleThreadPool.setMakeThreadsDaemons(true);
@@ -123,7 +122,7 @@ public class TaskScheduler
 
   public void triggerTaskNow(String name, Map<String, String> parameters) {
     try {
-      getScheduler().triggerJob(JobKey.jobKey(name), parameters != null ? new JobDataMap(parameters) : null);
+      getScheduler().triggerJob(toJobKey(name), parameters != null ? new JobDataMap(parameters) : null);
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);
@@ -138,15 +137,15 @@ public class TaskScheduler
     return jobClass;
   }
 
-  private JobBuilder newJob(Class<? extends Job> jobClass) {
-    return JobBuilder.newJob(normalizeJobClass(jobClass));
+  protected JobBuilder newJob(Class<? extends Job> jobClass, String name) {
+    return JobBuilder.newJob(normalizeJobClass(jobClass))
+        .withIdentity(name);
   }
 
   public void scheduleDailyTask(Class<? extends Job> jobClass, String name, LocalTime localTime) {
     CronScheduleBuilder schedule = CronScheduleBuilder.dailyAtHourAndMinute(localTime.getHour(), localTime.getMinute())
         .withMisfireHandlingInstructionDoNothing();
-    JobDetail job = newJob(jobClass) //
-        .withIdentity(name) //
+    JobDetail job = newJob(jobClass, name) //
         .build();
 
     Trigger trigger = TriggerBuilder.newTrigger() //
@@ -157,8 +156,7 @@ public class TaskScheduler
   }
 
   public void scheduleOneTimeTask(Class<? extends Job> jobClass, String name) {
-    JobDetail job = newJob(jobClass)
-        .withIdentity(name)
+    JobDetail job = newJob(jobClass, name)
         .build();
     Trigger trigger = TriggerBuilder.newTrigger()
         .withIdentity(job.getKey().getName(), job.getKey().getGroup())
@@ -168,8 +166,7 @@ public class TaskScheduler
   }
 
   public void scheduleOneTimeTask(Class<? extends Job> jobClass, String name, LocalTime localTime) {
-    JobDetail job = newJob(jobClass) //
-        .withIdentity(name) //
+    JobDetail job = newJob(jobClass, name) //
         .build();
     Trigger trigger = TriggerBuilder.newTrigger() //
         .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
@@ -183,7 +180,7 @@ public class TaskScheduler
 
   public boolean isJobTriggered(String name, Map<String, Object> data) {
     try {
-      for (Trigger trigger : getScheduler().getTriggersOfJob(JobKey.jobKey(name))) {
+      for (Trigger trigger : getScheduler().getTriggersOfJob(toJobKey(name))) {
         if (data.equals(trigger.getJobDataMap().getWrappedMap())) {
           return true;
         }
@@ -200,8 +197,7 @@ public class TaskScheduler
   }
 
   public void schedulePeriodicTask(Class<? extends Job> jobClass, String name, Duration interval, Date startTime) {
-    JobDetail job = newJob(jobClass) //
-        .withIdentity(name) //
+    JobDetail job = newJob(jobClass, name) //
         .build();
     TriggerBuilder triggerBuilder = TriggerBuilder.newTrigger() //
         .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
@@ -233,8 +229,7 @@ public class TaskScheduler
       return;
     }
 
-    JobDetail job = newJob(jobClass) //
-        .withIdentity(name) //
+    JobDetail job = newJob(jobClass, name) //
         // non-durable for automatic removal once last trigger is gone
         // recovery/retry by another node doesn't make sense when binding execution to specific node
         .build();
@@ -284,10 +279,10 @@ public class TaskScheduler
   }
 
   public boolean unscheduleTask(String name) {
-    return unscheduleTask(JobKey.jobKey(name));
+    return unscheduleTask(toJobKey(name));
   }
 
-  private boolean unscheduleTask(JobKey jobKey) {
+  protected boolean unscheduleTask(JobKey jobKey) {
     try {
       return getScheduler().deleteJob(jobKey);
     }
@@ -297,7 +292,7 @@ public class TaskScheduler
   }
 
   public Date getNextExecutionTime(String name) {
-    return getTrigger(TriggerKey.triggerKey(name)).getNextFireTime();
+    return getTrigger(toTriggerKey(name)).getNextFireTime();
   }
 
   private Trigger getTrigger(TriggerKey triggerKey) {
@@ -348,7 +343,7 @@ public class TaskScheduler
   }
 
   public boolean isTaskScheduled(String name) {
-    return isTaskScheduled(JobKey.jobKey(name));
+    return isTaskScheduled(toJobKey(name));
   }
 
   private boolean isTaskScheduled(JobKey jobKey) {
@@ -358,5 +353,13 @@ public class TaskScheduler
     catch (SchedulerException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  protected JobKey toJobKey(String name) {
+    return JobKey.jobKey(name);
+  }
+
+  protected TriggerKey toTriggerKey(String name) {
+    return TriggerKey.triggerKey(name);
   }
 }

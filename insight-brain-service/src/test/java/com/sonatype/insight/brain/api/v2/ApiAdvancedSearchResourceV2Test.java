@@ -44,7 +44,7 @@ public class ApiAdvancedSearchResourceV2Test
     taskScheduler.start();
     IndexService indexService = getCLMServer().getInstance(IndexService.class);
     indexService.disableForTesting = false;
-    indexService.start();
+    indexService.register();
   }
 
   @After

@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -32,7 +33,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @DisallowConcurrentExecution
 public class ApiProxyServerConfigurationService
-    implements InsightJob
+    implements InsightJob, GlobalTenantJob
 {
   private static final Logger log = LoggerFactory.getLogger(ApiProxyServerConfigurationService.class);
 

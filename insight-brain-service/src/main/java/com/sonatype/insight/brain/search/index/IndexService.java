@@ -57,11 +57,11 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import io.dropwizard.lifecycle.Managed;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
@@ -88,7 +88,7 @@ import static java.util.stream.Collectors.toList;
 @Singleton
 @DisallowConcurrentExecution
 public class IndexService
-    implements Managed, Job
+    implements TenantManaged, Job
 {
   static final String TASK_NAME = "SearchIndexUpdate";
 
@@ -197,7 +197,7 @@ public class IndexService
   }
 
   @Override
-  public void start() {
+  public void register() {
     if (disableForTesting) {
       return;
     }
@@ -205,7 +205,7 @@ public class IndexService
   }
 
   @Override
-  public void stop() {
+  public void deregister() {
     // noop
   }
 
@@ -437,7 +437,7 @@ public class IndexService
   private void updateIndexForApplication(String applicationId, IndexingContext indexingContext) throws IOException {
     Query queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.APPLICATION_ID, applicationId);
     indexingContext.indexWriter.deleteDocuments(queryForObsoleteDocs);
-    
+
     Application app = applicationDAO.getById(applicationId);
     if (app == null) {
       return;

@@ -25,6 +25,10 @@ import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
+import com.sonatype.insight.brain.scheduler.MultiTenantQuartzJobStoreTX;
+import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
+import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.tenancy.MultiTenantExecutorThreadPools;
@@ -164,6 +168,9 @@ public class MultiTenantInsightBrainService
 
         bind(ApplicationLifecycle.class).to(MultiTenantApplicationLifecycle.class);
         bind(InsightConfig.class).to(MultiTenantInsightConfig.class);
+
+        bind(QuartzJobStoreTX.class).to(MultiTenantQuartzJobStoreTX.class);
+        bind(TaskScheduler.class).to(MultiTenantTaskScheduler.class);
       }
     };
   }

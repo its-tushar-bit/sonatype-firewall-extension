@@ -95,8 +95,8 @@ public class ClusterTelemetryTaskTest
   }
 
   @Test
-  public void testStart() throws Exception {
-    clusterTelemetryTask.start();
+  public void testRegister() throws Exception {
+    clusterTelemetryTask.register();
 
     verify(taskSchedulerMock)
         .schedulePeriodicTask(ClusterTelemetryTask.class, ClusterTelemetryTask.NAME, Duration.ofDays(1));

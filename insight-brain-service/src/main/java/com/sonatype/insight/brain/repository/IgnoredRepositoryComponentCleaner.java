@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -18,7 +17,6 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
 
-import io.dropwizard.lifecycle.Managed;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -37,7 +35,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class IgnoredRepositoryComponentCleaner
-    implements Managed, InsightJob
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(IgnoredRepositoryComponentCleaner.class);
 
@@ -68,7 +66,7 @@ public class IgnoredRepositoryComponentCleaner
   }
 
   @Override
-  public void start() {
+  public void register() {
     if (migrationTrackerDAO.isTrackerPresent(MIGRATION_ID)) {
       log.debug("Ignored repository components already deleted.");
       return;
@@ -77,7 +75,7 @@ public class IgnoredRepositoryComponentCleaner
   }
 
   @Override
-  public void stop() {
+  public void deregister() {
     // noop
   }
 

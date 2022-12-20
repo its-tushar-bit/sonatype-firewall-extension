@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.quartz.DisallowConcurrentExecution;
@@ -30,7 +31,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class ApiReverseProxyAuthenticationConfigurationService
-    implements InsightJob
+    implements InsightJob, GlobalTenantJob
 {
   private static final Logger log = LoggerFactory.getLogger(ApiReverseProxyAuthenticationConfigurationService.class);
 

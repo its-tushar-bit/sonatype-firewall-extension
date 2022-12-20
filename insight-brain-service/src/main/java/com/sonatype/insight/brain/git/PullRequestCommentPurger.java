@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.Date;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -24,7 +23,6 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.dropwizard.lifecycle.Managed;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -38,7 +36,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class PullRequestCommentPurger
-    implements Managed, InsightJob
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestCommentPurger.class);
 
@@ -80,7 +78,7 @@ public class PullRequestCommentPurger
   }
 
   @Override
-  public void start() {
+  public void register() {
     if (disableForTesting) {
       return;
     }
@@ -100,7 +98,7 @@ public class PullRequestCommentPurger
   }
 
   @Override
-  public void stop() {
+  public void deregister() {
     if (!disableForTesting && taskScheduler.unscheduleTask(TASK_NAME)) {
       log.debug("Stopped periodic purging of obsolete pull request comments");
     }

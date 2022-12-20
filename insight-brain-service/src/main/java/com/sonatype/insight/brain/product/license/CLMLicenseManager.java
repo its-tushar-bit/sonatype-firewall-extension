@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
@@ -63,7 +64,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class CLMLicenseManager
-    implements InsightJob
+    implements InsightJob, GlobalTenantJob
 {
   public static final String PRODUCT_PRO_PLUS = "Pro+";
 

@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.license.MultiLicenseLicenseInternal;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.quartz.DisallowConcurrentExecution;
@@ -34,7 +35,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class DefaultLicenseDataUpdater
-    extends LicenseDataUpdater implements InsightJob
+    extends LicenseDataUpdater implements InsightJob, GlobalTenantJob
 {
   public static final String HDS_LICENSE_PATH = "rest/license";
 

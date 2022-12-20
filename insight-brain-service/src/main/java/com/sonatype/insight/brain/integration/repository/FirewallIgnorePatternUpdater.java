@@ -15,9 +15,9 @@ import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePattern
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
-import io.dropwizard.lifecycle.Managed;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class FirewallIgnorePatternUpdater
-    implements Managed, InsightJob
+    implements InsightJob, GlobalTenantJob
 {
   private static final Logger log = LoggerFactory.getLogger(FirewallIgnorePatternUpdater.class);
 
@@ -57,7 +57,7 @@ public class FirewallIgnorePatternUpdater
   }
 
   @Override
-  public void start() throws Exception {
+  public void register() {
     if (disableForTesting) {
       return;
     }
@@ -82,10 +82,5 @@ public class FirewallIgnorePatternUpdater
     catch (BadGatewayException e) {
       throw new RuntimeException("Failed to get ignore patterns from remote: " + e.getMessage(), e);
     }
-  }
-
-  @Override
-  public void stop() {
-    // no-op
   }
 }

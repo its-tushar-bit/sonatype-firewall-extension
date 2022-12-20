@@ -522,7 +522,7 @@ public class InsightBrainServiceTest
     clusterTelemetryTask.disableForTesting = false;
 
     taskScheduler.start();
-    clusterTelemetryTask.start();
+    clusterTelemetryTask.register();
 
     // Note: this should be disabled again in AbstractBrainServiceTest.cleanupTest()
   }

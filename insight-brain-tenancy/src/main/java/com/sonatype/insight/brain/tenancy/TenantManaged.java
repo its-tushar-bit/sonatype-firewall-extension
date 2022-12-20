@@ -27,4 +27,17 @@ public interface TenantManaged
   default void deregister() {
     // noop
   }
+
+  /**
+   * Start() and stop() are here to clash with the same methods in io.dropwizard.lifecycle.Managed. This prevents
+   * a bean implementing both Managed (boot with application) and TenantManaged (boot with tenant) as these are mutually
+   * exclusive.
+   */
+  default String start() throws Exception {
+    return "Method not allowed";
+  }
+
+  default String stop() throws Exception {
+    return "Method not allowed";
+  }
 }

@@ -65,7 +65,7 @@ public class IgnoredRepositoryComponentCleanerTest
 
   @Test
   public void testStart_AlreadyMigrated() {
-    ignoredRepositoryComponentMigrator.start();
+    ignoredRepositoryComponentMigrator.register();
 
     verifyNoInteractions(mockTaskScheduler);
   }
@@ -74,7 +74,7 @@ public class IgnoredRepositoryComponentCleanerTest
   public void testStart_NotMigrated() {
     new MigrationTrackerDAO().deleteById(IgnoredRepositoryComponentCleaner.MIGRATION_ID);
 
-    ignoredRepositoryComponentMigrator.start();
+    ignoredRepositoryComponentMigrator.register();
 
     verify(mockTaskScheduler).scheduleOneTimeTask(IgnoredRepositoryComponentCleaner.class,
         IgnoredRepositoryComponentCleaner.TASK_NAME);

@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedCompo
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
 
-import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -31,7 +30,7 @@ import org.slf4j.LoggerFactory;
 @DisallowConcurrentExecution
 public class RepositoryIdentifiedComponentPurger
     extends Task
-    implements Managed, InsightJob
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryIdentifiedComponentPurger.class);
 
@@ -63,7 +62,7 @@ public class RepositoryIdentifiedComponentPurger
   }
 
   @Override
-  public void start() {
+  public void register() {
     if (disableForTesting) {
       return;
     }
@@ -74,7 +73,7 @@ public class RepositoryIdentifiedComponentPurger
   }
 
   @Override
-  public void stop() {
+  public void deregister() {
     // no-op
   }
 

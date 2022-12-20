@@ -28,7 +28,7 @@ public class MultiTenantTenantManagedInitializer
   public void start() throws Exception {
     // Only global lifecycle jobs are initialized on startup in multi-tenant mode
     for (TenantManaged tenantLifecycle : tenantLifecycles) {
-      if (tenantLifecycle instanceof GlobalTenantManaged) {
+      if (tenantLifecycle instanceof GlobalTenantJob) {
         TenantThreadLocal.runAsGlobal(() -> {
           tenantLifecycle.register();
           return null;
@@ -40,7 +40,7 @@ public class MultiTenantTenantManagedInitializer
   @Override
   public void stop() throws Exception {
     for (TenantManaged tenantLifecycle : tenantLifecycles) {
-      if (tenantLifecycle instanceof GlobalTenantManaged) {
+      if (tenantLifecycle instanceof GlobalTenantJob) {
         TenantThreadLocal.runAsGlobal(() -> {
           tenantLifecycle.deregister();
           return null;

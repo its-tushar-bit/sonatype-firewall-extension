@@ -54,14 +54,14 @@ public class RepositoryIdentifiedComponentPurgerTest
   public void testStart_Disabled() {
     repositoryIdentifiedComponentPurger.disableForTesting = true;
 
-    repositoryIdentifiedComponentPurger.start();
+    repositoryIdentifiedComponentPurger.register();
 
     verifyNoInteractions(mockTaskScheduler);
   }
 
   @Test
   public void testStart() {
-    repositoryIdentifiedComponentPurger.start();
+    repositoryIdentifiedComponentPurger.register();
 
     verify(mockTaskScheduler).scheduleDailyTask(RepositoryIdentifiedComponentPurger.class,
         RepositoryIdentifiedComponentPurger.NAME, RepositoryIdentifiedComponentPurger.EXECUTION_TIME);

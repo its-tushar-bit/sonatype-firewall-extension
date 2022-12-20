@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.tenancy;
 /**
  * For quartz jobs that should run as the 'global' tenant in a multi-tenant IQ
  */
-public interface GlobalTenantManaged
-    extends TenantManaged
+public interface GlobalTenantJob
 {
 }

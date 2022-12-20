@@ -31,6 +31,7 @@ import org.quartz.impl.jdbcjobstore.InvalidConfigurationException;
 import org.quartz.impl.jdbcjobstore.JobStoreTX;
 import org.quartz.impl.jdbcjobstore.SchedulerStateRecord;
 import org.quartz.spi.OperableTrigger;
+import org.quartz.utils.ConnectionProvider;
 import org.quartz.utils.DBConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,7 +115,7 @@ public class QuartzJobStoreTX
       setIsClustered(true);
       setDriverDelegateClass(QuartzPostgreSQLDelegate.class.getName());
     }
-    DBConnectionManager.getInstance().addConnectionProvider(getDataSource(), new QuartzConnectionProvider());
+    DBConnectionManager.getInstance().addConnectionProvider(getDataSource(), buildQuartzConnectionProvider());
   }
 
   @Override
@@ -247,5 +248,9 @@ public class QuartzJobStoreTX
   @Override
   public void productLicenseChanged() {
     productLicenseLoaded = true;
+  }
+
+  protected ConnectionProvider buildQuartzConnectionProvider() {
+    return new QuartzConnectionProvider();
   }
 }

@@ -20,8 +20,8 @@ public class MultiTenantTenantManagedInitializerTest
   @Test
   public void shouldCallRegisterOnStart_whenGlobalTenantJob() throws Exception {
     TenantManaged job1 = mock(TenantManaged.class);
-    TenantManaged job2 = mock(GlobalTenantManaged.class);
-    TenantManaged job3 = mock(GlobalTenantManaged.class);
+    TenantManaged job2 = mock(MockTenantManaged.class);
+    TenantManaged job3 = mock(MockTenantManaged.class);
 
     MultiTenantTenantManagedInitializer initializer =
         new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2, job3));
@@ -51,7 +51,7 @@ public class MultiTenantTenantManagedInitializerTest
   public void registerShouldRunAsGlobalTenant() throws Exception {
     TenantThreadLocal.setGlobalTenant();
 
-    TenantManaged job = mock(GlobalTenantManaged.class);
+    TenantManaged job = mock(MockTenantManaged.class);
 
     doAnswer(invocationOnMock -> {
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(Tenant.GLOBAL_TENANT);
@@ -69,7 +69,7 @@ public class MultiTenantTenantManagedInitializerTest
   public void deregisterShouldRunAsGlobalTenant() throws Exception {
     TenantThreadLocal.setGlobalTenant();
 
-    TenantManaged job = mock(GlobalTenantManaged.class);
+    TenantManaged job = mock(MockTenantManaged.class);
 
     doAnswer(invocationOnMock -> {
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(Tenant.GLOBAL_TENANT);
@@ -81,5 +81,11 @@ public class MultiTenantTenantManagedInitializerTest
     initializer.stop();
 
     verify(job).deregister();
+  }
+
+  private static class MockTenantManaged
+      implements TenantManaged, GlobalTenantJob
+  {
+    // We need a mock that implements GlobalTenantJob and TenantManaged
   }
 }

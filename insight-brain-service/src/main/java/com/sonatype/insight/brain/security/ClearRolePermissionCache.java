@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
 
-import io.dropwizard.lifecycle.Managed;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +20,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class ClearRolePermissionCache
-    implements InsightJob, Managed
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(ClearRolePermissionCache.class);
 
@@ -40,7 +39,7 @@ public class ClearRolePermissionCache
   }
 
   @Override
-  public void start() {
+  public void register() {
     RolePermissionDAO.setClearRolePermissionCacheForAllOtherNodes(
         this::scheduleClearRolePermissionCacheForAllOtherNodes);
   }

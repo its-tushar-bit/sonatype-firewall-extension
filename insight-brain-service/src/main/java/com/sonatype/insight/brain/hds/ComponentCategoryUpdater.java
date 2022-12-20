@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.AbstractComponentCategoryUpdater;
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.quartz.DisallowConcurrentExecution;
@@ -28,7 +29,7 @@ import org.slf4j.LoggerFactory;
 @DisallowConcurrentExecution
 public class ComponentCategoryUpdater
     extends AbstractComponentCategoryUpdater
-    implements InsightJob
+    implements InsightJob, GlobalTenantJob
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentCategoryUpdater.class);
 

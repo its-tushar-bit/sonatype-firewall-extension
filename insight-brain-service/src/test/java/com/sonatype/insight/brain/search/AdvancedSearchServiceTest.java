@@ -37,7 +37,7 @@ public class AdvancedSearchServiceTest
 
   @Inject
   private InsightWork insightWork;
-  
+
   @Inject
   private TaskScheduler taskScheduler;
 
@@ -120,7 +120,7 @@ public class AdvancedSearchServiceTest
   @Test
   public void testGetStatus_FullIndexTriggered() {
     taskScheduler.createScheduler();
-    indexService.start();
+    indexService.register();
 
     assertThat(advancedSearchService.getStatus().isFullIndexTriggered).isFalse();
 

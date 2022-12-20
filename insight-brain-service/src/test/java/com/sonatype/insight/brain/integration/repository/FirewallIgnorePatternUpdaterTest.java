@@ -59,8 +59,8 @@ public class FirewallIgnorePatternUpdaterTest
   }
 
   @Test
-  public void testStart() throws Exception {
-    firewallIgnorePatternUpdater.start();
+  public void testRegister() throws Exception {
+    firewallIgnorePatternUpdater.register();
 
     verify(taskSchedulerMock).schedulePeriodicTask(FirewallIgnorePatternUpdater.class,
         FirewallIgnorePatternUpdater.TASK_NAME, Duration.ofHours(6));

@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
 
-import io.dropwizard.lifecycle.Managed;
 import org.joda.time.DateTimeConstants;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -39,7 +38,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class ScanFileCleaner
-    implements Managed, InsightJob
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(ScanFileCleaner.class);
 
@@ -71,7 +70,7 @@ public class ScanFileCleaner
   }
 
   @Override
-  public void start() {
+  public void register() {
     if (disableForTesting) {
       return;
     }
@@ -92,7 +91,7 @@ public class ScanFileCleaner
   }
 
   @Override
-  public void stop() {
+  public void deregister() {
     // noop
   }
 

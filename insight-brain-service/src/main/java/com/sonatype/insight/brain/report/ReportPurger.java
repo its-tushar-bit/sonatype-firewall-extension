@@ -52,7 +52,6 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
 
-import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -68,7 +67,7 @@ import static java.util.stream.Collectors.toSet;
 @DisallowConcurrentExecution
 public class ReportPurger
     extends Task
-    implements Managed, InsightJob
+    implements InsightJob
 {
   public static final String NAME = "ReportPurger";
 
@@ -145,7 +144,7 @@ public class ReportPurger
   }
 
   @Override
-  public void start() {
+  public void register() {
     if (disableForTesting) {
       return;
     }
@@ -156,7 +155,7 @@ public class ReportPurger
   }
 
   @Override
-  public void stop() {
+  public void deregister() {
     // no-op
   }
 

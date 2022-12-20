@@ -354,8 +354,8 @@ public class IndexServiceTest
   }
 
   @Test
-  public void testStart() {
-    indexService.start();
+  public void testRegister() {
+    indexService.register();
 
     verify(taskSchedulerMock).schedulePeriodicTask(IndexService.class, IndexService.TASK_NAME, Duration.ofSeconds(3));
   }

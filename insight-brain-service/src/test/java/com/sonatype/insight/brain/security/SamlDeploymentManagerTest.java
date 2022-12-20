@@ -73,7 +73,7 @@ public class SamlDeploymentManagerTest
   @Test
   public void testStart_ValidConfiguration() {
     tempEntity.newSamlConfiguration(getSamlMetadata("valid.xml"), "sp-entity-id");
-    samlDeploymentManager.start();
+    samlDeploymentManager.register();
     SamlDeployment samlDeployment = samlDeploymentManager.get();
     assertThat(samlDeployment.getEntityID()).isEqualTo("sp-entity-id");
     assertThat(samlDeployment.getIDP().getEntityID()).isEqualTo("idp-entity-id");
@@ -82,7 +82,7 @@ public class SamlDeploymentManagerTest
   @Test
   public void testStart_InvalidConfiguration() {
     tempEntity.newSamlConfiguration("", "sp-entity-id");
-    samlDeploymentManager.start();
+    samlDeploymentManager.register();
     assertThat(samlDeploymentManager.get()).isNull();
   }
 

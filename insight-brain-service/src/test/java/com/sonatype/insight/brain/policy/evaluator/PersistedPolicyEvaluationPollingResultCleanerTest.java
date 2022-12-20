@@ -55,7 +55,7 @@ public class PersistedPolicyEvaluationPollingResultCleanerTest
 
   @Test
   public void testStart() {
-    persistedPolicyEvaluationPollingResultCleaner.start();
+    persistedPolicyEvaluationPollingResultCleaner.register();
 
     verify(taskSchedulerMock).schedulePeriodicTask(PersistedPolicyEvaluationPollingResultCleaner.class,
         PersistedPolicyEvaluationPollingResultCleaner.TASK_NAME, PersistedPolicyEvaluationPollingResultCleaner.PERIOD);

@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.servlets.tasks.Task;
 import org.apache.commons.lang.time.DateUtils;
 import org.quartz.DisallowConcurrentExecution;
@@ -37,7 +36,7 @@ import org.slf4j.LoggerFactory;
 @DisallowConcurrentExecution
 public class QuarantinedComponentAccessPurger
     extends Task
-    implements Managed, InsightJob
+    implements InsightJob
 {
   public static final int DEFAULT_PURGE_WINDOW_IN_DAYS = 30;
 
@@ -62,7 +61,7 @@ public class QuarantinedComponentAccessPurger
   }
 
   @Override
-  public void start() {
+  public void register() {
     taskScheduler.schedulePeriodicTask(QuarantinedComponentAccessPurger.class, NAME,
         Duration.ofDays(1));
     Date nextExecutionTime = taskScheduler.getNextExecutionTime(NAME);
@@ -71,7 +70,7 @@ public class QuarantinedComponentAccessPurger
   }
 
   @Override
-  public void stop() {
+  public void deregister() {
     // no-op
   }
 

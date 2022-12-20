@@ -58,7 +58,7 @@ public class ClearRolePermissionCacheTest
     try {
       RolePermissionDAO.setClearRolePermissionCacheForAllOtherNodes(null);
 
-      clearRolePermissionCache.start();
+      clearRolePermissionCache.register();
 
       // Insert should trigger the job
       Role role = tempEntity.newRole(true, Permission.READ);

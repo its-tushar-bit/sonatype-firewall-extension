@@ -116,7 +116,7 @@ public class DefaultBranchMonitorTest
   @Test
   public void testStart_FeatureEnabled() throws Exception {
     Date expectedStartTime = defaultBranchMonitor.getDefaultBranchMonitorStartTime(new SourceControlConfiguration());
-    defaultBranchMonitor.start();
+    defaultBranchMonitor.register();
 
     verify(taskSchedulerMock).schedulePeriodicTask(DefaultBranchMonitor.class, DefaultBranchMonitor.TASK_NAME,
         Duration.ofHours(12),
@@ -146,7 +146,7 @@ public class DefaultBranchMonitorTest
   @Test
   public void testStart_FeatureDisabled() throws Exception {
     SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.setEnabled(false);
-    defaultBranchMonitor.start();
+    defaultBranchMonitor.register();
 
     verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any());
     verify(taskSchedulerMock).unscheduleTask(DefaultBranchMonitor.TASK_NAME);
@@ -196,7 +196,7 @@ public class DefaultBranchMonitorTest
 
   @Test
   public void testSourceControlConfigurationChanged_NullConfiguration() throws Exception {
-    defaultBranchMonitor.start();
+    defaultBranchMonitor.register();
 
     verify(taskSchedulerMock).schedulePeriodicTask(DefaultBranchMonitor.class, DefaultBranchMonitor.TASK_NAME,
         Duration.ofHours(12),

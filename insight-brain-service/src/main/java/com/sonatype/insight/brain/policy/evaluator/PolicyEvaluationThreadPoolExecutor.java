@@ -6,16 +6,15 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class PolicyEvaluationThreadPoolExecutor
-    extends TenantThreadPoolExecutor
+    extends ThreadPoolExecutor
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluationThreadPoolExecutor.class);
 

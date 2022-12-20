@@ -11,8 +11,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
-
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.shiro.util.ThreadContext;
 import org.slf4j.Logger;
@@ -98,7 +96,7 @@ public class LazyInitThreadPoolExecutor
   }
 
   private static class ResettingThreadPoolExecutor
-      extends TenantThreadPoolExecutor
+      extends ThreadPoolExecutor
   {
     private final Logger log = LoggerFactory.getLogger(ResettingThreadPoolExecutor.class);
 

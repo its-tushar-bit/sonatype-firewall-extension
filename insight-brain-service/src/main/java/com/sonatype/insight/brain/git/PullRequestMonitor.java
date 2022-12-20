@@ -35,7 +35,6 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
-import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 
@@ -127,7 +126,7 @@ public class PullRequestMonitor
     if (executorService == null) {
       ThreadFactory threadFactory =
           new ThreadFactoryBuilder().setDaemon(true).setNameFormat("PullRequestMonitor-%s").build();
-      ThreadPoolExecutor threadPoolExecutor = new TenantThreadPoolExecutor(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 5L,
+      ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 5L,
           TimeUnit.MINUTES, new LinkedBlockingQueue<>(), threadFactory);
       threadPoolExecutor.allowCoreThreadTimeOut(true);
       executorService = threadPoolExecutor;

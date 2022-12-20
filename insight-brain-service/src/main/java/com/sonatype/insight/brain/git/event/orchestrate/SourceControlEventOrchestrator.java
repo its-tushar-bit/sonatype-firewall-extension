@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -25,7 +26,6 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
-import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -192,7 +192,7 @@ public class SourceControlEventOrchestrator
     });
     ThreadFactory threadFactory =
         new ThreadFactoryBuilder().setNameFormat("SourceControlEventOrchestrator-%d").setDaemon(true).build();
-    scheduledExecutorService = new TenantScheduledThreadPoolExecutor(1, threadFactory);
+    scheduledExecutorService = new ScheduledThreadPoolExecutor(1, threadFactory);
     scheduledExecutorService.scheduleAtFixedRate(sourceControlEventProcessingTask,
         otherInstanceEventProcessingStartupDelaySeconds, otherInstanceEventProcessingIntervalSeconds,
         TimeUnit.SECONDS);

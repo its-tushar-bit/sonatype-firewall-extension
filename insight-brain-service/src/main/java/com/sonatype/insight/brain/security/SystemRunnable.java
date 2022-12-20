@@ -5,19 +5,23 @@
  */
 package com.sonatype.insight.brain.security;
 
+import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
+
 public class SystemRunnable
     implements Runnable
 {
-  private final Runnable wrapped;
+  private final TenantAwareOneTimeRunnable tenantAwareRunnable;
 
   public SystemRunnable(Runnable wrapped) {
-    this.wrapped = wrapped;
+    this.tenantAwareRunnable = new TenantAwareOneTimeRunnable(() -> {
+      try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
+        wrapped.run();
+      }
+    });
   }
 
   @Override
   public void run() {
-    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      wrapped.run();
-    }
+    tenantAwareRunnable.run();
   }
 }

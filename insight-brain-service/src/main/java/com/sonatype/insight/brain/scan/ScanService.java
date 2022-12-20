@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.scan.ScanTask.State;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.SystemRunnable;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -76,7 +77,7 @@ class ScanService
     this.persistedScanTicketDAO = persistedScanTicketDAO;
     this.applicationDAO = applicationDAO;
     this.productLicense = productLicense;
-    executor = new ThreadPoolExecutor(2, 2, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
+    executor = new TenantThreadPoolExecutor(2, 2, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
         new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ScanTask-%s").build());
     executor.allowCoreThreadTimeOut(true);
   }

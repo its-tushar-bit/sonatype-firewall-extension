@@ -15,6 +15,7 @@ import {
   NxH3,
   NxThreatIndicator,
   NxTooltip,
+  NxOverflowTooltip,
 } from '@sonatype/react-shared-components';
 import { faPlus, faPencilAlt, faTag, faUser } from '@fortawesome/free-solid-svg-icons';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
@@ -178,17 +179,19 @@ export default function OwnerDetailSidebar() {
           </NxTooltip>
 
           {tags?.map(({ name, id, color }) => (
-            <NxCollapsibleItems.Child role="menuitem" key={name}>
-              <NxTextLink
-                className={categoryId && id === categoryId ? 'selected' : ''}
-                href={`${linkMainHref}/category/${id}`}
-              >
-                <Hexagon
-                  className={angularToRscColorMap[color] ? `nx-selectable-color--${angularToRscColorMap[color]}` : ''}
-                />
-                {name}
-              </NxTextLink>
-            </NxCollapsibleItems.Child>
+            <NxOverflowTooltip key={name}>
+              <NxCollapsibleItems.Child role="menuitem">
+                <NxTextLink
+                  className={categoryId && id === categoryId ? 'selected' : ''}
+                  href={`${linkMainHref}/category/${id}`}
+                >
+                  <Hexagon
+                    className={angularToRscColorMap[color] ? `nx-selectable-color--${angularToRscColorMap[color]}` : ''}
+                  />
+                  {name}
+                </NxTextLink>
+              </NxCollapsibleItems.Child>
+            </NxOverflowTooltip>
           ))}
         </NxCollapsibleItems>
       )}
@@ -213,12 +216,14 @@ export default function OwnerDetailSidebar() {
           </NxCollapsibleItems.Child>
           {policies &&
             sort((a, b) => b.threatLevel - a.threatLevel, policies).map(({ name, id, threatLevel }) => (
-              <NxCollapsibleItems.Child role="menuitem" key={name}>
-                <NxTextLink className={id === policyId ? 'selected' : ''} href={`${linkMainHref}/policy/${id}`}>
-                  <NxThreatIndicator policyThreatLevel={threatLevel} />
-                  {name}
-                </NxTextLink>
-              </NxCollapsibleItems.Child>
+              <NxOverflowTooltip key={name}>
+                <NxCollapsibleItems.Child role="menuitem">
+                  <NxTextLink className={id === policyId ? 'selected' : ''} href={`${linkMainHref}/policy/${id}`}>
+                    <NxThreatIndicator policyThreatLevel={threatLevel} />
+                    {name}
+                  </NxTextLink>
+                </NxCollapsibleItems.Child>
+              </NxOverflowTooltip>
             ))}
         </NxCollapsibleItems>
       )}
@@ -283,15 +288,17 @@ export default function OwnerDetailSidebar() {
             </NxTextLink>
           </NxCollapsibleItems.Child>
           {labels?.map(({ label, id, color }) => (
-            <NxCollapsibleItems.Child role="menuitem" key={label}>
-              <NxTextLink className={id === labelId ? 'selected' : ''} href={`${linkMainHref}/label/${id}`}>
-                <NxFontAwesomeIcon
-                  icon={faTag}
-                  className={angularToRscColorMap[color] ? `nx-selectable-color--${angularToRscColorMap[color]}` : ''}
-                />
-                {label}
-              </NxTextLink>
-            </NxCollapsibleItems.Child>
+            <NxOverflowTooltip key={label}>
+              <NxCollapsibleItems.Child role="menuitem">
+                <NxTextLink className={id === labelId ? 'selected' : ''} href={`${linkMainHref}/label/${id}`}>
+                  <NxFontAwesomeIcon
+                    icon={faTag}
+                    className={angularToRscColorMap[color] ? `nx-selectable-color--${angularToRscColorMap[color]}` : ''}
+                  />
+                  {label}
+                </NxTextLink>
+              </NxCollapsibleItems.Child>
+            </NxOverflowTooltip>
           ))}
         </NxCollapsibleItems>
       )}
@@ -316,15 +323,17 @@ export default function OwnerDetailSidebar() {
           </NxCollapsibleItems.Child>
           {licenseThreatGroups &&
             sort((a, b) => b.threatLevel - a.threatLevel, licenseThreatGroups).map(({ name, id, threatLevel }) => (
-              <NxCollapsibleItems.Child role="menuitem" key={name}>
-                <NxTextLink
-                  className={id === licenseThreatGroupId ? 'selected' : ''}
-                  href={`${linkMainHref}/licenseThreatGroup/${id}`}
-                >
-                  <NxThreatIndicator policyThreatLevel={threatLevel} />
-                  {name}
-                </NxTextLink>
-              </NxCollapsibleItems.Child>
+              <NxOverflowTooltip key={name}>
+                <NxCollapsibleItems.Child role="menuitem">
+                  <NxTextLink
+                    className={id === licenseThreatGroupId ? 'selected' : ''}
+                    href={`${linkMainHref}/licenseThreatGroup/${id}`}
+                  >
+                    <NxThreatIndicator policyThreatLevel={threatLevel} />
+                    {name}
+                  </NxTextLink>
+                </NxCollapsibleItems.Child>
+              </NxOverflowTooltip>
             ))}
         </NxCollapsibleItems>
       )}
@@ -367,15 +376,17 @@ export default function OwnerDetailSidebar() {
         </NxTooltip>
 
         {roles?.map(({ roleName, roleId }) => (
-          <NxCollapsibleItems.Child role="menuitem" key={roleId}>
-            <NxTextLink
-              className={roleId === currentRoleId ? 'selected' : ''}
-              href={`${linkMainHref}/access/${roleId}`}
-            >
-              <NxFontAwesomeIcon icon={faUser} />
-              {roleName}
-            </NxTextLink>
-          </NxCollapsibleItems.Child>
+          <NxOverflowTooltip key={roleId}>
+            <NxCollapsibleItems.Child role="menuitem">
+              <NxTextLink
+                className={roleId === currentRoleId ? 'selected' : ''}
+                href={`${linkMainHref}/access/${roleId}`}
+              >
+                <NxFontAwesomeIcon icon={faUser} />
+                {roleName}
+              </NxTextLink>
+            </NxCollapsibleItems.Child>
+          </NxOverflowTooltip>
         ))}
       </NxCollapsibleItems>
     </div>

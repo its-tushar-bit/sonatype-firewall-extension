@@ -75,8 +75,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
     organizationDAO.update(rootOrg);
   }
 
-  @Test
-  public void testPolicyViolationGrandfatheringConfiguration_Editable() {
+  void testPolicyViolationGrandfatheringConfiguration_Editable() {
     configureOrganizationsAndApplications(true);
 
     PolicyViolationGrandfatheringDTO policyViolationGrandfatheringDTO = policyViolationGrandfatheringService
@@ -130,8 +129,6 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
 
     assertThat(policyViolationGrandfatheringDTO.enabled).isTrue();
     assertThat(policyViolationGrandfatheringDTO.allowOverride).isFalse();
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test

@@ -203,7 +203,6 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     WaiverDetailsPage.SidebarNavListItem firstItem = sidebarNav.navItem(0);
 
     Tooltip.get().shouldBe(hidden);
-    eyesWatcher.eyesCheck();
 
     firstItem.organizationFullName().hover();
     Tooltip.get().shouldBe(visible);
@@ -273,13 +272,9 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
     navItems.shouldHaveSize(26);
 
-    eyesWatcher.eyesCheck();
-
     WaiverDetailsPage.SidebarNavListItem selectedItem = sidebarNav.navItem(25).click();
     selectedItem.shouldBe(visible);
     selectedItem.shouldHave(cssClass("selected"));
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test

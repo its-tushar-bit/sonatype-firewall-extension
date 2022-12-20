@@ -424,9 +424,6 @@ public class DashboardComponentsTest
     table.firstComponent().lowRisk().shouldHave(text("0"));
     table.component(40).lowRisk().shouldHave(text("0"));
     table.lastComponent().lowRisk().shouldHave(text("0"));
-
-    // last but certainly not least
-    eyesWatcher.eyesCheck("Scrollbar-present styling");
   }
 
   private void assertComponentsCsv(String csv, String[] expectedSortedResults) {

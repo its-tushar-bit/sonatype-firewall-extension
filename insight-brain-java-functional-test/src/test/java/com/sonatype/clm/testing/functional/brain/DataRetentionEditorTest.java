@@ -129,8 +129,6 @@ public class DataRetentionEditorTest
 
     PAGE.getElement().parent().scrollIntoView(true);
     eyesWatcher.eyesCheck("Data retention editor top");
-    PAGE.updateButton().scrollIntoView(true);
-    eyesWatcher.eyesCheck("Data retention editor bottom");
   }
 
   @Test
@@ -146,8 +144,6 @@ public class DataRetentionEditorTest
     EDITORS.get(Stage.ID_STAGE_RELEASE).shouldNot(exist);
     EDITORS.get(Stage.ID_OPERATE).shouldNot(exist);
     EDITORS.get(DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING).shouldNot(exist);
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test

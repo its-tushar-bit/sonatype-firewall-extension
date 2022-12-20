@@ -39,6 +39,7 @@ public class OrganizationLTGEditorTest
     OwnerSummaryPage.licenseThreatGroupSummaryTile().addLTGButton().click();
     //OwnerSummaryPage.licenseThreatGroupTile().addLTGButton().click();
     assertNewLTGStateIsCorrect();
+    eyesWatcher.eyesCheck();
     LTGEditorPage.ltgName().val("$$$"); // invalid characters
     LTGEditorPage.getInputValidationElement(LTGEditorPage.ltgName()).shouldHave(text("Use valid characters"));
 

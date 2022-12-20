@@ -153,8 +153,6 @@ public class FirewallPageTest
 
     // verify firewall page loads
     waitUntilUrl(FirewallAutoUnquarantinePage.url());
-
-    eyesWatcher.eyesCheck("Auto unquarantine page is visible after nav link clicked.");
   }
 
   @Test
@@ -195,7 +193,6 @@ public class FirewallPageTest
   @Test
   public void testFirewallQuarantineTable_RepoViewLink() {
     refreshOrOpen(FirewallPage.url());
-    eyesWatcher.eyesCheck();
     page.firewallQuarantineTable().tableBodyRows().get(0).find("#iq-firewall-quarantine-table--repo-view-link").click();
     Selenide.switchTo().window(1);
     RepositoryReportContainerPage.title().shouldHave(text("Repository results for maven-central"));

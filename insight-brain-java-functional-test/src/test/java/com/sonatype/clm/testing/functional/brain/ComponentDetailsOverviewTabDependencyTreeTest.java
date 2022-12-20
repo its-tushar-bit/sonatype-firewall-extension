@@ -135,8 +135,6 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
     DependencyTreeTile dependencyTreeTile = componentDetailsPage.dependencyTreeTile();
     ScrollUtil.scrollIntoView(dependencyTreeTile.title());
     dependencyTreeTile.unavailableAlert().shouldBe(visible).shouldHave(text("Dependency tree not available"));
-
-    eyesWatcher.eyesCheck("Overview tab with unavailable dependency tree");
   }
 
   @Test
@@ -174,8 +172,6 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
 
     nonClickableTreeItems.get(0).shouldHave(text("org.apache.avro : avro-ipc : 1.5.0"));
 
-    eyesWatcher.eyesCheck("Overview tab with dependency tree tile collapsed");
-
     clickableIcons.get(2).click();
     clickableTreeItems.get(2).shouldBe(visible);
     clickableTreeItems.get(3).shouldBe(visible);
@@ -183,8 +179,6 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
     clickableTreeItems.get(2).shouldHave(text("org.mortbay.jetty : jetty : 6.1.15"));
 
     clickableTreeItems.get(3).shouldHave(text("org.slf4j : slf4j-api : 1.6.1"));
-
-    eyesWatcher.eyesCheck("Overview tab with dependency tree tile expanded");
   }
 
   @Test
@@ -220,8 +214,5 @@ public class ComponentDetailsOverviewTabDependencyTreeTest
     clickableTreeItems.get(9).shouldBe(visible);
 
     nonClickableTreeItems.shouldHaveSize(1);
-
-    eyesWatcher.eyesCheck("Overview tab with dependency tree direct dependency");
-
   }
 }

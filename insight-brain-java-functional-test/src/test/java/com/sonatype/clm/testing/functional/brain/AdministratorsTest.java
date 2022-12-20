@@ -127,7 +127,6 @@ public class AdministratorsTest
 
     addMembersForm.searchInput().setValue("*").click();
     addMembersForm.searchResults().shouldHaveSize(3);
-    eyesWatcher.eyesCheck("Edit Administrators Fetch Users");
     addMembersForm.searchResults()
             .shouldHave(texts("John Doe", "Jane Doe", "Authenticated Users (Group)"));
     addMembersForm.searchResults().get(1).click();

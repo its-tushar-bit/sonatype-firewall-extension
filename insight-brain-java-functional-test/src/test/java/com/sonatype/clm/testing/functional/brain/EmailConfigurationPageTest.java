@@ -133,7 +133,6 @@ public class EmailConfigurationPageTest
     // ## -- DELETE -- ##
     emailConfigurationPage.delete().shouldBe(enabled).click();
     emailConfigurationPage.deleteModal().shouldBe(visible);
-    eyesWatcher.eyesCheck("Email Configuration Page - Delete Modal");
     emailConfigurationPage.deleteModal().cancel().shouldBe(enabled).click();
     emailConfigurationPage.deleteModal().shouldBe(hidden);
 
@@ -560,7 +559,6 @@ public class EmailConfigurationPageTest
           .shouldBe(visible)
           .shouldHave(text("An error occurred loading data. It appears you do not have permission to access this " +
               "page. If you believe this to be incorrect please contact your administrator."));
-      eyesWatcher.eyesCheck("Email Configuration Page - Insufficient Permissions");
     }
     finally {
       logout();

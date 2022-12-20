@@ -54,8 +54,6 @@ public class RootOrganizationSourceControlEditorTest
     verifyStartNoSourceControl();
     SourceControlEditorPage.saveButton().shouldHave(text("Create"), DISABLED);
 
-    eyesWatcher.eyesCheck("Source Control Editor Root Default State");
-
     SourceControlEditorPage.provider().chooseOption(new Option(2, "github"));
 
     SourceControlEditorPage.root().shouldBe(visible);
@@ -64,8 +62,6 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Create"));
     SourceControlEditorPage.saveButton().shouldNotHave(DISABLED);
-
-    eyesWatcher.eyesCheck("Source Control Editor Root Controls Enabled");
 
     assertSourceControlDoesNotExist(ROOT_ORGANIZATION_ID);
   }
@@ -207,8 +203,6 @@ public class RootOrganizationSourceControlEditorTest
 
     SourceControlEditorPage.deleteButton().click();
 
-    eyesWatcher.eyesCheck("Source Control Editor Delete Modal");
-
     DeleteModal.root().shouldBe(visible);
     DeleteModal.header().shouldHave(text("Reset Source Control"));
     DeleteModal.body().shouldHave(text("You are about to reset the Source Control configuration for organization " +
@@ -300,7 +294,6 @@ public class RootOrganizationSourceControlEditorTest
 
     // when we select Azure as a provider
     SourceControlEditorPage.provider().chooseOption(new Option(0, "Azure DevOps"));
-    eyesWatcher.eyesCheck("Source Control Editor Azure Default State");
 
     // then credentials are shown
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
@@ -410,7 +403,6 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.form().shouldNotBe(visible);
     SourceControlEditorPage.notSupported().shouldBe(visible);
     SourceControlEditorPage.notSupported().shouldHave(text("Source Control is not supported by your license"));
-    eyesWatcher.eyesCheck("Source Control Editor - No License");
   }
 
   @Override

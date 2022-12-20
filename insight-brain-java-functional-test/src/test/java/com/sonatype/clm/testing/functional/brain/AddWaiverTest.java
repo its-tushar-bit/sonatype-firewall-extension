@@ -258,8 +258,6 @@ public class AddWaiverTest
       chosenComponent.label().shouldHave(text("All Components"));
       addWaiverPage.comments().setValue("Some comments");
 
-      eyesWatcher.eyesCheck();
-
       addWaiverPage.saveButton().click();
       NxSubmitMask.seeAndWaitForDismissal();
       addWaiverPage.submitError().shouldNotBe(visible);

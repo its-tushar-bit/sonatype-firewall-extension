@@ -96,7 +96,6 @@ public class ArtifactoryRepositoryConfigurationModalTest
     modal.test().shouldHave(Condition.cssClass("disabled"));
     modal.save().shouldHave(Condition.cssClass("disabled"));
     modal.authentication().shouldNotBe(Condition.visible);
-    eyesWatcher.eyesCheck();
   }
 
   @Test

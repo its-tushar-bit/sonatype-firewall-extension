@@ -96,8 +96,6 @@ public class ComponentDetailsInnerSourceTest
     innerSourceProducerReportModal.content()
         .shouldHave(exactText("A newer version of the InnerSource component is being used in the latest report."));
     innerSourceProducerReportModal.continueToReportButton().shouldBe(visible);
-    eyesWatcher.eyesCheck("component details overview tab InnerSource producer alert new version modal");
-
     innerSourceProducerReportModal.cancelButton().click();
     innerSourceProducerReportModal.shouldNotBe(visible);
   }
@@ -129,8 +127,6 @@ public class ComponentDetailsInnerSourceTest
     innerSourceProducerPermissionsModal.content()
         .shouldHave(exactText("Insufficient permissions to view the report for ApplicationReportTest2. Please contact"
             + " your Policy Administrator or an Owner to request access."));
-    eyesWatcher.eyesCheck("component details overview tab InnerSource producer alert insufficient permission modal");
-
     innerSourceProducerPermissionsModal.closeButton().shouldBe(visible).click();
     innerSourceProducerPermissionsModal.shouldNotBe(visible);
 

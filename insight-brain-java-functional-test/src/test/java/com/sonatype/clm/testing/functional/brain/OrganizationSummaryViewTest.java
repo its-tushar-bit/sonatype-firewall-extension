@@ -105,8 +105,6 @@ public class OrganizationSummaryViewTest
 
     ltgTile.getAllApplicableLicenseThreatGroupSection().shouldHaveSize(hierarchySize);
 
-    eyesWatcher.eyesCheck("Organization License Threat Group Tile with no local threats");
-
     for (int i = 0; i < hierarchySize; i++) {
       ApplicableLicenseThreatGroupSection section = ltgTile.getApplicableLicenseThreatGroupSection(i);
       ScrollUtil.scrollIntoViewInstantly(section.getTitle());
@@ -188,8 +186,6 @@ public class OrganizationSummaryViewTest
     // Give a maximum of 2 seconds for the file to be loaded
     ImportPolicyModal.errorRetryButton().waitUntil(enabled, 2000).click();
 
-    eyesWatcher.eyesCheck("Import policy modal");
-
     // verify mask and wait for it to go away
     FormMask.seeAndWaitForDismissal();
 
@@ -205,8 +201,6 @@ public class OrganizationSummaryViewTest
     list.elements().shouldHaveSize(1);
     NxList.NxListItem actualLabel = list.element(0);
     actualLabel.name().shouldBe(visible).shouldHave(text("Test Label"));
-
-    eyesWatcher.eyesCheck("labels tile after policy import");
 
     // scroll to the ltgs
     OwnerSummaryPage.summaryTile().ltgsButton().shouldBe(visible);
@@ -243,8 +237,6 @@ public class OrganizationSummaryViewTest
     NxList categoryList = categoryTile.categoryList(0);
     categoryList.elements().shouldBe(empty);
     categoryList.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
-
-    eyesWatcher.eyesCheck("application categories tile after policy import");
   }
 
   private void testApplicationCategoryTile_Empty() {
@@ -260,8 +252,6 @@ public class OrganizationSummaryViewTest
 
     subsectionHeader.shouldBe(visible).shouldHave(text("Local"));
     list.emptyDescriptor().shouldBe(visible).shouldHave(CategoryTile.noneDefinedText());
-
-    eyesWatcher.eyesCheck("Organization's Category Tile when there is no defined categories");
   }
 
   private void testApplicationCategoryTile_WithApplicableCategories() {
@@ -422,8 +412,6 @@ public class OrganizationSummaryViewTest
     tile.maxReport(Stage.ID_OPERATE).shouldBe(visible)
         .shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
     tile.successMetrics().shouldBe(visible).shouldHave(exactTextCaseSensitive("Don\'t Purge"));
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -502,8 +490,6 @@ public class OrganizationSummaryViewTest
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text("Inherit access token"));
 
-    eyesWatcher.eyesCheck("Source Control configured without URL");
-
     rootSourceControl.setToken("TESK_TOKEN");
     sourceControlDAO.update(rootSourceControl);
     refresh();
@@ -522,8 +508,6 @@ public class OrganizationSummaryViewTest
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
         .format("Inherit access token from %s", rootOrganization.getName())));
 
-    eyesWatcher.eyesCheck("Source Control configured without URL. Inherit token from root organization");
-
     tempEntity.newSourceControl(organization.getId(), null, "TEST_TOKEN", null);
     refresh();
 
@@ -540,8 +524,6 @@ public class OrganizationSummaryViewTest
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("GitHub"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text(String
         .format("Provides default access token for %s", organization.getName())));
-
-    eyesWatcher.eyesCheck("Valid source control configured, token on organization");
   }
 
   @Test

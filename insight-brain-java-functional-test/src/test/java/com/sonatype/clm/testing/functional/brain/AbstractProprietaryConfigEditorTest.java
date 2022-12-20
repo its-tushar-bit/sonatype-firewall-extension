@@ -86,8 +86,6 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     //take focus off of the select to prevent the select options displayed
     SidebarNavigation.productVersion().click();
     
-    eyesWatcher.eyesCheck();
-
     assertInheritanceSection();
 
     // make sure toggling dropdown clears input

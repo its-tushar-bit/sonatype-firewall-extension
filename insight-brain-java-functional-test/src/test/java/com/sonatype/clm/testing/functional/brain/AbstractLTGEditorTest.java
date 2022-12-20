@@ -157,8 +157,6 @@ public abstract class AbstractLTGEditorTest
     picker.availableItem(0).shouldHave(exactText("(AFL) AFL-Style License Not Identifiable by Sonatype")).hover();
     Tooltip.get().shouldHave(exactText("(AFL) AFL-Style License Not Identifiable by Sonatype"));
 
-    eyesWatcher.eyesCheck();
-
     picker.availableItem(0).click();
 
     picker.transferredItem(1).shouldHave(exactText("(AFL) AFL-Style License Not Identifiable by Sonatype")).hover();

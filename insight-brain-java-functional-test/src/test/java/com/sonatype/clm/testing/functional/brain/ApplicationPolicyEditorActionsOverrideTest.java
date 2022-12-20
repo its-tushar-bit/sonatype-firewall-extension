@@ -113,8 +113,6 @@ public class ApplicationPolicyEditorActionsOverrideTest
 
     testActionsState(actionsTable, disabled);
 
-    eyesWatcher.eyesCheck("Inherit policy actions");
-
     actionsTable.overrideParentActions().click();
     actionsTable.overrideParentActions().shouldBe(selected);
 
@@ -208,8 +206,6 @@ public class ApplicationPolicyEditorActionsOverrideTest
     actionsTable.overrideParentActions().shouldBe(disabled).shouldNotBe(selected);
 
     testActionsState(actionsTable, disabled);
-
-    eyesWatcher.eyesCheck("policy action override is disabled");
   }
 
   @Test

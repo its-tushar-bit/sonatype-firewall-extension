@@ -88,8 +88,6 @@ public class ApplicationSourceControlEditorTest
 
     verifyStartNoSourceControl();
 
-    eyesWatcher.eyesCheck("Source Control Editor Application Default State");
-
     assertSourceControlDoesNotExist(rootOrganization.getId());
     assertSourceControlDoesNotExist(organization.getId());
     assertSourceControlDoesNotExist(application.getId());
@@ -126,8 +124,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
     SourceControlEditorPage.tokenWarning().shouldBe(visible);
     SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
-
-    eyesWatcher.eyesCheck("Source Control Editor Default State With Provider");
   }
 
   @Test
@@ -520,8 +516,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.credentialsInheritRadio().shouldBe(selected, enabled);
     SourceControlEditorPage.credentialsToken().shouldBe(disabled);
     metricsTable().shouldBe(visible);
-
-    eyesWatcher.eyesCheck("Source Control Editor Save State With Bitbucket and Overridden Credentials");
   }
 
   @Test
@@ -586,8 +580,6 @@ public class ApplicationSourceControlEditorTest
     errorBox.shouldHave(text("SourceControl already exists for application with id: " + application.getPublicId()));
     assertSourceControl(application.getId(), REPOSITORY_URL, null, null);
 
-    eyesWatcher.eyesCheck("Source Control Editor update Failed");
-
     //Delete the entry to resolve error condition
     deleteSourceControl(application.getId());
 
@@ -627,7 +619,6 @@ public class ApplicationSourceControlEditorTest
     assertSourceControlDoesNotExist(application.getId());
 
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
-    eyesWatcher.eyesCheck("Source Control Editor - Advanced controls expanded");
 
     tempEntity.newSourceControl(rootOrganization.getId(), null, null, SourceControlProvider.GITHUB);
 
@@ -672,7 +663,6 @@ public class ApplicationSourceControlEditorTest
     assertSourceControlDoesNotExist(application.getId());
 
     SourceControlEditorPage.tokenWarning().shouldBe(visible);
-    eyesWatcher.eyesCheck("Source Control Editor - Token and provider warnings visible");
 
     tempEntity.newSourceControl(rootOrganization.getId(), null, null, SourceControlProvider.GITHUB);
 
@@ -844,8 +834,6 @@ public class ApplicationSourceControlEditorTest
     verifyNotificationFeaturesOnly();
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
 
-    eyesWatcher.eyesCheck("Source Control Editor - application configurations disabled, no automation");
-
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB, true, true, "master");
 
     refresh();
@@ -868,7 +856,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.form().shouldNotBe(visible);
     SourceControlEditorPage.notSupported().shouldBe(visible);
     SourceControlEditorPage.notSupported().shouldHave(text("Source Control is not supported by your license"));
-    eyesWatcher.eyesCheck("Source Control Editor - No License");
   }
 
   @Test
@@ -915,7 +902,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.saveButton().click();
 
     // then the confirmation modal is shown
-    eyesWatcher.eyesCheck("Source Control Editor - Show confirmation dialog for updating repo url");
     SourceControlRepositoryUrlUpdateModal.root().shouldBe(visible);
     SourceControlRepositoryUrlUpdateModal.continueButton().click();
     FormMask.seeAndWaitForDismissal();

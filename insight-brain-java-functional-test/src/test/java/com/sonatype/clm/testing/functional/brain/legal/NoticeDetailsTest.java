@@ -97,13 +97,13 @@ public class NoticeDetailsTest
     noticeOverview.getSource().shouldHave(text("Sonatype Scan"));
 
     noticeOverview.getNoticeText().shouldHave(text("Apache ServiceComb Copyright 2017-2021"));
-    eyesWatcher.eyesCheck("Notice Details Overview section");
   }
 
   @Test
   public void testNoticeOverviewByHash() {
     loadByHash();
     doTestNoticeOverview();
+    eyesWatcher.eyesCheck("Notice Details Overview section");
   }
 
   @Test

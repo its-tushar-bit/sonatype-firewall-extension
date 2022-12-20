@@ -95,8 +95,6 @@ public class AdvancedSearchPageTest
     page.searchButton().click();
     FormMask.seeAndWaitForDismissal();
 
-    eyesWatcher.eyesCheck("Advanced Search - Single Result");
-
     page.resultCount().shouldBe(text("1"));
     page.currentPageInfo().shouldBe(text("Page 1 of 1"));
     page.searchInput().should(value("itemType:ORGANIZATION"));
@@ -291,8 +289,6 @@ public class AdvancedSearchPageTest
     page.componentSearchRadioButtons().shouldBe(visible);
     page.showAllComponentsRadio().shouldBe(visible);
 
-    eyesWatcher.eyesCheck("Show all components radio buttons");
-
     page.searchButton().click();
     FormMask.seeAndWaitForDismissal();
 
@@ -307,5 +303,6 @@ public class AdvancedSearchPageTest
 
     // There should be more results (vulnerable and non-vulnerable
     page.resultCount().shouldBe(text("2"));
+    eyesWatcher.eyesCheck("Show all components radio buttons");
   }
 }

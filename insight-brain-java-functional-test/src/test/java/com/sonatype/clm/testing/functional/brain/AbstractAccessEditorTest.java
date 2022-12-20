@@ -105,7 +105,6 @@ public abstract class AbstractAccessEditorTest
 
     NxFormSelect roleDropdown = addMembersForm.roleSelect();
     roleDropdown.shouldHave(AccessEditorPage.DROPDOWN_DEFAULT_TEXT).click();
-    eyesWatcher.eyesCheck();
     String roleName = roleDropdown.listItem(2).text();
     assertThat(getMembershipMappings(currentOwner.getId(), roleName)).isEmpty();
     roleDropdown.listItem(2).click();
@@ -264,7 +263,6 @@ public abstract class AbstractAccessEditorTest
 
     addMembersForm.disabledGroupSearchWarning().shouldBe(visible)
       .shouldHave(text(DISABLED_GROUP_SEARCH_WARNING));
-    eyesWatcher.eyesCheck();
 
     // enable group search for one
     ldapUserMapping1.setDynamicGroupSearchEnabled(true);

@@ -79,7 +79,6 @@ public class RootOrganizationPolicyEditorTest
     PolicyEditorPage.actionsSection().quarantineWarningMessage().shouldBe(visible);
 
     ScrollUtil.awaitEndOfScrolling(PolicyEditorPage.actionsSection().quarantineWarningMessage().scrollIntoView(true));
-    eyesWatcher.eyesCheck("testQuarantineWarningOnCreatePolicy - quarantineWarningMessage is shown");
 
     PolicyEditorPage.actionsSection().build().warnRadio().click();
 

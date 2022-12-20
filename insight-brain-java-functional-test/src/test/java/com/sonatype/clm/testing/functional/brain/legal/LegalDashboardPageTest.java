@@ -160,7 +160,6 @@ public class LegalDashboardPageTest
     ldp.componentsTab().shouldHave(Condition.cssClass("active"));
     Wait<WebDriver> wait = getWebDriverAwait();
     wait.until(ExpectedConditions.visibilityOf(ldp.tableRows().get(0)));
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -168,6 +167,7 @@ public class LegalDashboardPageTest
     refreshOrOpen(LegalDashboardPage.url(true));
     LegalDashboardPage ldp = new LegalDashboardPage();
     this.changeToComponentsTab(ldp);
+    eyesWatcher.eyesCheck();
     ldp.tableRows().shouldHaveSize(10);
   }
 

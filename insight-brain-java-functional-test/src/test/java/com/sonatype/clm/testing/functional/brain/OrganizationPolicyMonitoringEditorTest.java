@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.insight.brain.model.Organization;
 
 import org.junit.Before;
+import org.junit.Test;
 
 public class OrganizationPolicyMonitoringEditorTest
     extends AbstractPolicyMonitoringEditorTest
@@ -18,5 +19,11 @@ public class OrganizationPolicyMonitoringEditorTest
   public void init() {
     organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
     super.init(organization);
+  }
+
+  @Test
+  @Override
+  public void testEditMonitoredStage() {
+    super.testEditMonitoredStage();
   }
 }

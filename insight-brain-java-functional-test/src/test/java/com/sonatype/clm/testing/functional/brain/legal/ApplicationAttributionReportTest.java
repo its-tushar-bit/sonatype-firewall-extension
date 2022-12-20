@@ -126,8 +126,6 @@ public class ApplicationAttributionReportTest
 
     waitForReportToGenerate();
 
-    eyesWatcher.eyesCheck("Default Legal Attribution Report");
-
     reportPage.reportTitle().shouldHave(Condition.exactText("Attribution Report for " + app.getName()));
     reportPage.tableOfContents().shouldBe(Condition.visible);
     reportPage.appendix().shouldBe(Condition.visible);
@@ -248,8 +246,6 @@ public class ApplicationAttributionReportTest
     attrReportFormPage.getFormSubmitBtn().click();
 
     waitForReportToGenerate();
-
-    eyesWatcher.eyesCheck("Legal Attribution Report - No appendix");
 
     reportPage.reportTitle().shouldHave(Condition.exactText("Attribution Report for " + app.getName()));
     reportPage.tableOfContents().shouldBe(Condition.visible);

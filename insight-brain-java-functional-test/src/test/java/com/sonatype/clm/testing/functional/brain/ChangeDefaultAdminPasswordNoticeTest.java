@@ -52,7 +52,6 @@ public class ChangeDefaultAdminPasswordNoticeTest
     loginAsAdmin();
 
     DashboardPage.filterToggle().shouldBe(visible).click();
-    eyesWatcher.eyesCheck("DefaultAdminPasswordNotice with dashboard filter");
 
     assertNotice(visible, text("change your password"));
 
@@ -89,7 +88,6 @@ public class ChangeDefaultAdminPasswordNoticeTest
     login();
 
     assertNotice(visible, text("The \"admin\" user has the default password set"));
-    eyesWatcher.eyesCheck();
     setEnableDefaultPasswordWarning(false);
     refresh();
     assertNotice(hidden);

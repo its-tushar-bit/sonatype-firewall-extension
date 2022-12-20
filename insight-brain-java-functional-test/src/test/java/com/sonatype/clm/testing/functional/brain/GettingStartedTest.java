@@ -72,7 +72,6 @@ public class GettingStartedTest
     gettingStartedPage.productLicenseSummary().shouldNotBe(visible);
     gettingStartedPage.systemSetup().shouldNotBe(visible);
     scrollIntoView(gettingStartedPage.learningTopics()).shouldBe(visible);
-    eyesWatcher.eyesCheck("Non-admin user");
 
     grantPermissions(getUsername(), GLOBAL_CONTEXT_ID, Permission.ADD_APPLICATION);
     refresh();

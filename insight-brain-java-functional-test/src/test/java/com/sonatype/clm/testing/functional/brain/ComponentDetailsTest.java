@@ -200,8 +200,6 @@ public class ComponentDetailsTest
     tags.shouldHave(texts("maven", "Direct Dependency"));
 
     componentDetailsPage.footer().paginationCounter().shouldHave(text("5 of 64"));
-
-    eyesWatcher.eyesCheck("component details header and footer");
   }
 
   @Test
@@ -412,8 +410,6 @@ public class ComponentDetailsTest
 
     identificationDefinitionList.getOccurrencesItem().shouldBe(visible);
     identificationDefinitionList.getOccurrencesItem().shouldHave(text("Occurrences 1 File"));
-
-    eyesWatcher.eyesCheck("component details overview tab component information");
   }
 
   @Test
@@ -554,8 +550,6 @@ public class ComponentDetailsTest
     rowCells.shouldHaveSize(6);
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
         "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "1 Active Waiver", ""));
-    eyesWatcher.eyesCheck("component details violations tab violation table active waiver");
-
     testGrandfatheringIndicator(componentDetailsPage);
   }
 
@@ -709,8 +703,6 @@ public class ComponentDetailsTest
             + "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'",
         "", ""));
 
-    eyesWatcher.eyesCheck("component details security tab violation table no waiver");
-
     addWaiver(policyViolationsTable);
 
     componentDetailsPage = new ComponentDetailsPage();
@@ -727,8 +719,6 @@ public class ComponentDetailsTest
             + "Found security vulnerability CVE-2016-9879 with severity < 10 (severity = 7.5) "
             + "Found security vulnerability CVE-2016-9879 with status 'Open', not 'Not Applicable'",
         "Unapplied Waiver", ""));
-
-    eyesWatcher.eyesCheck("component details security tab violation table Unapplied waiver");
 
     MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
@@ -782,8 +772,6 @@ public class ComponentDetailsTest
     rowCells.shouldHave(exactTexts("4", "OSVDB-1234", "Open", ""));
     rowCells = vulnerabilitiesTable.getRows().last().findAll(By.tagName("td"));
     rowCells.shouldHave(exactTexts("0", "OSVDB-4321", "Open", ""));
-
-    eyesWatcher.eyesCheck("component details security tab vulnerabilities table entries");
   }
 
   @Test
@@ -983,7 +971,6 @@ public class ComponentDetailsTest
     policyViolationsTable.getRows().shouldHaveSize(1);
     SelenideElement indicatorsCell = policyViolationsTable.getRows().first().findAll(By.tagName("td")).get(4);
     indicatorsCell.shouldHave(text("Grandfathered"));
-    eyesWatcher.eyesCheck("component details violations tab violation table grandfathered row");
   }
 
   private void activateGrandfathering() {
@@ -1095,8 +1082,6 @@ public class ComponentDetailsTest
     // Remove applied app level label
     manageLabels.appliedLabels().get(0).should(exist).click();
     manageLabels.removeLabelModal().should(exist);
-    // Screenshot remove label modal
-    eyesWatcher.eyesCheck("Remove Label Modal");
     // Confirm removal and verify labels count
     manageLabels.removeLabelModal().confirmRemoveButton().should(exist).click();
     manageLabels.appliedLabels().shouldHaveSize(0);

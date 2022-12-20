@@ -96,7 +96,6 @@ public class LicenseDetailsTest
     overview.getDeclaredLicense().shouldHave(text("Apache-2.0"));
     overview.getObservedLicense().shouldHave(text("GPL-2.0"));
     overview.getEffectiveLicense().shouldHave(text("Apache-2.0, GPL-2.0"));
-    eyesWatcher.eyesCheck("License Details Overview section");
   }
 
   @Test
@@ -128,7 +127,6 @@ public class LicenseDetailsTest
     refreshOrOpen(
         ComponentLicensesDetailsPage.urlToApplicationScopeByHash(app.getPublicId(), "033e7a20b23ea284d474", 0));
     final LicenseObligations obligations = ComponentLicensesDetailsPage.licenseObligations();
-    eyesWatcher.eyesCheck("Before obligation snippet scrolled into view");
 
     // Should highlight the obligation in the full license text on click
     obligations.obligationAt(1).click();

@@ -161,7 +161,6 @@ public abstract class AbstractVersionGraphMavenTest
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
-    eyesWatcher.eyesCheck("Component Info Screen");
 
     // test hovering over version bar shows version number
     VersionsCIP.versionBar(1).shouldBe(visible).hover();
@@ -329,8 +328,6 @@ public abstract class AbstractVersionGraphMavenTest
     VersionsCIP.versionGraphLoading().should(disappear);
 
     VersionsCIP.viewDetailsButton().shouldBe(visible);
-
-    eyesWatcher.eyesCheck("Version graph with breaking changes heatmap");
 
     VersionsCIP.groupId().shouldHave(text("javancss"));
     VersionsCIP.viewDetailsButton().shouldBe(visible);

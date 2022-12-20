@@ -165,8 +165,6 @@ public class ArtifactoryRepositoryBaseConfigurationsPageTest
   @Test
   public void testLoad_ArtifactoryConnection_RootOrg() {
     testLoad_ArtifactoryConnection(rootOrg);
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -179,8 +177,6 @@ public class ArtifactoryRepositoryBaseConfigurationsPageTest
   @Test
   public void testLoad_ArtifactoryConnection_App() {
     testLoad_ArtifactoryConnection(app);
-
-    eyesWatcher.eyesCheck();
   }
 
   private void testLoad_ArtifactoryConnection(Owner owner) {
@@ -343,8 +339,6 @@ public class ArtifactoryRepositoryBaseConfigurationsPageTest
     testIsOverrideAllowed(rootOrg, true);
     testIsOverrideAllowed(org, true);
     testIsOverrideAllowed(app, false);
-
-    eyesWatcher.eyesCheck();
   }
 
   private void testIsOverrideAllowed(Owner owner, boolean allowed) {

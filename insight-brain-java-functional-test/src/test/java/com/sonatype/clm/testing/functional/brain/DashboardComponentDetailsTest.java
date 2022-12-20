@@ -108,8 +108,6 @@ public class DashboardComponentDetailsTest
     dashboardComponentDetailsPage.header().shouldHave(text("Group : Artifact : Version"));
     dashboardComponentDetailsPage.totalRisk().shouldHave(text("14"));
 
-    eyesWatcher.eyesCheck("Initial state");
-
     // top row
     ApplicationCard app1Row = dashboardComponentDetailsPage.getApplicationRow(0).shouldBe(visible);
 

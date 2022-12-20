@@ -429,8 +429,6 @@ public class OrganizationSourceControlEditorTest
 
     SourceControlEditorPage.deleteButton().click();
 
-    eyesWatcher.eyesCheck("Source Control Editor Delete Modal");
-
     DeleteModal.root().shouldBe(visible);
     DeleteModal.header().shouldHave(text("Reset Source Control"));
     DeleteModal.body().shouldHave(text("You are about to reset the Source Control configuration for organization " +
@@ -495,8 +493,6 @@ public class OrganizationSourceControlEditorTest
 
     verifyNotificationFeaturesOnly();
     SourceControlEditorPage.saveButton().shouldHave(DISABLED);
-
-    eyesWatcher.eyesCheck("Source Control Editor - organization configurations disabled, no license");
 
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, GITLAB, true, true, "master");
 

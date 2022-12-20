@@ -219,8 +219,6 @@ public class DependencyTreeTest
     dependencyIndicator.hover();
     NxTooltip tooltip = new NxTooltip();
     tooltip.shouldHave(text("InnerSource"));
-
-    eyesWatcher.eyesCheck("dependency tree innerSource dependency indicator");
   }
 
   @Test
@@ -251,8 +249,6 @@ public class DependencyTreeTest
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
     componentDetailsPage.footer().shouldNotBe(visible);
 
-    eyesWatcher.eyesCheck("component details page from dependency tree");
-
     SelenideElement menuBarBackButton = MainHeader.backButton();
     menuBarBackButton.shouldHave(text("Back to Dependency Tree"));
     menuBarBackButton.click();
@@ -275,8 +271,6 @@ public class DependencyTreeTest
         clickableTreeItems.first().find(By.cssSelector(".iq-dependency-tree-page__search-match"));
     highlightedTreeItemPortion.shouldHave(text(SEARCH_TERM));
 
-    eyesWatcher.eyesCheck("dependency tree page filtered by component name");
-
     clickableTreeItems.get(0).click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, "848d7549ef7ec13ce546"));
     MainHeader.backButton().click();
@@ -287,8 +281,6 @@ public class DependencyTreeTest
 
     filterInput.setValue("non existent component");
     clickableTreeItems.shouldHaveSize(0);
-
-    eyesWatcher.eyesCheck("dependency tree page filtered by component name with no results");
   }
 
   @Test
@@ -390,7 +382,5 @@ public class DependencyTreeTest
     SelenideElement emptyMessage = dependencyTreePage.emptyMessage();
     emptyMessage.shouldBe(visible);
     emptyMessage.shouldHave(text("Dependency tree not available."));
-
-    eyesWatcher.eyesCheck("dependency tree page empty");
   }
 }

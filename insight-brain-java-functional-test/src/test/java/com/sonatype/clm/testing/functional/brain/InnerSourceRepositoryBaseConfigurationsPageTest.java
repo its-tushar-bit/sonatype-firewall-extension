@@ -176,15 +176,11 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
   @Test
   public void testLoad_RepositoryConnections_Org() {
     testLoad_RepositoryConnections(org);
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test
   public void testLoad_RepositoryConnections_App() {
     testLoad_RepositoryConnections(app);
-
-    eyesWatcher.eyesCheck();
   }
 
   private void testLoad_RepositoryConnections(Owner owner) {
@@ -352,8 +348,6 @@ public class InnerSourceRepositoryBaseConfigurationsPageTest
     testIsOverrideAllowed(rootOrg, true);
     testIsOverrideAllowed(org, true);
     testIsOverrideAllowed(app, false);
-
-    eyesWatcher.eyesCheck();
   }
 
   private void testIsOverrideAllowed(Owner owner, boolean allowed) {

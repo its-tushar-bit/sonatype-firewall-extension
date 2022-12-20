@@ -71,10 +71,11 @@ public class ApplicationAccessEditorTest
     AccessEditorPage accessEditorPage = new AccessEditorPage();
     AccessEditorPage.AddMembersForm addMembersForm = accessEditorPage.addMembersForm();
 
-    // select a role
     NxFormSelect roleSelect = addMembersForm.roleSelect().shouldBe(visible);
-    roleSelect.click();
+    eyesWatcher.eyesCheck();
 
+    // select a role
+    roleSelect.click();
     SelenideElement roleEntry = roleSelect.listItem(2).shouldBe(visible);
     final String roleName = roleEntry.getText();
     roleEntry.click();

@@ -120,8 +120,6 @@ public class ReportListTest
     firstRow.contactName().should(visible);
     firstRow.contactName().shouldHave(exactText("reallylongfirst even longer last name junior senior"));
 
-    eyesWatcher.eyesCheck("Reports list contact name");
-
     firstRow.contactName().hover();
     firstRow.contactNameTooltip().should(visible);
     firstRow.contactNameTooltip().shouldHave(exactText("reallylongfirst even longer last name junior senior"));
@@ -207,8 +205,6 @@ public class ReportListTest
 
     IQThreatIndicators releaseThreatIndicators = firstRow.releaseReportThreatIndicators();
     releaseThreatIndicators.shouldNotBe(visible);
-
-    eyesWatcher.eyesCheck("Reports list chiclets");
   }
 
   @Test

@@ -55,8 +55,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
     OwnerSummaryPage.summaryTile().shouldBe(visible).name().shouldHave(text(currentOwner.getName()));
   }
 
-  @Test
-  public void testEditMonitoredStage() {
+  void testEditMonitoredStage() {
     String inheritOptionText = MonitoredStageEditorPage.inheritFromParentDoNotMonitorText(parentOrg.getName());
     OwnerSummaryPage.monitoredStage().shouldHave(text(inheritOptionText)).click();
     assertEditMonitoredStageStateIsCorrect(inheritOptionText);
@@ -65,8 +64,6 @@ public abstract class AbstractPolicyMonitoringEditorTest
     MonitoredStageEditorPage.updateButton().shouldNotHave(DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     assertEditMonitoredStageStateIsCorrect("Develop");
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test

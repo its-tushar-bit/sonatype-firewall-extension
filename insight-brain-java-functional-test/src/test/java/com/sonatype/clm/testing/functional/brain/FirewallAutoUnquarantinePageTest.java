@@ -153,8 +153,6 @@ public class FirewallAutoUnquarantinePageTest
 
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
-    eyesWatcher.eyesCheck("Auto Unquarantine Page - Load Error");
-
     //verify initial status with error
     page.shouldBe(visible);
     page.firewallConfigurationModal().shouldBe(hidden);

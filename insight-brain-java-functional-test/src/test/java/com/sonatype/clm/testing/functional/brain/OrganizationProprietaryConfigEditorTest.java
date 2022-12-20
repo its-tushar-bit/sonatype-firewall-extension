@@ -7,12 +7,14 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage;
 import com.sonatype.insight.brain.model.Organization;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public class OrganizationProprietaryConfigEditorTest
     extends AbstractProprietaryConfigEditorTest
@@ -29,5 +31,12 @@ public class OrganizationProprietaryConfigEditorTest
   public void testEditProprietaryComponentMatchersRootOrg() {
     OwnerTreeView.RootOrganizationNode.treeViewElement().click();
     OwnerSummaryPage.proprietaryComponentMatchers().shouldHave(text("2 local"));
+  }
+
+  @Test
+  public void editProprietaryComponentMatchersVisualTest() {
+    OwnerSummaryPage.proprietaryComponentMatchers().shouldBe(visible).click();
+    waitUntilUrl(ProprietaryConfigEditorPage.url(organization));
+    eyesWatcher.eyesCheck();
   }
 }

@@ -85,7 +85,6 @@ public class VersionGraphVsTest
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
-    eyesWatcher.eyesCheck("Component Info Screen");
 
     // test hovering over version bar shows version number
     VersionsCIP.versionBar(1).shouldBe(visible).hover();
@@ -131,9 +130,6 @@ public class VersionGraphVsTest
     VersionsCIP.policyCount().shouldNotBe(visible);
     VersionsCIP.highestSecurityThreat().shouldHave(text("NA"));
     VersionsCIP.securityCount().shouldNotBe(visible);
-
-    eyesWatcher.eyesCheck("Component Info Screen Remediation Selected");
-
   }
 
   @Test

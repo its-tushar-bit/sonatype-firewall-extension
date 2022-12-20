@@ -168,9 +168,6 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     recommendation.shouldBe(visible);
     recommendation.subText().shouldHave(
         text("The current version doesn't cause Build failure for this component and its dependencies"));
-
-    eyesWatcher.eyesCheck("component details overview tab risk remediation recommended versions" +
-        " - multiple recommendation");
   }
 
   @Test
@@ -247,8 +244,6 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     componentDetailsPage.overviewTab().shouldBe(visible);
     componentDetailsPage.overviewTabContent().riskRemediationTile().versionExplorerSection().repositorySource()
         .shouldBe(visible).shouldHave(text("Repository Source: " + repositoryConnection.getBaseUrl()));
-    
-    eyesWatcher.eyesCheck("component details overview tab risk remediation InnerSource dependency repository source");
   }
 
   @Test
@@ -326,9 +321,6 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     SelenideElement showMore = recommendedRemediationSection.toggleListLink();
     showMore.shouldHave(text("Show more"));
-
-    eyesWatcher.eyesCheck(
-        "component details overview tab risk remediation dependency information - transitive dependency show more");
   }
 
   @Test
@@ -380,10 +372,6 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     showMore = recommendedRemediationSection.toggleListLink();
     showMore.shouldHave(text("Show less"));
-
-    eyesWatcher.eyesCheck(
-        "component details overview tab risk remediation dependency information" +
-            " - transitive dependency show less elements");
   }
 
   @Test
@@ -427,10 +415,6 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     SelenideElement showMore = recommendedRemediationSection.toggleListLink();
     showMore.shouldHave(text("Show more"));
-
-    eyesWatcher.eyesCheck(
-            "component details overview tab risk remediation dependency " +
-                    "information with prior report filtering - transitive dependency show more");
   }
 
   @Test
@@ -497,8 +481,6 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     table.hygieneRatingRow().get(2).shouldHave(text("Laggard"));
     table.integrityRatingRow().get(2).shouldHave(text("Normal"));
     table.catalogDateRow().get(2).shouldNotBe(empty);
-
-    eyesWatcher.eyesCheck();
 
     versionGraph.selectVersion(4).click();
 

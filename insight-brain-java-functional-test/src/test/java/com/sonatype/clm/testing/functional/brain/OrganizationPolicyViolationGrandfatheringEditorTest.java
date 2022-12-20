@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.insight.brain.model.Organization;
 
 import org.junit.Before;
+import org.junit.Test;
 
 public class OrganizationPolicyViolationGrandfatheringEditorTest
     extends AbstractPolicyViolationGrandfatheringEditorTest
@@ -18,5 +19,12 @@ public class OrganizationPolicyViolationGrandfatheringEditorTest
   public void init() {
     organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
     super.init(organization);
+  }
+
+  @Test
+  @Override
+  public void testPolicyViolationGrandfatheringConfiguration_Editable() {
+    super.testPolicyViolationGrandfatheringConfiguration_Editable();
+    eyesWatcher.eyesCheck();
   }
 }

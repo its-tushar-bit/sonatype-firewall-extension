@@ -53,7 +53,7 @@ public class RepositoryResource
 
   static final String POLICY_VIOLATION_PATH = REPOSITORY_PATH + "/policyViolation/{repositoryPolicyViolationId}";
 
-  static final String PROPRIETARY_COMPONENT_NAME_PATTERN_PATH = RESOURCE_PATH + "/proprietaryComponentNamePattern";
+  static final String PROPRIETARY_COMPONENT_NAME_PATTERN_PATH = "proprietaryComponentNamePatterns";
 
   private RepositoryService repositoryService;
 

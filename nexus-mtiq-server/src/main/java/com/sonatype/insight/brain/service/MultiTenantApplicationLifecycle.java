@@ -45,10 +45,4 @@ public class MultiTenantApplicationLifecycle
     super(configuration, licenseManager, dataMigrator, newInstancePopulator, licenseDataUpdater, versionService,
         auditRecorder, componentCategoryUpdater, taskScheduler);
   }
-
-  @Override
-  void loadIqLicense() {
-    // no-op: For MTIQ it does not make sense to load a license on application start, instead licenses will be loaded
-    // per-tenant
-  }
 }

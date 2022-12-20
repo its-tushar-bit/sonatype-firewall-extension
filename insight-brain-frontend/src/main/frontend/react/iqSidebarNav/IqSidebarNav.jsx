@@ -85,7 +85,7 @@ function IqSidebarNav(props) {
       logoLink="#"
     >
       {isLoggedIn && (
-        <NxGlobalSidebarNavigation id="main-header-buttons">
+        <NxGlobalSidebarNavigation id="global-sidebar-buttons">
           {isDashboardAvailable && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('dashboard')}

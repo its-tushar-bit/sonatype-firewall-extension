@@ -16,7 +16,7 @@ public class SidebarNavigation
   }
 
   public static SelenideElement mainHeaderButtons() {
-    return $("#main-header-buttons");
+    return $("#global-sidebar-buttons");
   }
 
   public static SelenideElement productVersion() {

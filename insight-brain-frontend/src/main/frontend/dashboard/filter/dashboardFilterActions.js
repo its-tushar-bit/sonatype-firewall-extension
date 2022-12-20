@@ -17,6 +17,7 @@ import {
 } from '../../util/CLMLocation';
 import { filterToJson } from './dashboardFilterService';
 import defaultFilter from './defaultFilter';
+import { Messages } from '../../utilAngular/CommonServices';
 
 export const LOAD_FILTER_REQUESTED = 'LOAD_FILTER_REQUESTED';
 export const FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED = 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED';
@@ -41,17 +42,14 @@ export function loadFilter(resultsType = null, isLoadResults = false) {
   return (dispatch, getState) => {
     dispatch({ type: LOAD_FILTER_REQUESTED });
 
-    const promises = [
+    return Promise.all([
       axios.get(getApplicationsUrl()),
       axios.get(getOrganizationsUrl()),
       axios.get(getApplicationTagsUrl()),
       axios.get(getDashboardFilters()),
       dispatch(fetchStageTypes('dashboard')),
       dispatch(fetchSavedFilters()),
-    ];
-
-    return axios
-      .all(promises)
+    ])
       .then((data) => {
         const [applications, organizations, categoriesData, filterData] = data;
         // Get dashboard-stages from general state
@@ -68,8 +66,8 @@ export function loadFilter(resultsType = null, isLoadResults = false) {
         return dispatch(fetchCurrentFilterFulfilled(filterData.data, resultsType, isLoadResults));
       })
       .catch((error) => {
-        dispatch(loadFilterFailed(error));
-        return Promise.reject(error);
+        dispatch(loadFilterFailed(Messages.getHttpErrorMessage(error)));
+        throw new Error(error);
       });
   };
 }
@@ -114,7 +112,7 @@ export function applyFilter(filter, basedOnFilterName) {
     dispatch(persistAppliedFilter(filter, basedOnFilterName))
       .catch((error) => {
         dispatch(applyFilterFailed(error));
-        return Promise.reject(error);
+        throw new Error(error);
       })
       .then(({ data }) => dispatch(applyFilterFulfilled(data, basedOnFilterName)));
 }
@@ -124,7 +122,7 @@ export function applyDefaultFilter() {
     dispatch(persistAppliedFilter(filterToJson(defaultFilter), null))
       .catch((error) => {
         dispatch(applySavedFilterFailed('Default filter'));
-        return Promise.reject(error);
+        throw new Error(error);
       })
       .then(({ data }) => dispatch(applyFilterFulfilled(data, null)));
 }
@@ -134,7 +132,7 @@ export function applySavedFilter({ filter, name }) {
     dispatch(persistAppliedFilter(filter, name))
       .catch((error) => {
         dispatch(applySavedFilterFailed(name));
-        return Promise.reject(error);
+        throw new Error(error);
       })
       .then(({ data }) => dispatch(applyFilterFulfilled(data, name)));
 }

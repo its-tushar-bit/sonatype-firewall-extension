@@ -106,6 +106,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -570,7 +571,7 @@ public class ApiLicenseLegalService
     return getApplicationReportFromReportRawData(application, latestRawReport, false,
         false);
   }
-  
+
   private Set<Optional<ApiLicenseLegalApplicationReportDTO>> getMultiApplicationReportFromReportRawData(
       final List<Owner> application,
       final List<ApiReportRawDataDTOV2> latestRawReport,
@@ -606,9 +607,9 @@ public class ApiLicenseLegalService
     }
 
     CompletableFuture<Map<String, LicenseMetadataDTO>> licenseMetadataById =
-        CompletableFuture.supplyAsync(() -> multiLicenseToSingleLicense.values().stream()
+        CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> multiLicenseToSingleLicense.values().stream()
                 .flatMap(Collection::stream)
-                .collect(Collectors.toSet()))
+                .collect(Collectors.toSet())))
             .thenApply(allSingleLicenses -> allMultiLicenses.isEmpty()
                 ? Collections.emptyMap()
                 : application.stream().map(app -> getLicenseMetadata(allSingleLicenses, app.getId()))
@@ -620,27 +621,27 @@ public class ApiLicenseLegalService
             Collectors.toSet());
 
     CompletableFuture<Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData>> componentIdentifierToLegalData =
-        CompletableFuture.supplyAsync(
+        CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
             () -> application.stream().map(app -> fetchApiReportComponentDTOV2ToLegalData(app, apiReportComponentDTOV2s,
                     multiLicenseToSingleLicense))
                 .flatMap(m -> m.entrySet().stream())
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (prev, next) -> next)));
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (prev, next) -> next))));
 
     CompletableFuture<Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>>>
         componentLegalCommentsByComponentIdentifier =
-        CompletableFuture.supplyAsync(
-            () -> getComponentLegalCommentsByComponentIdentifier(latestRawReport));
+        CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
+            () -> getComponentLegalCommentsByComponentIdentifier(latestRawReport)));
 
     CompletableFuture<Map<ComponentIdentifier, Set<ComponentLegalFileDTO>>> componentLegalFilesByComponentIdentifier =
-        CompletableFuture.supplyAsync(
-            () -> getComponentLegalFilesByComponentIdentifier(latestRawReport));
+        CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
+            () -> getComponentLegalFilesByComponentIdentifier(latestRawReport)));
 
     CompletableFuture<Map<ComponentIdentifier, Set<LegalSourceLinkDTO>>> sourceLinksByComponentIdentifier =
-        CompletableFuture.supplyAsync(
+        CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
             () -> application.stream().map(app -> getSourceLinksByComponentIdentifier(app, latestRawReport))
                 .flatMap(m -> m.entrySet().stream())
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue,
-                    (prev, next) -> Stream.concat(prev.stream(), next.stream()).collect(Collectors.toSet()))));
+                    (prev, next) -> Stream.concat(prev.stream(), next.stream()).collect(Collectors.toSet())))));
 
     CompletableFuture.allOf(componentLegalCommentsByComponentIdentifier, componentLegalFilesByComponentIdentifier,
         sourceLinksByComponentIdentifier, licenseMetadataById, componentIdentifierToLegalData).join();

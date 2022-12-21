@@ -57,6 +57,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -255,28 +256,31 @@ public class IndexService
       indexingContext.addOwners(organizations);
       indexingContext.addOwners(applications);
 
-      CompletableFuture<Void> orgDocs =
-          CompletableFuture.supplyAsync(() -> buildOrganizationDocs(indexingContext, organizations))
-              .thenAccept(docs -> addDocsWithException(indexWriter, docs));
+      CompletableFuture<Void> orgDocs = CompletableFuture.supplyAsync(
+              new TenantAwareSupplier<>(() -> buildOrganizationDocs(indexingContext, organizations)))
+          .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-      CompletableFuture<Void> appDocs =
-          CompletableFuture.supplyAsync(() -> buildApplicationDocs(indexingContext, applications))
-              .thenAccept(docs -> addDocsWithException(indexWriter, docs));
+      CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(
+              new TenantAwareSupplier<>(() -> buildApplicationDocs(indexingContext, applications)))
+          .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
       List<CompletableFuture<Void>> appSVDocs = applications
           .parallelStream()
           .map(application -> CompletableFuture
-              .supplyAsync(() -> buildApplicationSVDocs(indexingContext, application))
+              .supplyAsync(new TenantAwareSupplier<>(() -> buildApplicationSVDocs(indexingContext, application)))
               .thenAccept(docs -> addDocsWithException(indexWriter, docs))).collect(toList());
 
-      CompletableFuture<Void> tagDocs = CompletableFuture.supplyAsync(() -> buildTagDocs(indexingContext))
-          .thenAccept(docs -> addDocsWithException(indexWriter, docs));
+      CompletableFuture<Void> tagDocs =
+          CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> buildTagDocs(indexingContext)))
+              .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-      CompletableFuture<Void> labelDocs = CompletableFuture.supplyAsync(() -> buildLabelDocs(indexingContext))
-          .thenAccept(docs -> addDocsWithException(indexWriter, docs));
+      CompletableFuture<Void> labelDocs =
+          CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> buildLabelDocs(indexingContext)))
+              .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
-      CompletableFuture<Void> policyDocs = CompletableFuture.supplyAsync(() -> buildPolicyDocs(indexingContext))
-          .thenAccept(docs -> addDocsWithException(indexWriter, docs));
+      CompletableFuture<Void> policyDocs =
+          CompletableFuture.supplyAsync(new TenantAwareSupplier<>(() -> buildPolicyDocs(indexingContext)))
+              .thenAccept(docs -> addDocsWithException(indexWriter, docs));
 
       log.info("indexing threads started");
       orgDocs.join();

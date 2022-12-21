@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.policy.ActionDTO;
 import com.sonatype.insight.brain.policy.ConstraintDTO;
 import com.sonatype.insight.brain.policy.NotificationDTO;
+import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +88,7 @@ public abstract class AuditData
    */
   public final <F> F continueAsync(Runnable task, Function<Runnable, F> taskSubmitter) {
     return continueAsync(auditData -> {
-      Runnable auditedTask = () -> {
+      Runnable auditedTask = new TenantAwareOneTimeRunnable(() -> {
         try (AuditSession auditSession = new AuditSession(auditData)) {
           try {
             task.run();
@@ -103,7 +104,7 @@ public abstract class AuditData
             System.exit(1);
           }
         }
-      };
+      });
       return taskSubmitter.apply(auditedTask);
     });
   }

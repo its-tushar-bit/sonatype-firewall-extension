@@ -13,18 +13,22 @@ import java.util.Optional;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.nexus.git.utils.Environment.GitLabCI;
 import com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderBuilder;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.slf4j.Logger;
@@ -239,5 +243,26 @@ public class PolicyClient
   public PolicyEvaluationSummary getPolicyEvaluationSummary(final Stage stage) throws IOException {
     Result result = path("rest/quality/evaluations/", appId, "/", stage.getStageTypeId()).get();
     return parseResult(result, PolicyEvaluationSummary.class);
+  }
+
+  /**
+   * Sends the vulnerability signatures analysis to be processed and components with vulnerable functions/method
+   * signatures are labeled as reachable.
+   * 
+   * @param scanId report with the components analyzed.
+   * @param analysisDTO result of the analysis.
+   * @return result of the re-evaluation after the analysis is imported.
+   * @throws IOException if the returned json is invalid and cannot be parsed
+   */
+  public PolicyEvaluationResult importReachabilityAnalysis(
+      String scanId,
+      VulnerabilitySignatureAnalysisDTO analysisDTO) throws IOException
+  {
+    ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(analysisDTO), ContentType.APPLICATION_JSON);
+
+    Result result =
+        path("api/experimental/signatures/vulnerability/application/publicId/", appId, "/report", scanId, "/reachable")
+            .post(entity);
+    return parseResult(result, PolicyEvaluationResult.class);
   }
 }

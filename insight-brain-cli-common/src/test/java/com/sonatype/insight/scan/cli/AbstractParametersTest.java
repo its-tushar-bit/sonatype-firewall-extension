@@ -83,6 +83,34 @@ public class AbstractParametersTest
     assertThat(params.isKeepScanFile()).isTrue();
   }
 
+  @Test
+  public void testParse_RunCallFlowAnalysis() {
+    TestParameters params = new TestParameters();
+    params.parse("--call-flow-analysis");
+    assertThat(params.isRunCallFlowAnalysis()).isTrue();
+  }
+
+  @Test
+  public void testParse_RunCallFlowAnalysisShort() {
+    TestParameters params = new TestParameters();
+    params.parse("-c");
+    assertThat(params.isRunCallFlowAnalysis()).isTrue();
+  }
+
+  @Test
+  public void testParse_CallFlowAnalysisNamespaces() {
+    TestParameters params = new TestParameters();
+    params.parse("--call-flow-analysis-namespaces", "test");
+    assertThat(params.getCallFlowAnalysisNamespaces()).containsExactly("test");
+  }
+
+  @Test
+  public void testParse_CallFlowAnalysisNamespacesShort() {
+    TestParameters params = new TestParameters();
+    params.parse("-cn", "test");
+    assertThat(params.getCallFlowAnalysisNamespaces()).containsExactly("test");
+  }
+
   private String getFilePath(String filename) {
     ClassLoader classLoader = getClass().getClassLoader();
     File file = new File(classLoader.getResource("AbstractParametersTest/" + filename).getFile());

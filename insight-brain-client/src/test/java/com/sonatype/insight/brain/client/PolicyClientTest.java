@@ -19,6 +19,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -303,6 +304,22 @@ public class PolicyClientTest
 
     verify(logger).debug("Assigned status ID {}", "evaluation-statusid");
     verify(logger).info("Assigned scan ID {}", "test-scanid");
+  }
+
+  @Test
+  public void testImportReachabilityAnalysis() throws IOException {
+    Application application = tempEntity.newApplicationWithParent("test-app");
+    Configuration config = getCLMServer().getClientConfiguration();
+    config.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
+    PolicyClient policyClient = spy(new PolicyClient(config, application.getPublicId()));
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = new VulnerabilitySignatureAnalysisDTO();
+
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> policyClient.importReachabilityAnalysis("test-scanid", analysisDTO))
+        .withMessage("No vulnerability signatures specified");
+
+    verify(policyClient, times(1)).parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationResult.class));
   }
 
   private File createScanFile(Application app, String scanId) {

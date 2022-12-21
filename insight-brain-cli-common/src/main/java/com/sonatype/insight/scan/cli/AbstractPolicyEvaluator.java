@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
@@ -24,6 +25,8 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
+import com.sonatype.clm.dto.model.signature.ComponentWithSignaturesList;
+import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.client.PolicyAction;
 import com.sonatype.insight.brain.client.RestClientFactory;
 import com.sonatype.insight.brain.client.RestClientFactory.RestClient;
@@ -33,9 +36,13 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ScanMetadata;
+import com.sonatype.insight.scanner.call.flow.analyzer.CallFlowAnalysisConfig;
+import com.sonatype.insight.scanner.call.flow.analyzer.CallFlowGraphExtractor;
+import com.sonatype.insight.scanner.call.flow.analyzer.CallFlowGraphHandler;
 import com.sonatype.nexus.git.utils.Environment.GitLabCI;
 import com.sonatype.nexus.git.utils.commit.CommitHashFinderBuilder;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.http.client.HttpResponseException;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.StringUtils;
@@ -300,13 +307,19 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       throw new ExitException(params.isIgnoreSystemErrors(), e);
     }
 
+    PolicyEvaluationResult policyEvaluationResult = eval.getResult();
+
+    if (params.isRunCallFlowAnalysis() || params.getCallFlowAnalysisNamespaces() != null) {
+      policyEvaluationResult = runCallFlowAnalysis(params, restClient, eval);
+    }
+
     log.info("");
     log.info("");
     log.info("");
     log.info("");
 
     PolicyAction outcome = PolicyAction.NONE;
-    for (PolicyAlert alert : eval.getResult().getAlerts()) {
+    for (PolicyAlert alert : policyEvaluationResult.getAlerts()) {
       PolicyFact trigger = alert.getTrigger();
       for (final Action action : alert.getActions()) {
         final String actionTypeId = action.getActionTypeId();
@@ -321,7 +334,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       }
     }
 
-    processResults(params, eval.getScanReceipt(), eval.getResult(), outcome, restClient);
+    processResults(params, eval.getScanReceipt(), policyEvaluationResult, outcome, restClient);
   }
 
   protected RestClient createClient(Configuration configuration) {
@@ -407,5 +420,48 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       log.debug("Commit hash for application with id: {} could not be found.", params.getApplicationId());
     }
     return scanMetadata;
+  }
+
+  private PolicyEvaluationResult runCallFlowAnalysis(
+      P params,
+      RestClient restClient,
+      PolicyEvaluationPollingResult policyEvaluationResult) throws ExitException
+  {
+    log.info("Running call flow analysis...");
+    StopWatch stopWatch = StopWatch.createStarted();
+
+    PolicyEvaluationResult result = policyEvaluationResult.getResult();
+    String scanId = policyEvaluationResult.getScanReceipt().getScanId();
+    try {
+      ComponentWithSignaturesList vulnerableComponentsSignatures =
+          restClient.getVulnerableComponentsWithSignatures(params.getApplicationId(), scanId);
+
+      if (vulnerableComponentsSignatures != null && !vulnerableComponentsSignatures.getComponents().isEmpty()) {
+        CallFlowAnalysisConfig config =
+            new CallFlowAnalysisConfig(params.getScanTargets(), params.getCallFlowAnalysisNamespaces());
+
+        CallFlowGraphExtractor extractor = CallFlowGraphExtractor.newInstance(log, config);
+        CallFlowGraphHandler handler = extractor.buildCallFlowGraph();
+
+        VulnerabilitySignatureAnalysisDTO analysisDto =
+            handler.buildVulnerabilitySignatureAnalysis(vulnerableComponentsSignatures);
+
+        result = restClient.importReachabilityAnalysis(params.getApplicationId(), scanId, analysisDto);
+
+        stopWatch.stop();
+        log.info("Call flow analysis completed in {} seconds.", stopWatch.getTime(TimeUnit.SECONDS));
+      }
+      else {
+        stopWatch.stop();
+        log.info("Call flow analysis skipped due to not finding vulnerable signatures.");
+      }
+    }
+    catch (Exception e) {
+      String message = String.format("Call flow analysis for application ID %s and scan ID %s failed: %s",
+          params.getApplicationId(), scanId, e.getMessage());
+      log.error(message, e);
+      saveErrorData(params, CLIError.forSystemError(message), restClient);
+    }
+    return result;
   }
 }

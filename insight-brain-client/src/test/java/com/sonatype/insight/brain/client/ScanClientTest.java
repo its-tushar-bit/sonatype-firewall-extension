@@ -6,11 +6,19 @@
 package com.sonatype.insight.brain.client;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.clm.dto.model.signature.ComponentWithSignatures;
+import com.sonatype.clm.dto.model.signature.ComponentWithSignaturesList;
+import com.sonatype.clm.dto.model.signature.FunctionSignature;
+import com.sonatype.clm.dto.model.signature.Signature;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -107,5 +115,32 @@ public class ScanClientTest
       new ScanClient(config, "invalid-id").uploadCLIScan(tmpDir.newFile("scan.xml.gz"), ClientScanType.SONATYPE);
     }).withMessage("Could not find an application with public ID invalid-id.")
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
+  }
+
+  @Test
+  public void testGetVulnerableComponentsWithSignatures() throws IOException {
+    Configuration config = getCLMServer().getClientConfiguration();
+    ScanClient scanClient = new ScanClient(config, APP_ID);
+
+    String scanId = tempEntity.uuid();
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(new ApplicationDAO().getByPublicId(APP_ID).getId(), BuildStageType.ID, scanId);
+    mockReport(policyEvaluation, getClass().getSimpleName());
+
+    Signature signature = new Signature();
+    signature.setAnchor("test-anchor");
+    signature
+        .setFunctionSignature(new FunctionSignature("com/sonatype/insight/scan/cli/Main.main([Ljava/lang/String;)V"));
+
+    ComponentWithSignatures component = new ComponentWithSignatures("pkg:maven/gid/aid@1.0?type=jar", signature);
+    ComponentWithSignaturesList componentWithSignaturesList =
+        new ComponentWithSignaturesList(Collections.singletonList(component));
+
+    hdsRespondWith(componentWithSignaturesList).atUri("rest/component/signatures/vulnerability");
+
+    ComponentWithSignaturesList result = scanClient.getVulnerableComponentsWithSignatures(scanId);
+    assertThat(result)
+        .isNotNull()
+        .usingRecursiveComparison().isEqualTo(componentWithSignaturesList);
   }
 }

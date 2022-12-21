@@ -10,6 +10,7 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.clm.dto.model.signature.ComponentWithSignaturesList;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.UrlUtils;
@@ -76,5 +77,20 @@ public class ScanClient
     errorData.errorMessage = errorMessage;
     errorData.isSystemError = isSystemError;
     JsonUtils.write(errorFile, errorData);
+  }
+
+  /**
+   * Fetches the vulnerable function/method signatures of the components in a scan.
+   * 
+   * @param scanId ID for the scan/report.
+   * @return DTO containing the list of vulnerable function/method signatures.
+   * @throws IOException If there is an error calling IQ Server.
+   * @since 1.152.0
+   */
+  public ComponentWithSignaturesList getVulnerableComponentsWithSignatures(String scanId) throws IOException {
+    Result result =
+        path("api/experimental/signatures/vulnerability/application/publicId/", appId, "/report", scanId)
+            .post(null);
+    return parseResult(result, ComponentWithSignaturesList.class);
   }
 }

@@ -1,0 +1,58 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "aid",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "gid",
+          "version": "1.0"
+        }
+      },
+      "hash": "12345678901234567890",
+      "matchState": "exact",
+      "relativePopularity": 0,
+      "createTime": 1201589122000,
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "npm",
+        "coordinates": {
+          "packageId": "pid",
+          "version": "1.0"
+        }
+      },
+      "hash": "12345678901234567891",
+      "matchState": "exact",
+      "relativePopularity": 0,
+      "createTime": 1201589122000,
+      "proprietary": false
+    },
+    {
+      "componentIdentifier": {
+        "format": "nuget",
+        "coordinates": {
+          "packageId": "pid",
+          "version": "1.0"
+        }
+      },
+      "hash": "12345678901234567892",
+      "matchState": "exact",
+      "relativePopularity": 0,
+      "createTime": 1201589122000,
+      "proprietary": false
+    },
+    {
+      "hash": null,
+      "pathnames": [
+        "encrypted-archive.jar/unreadable.entry.js"
+      ],
+      "matchState": "unknown",
+      "relativePopularity": null,
+      "proprietary": false
+    }
+  ]
+}

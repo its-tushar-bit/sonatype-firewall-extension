@@ -43,6 +43,10 @@
       <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-module-model</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-scanner-call-flow-analyzer</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>

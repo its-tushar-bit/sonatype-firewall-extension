@@ -20,16 +20,23 @@ import java.util.stream.Stream;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.signature.ComponentWithSignatures;
+import com.sonatype.clm.dto.model.signature.ComponentWithSignaturesList;
+import com.sonatype.clm.dto.model.signature.FunctionSignature;
+import com.sonatype.clm.dto.model.signature.Signature;
 import com.sonatype.insight.brain.client.ResultData;
 import com.sonatype.insight.brain.client.UnsupportedServerVersionException;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
+import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.policy.actions.NotifyActionType;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
@@ -38,6 +45,7 @@ import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.model.ArtifactId;
 import com.sonatype.insight.scan.model.Dependency;
@@ -841,6 +849,73 @@ public abstract class DefaultPolicyEvaluatorTest
     assertDependency(dependencies, "org.apache.httpcomponents:httpcore:jar:4.4.13");
     assertDependency(dependencies, "commons-logging:commons-logging:jar:1.2");
     assertDependency(dependencies, "commons-codec:commons-codec:jar:1.11");
+  }
+
+  @Test
+  public void testRun_WithCallFlowAnalysisAndNoVulnerableSignatures() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+
+    hdsRespondWith(new ComponentWithSignaturesList()).atUri("rest/component/signatures/vulnerability");
+
+    List<String> params = ImmutableList.of(
+        "-s", insightServerUrl,
+        "-a", "admin:admin123",
+        "-i", app.getPublicId(),
+        "--output-directory", tempDir.getRoot().getAbsolutePath(),
+        "-c",
+        "src/test/data/artifact.jar"
+    );
+
+    withTestRunner(params).doPolicyEvaluationRun();
+
+    Label label = new LabelDAO().getByLabelWithHierarchy("Security-Reachable", app.getId());
+    if (label != null) {
+      ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+      try (TransactionContext tx = componentLabelDAO.createTransactionContext()) {
+        assertThat(componentLabelDAO.getByLabelIdAndOwnerIds(tx, label.getId(), Collections.singleton(app.getId())))
+            .isEmpty();
+      }
+    }
+  }
+
+  @Test
+  public void testRun_WithCallFlowAnalysisAndVulnerableSignatures() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("the-app-id");
+
+    Signature signature = new Signature();
+    signature.setAnchor("test-anchor");
+    signature
+        .setFunctionSignature(new FunctionSignature("com/sonatype/insight/scan/cli/Main.main([Ljava/lang/String;)V"));
+
+    ComponentWithSignatures component =
+        new ComponentWithSignatures("pkg:maven/ch.qos.logback/logback-access@0.6", signature);
+
+    ComponentWithSignaturesList componentWithSignaturesList =
+        new ComponentWithSignaturesList(Collections.singletonList(component));
+
+    hdsRespondWith(componentWithSignaturesList).atUri("rest/component/signatures/vulnerability");
+
+    List<String> params = ImmutableList.of(
+        "-s", insightServerUrl,
+        "-a", "admin:admin123",
+        "-i", app.getPublicId(),
+        "--output-directory", tempDir.getRoot().getAbsolutePath(),
+        "-c",
+        "src/test/data/artifact.jar"
+    );
+
+    withTestRunner(params).doPolicyEvaluationRun();
+
+    Label label = new LabelDAO().getByLabelWithHierarchy("Security-Reachable", app.getId());
+    assertThat(label).isNotNull();
+
+    if (label != null) {
+      ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+      try (TransactionContext tx = componentLabelDAO.createTransactionContext()) {
+        assertThat(componentLabelDAO.getByLabelIdAndOwnerIds(tx, label.getId(), Collections.singleton(app.getId())))
+            .isNotEmpty();
+      }
+    }
   }
 
   private ScanItem findScanItemByPath(Collection<ScanItem> scanItems, String path) {

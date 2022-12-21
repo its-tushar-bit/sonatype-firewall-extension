@@ -16,6 +16,8 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.signature.ComponentWithSignaturesList;
+import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.scan.model.ClientScanResult;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -181,6 +183,21 @@ public class RestClientFactory
 
     public Set<String> getLicensedFeatures() throws IOException {
       return new ConfigurationClient(config).getLicensedFeatures();
+    }
+
+    public ComponentWithSignaturesList getVulnerableComponentsWithSignatures(
+        String applicationId,
+        String scanId) throws IOException
+    {
+      return new ScanClient(config, applicationId).getVulnerableComponentsWithSignatures(scanId);
+    }
+
+    public PolicyEvaluationResult importReachabilityAnalysis(
+        String applicationId,
+        String scanId,
+        VulnerabilitySignatureAnalysisDTO analysisDTO) throws IOException
+    {
+      return new PolicyClient(config, applicationId).importReachabilityAnalysis(scanId, analysisDTO);
     }
   }
 }

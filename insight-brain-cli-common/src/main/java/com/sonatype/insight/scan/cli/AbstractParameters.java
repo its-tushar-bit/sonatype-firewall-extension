@@ -115,6 +115,13 @@ public abstract class AbstractParameters
       hidden = true)
   private boolean keepScanFile;
 
+  @Parameter(names = {"-c", "--call-flow-analysis"}, description = "Runs Call Flow Analysis")
+  private boolean runCallFlowAnalysis;
+
+  @Parameter(names = {"-cn", "--call-flow-analysis-namespaces"},
+      description = "Runs Call Flow Analysis for the given namespaces", listConverter = StringConverter.class)
+  private List<String> callFlowAnalysisNamespaces;
+
   public AbstractParameters() {
   }
 
@@ -262,6 +269,14 @@ public abstract class AbstractParameters
 
   public boolean isKeepScanFile() {
     return keepScanFile;
+  }
+
+  public boolean isRunCallFlowAnalysis() {
+    return runCallFlowAnalysis;
+  }
+
+  public List<String> getCallFlowAnalysisNamespaces() {
+    return callFlowAnalysisNamespaces;
   }
 
   /*

@@ -1,0 +1,23 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "aid",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "gid",
+          "version": "1.0"
+        }
+      },
+      "hash": "12345678901234567890",
+      "reference": "CVE-4321-1234",
+      "source": "cve",
+      "score": 4.3,
+      "cwe": "321",
+      "matchState": "exact",
+      "proprietary": false
+    }
+  ]
+}

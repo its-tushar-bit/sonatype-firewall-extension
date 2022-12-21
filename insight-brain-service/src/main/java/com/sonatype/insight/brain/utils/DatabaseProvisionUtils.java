@@ -125,7 +125,7 @@ public class DatabaseProvisionUtils
       return true;
     }
     int currentVersion = DatabaseUtil.getDatabaseSchemaVersion(dataSource, dataStoreId, databaseSchemaName);
-    int desiredVersion = DatabaseMigrator.determineDesiredVersion(databaseSchemaName);
+    int desiredVersion = DatabaseMigrator.determineDesiredVersion(dataStoreId);
     return currentVersion < desiredVersion;
   }
 

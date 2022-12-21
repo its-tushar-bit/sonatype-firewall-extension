@@ -7,15 +7,10 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 
-import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
-import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.tenancy.MultiTenantTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,8 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,39 +38,15 @@ public class TenantLifecycleTest
   @Mock
   InsightConfig config;
 
-  @Mock
-  OperationalDataStore operationalDataStore;
-
-  @Mock
-  AggregationDataStore aggregationDataStore;
-
-  @Mock
-  DataMartDataStore dataMartDataStore;
-
-  @Mock
-  ThirdPartyScansDataStore thirdPartyScansDataStore;
-
-  @Mock
-  DatabaseProvisionUtils databaseProvisionUtils;
-
-  @Mock
-  DatabaseConfigProvider databaseConfigProvider;
-
   TenantLifecycle underTest;
 
   @Before
   @Override
   public void setup() {
-    underTest = new TestTenantLifecycle(licenseManager,
+    underTest = new TenantLifecycle(licenseManager,
         dataMigrator,
         newInstancePopulator,
-        config,
-        operationalDataStore,
-        aggregationDataStore,
-        dataMartDataStore,
-        thirdPartyScansDataStore,
-        databaseProvisionUtils,
-        databaseConfigProvider);
+        config);
   }
 
   @Test
@@ -85,8 +54,6 @@ public class TenantLifecycleTest
     setTenant(new Tenant("tenant"));
 
     underTest.bootTenant();
-
-    verify(databaseProvisionUtils).initializeDatabases(eq(config), any(DatabaseConfigProvider.class));
 
     verify(dataMigrator).migrate();
     verify(licenseManager).loadLicense();
@@ -106,33 +73,5 @@ public class TenantLifecycleTest
     underTest.bootTenant();
 
     verify(licenseManager).installLicenseIfUnlicensed(sonatypeWorkDir + "/" + licenseFile);
-  }
-
-  private static class TestTenantLifecycle
-      extends TenantLifecycle
-  {
-    DatabaseProvisionUtils databaseProvisionUtils;
-
-    public TestTenantLifecycle(
-        CLMLicenseManager licenseManager,
-        DataMigrator dataMigrator,
-        NewInstancePopulator newInstancePopulator,
-        InsightConfig config,
-        OperationalDataStore operationalDataStore,
-        AggregationDataStore aggregationDataStore,
-        DataMartDataStore dataMartDataStore,
-        ThirdPartyScansDataStore thirdPartyScansDataStore,
-        DatabaseProvisionUtils databaseProvisionUtils,
-        DatabaseConfigProvider databaseConfigProvider)
-    {
-      super(licenseManager, dataMigrator, newInstancePopulator, config, operationalDataStore, aggregationDataStore,
-          dataMartDataStore, thirdPartyScansDataStore, databaseConfigProvider);
-      this.databaseProvisionUtils = databaseProvisionUtils;
-    }
-
-    @Override
-    protected DatabaseProvisionUtils getDatabaseProvisionUtils() {
-      return databaseProvisionUtils;
-    }
   }
 }

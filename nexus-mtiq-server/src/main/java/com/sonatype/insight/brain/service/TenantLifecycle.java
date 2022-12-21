@@ -10,13 +10,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
-import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
-import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
@@ -40,52 +35,36 @@ public class TenantLifecycle
 
   private final InsightConfig config;
 
-  private final OperationalDataStore operationalDataStore;
-
-  private final AggregationDataStore aggregationDataStore;
-
-  private final DataMartDataStore dataMartDataStore;
-
-  private final ThirdPartyScansDataStore thirdPartyScansDataStore;
-
-  private final DatabaseConfigProvider databaseConfigProvider;
-
   @Inject
   public TenantLifecycle(
       CLMLicenseManager licenseManager,
       DataMigrator dataMigrator,
       NewInstancePopulator newInstancePopulator,
-      InsightConfig config,
-      OperationalDataStore operationalDataStore,
-      AggregationDataStore aggregationDataStore,
-      DataMartDataStore dataMartDataStore,
-      ThirdPartyScansDataStore thirdPartyScansDataStore,
-      DatabaseConfigProvider databaseConfigProvider)
+      InsightConfig config)
   {
     this.dataMigrator = dataMigrator;
     this.licenseManager = licenseManager;
     this.newInstancePopulator = newInstancePopulator;
     this.config = config;
-    this.operationalDataStore = operationalDataStore;
-    this.aggregationDataStore = aggregationDataStore;
-    this.dataMartDataStore = dataMartDataStore;
-    this.thirdPartyScansDataStore = thirdPartyScansDataStore;
-    this.databaseConfigProvider = databaseConfigProvider;
   }
 
   public void bootTenant() {
     try {
-      getDatabaseProvisionUtils().initializeDatabases(config, databaseConfigProvider);
+      log.info("TenantLifecycle start");
 
       dataMigrator.migrate();
+      log.info("TenantLifecycle dataMigrator.migrate() - complete");
 
       licenseManager.loadLicense();
+      log.info("TenantLifecycle licenseManager.loadLicense() - complete");
 
       maybeLoadLicenseFile();
+      log.info("TenantLifecycle maybeLoadLicenseFile() - complete");
 
       // This call must come after the DataMigrator. Specifically, the RootOrganizationConfigMigrator as the sample data
       // will interfere with its decision to determine a fresh install and mistakenly trigger the root org migration.
       newInstancePopulator.populateIfNewInstance();
+      log.info("TenantLifecycle newInstancePopulator.populateIfNewInstance() - complete");
     }
     catch (Exception e) {
       throw new RuntimeException(e);
@@ -110,12 +89,5 @@ public class TenantLifecycle
     catch (Exception e) {
       log.warn("The license {} could not be installed", config.getLicenseFile(), e);
     }
-  }
-
-  protected DatabaseProvisionUtils getDatabaseProvisionUtils() {
-    return new DatabaseProvisionUtils(operationalDataStore,
-        aggregationDataStore,
-        dataMartDataStore,
-        thirdPartyScansDataStore);
   }
 }

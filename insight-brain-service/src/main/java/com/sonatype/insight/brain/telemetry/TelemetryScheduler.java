@@ -16,6 +16,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.security.SystemRunnable;
+import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -78,7 +79,7 @@ public class TelemetryScheduler
 
   @VisibleForTesting
   static ScheduledThreadPoolExecutor getScheduledThreadPoolExecutor() {
-    return new ScheduledThreadPoolExecutor(1,
+    return new TenantScheduledThreadPoolExecutor(1,
         new ThreadFactoryBuilder().setNameFormat("TelemetryScheduler-%d").setDaemon(true).build());
   }
 }

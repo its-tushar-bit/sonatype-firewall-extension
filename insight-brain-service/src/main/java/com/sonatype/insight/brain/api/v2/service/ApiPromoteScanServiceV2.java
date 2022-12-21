@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResult
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.model.ClientScanType;
 
@@ -55,7 +56,7 @@ public class ApiPromoteScanServiceV2
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
   private final InsightWork work;
-  
+
   private final PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils;
 
   @Inject
@@ -71,7 +72,7 @@ public class ApiPromoteScanServiceV2
     this.work = work;
     this.policyEvaluationPollingResultUtils = policyEvaluationPollingResultUtils;
 
-    executor = new ThreadPoolExecutor(100, 100, 5L, TimeUnit.SECONDS,
+    executor = new TenantThreadPoolExecutor(100, 100, 5L, TimeUnit.SECONDS,
         new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("ApiPromoteScanServiceV2-%d").build());
     executor.allowCoreThreadTimeOut(true);
   }

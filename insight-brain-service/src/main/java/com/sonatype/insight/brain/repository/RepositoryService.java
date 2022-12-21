@@ -61,6 +61,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -332,7 +333,7 @@ public class RepositoryService
 
   /**
    * Sort by threatLevel DESC, pathname ASC.
-   * 
+   *
    * @deprecated The related API endpoint is deprecated.
    *             To be removed when the Repository Results View migration to
    *             React is completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
@@ -372,7 +373,7 @@ public class RepositoryService
   }
 
   private static Executor createReevaluationExecutor() {
-    ThreadPoolExecutor executor = new ThreadPoolExecutor(20, 20, 5L, TimeUnit.SECONDS,
+    ThreadPoolExecutor executor = new TenantThreadPoolExecutor(20, 20, 5L, TimeUnit.SECONDS,
         new LinkedBlockingQueue<Runnable>(), new ThreadFactoryBuilder().setDaemon(true)
             .setNameFormat("ReevaluateRepository-%s").build());
 
@@ -458,7 +459,7 @@ public class RepositoryService
   /**
    * Used by the web UI to display various timestamps related to policy evaluations.
    * The UI calls this method for component versions for which it only has a component identifier (no hash or pathname).
-   * 
+   *
    * @since 1.139
    */
   @Authorize(permission = Permission.READ)
@@ -480,7 +481,7 @@ public class RepositoryService
     policyEvaluationTimestampsDTO.quarantineTime = repositoryComponent.getQuarantineTime();
     policyEvaluationTimestampsDTO.unquarantineTime = repositoryComponent.getUnquarantineTime();
     policyEvaluationTimestampsDTO.autoUnquarantined = repositoryComponent.getAutoUnquarantined();
-    
+
     return policyEvaluationTimestampsDTO;
   }
 
@@ -554,12 +555,12 @@ public class RepositoryService
     if (request == null) {
       throw new BadRequestException("Missing request parameters");
     }
-    
+
     ProprietaryComponentNamePatternFilter filter = validateAndInitializeFilter(request);
 
     List<ProprietaryComponentNamePattern> proprietaryComponentNamePatterns =
         proprietaryComponentNamePatternDAO.getByFilter(filter);
-    
+
     ProprietaryComponentNamePatternsPage result = new ProprietaryComponentNamePatternsPage();
 
     int iPattern = 1;

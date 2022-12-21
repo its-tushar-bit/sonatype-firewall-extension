@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -30,6 +29,7 @@ import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.SingleApp
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -325,7 +325,7 @@ public class UserEventManager
   private ScheduledExecutorService newExecutor() {
     ThreadFactory threadFactory =
         new ThreadFactoryBuilder().setNameFormat("UserEventManager-%d").setDaemon(true).build();
-    return new ScheduledThreadPoolExecutor(1, threadFactory);
+    return new TenantScheduledThreadPoolExecutor(1, threadFactory);
   }
 
   @VisibleForTesting

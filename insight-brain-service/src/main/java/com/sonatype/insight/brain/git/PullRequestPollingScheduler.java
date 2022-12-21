@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.git;
 
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -15,6 +14,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.security.SystemRunnable;
+import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -87,7 +87,7 @@ public class PullRequestPollingScheduler
   private ScheduledExecutorService newExecutor() {
     ThreadFactory threadFactory =
         new ThreadFactoryBuilder().setNameFormat("PullRequestMonitor-%d").setDaemon(true).build();
-    return new ScheduledThreadPoolExecutor(1, threadFactory);
+    return new TenantScheduledThreadPoolExecutor(1, threadFactory);
   }
 
   private void startPullRequestMonitoring() {

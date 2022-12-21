@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -54,7 +55,7 @@ public class FirewallMigrationService
 
   private static final RepositoryMigrationDAO repositoryMigrationDAO = new RepositoryMigrationDAO();
 
-  private final ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 3, TimeUnit.SECONDS,
+  private final ThreadPoolExecutor executor = new TenantThreadPoolExecutor(1, 1, 3, TimeUnit.SECONDS,
       new LinkedBlockingQueue<Runnable>(), new ThreadFactoryBuilder().setNameFormat("FirewallMigration-%d").build());
 
   private final VersionService versionService;

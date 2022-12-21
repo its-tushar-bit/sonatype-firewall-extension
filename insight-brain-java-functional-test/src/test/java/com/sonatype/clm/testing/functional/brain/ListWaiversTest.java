@@ -17,7 +17,7 @@ import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage.DeleteWaiverModal;
+import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListRow;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListTable;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
@@ -247,7 +247,7 @@ public class ListWaiversTest
     row1.deleteButton().should(exist);
     row1.deleteButton().click();
 
-    DeleteWaiverModal modal = listWaiversPage.deleteWaiverModal();
+    DeleteWaiverModal modal = new DeleteWaiverModal();
     modal.root().shouldBe(visible);
     modal.header().shouldHave(text("Delete Waiver"));
     modal.message().shouldHave(text("Are you sure you want to delete this waiver?"));

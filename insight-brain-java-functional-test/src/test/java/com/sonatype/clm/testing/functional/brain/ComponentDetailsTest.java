@@ -46,6 +46,7 @@ import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
@@ -657,7 +658,7 @@ public class ComponentDetailsTest
     eyesWatcher.eyesCheck("component details violations tab component waivers popover");
     componentWaiversTable.deleteWaiverButton(1).click();
 
-    ListWaiversPage.DeleteWaiverModal deleteWaiverModal = componentWaiversPopover.deleteWaiverModal();
+    DeleteWaiverModal deleteWaiverModal = new DeleteWaiverModal();
     deleteWaiverModal.root().shouldBe(visible);
     deleteWaiverModal.yesButton().click();
     deleteWaiverModal.root().should(disappear);

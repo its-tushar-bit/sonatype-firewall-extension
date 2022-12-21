@@ -51,7 +51,7 @@ import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage.DeleteWaiverModal;
+import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListTable;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -103,6 +103,7 @@ import org.openqa.selenium.support.ui.Wait;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -1693,7 +1694,7 @@ public class FirewallComponentDetailsPageTest
     listWaiversPage.addWaiverButton().shouldBe(visible, enabled).click();
     
     AddWaiverPage addWaiverPage = new AddWaiverPage();
-    addWaiverPage.comments().shouldHave(text(""));
+    addWaiverPage.comments().shouldHave(exactText(""));
     addWaiverPage.expiryTimesOptions().shouldHaveSize(8);
     addWaiverPage.expiryTimesOptions().get(0).shouldHave(text("Never"));
     addWaiverPage.expiryTimesOptions().get(1).shouldHave(text("7 Days"));
@@ -2353,7 +2354,7 @@ public class FirewallComponentDetailsPageTest
     WaiverListTable waiverListTable = listWaiversPage.waiverListTable();
     waiverListTable.row(1).deleteButton().click();
 
-    DeleteWaiverModal modal = listWaiversPage.deleteWaiverModal();
+    DeleteWaiverModal modal = new DeleteWaiverModal();
     modal.root().shouldBe(visible);
     modal.header().shouldHave(text("Delete Waiver"));
     modal.message().shouldHave(text("Are you sure you want to delete this waiver?"));

@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.pages.ListWaiversPage.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -33,10 +32,6 @@ public class ComponentWaiversPopover
 
   public ComponentWaiversPopoverTable componentWaiversPopoverTable() {
     return ComponentWaiversPopoverTable.getTableForParent(ROOT);
-  }
-
-  public DeleteWaiverModal deleteWaiverModal() {
-    return new ListWaiversPage.DeleteWaiverModal();
   }
 
   public static class ComponentWaiversPopoverTable

@@ -81,10 +81,6 @@ public class ListWaiversPage
     return new WaiverListTable();
   }
 
-  public DeleteWaiverModal deleteWaiverModal() {
-    return new DeleteWaiverModal();
-  }
-
   public RequestWaiversPopover requestWaiversPopover() {
     return new RequestWaiversPopover();
   }
@@ -178,32 +174,6 @@ public class ListWaiversPage
 
     public SelenideElement deleteButton() {
       return child(".list-waivers-row__delete-btn");
-    }
-  }
-
-  public static class DeleteWaiverModal
-      extends BasicElement<DeleteWaiverModal>
-  {
-    private static final String ROOT_SELECTOR = "#delete-waiver-modal";
-
-    public SelenideElement root() {
-      return $(ROOT_SELECTOR);
-    }
-
-    public SelenideElement header() {
-      return child(".nx-modal-header");
-    }
-
-    public SelenideElement message() {
-      return child(".nx-modal-content");
-    }
-
-    public SelenideElement cancelButton() {
-      return child("#delete-waiver-modal-cancel-button");
-    }
-
-    public SelenideElement yesButton() {
-      return child("#delete-waiver-modal-continue-button");
     }
   }
 }

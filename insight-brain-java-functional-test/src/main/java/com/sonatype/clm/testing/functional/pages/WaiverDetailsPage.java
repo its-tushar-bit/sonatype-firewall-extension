@@ -102,10 +102,6 @@ public class WaiverDetailsPage
     return child(".iq-waiver-details__delete-waiver .nx-btn");
   }
 
-  public SelenideElement deleteWaiverConfirmationButton() {
-    return child("#delete-waiver-modal-continue-button");
-  }
-
   public NxBackButton backButton() {
     return new NxBackButton("#menu-bar__back-button-container");
   }

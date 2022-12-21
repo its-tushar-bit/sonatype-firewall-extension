@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.IqVulnerabilityModal;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.WaiverDetailsPage;
 import com.sonatype.clm.testing.functional.pages.WaiverDetailsPage.SidebarNav;
 import com.sonatype.clm.testing.functional.pages.WaiverDetailsPage.SidebarNavListItem;
@@ -298,9 +299,10 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
         application.getId(), policyWaivers.get(0).getId(), "waiver", "filter"));
 
     WaiverDetailsPage waiverDetailsPage = new WaiverDetailsPage();
+    DeleteWaiverModal deleteWaiverModal = new DeleteWaiverModal();
     waiverDetailsPage.detailsPolicy().shouldHave(text("Policy 1"));
     waiverDetailsPage.deleteWaiverButton().click();
-    waiverDetailsPage.deleteWaiverConfirmationButton().click();
+    deleteWaiverModal.yesButton().click();
     waitUntilUrl(WaiverDetailsPage.urlWithQueryParams(application.getType().toString().toLowerCase(Locale.ROOT),
         application.getId(), policyWaivers.get(0).getId(), "waiver", "filter"));
     waiverDetailsPage.detailsPolicy().shouldHave(text("Policy 2"));

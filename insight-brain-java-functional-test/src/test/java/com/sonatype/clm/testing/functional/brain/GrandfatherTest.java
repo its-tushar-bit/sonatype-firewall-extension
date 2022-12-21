@@ -68,7 +68,10 @@ public class GrandfatherTest
   public void testGrandfather_ModalInitialState_GrandfatheringEnabled() {
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.grandfather().shouldBe(visible).shouldNotBe(DISABLED).hover();
-    Tooltip.get().shouldBe(hidden);
+    if (Tooltip.get().getElement().isDisplayed()) {
+      Tooltip.get().shouldNotHave(text("Grandfathering is not enabled for this application."));
+      Tooltip.get().shouldHave(text("Grandfather " + YE_OLE_APPLICATION));
+    }
     ActionDropDown.grandfather().click();
     GrandfatherModal modal = new GrandfatherModal();
     modal.shouldBe(visible);

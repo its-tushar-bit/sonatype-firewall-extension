@@ -64,6 +64,7 @@ import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
 import LicenseThreatGroupSummaryTile from 'MainRoot/OrgsAndPolicies/ownerSummary/licenseThreatGroupSummaryTile/LicenseThreatGroupSummaryTile';
 import SelectContactModal from 'MainRoot/OrgsAndPolicies/selectContactModal/SelectContactModal';
 import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/EvaluateApplicationModal';
+import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import OwnerDetailSidebar from 'MainRoot/owner.manager/navigation/OwnerDetailSidebar';
 import RepositoriesPills from 'MainRoot/owner.manager/repositories/RepositoriesPills/RepositoriesPills';
 
@@ -139,6 +140,7 @@ export default angular
   )
   .component('selectContactModal', iqReact2Angular(SelectContactModal, [], ['$ngRedux']))
   .component('evaluateApplicationModal', iqReact2Angular(EvaluateApplicationModal, [], ['$ngRedux']))
+  .component('actionDropdown', iqReact2Angular(ActionDropdown, [], ['$ngRedux', '$state']))
   .component('ownerDetailSidebar', iqReact2Angular(OwnerDetailSidebar, [], ['$ngRedux', '$state']))
   .component('repositoriesPills', iqReact2Angular(RepositoriesPills, [], []))
   .config([

@@ -65,7 +65,6 @@ describe('owner.summary.controller', function () {
       ],
     };
     let setSelectedOwnerSpy;
-    let setSelectedOwnerContactSpy;
     let mockApplicationSummary;
     let loadApplicablePoliciesByOwnerSpy;
 
@@ -113,7 +112,6 @@ describe('owner.summary.controller', function () {
       loadApplicablePoliciesByOwnerSpy = spyOn(rootActions, 'loadApplicablePoliciesByOwner').and.returnValue({
         payload: {},
       });
-      setSelectedOwnerContactSpy = spyOn(rootActions, 'setSelectedOwnerContact');
       setLoadingActionSpy = spyOn(ownerSummaryActions, 'setLoading');
       setLoadErrorActionSpy = spyOn(ownerSummaryActions, 'setLoadError');
 
@@ -159,7 +157,6 @@ describe('owner.summary.controller', function () {
       vm = getVm();
 
       expect(setLoadingActionSpy).toHaveBeenCalledOnceWith(true);
-      resolveGetGrandfathering(true);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
@@ -167,18 +164,12 @@ describe('owner.summary.controller', function () {
       if (isApp) {
         $httpBackend.flush();
       }
-      resolveApplicationWritePermission(true);
-      resolveApplicationEvaluatePermission(true);
       expect(setSelectedOwnerSpy).toHaveBeenCalledOnceWith(owner);
       expect(setLoadingActionSpy.calls.argsFor(1)[0]).toBe(false);
 
       if (isApp) {
         $timeout.flush();
-        expect(setSelectedOwnerContactSpy).toHaveBeenCalledOnceWith(mockApplicationSummary.contact);
         expect(vm.applicationSummary).toEqual(mockApplicationSummary);
-        expect(vm.hasPermissionToChangeAppId).toEqual(true);
-        expect(vm.hasPermissionToEvaluateApp).toEqual(true);
-        expect(vm.isGrandfatheringEnabled).toEqual(true);
       }
 
       expect(vm.isInnerSourceRepositorySupported).toBeTruthy();
@@ -190,53 +181,17 @@ describe('owner.summary.controller', function () {
       vm.isInnerSourceRepositorySupported = false;
       vm.isArtifactoryRepositorySupported = false;
 
-      resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(mockApplicationSummary);
       resolveCompositeSourceControl();
       scope.$digest();
       if (isApp) {
         $httpBackend.flush();
-      }
-      resolveApplicationWritePermission(false);
-      resolveApplicationEvaluatePermission(false);
-
-      if (isApp) {
         $timeout.flush();
-        expect(vm.hasPermissionToChangeAppId).toEqual(false);
-        expect(vm.hasPermissionToEvaluateApp).toEqual(false);
       }
 
       expect(vm.isInnerSourceRepositorySupported).toBeFalsy();
       expect(vm.isArtifactoryRepositorySupported).toBeFalsy();
-    });
-
-    it('Properly routing to Build Report', function () {
-      vm = getVm();
-
-      resolveGetGrandfathering(false);
-      resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(mockApplicationSummary);
-      resolveCompositeSourceControl();
-      scope.$digest();
-      if (isApp) {
-        $httpBackend.flush();
-      }
-      resolveApplicationWritePermission(true);
-
-      if (isApp) {
-        $timeout.flush();
-        spyOn(mockState, 'href').and.returnValue();
-        spyOn(mockWindow, 'open');
-
-        vm.openReport(MockData.getDashboardStageData()[0]);
-
-        expect(mockState.href).toHaveBeenCalledWith('applicationReport.policy', {
-          publicId: mockApplicationSummary.publicId,
-          scanId: mockApplicationSummary.policyEvaluations[MockData.getDashboardStageData()[0].stageTypeId].scanId,
-        });
-        expect(mockWindow.open).toHaveBeenCalled();
-      }
     });
 
     it('Dispatches action to set loadError', function () {
@@ -248,7 +203,6 @@ describe('owner.summary.controller', function () {
 
       vm = getVm();
 
-      resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(mockApplicationSummary);
       scope.$digest();
@@ -270,7 +224,6 @@ describe('owner.summary.controller', function () {
       vm = getVm();
       vm.owner = undefined;
 
-      resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(mockApplicationSummary);
 
@@ -299,10 +252,6 @@ describe('owner.summary.controller', function () {
 
       if (isApp) {
         $httpBackend.flush();
-      }
-      resolveApplicationWritePermission(true);
-
-      if (isApp) {
         $timeout.flush();
       }
 
@@ -314,7 +263,6 @@ describe('owner.summary.controller', function () {
     it('ApplicationSummary Loading Error', function () {
       vm = getVm();
 
-      resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       resolveApplicationSummary(400, 'Bad Request');
       scope.$digest();
@@ -339,7 +287,6 @@ describe('owner.summary.controller', function () {
     it('Stage Types Loading Error', function () {
       vm = getVm();
 
-      resolveGetGrandfathering(false);
       stageTypeStoreDefer.reject('Error');
       resolveApplicationSummary(mockApplicationSummary);
       scope.$digest();
@@ -353,74 +300,6 @@ describe('owner.summary.controller', function () {
       }
     });
 
-    if (isApp) {
-      describe('getDisabledGrandfatherTooltipMessage()', function () {
-        beforeEach(() => (vm = getVm()));
-        it('returns not enabled tooltip message', function () {
-          createGrandfatheringMocks(false, true);
-
-          $timeout.flush();
-
-          expect(vm.getDisabledGrandfatherTooltipMessage()).toBe('Grandfathering is not enabled for this application.');
-        });
-
-        it('returns not supported tooltip message', function () {
-          createGrandfatheringMocks(true, false);
-
-          $timeout.flush();
-
-          expect(vm.getDisabledGrandfatherTooltipMessage()).toBe(
-            'Policy Violation Grandfathering is not supported by your license'
-          );
-        });
-
-        it('returns undefined when grandfathering is enabled and supported', function () {
-          createGrandfatheringMocks(true, true);
-
-          $timeout.flush();
-
-          expect(vm.getDisabledGrandfatherTooltipMessage()).toBeUndefined();
-        });
-
-        it('returns not supported tooltip message when grandfathering is not enabled and not supported', function () {
-          createGrandfatheringMocks(false, false);
-
-          $timeout.flush();
-
-          expect(vm.getDisabledGrandfatherTooltipMessage()).toBe(
-            'Policy Violation Grandfathering is not supported by your license'
-          );
-        });
-      });
-
-      describe('getDisabledEvaluateTooltipMessage()', function () {
-        beforeEach(() => (vm = getVm()));
-        it('returns not supported tooltip message', function () {
-          createEvaluateAppMocks(false, true);
-
-          $timeout.flush();
-
-          expect(vm.getDisabledEvaluateTooltipMessage()).toBe('Insufficient permissions to evaluate application');
-        });
-
-        it('returns undefined when evaluate app is licensed and supported', function () {
-          createEvaluateAppMocks(true, true);
-
-          $timeout.flush();
-
-          expect(vm.getDisabledEvaluateTooltipMessage()).toBeUndefined();
-        });
-
-        it('returns not supported tooltip message when evaluate app is not licensed and not supported', function () {
-          createEvaluateAppMocks(false, false);
-
-          $timeout.flush();
-
-          expect(vm.getDisabledEvaluateTooltipMessage()).toBe('Evaluate application is not supported by your license.');
-        });
-      });
-    }
-
     describe('populates SCM icon', function () {
       beforeEach(() => (vm = getVm()));
       [
@@ -433,7 +312,6 @@ describe('owner.summary.controller', function () {
         const { scmProvider, repoUrl, expectedIcon } = value;
 
         it('for ' + scmProvider + ' uses icon ' + expectedIcon, () => {
-          resolveGetGrandfathering(true);
           resolveStageTypeStore(MockData.getDashboardStageData());
           resolveApplicationSummary(mockApplicationSummary);
           if (isApp) {
@@ -441,8 +319,7 @@ describe('owner.summary.controller', function () {
             vm.scmProviderIcon = (scmProvider === 'azure' ? 'git' : scmProvider) || undefined;
             $httpBackend.flush();
           }
-          resolveApplicationWritePermission(true);
-          resolveApplicationEvaluatePermission(true);
+
           scope.$digest();
 
           if (isApp) {
@@ -474,55 +351,6 @@ describe('owner.summary.controller', function () {
         expect(stagesActions.loadDashboardStages).toHaveBeenCalled();
         stageTypeStoreDefer.resolve({ payload });
       }
-    }
-
-    function resolveApplicationWritePermission(hasPermission) {
-      if (isApp) {
-        expect(mockPermissionService.isContextAuthorized).toHaveBeenCalledWith(['WRITE'], type, owner.id);
-        isContextAuthorizedDefer.resolve(hasPermission);
-      }
-    }
-
-    function resolveApplicationEvaluatePermission(hasPermission) {
-      if (isApp) {
-        expect(mockPermissionService.isContextAuthorized).toHaveBeenCalledWith(
-          ['EVALUATE_APPLICATION'],
-          type,
-          owner.id
-        );
-        isContextAuthorizedDefer.resolve(hasPermission);
-      }
-    }
-
-    function resolveGetGrandfathering(calculatedEnabled) {
-      if (isApp) {
-        vm.isGrandfatheringEnabled = calculatedEnabled;
-      }
-    }
-
-    function createGrandfatheringMocks(isGrandfatheringEnabled, isGrandfatheringSupported) {
-      resolveGetGrandfathering(isGrandfatheringEnabled);
-      resolveStageTypeStore(MockData.getDashboardStageData());
-
-      vm.isGrandfatheringSupported = isGrandfatheringSupported;
-
-      resolveApplicationSummary(mockApplicationSummary);
-      resolveCompositeSourceControl();
-      if (isApp) {
-        $httpBackend.flush();
-      }
-    }
-
-    function createEvaluateAppMocks(hasEvaluateAppPermission, isEvaluateAppSupported) {
-      resolveGetGrandfathering(false);
-      resolveStageTypeStore(MockData.getDashboardStageData());
-
-      vm.isEvaluateApplicationAvailable = isEvaluateAppSupported;
-
-      resolveApplicationSummary(mockApplicationSummary);
-      resolveCompositeSourceControl();
-      $httpBackend.flush();
-      resolveApplicationEvaluatePermission(hasEvaluateAppPermission);
     }
   }
 

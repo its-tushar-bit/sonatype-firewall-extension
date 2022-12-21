@@ -31,6 +31,7 @@ import moveApplicationSlice from './moveApplicationModal/moveApplicationSlice';
 import licenseThreatGroupsSlice from './licenseThreatGroupSlice';
 import selectContactModalSlice from './selectContactModal/selectContactModalSlice';
 import evaluateApplicationSlice from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/evaluateApplicationSlice';
+import actionDropdownSlice from './actionDropdown/actionDropdownSlice';
 
 export default combineReducers({
   root: rootSlice,
@@ -57,6 +58,7 @@ export default combineReducers({
     contact: selectContactModalSlice,
     ownerModal: ownerModalSlice,
     evaluateApplication: evaluateApplicationSlice,
+    actionDropdown: actionDropdownSlice,
   }),
   sourceControl: sourceControlSlice,
   ownerSummary: ownerSummarySlice,

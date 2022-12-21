@@ -6,35 +6,19 @@
 import { propEq, find } from 'ramda';
 import { unwrapResult } from '@reduxjs/toolkit';
 
-import { actions as deleteOwnerActions } from 'MainRoot/OrgsAndPolicies/deleteOwnerModal/deleteOwnerSlice';
-import { actions as grandfatheringActions } from 'MainRoot/OrgsAndPolicies/grandfatheringModal/grandfatheringSlice';
-import { actions as revokeGrandfatheringActions } from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/revokeGrandfatheringSlice';
-import { actions as moveApplicationActions } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSlice';
-import { actions as evaluateApplicationActions } from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/evaluateApplicationSlice';
-import copyIdToClipboardAction from 'MainRoot/OrgsAndPolicies/copyIdToClipboardToast/copyIdToClipboardSlice';
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { actions as organizationsActions } from 'MainRoot/OrgsAndPolicies/organizationsSlice';
-import { actions as contactActions } from 'MainRoot/OrgsAndPolicies/selectContactModal/selectContactModalSlice';
-import { actions as changeApplicationIdActions } from 'MainRoot/OrgsAndPolicies/changeApplicationIdModal/changeApplicationIdSlice';
-import { actions as importPoliciesActions } from 'MainRoot/OrgsAndPolicies/importPoliciesModal/importPoliciesSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
-import { actions as ownerModalActions } from 'MainRoot/OrgsAndPolicies/ownerModal/ownerModalSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import {
-  selectIsGrandfatheringSupported,
   selectIsInnerSourceRepositorySupported,
   selectIsArtifactoryRepositorySupported,
-  selectIsEvaluateApplicationAvailable,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectDashboardStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import { selectRepositoryUrl, selectScmProviderIcon } from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
 import { selectSelectedOwner, selectPoliciesByOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
-import {
-  selectCalculatedEnabled,
-  selectGrandfatheringStatusMessage,
-} from 'MainRoot/OrgsAndPolicies/policyViolationGrandfatheringSelectors';
 import { selectImportPoliciesSlice } from 'MainRoot/OrgsAndPolicies/importPoliciesModal/importPoliciesSelectors';
 import { selectMoveApplicationSlice } from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSelectors';
 import { selectContactSlice } from 'MainRoot/OrgsAndPolicies/selectContactModal/selectContactModalSelectors';
@@ -45,12 +29,10 @@ export default function OwnerSummaryController(
   $scope,
   $q,
   $http,
-  $window,
   CLMLocations,
   CLMContextLocations,
   ownerConstant,
   EventNameConstant,
-  PermissionService,
   $ngRedux
 ) {
   var vm = this;
@@ -60,22 +42,6 @@ export default function OwnerSummaryController(
   vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.stages = undefined;
   vm.doLoad = doLoad;
-  vm.edit = edit;
-  vm.moveApplication = moveApplication;
-  vm.evaluateApp = evaluateApp;
-  vm.importPolicy = importPolicy;
-  vm.deleteOwner = deleteOwner;
-  vm.grandfather = grandfather;
-  vm.revokeGrandfathering = revokeGrandfathering;
-  vm.getShortTypeName = getShortTypeName;
-  vm.getResourceTypeName = getResourceTypeName;
-  vm.openReport = openReport;
-  vm.selectContact = selectContact;
-  vm.changeApplicationId = changeApplicationId;
-  vm.hasPermissionToChangeAppId = undefined;
-  vm.hasPermissionToEvaluateApp = undefined;
-  vm.getDisabledGrandfatherTooltipMessage = getDisabledGrandfatherTooltipMessage;
-  vm.getDisabledEvaluateTooltipMessage = getDisabledEvaluateTooltipMessage;
 
   var siblings,
     stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
@@ -91,16 +57,6 @@ export default function OwnerSummaryController(
     loadApplicablePoliciesByOwner: rootActions.loadApplicablePoliciesByOwner,
     setLoading: ownerSummaryActions.setLoading,
     setLoadError: ownerSummaryActions.setLoadError,
-    openDeleteModal: deleteOwnerActions.openModal,
-    openGrandfatheringModal: grandfatheringActions.openModal,
-    openChangeApplicationIdModal: changeApplicationIdActions.openModal,
-    openRevokeGrandfatheringModal: revokeGrandfatheringActions.openModal,
-    openImportPoliciesModal: importPoliciesActions.openModal,
-    openMoveApplicationModal: moveApplicationActions.openMoveAppModal,
-    openContactAppModal: contactActions.openContactModal,
-    openOwnerModal: ownerModalActions.openEditModal,
-    openEvaluateApplicationModal: evaluateApplicationActions.openEvaluateAppModal,
-    copyToClipboard: copyIdToClipboardAction,
   })(vm);
 
   vm.doLoad();
@@ -175,9 +131,6 @@ export default function OwnerSummaryController(
         if (vm.isApp) {
           vm.applicationSummary = results[3].data;
           vm.setSelectedOwnerContact(vm.applicationSummary.contact);
-
-          getAppChangePermissions();
-          getAppEvaluatePermissions();
         }
       })
       .catch((error) => {
@@ -187,110 +140,10 @@ export default function OwnerSummaryController(
         vm.setLoading(false);
       });
   }
-
-  function getAppChangePermissions() {
-    PermissionService.isContextAuthorized(['WRITE'], 'application', vm.owner.id).then(function (hasPermission) {
-      vm.hasPermissionToChangeAppId = hasPermission;
-    });
-  }
-
-  function getAppEvaluatePermissions() {
-    PermissionService.isContextAuthorized(['EVALUATE_APPLICATION'], 'application', vm.owner.id).then(function (
-      hasPermission
-    ) {
-      vm.hasPermissionToEvaluateApp = hasPermission;
-    });
-  }
-
-  function edit() {
-    vm.openOwnerModal();
-  }
-
-  function moveApplication() {
-    vm.openMoveApplicationModal();
-  }
-
-  function evaluateApp() {
-    if (vm.hasPermissionToEvaluateApp && vm.isEvaluateApplicationAvailable) {
-      vm.openEvaluateApplicationModal();
-    }
-  }
-
-  function importPolicy() {
-    vm.openImportPoliciesModal();
-  }
-
-  function selectContact(owner) {
-    vm.openContactAppModal(owner);
-  }
-
-  function changeApplicationId() {
-    if (vm.hasPermissionToChangeAppId) {
-      vm.openChangeApplicationIdModal();
-    }
-  }
-
-  function deleteOwner() {
-    vm.openDeleteModal();
-  }
-
-  function revokeGrandfathering() {
-    if (vm.isGrandfatheringSupported) {
-      vm.openRevokeGrandfatheringModal(vm.owner);
-    }
-  }
-
-  function grandfather() {
-    if (vm.isGrandfatheringEnabled && vm.isGrandfatheringSupported) {
-      vm.openGrandfatheringModal();
-    }
-  }
-
-  function getShortTypeName() {
-    return vm.isApp ? 'App' : 'Org';
-  }
-
-  function getResourceTypeName() {
-    return vm.isApp ? 'Application' : 'Organization';
-  }
-
-  function openReport(stage) {
-    if (vm.applicationSummary.policyEvaluations[stage.stageTypeId]) {
-      $window.open(
-        $state.href('applicationReport.policy', {
-          publicId: vm.applicationSummary.publicId,
-          scanId: vm.applicationSummary.policyEvaluations[stage.stageTypeId].scanId,
-        }),
-        '_blank'
-      );
-    }
-  }
-
-  function getDisabledGrandfatherTooltipMessage() {
-    if (!vm.isGrandfatheringSupported) {
-      return 'Policy Violation Grandfathering is not supported by your license';
-    } else if (!vm.isGrandfatheringEnabled) {
-      return 'Grandfathering is not enabled for this application.';
-    }
-
-    return undefined;
-  }
-
-  function getDisabledEvaluateTooltipMessage() {
-    if (!vm.hasPermissionToEvaluateApp && vm.isEvaluateApplicationAvailable) {
-      return 'Insufficient permissions to evaluate application';
-    } else if (!vm.isEvaluateApplicationAvailable) {
-      return 'Evaluate application is not supported by your license.';
-    }
-
-    return undefined;
-  }
 }
 
 const mapStateToThis = (state) => ({
   stages: selectDashboardStageTypes(state),
-  isGrandfatheringSupported: selectIsGrandfatheringSupported(state),
-  isEvaluateApplicationAvailable: selectIsEvaluateApplicationAvailable(state),
   isInnerSourceRepositorySupported: selectIsInnerSourceRepositorySupported(state),
   isArtifactoryRepositorySupported: selectIsArtifactoryRepositorySupported(state),
   owner: selectSelectedOwner(state),
@@ -299,8 +152,6 @@ const mapStateToThis = (state) => ({
   policiesByOwner: selectPoliciesByOwner(state),
   loading: selectLoading(state),
   loadError: selectLoadError(state),
-  isGrandfatheringEnabled: selectCalculatedEnabled(state),
-  grandfatheringStatusMessage: selectGrandfatheringStatusMessage(state),
   isShowSuccessImportPoliciesModal: selectImportPoliciesSlice(state).submitMaskState,
   isShowSuccessMoveAppModal: selectMoveApplicationSlice(state).isShowSuccessModal,
   isShowSuccessSelectContactModal: selectContactSlice(state).submitMaskState,
@@ -312,11 +163,9 @@ OwnerSummaryController.$inject = [
   '$scope',
   '$q',
   '$http',
-  '$window',
   'CLMLocations',
   'CLMContextLocations',
   'owner.constant',
   'event.name.constant',
-  'PermissionService',
   '$ngRedux',
 ];

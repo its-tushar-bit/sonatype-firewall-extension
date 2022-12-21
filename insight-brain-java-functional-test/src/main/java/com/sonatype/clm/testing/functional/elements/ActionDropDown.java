@@ -15,14 +15,14 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSele
 
 public class ActionDropDown
 {
-  private static final String ROOT = "#action-dropdown";
+  private static final String ROOT = "action-dropdown .nx-dropdown";
 
   public static SelenideElement root() {
     return $(ROOT);
   }
 
   public static SelenideElement menu() {
-    return $(createSelector(ROOT, ".dropdown-menu"));
+    return $(createSelector(ROOT, ".nx-dropdown-menu"));
   }
 
   public static SelenideElement selectContact() {
@@ -79,7 +79,7 @@ public class ActionDropDown
   }
 
   public static ElementsCollection reportLinks() {
-    return root().findAll("a.tm-app-report-link");
+    return root().findAll("#app-report-link");
   }
 
   public static SelenideElement reportLink(int num) {
@@ -87,6 +87,6 @@ public class ActionDropDown
   }
 
   public static ElementsCollection actions() {
-    return menu().findAll("a.iq-btn--dropdown");
+    return menu().findAll("button.nx-dropdown-button");
   }
 }

@@ -97,7 +97,7 @@ public class TenantManager
 
     try {
       if (registeredTenants.putIfAbsent(tenant, true) == null) {
-        performRegistration(tenant);
+        runAndLogTime("registration", tenant, System.currentTimeMillis(), () -> performRegistration(tenant));
       }
     }
     catch (Exception e) {

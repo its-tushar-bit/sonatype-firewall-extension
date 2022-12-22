@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -33,7 +34,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
-import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.experimental.legal.ComponentLegalService;
@@ -90,6 +90,7 @@ import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -622,7 +623,8 @@ public class ApiLicenseLegalService
 
     CompletableFuture<Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData>> componentIdentifierToLegalData =
         CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
-            () -> application.stream().map(app -> fetchApiReportComponentDTOV2ToLegalData(app, apiReportComponentDTOV2s,
+            (Supplier<Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData>>) () -> application.stream()
+                .map(app -> fetchApiReportComponentDTOV2ToLegalData(app, apiReportComponentDTOV2s,
                     multiLicenseToSingleLicense))
                 .flatMap(m -> m.entrySet().stream())
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (prev, next) -> next))));
@@ -638,7 +640,8 @@ public class ApiLicenseLegalService
 
     CompletableFuture<Map<ComponentIdentifier, Set<LegalSourceLinkDTO>>> sourceLinksByComponentIdentifier =
         CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
-            () -> application.stream().map(app -> getSourceLinksByComponentIdentifier(app, latestRawReport))
+            (Supplier<Map<ComponentIdentifier, Set<LegalSourceLinkDTO>>>) () -> application.stream()
+                .map(app -> getSourceLinksByComponentIdentifier(app, latestRawReport))
                 .flatMap(m -> m.entrySet().stream())
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue,
                     (prev, next) -> Stream.concat(prev.stream(), next.stream()).collect(Collectors.toSet())))));

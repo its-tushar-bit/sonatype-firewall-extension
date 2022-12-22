@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.tenancy;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class TenantReference<T>
@@ -43,5 +44,9 @@ public class TenantReference<T>
     Tenant tenant = TenantThreadLocal.getTenant();
 
     tenantMap.put(tenant, t);
+  }
+
+  public T computeIfAbsent(Function<Tenant, T> computation) {
+    return tenantMap.computeIfAbsent(TenantThreadLocal.getTenant(), computation);
   }
 }

@@ -13,7 +13,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -38,11 +37,11 @@ import org.slf4j.LoggerFactory;
  * - The first part is randomly generated and it has 5 hex digits;
  * - The second part is the SHA1 of the hostname + IQ server HTTP port + all network interface hardware addresses,
  * truncated to the first 5 hex digits.
- * 
+ *
  * The telemetry ID cannot be used to identify a customer or customer installation and it should not be linkable to a
  * customer or customer installation.
  * This means we cannot log the ID (or any parts of the ID) anywhere.
- * 
+ *
  * Note: I chose 5 as length for the two parts of the ID because it gives a collision risk of 1 in 1,048,576,
  * which is well below what we need.
  */
@@ -54,14 +53,22 @@ public class TelemetryId
 
   private static final int ID_PART_LENGTH = 5;
 
+  private final InsightConfig insightConfig;
+
   private SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
 
-  private String id;
+  private final String id;
 
-  private String clusterId;
+  private final String clusterId;
 
   @Inject
   public TelemetryId(InsightConfig insightConfig) {
+    this.insightConfig = insightConfig;
+    id = generateId();
+    clusterId = calculateClusterId(insightConfig.getDatabase());
+  }
+
+  protected String generateId() {
     // There is a requirement to not be able to link the telemetry IDs to customers.
     // This means we should not log them anywhere, because if we have the logs from a customer, then we can link the IDs
     // to the customer.
@@ -121,8 +128,8 @@ public class TelemetryId
         .map(String::valueOf).collect(Collectors.joining(","));
 
     String derivedId = calculateDerivedId(hostname, ports, hardwareAddresses);
-    id = generatedIdProperty.getValue() + "-" + derivedId;
-    clusterId = calculateClusterId(insightConfig.getDatabase());
+    String result = generatedIdProperty.getValue() + "-" + derivedId;
+    return result;
   }
 
   static String calculateClusterId(DatabaseConfig databaseConfig) {

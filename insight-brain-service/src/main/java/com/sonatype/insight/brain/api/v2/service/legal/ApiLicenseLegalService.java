@@ -574,28 +574,28 @@ public class ApiLicenseLegalService
   }
 
   private Set<Optional<ApiLicenseLegalApplicationReportDTO>> getMultiApplicationReportFromReportRawData(
-      final List<Owner> application,
-      final List<ApiReportRawDataDTOV2> latestRawReport,
+      final List<Owner> applications,
+      final List<ApiReportRawDataDTOV2> latestRawReports,
       boolean includeInnerSource,
       boolean includeSonatypeSpecialLicenses)
   {
-    if (application.size() != latestRawReport.size()) {
+    if (applications.size() != latestRawReports.size()) {
       throw new BadRequestException("Size of parameters are not the same to generate multi application report");
     }
 
     if (!includeSonatypeSpecialLicenses) {
-      for (ApiReportRawDataDTOV2 apiReportRawDataDTOV2 : latestRawReport) {
+      for (ApiReportRawDataDTOV2 apiReportRawDataDTOV2 : latestRawReports) {
         filterSonatypeSpecialLicensesComponents(apiReportRawDataDTOV2);
       }
     }
 
     if (!includeInnerSource) {
-      for (ApiReportRawDataDTOV2 apiReportRawDataDTOV2 : latestRawReport) {
+      for (ApiReportRawDataDTOV2 apiReportRawDataDTOV2 : latestRawReports) {
         filterInnerSourceComponents(apiReportRawDataDTOV2);
       }
     }
 
-    Set<ApiLicenseDTO> allMultiLicenses = latestRawReport.stream().map(this::getReportMultiLicenses)
+    Set<ApiLicenseDTO> allMultiLicenses = latestRawReports.stream().map(this::getReportMultiLicenses)
         .flatMap(m -> m.entrySet().stream())
         .flatMap(e -> e.getValue().stream())
         .collect(Collectors.toSet());
@@ -603,8 +603,8 @@ public class ApiLicenseLegalService
     Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense =
         buildMultiLicenseToSingleLicenseMap(allMultiLicenses);
 
-    for (int i = 0; i < application.size(); ++i) {
-      sendApplicationTelemetryData(application.get(i).getPublicId(), latestRawReport.get(i), allMultiLicenses);
+    for (int i = 0; i < applications.size(); ++i) {
+      sendApplicationTelemetryData(applications.get(i).getPublicId(), latestRawReports.get(i), allMultiLicenses);
     }
 
     CompletableFuture<Map<String, LicenseMetadataDTO>> licenseMetadataById =
@@ -613,17 +613,17 @@ public class ApiLicenseLegalService
                 .collect(Collectors.toSet())))
             .thenApply(allSingleLicenses -> allMultiLicenses.isEmpty()
                 ? Collections.emptyMap()
-                : application.stream().map(app -> getLicenseMetadata(allSingleLicenses, app.getId()))
+                : applications.stream().map(app -> getLicenseMetadata(allSingleLicenses, app.getId()))
                 .flatMap(m -> m.entrySet().stream())
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (prev, next) -> next)));
 
     final Set<ApiReportComponentDTOV2> apiReportComponentDTOV2s =
-        latestRawReport.stream().flatMap(rawReport -> rawReport.components.stream()).collect(
+        latestRawReports.stream().flatMap(rawReport -> rawReport.components.stream()).collect(
             Collectors.toSet());
 
     CompletableFuture<Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData>> componentIdentifierToLegalData =
         CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
-            (Supplier<Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData>>) () -> application.stream()
+            (Supplier<Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData>>) () -> applications.stream()
                 .map(app -> fetchApiReportComponentDTOV2ToLegalData(app, apiReportComponentDTOV2s,
                     multiLicenseToSingleLicense))
                 .flatMap(m -> m.entrySet().stream())
@@ -632,16 +632,16 @@ public class ApiLicenseLegalService
     CompletableFuture<Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>>>
         componentLegalCommentsByComponentIdentifier =
         CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
-            () -> getComponentLegalCommentsByComponentIdentifier(latestRawReport)));
+                () -> getComponentLegalCommentsByComponentIdentifier(latestRawReports)));
 
     CompletableFuture<Map<ComponentIdentifier, Set<ComponentLegalFileDTO>>> componentLegalFilesByComponentIdentifier =
         CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
-            () -> getComponentLegalFilesByComponentIdentifier(latestRawReport)));
+                () -> getComponentLegalFilesByComponentIdentifier(latestRawReports)));
 
     CompletableFuture<Map<ComponentIdentifier, Set<LegalSourceLinkDTO>>> sourceLinksByComponentIdentifier =
         CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
-            (Supplier<Map<ComponentIdentifier, Set<LegalSourceLinkDTO>>>) () -> application.stream()
-                .map(app -> getSourceLinksByComponentIdentifier(app, latestRawReport))
+            (Supplier<Map<ComponentIdentifier, Set<LegalSourceLinkDTO>>>) () -> applications.stream()
+                    .map(app -> getSourceLinksByComponentIdentifier(app, latestRawReports))
                 .flatMap(m -> m.entrySet().stream())
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue,
                     (prev, next) -> Stream.concat(prev.stream(), next.stream()).collect(Collectors.toSet())))));
@@ -650,10 +650,10 @@ public class ApiLicenseLegalService
         sourceLinksByComponentIdentifier, licenseMetadataById, componentIdentifierToLegalData).join();
 
     Set<Optional<ApiLicenseLegalApplicationReportDTO>> result = new HashSet<>();
-    for (int i = 0; i < application.size(); ++i) {
-      log.info("Building license metadata report for {}.", application.get(i).getName());
+    for (int i = 0; i < applications.size(); ++i) {
+      log.info("Building license metadata report for {}.", applications.get(i).getName());
       result.add(Optional.of(legalReportBuilder.getLicenseLegalApplicationReport(
-          latestRawReport.get(i),
+          latestRawReports.get(i),
           componentIdentifierToLegalData.join(),
           componentLegalCommentsByComponentIdentifier.join(),
           componentLegalFilesByComponentIdentifier.join(),

@@ -38,7 +38,7 @@ public class TenantAwareRunnableTest
   }
 
   @Test
-  public void shouldNotThrowExceptions_whenReused() throws Exception {
+  public void shouldNotThrowExceptions_whenReused() {
     Runnable mockRunnable = mock(Runnable.class);
 
     TenantAwareRunnable runnable = new TenantAwareRunnable(mockRunnable);

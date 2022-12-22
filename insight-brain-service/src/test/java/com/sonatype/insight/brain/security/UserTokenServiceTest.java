@@ -278,7 +278,7 @@ public class UserTokenServiceTest
   }
 
   @Test
-  public void testGetUserTokensByCreatedBetweenAndRealmId() throws Exception {
+  public void testGetUserTokensByCreatedBetweenAndRealmId() {
     tempEntity.newUserToken("foo", User.INTERNAL_REALM_ID, december27);
     UserToken bar = tempEntity.newUserToken("bar", User.INTERNAL_REALM_ID, december28);
     tempEntity.newUserToken("baz", User.INTERNAL_REALM_ID, december29);

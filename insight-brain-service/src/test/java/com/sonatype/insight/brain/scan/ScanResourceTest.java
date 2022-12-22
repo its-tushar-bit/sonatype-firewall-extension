@@ -79,7 +79,7 @@ public class ScanResourceTest
     }
   }
 
-  private void waitForScanTaskToBeProcessed(String appPublicId, String scanTicketId) throws Exception {
+  private void waitForScanTaskToBeProcessed(String appPublicId, String scanTicketId) {
     HttpRequest request = restRequest().path("{ticketId}").parameter(appPublicId, scanTicketId);
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
       HttpResponse response = request.get();

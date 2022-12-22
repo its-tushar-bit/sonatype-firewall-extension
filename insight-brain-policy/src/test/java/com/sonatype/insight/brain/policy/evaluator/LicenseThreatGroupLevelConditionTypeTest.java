@@ -178,9 +178,8 @@ public class LicenseThreatGroupLevelConditionTypeTest
   @Test
   public void testValidateCondition_InvalidLicenseThreatGroupLevel() {
     Condition condition = new Condition(LicenseThreatGroupLevelConditionType.ID, "<=", "abc");
-    assertThatThrownBy(() -> {
-      new LicenseThreatGroupLevelConditionType().validateCondition(null, condition, app.getId());
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid license threat group level: abc");
+    assertThatThrownBy(() -> new LicenseThreatGroupLevelConditionType().validateCondition(null, condition, app.getId()))
+        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid license threat group level: abc");
   }
 
   @Test

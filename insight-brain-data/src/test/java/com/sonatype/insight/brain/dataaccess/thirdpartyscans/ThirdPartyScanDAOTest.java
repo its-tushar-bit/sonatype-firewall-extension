@@ -23,7 +23,7 @@ public class ThirdPartyScanDAOTest
   private final ThirdPartyScanDAO dao = new ThirdPartyScanDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     // Create

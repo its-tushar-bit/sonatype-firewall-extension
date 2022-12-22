@@ -138,7 +138,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetPolicyViolationsWithUnlicensedStageTypeIds() throws Exception {
+  public void testGetPolicyViolationsWithUnlicensedStageTypeIds() {
     testProductLicense.setStageTypes(StageTypes.RELEASE);
 
     // Since we are not licensed for the build stage existing violations will not be returned.
@@ -289,7 +289,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetPolicyViolations_FilterByPolicyViolationState() throws Exception {
+  public void testGetPolicyViolations_FilterByPolicyViolationState() {
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy,
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
@@ -426,9 +426,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_DedupViolationsForSameAppAndPolicyByPickingMostRecentViolationAcrossStages()
-      throws Exception
-  {
+  public void testGetComponentRisks_DedupViolationsForSameAppAndPolicyByPickingMostRecentViolationAcrossStages() {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, app1Policy, app1Policy.getThreatLevel() + 1,
         PolicyThreatCategory.LICENSE, "Group1", "Artifact1", "Version1");
@@ -446,9 +444,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_MultipleViolationConstraintsOnSameComponent()
-      throws Exception
-  {
+  public void testGetComponentRisks_MultipleViolationConstraintsOnSameComponent() {
     PolicyViolation violation1 = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, "Group1", "Artifact1",
         "Version1", "hash", "ConstraintFact1");
     PolicyViolation violation2 = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, "Group1", "Artifact1",
@@ -468,7 +464,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_FilterByApplication() throws Exception {
+  public void testGetComponentRisks_FilterByApplication() {
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null, 
         Collections.singleton(app2.getId()), null, null, null, null, null, "-TOTAL_RISK", 1000);
 
@@ -482,7 +478,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_FilterByOrganization() throws Exception {
+  public void testGetComponentRisks_FilterByOrganization() {
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(Collections.singleton(app2.getParentOwnerId()), null, null, null, null, null, null,
             "-TOTAL_RISK", 1000);
@@ -497,7 +493,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_FilterByEmptyOrganization() throws Exception {
+  public void testGetComponentRisks_FilterByEmptyOrganization() {
     Organization emptyOrg = tempEntity.newOrganization();
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(Collections.singleton(emptyOrg.getId()), null, null, null, null, null, null, "-TOTAL_RISK", 
@@ -508,7 +504,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_FilterByStage() throws Exception {
+  public void testGetComponentRisks_FilterByStage() {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
     PolicyViolation violation = tempEntity.newPolicyViolation(evaluation, app1Policy);
 
@@ -525,7 +521,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_FilterByStage_ExcludesDevelop() throws Exception {
+  public void testGetComponentRisks_FilterByStage_ExcludesDevelop() {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "newScanIdApp1");
     tempEntity.newPolicyViolation(evaluation, app1Policy, app1Policy.getThreatLevel(), app1Policy.getThreatCategory(),
         "g", "a", "v", "somehash");
@@ -544,7 +540,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_FilterByTag() throws Exception {
+  public void testGetComponentRisks_FilterByTag() {
     Tag app2Tag = tempEntity.newTag(org.getId());
     tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
 
@@ -561,7 +557,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_FilterPolicyThreatCategory() throws Exception {
+  public void testGetComponentRisks_FilterPolicyThreatCategory() {
     Policy licensePolicy =
         tempEntity.newPolicy(app1, 5, LogicalOperator.AND, new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
     PolicyViolation violation =
@@ -580,7 +576,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_FilterPolicyThreatLevel() throws Exception {
+  public void testGetComponentRisks_FilterPolicyThreatLevel() {
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
         .getComponentRisks(null, null, null, null, null, new PolicyThreatLevelFilter(3, 3), null,
             "-TOTAL_RISK", 1000);
@@ -594,7 +590,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_FilterByPolicyViolationState() throws Exception {
+  public void testGetComponentRisks_FilterByPolicyViolationState() {
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy,
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
@@ -640,7 +636,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_FilterByApplicationAndPolicyViolationState() throws Exception {
+  public void testGetComponentRisks_FilterByApplicationAndPolicyViolationState() {
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy,
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
@@ -684,7 +680,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_ScoreBreakdown() throws Exception {
+  public void testGetComponentRisks_ScoreBreakdown() {
     for (int i = 0; i <= 10; i++) {
       if (i == app2PolicyViolation.getThreatLevel()) {
         continue;
@@ -707,7 +703,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_ScoreBreakdown_Org() throws Exception {
+  public void testGetComponentRisks_ScoreBreakdown_Org() {
     for (int i = 0; i <= 10; i++) {
       if (i == app2PolicyViolation.getThreatLevel()) {
         continue;
@@ -731,7 +727,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_ResultCapping() throws Exception {
+  public void testGetComponentRisks_ResultCapping() {
     String gid = "gid";
     String aid = "aid";
     String ver = "1";
@@ -754,7 +750,7 @@ public class ComponentRiskServiceTest
   }
 
   @Test
-  public void testGetComponentRisks_Unknown() throws Exception {
+  public void testGetComponentRisks_Unknown() {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "pathnames-hash", null, "a.zip/b.zip",
         MatchState.UNKNOWN, false, evaluation.getTime());

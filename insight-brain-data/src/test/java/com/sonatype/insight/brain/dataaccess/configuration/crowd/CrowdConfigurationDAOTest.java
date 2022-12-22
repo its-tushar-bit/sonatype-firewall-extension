@@ -22,7 +22,7 @@ public class CrowdConfigurationDAOTest
   private final CrowdConfigurationDAO dao = new CrowdConfigurationDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     CrowdConfiguration crowdConfiguration =
         new CrowdConfiguration("serverUrl", "applicationName", "applicationPassword".toCharArray());

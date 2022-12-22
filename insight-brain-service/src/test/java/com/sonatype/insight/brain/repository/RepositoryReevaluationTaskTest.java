@@ -219,7 +219,7 @@ public class RepositoryReevaluationTaskTest
     fail("Failed to locate component " + pathname);
   }
 
-  private void createHdsResponse() throws Exception {
+  private void createHdsResponse() {
     ComponentEvaluationDataList response = new ComponentEvaluationDataList();
     response.components.add(createComponentResponse(component.getHash(), component.getComponentIdentifier(),
         MatchState.EXACT.getId(), 0));

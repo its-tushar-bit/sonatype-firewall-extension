@@ -109,7 +109,7 @@ public class SamlAuthcTest
     return document;
   }
 
-  private Document fixSpUrls(Document document) throws Exception {
+  private Document fixSpUrls(Document document) {
     String samlEndpoint = getRestBaseUrl() + "saml";
     String entityId = getRestBaseUrl() + PublicApiPaths.SAML_CONFIG_RESOURCE_PATH_V2 + "/metadata";
     document.getDocumentElement().setAttribute("Destination", samlEndpoint);

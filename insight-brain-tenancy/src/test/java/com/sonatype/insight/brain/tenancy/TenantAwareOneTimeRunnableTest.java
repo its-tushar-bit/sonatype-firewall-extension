@@ -17,7 +17,7 @@ public class TenantAwareOneTimeRunnableTest
     extends MultiTenantTest
 {
   @Test
-  public void shouldCallWrappedRunnable_usingTenantSetAtCreationTime() throws Exception {
+  public void shouldCallWrappedRunnable_usingTenantSetAtCreationTime() {
     Runnable mockRunnable = mock(Runnable.class);
 
     Tenant expectedTenant = new Tenant("correcttenant");
@@ -39,7 +39,7 @@ public class TenantAwareOneTimeRunnableTest
   }
 
   @Test
-  public void shouldFail_whenReused() throws Exception {
+  public void shouldFail_whenReused() {
     Runnable mockRunnable = mock(Runnable.class);
 
     TenantAwareOneTimeRunnable runnable = new TenantAwareOneTimeRunnable(mockRunnable);

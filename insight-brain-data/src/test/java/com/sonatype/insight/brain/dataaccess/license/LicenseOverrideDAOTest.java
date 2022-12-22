@@ -36,7 +36,7 @@ public class LicenseOverrideDAOTest
   private static final ComponentIdentifier MAVEN_COORDINATES = ComponentIdentifier.createMavenCoordinates("gid", "aid",
       "1.0");
 
-  private void testCRUD(String ownerId) throws Exception {
+  private void testCRUD(String ownerId) {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     LicenseOverrideStatus status = LicenseOverrideStatus.OVERRIDDEN;
@@ -105,39 +105,36 @@ public class LicenseOverrideDAOTest
   }
 
   @Test
-  public void testCommentTooLong() throws Exception {
+  public void testCommentTooLong() {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
     LicenseOverride override = new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OPEN,
         (String) null, StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE + 1));
-    assertThatThrownBy(() -> {
-      dao.insert(override);
-    }
-    ).isInstanceOf(BadRequestException.class).hasMessage("Comment length must not exceed 1000 characters.");
+    assertThatThrownBy(() -> dao.insert(override)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Comment length must not exceed 1000 characters.");
     override.setComment(StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE));
     dao.insert(override);
     override.setComment(StringUtils.repeat("X", LicenseOverrideDAO.MAX_COMMENT_SIZE + 1));
-    assertThatThrownBy(() -> {
-      dao.update(override);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Comment length must not exceed 1000 characters.");
+    assertThatThrownBy(() -> dao.update(override)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Comment length must not exceed 1000 characters.");
   }
 
   @Test
-  public void testInvalidLicenseId_Insert() throws Exception {
+  public void testInvalidLicenseId_Insert() {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
-    assertThatThrownBy(() -> {
-      dao.insert(new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
-          "FataMorganaId", "My comment"));
-    }).isInstanceOf(NotFoundException.class).hasMessage("A license with ID 'FataMorganaId' does not exist.");
+    assertThatThrownBy(
+        () -> dao.insert(new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
+            "FataMorganaId", "My comment"))).isInstanceOf(NotFoundException.class)
+        .hasMessage("A license with ID 'FataMorganaId' does not exist.");
 
-    assertThatThrownBy(() -> {
-      dao.insert(new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.SELECTED,
-          "FataMorganaId", "My comment"));
-    }).isInstanceOf(NotFoundException.class).hasMessage("A license with ID 'FataMorganaId' does not exist.");
+    assertThatThrownBy(
+        () -> dao.insert(new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.SELECTED,
+            "FataMorganaId", "My comment"))).isInstanceOf(NotFoundException.class)
+        .hasMessage("A license with ID 'FataMorganaId' does not exist.");
   }
 
   @Test
-  public void testInvalidLicenseId_Update() throws Exception {
+  public void testInvalidLicenseId_Update() {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
     LicenseOverride override =
@@ -146,18 +143,16 @@ public class LicenseOverrideDAOTest
     dao.insert(override);
 
     override.setLicenseIds(Collections.singleton("FataMorganaId"));
-    assertThatThrownBy(() -> {
-      dao.update(override);
-    }).isInstanceOf(NotFoundException.class).hasMessage("A license with ID 'FataMorganaId' does not exist.");
+    assertThatThrownBy(() -> dao.update(override)).isInstanceOf(NotFoundException.class)
+        .hasMessage("A license with ID 'FataMorganaId' does not exist.");
 
     override.setStatus(LicenseOverrideStatus.SELECTED);
-    assertThatThrownBy(() -> {
-      dao.update(override);
-    }).isInstanceOf(NotFoundException.class).hasMessage("A license with ID 'FataMorganaId' does not exist.");
+    assertThatThrownBy(() -> dao.update(override)).isInstanceOf(NotFoundException.class)
+        .hasMessage("A license with ID 'FataMorganaId' does not exist.");
   }
 
   @Test
-  public void testNullLicenseId_Insert() throws Exception {
+  public void testNullLicenseId_Insert() {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
     for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
@@ -172,9 +167,7 @@ public class LicenseOverrideDAOTest
           break;
         case OVERRIDDEN:
         case SELECTED:
-          assertThatThrownBy(() -> {
-            dao.insert(override);
-          }).isInstanceOf(BadRequestException.class)
+          assertThatThrownBy(() -> dao.insert(override)).isInstanceOf(BadRequestException.class)
               .hasMessage("Expected at least one license ID for license override.");
           break;
         default:
@@ -184,7 +177,7 @@ public class LicenseOverrideDAOTest
   }
 
   @Test
-  public void testNullLicenseId_Update() throws Exception {
+  public void testNullLicenseId_Update() {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
     LicenseOverride override = new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OPEN,
         (String) null /* licenseId */, "My comment");
@@ -200,9 +193,7 @@ public class LicenseOverrideDAOTest
           break;
         case OVERRIDDEN:
         case SELECTED:
-          assertThatThrownBy(() -> {
-            dao.update(override);
-          }).isInstanceOf(BadRequestException.class)
+          assertThatThrownBy(() -> dao.update(override)).isInstanceOf(BadRequestException.class)
               .hasMessage("Expected at least one license ID for license override.");
           break;
         default:
@@ -212,7 +203,7 @@ public class LicenseOverrideDAOTest
   }
 
   @Test
-  public void testNotNullLicenseId_Insert() throws Exception {
+  public void testNotNullLicenseId_Insert() {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
 
     for (LicenseOverrideStatus status : LicenseOverrideStatus.values()) {
@@ -222,9 +213,8 @@ public class LicenseOverrideDAOTest
         case ACKNOWLEDGED:
         case CONFIRMED:
         case OPEN:
-          assertThatThrownBy(() -> {
-            dao.insert(override);
-          }).isInstanceOf(BadRequestException.class).hasMessage("Expected no license IDs for license override.");
+          assertThatThrownBy(() -> dao.insert(override)).isInstanceOf(BadRequestException.class)
+              .hasMessage("Expected no license IDs for license override.");
           break;
         case OVERRIDDEN:
         case SELECTED:
@@ -238,7 +228,7 @@ public class LicenseOverrideDAOTest
   }
 
   @Test
-  public void testNotNullLicenseId_Update() throws Exception {
+  public void testNotNullLicenseId_Update() {
     LicenseOverrideDAO dao = new LicenseOverrideDAO();
     LicenseOverride override =
         new LicenseOverride(application.getId(), MAVEN_COORDINATES, LicenseOverrideStatus.OVERRIDDEN,
@@ -251,9 +241,8 @@ public class LicenseOverrideDAOTest
         case ACKNOWLEDGED:
         case CONFIRMED:
         case OPEN:
-          assertThatThrownBy(() -> {
-            dao.update(override);
-          }).isInstanceOf(BadRequestException.class).hasMessage("Expected no license IDs for license override.");
+          assertThatThrownBy(() -> dao.update(override)).isInstanceOf(BadRequestException.class)
+              .hasMessage("Expected no license IDs for license override.");
           break;
         case OVERRIDDEN:
         case SELECTED:
@@ -271,9 +260,7 @@ public class LicenseOverrideDAOTest
     LicenseOverride override = tempEntity.newLicenseOverride(application.getId(), MAVEN_COORDINATES,
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0");
 
-    assertThatThrownBy(() -> {
-      dao.insert(override);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> dao.insert(override)).isInstanceOf(BadRequestException.class)
         .hasMessage("LicenseOverride already exists for this ownerId and component");
   }
 

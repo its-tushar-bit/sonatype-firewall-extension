@@ -361,7 +361,7 @@ public class ComponentDetailServiceTest
   }
 
   @Test
-  public void testGetComponentNameByHash_UnknownHash() throws Exception {
+  public void testGetComponentNameByHash_UnknownHash() {
     String hash = "ababababab";
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> componentDetailService.getComponentNameByHash(hash))
@@ -369,7 +369,7 @@ public class ComponentDetailServiceTest
   }
 
   @Test
-  public void testGetComponentNameByHash_NoGAV() throws Exception {
+  public void testGetComponentNameByHash_NoGAV() {
     String hash = "ababababab";
     Application app = tempEntity.newApplicationWithParent("app");
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, null /* componentIdentifier */,
@@ -381,7 +381,7 @@ public class ComponentDetailServiceTest
   }
 
   @Test
-  public void testGetComponentNameByHash_NoGAVOrPathnames() throws Exception {
+  public void testGetComponentNameByHash_NoGAVOrPathnames() {
     String hash = "ababababab";
     Application app = tempEntity.newApplicationWithParent("app");
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, hash, null /* componentIdentifier */);

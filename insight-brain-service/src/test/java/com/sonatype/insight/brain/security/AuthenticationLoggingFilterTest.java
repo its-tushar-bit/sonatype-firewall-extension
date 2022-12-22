@@ -134,9 +134,7 @@ public class AuthenticationLoggingFilterTest
     private String mdcUsername;
 
     @Override
-    public void doFilter(final ServletRequest request, final ServletResponse response) throws IOException,
-        ServletException
-    {
+    public void doFilter(final ServletRequest request, final ServletResponse response) {
       mdcUsername = MDC.get(MDCUsernameScope.USERNAME);
     }
   }

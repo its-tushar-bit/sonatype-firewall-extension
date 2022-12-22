@@ -19,7 +19,7 @@ public class ArtifactoryConnectionDAOTest
   private final ArtifactoryConnectionDAO dao = new ArtifactoryConnectionDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     ArtifactoryConnection artifactoryConnection =
         new ArtifactoryConnection("ownerId", "baseUrl", "username", "password".toCharArray());
@@ -56,7 +56,7 @@ public class ArtifactoryConnectionDAOTest
   }
 
   @Test
-  public void testGetByOwnerId() throws Exception {
+  public void testGetByOwnerId() {
     tempEntity.newArtifactoryConnection("ownerId1", "baseUrl1", "username1", "password1".toCharArray());
     tempEntity.newArtifactoryConnection("ownerId2", "baseUrl2", "username2", "password2".toCharArray());
 

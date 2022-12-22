@@ -104,7 +104,7 @@ public class DefaultHdsClientProxyTest
   }
 
   @Override
-  protected void pingUrl(String url) throws Exception {
+  protected void pingUrl(String url) {
     setHdsUrl(url);
     initClient();
     client.get(String.class, "test/path");
@@ -122,9 +122,7 @@ public class DefaultHdsClientProxyTest
     handler = new AbstractHandler()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
-      {
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         if ("CONNECT".equals(request.getMethod())) {
           headers.clear();
           for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
@@ -159,7 +157,7 @@ public class DefaultHdsClientProxyTest
     {
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
+          throws IOException
       {
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("text/plain;charset=UTF-8");

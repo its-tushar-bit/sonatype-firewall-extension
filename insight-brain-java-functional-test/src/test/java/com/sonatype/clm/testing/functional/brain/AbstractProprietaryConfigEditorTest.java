@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -39,7 +40,6 @@ import static com.sonatype.clm.testing.functional.elements.ProprietaryComponentM
 import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.DUPLICATE_VALUE_MESSAGE;
 import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.BEGINNING_OR_ENDING_PERIOD_MESSAGE;
 import static com.sonatype.clm.testing.functional.pages.ProprietaryConfigEditorPage.INVALID_PACKAGE_MESSAGE;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractProprietaryConfigEditorTest extends AbstractFunctionalTest
@@ -57,8 +57,10 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
   }
 
   protected void init(Owner currentOwner) {
-    tempEntity.newProprietaryConfig(currentOwner.getParentOwnerId(), asList("com.inherited"), asList(".*test\\.zip"));
-    tempEntity.newProprietaryConfig(currentOwner.getId(), asList("com.local"), asList());
+    tempEntity.newProprietaryConfig(currentOwner.getParentOwnerId(), Collections.singletonList("com.inherited"),
+        Collections.singletonList(".*test\\.zip"));
+    tempEntity.newProprietaryConfig(currentOwner.getId(), Collections.singletonList("com.local"),
+        Collections.emptyList());
 
     this.currentOwner = currentOwner;
 

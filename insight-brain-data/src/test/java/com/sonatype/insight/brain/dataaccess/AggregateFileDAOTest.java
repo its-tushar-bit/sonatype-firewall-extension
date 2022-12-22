@@ -30,7 +30,7 @@ public class AggregateFileDAOTest
   }
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));

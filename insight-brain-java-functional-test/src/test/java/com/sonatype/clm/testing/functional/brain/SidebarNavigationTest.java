@@ -70,7 +70,7 @@ public class SidebarNavigationTest
   }
 
   @Test
-  public void testProductVersion() throws Exception {
+  public void testProductVersion() {
     // version is the same as what we display in the startup message for product and version except that:
     // 1. point release numbers are not included unless nonzero
     // 2. build numbers (or SNAPSHOT) are not included in the version number
@@ -214,7 +214,7 @@ public class SidebarNavigationTest
   }
 
   @Test
-  public void testLegalNavigation_toLegalDashboard() throws Exception {
+  public void testLegalNavigation_toLegalDashboard() {
     SidebarNavigation.legalNavigationButton().shouldBe(visible).click();
     waitUntilUrl(BaseUrl.resolvePageUrl("/legal/dashboard"));
   }
@@ -262,7 +262,7 @@ public class SidebarNavigationTest
   }
 
   @Test
-  public void testDataInsightsNavigation_toDataInsights() throws Exception {
+  public void testDataInsightsNavigation_toDataInsights() {
     setFeatures(LicensedFeature.DATA_INSIGHTS);
     refresh();
     SidebarNavigation.dataInsightsNavigationButton().shouldBe(visible).click();

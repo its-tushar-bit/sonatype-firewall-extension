@@ -42,7 +42,6 @@ import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 import org.sonatype.licensing.product.ProductLicenseManager;
@@ -137,13 +136,8 @@ public abstract class AbstractFunctionalTest
     initMocks();
 
     String contextPath = System.getProperty("iq.contextPath", "/iq-test");
-    testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(), new Configurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath);
-      }
-    });
+    testCLMServer = new TestCLMServer(false /* isProxyRequiredToReachHds */, getBrainModules(),
+        config -> ((DefaultServerFactory) config.getServerFactory()).setApplicationContextPath(contextPath));
     reverseProxyServer = new ReverseProxyServer(testCLMServer.getCLMServer().getPort());
 
     try {
@@ -330,7 +324,7 @@ public abstract class AbstractFunctionalTest
   }
 
   private static List<Module> getBrainModules() {
-    return Arrays.asList(new AbstractModule()
+    return Collections.singletonList(new AbstractModule()
     {
       @Override
       protected void configure() {

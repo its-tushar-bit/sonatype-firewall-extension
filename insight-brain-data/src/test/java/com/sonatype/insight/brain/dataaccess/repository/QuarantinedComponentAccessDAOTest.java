@@ -24,7 +24,7 @@ public class QuarantinedComponentAccessDAOTest
   private QuarantinedComponentAccessDAO dao = new QuarantinedComponentAccessDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Setup
     Date date = new Date();
     final Repository repository = tempEntity.newRepository("repo");

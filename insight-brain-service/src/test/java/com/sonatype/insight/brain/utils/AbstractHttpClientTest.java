@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.utils;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.inject.Inject;
@@ -42,12 +41,9 @@ public abstract class AbstractHttpClientTest
     Server proxyServer = new Server(0);
     AtomicBoolean proxyServerUsed = new AtomicBoolean();
     AtomicBoolean proxyAuthenticationProvided = new AtomicBoolean();
-    proxyServer.setHandler(new AbstractHandler()
-    {
+    proxyServer.setHandler(new AbstractHandler() {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         proxyServerUsed.set(true);
         String proxyAuth = request.getHeader("Proxy-Authorization");
         if ("Basic dGVzdC1wcm94eS11c2VyOnRlc3QtcHJveHktcGFzcw==".equals(proxyAuth)) {
@@ -86,12 +82,9 @@ public abstract class AbstractHttpClientTest
   public void testProxyExclusion() throws Exception {
     Server targetServer = new Server(0);
     AtomicBoolean proxyServerBypassed = new AtomicBoolean();
-    targetServer.setHandler(new AbstractHandler()
-    {
+    targetServer.setHandler(new AbstractHandler() {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         proxyServerBypassed.set(true);
         response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
         baseRequest.setHandled(true);

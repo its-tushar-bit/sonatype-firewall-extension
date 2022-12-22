@@ -39,7 +39,7 @@ public class CrowdMockServerRule
   private WireMockServer crowdMockServer;
 
   @Override
-  protected void before() throws Throwable {
+  protected void before() {
     crowdMockServer = new WireMockServer(wireMockConfig().dynamicPort());
     crowdMockServer.start();
   }
@@ -66,7 +66,7 @@ public class CrowdMockServerRule
         aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody(marshall(userEntity)).withStatus(200)));
   }
 
-  public void mockGetUserError(String username, int status) throws Exception {
+  public void mockGetUserError(String username, int status) {
     crowdMockServer.stubFor(
         get(urlPathMatching("/crowd/rest/usermanagement/1/user")).withQueryParam("username", equalTo(username))
             .willReturn(

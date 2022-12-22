@@ -22,7 +22,7 @@ public class HashComponentIdentifierDAOTest
     extends AbstractDbDAOTest
 {
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
 
     String hash = "123456789012345678901";
@@ -61,7 +61,7 @@ public class HashComponentIdentifierDAOTest
   }
 
   @Test
-  public void testGetByHashNotNull() throws Exception {
+  public void testGetByHashNotNull() {
     HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
 
     String hash = "11111111111111111111";
@@ -75,16 +75,15 @@ public class HashComponentIdentifierDAOTest
   }
 
   @Test
-  public void testGetByHashNotNull_DoesNotExist() throws Exception {
+  public void testGetByHashNotNull_DoesNotExist() {
     HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
     String hash = "11111111111111111111";
-    assertThatThrownBy(() -> {
-      dao.getByHashNotNull(hash);
-    }).isInstanceOf(NotFoundException.class).hasMessage(HashComponentIdentifierDAO.NOT_FOUND_MESSAGE + hash + ".");
+    assertThatThrownBy(() -> dao.getByHashNotNull(hash)).isInstanceOf(NotFoundException.class)
+        .hasMessage(HashComponentIdentifierDAO.NOT_FOUND_MESSAGE + hash + ".");
   }
 
   @Test
-  public void testGetByComponentIdentifier() throws Exception {
+  public void testGetByComponentIdentifier() {
     HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
 
     String hash = "11111111111111111111";
@@ -108,7 +107,7 @@ public class HashComponentIdentifierDAOTest
   }
 
   @Test
-  public void testAddDuplicateByHash() throws Exception {
+  public void testAddDuplicateByHash() {
     HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
 
     String hash = "ab1234ab1234ab";
@@ -118,13 +117,12 @@ public class HashComponentIdentifierDAOTest
     tempEntity.newClaimedComponent(hash, componentIdentifier1);
 
     HashComponentIdentifier hashComponentIdentifier2 = new HashComponentIdentifier(hash, componentIdentifier2);
-    assertThatThrownBy(() -> {
-      dao.insert(hashComponentIdentifier2);
-    }).isInstanceOf(BadRequestException.class).hasMessage("This component is already mapped to 'g1 : a1 : v1'.");
+    assertThatThrownBy(() -> dao.insert(hashComponentIdentifier2)).isInstanceOf(BadRequestException.class)
+        .hasMessage("This component is already mapped to 'g1 : a1 : v1'.");
   }
 
   @Test
-  public void testAddDuplicateByComponentIdentifier() throws Exception {
+  public void testAddDuplicateByComponentIdentifier() {
     HashComponentIdentifierDAO dao = new HashComponentIdentifierDAO();
 
     String hash = "ab1234ab1234ab";
@@ -133,8 +131,7 @@ public class HashComponentIdentifierDAOTest
     tempEntity.newClaimedComponent(hash, componentIdentifier);
 
     HashComponentIdentifier hashComponentIdentifier2 = new HashComponentIdentifier(hash + "1", componentIdentifier);
-    assertThatThrownBy(() -> {
-      dao.insert(hashComponentIdentifier2);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Another component is already mapped to 'g1 : a1 : v1'.");
+    assertThatThrownBy(() -> dao.insert(hashComponentIdentifier2)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Another component is already mapped to 'g1 : a1 : v1'.");
   }
 }

@@ -48,13 +48,12 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void testGetByIdNotNull() {
-    assertThatThrownBy(() -> {
-      new PolicyWaiverDAO().getByIdNotNull("fake id");
-    }).isInstanceOf(NotFoundException.class).hasMessage("Cannot find a policy waiver with ID fake id.");
+    assertThatThrownBy(() -> new PolicyWaiverDAO().getByIdNotNull("fake id")).isInstanceOf(NotFoundException.class)
+        .hasMessage("Cannot find a policy waiver with ID fake id.");
   }
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "123456789012345678901";
@@ -153,7 +152,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testInsert_Duplicate_ComponentLevel() throws Exception {
+  public void testInsert_Duplicate_ComponentLevel() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";
@@ -166,15 +165,14 @@ public class PolicyWaiverDAOTest
     dao.insert(policyWaiver1);
 
     PolicyWaiver policyWaiver2 = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
-    assertThatThrownBy(() -> {
-      dao.insert(policyWaiver2);
-    }).isInstanceOf(BadRequestException.class).hasMessage("This policy waiver already exists.");
+    assertThatThrownBy(() -> dao.insert(policyWaiver2)).isInstanceOf(BadRequestException.class)
+        .hasMessage("This policy waiver already exists.");
 
     dao.delete(policyWaiver1);
   }
 
   @Test
-  public void testInsert_Duplicate_PolicyLevel() throws Exception {
+  public void testInsert_Duplicate_PolicyLevel() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     Policy policy = tempEntity.newPolicy(organization);
@@ -186,9 +184,8 @@ public class PolicyWaiverDAOTest
     dao.insert(policyWaiver1);
 
     PolicyWaiver policyWaiver2 = new PolicyWaiver(null /* hash */, policyId, ownerId, constraintFacts, comment);
-    assertThatThrownBy(() -> {
-      dao.insert(policyWaiver2);
-    }).isInstanceOf(BadRequestException.class).hasMessage("This policy waiver already exists.");
+    assertThatThrownBy(() -> dao.insert(policyWaiver2)).isInstanceOf(BadRequestException.class)
+        .hasMessage("This policy waiver already exists.");
 
     dao.delete(policyWaiver1);
   }
@@ -225,7 +222,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testInsert_CommentTooLong() throws Exception {
+  public void testInsert_CommentTooLong() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";
@@ -234,15 +231,14 @@ public class PolicyWaiverDAOTest
     String comment = StringUtils.repeat("X", 1001);
     PolicyWaiver policyWaiver1 = new PolicyWaiver(hash, policyId, ownerId, comment);
 
-    assertThatThrownBy(() -> {
-      dao.insert(policyWaiver1);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Comment length must not exceed 1000 characters.");
+    assertThatThrownBy(() -> dao.insert(policyWaiver1)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Comment length must not exceed 1000 characters.");
 
     dao.delete(policyWaiver1);
   }
 
   @Test
-  public void testInsert_ComponentMatchStrategyNotProvided_HashNotNull() throws Exception {
+  public void testInsert_ComponentMatchStrategyNotProvided_HashNotNull() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policy = tempEntity.newPolicy(organization);
 
@@ -260,7 +256,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testInsert_ComponentMatchStrategyNotProvided_HashNull() throws Exception {
+  public void testInsert_ComponentMatchStrategyNotProvided_HashNull() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policy = tempEntity.newPolicy(organization);
 
@@ -278,7 +274,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testUpdate_ComponentMatchStrategyNotProvided_HashNotNull() throws Exception {
+  public void testUpdate_ComponentMatchStrategyNotProvided_HashNotNull() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policy = tempEntity.newPolicy(organization);
 
@@ -292,7 +288,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testUpdate_ComponentMatchStrategyNotProvided_HashNull() throws Exception {
+  public void testUpdate_ComponentMatchStrategyNotProvided_HashNull() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policy = tempEntity.newPolicy(organization);
 
@@ -307,16 +303,15 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testUpdate_CommentTooLong() throws Exception {
+  public void testUpdate_CommentTooLong() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     String comment = StringUtils.repeat("X", 1001);
     policyWaiver.setComment(comment);
 
-    assertThatThrownBy(() -> {
-      dao.update(policyWaiver);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Comment length must not exceed 1000 characters.");
+    assertThatThrownBy(() -> dao.update(policyWaiver)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Comment length must not exceed 1000 characters.");
 
     comment = comment.substring(0, 1000);
     policyWaiver.setComment(comment);
@@ -325,7 +320,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testUpdate_Duplicate_ComponentLevel() throws Exception {
+  public void testUpdate_Duplicate_ComponentLevel() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash1 = "11111111111111111111";
@@ -339,14 +334,12 @@ public class PolicyWaiverDAOTest
     PolicyWaiver policyWaiver2 = tempEntity.newWaiver(hash2, policyId, ownerId, constraintFacts, comment);
 
     policyWaiver2.setHash(hash1);
-    assertThatThrownBy(() -> {
-      dao.update(policyWaiver2);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> dao.update(policyWaiver2)).isInstanceOf(BadRequestException.class)
         .hasMessage("A policy waiver for the same policy violation already exists.");
   }
 
   @Test
-  public void testUpdate_Duplicate_PolicyLevel() throws Exception {
+  public void testUpdate_Duplicate_PolicyLevel() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     Policy policy1 = tempEntity.newPolicy(organization);
@@ -360,9 +353,7 @@ public class PolicyWaiverDAOTest
     PolicyWaiver policyWaiver2 = tempEntity.newWaiver(null /* hash */, policyId2, ownerId, constraintFacts, comment);
 
     policyWaiver2.setPolicyId(policyId1);
-    assertThatThrownBy(() -> {
-      dao.update(policyWaiver2);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> dao.update(policyWaiver2)).isInstanceOf(BadRequestException.class)
         .hasMessage("A policy waiver for the same policy violation already exists.");
   }
 
@@ -506,7 +497,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void getApplicableToComponent() throws Exception {
+  public void getApplicableToComponent() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";
@@ -561,7 +552,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testGetApplicableToComponentIncludingAllVersions() throws Exception {
+  public void testGetApplicableToComponentIncludingAllVersions() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     String hash = "12345678901234567890";
@@ -594,7 +585,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testGetApplicableToComponentOnlyAllVersions_noPurl() throws Exception {
+  public void testGetApplicableToComponentOnlyAllVersions_noPurl() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policy = tempEntity.newPolicy(organization);
 
@@ -614,7 +605,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testGetApplicableToComponentOnlyAllVersions_OnlySomeApply() throws Exception {
+  public void testGetApplicableToComponentOnlyAllVersions_OnlySomeApply() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
     Policy policy1 = tempEntity.newPolicy(organization);
     Policy policy2 = tempEntity.newPolicy(organization);
@@ -665,7 +656,7 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
-  public void testGetByPolicyIdAndOwnerIds() throws Exception {
+  public void testGetByPolicyIdAndOwnerIds() {
     PolicyWaiverDAO dao = new PolicyWaiverDAO();
 
     Policy policy1 = tempEntity.newPolicy(application);
@@ -882,9 +873,9 @@ public class PolicyWaiverDAOTest
 
   @Test
   public void getByIdAndOwnerIdNotNull_throwsNotFound_whenNoWaiver() {
-    assertThatThrownBy(() -> {
-      new PolicyWaiverDAO().getByIdAndOwnerIdNotNull("fake id", application.getId());
-    }).isInstanceOf(NotFoundException.class)
+    assertThatThrownBy(
+        () -> new PolicyWaiverDAO().getByIdAndOwnerIdNotNull("fake id", application.getId()))
+        .isInstanceOf(NotFoundException.class)
         .hasMessage("Cannot find a waiver with ID fake id for owner " + application.getId() + ".");
   }
 
@@ -893,9 +884,8 @@ public class PolicyWaiverDAOTest
     Policy policy = tempEntity.newPolicy(organization);
     PolicyWaiver policyWaiver = tempEntity.newWaiver(policy.getId(), application.getId());
 
-    assertThatThrownBy(() -> {
-      new PolicyWaiverDAO().getByIdAndOwnerIdNotNull(policyWaiver.getId(), "ownerId");
-    }).isInstanceOf(NotFoundException.class)
+    assertThatThrownBy(() -> new PolicyWaiverDAO().getByIdAndOwnerIdNotNull(policyWaiver.getId(), "ownerId"))
+        .isInstanceOf(NotFoundException.class)
         .hasMessage("Cannot find a waiver with ID " + policyWaiver.getId() + " for owner ownerId.");
   }
 
@@ -922,9 +912,7 @@ public class PolicyWaiverDAOTest
     String associatedPackagedUrl = RandomStringUtils.randomAlphabetic(10);
     expiredPolicyWaiver.setAssociatedPackageUrl(associatedPackagedUrl);
 
-    assertThatThrownBy(() -> {
-      dao.update(expiredPolicyWaiver);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> dao.update(expiredPolicyWaiver)).isInstanceOf(BadRequestException.class)
         .hasMessage("A policy waiver for the same policy violation already exists.");
   }
 
@@ -954,9 +942,7 @@ public class PolicyWaiverDAOTest
     // note that there is already an active waiver. i.e. expiring in future.
     expiredPolicyWaiver.setExpiryTime(Date.from(Instant.now().plus(21, ChronoUnit.DAYS)));
 
-    assertThatThrownBy(() -> {
-      dao.update(expiredPolicyWaiver);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> dao.update(expiredPolicyWaiver)).isInstanceOf(BadRequestException.class)
         .hasMessage("A policy waiver for the same policy violation already exists.");
   }
 

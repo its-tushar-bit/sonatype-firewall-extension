@@ -35,7 +35,7 @@ public class ShiroSessionTimeoutHandlerTest
   ShiroSessionTimeoutHandler shiroSessionTimeoutHandler;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     openMocks(this);
     shiroSessionTimeoutHandler = new ShiroSessionTimeoutHandler(configurationService, defaultWebSessionManager);
   }

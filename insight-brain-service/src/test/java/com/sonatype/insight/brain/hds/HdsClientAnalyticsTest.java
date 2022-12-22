@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class HdsClientAnalyticsTest
 {
   @Test
-  public void testApplicationIdIsObfuscated() throws Exception {
+  public void testApplicationIdIsObfuscated() {
     Application app = new Application();
     app.setId("test-app-id");
     HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(app);
@@ -26,7 +26,7 @@ public class HdsClientAnalyticsTest
   }
 
   @Test
-  public void testRepositoryIdIsObfuscated() throws Exception {
+  public void testRepositoryIdIsObfuscated() {
     Repository repo = new Repository();
     repo.setId("test-repo-id");
     HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(repo);

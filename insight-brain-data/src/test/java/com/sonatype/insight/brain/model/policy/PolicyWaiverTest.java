@@ -48,7 +48,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetConstraintFactsJson() throws Exception {
+  public void testSetConstraintFactsJson() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
@@ -59,7 +59,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetConstraintFactsJson_Null() throws Exception {
+  public void testSetConstraintFactsJson_Null() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     policyWaiver.setConstraintFactsJson(null);
@@ -69,7 +69,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetConstraintFactsJson_Empty() throws Exception {
+  public void testSetConstraintFactsJson_Empty() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     policyWaiver.setConstraintFactsJson(" ");
@@ -79,7 +79,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetConstraintFacts() throws Exception {
+  public void testSetConstraintFacts() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
@@ -91,7 +91,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetConstraintFacts_Null() throws Exception {
+  public void testSetConstraintFacts_Null() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     policyWaiver.setConstraintFacts(null);
@@ -101,7 +101,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetConstraintFacts_Empty() throws Exception {
+  public void testSetConstraintFacts_Empty() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     policyWaiver.setConstraintFacts(Collections.emptyList());
@@ -111,7 +111,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testConstructorConstraintFacts() throws Exception {
+  public void testConstructorConstraintFacts() {
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
 
@@ -123,7 +123,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testConstructorConstraintFacts_Null() throws Exception {
+  public void testConstructorConstraintFacts_Null() {
     List<ConstraintFact> constraintFacts = null;
 
     PolicyWaiver policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", constraintFacts, "comment");
@@ -133,7 +133,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testConstructorConstraintFacts_Empty() throws Exception {
+  public void testConstructorConstraintFacts_Empty() {
     List<ConstraintFact> constraintFacts = Collections.emptyList();
 
     PolicyWaiver policyWaiver = new PolicyWaiver("hash", "policyId", "ownerId", constraintFacts, "comment");
@@ -143,7 +143,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetComponentMatchStrategy_DEFAULT() throws Exception {
+  public void testSetComponentMatchStrategy_DEFAULT() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     policyWaiver.setComponentMatchStrategy(DEFAULT);
@@ -151,7 +151,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetComponentMatchStrategy_EXACT_COMPONENT() throws Exception {
+  public void testSetComponentMatchStrategy_EXACT_COMPONENT() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     policyWaiver.setComponentMatchStrategy(EXACT_COMPONENT);
@@ -159,7 +159,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetComponentMatchStrategy_ALL_COMPONENTS() throws Exception {
+  public void testSetComponentMatchStrategy_ALL_COMPONENTS() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     policyWaiver.setComponentMatchStrategy(ALL_COMPONENTS);
@@ -167,7 +167,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetComponentMatchStrategy_ALL_VERSIONS() throws Exception {
+  public void testSetComponentMatchStrategy_ALL_VERSIONS() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     policyWaiver.setComponentMatchStrategy(ALL_VERSIONS);
@@ -175,7 +175,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetComponentMatchStrategy_Null() throws Exception {
+  public void testSetComponentMatchStrategy_Null() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     policyWaiver.setComponentMatchStrategy(null);
@@ -183,7 +183,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testConstructorComponentMatchStrategy_DEFAULT() throws Exception {
+  public void testConstructorComponentMatchStrategy_DEFAULT() {
     PolicyWaiver policyWaiver =
         new PolicyWaiver("hash", "policyId", "ownerId", null, associatedPackagedUrl, DEFAULT, "comment");
 
@@ -195,7 +195,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetAssociatedPackagedUrl() throws Exception {
+  public void testSetAssociatedPackagedUrl() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     policyWaiver.setAssociatedPackageUrl(associatedPackagedUrl);
@@ -203,7 +203,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetAssociatedPackagedUrl_Null() throws Exception {
+  public void testSetAssociatedPackagedUrl_Null() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     policyWaiver.setAssociatedPackageUrl(null);
@@ -211,7 +211,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testSetAssociatedPackagedUrl_Empty() throws Exception {
+  public void testSetAssociatedPackagedUrl_Empty() {
     PolicyWaiver policyWaiver = new PolicyWaiver();
 
     policyWaiver.setAssociatedPackageUrl("");
@@ -219,7 +219,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testConstructorAssociatedPackagedUrl() throws Exception {
+  public void testConstructorAssociatedPackagedUrl() {
     PolicyWaiver policyWaiver =
         new PolicyWaiver("hash", "policyId", "ownerId", null, associatedPackagedUrl, DEFAULT, "comment");
 
@@ -231,7 +231,7 @@ public class PolicyWaiverTest
   }
 
   @Test
-  public void testGetComponentIdentifier() throws Exception {
+  public void testGetComponentIdentifier() {
     PolicyWaiver policyWaiver =
         new PolicyWaiver("hash", "policyId", "ownerId", null, associatedPackagedUrl, DEFAULT, "comment");
 

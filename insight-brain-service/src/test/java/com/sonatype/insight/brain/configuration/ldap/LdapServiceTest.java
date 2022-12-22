@@ -776,7 +776,7 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testUpdatePriority() throws Exception {
+  public void testUpdatePriority() {
     LdapServer ldapServer1 = tempEntity.newLdapServer("server1");
     LdapServer ldapServer2 = tempEntity.newLdapServer("server2");
     ldapService.updatePriority(Arrays.asList(ldapServer2.getId(), ldapServer1.getId()));
@@ -1576,7 +1576,7 @@ public class LdapServiceTest
   }
 
   @Test
-  public void testIsLdapEnabled() throws Exception {
+  public void testIsLdapEnabled() {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     assertThat(ldapService.isLdapEnabled(ldapServer)).isFalse();
 
@@ -1591,7 +1591,7 @@ public class LdapServiceTest
   }
   
   @Test
-  public void testIsGroupSearchEnabled() throws Exception {
+  public void testIsGroupSearchEnabled() {
     LdapServer ldapServer = tempEntity.newLdapServer("Test Server");
     createLdapConnection(ldapServer);
 

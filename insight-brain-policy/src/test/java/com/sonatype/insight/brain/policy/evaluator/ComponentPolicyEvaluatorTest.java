@@ -514,7 +514,7 @@ public class ComponentPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_OrgAndAppPolicies() throws Exception {
+  public void testEvaluate_OrgAndAppPolicies() {
     Organization org = tempEntity.newOrganization("testEvaluateOrgAndAppPolicies");
     Application app = tempEntity.newApplication("testEvaluateOrgAndAppPolicies", "testEvaluateOrgAndAppPolicies",
         org.getId());

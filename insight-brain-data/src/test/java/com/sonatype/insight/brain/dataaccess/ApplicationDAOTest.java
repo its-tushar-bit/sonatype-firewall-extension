@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -100,7 +99,7 @@ public class ApplicationDAOTest
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     Application app = tempEntity.newApplication(organization.getId());
 
@@ -123,7 +122,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testGetAll() throws Exception {
+  public void testGetAll() {
     // Create a few apps
     int appCount = 3;
     tempEntity.newApplications(organization.getId(), appCount);
@@ -133,7 +132,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testGetApplicationsByPublicIds() throws Exception {
+  public void testGetApplicationsByPublicIds() {
     // Create a few applications
     int numApplication = 3;
     List<Application> applications = tempEntity.newApplications(organization.getId(), numApplication);
@@ -161,7 +160,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testGetApplicationsByPublicIds_EmptySet() throws Exception {
+  public void testGetApplicationsByPublicIds_EmptySet() {
     // Create a few applications
     tempEntity.newApplications(organization.getId(), 3);
     Set<String> publicIds = new HashSet<>();
@@ -207,7 +206,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testGetApplicationsByTagIds() throws Exception {
+  public void testGetApplicationsByTagIds() {
     int numApplications = 3;
     Tag tag1 = tempEntity.newTag(organization.getId(), "foo");
     Tag tag2 = tempEntity.newTag(organization.getId(), "bar");
@@ -272,7 +271,7 @@ public class ApplicationDAOTest
         Sets.newHashSet(tag1.getId(), tag2.getId()));
 
     assertThat(applications).hasSize(1);
-    assertApplications(applications, Arrays.asList(taggedApplication));
+    assertApplications(applications, Collections.singletonList(taggedApplication));
   }
 
   @Test
@@ -324,9 +323,7 @@ public class ApplicationDAOTest
 
     // Update with a different organization id - should fail
     application.setOrganizationId(organization1.getId());
-    assertThatThrownBy(() -> {
-      applicationDAO.update(application);
-    }).isInstanceOf(InvalidApplicationException.class)
+    assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidApplicationException.class)
         .hasMessage("Cannot change the parent organization of an application.");
   }
 
@@ -363,10 +360,8 @@ public class ApplicationDAOTest
     Application app = new Application(null, "name", organization.getId());
     for (String publicId : NameHelperTest.INVALID_CHARACTERS) {
       app.setPublicId(publicId);
-      assertThatThrownBy(() -> {
-        applicationDAO.insert(app);
-      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Public ID",
-          publicId.charAt(0));
+      assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidNameException.class)
+          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Public ID", publicId.charAt(0));
     }
   }
 
@@ -374,43 +369,37 @@ public class ApplicationDAOTest
   public void testValidatePublicIdInvalidChars_Update() {
     for (String publicId : NameHelperTest.INVALID_CHARACTERS) {
       application.setPublicId(publicId);
-      assertThatThrownBy(() -> {
-        applicationDAO.update(application);
-      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Public ID",
-          publicId.charAt(0));
+      assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidNameException.class)
+          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Public ID", publicId.charAt(0));
     }
   }
 
   @Test
   public void testValidateNullPublicId_Insert() {
     Application app = new Application(null, "name", organization.getId());
-    assertThatThrownBy(() -> {
-      applicationDAO.insert(app);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Public ID is required.");
+    assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Public ID is required.");
   }
 
   @Test
   public void testValidateNullPublicId_Update() {
     application.setPublicId(null);
-    assertThatThrownBy(() -> {
-      applicationDAO.update(application);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Public ID is required.");
+    assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Public ID is required.");
   }
 
   @Test
   public void testValidateEmptyPublicId_Insert() {
     Application app = new Application("", "name", organization.getId());
-    assertThatThrownBy(() -> {
-      applicationDAO.insert(app);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Public ID is required.");
+    assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Public ID is required.");
   }
 
   @Test
   public void testValidateEmptyPublicId_Update() {
     application.setPublicId("");
-    assertThatThrownBy(() -> {
-      applicationDAO.update(application);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Public ID is required.");
+    assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Public ID is required.");
   }
 
   @Test
@@ -418,9 +407,8 @@ public class ApplicationDAOTest
     Application app = new Application(null, "name", organization.getId());
     for (char invalidChar : PUBLIC_ID_WHITESPACE_CHARS) {
       app.setPublicId("foo" + invalidChar + "bar");
-      assertThatThrownBy(() -> {
-        applicationDAO.insert(app);
-      }).isInstanceOfAny(InvalidApplicationException.class, InvalidNameException.class)
+      assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOfAny(InvalidApplicationException.class,
+              InvalidNameException.class)
           .satisfies(e -> assertThat(e.getMessage()).isIn("Public ID cannot contain whitespaces.",
               String.format(NameHelper.INVALID_CHAR_MESSAGE, "Public ID", invalidChar)));
     }
@@ -430,9 +418,8 @@ public class ApplicationDAOTest
   public void testValidatePublicIdWithWhitespaces_Update() {
     for (char invalidChar : PUBLIC_ID_WHITESPACE_CHARS) {
       application.setPublicId("foo" + invalidChar + "bar");
-      assertThatThrownBy(() -> {
-        applicationDAO.update(application);
-      }).isInstanceOfAny(InvalidApplicationException.class, InvalidNameException.class)
+      assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOfAny(InvalidApplicationException.class,
+              InvalidNameException.class)
           .satisfies(e -> assertThat(e.getMessage()).isIn("Public ID cannot contain whitespaces.",
               String.format(NameHelper.INVALID_CHAR_MESSAGE, "Public ID", invalidChar)));
     }
@@ -441,34 +428,29 @@ public class ApplicationDAOTest
   @Test
   public void testValidatePublicIdIsDot_Insert() {
     Application app = new Application(".", "name", organization.getId());
-    assertThatThrownBy(() -> {
-      applicationDAO.insert(app);
-    }
-    ).isInstanceOf(InvalidApplicationException.class).hasMessage("Public ID cannot be '.' or '..'");
+    assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidApplicationException.class)
+        .hasMessage("Public ID cannot be '.' or '..'");
   }
 
   @Test
   public void testValidatePublicIdIsDot_Update() {
     application.setPublicId(".");
-    assertThatThrownBy(() -> {
-      applicationDAO.update(application);
-    }).isInstanceOf(InvalidApplicationException.class).hasMessage("Public ID cannot be '.' or '..'");
+    assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidApplicationException.class)
+        .hasMessage("Public ID cannot be '.' or '..'");
   }
 
   @Test
   public void testValidatePublicIdIsDotDot_Insert() {
     Application app = new Application("..", "name", organization.getId());
-    assertThatThrownBy(() -> {
-      applicationDAO.insert(app);
-    }).isInstanceOf(InvalidApplicationException.class).hasMessage("Public ID cannot be '.' or '..'");
+    assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidApplicationException.class)
+        .hasMessage("Public ID cannot be '.' or '..'");
   }
 
   @Test
   public void testValidatePublicIdIsDotDot_Update() {
     application.setPublicId("..");
-    assertThatThrownBy(() -> {
-      applicationDAO.update(application);
-    }).isInstanceOf(InvalidApplicationException.class).hasMessage("Public ID cannot be '.' or '..'");
+    assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidApplicationException.class)
+        .hasMessage("Public ID cannot be '.' or '..'");
   }
 
   @Test
@@ -493,18 +475,14 @@ public class ApplicationDAOTest
   public void testValidatePublicIdTooLong_Insert() {
     Application app = new Application(StringUtils.repeat("a", ApplicationDAO.MAX_PUBLIC_ID_LENGTH + 1), "name",
         organization.getId());
-    assertThatThrownBy(() -> {
-      applicationDAO.insert(app);
-    }).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Public ID must be " + ApplicationDAO.MAX_PUBLIC_ID_LENGTH + " characters or less.");
   }
 
   @Test
   public void testValidatePublicIdTooLong_Update() {
     application.setPublicId(StringUtils.repeat("a", ApplicationDAO.MAX_PUBLIC_ID_LENGTH + 1));
-    assertThatThrownBy(() -> {
-      applicationDAO.update(application);
-    }).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Public ID must be " + ApplicationDAO.MAX_PUBLIC_ID_LENGTH + " characters or less.");
   }
 
@@ -541,9 +519,8 @@ public class ApplicationDAOTest
   @Test
   public void testValidateNullName_Insert() {
     Application app = new Application("publicId", null, organization.getId());
-    assertThatThrownBy(() -> {
-      applicationDAO.insert(app);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
@@ -554,17 +531,15 @@ public class ApplicationDAOTest
 
     app.setName(null);
     assertThat(app.getNameLowercaseNoWhitespace()).isNull();
-    assertThatThrownBy(() -> {
-      applicationDAO.update(app);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> applicationDAO.update(app)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateEmptyName_Insert() {
     Application app = new Application("publicId", " ", organization.getId());
-    assertThatThrownBy(() -> {
-      applicationDAO.insert(app);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
@@ -575,9 +550,8 @@ public class ApplicationDAOTest
 
     app.setName(" ");
     assertThat(app.getNameLowercaseNoWhitespace()).isEqualTo("");
-    assertThatThrownBy(() -> {
-      applicationDAO.update(app);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> applicationDAO.update(app)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
@@ -585,9 +559,8 @@ public class ApplicationDAOTest
     Application app = new Application("publicId", "name", organization.getId());
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       app.setName(name);
-      assertThatThrownBy(() -> {
-        applicationDAO.insert(app);
-      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
+      assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidNameException.class)
+          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -595,9 +568,8 @@ public class ApplicationDAOTest
   public void testValidateNameInvalidChars_Update() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       application.setName(name);
-      assertThatThrownBy(() -> {
-        applicationDAO.update(application);
-      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
+      assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidNameException.class)
+          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -622,9 +594,7 @@ public class ApplicationDAOTest
     Application app = new Application("publicId", "name", organization.getId());
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       app.setName(name);
-      assertThatThrownBy(() -> {
-        applicationDAO.insert(app);
-      }).isInstanceOf(InvalidNameException.class)
+      assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidNameException.class)
           .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
@@ -633,9 +603,7 @@ public class ApplicationDAOTest
   public void testValidateNameSpaces_Update() {
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       application.setName(name);
-      assertThatThrownBy(() -> {
-        applicationDAO.update(application);
-      }).isInstanceOf(InvalidNameException.class)
+      assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidNameException.class)
           .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
@@ -657,9 +625,8 @@ public class ApplicationDAOTest
 
   @Test
   public void testDuplicatePublicId_Insert() {
-    assertThatThrownBy(() -> {
-      tempEntity.newApplication(tempEntity.uuid(), application.getPublicId(), organization.getId());
-    }).isInstanceOf(InvalidApplicationException.class)
+    assertThatThrownBy(() -> tempEntity.newApplication(tempEntity.uuid(), application.getPublicId(),
+        organization.getId())).isInstanceOf(InvalidApplicationException.class)
         .hasMessage(application.getPublicId() + " is already used as an ID.");
   }
 
@@ -670,18 +637,16 @@ public class ApplicationDAOTest
 
     application.setPublicId(duplicatePublicId);
 
-    assertThatThrownBy(() -> {
-      applicationDAO.update(application);
-    }).isInstanceOf(InvalidApplicationException.class)
+    assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidApplicationException.class)
         .hasMessage(application.getPublicId() + " is already used as an ID.");
   }
 
   @Test
   public void testDuplicateName_Insert() {
     tempEntity.newApplication("testDuplicateName", "publicId", organization.getId());
-    assertThatThrownBy(() -> {
-      tempEntity.newApplication("Test Duplicate Name", "publicId2", organization.getId());
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Test Duplicate Name is already used as a name.");
+    assertThatThrownBy(
+        () -> tempEntity.newApplication("Test Duplicate Name", "publicId2", organization.getId())).isInstanceOf(
+        InvalidNameException.class).hasMessage("Test Duplicate Name is already used as a name.");
   }
 
   @Test
@@ -690,9 +655,8 @@ public class ApplicationDAOTest
 
     Application application1 = tempEntity.newApplication(application.getOrganizationId());
     application1.setName("Test Duplicate Name");
-    assertThatThrownBy(() -> {
-      applicationDAO.update(application1);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Test Duplicate Name is already used as a name.");
+    assertThatThrownBy(() -> applicationDAO.update(application1)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Test Duplicate Name is already used as a name.");
   }
 
   @Test
@@ -805,7 +769,7 @@ public class ApplicationDAOTest
     String roleId = new RoleDAO().getApplicationRoles().get(0).getId();
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     membershipMappingDAO.setMembershipMappingsForContextAndRole(application.getId(), roleId,
-        Arrays.asList(new MembershipMapping("admin", MemberType.USER)));
+        Collections.singletonList(new MembershipMapping("admin", MemberType.USER)));
 
     applicationDAO.delete(application);
 
@@ -839,9 +803,7 @@ public class ApplicationDAOTest
   public void testValidateNameLength_Insert() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
     Application app = new Application("publicId", name + "a", organization.getId());
-    assertThatThrownBy(() -> {
-      applicationDAO.insert(app);
-    }).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> applicationDAO.insert(app)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Name must be " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters or less.");
 
     app.setName(name);
@@ -852,9 +814,7 @@ public class ApplicationDAOTest
   public void testValidateNameLength_Update() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
     application.setName(name + "a");
-    assertThatThrownBy(() -> {
-      applicationDAO.update(application);
-    }).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> applicationDAO.update(application)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Name must be " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters or less.");
 
     application.setName(name);

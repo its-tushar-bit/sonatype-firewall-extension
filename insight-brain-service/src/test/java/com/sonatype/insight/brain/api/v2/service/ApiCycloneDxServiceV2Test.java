@@ -299,11 +299,10 @@ public class ApiCycloneDxServiceV2Test
 
   private void assertComponentsVsDependencies(Bom bom) {
     List<Component> components = new ArrayList<>();
-    bom.getDependencies().forEach(dependency -> {
-      bom.getComponents().stream().filter(component -> component.getPurl().equals(dependency.getRef()))
-          .findFirst()
-          .ifPresent(component -> components.add(component));
-    });
+    bom.getDependencies().forEach(
+        dependency -> bom.getComponents().stream().filter(component -> component.getPurl().equals(dependency.getRef()))
+            .findFirst()
+            .ifPresent(components::add));
     assertThat(components.size()).isEqualTo(bom.getDependencies().size() - 1);
     //The parent component is not in the components list
     assertThat(components.stream().filter(

@@ -34,7 +34,7 @@ public class ReportServiceAuthzTest
   }
 
   @Test
-  public void testGetReportMetadata_Authorized() throws Exception {
+  public void testGetReportMetadata_Authorized() {
     grantReadPermission(app.getId());
 
     assertThatExceptionOfType(NotFoundException.class)

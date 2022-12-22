@@ -213,13 +213,9 @@ public class NewInstancePopulatorTest
   @Test
   @ManualServerInit
   public void testPopulateIfNewInstance_PolicyImportRetriedAfterInitialHdsFailure() throws Exception {
-    Configurator configurator = new Configurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        config.setCreateSampleData(true);
-        config.setImportRefrencePoliciesFromHDS(true);
-      }
+    Configurator configurator = config -> {
+      config.setCreateSampleData(true);
+      config.setImportRefrencePoliciesFromHDS(true);
     };
 
     hdsRespondWith("Maintenance, come back later").andStatus(503).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
@@ -235,13 +231,9 @@ public class NewInstancePopulatorTest
   }
 
   private void initServer(boolean createSampleData, boolean importReferencePoliciesFromHDS) throws Exception {
-    Configurator configurator = new Configurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        config.setCreateSampleData(createSampleData);
-        config.setImportRefrencePoliciesFromHDS(importReferencePoliciesFromHDS);
-      }
+    Configurator configurator = config -> {
+      config.setCreateSampleData(createSampleData);
+      config.setImportRefrencePoliciesFromHDS(importReferencePoliciesFromHDS);
     };
 
     hdsRespondWith(getClass().getResource("/NewInstancePopulatorTest/referencePolicies.json"))

@@ -51,7 +51,7 @@ public class DashboardTabNavigationTest
   }
 
   @BeforeClass
-  public static void beforeClass() throws Exception {
+  public static void beforeClass() {
     setupData();
     refreshOrOpen(DashboardPage.urlToViolations());
     loginAsAdmin();

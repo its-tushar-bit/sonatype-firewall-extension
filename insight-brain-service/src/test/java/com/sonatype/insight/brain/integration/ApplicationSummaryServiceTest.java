@@ -82,9 +82,7 @@ public class ApplicationSummaryServiceTest
   }
 
   @Test
-  public void testVerifyOrCreateApplication_ApplicationDoesNotExist_AutomaticApplicationCreationDisabled()
-      throws Exception
-  {
+  public void testVerifyOrCreateApplication_ApplicationDoesNotExist_AutomaticApplicationCreationDisabled() {
     String appPublicId = "NoSuchAppPublicID";
 
     AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = 
@@ -171,7 +169,7 @@ public class ApplicationSummaryServiceTest
     assertThat(result).isFalse();
   }
 
-  private void testGetApplications_SortedByCaseInsensitiveName(Goal goal) throws Exception {
+  private void testGetApplications_SortedByCaseInsensitiveName(Goal goal) {
     Application app1 = tempEntity.newApplicationWithParent("y", "AA");
     Application app0 = tempEntity.newApplicationWithParent("z", "a b");
     Application app2 = tempEntity.newApplicationWithParent("x", "c");
@@ -183,7 +181,7 @@ public class ApplicationSummaryServiceTest
   }
 
   @Test
-  public void testVerifyOrCreateApplication_TelemetryData_AutomaticApplicationCreationDisabled() throws Exception {
+  public void testVerifyOrCreateApplication_TelemetryData_AutomaticApplicationCreationDisabled() {
     // If auto app creation is disabled, then no telemetry data should be sent.
     AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO = 
         new AutomaticApplicationsConfigurationDAO();
@@ -237,7 +235,7 @@ public class ApplicationSummaryServiceTest
   }
 
   @Test
-  public void testVerifyOrCreateApplication_License() throws Exception {
+  public void testVerifyOrCreateApplication_License() {
     String appPublicId = "NoSuchAppPublicID";
 
     Organization org = tempEntity.newOrganization();
@@ -262,9 +260,7 @@ public class ApplicationSummaryServiceTest
     assertThat(app.getOrganizationId()).isEqualTo(automaticApplicationsConfigurationDAO.getOrganizationId());
   }
 
-  private void assertTelemetryData(InvocationOnMock invocation, Date before, Date after, boolean expected)
-      throws Exception
-  {
+  private void assertTelemetryData(InvocationOnMock invocation, Date before, Date after, boolean expected) {
     TelemetryData telemetryData = (TelemetryData) invocation.getArgument(0);
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.AUTOMATIC_APPLICATION_CREATION);
     assertThat(telemetryData.getAttributes()).hasSize(1)
@@ -274,7 +270,7 @@ public class ApplicationSummaryServiceTest
   }
 
   @Test
-  public void testGetApplications_NoEnforcementFeature() throws Exception {
+  public void testGetApplications_NoEnforcementFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
     Application app1 = tempEntity.newApplicationWithParent("y", "AA");
     Application app0 = tempEntity.newApplicationWithParent("z", "a b");
@@ -287,7 +283,7 @@ public class ApplicationSummaryServiceTest
   }
 
   @Test
-  public void testGetApplications_NoEnforcementFeature_FromIDE() throws Exception {
+  public void testGetApplications_NoEnforcementFeature_FromIDE() {
     testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
@@ -316,7 +312,7 @@ public class ApplicationSummaryServiceTest
   }
 
   @Test
-  public void testGetApplicationsByOrganization_NoEnforcementFeature_FromIDE() throws Exception {
+  public void testGetApplicationsByOrganization_NoEnforcementFeature_FromIDE() {
     testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
     Organization org = tempEntity.newOrganization("A");
 
@@ -324,7 +320,7 @@ public class ApplicationSummaryServiceTest
         () -> service.getApplications(Goal.EVALUATE_COMPONENT, org.getId()));
   }
 
-  private void testGetApplicationsByOrganization_SortedByCaseInsensitiveName(Goal goal) throws Exception {
+  private void testGetApplicationsByOrganization_SortedByCaseInsensitiveName(Goal goal) {
     Organization org0 = tempEntity.newOrganization("A");
     Organization org1 = tempEntity.newOrganization("B");
     Application app0 = tempEntity.newApplication("x", "x", org0.getId());

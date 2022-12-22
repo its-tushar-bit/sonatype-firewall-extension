@@ -212,7 +212,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Before
-  public void setup() throws Exception {
+  public void setup() {
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
   }
@@ -1310,14 +1310,14 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_InvalidStage() throws Exception {
+  public void testEvaluate_InvalidStage() {
     assertThatExceptionOfType(InvalidStageException.class)
         .isThrownBy(() -> scanPolicyEvaluator.evaluate(application, "scanid", new Stage("foobar"), ScanTriggerType.CLI))
         .withMessage("Invalid stage id=foobar");
   }
 
   @Test
-  public void testEvaluate_MissingReport() throws Exception {
+  public void testEvaluate_MissingReport() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(
             () -> scanPolicyEvaluator.evaluate(application, "scanId", new Stage(Stage.ID_BUILD), ScanTriggerType.CLI))
@@ -1329,7 +1329,7 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_ErrorReport() throws Exception {
+  public void testEvaluate_ErrorReport() {
     String scanId = simulateReportIsAvailable("empty_report");
 
     assertThatExceptionOfType(BadRequestException.class)

@@ -75,47 +75,47 @@ public class ProprietaryConfigServiceAuthzTest
   }
 
   @Test
-  public void testGetProprietaryConfig_NoGoal_Authorized() throws Exception {
+  public void testGetProprietaryConfig_NoGoal_Authorized() {
     login();
     proprietaryConfigService.getProprietaryConfig((Goal) null, null);
   }
 
   @Test
-  public void testGetProprietaryConfig_NoGoal_Unauthenticated() throws Exception {
+  public void testGetProprietaryConfig_NoGoal_Unauthenticated() {
     proprietaryConfigService.getProprietaryConfig((Goal) null, null);
   }
 
   @Test
-  public void testGetProprietaryConfig_EvaluateApplication_Authorized() throws Exception {
+  public void testGetProprietaryConfig_EvaluateApplication_Authorized() {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
     proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetProprietaryConfig_EvaluateApplication_Unauthorized() throws Exception {
+  public void testGetProprietaryConfig_EvaluateApplication_Unauthorized() {
     login();
     proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetProprietaryConfig_EvaluateApplication_Unauthenticated() throws Exception {
+  public void testGetProprietaryConfig_EvaluateApplication_Unauthenticated() {
     proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_APPLICATION, app.getPublicId());
   }
 
   @Test
-  public void testGetProprietaryConfig_EvaluateComponent_Authorized() throws Exception {
+  public void testGetProprietaryConfig_EvaluateComponent_Authorized() {
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
     proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetProprietaryConfig_EvaluateComponent_Unauthorized() throws Exception {
+  public void testGetProprietaryConfig_EvaluateComponent_Unauthorized() {
     login();
     proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetProprietaryConfig_EvaluateComponent_Unauthenticated() throws Exception {
+  public void testGetProprietaryConfig_EvaluateComponent_Unauthenticated() {
     proprietaryConfigService.getProprietaryConfig(Goal.EVALUATE_COMPONENT, app.getPublicId());
   }
 }

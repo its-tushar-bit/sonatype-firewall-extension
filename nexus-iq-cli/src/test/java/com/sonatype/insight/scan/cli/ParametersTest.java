@@ -15,14 +15,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ParametersTest
 {
   @Test
-  public void testInvalidStage() throws Exception {
+  public void testInvalidStage() {
     Parameters params = new Parameters("-s", "http://localhost:8070/", "-i", "the-app-id", "src/test/data/artifact.jar",
         "-t", "invalid-stage-id");
     assertThat(params.getError().getMessage()).isEqualTo("An invalid stage was specified: -t invalid-stage-id");
   }
 
   @Test
-  public void testBaseDir() throws Exception {
+  public void testBaseDir() {
     assertThat(new Parameters().getBaseDir()).isNull();
     assertThat(new Parameters("-b").getBaseDir()).isNull();
     assertThat(new Parameters("-b", "/dir").getBaseDir()).isEqualTo(new File("/dir"));

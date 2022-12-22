@@ -18,7 +18,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -186,21 +185,17 @@ public class HttpHeaderValidatorFilterTest
 
   @Test
   public void testFilter() throws Exception {
-    when(request.getHeader(anyString())).thenAnswer(new Answer<String>()
-    {
-      @Override
-      public String answer(final InvocationOnMock invocation) throws Throwable {
-        String headerName = (String) invocation.getArguments()[0];
-        switch (headerName) {
-          case "Host":
-            return headers[0];
-          case "X-Forwarded-Proto":
-            return headers[1];
-          case "Forwarded":
-            return headers[2];
-          default:
-            throw new IllegalStateException("No header mapping set for header " + headerName);
-        }
+    when(request.getHeader(anyString())).thenAnswer((Answer<String>) invocation -> {
+      String headerName = (String) invocation.getArguments()[0];
+      switch (headerName) {
+        case "Host":
+          return headers[0];
+        case "X-Forwarded-Proto":
+          return headers[1];
+        case "Forwarded":
+          return headers[2];
+        default:
+          throw new IllegalStateException("No header mapping set for header " + headerName);
       }
     });
     filter.doFilter(request, response, chain);

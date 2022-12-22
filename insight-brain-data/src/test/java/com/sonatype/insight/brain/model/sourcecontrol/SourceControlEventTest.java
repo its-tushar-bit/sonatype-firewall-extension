@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SourceControlEventTest
 {
   @Test
-  public void testSetScanTargetsJson() throws Exception {
+  public void testSetScanTargetsJson() {
     SourceControlEvent sourceControlEvent = new SourceControlEvent();
 
     List<String> scanTargets = Arrays.asList("scanTarget1", "scanTarget2");
@@ -29,7 +29,7 @@ public class SourceControlEventTest
   }
 
   @Test
-  public void testSetScanTargetsJson_Null() throws Exception {
+  public void testSetScanTargetsJson_Null() {
     SourceControlEvent sourceControlEvent = new SourceControlEvent();
 
     sourceControlEvent.setScanTargetsJson(null);
@@ -39,7 +39,7 @@ public class SourceControlEventTest
   }
 
   @Test
-  public void testSetScanTargetsJson_Empty() throws Exception {
+  public void testSetScanTargetsJson_Empty() {
     SourceControlEvent sourceControlEvent = new SourceControlEvent();
 
     sourceControlEvent.setScanTargetsJson(" ");
@@ -49,7 +49,7 @@ public class SourceControlEventTest
   }
 
   @Test
-  public void testSetScanTargets() throws Exception {
+  public void testSetScanTargets() {
     SourceControlEvent sourceControlEvent = new SourceControlEvent();
 
     List<String> scanTargets = Arrays.asList("scanTarget1", "scanTarget2");
@@ -61,7 +61,7 @@ public class SourceControlEventTest
   }
 
   @Test
-  public void testSetScanTargets_Null() throws Exception {
+  public void testSetScanTargets_Null() {
     SourceControlEvent sourceControlEvent = new SourceControlEvent();
 
     sourceControlEvent.setScanTargets(null);
@@ -71,7 +71,7 @@ public class SourceControlEventTest
   }
 
   @Test
-  public void testSetScanTargets_Empty() throws Exception {
+  public void testSetScanTargets_Empty() {
     SourceControlEvent sourceControlEvent = new SourceControlEvent();
 
     sourceControlEvent.setScanTargets(Collections.emptyList());

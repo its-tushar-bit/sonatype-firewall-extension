@@ -67,7 +67,7 @@ public class ProprietaryConfigMigratorTest
   }
 
   @Test
-  public void testMigrateWithoutExistingJsonFile() throws Exception {
+  public void testMigrateWithoutExistingJsonFile() {
     assertThat(migrationTrackerDAO.getById(ProprietaryConfigMigrator.MIGRATION_ID)).isNull();
 
     // execute

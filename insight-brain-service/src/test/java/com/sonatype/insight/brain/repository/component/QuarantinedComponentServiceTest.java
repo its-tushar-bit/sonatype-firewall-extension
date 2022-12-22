@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -119,9 +118,9 @@ public class QuarantinedComponentServiceTest
         repository.getId(), repositoryComponent.getId(), DateUtils.addDays(new Date(), -3));
     String encodedToken = encodeToken(expiredQuarantinedComponentAccess);
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentOverview(encodedToken);
-    }).isInstanceOf(NotFoundException.class).hasMessageStartingWith("This report expired on ")
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOverview(encodedToken))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessageStartingWith("This report expired on ")
         .hasMessageEndingWith("You may generate a new report by requesting the blocked component again.");
   }
 
@@ -129,18 +128,16 @@ public class QuarantinedComponentServiceTest
   public void testGetQuarantinedComponent_TokenDoesNotExist() {
     String encodedToken = encodeToken("token");
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentOverview(encodedToken);
-    }).isInstanceOf(NotFoundException.class).hasMessage(
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOverview(encodedToken)).isInstanceOf(
+        NotFoundException.class).hasMessage(
         "The quarantined component view for the blocked component you are trying to view could not be found.");
   }
 
   @Test
   public void testGetQuarantinedComponent_InvalidToken() {
     // The token is not base64 encoded
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentOverview("token");
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOverview("token"))
+        .isInstanceOf(BadRequestException.class)
         .hasMessage("The quarantined component view cannot be retrieved because the URL contains invalid characters.");
   }
 
@@ -259,9 +256,9 @@ public class QuarantinedComponentServiceTest
         repository.getId(), repositoryComponent.getId(), DateUtils.addDays(new Date(), -3));
     String encodedToken = encodeToken(expiredQuarantinedComponentAccess);
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentOverview(encodedToken);
-    }).isInstanceOf(NotFoundException.class).hasMessageStartingWith("This report expired on ")
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOverview(encodedToken))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessageStartingWith("This report expired on ")
         .hasMessageEndingWith("You may generate a new report by requesting the blocked component again.");
   }
 
@@ -269,18 +266,17 @@ public class QuarantinedComponentServiceTest
   public void testGetQuarantinedComponentOverview_TokenDoesNotExist() {
     String encodedToken = encodeToken("token");
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentOverview(encodedToken);
-    }).isInstanceOf(NotFoundException.class).hasMessage(
-        "The quarantined component view for the blocked component you are trying to view could not be found.");
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOverview(encodedToken))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage(
+            "The quarantined component view for the blocked component you are trying to view could not be found.");
   }
 
   @Test
   public void testGetQuarantinedComponentOverview_InvalidToken() {
     // The token is not base64 encoded
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentOverview("token");
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOverview("token"))
+        .isInstanceOf(BadRequestException.class)
         .hasMessage("The quarantined component view cannot be retrieved because the URL contains invalid characters.");
   }
 
@@ -315,7 +311,7 @@ public class QuarantinedComponentServiceTest
   }
 
   @Test
-  public void testGetQuarantinedComponentPolicyViolations() throws Exception {
+  public void testGetQuarantinedComponentPolicyViolations() {
     // setup
     Date date = new Date();
     final RepositoryComponent repositoryComponent =
@@ -395,7 +391,7 @@ public class QuarantinedComponentServiceTest
   }
 
   @Test
-  public void testGetQuarantinedComponentPolicyViolations_WaivedPolicyViolation() throws Exception {
+  public void testGetQuarantinedComponentPolicyViolations_WaivedPolicyViolation() {
     // setup
     Date date = new Date();
     final RepositoryComponent repositoryComponent =
@@ -432,9 +428,9 @@ public class QuarantinedComponentServiceTest
         repository.getId(), repositoryComponent.getId(), DateUtils.addDays(new Date(), -3));
     String encodedToken = encodeToken(expiredQuarantinedComponentAccess);
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentPolicyViolations(encodedToken);
-    }).isInstanceOf(NotFoundException.class).hasMessageStartingWith("This report expired on ")
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentPolicyViolations(encodedToken))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessageStartingWith("This report expired on ")
         .hasMessageEndingWith("You may generate a new report by requesting the blocked component again.");
   }
 
@@ -442,23 +438,22 @@ public class QuarantinedComponentServiceTest
   public void testGetQuarantinedComponentPolicyViolations_TokenDoesNotExist() {
     String encodedToken = encodeToken("token");
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentPolicyViolations(encodedToken);
-    }).isInstanceOf(NotFoundException.class).hasMessage(
-        "The quarantined component view for the blocked component you are trying to view could not be found.");
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentPolicyViolations(encodedToken))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage(
+            "The quarantined component view for the blocked component you are trying to view could not be found.");
   }
 
   @Test
   public void testGetQuarantinedComponentPolicyViolations_InvalidToken() {
     // The token is not base64 encoded
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentPolicyViolations("token");
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentPolicyViolations("token"))
+        .isInstanceOf(BadRequestException.class)
         .hasMessage("The quarantined component view cannot be retrieved because the URL contains invalid characters.");
   }
 
   @Test
-  public void testGetQuarantinedComponentOtherVersions() throws Exception {
+  public void testGetQuarantinedComponentOtherVersions() {
     // setup
     Date date = new Date();
     // Quarantined component
@@ -539,7 +534,7 @@ public class QuarantinedComponentServiceTest
   }
 
   @Test
-  public void testGetQuarantinedComponentOtherVersions_NoOtherVersions() throws Exception {
+  public void testGetQuarantinedComponentOtherVersions_NoOtherVersions() {
     // setup
     Date date = new Date();
     // Quarantined component
@@ -567,7 +562,7 @@ public class QuarantinedComponentServiceTest
   }
 
   @Test
-  public void testGetQuarantinedComponentOtherVersions_InvalidPage() throws Exception {
+  public void testGetQuarantinedComponentOtherVersions_InvalidPage() {
     Date date = new Date();
     // Quarantined component
     RepositoryComponent repositoryComponent =
@@ -580,13 +575,13 @@ public class QuarantinedComponentServiceTest
 
     String encodedToken = encodeToken(quarantinedComponentAccess);
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 0, 5, true /* asc */);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Page and Page size must be greater than 0");
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 0, 5,
+        true /* asc */)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Page and Page size must be greater than 0");
   }
 
   @Test
-  public void testGetQuarantinedComponentOtherVersions_InvalidPageSize() throws Exception {
+  public void testGetQuarantinedComponentOtherVersions_InvalidPageSize() {
     Date date = new Date();
     // Quarantined component
     RepositoryComponent repositoryComponent =
@@ -599,9 +594,9 @@ public class QuarantinedComponentServiceTest
 
     String encodedToken = encodeToken(quarantinedComponentAccess);
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 0, true /* asc */);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Page and Page size must be greater than 0");
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 0,
+        true /* asc */)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Page and Page size must be greater than 0");
   }
 
   @Test
@@ -611,9 +606,8 @@ public class QuarantinedComponentServiceTest
         repository.getId(), repositoryComponent.getId(), DateUtils.addDays(new Date(), -3));
     String encodedToken = encodeToken(expiredQuarantinedComponentAccess);
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 5, true /* asc */);
-    }).isInstanceOf(NotFoundException.class).hasMessageStartingWith("This report expired on ")
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 5,
+        true /* asc */)).isInstanceOf(NotFoundException.class).hasMessageStartingWith("This report expired on ")
         .hasMessageEndingWith("You may generate a new report by requesting the blocked component again.");
   }
 
@@ -621,23 +615,22 @@ public class QuarantinedComponentServiceTest
   public void testGetQuarantinedComponentOtherVersions_TokenDoesNotExist() {
     String encodedToken = encodeToken("token");
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 5, true /* asc */);
-    }).isInstanceOf(NotFoundException.class).hasMessage(
-        "The quarantined component view for the blocked component you are trying to view could not be found.");
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 5,
+        true /* asc */)).isInstanceOf(NotFoundException.class)
+        .hasMessage(
+            "The quarantined component view for the blocked component you are trying to view could not be found.");
   }
 
   @Test
   public void testGetQuarantinedComponentOtherVersions_InvalidToken() {
     // The token is not base64 encoded
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentOtherVersions("token", 1, 5, true /* asc */);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> quarantinedComponentService.getQuarantinedComponentOtherVersions("token", 1, 5,
+        true /* asc */)).isInstanceOf(BadRequestException.class)
         .hasMessage("The quarantined component view cannot be retrieved because the URL contains invalid characters.");
   }
 
   @Test
-  public void testGetPathnamePrefix() throws Exception {
+  public void testGetPathnamePrefix() {
     assertThat(quarantinedComponentService.getPathnamePrefix("a")).isEqualTo("a");
     assertThat(quarantinedComponentService.getPathnamePrefix("a/b")).isEqualTo("a/b");
     assertThat(quarantinedComponentService.getPathnamePrefix("a/b/c/d/version/file")).isEqualTo("a/b/c/d/");
@@ -668,7 +661,8 @@ public class QuarantinedComponentServiceTest
     assertThat(namedComponentDetails.getMatchState()).isEqualTo(repositoryComponent.getMatchStateId());
     assertThat(namedComponentDetails.getDeclaredLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getObservedLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
-    assertThat(namedComponentDetails.getEffectiveLicenses()).extracting(license -> license.getLicenseId())
+    assertThat(namedComponentDetails.getEffectiveLicenses())
+        .extracting(com.sonatype.clm.dto.model.License::getLicenseId)
         .containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getOverriddenLicenses()).isEmpty();
     assertThat(namedComponentDetails.getPolicyMaxThreatLevelsByCategory()).isEmpty();
@@ -717,7 +711,8 @@ public class QuarantinedComponentServiceTest
     assertThat(namedComponentDetails.getMatchState()).isEqualTo(repositoryComponent.getMatchStateId());
     assertThat(namedComponentDetails.getDeclaredLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getObservedLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
-    assertThat(namedComponentDetails.getEffectiveLicenses()).extracting(license -> license.getLicenseId())
+    assertThat(namedComponentDetails.getEffectiveLicenses())
+        .extracting(com.sonatype.clm.dto.model.License::getLicenseId)
         .containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getOverriddenLicenses()).isEmpty();
     assertThat(namedComponentDetails.getPolicyMaxThreatLevelsByCategory()).isEmpty();
@@ -747,9 +742,9 @@ public class QuarantinedComponentServiceTest
         repository.getId(), repositoryComponent.getId(), DateUtils.addDays(new Date(), -3));
     String encodedToken = encodeToken(expiredQuarantinedComponentAccess);
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentVersionDetails(encodedToken, httpRequestMock, "1.0.0");
-    }).isInstanceOf(NotFoundException.class).hasMessageStartingWith("This report expired on ")
+    assertThatThrownBy(
+        () -> quarantinedComponentService.getQuarantinedComponentVersionDetails(encodedToken, httpRequestMock, "1.0.0"))
+        .isInstanceOf(NotFoundException.class).hasMessageStartingWith("This report expired on ")
         .hasMessageEndingWith("You may generate a new report by requesting the blocked component again.");
   }
 
@@ -757,18 +752,19 @@ public class QuarantinedComponentServiceTest
   public void testGetQuarantinedComponentVersionDetails_TokenDoesNotExist() {
     String encodedToken = encodeToken("token");
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentVersionDetails(encodedToken, httpRequestMock, "1.0.0");
-    }).isInstanceOf(NotFoundException.class).hasMessage(
-        "The quarantined component view for the blocked component you are trying to view could not be found.");
+    assertThatThrownBy(
+        () -> quarantinedComponentService.getQuarantinedComponentVersionDetails(encodedToken, httpRequestMock, "1.0.0"))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage(
+            "The quarantined component view for the blocked component you are trying to view could not be found.");
   }
 
   @Test
   public void testGetQuarantinedComponentVersionDetails_InvalidToken() {
     // The token is not base64 encoded
-    assertThatThrownBy(() -> {
-      quarantinedComponentService.getQuarantinedComponentVersionDetails("token", httpRequestMock, "1.0.0");
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(
+        () -> quarantinedComponentService.getQuarantinedComponentVersionDetails("token", httpRequestMock, "1.0.0"))
+        .isInstanceOf(BadRequestException.class)
         .hasMessage("The quarantined component view cannot be retrieved because the URL contains invalid characters.");
   }
 

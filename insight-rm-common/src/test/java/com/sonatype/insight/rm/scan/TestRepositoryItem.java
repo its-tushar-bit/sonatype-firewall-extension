@@ -6,9 +6,9 @@
 package com.sonatype.insight.rm.scan;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,7 +40,7 @@ public class TestRepositoryItem
 
   @Override
   public InputStream newInputStream() throws IOException {
-    return new FileInputStream(new File(basedir, path));
+    return Files.newInputStream(new File(basedir, path).toPath());
   }
 
   @Override

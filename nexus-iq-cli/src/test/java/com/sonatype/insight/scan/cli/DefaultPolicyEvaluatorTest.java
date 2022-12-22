@@ -945,16 +945,16 @@ public abstract class DefaultPolicyEvaluatorTest
   private String decrementVersion(String versionAsString) {
     int dotAt = versionAsString.indexOf(".");
     if (dotAt > 0) {
-      return (Integer.valueOf(versionAsString.substring(0, dotAt)) - 1) + "." + versionAsString.substring(dotAt + 1);
+      return (Integer.parseInt(versionAsString.substring(0, dotAt)) - 1) + "." + versionAsString.substring(dotAt + 1);
     }
-    return String.valueOf(Integer.valueOf(versionAsString) - 1);
+    return String.valueOf(Integer.parseInt(versionAsString) - 1);
   }
 
   private String incrementVersion(String versionAsString) {
     int dotAt = versionAsString.indexOf(".");
     if (dotAt > 0) {
-      return (Integer.valueOf(versionAsString.substring(0, dotAt)) + 1) + "." + versionAsString.substring(dotAt + 1);
+      return (Integer.parseInt(versionAsString.substring(0, dotAt)) + 1) + "." + versionAsString.substring(dotAt + 1);
     }
-    return String.valueOf(Integer.valueOf(versionAsString) + 1);
+    return String.valueOf(Integer.parseInt(versionAsString) + 1);
   }
 }

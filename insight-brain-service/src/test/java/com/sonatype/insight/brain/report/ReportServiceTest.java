@@ -107,7 +107,7 @@ public class ReportServiceTest
   private ReportDownloader reportDownloader;
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     thirdPartyDataServiceSpy = spy(thirdPartyDataService);
     app = tempEntity.newApplicationWithParent();
   }
@@ -271,7 +271,7 @@ public class ReportServiceTest
   }
 
   @Test
-  public void testGetReport_DoesNotExist() throws Exception {
+  public void testGetReport_DoesNotExist() {
     ReportService reportService = createReportService();
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> reportService.getReport(app.getId(), scanId))
@@ -279,7 +279,7 @@ public class ReportServiceTest
   }
 
   @Test
-  public void testGetReport_DoesNotExistAndEvaluationExist() throws Exception {
+  public void testGetReport_DoesNotExistAndEvaluationExist() {
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), scanId);
     ReportService reportService = createReportService();
     assertThatExceptionOfType(NotFoundException.class)

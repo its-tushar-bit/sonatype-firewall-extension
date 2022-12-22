@@ -92,7 +92,7 @@ public class ComponentIdentifierAdapterTest
   }
 
   @Test
-  public void testToComponentIdentifierNull() throws Exception {
+  public void testToComponentIdentifierNull() {
     assertThat(ComponentIdentifierAdapter.toComponentIdentifier((JsonNode) null)).isNull();
   }
 
@@ -154,7 +154,7 @@ public class ComponentIdentifierAdapterTest
   }
 
   @Test
-  public void testToJsonCoordinates() throws Exception {
+  public void testToJsonCoordinates() {
     Map<String, String> coordinates = new HashMap<>();
     coordinates.put("groupId", "tomcat");// throw in a unicode character just for the hell of it
     coordinates.put("artifactId", "tomcat-util");

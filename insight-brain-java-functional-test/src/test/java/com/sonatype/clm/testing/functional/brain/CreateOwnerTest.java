@@ -94,7 +94,7 @@ public class CreateOwnerTest
   }
 
   @Test
-  public void testCreateApplication() throws Exception {
+  public void testCreateApplication() {
     OwnerTreeView.organizationElements().shouldHaveSize(1);
     OrganizationNode orgNode = OwnerTreeView.organization(0);
     orgNode.treeViewElement().click();
@@ -460,7 +460,7 @@ public class CreateOwnerTest
   }
 
   @Test
-  public void testCreateOrganization() throws Exception {
+  public void testCreateOrganization() {
     RootOrganizationNode.newOrganizationButton().shouldBe(visible, enabled).click();
 
     testNoDirtyState();

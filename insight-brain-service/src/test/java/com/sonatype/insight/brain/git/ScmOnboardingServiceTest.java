@@ -170,7 +170,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testLoadRepositories_hierarchyNoToken() throws Exception {
+  public void testLoadRepositories_hierarchyNoToken() {
     // given root org with no token
     sourceControlDAO.delete(sourceControlDAO.getByOwnerId(ROOT_ORGANIZATION_ID));
     tempEntity
@@ -519,7 +519,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testImportRepositories_allNew() throws Exception {
+  public void testImportRepositories_allNew() {
     // given SCM imports are enabled
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
@@ -655,7 +655,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testImportRepositories_existingApp() throws Exception {
+  public void testImportRepositories_existingApp() {
     // given SCM imports are enabled
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
@@ -710,7 +710,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testImportRepositories_unlicensed() throws Exception {
+  public void testImportRepositories_unlicensed() {
     // given SCM imports are enabled, but IQ for SCM is not supported by license
     testProductLicense.setMissingFeatures(LicensedFeature.AUTOMATION, LicensedFeature.NOTIFICATIONS);
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
@@ -845,7 +845,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testImportRepositories_invalidCharacters() throws Exception {
+  public void testImportRepositories_invalidCharacters() {
     // given SCM imports are enabled
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
@@ -865,7 +865,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testImportRepositories_conflictingProjectName() throws Exception {
+  public void testImportRepositories_conflictingProjectName() {
     // given SCM imports are enabled
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
@@ -894,7 +894,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testImportRepositories_multipleConflictingProjectName() throws Exception {
+  public void testImportRepositories_multipleConflictingProjectName() {
     // given SCM imports are enabled
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 

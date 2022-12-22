@@ -41,9 +41,9 @@ public class PostgresServerTest
           assertThat(results.next()).isFalse();
         }
 
-        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
-          postgres.loadSqlDump(Paths.get(getClass().getResource("/dump-invalid.sql").toURI()));
-        }).withStackTraceContaining("psql returned 3");
+        assertThatExceptionOfType(IllegalStateException.class)
+            .isThrownBy(() -> postgres.loadSqlDump(Paths.get(getClass().getResource("/dump-invalid.sql").toURI())))
+            .withStackTraceContaining("psql returned 3");
       }
     }
   }

@@ -56,9 +56,7 @@ public class AttributionReportTemplateDAOTest
   public void before() {
     dao = new AttributionReportTemplateDAO();
     List<AttributionReportTemplate> reports = dao.getAll();
-    reports.forEach(report -> {
-      dao.delete(report);
-    });
+    reports.forEach(report -> dao.delete(report));
   }
 
   @Test

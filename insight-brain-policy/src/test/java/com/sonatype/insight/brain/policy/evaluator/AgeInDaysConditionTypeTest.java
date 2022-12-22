@@ -130,9 +130,9 @@ public class AgeInDaysConditionTypeTest
   @Test
   public void testValidateCondition_ValueNotANumber() {
     Condition condition = new Condition(AgeInDaysConditionType.ID, "older than", "abc");
-    assertThatThrownBy(() -> {
-      new AgeInDaysConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid age (in days): abc");
+    assertThatThrownBy(() -> new AgeInDaysConditionType().validateCondition(null, condition, null /* applicationId */))
+        .isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("Invalid age (in days): abc");
   }
 
   @Test

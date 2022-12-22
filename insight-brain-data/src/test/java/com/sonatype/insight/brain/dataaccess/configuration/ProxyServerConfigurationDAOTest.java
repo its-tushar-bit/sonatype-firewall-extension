@@ -84,18 +84,16 @@ public class ProxyServerConfigurationDAOTest
   private void testInsert_ValidateHostname(String hostname) {
     ProxyServerConfiguration proxyServerConfiguration = newValidProxyServerConfiguration();
     proxyServerConfiguration.setHostname(hostname);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.insert(proxyServerConfiguration);
-    }).withMessage("Host is required.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(proxyServerConfiguration))
+        .withMessage("Host is required.");
   }
 
   @Test
   public void testInsert_ValidatePort_LowerBound() {
     ProxyServerConfiguration proxyServerConfiguration = newValidProxyServerConfiguration();
     proxyServerConfiguration.setPort(0);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.insert(proxyServerConfiguration);
-    }).withMessage("The port must be from the range 1 - 65535.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(proxyServerConfiguration))
+        .withMessage("The port must be from the range 1 - 65535.");
 
     proxyServerConfiguration.setPort(1);
     dao.insert(proxyServerConfiguration);
@@ -105,9 +103,8 @@ public class ProxyServerConfigurationDAOTest
   public void testInsert_ValidatePort_UpperBound() {
     ProxyServerConfiguration proxyServerConfiguration = newValidProxyServerConfiguration();
     proxyServerConfiguration.setPort(65536);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.insert(proxyServerConfiguration);
-    }).withMessage("The port must be from the range 1 - 65535.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(proxyServerConfiguration))
+        .withMessage("The port must be from the range 1 - 65535.");
 
     proxyServerConfiguration.setPort(65535);
     dao.insert(proxyServerConfiguration);
@@ -132,9 +129,8 @@ public class ProxyServerConfigurationDAOTest
     ProxyServerConfiguration proxyServerConfiguration = newValidProxyServerConfiguration();
     dao.insert(proxyServerConfiguration);
     proxyServerConfiguration.setHostname(hostname);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.update(proxyServerConfiguration);
-    }).withMessage("Host is required.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(proxyServerConfiguration))
+        .withMessage("Host is required.");
   }
 
   @Test
@@ -142,9 +138,8 @@ public class ProxyServerConfigurationDAOTest
     ProxyServerConfiguration proxyServerConfiguration = newValidProxyServerConfiguration();
     dao.insert(proxyServerConfiguration);
     proxyServerConfiguration.setPort(0);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.update(proxyServerConfiguration);
-    }).withMessage("The port must be from the range 1 - 65535.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(proxyServerConfiguration))
+        .withMessage("The port must be from the range 1 - 65535.");
 
     proxyServerConfiguration.setPort(1);
     dao.update(proxyServerConfiguration);
@@ -155,9 +150,8 @@ public class ProxyServerConfigurationDAOTest
     ProxyServerConfiguration proxyServerConfiguration = newValidProxyServerConfiguration();
     dao.insert(proxyServerConfiguration);
     proxyServerConfiguration.setPort(65536);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.update(proxyServerConfiguration);
-    }).withMessage("The port must be from the range 1 - 65535.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(proxyServerConfiguration))
+        .withMessage("The port must be from the range 1 - 65535.");
 
     proxyServerConfiguration.setPort(65535);
     dao.update(proxyServerConfiguration);
@@ -167,15 +161,14 @@ public class ProxyServerConfigurationDAOTest
   public void testInsert_EnforceSingleton() {
     dao.insert(newValidProxyServerConfiguration());
 
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(newValidProxyServerConfiguration());
-    }).withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(PersistenceException.class)
+        .isThrownBy(() -> dao.insert(newValidProxyServerConfiguration()))
+        .withCauseInstanceOf(EntityExistsException.class);
 
     ProxyServerConfiguration proxyServerConfiguration = newValidProxyServerConfiguration();
     proxyServerConfiguration.setId("not-singleton-id");
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(proxyServerConfiguration);
-    }).withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(proxyServerConfiguration))
+        .withCauseInstanceOf(EntityExistsException.class);
   }
 
   @Test

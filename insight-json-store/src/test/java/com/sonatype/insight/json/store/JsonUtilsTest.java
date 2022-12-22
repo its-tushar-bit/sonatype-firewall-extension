@@ -53,7 +53,7 @@ public class JsonUtilsTest
   }
 
   @Test
-  public void testWriteUnformatted() throws Exception {
+  public void testWriteUnformatted() {
     Map<String, String> pojo = new HashMap<>();
     pojo.put("groupId", "tomcat");// throw in a unicode character just for the hell of it
     pojo.put("artifactId", "tomcat-util");

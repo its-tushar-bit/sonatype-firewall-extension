@@ -141,7 +141,7 @@ public class PolicyViolationLogDTOAssert
       Date before,
       Date after,
       PolicyViolation policyViolation,
-      String userName) throws Exception
+      String userName)
   {
     assertEventData(policyViolationLogDTO, policyViolationLogEvent, before, after);
     assertThat(policyViolationLogDTO.stageTypeId).isEqualTo(policyViolation.getStageTypeId());
@@ -173,7 +173,7 @@ public class PolicyViolationLogDTOAssert
                                                          Date before,
                                                          Date after,
                                                          RepositoryPolicyViolation policyViolation,
-                                                         String userName) throws Exception
+                                                         String userName)
   {
     if (PolicyViolationLogEvent.CREATE.equals(policyViolationLogEvent)) {
       assertEventData(policyViolationLogDTO, policyViolationLogEvent, policyViolation.getTime());

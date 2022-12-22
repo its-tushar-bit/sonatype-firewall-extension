@@ -150,7 +150,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testMissingLicense_BasicLicenseInformationCanStillBeQueried() throws Exception {
+  public void testMissingLicense_BasicLicenseInformationCanStillBeQueried() {
     clmLicenseManager.uninstallLicense();
     assertThat(productLicense.getFingerprint()).isNull();
     assertThat(productLicense.getFeatures()).isEmpty();
@@ -160,7 +160,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testLicenseLacksClmFeatureAndFirewallFeature() throws Exception {
+  public void testLicenseLacksClmFeatureAndFirewallFeature() {
     clmLicenseManager.uninstallLicense();
     licenseManager.setForceVerificationFailure(true);
     assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
@@ -506,7 +506,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testUpdateLicenseCacheFromDatabase() throws Exception {
+  public void testUpdateLicenseCacheFromDatabase() {
     CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
 
     //before
@@ -529,7 +529,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testUpdateLicenseCacheFromDatabase_ClearsCacheNoDatabaseRecord() throws Exception {
+  public void testUpdateLicenseCacheFromDatabase_ClearsCacheNoDatabaseRecord() {
     CLMLicenseManager clmLicenseManagerSpy = spy(clmLicenseManager);
 
     //before
@@ -661,7 +661,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testInstallLicense_LegacyVersion() throws Exception {
+  public void testInstallLicense_LegacyVersion() {
     licenseManager.setVersion(0);
     assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
         .withMessage("Invalid license version: 0");
@@ -674,7 +674,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testInstallLicense_BadMaxFirewallUsers() throws Exception {
+  public void testInstallLicense_BadMaxFirewallUsers() {
     assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
       licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_FIREWALL_USERS, "Invalid");
       installLicense();
@@ -682,7 +682,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testInstallLicense_BadMaxUsers() throws Exception {
+  public void testInstallLicense_BadMaxUsers() {
     assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
       licenseManager.setProperty(ProductLicenseDetails.PROPERTY_MAX_USERS, "Invalid");
       installLicense();
@@ -703,7 +703,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testInstallLicense_LicenseDetailsFromHds_InvalidSignature() throws Exception {
+  public void testInstallLicense_LicenseDetailsFromHds_InvalidSignature() {
     clmLicenseManager.uninstallLicense();
     mockHdsProductLicenseDetails(withInvalidSignature());
     assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
@@ -713,7 +713,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testInstallLicense_LicenseDetailsFromHds_RequestFailure() throws Exception {
+  public void testInstallLicense_LicenseDetailsFromHds_RequestFailure() {
     clmLicenseManager.uninstallLicense();
     hdsMockServer.respondWith("error").andStatus(503).atUri("/rest/productLicense/v1").withoutLicense();
     assertThatExceptionOfType(BadGatewayException.class).isThrownBy(this::installLicense)
@@ -742,7 +742,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testInstallLicense_ExternalDatabaseNotAllowedButCurrentlyUsed() throws Exception {
+  public void testInstallLicense_ExternalDatabaseNotAllowedButCurrentlyUsed() {
     config.setDatabase(new DatabaseConfig());
     mockHdsProductLicenseDetails(withFeatures());
     clmLicenseManager.uninstallLicense();
@@ -850,7 +850,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testNotifyListener_LoadLicense() throws Exception {
+  public void testNotifyListener_LoadLicense() {
     ProductLicenseListener listener = mock(ProductLicenseListener.class);
     clmLicenseManager.addListener(listener);
     clmLicenseManager.loadLicense();
@@ -888,7 +888,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testGetLicenseSummary_ProductEditionNone() throws Exception {
+  public void testGetLicenseSummary_ProductEditionNone() {
     clmLicenseManager.uninstallLicense();
     LicenseSummary summary = clmLicenseManager.getLicenseSummary();
     assertThat(summary).isNotNull();
@@ -988,7 +988,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testGetLicenseInfo_ProductEditionNone() throws Exception {
+  public void testGetLicenseInfo_ProductEditionNone() {
     clmLicenseManager.uninstallLicense();
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
@@ -1352,7 +1352,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testInstallLicenseIfUnlicensed_FileNotFoundException() throws Exception {
+  public void testInstallLicenseIfUnlicensed_FileNotFoundException() {
     clmLicenseManager.uninstallLicense();
     String licenseFilePath = "path/to/license/file";
     assertThatExceptionOfType(FileNotFoundException.class)
@@ -1363,7 +1363,7 @@ public class CLMLicenseManagerTest
   }
 
   @Test
-  public void testInstallLicenseIfUnlicensed_LicensingException() throws Exception {
+  public void testInstallLicenseIfUnlicensed_LicensingException() {
     licenseManager.setForceVerificationFailure(true);
     clmLicenseManager.uninstallLicense();
     String licenseFilePath = getClass().getClassLoader().getResource("CLMLicenseManagerTest/license.lic").getFile();

@@ -40,7 +40,7 @@ public class ApplicationComponentLicenseDAOTest
   }
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash1", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
@@ -56,9 +56,7 @@ public class ApplicationComponentLicenseDAOTest
     // Update
     ApplicationComponentLicense toUpdate = dao.getById(applicationComponentLicense.getId());
     toUpdate.setEffectiveLicenseId("new-license");
-    assertThatThrownBy(() -> {
-      dao.update(toUpdate);
-    }).isInstanceOf(UnsupportedOperationException.class);
+    assertThatThrownBy(() -> dao.update(toUpdate)).isInstanceOf(UnsupportedOperationException.class);
 
     // Delete
     dao.delete(applicationComponentLicense);

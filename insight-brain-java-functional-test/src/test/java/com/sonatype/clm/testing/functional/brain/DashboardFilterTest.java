@@ -111,7 +111,7 @@ public class DashboardFilterTest
   private static Policy policy;
 
   @BeforeClass
-  public static void beforeClass() throws Exception {
+  public static void beforeClass() {
     setupData();
     refreshOrOpen(DashboardPage.urlToViolations());
     loginAsAdmin();
@@ -638,7 +638,7 @@ public class DashboardFilterTest
   }
 
   @Test
-  public void testFilterOutAllResults() throws Exception {
+  public void testFilterOutAllResults() {
     DashboardPage.filterToggle().shouldBe(visible).click();
     // filter only for security policy type
     DashboardFilters.policyTypeFilter().twisty().click();

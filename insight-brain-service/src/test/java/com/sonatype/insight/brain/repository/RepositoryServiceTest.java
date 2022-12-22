@@ -150,7 +150,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
   }
 
   @Test
-  public void testUnquarantineComponent_WasNotQuarantined() throws Exception {
+  public void testUnquarantineComponent_WasNotQuarantined() {
     String pathname = "path";
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "maven2");
     RepositoryComponent repositoryComponent = tempEntity
@@ -197,8 +197,9 @@ public class RepositoryServiceTest extends AbstractComponentTest
     assertThat(repositoryComponent.getAutoUnquarantined()).isFalse();
   }
 
-  private void mockHdsRequestForComponent(RepositoryComponent repositoryComponent, boolean withSecurityVulnerabilities)
-      throws Exception
+  private void mockHdsRequestForComponent(
+      RepositoryComponent repositoryComponent,
+      boolean withSecurityVulnerabilities)
   {
     // Prepare request and mock the HDS request
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
@@ -556,7 +557,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
    */
   @Test
   @Deprecated
-  public void testTHREAT_LEVEL_DESC_PATHNAME_ASC() throws Exception {
+  public void testTHREAT_LEVEL_DESC_PATHNAME_ASC() {
     final RepositoryReportDetail detail1 = RepositoryReportDetail
         .create(new RepositoryComponent(null, "z", null, null, null, null, null, null));
     final RepositoryReportDetail detail2 = RepositoryReportDetail
@@ -587,7 +588,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
    */
   @Test
   @Deprecated
-  public void testGetReportDetails() throws Exception {
+  public void testGetReportDetails() {
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
 
@@ -632,7 +633,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
    */
   @Test
   @Deprecated
-  public void testGetReportDetails_ByHash() throws Exception {
+  public void testGetReportDetails_ByHash() {
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
 
@@ -661,7 +662,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
    */
   @Test
   @Deprecated
-  public void testGetReportDetails_ByPathname() throws Exception {
+  public void testGetReportDetails_ByPathname() {
     final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
 
@@ -701,14 +702,14 @@ public class RepositoryServiceTest extends AbstractComponentTest
   }
 
   @Test
-  public void testGetRepositoryById_UnknownId() throws Exception {
+  public void testGetRepositoryById_UnknownId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> repositoryService.getRepositoryById("foobar"))
         .withMessage("Cannot find a repository with ID foobar.");
   }
 
   @Test
-  public void testReevaluateRepository() throws Exception {
+  public void testReevaluateRepository() {
     Repository repository = tempEntity.newRepository();
     RepositoryComponent repositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), DateUtils.addDays(new Date(), -1));
@@ -735,28 +736,28 @@ public class RepositoryServiceTest extends AbstractComponentTest
   }
 
   @Test
-  public void testReevaluateRepository_UnknownId() throws Exception {
+  public void testReevaluateRepository_UnknownId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> repositoryService.reevaluateRepository("foobar"))
         .withMessage("Cannot find a repository with ID foobar.");
   }
 
   @Test
-  public void testDeleteRepository() throws Exception {
+  public void testDeleteRepository() {
     Repository repository = tempEntity.newRepository();
     repositoryService.deleteRepository(repository.getId());
     assertThat(repositoryDAO.getById(repository.getId())).isNull();
   }
 
   @Test
-  public void testDeleteRepository_UnknownId() throws Exception {
+  public void testDeleteRepository_UnknownId() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> repositoryService.deleteRepository("foobar"))
         .withMessage("Cannot find a repository with ID foobar.");
   }
 
   @Test
-  public void testReevaluateComponent() throws Exception {
+  public void testReevaluateComponent() {
     Repository repository = tempEntity.newRepository();
     RepositoryComponent repositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), DateUtils.addDays(new Date(), -1));
@@ -781,7 +782,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
   }
 
   @Test
-  public void testReevaluateComponent_UnknownHash() throws Exception {
+  public void testReevaluateComponent_UnknownHash() {
     Repository repo = tempEntity.newRepository();
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> repositoryService.reevaluateComponent(repo.getId(), "missing-hash", null))
@@ -814,9 +815,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
     Set<Repository> actual = repositoryService.getRepositoriesByIds(null);
 
-    actual.forEach(repo -> {
-      assertThat(repo.getId()).isIn(repoIds);
-    });
+    actual.forEach(repo -> assertThat(repo.getId()).isIn(repoIds));
   }
 
   @Test
@@ -827,9 +826,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
     Set<Repository> actual = repositoryService.getRepositoriesByIds(Collections.emptySet());
 
-    actual.forEach(repo -> {
-      assertThat(repo.getId()).isIn(repoIds);
-    });
+    actual.forEach(repo -> assertThat(repo.getId()).isIn(repoIds));
   }
 
   private RepositoryComponent createRepositoryPolicyViolation(final Repository repository,

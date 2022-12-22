@@ -242,9 +242,9 @@ public class PolicyClientTest
     doThrow(new IOException("EVALUATION REQUEST FAILURE")).when(policyClient)
         .parseResult(ArgumentMatchers.any(Result.class), eq(PolicyEvaluationReceipt.class));
 
-    assertThatExceptionOfType(IOException.class).isThrownBy(() -> {
-      policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage);
-    }).withMessage("EVALUATION REQUEST FAILURE");
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage))
+        .withMessage("EVALUATION REQUEST FAILURE");
     verify(policyClient, never()).parseResult(ArgumentMatchers.any(Result.class),
         eq(PolicyEvaluationPollingResult.class));
   }
@@ -268,9 +268,9 @@ public class PolicyClientTest
     doReturn(failedResult).when(policyClient).parseResult(ArgumentMatchers.any(Result.class),
         eq(PolicyEvaluationPollingResult.class));
 
-    assertThatExceptionOfType(IOException.class).isThrownBy(() -> {
-      policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage);
-    }).withMessage("Policy evaluation could not be completed: FAILURE REASON");
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> policyClient.evaluate("cli", scanFile, ClientScanType.SONATYPE, stage))
+        .withMessage("Policy evaluation could not be completed: FAILURE REASON");
     verify(policyClient, times(1)).parseResult(ArgumentMatchers.any(Result.class),
         eq(PolicyEvaluationPollingResult.class));
   }

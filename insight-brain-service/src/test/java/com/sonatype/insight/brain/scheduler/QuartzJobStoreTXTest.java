@@ -72,7 +72,7 @@ public class QuartzJobStoreTXTest
   }
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     taskScheduler.createScheduler();
     quartzJobStoreTXSpy = spy(quartzJobStoreTX);
   }

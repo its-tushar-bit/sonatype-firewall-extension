@@ -112,40 +112,40 @@ public class ComponentFormatConditionTypeTest
   @Test
   public void testValidateCondition_InvalidValue() {
     Condition conditionIs = new Condition(ComponentFormatConditionType.ID, "is", "noSuchFormat");
-    assertThatThrownBy(() -> {
-      new ComponentFormatConditionType().validateCondition(null /* tx */, conditionIs, null /* ownerId */);
-    }).isInstanceOf(InvalidConditionException.class)
+    assertThatThrownBy(
+        () -> new ComponentFormatConditionType().validateCondition(null /* tx */, conditionIs, null /* ownerId */))
+        .isInstanceOf(InvalidConditionException.class)
         .hasMessageEndingWith("Unsupported component format: 'noSuchFormat'");
 
     Condition conditionIsNot = new Condition(ComponentFormatConditionType.ID, "is not", "noSuchFormat");
-    assertThatThrownBy(() -> {
-      new ComponentFormatConditionType().validateCondition(null /* tx */, conditionIsNot, null /* ownerId */);
-    }).isInstanceOf(InvalidConditionException.class)
+    assertThatThrownBy(
+        () -> new ComponentFormatConditionType().validateCondition(null /* tx */, conditionIsNot, null /* ownerId */))
+        .isInstanceOf(InvalidConditionException.class)
         .hasMessageEndingWith("Unsupported component format: 'noSuchFormat'");
   }
 
   @Test
   public void testValidateCondition_NullValue() {
     Condition condition = new Condition(ComponentFormatConditionType.ID, "is", null /* value */);
-    assertThatThrownBy(() -> {
-      new ComponentFormatConditionType().validateCondition(null /* tx */, condition, null /* ownerId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Component format is required");
+    assertThatThrownBy(
+        () -> new ComponentFormatConditionType().validateCondition(null /* tx */, condition, null /* ownerId */))
+        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Component format is required");
   }
 
   @Test
   public void testValidateCondition_EmptyStringValue() {
     Condition condition = new Condition(ComponentFormatConditionType.ID, "is", "" /* value */);
-    assertThatThrownBy(() -> {
-      new ComponentFormatConditionType().validateCondition(null /* tx */, condition, null /* ownerId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Component format is required");
+    assertThatThrownBy(
+        () -> new ComponentFormatConditionType().validateCondition(null /* tx */, condition, null /* ownerId */))
+        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Component format is required");
   }
 
   @Test
   public void testValidateCondition_SpaceValue() {
     Condition condition = new Condition(ComponentFormatConditionType.ID, "is", " " /* value */);
-    assertThatThrownBy(() -> {
-      new ComponentFormatConditionType().validateCondition(null /* tx */, condition, null /* ownerId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Component format is required");
+    assertThatThrownBy(() -> new ComponentFormatConditionType().validateCondition(null /* tx */, condition,
+        null /* ownerId */)).isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("Component format is required");
   }
 
   @Test

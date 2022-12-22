@@ -55,7 +55,7 @@ public class SecureCookiesFilterTest
   private SecureCookiesFilter cookieFilter;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     this.cookieFilter = new SecureCookiesFilter();
   }
 

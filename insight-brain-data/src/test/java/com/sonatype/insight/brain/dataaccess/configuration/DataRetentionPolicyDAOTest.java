@@ -64,9 +64,9 @@ public class DataRetentionPolicyDAOTest
   @Test
   public void testUniquenessConstraint() {
     dao.insert(new DataRetentionPolicy(organization.getId(), "contextId", true, 1, null));
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(new DataRetentionPolicy(organization.getId(), "contextId"));
-    }).withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(PersistenceException.class)
+        .isThrownBy(() -> dao.insert(new DataRetentionPolicy(organization.getId(), "contextId")))
+        .withCauseInstanceOf(EntityExistsException.class);
   }
 
   @Test
@@ -91,9 +91,8 @@ public class DataRetentionPolicyDAOTest
   @Test
   public void testInsert_ValidateMaxCount_LowerBound() {
     DataRetentionPolicy policy = new DataRetentionPolicy(organization.getId(), "contextId", true, 0, null);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.insert(policy);
-    }).withMessageContaining("count must be positive");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(policy))
+        .withMessageContaining("count must be positive");
 
     policy.setMaxCount(policy.getMaxCount() + 1);
     dao.insert(policy);
@@ -102,9 +101,8 @@ public class DataRetentionPolicyDAOTest
   @Test
   public void testInsert_ValidateMaxCount_UpperBound() {
     DataRetentionPolicy policy = new DataRetentionPolicy(organization.getId(), "contextId", true, 10000, null);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.insert(policy);
-    }).withMessageContaining("count must be less than 10000");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(policy))
+        .withMessageContaining("count must be less than 10000");
 
     policy.setMaxCount(policy.getMaxCount() - 1);
     dao.insert(policy);
@@ -115,9 +113,8 @@ public class DataRetentionPolicyDAOTest
     DataRetentionPolicy policy = new DataRetentionPolicy(organization.getId(), "contextId", true, 1, null);
     dao.insert(policy);
     policy.setMaxCount(0);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.update(policy);
-    }).withMessageContaining("count must be positive");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(policy))
+        .withMessageContaining("count must be positive");
 
     policy.setMaxCount(policy.getMaxCount() + 1);
     dao.update(policy);
@@ -128,9 +125,8 @@ public class DataRetentionPolicyDAOTest
     DataRetentionPolicy policy = new DataRetentionPolicy(organization.getId(), "contextId", true, 1, null);
     dao.insert(policy);
     policy.setMaxCount(10000);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.update(policy);
-    }).withMessageContaining("count must be less than 10000");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(policy))
+        .withMessageContaining("count must be less than 10000");
 
     policy.setMaxCount(policy.getMaxCount() - 1);
     dao.update(policy);
@@ -139,9 +135,8 @@ public class DataRetentionPolicyDAOTest
   @Test
   public void testInsert_ValidateMaxAgeInDays_LowerBound() {
     DataRetentionPolicy policy = new DataRetentionPolicy(organization.getId(), "contextId", true, null, 0);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.insert(policy);
-    }).withMessageContaining("age must be positive");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(policy))
+        .withMessageContaining("age must be positive");
 
     policy.setMaxAgeInDays(policy.getMaxAgeInDays() + 1);
     dao.insert(policy);
@@ -150,9 +145,8 @@ public class DataRetentionPolicyDAOTest
   @Test
   public void testInsert_ValidateMaxAgeInDays_UpperBound() {
     DataRetentionPolicy policy = new DataRetentionPolicy(organization.getId(), "contextId", true, null, 50 * 365);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.insert(policy);
-    }).withMessageContaining("age must be less than 50 years");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(policy))
+        .withMessageContaining("age must be less than 50 years");
 
     policy.setMaxAgeInDays(policy.getMaxAgeInDays() - 1);
     dao.insert(policy);
@@ -163,9 +157,8 @@ public class DataRetentionPolicyDAOTest
     DataRetentionPolicy policy = new DataRetentionPolicy(organization.getId(), "contextId", true, null, 1);
     dao.insert(policy);
     policy.setMaxAgeInDays(0);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.update(policy);
-    }).withMessageContaining("age must be positive");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(policy))
+        .withMessageContaining("age must be positive");
 
     policy.setMaxAgeInDays(policy.getMaxAgeInDays() + 1);
     dao.update(policy);
@@ -176,9 +169,8 @@ public class DataRetentionPolicyDAOTest
     DataRetentionPolicy policy = new DataRetentionPolicy(organization.getId(), "contextId", true, null, 1);
     dao.insert(policy);
     policy.setMaxAgeInDays(50 * 365);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.update(policy);
-    }).withMessageContaining("age must be less than 50 years");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(policy))
+        .withMessageContaining("age must be less than 50 years");
 
     policy.setMaxAgeInDays(policy.getMaxAgeInDays() - 1);
     dao.update(policy);
@@ -186,9 +178,9 @@ public class DataRetentionPolicyDAOTest
 
   @Test
   public void testInsert_ValidateAnyCriteria() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.insert(new DataRetentionPolicy(organization.getId(), "contextId", true, null, null));
-    }).withMessageContaining("without criteria for what to purge");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dao.insert(new DataRetentionPolicy(organization.getId(), "contextId", true, null, null)))
+        .withMessageContaining("without criteria for what to purge");
   }
 
   @Test
@@ -196,9 +188,8 @@ public class DataRetentionPolicyDAOTest
     DataRetentionPolicy policy = new DataRetentionPolicy(organization.getId(), "contextId");
     dao.insert(policy);
     policy.setPurgingEnabled(true);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.update(policy);
-    }).withMessageContaining("without criteria for what to purge");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(policy))
+        .withMessageContaining("without criteria for what to purge");
   }
 
   @Test

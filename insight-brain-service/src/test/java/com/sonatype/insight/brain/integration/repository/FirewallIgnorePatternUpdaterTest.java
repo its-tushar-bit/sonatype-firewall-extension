@@ -59,7 +59,7 @@ public class FirewallIgnorePatternUpdaterTest
   }
 
   @Test
-  public void testRegister() throws Exception {
+  public void testRegister() {
     firewallIgnorePatternUpdater.register();
 
     verify(taskSchedulerMock).schedulePeriodicTask(FirewallIgnorePatternUpdater.class,

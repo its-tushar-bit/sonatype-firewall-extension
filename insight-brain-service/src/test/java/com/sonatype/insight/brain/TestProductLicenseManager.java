@@ -325,9 +325,7 @@ public class TestProductLicenseManager
       if (valid) {
         this.features = EnumSet.noneOf(LicensedFeature.class);
 
-        for (LicensedFeature feature : features) {
-          this.features.add(feature);
-        }
+        this.features.addAll(Arrays.asList(features));
 
         setKey();
       }

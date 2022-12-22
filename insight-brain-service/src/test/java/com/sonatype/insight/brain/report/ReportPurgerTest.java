@@ -333,25 +333,21 @@ public class ReportPurgerTest
 
       CountDownLatch latch = new CountDownLatch(1);
       AtomicReference<Exception> error = new AtomicReference<>();
-      Thread thread = new Thread()
-      {
-        @Override
-        public void run() {
-          try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
-            tx.begin();
-            new PolicyEvaluationDAO() //
-                .createQuery("SELECT entity FROM PolicyEvaluation entity") //
-                .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
-                .getList(tx);
-            latch.countDown();
-            Thread.sleep(2 * 1000);
-            tx.commit();
-          }
-          catch (Exception e) {
-            error.set(e);
-          }
+      Thread thread = new Thread(() -> {
+        try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
+          tx.begin();
+          new PolicyEvaluationDAO() //
+              .createQuery("SELECT entity FROM PolicyEvaluation entity") //
+              .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
+              .getList(tx);
+          latch.countDown();
+          Thread.sleep(2 * 1000);
+          tx.commit();
         }
-      };
+        catch (Exception e) {
+          error.set(e);
+        }
+      });
       thread.start();
 
       assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -388,25 +384,21 @@ public class ReportPurgerTest
 
       CountDownLatch latch = new CountDownLatch(1);
       AtomicReference<Exception> error = new AtomicReference<>();
-      Thread thread = new Thread()
-      {
-        @Override
-        public void run() {
-          try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
-            tx.begin();
-            new PolicyEvaluationDAO() //
-                .createQuery("SELECT entity FROM PolicyEvaluation entity") //
-                .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
-                .getList(tx);
-            latch.countDown();
-            Thread.sleep(2 * 1000);
-            tx.commit();
-          }
-          catch (Exception e) {
-            error.set(e);
-          }
+      Thread thread = new Thread(() -> {
+        try (TransactionContext tx = dataRetentionPolicyDAO.createTransactionContext()) {
+          tx.begin();
+          new PolicyEvaluationDAO() //
+              .createQuery("SELECT entity FROM PolicyEvaluation entity") //
+              .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
+              .getList(tx);
+          latch.countDown();
+          Thread.sleep(2 * 1000);
+          tx.commit();
         }
-      };
+        catch (Exception e) {
+          error.set(e);
+        }
+      });
       thread.start();
 
       assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();

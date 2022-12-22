@@ -6,9 +6,9 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -52,7 +52,7 @@ public class ReportBundleUpdaterTest
   public void init() throws Exception {
     originalFile = tmpDir.newFile();
     updatedFile = new File(tmpDir.getRoot(), "not-yet-existent/report.zip");
-    try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(originalFile))) {
+    try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(originalFile.toPath()))) {
       ZipEntry entry = new ZipEntry("one.txt");
       zos.putNextEntry(entry);
       zos.write("test".getBytes(StandardCharsets.UTF_8));

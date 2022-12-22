@@ -234,7 +234,7 @@ public class ScanFileCleanerTest
   }
 
   @Test
-  public void testDeleteScanFiles_ScanDirectoryDoesNotExist() throws Exception {
+  public void testDeleteScanFiles_ScanDirectoryDoesNotExist() {
     assertMarkerDoesNotExist();
 
     Application app = tempEntity.newApplicationWithParent();
@@ -251,7 +251,7 @@ public class ScanFileCleanerTest
   }
 
   @Test
-  public void testExecute() throws Exception {
+  public void testExecute() {
     ScanFileCleaner scanFileCleanerSpy = spy(scanFileCleaner);
     doAnswer(invocationOnMock -> {
       assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);

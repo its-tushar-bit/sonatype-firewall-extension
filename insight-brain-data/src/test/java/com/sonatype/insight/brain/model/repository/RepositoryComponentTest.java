@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryComponentTest
 {
   @Test
-  public void testIsQuarantined() throws Exception {
+  public void testIsQuarantined() {
     final RepositoryComponent component = new RepositoryComponent();
     assertThat(component.isQuarantined()).isFalse();
 

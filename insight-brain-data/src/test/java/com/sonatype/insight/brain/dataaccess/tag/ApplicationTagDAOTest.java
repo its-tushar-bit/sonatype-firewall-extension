@@ -36,7 +36,7 @@ public class ApplicationTagDAOTest
   }
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     ApplicationTag appTag = new ApplicationTag(application.getId(), tag.getId());
     dao.insert(appTag);
@@ -64,7 +64,7 @@ public class ApplicationTagDAOTest
   }
 
   @Test
-  public void testGetByApplicationId() throws Exception {
+  public void testGetByApplicationId() {
     Application app1 = tempEntity.newApplication(organization.getId());
     Application app2 = tempEntity.newApplication(organization.getId());
 
@@ -89,7 +89,7 @@ public class ApplicationTagDAOTest
   }
 
   @Test
-  public void testGetByApplicationIdAndTagId() throws Exception {
+  public void testGetByApplicationIdAndTagId() {
     tempEntity.newApplicationTag(application.getId(), tag.getId());
     ApplicationTag appTag = dao.getByApplicationIdAndTagId(application.getId(), tag.getId());
     assertAppTag(application.getId(), tag.getId(), appTag);

@@ -40,7 +40,7 @@ public class ArtifactoryMockServerRule
   private String path;
 
   @Override
-  protected void before() throws Throwable {
+  protected void before() {
     artifactoryMockServer = new WireMockServer(wireMockConfig().dynamicPort());
     artifactoryMockServer.start();
     path = "";

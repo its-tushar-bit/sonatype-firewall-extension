@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AbstractConditionTypeTest
 {
   @Test
-  public void testConvertIfNeeded_ReturnsPassedValue() throws Exception {
+  public void testConvertIfNeeded_ReturnsPassedValue() {
     final AbstractConditionType abstractConditionType = new AbstractConditionType()
     {
       @Override

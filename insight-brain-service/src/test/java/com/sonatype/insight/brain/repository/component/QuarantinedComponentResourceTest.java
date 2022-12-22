@@ -576,7 +576,8 @@ public class QuarantinedComponentResourceTest
     assertThat(namedComponentDetails.getMatchState()).isEqualTo(repositoryComponent.getMatchStateId());
     assertThat(namedComponentDetails.getDeclaredLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getObservedLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
-    assertThat(namedComponentDetails.getEffectiveLicenses()).extracting(license -> license.getLicenseId())
+    assertThat(namedComponentDetails.getEffectiveLicenses()).extracting(
+            com.sonatype.clm.dto.model.License::getLicenseId)
         .containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getOverriddenLicenses()).isEmpty();
     assertThat(namedComponentDetails.getPolicyMaxThreatLevelsByCategory()).isEmpty();
@@ -640,7 +641,8 @@ public class QuarantinedComponentResourceTest
     assertThat(namedComponentDetails.getMatchState()).isEqualTo(repositoryComponent.getMatchStateId());
     assertThat(namedComponentDetails.getDeclaredLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getObservedLicenseIds()).containsExactly(License.UNSPECIFIED_ID);
-    assertThat(namedComponentDetails.getEffectiveLicenses()).extracting(license -> license.getLicenseId())
+    assertThat(namedComponentDetails.getEffectiveLicenses()).extracting(
+            com.sonatype.clm.dto.model.License::getLicenseId)
         .containsExactly(License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getOverriddenLicenses()).isEmpty();
     assertThat(namedComponentDetails.getPolicyMaxThreatLevelsByCategory()).isEmpty();

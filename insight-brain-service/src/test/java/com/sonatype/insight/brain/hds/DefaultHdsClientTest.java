@@ -29,7 +29,6 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 import javax.servlet.ReadListener;
-import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -97,12 +96,9 @@ public class DefaultHdsClientTest
    */
   private Map<String, String> setHttpHeaderCaptorRequestHandler() {
     final Map<String, String> headers = new HashMap<>();
-    handler = new AbstractHandler()
-    {
+    handler = new AbstractHandler() {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
-      {
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
         for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
           String headerName = en.nextElement();
@@ -115,7 +111,7 @@ public class DefaultHdsClientTest
   }
 
   @Test
-  public void testGet_ClientUserAgentOnRequests() throws Exception {
+  public void testGet_ClientUserAgentOnRequests() {
     String testPath = "/rest/test";
 
     Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
@@ -126,7 +122,7 @@ public class DefaultHdsClientTest
   }
 
   @Test
-  public void testGet_ClientUserAgentOnRequests_NoClientUserAgent() throws Exception {
+  public void testGet_ClientUserAgentOnRequests_NoClientUserAgent() {
     String testPath = "/rest/test";
 
     Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
@@ -176,7 +172,7 @@ public class DefaultHdsClientTest
   }
 
   @Test
-  public void testPost_ClientUserAgentOnRequests() throws Exception {
+  public void testPost_ClientUserAgentOnRequests() {
     String testPath = "/rest/test";
     String testClientUserAgent = "client_user_agent";
 
@@ -279,13 +275,10 @@ public class DefaultHdsClientTest
     initClient();
 
     final Set<String> headers = new HashSet<>();
-    handler = new AbstractHandler()
-    {
+    handler = new AbstractHandler() {
 
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
-      {
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
           headers.add(en.nextElement());
         }
@@ -309,13 +302,10 @@ public class DefaultHdsClientTest
   @Test
   public void testRemoveXForwarded() throws Exception {
     final Set<String> headers = new HashSet<>();
-    handler = new AbstractHandler()
-    {
+    handler = new AbstractHandler() {
 
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
-      {
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
           headers.add(en.nextElement());
         }
@@ -356,13 +346,13 @@ public class DefaultHdsClientTest
   }
 
   @Test
-  public void testTransformAuthErrors_401() throws Exception {
+  public void testTransformAuthErrors_401() {
     handler = new AbstractHandler()
     {
 
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
+          throws IOException
       {
         response.setStatus(HttpStatus.UNAUTHORIZED_401);
         response.setContentType("text/plain;charset=UTF-8");
@@ -377,13 +367,13 @@ public class DefaultHdsClientTest
   }
 
   @Test
-  public void testTransformAuthErrors_403() throws Exception {
+  public void testTransformAuthErrors_403() {
     handler = new AbstractHandler()
     {
 
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
+          throws IOException
       {
         response.setStatus(HttpStatus.FORBIDDEN_403);
         response.setContentType("text/plain;charset=UTF-8");
@@ -398,13 +388,13 @@ public class DefaultHdsClientTest
   }
 
   @Test
-  public void testTransformAuthErrors_407() throws Exception {
+  public void testTransformAuthErrors_407() {
     handler = new AbstractHandler()
     {
 
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
+          throws IOException
       {
         response.setStatus(HttpStatus.PROXY_AUTHENTICATION_REQUIRED_407);
         response.setContentType("text/plain;charset=UTF-8");
@@ -419,13 +409,13 @@ public class DefaultHdsClientTest
   }
 
   @Test
-  public void testTransformServiceUnavailable() throws Exception {
+  public void testTransformServiceUnavailable() {
     handler = new AbstractHandler()
     {
 
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
+          throws IOException
       {
         response.setStatus(HttpStatus.SERVICE_UNAVAILABLE_503);
         response.setContentType("text/plain;charset=UTF-8");
@@ -440,13 +430,13 @@ public class DefaultHdsClientTest
   }
 
   @Test
-  public void testTransformBadGateway() throws Exception {
+  public void testTransformBadGateway() {
     handler = new AbstractHandler()
     {
 
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
+          throws IOException
       {
         response.setStatus(HttpStatus.BAD_GATEWAY_502);
         response.setContentType("text/plain;charset=UTF-8");
@@ -461,7 +451,7 @@ public class DefaultHdsClientTest
   }
 
   @Test
-  public void testTransformUnknownHost() throws Exception {
+  public void testTransformUnknownHost() {
     NetworkingHelper.assumeDnsResolutionIsNormal();
     setHdsUrl("http://an.unresolvable.hostname/");
     initClient();
@@ -475,12 +465,9 @@ public class DefaultHdsClientTest
   public void testAnalyticsIdOnRequests() throws Exception {
     final Map<String, String> headers = new HashMap<>();
     String testPath = "/rest/test";
-    handler = new AbstractHandler()
-    {
+    handler = new AbstractHandler() {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
-      {
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
         headers.put(DefaultHdsClient.OWNER_TYPE_HEADER, request.getHeader(DefaultHdsClient.OWNER_TYPE_HEADER));
         headers.put(DefaultHdsClient.OWNER_ID_HEADER, request.getHeader(DefaultHdsClient.OWNER_ID_HEADER));
@@ -515,13 +502,10 @@ public class DefaultHdsClientTest
     testTransformOtherErrors(567);
   }
 
-  private void testTransformOtherErrors(final int statusCode) throws Exception {
-    handler = new AbstractHandler()
-    {
+  private void testTransformOtherErrors(final int statusCode) {
+    handler = new AbstractHandler() {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
-      {
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         response.setStatus(statusCode);
         baseRequest.setHandled(true);
       }
@@ -533,12 +517,12 @@ public class DefaultHdsClientTest
   }
 
   @Test
-  public void testIOExceptionReadingResponse() throws Exception {
+  public void testIOExceptionReadingResponse() {
     handler = new AbstractHandler()
     {
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
+          throws IOException
       {
         response.setStatus(HttpStatus.OK_200);
         response.setContentType("text/plain;charset=UTF-8");
@@ -580,12 +564,12 @@ public class DefaultHdsClientTest
   }
 
   @Test
-  public void testTransformInternalServerError_500() throws Exception {
+  public void testTransformInternalServerError_500() {
     handler = new AbstractHandler()
     {
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
+          throws IOException
       {
         response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
         response.setContentType("text/plain;charset=UTF-8");
@@ -648,7 +632,7 @@ public class DefaultHdsClientTest
     }
 
     @Override
-    public int read() throws IOException {
+    public int read() {
       return wrappedInputStream.read();
     }
 

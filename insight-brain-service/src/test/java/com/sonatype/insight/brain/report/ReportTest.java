@@ -73,7 +73,7 @@ public class ReportTest
   }
 
   @Test
-  public void testAppendCacheBustingParams() throws Exception {
+  public void testAppendCacheBustingParams() {
     String indexContent = "<script type='text/javascript' src='../brain/policy-assets/js/brain.client.js'></script>"
         + "<script type='text/javascript' src='../brain/policy-assets/js/cip-loader.js'></script>";
     String expectedIndexContent = "<script type='text/javascript' src='../brain/policy-assets/js/brain.client.js?1.0'>"

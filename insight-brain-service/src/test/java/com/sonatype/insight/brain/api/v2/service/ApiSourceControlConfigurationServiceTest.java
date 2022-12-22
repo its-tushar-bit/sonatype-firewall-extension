@@ -312,7 +312,7 @@ public class ApiSourceControlConfigurationServiceTest
   }
 
   @Test
-  public void testExecute() throws Exception {
+  public void testExecute() {
     ApiSourceControlConfigurationService spy = spy(service);
     doAnswer(invocationOnMock -> {
       assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);

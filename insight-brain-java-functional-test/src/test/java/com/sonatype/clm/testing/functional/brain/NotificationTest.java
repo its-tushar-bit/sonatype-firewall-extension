@@ -24,7 +24,7 @@ public class NotificationTest
     extends AbstractFunctionalTest
 {
   @Before
-  public void before() throws Exception {
+  public void before() {
     Date now = new Date();
     long tenMinutesAgo = now.getTime() - (1000 * 60 * 10);
     long tenHoursAgo = now.getTime() - (1000 * 60 * 60 * 10);

@@ -30,18 +30,18 @@ public class PolicyEvaluationSummaryServiceAuthzTest
   }
 
   @Test
-  public void testGetEvaluationSummaryByApplicationId_Authorized() throws Exception {
+  public void testGetEvaluationSummaryByApplicationId_Authorized() {
     grantReadPermission(app.getId());
     policyEvaluationSummaryService.getEvaluationSummaryByApplicationId(app.getId(), stage);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetEvaluationSummaryByApplicationId_Unauthenticated() throws Exception {
+  public void testGetEvaluationSummaryByApplicationId_Unauthenticated() {
     policyEvaluationSummaryService.getEvaluationSummaryByApplicationId(app.getId(), stage);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetEvaluationSummaryByApplicationId_Unauthorized() throws Exception {
+  public void testGetEvaluationSummaryByApplicationId_Unauthorized() {
     login();
     policyEvaluationSummaryService.getEvaluationSummaryByApplicationId(app.getId(), stage);
   }

@@ -24,7 +24,7 @@ public class SourceControlPullRequestDAOTest
   private SourceControlPullRequestDAO dao = new SourceControlPullRequestDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     String repositoryUrl = "testRepositoryUrl";
     int pullRequestId = 1234;
@@ -148,8 +148,6 @@ public class SourceControlPullRequestDAOTest
     assertThat(countByUpdateTimeRange).isEqualTo(1);
 
     // and expect IllegalArgumentException when called with null arguments
-    assertThatThrownBy(() -> {
-      dao.getCountByUpdateTimeRange(null, null);
-    }).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> dao.getCountByUpdateTimeRange(null, null)).isInstanceOf(IllegalArgumentException.class);
   }
 }

@@ -28,7 +28,7 @@ public class LicenseThreatGroupValueTypeTest
   private Application app;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     org = tempEntity.newOrganization("orgName");
     app = tempEntity.newApplication("appName", "appId", org.getId());
     tempEntity.newLicenseThreatGroup(app.getId());

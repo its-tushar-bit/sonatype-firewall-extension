@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.client;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
@@ -18,7 +17,6 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
-import org.awaitility.core.ThrowingRunnable;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -62,15 +60,15 @@ public class FirewallMigrationClientTest
   }
 
   @Test
-  public void testMigrateRepositoryHistory_SourceError() throws Exception {
+  public void testMigrateRepositoryHistory_SourceError() {
     tempEntity.newRepository(targetRepositoryManager, TARGET_REPOSITORY_PUBLIC_ID);
     String sourceManager = "sourceManager";
     String sourceRepository = "sourceRepository";
 
-    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
-      client.migrateRepositoryHistory(sourceManager, sourceRepository, targetRepositoryManager.getInstanceId(),
-          TARGET_REPOSITORY_PUBLIC_ID);
-    }).withMessage(RepositoryDAO.getErrMsgMissingRepo(sourceManager, sourceRepository))
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> client.migrateRepositoryHistory(sourceManager, sourceRepository,
+            targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID))
+        .withMessage(RepositoryDAO.getErrMsgMissingRepo(sourceManager, sourceRepository))
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND));
   }
 
@@ -83,23 +81,19 @@ public class FirewallMigrationClientTest
     client.migrateRepositoryHistory(sourceRepositoryManager.getInstanceId(), sourceRepository.getPublicId(),
         targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID);
 
-    await().atMost(10, TimeUnit.SECONDS).untilAsserted(new ThrowingRunnable()
-    {
-      @Override
-      public void run() throws IOException {
-        assertThat(
+    await().atMost(10, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(
             client.getRepositoryMigrationState(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID)
-                .getState()).isEqualTo(MigrationState.COMPLETED);
-      }
-    });
+                .getState()).isEqualTo(MigrationState.COMPLETED));
   }
 
   @Test
-  public void testGetRepositoryMigrationState_Error() throws Exception {
-    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
-      client.getRepositoryMigrationState(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID);
-    }).withMessage(
-        RepositoryDAO.getErrMsgMissingRepo(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID))
+  public void testGetRepositoryMigrationState_Error() {
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> client.getRepositoryMigrationState(targetRepositoryManager.getInstanceId(),
+            TARGET_REPOSITORY_PUBLIC_ID))
+        .withMessage(
+            RepositoryDAO.getErrMsgMissingRepo(targetRepositoryManager.getInstanceId(), TARGET_REPOSITORY_PUBLIC_ID))
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND));
   }
 }

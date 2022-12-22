@@ -93,7 +93,7 @@ public class DbMigrationCommandTest
   }
 
   @After
-  public void after() throws Exception {
+  public void after() {
     DataSourceFactory.clear_ForTestsOnly();
   }
 
@@ -550,7 +550,7 @@ public class DbMigrationCommandTest
   }
 
   @Test
-  public void testOnError() throws Exception {
+  public void testOnError() {
     DbMigrationCommand dbMigrationCommand = new DbMigrationCommand(spyDatabaseProvisionUtils);
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
         () -> dbMigrationCommand.onError(null, null, new IOException("test")));

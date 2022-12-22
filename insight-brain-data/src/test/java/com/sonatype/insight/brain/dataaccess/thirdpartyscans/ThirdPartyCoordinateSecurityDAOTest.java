@@ -30,7 +30,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
           .thenComparing(ThirdPartyCoordinateSecurity::getFileCoordinateId);
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     ThirdPartyFileCoordinate coordinateFile = tempEntity.newThirdPartyFileCoordinate();
 

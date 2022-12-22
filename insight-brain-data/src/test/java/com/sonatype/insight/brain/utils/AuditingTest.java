@@ -27,7 +27,7 @@ public class AuditingTest
   private JsonStore store;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     store = new JsonFileStore(new File(temporaryFolder.getRoot(), "audit-test"), "ownerId");
     OperationalDataStoreProvider.init(null, false);
   }

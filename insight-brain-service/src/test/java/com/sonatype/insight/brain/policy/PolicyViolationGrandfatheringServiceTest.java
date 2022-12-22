@@ -94,7 +94,7 @@ public class PolicyViolationGrandfatheringServiceTest
   }
 
   @Test
-  public void testRevokeGrandfathering_MissingLicenseFeature() throws Exception {
+  public void testRevokeGrandfathering_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
         policyViolationGrandfatheringService.revokeGrandfathering("APPID")
@@ -289,7 +289,7 @@ public class PolicyViolationGrandfatheringServiceTest
   }
 
   @Test
-  public void testGrandfather_MissingLicenseFeature() throws Exception {
+  public void testGrandfather_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
         () -> policyViolationGrandfatheringService.grandfather("APPID"));
@@ -301,7 +301,7 @@ public class PolicyViolationGrandfatheringServiceTest
   }
 
   @Test
-  public void testGetGrandfathering_Application() throws Exception {
+  public void testGetGrandfathering_Application() {
     // The parent org doesn't allow override, grandfathering is not specified at any level.
     Organization org = tempEntity.newOrganization();
     org.setAllowPolicyViolationGrandfatheringOverride(false);
@@ -340,7 +340,7 @@ public class PolicyViolationGrandfatheringServiceTest
   }
 
   @Test
-  public void testGetGrandfathering_Organization() throws Exception {
+  public void testGetGrandfathering_Organization() {
     Organization rootOrganization = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
     Boolean grandfatheringEnabled = rootOrganization.isPolicyViolationGrandfatheringEnabled();
     boolean grandfatheringOverrideEnabled = rootOrganization.isAllowPolicyViolationGrandfatheringOverride();
@@ -407,7 +407,7 @@ public class PolicyViolationGrandfatheringServiceTest
   }
 
   @Test
-  public void testSetGrandfathering_Application() throws Exception {
+  public void testSetGrandfathering_Application() {
     Application app = tempEntity.newApplicationWithParent();
     app.setPolicyViolationGrandfatheringEnabled(false);
     new ApplicationDAO().update(app);
@@ -429,7 +429,7 @@ public class PolicyViolationGrandfatheringServiceTest
   }
 
   @Test
-  public void testSetGrandfathering_Organization() throws Exception {
+  public void testSetGrandfathering_Organization() {
     Organization org = tempEntity.newOrganization();
     org.setPolicyViolationGrandfatheringEnabled(false);
     org.setAllowPolicyViolationGrandfatheringOverride(false);
@@ -457,7 +457,7 @@ public class PolicyViolationGrandfatheringServiceTest
   }
 
   @Test
-  public void testSetGrandfathering_MissingLicenseFeature() throws Exception {
+  public void testSetGrandfathering_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.POLICY_GRANDFATHERING);
     Organization org = tempEntity.newOrganization();
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->

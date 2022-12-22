@@ -49,7 +49,7 @@ public class RepositoryDAOTest
   private RepositoryDAO dao = new RepositoryDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     Repository repository = tempEntity.newRepository("My Repo Public Id");
     String id = repository.getId();
@@ -75,34 +75,30 @@ public class RepositoryDAOTest
 
   @Test
   public void testValidateNullPublicId_Insert() {
-    assertThatThrownBy(() -> {
-      tempEntity.newRepository(null /* publicId */);
-    }).isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
+    assertThatThrownBy(() -> tempEntity.newRepository(null /* publicId */))
+        .isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
   public void testValidateNullPublicId_Update() {
     Repository repository = tempEntity.newRepository("Some Public ID");
     repository.setPublicId(null);
-    assertThatThrownBy(() -> {
-      dao.update(repository);
-    }).isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
+    assertThatThrownBy(() -> dao.update(repository))
+        .isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
   public void testValidateEmptyPublicId_Insert() {
-    assertThatThrownBy(() -> {
-      tempEntity.newRepository(" " /* publicId */);
-    }).isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
+    assertThatThrownBy(() -> tempEntity.newRepository(" " /* publicId */))
+        .isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
   public void testValidateEmptyPublicId_Update() {
     Repository repository = tempEntity.newRepository("Some Public ID");
     repository.setPublicId(" ");
-    assertThatThrownBy(() -> {
-      dao.update(repository);
-    }).isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
+    assertThatThrownBy(() -> dao.update(repository))
+        .isInstanceOf(InvalidRepositoryException.class).hasMessage("The repository public ID cannot be null or empty.");
   }
 
   @Test
@@ -110,9 +106,8 @@ public class RepositoryDAOTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     tempEntity.newRepository(repoManager, "SomePublicID");
 
-    assertThatThrownBy(() -> {
-      tempEntity.newRepository(repoManager, "SomePublicID");
-    }).isInstanceOf(InvalidRepositoryException.class)
+    assertThatThrownBy(() -> tempEntity.newRepository(repoManager, "SomePublicID"))
+        .isInstanceOf(InvalidRepositoryException.class)
         .hasMessage("There is already a repository with public ID 'SomePublicID' for the same repository manager.");
   }
 
@@ -123,9 +118,7 @@ public class RepositoryDAOTest
     Repository repository = tempEntity.newRepository(repoManager, "SomePublicID2");
 
     repository.setPublicId("SomePublicID1");
-    assertThatThrownBy(() -> {
-      dao.update(repository);
-    }).isInstanceOf(InvalidRepositoryException.class)
+    assertThatThrownBy(() -> dao.update(repository)).isInstanceOf(InvalidRepositoryException.class)
         .hasMessage("There is already a repository with public ID 'SomePublicID1' for the same repository manager.");
   }
 
@@ -272,12 +265,12 @@ public class RepositoryDAOTest
   }
 
   @Test
-  public void testGetByRepositoryManagerInstanceIdAndPublicIdNotNull() throws Exception {
+  public void testGetByRepositoryManagerInstanceIdAndPublicIdNotNull() {
     final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
     final String publicId = "publicId";
-    assertThatThrownBy(() -> {
-      dao.getByRepositoryManagerInstanceIdAndPublicIdNotNull(repositoryManagerInstanceId, publicId);
-    }).isInstanceOf(NotFoundException.class)
+    assertThatThrownBy(
+        () -> dao.getByRepositoryManagerInstanceIdAndPublicIdNotNull(repositoryManagerInstanceId, publicId))
+        .isInstanceOf(NotFoundException.class)
         .hasMessage(RepositoryDAO.getErrMsgMissingRepo(repositoryManagerInstanceId, publicId));
   }
 

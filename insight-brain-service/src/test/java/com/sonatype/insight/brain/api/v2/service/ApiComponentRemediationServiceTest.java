@@ -702,10 +702,8 @@ public class ApiComponentRemediationServiceTest
     Repository repo = tempEntity.newRepository();
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> {
-          service.getSuggestedRemediationForComponent(new ApiComponentDTOV2(), OwnerType.REPOSITORY, repo.getId(),
-              BuildStageType.ID, null /* identificationSource */, null /* scanId */);
-        })
+        .isThrownBy(() -> service.getSuggestedRemediationForComponent(new ApiComponentDTOV2(), OwnerType.REPOSITORY,
+            repo.getId(), BuildStageType.ID, null /* identificationSource */, null /* scanId */))
         .withMessage("Invalid stage ID for repositories: build.");
   }
 
@@ -714,10 +712,8 @@ public class ApiComponentRemediationServiceTest
     Repository repo = tempEntity.newRepository();
 
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> {
-          service.getSuggestedRemediationForComponent(new ApiComponentDTOV2(), OwnerType.REPOSITORY, repo.getId(),
-              null /* stageId */, null /* identificationSource */, "testScanId");
-        })
+        .isThrownBy(() -> service.getSuggestedRemediationForComponent(new ApiComponentDTOV2(), OwnerType.REPOSITORY,
+            repo.getId(), null /* stageId */, null /* identificationSource */, "testScanId"))
         .withMessage("The scan ID is not allowed for repositories.");
   }
 

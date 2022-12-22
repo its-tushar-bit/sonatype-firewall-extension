@@ -308,8 +308,7 @@ public abstract class AbstractVersionGraphMavenTest
     VersionsCIP.viewDetailsButton().shouldNotBe(visible);
     VersionsCIP.migrateButton().shouldNotBe(visible);
 
-    executeJavaScript(
-        String.format("Insight.setCapabilities({viewDetails: null, migrate: true})"));
+    executeJavaScript("Insight.setCapabilities({viewDetails: null, migrate: true})");
     VersionsCIP.viewDetailsButton().shouldNotBe(visible);
     VersionsCIP.migrateButton().shouldBe(visible);
 

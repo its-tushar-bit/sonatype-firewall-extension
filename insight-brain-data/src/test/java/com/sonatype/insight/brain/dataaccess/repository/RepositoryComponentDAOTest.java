@@ -73,7 +73,7 @@ public class RepositoryComponentDAOTest
   }
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("groupId", "artifactId",
         "version");
 

@@ -77,9 +77,7 @@ public class PerpetualLockDAOTest
     perpetualLockDAO.createPerpetualLock(lockId, null, null);
 
     // when: try to create a duplicate lock
-    Throwable throwable = catchThrowable(() -> {
-      perpetualLockDAO.createPerpetualLock(lockId, "test-owner", new Date());
-    });
+    Throwable throwable = catchThrowable(() -> perpetualLockDAO.createPerpetualLock(lockId, "test-owner", new Date()));
 
     // then: an exception about the duplicate is raised
     assertThat(throwable).isInstanceOf(RollbackException.class).hasCauseInstanceOf(EntityExistsException.class);

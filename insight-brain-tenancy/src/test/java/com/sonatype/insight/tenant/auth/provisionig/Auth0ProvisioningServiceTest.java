@@ -100,21 +100,21 @@ public class Auth0ProvisioningServiceTest
   }
 
   @Test
-  public void testResolveAuth0Domain_usesDefaultWhenEnvVariableNotSet() throws Exception {
+  public void testResolveAuth0Domain_usesDefaultWhenEnvVariableNotSet() {
     environmentVariables.set(Auth0ProvisioningService.AUTH0_DOMAIN, null);
     String resolved = auth0ProvisioningService.resolveAuth0Domain();
     assertThat(resolved).isEqualTo(Auth0ProvisioningService.DEFAULT_AUTH0_DOMAIN);
   }
 
   @Test
-  public void testResolveAuth0Domain_usesEnvironmentVariable() throws Exception {
+  public void testResolveAuth0Domain_usesEnvironmentVariable() {
     environmentVariables.set(Auth0ProvisioningService.AUTH0_DOMAIN, "https://auth0.com");
     String resolved = auth0ProvisioningService.resolveAuth0Domain();
     assertThat(resolved).isEqualTo("https://auth0.com");
   }
 
   @Test
-  public void testResolveAuth0Domain_validatesUrl() throws Exception {
+  public void testResolveAuth0Domain_validatesUrl() {
     environmentVariables.set(Auth0ProvisioningService.AUTH0_DOMAIN, "new-domain");
 
     assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> auth0ProvisioningService.resolveAuth0Domain())

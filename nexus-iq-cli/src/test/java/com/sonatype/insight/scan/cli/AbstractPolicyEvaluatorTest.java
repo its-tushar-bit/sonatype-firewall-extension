@@ -6,7 +6,7 @@
 package com.sonatype.insight.scan.cli;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -97,7 +97,7 @@ public abstract class AbstractPolicyEvaluatorTest
         bind(LicenseFingerprinter.class).to(TestLicenseFingerprinter.class);
       }
     };
-    return Arrays.asList(testModule);
+    return Collections.singletonList(testModule);
   }
 
   protected ScanReceipt newReceipt() {

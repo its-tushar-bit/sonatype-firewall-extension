@@ -78,10 +78,10 @@ public class DbQuarantinedComponentAccessManagerTest
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString("fakeToken".getBytes(StandardCharsets.UTF_8));
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken);
-    }).isInstanceOf(NotFoundException.class).hasMessage(
-        "The quarantined component view for the blocked component you are trying to view could not be found.");
+    assertThatThrownBy(() -> quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessage(
+            "The quarantined component view for the blocked component you are trying to view could not be found.");
   }
 
   @Test
@@ -95,18 +95,17 @@ public class DbQuarantinedComponentAccessManagerTest
     final String encodedToken = Base64.getUrlEncoder().withoutPadding()
         .encodeToString(quarantinedComponentAccess.getId().getBytes(StandardCharsets.UTF_8));
 
-    assertThatThrownBy(() -> {
-      quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken);
-    }).isInstanceOf(NotFoundException.class).hasMessageStartingWith("This report expired on ")
+    assertThatThrownBy(() -> quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken(encodedToken))
+        .isInstanceOf(NotFoundException.class)
+        .hasMessageStartingWith("This report expired on ")
         .hasMessageEndingWith("You may generate a new report by requesting the blocked component again.");
   }
 
   @Test
   public void testGetQuarantinedComponentAccessFromToken_invalidToken() {
     // The token is not base64 encoded
-    assertThatThrownBy(() -> {
-      quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token");
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> quarantinedComponentAccessManager.getQuarantinedComponentAccessFromToken("token"))
+        .isInstanceOf(BadRequestException.class)
         .hasMessage("The quarantined component view cannot be retrieved because the URL contains invalid characters.");
   }
 

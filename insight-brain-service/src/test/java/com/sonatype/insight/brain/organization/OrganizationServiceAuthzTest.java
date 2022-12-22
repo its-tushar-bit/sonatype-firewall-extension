@@ -24,7 +24,7 @@ public class OrganizationServiceAuthzTest
   private OrganizationService organizationService;
 
   @Test
-  public void testGetAllWith_Authorized() throws Exception {
+  public void testGetAllWith_Authorized() {
     grantReadPermission(org.getId());
 
     final List<Organization> organizations = organizationService.getAll();
@@ -35,13 +35,13 @@ public class OrganizationServiceAuthzTest
   }
 
   @Test
-  public void testGetAllWith_Unauthorized() throws Exception {
+  public void testGetAllWith_Unauthorized() {
     final List<Organization> organizations = organizationService.getAll();
     assertThat(organizations).isEmpty();
   }
 
   @Test
-  public void testAddOrganization_Authorized() throws Exception {
+  public void testAddOrganization_Authorized() {
     grantWritePermission();
 
     final Organization orgToAdd = new Organization();
@@ -53,7 +53,7 @@ public class OrganizationServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testAddOrganization_Unauthenticated() throws Exception {
+  public void testAddOrganization_Unauthenticated() {
     final Organization orgToAdd = new Organization();
     orgToAdd.setName("MyOrg");
 
@@ -61,7 +61,7 @@ public class OrganizationServiceAuthzTest
   }
 
   @Test
-  public void testUpdateOrganization_Authorized() throws Exception {
+  public void testUpdateOrganization_Authorized() {
     grantWritePermission(org.getId());
 
     final Organization orgToUpdate = new Organization();
@@ -74,7 +74,7 @@ public class OrganizationServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testUpdateOrganization_Unauthenticated() throws Exception {
+  public void testUpdateOrganization_Unauthenticated() {
     final Organization orgToUpdate = new Organization();
     orgToUpdate.setName("MyOrg");
     orgToUpdate.setId(org.getId());

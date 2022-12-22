@@ -46,18 +46,16 @@ public class IconDAOTest
   @Test
   public void testGetIcon_InvalidOwnerId() throws Exception {
     File iconDir = tmpDir.newFolder();
-    assertThatThrownBy(() -> {
-      iconDAO.getIcon(BAD_OWNER_ID, iconDir);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Invalid value: " + BAD_OWNER_ID);
+    assertThatThrownBy(() -> iconDAO.getIcon(BAD_OWNER_ID, iconDir)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Invalid value: " + BAD_OWNER_ID);
   }
 
   @Test
   public void testSetIcon_InvalidOwnerId() throws Exception {
     File iconDir = tmpDir.newFolder();
     ByteArrayInputStream byteArrayInputStream = getIconImageStream();
-    assertThatThrownBy(() -> {
-      iconDAO.setIcon(BAD_OWNER_ID, iconDir, byteArrayInputStream);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Invalid value: " + BAD_OWNER_ID);
+    assertThatThrownBy(() -> iconDAO.setIcon(BAD_OWNER_ID, iconDir, byteArrayInputStream))
+        .isInstanceOf(BadRequestException.class).hasMessage("Invalid value: " + BAD_OWNER_ID);
   }
 
   @Test

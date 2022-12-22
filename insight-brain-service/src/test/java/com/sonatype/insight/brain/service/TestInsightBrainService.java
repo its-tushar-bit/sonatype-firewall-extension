@@ -54,7 +54,6 @@ import io.dropwizard.configuration.ConfigurationFactoryFactory;
 import io.dropwizard.configuration.ConfigurationSourceProvider;
 import io.dropwizard.jetty.HttpConnectorFactory;
 import io.dropwizard.jetty.HttpsConnectorFactory;
-import io.dropwizard.lifecycle.ServerLifecycleListener;
 import io.dropwizard.server.DefaultServerFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -294,13 +293,9 @@ public class TestInsightBrainService
 
     initWorkDirectory(config.getSonatypeWork());
 
-    env.lifecycle().addServerLifecycleListener(new ServerLifecycleListener()
-    {
-      @Override
-      public void serverStarted(final Server server) {
-        testBrainServer = server;
-        getInstance(ApiConfigurationService.class).applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
-      }
+    env.lifecycle().addServerLifecycleListener(server -> {
+      testBrainServer = server;
+      getInstance(ApiConfigurationService.class).applyConfigurationToClients(SystemConfigurationProperty.HDS_URL);
     });
 
     SlowMoFilter.configure(env);

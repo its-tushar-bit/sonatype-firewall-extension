@@ -90,13 +90,7 @@ public class ReferencePolicyImportIntegrationTest
   @Test
   @ManualServerInit
   public void testImportCurrentReferencePolicies() throws Exception {
-    Configurator configurator = new Configurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        config.setImportRefrencePoliciesFromHDS(true);
-      }
-    };
+    Configurator configurator = config -> config.setImportRefrencePoliciesFromHDS(true);
 
     hdsRespondWith(referencePolicyUrl).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
 

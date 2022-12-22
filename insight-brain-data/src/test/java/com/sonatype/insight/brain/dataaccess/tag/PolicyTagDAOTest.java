@@ -42,7 +42,7 @@ public class PolicyTagDAOTest
   }
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     Policy policy = tempEntity.newPolicy(organization);
     String policyId = policy.getId();
 
@@ -65,7 +65,7 @@ public class PolicyTagDAOTest
   }
 
   @Test
-  public void testUpdateNotSupported() throws Exception {
+  public void testUpdateNotSupported() {
     Policy policy = tempEntity.newPolicy(organization);
     PolicyTag policyTag = new PolicyTag(policy.getId(), tag.getId());
     dao.insert(policyTag);
@@ -73,14 +73,12 @@ public class PolicyTagDAOTest
     PolicyTag updatedPolicyTag = new PolicyTag("updated_policy_id", tag.getId());
     updatedPolicyTag.setId(policyTag.getId());
 
-    assertThatThrownBy(() -> {
-      dao.update(updatedPolicyTag);
-    }).isInstanceOf(UnsupportedOperationException.class)
+    assertThatThrownBy(() -> dao.update(updatedPolicyTag)).isInstanceOf(UnsupportedOperationException.class)
         .hasMessage("The PolicyTag table does not support update operations");
   }
 
   @Test
-  public void testGetByPolicyId() throws Exception {
+  public void testGetByPolicyId() {
     Policy policy1 = tempEntity.newPolicy(organization);
     String policy1Id = policy1.getId();
     Policy policy2 = tempEntity.newPolicy(organization);
@@ -106,7 +104,7 @@ public class PolicyTagDAOTest
   }
 
   @Test
-  public void testGetByOrgId() throws Exception {
+  public void testGetByOrgId() {
     Organization org1 = tempEntity.newOrganization("org1");
     Organization org2 = tempEntity.newOrganization("org2");
 
@@ -173,7 +171,7 @@ public class PolicyTagDAOTest
   }
 
   @Test
-  public void testIsPolicyApplicable() throws Exception {
+  public void testIsPolicyApplicable() {
     Policy policy = tempEntity.newPolicy(organization);
 
     try (TransactionContext tx = dao.createTransactionContext()) {

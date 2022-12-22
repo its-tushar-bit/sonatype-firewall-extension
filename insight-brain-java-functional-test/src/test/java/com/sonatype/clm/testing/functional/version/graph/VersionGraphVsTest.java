@@ -133,7 +133,7 @@ public class VersionGraphVsTest
   }
 
   @Test
-  public void testCIPWithoutRemediation() throws Exception {
+  public void testCIPWithoutRemediation() {
     setupHdsResponsesForNoRemediation();
     mockHdsResponseForFirstComponent();
     mockHdsResponseForRemediation();

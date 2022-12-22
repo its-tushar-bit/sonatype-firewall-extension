@@ -34,20 +34,20 @@ public class DatabaseTelemetryCollectorTest
   private InsightConfig insightConfig;
 
   @Test
-  public void testCollectData_TelemetryPurpose() throws Exception {
+  public void testCollectData_TelemetryPurpose() {
     TelemetryData telemetryData = telemetryCollector.collectData();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.DATABASE);
   }
 
   @Test
-  public void testCollectData_OdsSizeBytes_EmbeddedDatabaseInMemory() throws Exception {
+  public void testCollectData_OdsSizeBytes_EmbeddedDatabaseInMemory() {
     Map<String, Object> attributes = telemetryCollector.collectData().getAttributes();
     assertThat(attributes.get(DatabaseTelemetryCollector.DB_ENGINE)).isEqualTo("h2");
     assertThat(attributes.get(DatabaseTelemetryCollector.ODS_SIZE_BYTES)).isNull();
   }
 
   @Test
-  public void testCollectData_OdsSizeBytes_EmbeddedDatabaseInFile() throws Exception {
+  public void testCollectData_OdsSizeBytes_EmbeddedDatabaseInFile() {
     insightConfig.setSonatypeWork(tempDir.getRoot().getAbsolutePath());
     DataSourceFactory.clear_ForTestsOnly();
     try {
@@ -65,7 +65,7 @@ public class DatabaseTelemetryCollectorTest
   }
 
   @Test
-  public void testCollectData_OdsSizeBytes_ExternalDatabase() throws Exception {
+  public void testCollectData_OdsSizeBytes_ExternalDatabase() {
     DataSourceFactory.clear_ForTestsOnly();
     try (PostgresServer postgres = new PostgresServer()) {
       DatabaseConfig databaseConfig = new DatabaseConfig();

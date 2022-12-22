@@ -36,15 +36,15 @@ public class LicenseLegalComparatorsTest
     dto3.applicationName = "a3";
 
     List<ApiLicenseLegalApplicationDashboardDTO> dtos = Arrays.asList(dto3, dto1, dto2);
-    Collections.sort(dtos, newApplicationDashboardComparator(null));
+    dtos.sort(newApplicationDashboardComparator(null));
     assertThat(dtos).extracting(dto -> dto.applicationName).containsExactly("a1", "A2", "a3");
 
     dtos = Arrays.asList(dto3, dto1, dto2);
-    Collections.sort(dtos, newApplicationDashboardComparator(LicenseLegalResultsOrder.APPLICATION_NAME_ASC));
+    dtos.sort(newApplicationDashboardComparator(LicenseLegalResultsOrder.APPLICATION_NAME_ASC));
     assertThat(dtos).extracting(dto -> dto.applicationName).containsExactly("a1", "A2", "a3");
 
     dtos = Arrays.asList(dto3, dto1, dto2);
-    Collections.sort(dtos, newApplicationDashboardComparator(LicenseLegalResultsOrder.APPLICATION_NAME_DESC));
+    dtos.sort(newApplicationDashboardComparator(LicenseLegalResultsOrder.APPLICATION_NAME_DESC));
     assertThat(dtos).extracting(dto -> dto.applicationName).containsExactly("a3", "A2", "a1");
   }
 
@@ -60,12 +60,12 @@ public class LicenseLegalComparatorsTest
     dto3.lastScanTime = currentTimestamp + 2000;
 
     List<ApiLicenseLegalApplicationDashboardDTO> dtos = Arrays.asList(dto3, dto1, dto2);
-    Collections.sort(dtos, newApplicationDashboardComparator(LicenseLegalResultsOrder.LAST_SCAN_TIME_ASC));
+    dtos.sort(newApplicationDashboardComparator(LicenseLegalResultsOrder.LAST_SCAN_TIME_ASC));
     assertThat(dtos).extracting(dto -> dto.lastScanTime).containsExactly(dto2.lastScanTime, dto3.lastScanTime,
         dto1.lastScanTime);
 
     dtos = Arrays.asList(dto3, dto1, dto2);
-    Collections.sort(dtos, newApplicationDashboardComparator(LicenseLegalResultsOrder.LAST_SCAN_TIME_DESC));
+    dtos.sort(newApplicationDashboardComparator(LicenseLegalResultsOrder.LAST_SCAN_TIME_DESC));
     assertThat(dtos).extracting(dto -> dto.lastScanTime).containsExactly(dto1.lastScanTime, dto3.lastScanTime,
         dto2.lastScanTime);
   }
@@ -80,11 +80,11 @@ public class LicenseLegalComparatorsTest
     dto3.applicationTagNames = Collections.singletonList("t3");
 
     List<ApiLicenseLegalApplicationDashboardDTO> dtos = Arrays.asList(dto3, dto1, dto2);
-    Collections.sort(dtos, newApplicationDashboardComparator(LicenseLegalResultsOrder.TAG_NAMES_ASC));
+    dtos.sort(newApplicationDashboardComparator(LicenseLegalResultsOrder.TAG_NAMES_ASC));
     assertThat(dtos).flatExtracting(dto -> dto.applicationTagNames).containsExactly("t1", "T2", "t3");
 
     dtos = Arrays.asList(dto3, dto1, dto2);
-    Collections.sort(dtos, newApplicationDashboardComparator(LicenseLegalResultsOrder.TAG_NAMES_DESC));
+    dtos.sort(newApplicationDashboardComparator(LicenseLegalResultsOrder.TAG_NAMES_DESC));
     assertThat(dtos).flatExtracting(dto -> dto.applicationTagNames).containsExactly("t3", "T2", "t1");
   }
 
@@ -105,15 +105,15 @@ public class LicenseLegalComparatorsTest
     dto3.displayName = "c3";
 
     List<ApiLicenseLegalComponentDashboardDTO> dtos = Arrays.asList(dto2, dto3, dto1);
-    Collections.sort(dtos, newComponentDashboardComparator(null));
+    dtos.sort(newComponentDashboardComparator(null));
     assertThat(dtos).extracting(dto -> dto.displayName).containsExactly("c1", "C2", "c3");
 
     dtos = Arrays.asList(dto2, dto3, dto1);
-    Collections.sort(dtos, newComponentDashboardComparator(LicenseLegalResultsOrder.COMPONENT_NAME_ASC));
+    dtos.sort(newComponentDashboardComparator(LicenseLegalResultsOrder.COMPONENT_NAME_ASC));
     assertThat(dtos).extracting(dto -> dto.displayName).containsExactly("c1", "C2", "c3");
 
     dtos = Arrays.asList(dto2, dto3, dto1);
-    Collections.sort(dtos, newComponentDashboardComparator(LicenseLegalResultsOrder.COMPONENT_NAME_DESC));
+    dtos.sort(newComponentDashboardComparator(LicenseLegalResultsOrder.COMPONENT_NAME_DESC));
     assertThat(dtos).extracting(dto -> dto.displayName).containsExactly("c3", "C2", "c1");
   }
 
@@ -138,10 +138,10 @@ public class LicenseLegalComparatorsTest
     apiDTO3.licenses = dtoSet3;
   
     List<ApiLicenseLegalComponentDashboardDTO> dtos = Arrays.asList(apiDTO2, apiDTO1, apiDTO3);
-    Collections.sort(dtos, newComponentDashboardComparator(LicenseLegalResultsOrder.LICENSE_NAME_ASC));
+    dtos.sort(newComponentDashboardComparator(LicenseLegalResultsOrder.LICENSE_NAME_ASC));
     assertThat(dtos).extracting(dto -> dto.licenses).containsExactly(dtoSet1, dtoSet2, dtoSet3);
     dtos = Arrays.asList(apiDTO2, apiDTO3, apiDTO1);
-    Collections.sort(dtos, newComponentDashboardComparator(LicenseLegalResultsOrder.LICENSE_NAME_DESC));
+    dtos.sort(newComponentDashboardComparator(LicenseLegalResultsOrder.LICENSE_NAME_DESC));
     assertThat(dtos).extracting(dto -> dto.licenses).containsExactly(dtoSet3, dtoSet2, dtoSet1);
   }
 
@@ -155,11 +155,11 @@ public class LicenseLegalComparatorsTest
     dto3.applicationOccurrences = 3;
 
     List<ApiLicenseLegalComponentDashboardDTO> dtos = Arrays.asList(dto2, dto3, dto1);
-    Collections.sort(dtos, newComponentDashboardComparator(LicenseLegalResultsOrder.APPLICATION_COUNT_ASC));
+    dtos.sort(newComponentDashboardComparator(LicenseLegalResultsOrder.APPLICATION_COUNT_ASC));
     assertThat(dtos).extracting(dto -> dto.applicationOccurrences).containsExactly(1, 2, 3);
 
     dtos = Arrays.asList(dto2, dto3, dto1);
-    Collections.sort(dtos, newComponentDashboardComparator(LicenseLegalResultsOrder.APPLICATION_COUNT_DESC));
+    dtos.sort(newComponentDashboardComparator(LicenseLegalResultsOrder.APPLICATION_COUNT_DESC));
     assertThat(dtos).extracting(dto -> dto.applicationOccurrences).containsExactly(3, 2, 1);
   }
 

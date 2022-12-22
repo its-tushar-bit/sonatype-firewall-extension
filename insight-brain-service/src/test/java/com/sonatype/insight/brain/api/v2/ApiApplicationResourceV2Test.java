@@ -78,7 +78,7 @@ public class ApiApplicationResourceV2Test
   }
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     apiApplicationAdapter = getCLMServer().getInstance(ApiApplicationAdapter.class);
 
     organization = tempEntity.newOrganization("test-org");

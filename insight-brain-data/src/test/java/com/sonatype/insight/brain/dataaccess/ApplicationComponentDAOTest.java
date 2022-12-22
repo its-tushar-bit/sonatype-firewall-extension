@@ -51,7 +51,7 @@ public class ApplicationComponentDAOTest
   private ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     Date now = new Date();
     ApplicationComponent appComponent = new ApplicationComponent(application.getId(), BuildStageType.ID, now, "hash",
@@ -69,9 +69,7 @@ public class ApplicationComponentDAOTest
 
     // Update
     ApplicationComponent appComponentToUpdate = appComponent;
-    assertThatThrownBy(() -> {
-      dao.update(appComponentToUpdate);
-    }).isInstanceOf(UnsupportedOperationException.class);
+    assertThatThrownBy(() -> dao.update(appComponentToUpdate)).isInstanceOf(UnsupportedOperationException.class);
 
     // Delete
     dao.delete(appComponent);
@@ -173,7 +171,7 @@ public class ApplicationComponentDAOTest
     largeIdList.add(appId1);
     largeIdList.add(appId2);
     for (int i = 0; i < threshold; i++) {
-      largeIdList.add(new Integer(i).toString());
+      largeIdList.add(Integer.toString(i));
     }
 
     Date currentDate = date != null ? date : new Date();
@@ -518,7 +516,7 @@ public class ApplicationComponentDAOTest
 
   @Test
   public void testBuildPositionalParameters() {
-    List<String> list = Arrays.asList("a");
+    List<String> list = Collections.singletonList("a");
     assertThat(dao.buildPositionalParameters(list, 1)).isEqualTo("(?1)");
 
     list = Arrays.asList("a", "b");
@@ -527,7 +525,7 @@ public class ApplicationComponentDAOTest
     list = Arrays.asList("a", "b", "c");
     assertThat(dao.buildPositionalParameters(list, 1)).isEqualTo("(?1,?2,?3)");
 
-    list = Arrays.asList("d");
+    list = Collections.singletonList("d");
     assertThat(dao.buildPositionalParameters(list, 4)).isEqualTo("(?4)");
 
     list = Arrays.asList("d", "e", "f");
@@ -539,7 +537,7 @@ public class ApplicationComponentDAOTest
 
   @Test
   public void testAddPositionalParameters() {
-    List<String> list = Arrays.asList("a");
+    List<String> list = Collections.singletonList("a");
     Query query = mock(Query.class);
     dao.addPositionalParameters(query, list, 1);
     verify(query).setParameter(1, "a");
@@ -560,7 +558,7 @@ public class ApplicationComponentDAOTest
     verify(query).setParameter(3, "c");
     verifyNoMoreInteractions(query);
 
-    list = Arrays.asList("d");
+    list = Collections.singletonList("d");
     query = mock(Query.class);
     dao.addPositionalParameters(query, list, 4);
     verify(query).setParameter(4, "d");

@@ -370,7 +370,7 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  public void testDeleteSourceControlByOwner_ForApplication_licensedByAutomation() throws Exception {
+  public void testDeleteSourceControlByOwner_ForApplication_licensedByAutomation() {
     setLicensedForSourceControlByAutomation();
     final ApiSourceControlDTO validSourceControl = ApiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken(TOKEN)
@@ -428,8 +428,7 @@ public class ApiSourceControlServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() ->
         sourceControlService.updateSourceControlByOwner(OwnerType.ORGANIZATION,
             "foo", sourceControl)
-    ).withMessage(String.format(
-        "Cannot find SourceControl for organization with id: foo"));
+    ).withMessage("Cannot find SourceControl for organization with id: foo");
   }
 
   @Test

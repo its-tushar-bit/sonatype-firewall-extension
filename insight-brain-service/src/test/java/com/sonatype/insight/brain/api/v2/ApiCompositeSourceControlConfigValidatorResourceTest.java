@@ -30,7 +30,7 @@ public class ApiCompositeSourceControlConfigValidatorResourceTest
   private PasswordHandler pwHandler;
 
   @Before
-  public void setup() throws Exception {
+  public void setup() {
     pwHandler = getCLMServer().getInstance(PasswordHandler.class);
     app = tempEntity.newApplicationWithParent();
     tempEntity

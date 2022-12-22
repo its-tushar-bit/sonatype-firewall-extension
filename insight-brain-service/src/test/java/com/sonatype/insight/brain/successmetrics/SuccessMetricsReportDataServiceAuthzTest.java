@@ -405,7 +405,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
   }
 
   @Test
-  public void testGetComponentCounts_Organization_Unauthenticated() throws Exception {
+  public void testGetComponentCounts_Organization_Unauthenticated() {
     SuccessMetricsReport report = createSuccessMetricsReport(orgIds, null);
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       successMetricsReportDataService.getComponentCounts(report.getId());
@@ -414,7 +414,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
   }
 
   @Test
-  public void testGetComponentCounts_Organization_Unauthorized() throws Exception {
+  public void testGetComponentCounts_Organization_Unauthorized() {
     login();
     SuccessMetricsReport report = createSuccessMetricsReport(orgIds, null);
     ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
@@ -425,7 +425,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
   }
 
   @Test
-  public void testGetComponentCounts_Organization_Authorized() throws Exception {
+  public void testGetComponentCounts_Organization_Authorized() {
     grantReadPermission(app.getId());
     SuccessMetricsReport report = createSuccessMetricsReport(orgIds, null);
     ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
@@ -436,7 +436,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
   }
 
   @Test
-  public void testGetComponentCounts_Application_Unauthenticated() throws Exception {
+  public void testGetComponentCounts_Application_Unauthenticated() {
     SuccessMetricsReport report = createSuccessMetricsReport(null, appIds);
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
       successMetricsReportDataService.getComponentCounts(report.getId());
@@ -445,7 +445,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
   }
 
   @Test
-  public void testGetComponentCounts_Application_Unauthorized() throws Exception {
+  public void testGetComponentCounts_Application_Unauthorized() {
     login();
     SuccessMetricsReport report = createSuccessMetricsReport(null, appIds);
     ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());
@@ -456,7 +456,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
   }
 
   @Test
-  public void testGetComponentCount_Application_Authorized() throws Exception {
+  public void testGetComponentCount_Application_Authorized() {
     grantReadPermission(app.getId());
     SuccessMetricsReport report = createSuccessMetricsReport(null, appIds);
     ComponentCountsDTO result = successMetricsReportDataService.getComponentCounts(report.getId());

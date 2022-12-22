@@ -82,7 +82,7 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
-  public void testEvaluate_Maven_MatchGavecNotGavce() throws Exception {
+  public void testEvaluate_Maven_MatchGavecNotGavce() {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:e:c");
 
     Component componentGavec = ComponentFactory
@@ -101,7 +101,7 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
-  public void testEvaluate_Maven_MatchGaveNotGavc() throws Exception {
+  public void testEvaluate_Maven_MatchGaveNotGavc() {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:e:");
 
     Component componentGave = ComponentFactory
@@ -120,7 +120,7 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
-  public void testEvaluate_Maven_MatchGavAnyExtensionAnyClassifier() throws Exception {
+  public void testEvaluate_Maven_MatchGavAnyExtensionAnyClassifier() {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v");
 
     Component componentGav3 = ComponentFactory
@@ -180,7 +180,6 @@ public class CoordinatesConditionTypeTest
   private void testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates(
       final String coordinatesValue,
       final String expectedConditionMessage)
-      throws Exception
   {
     Policy policy = createPolicy(coordinatesValue);
 
@@ -224,7 +223,7 @@ public class CoordinatesConditionTypeTest
 
   private void testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates(
       final String coordinatesValue,
-      final String expectedConditionMessage) throws Exception
+      final String expectedConditionMessage)
   {
     Policy policy = createPolicy(coordinatesValue);
 
@@ -241,7 +240,7 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
-  public void testEvaluate_Maven_EmptyClassifierCoordinate_Matches_EmptyClassifierValue() throws Exception {
+  public void testEvaluate_Maven_EmptyClassifierCoordinate_Matches_EmptyClassifierValue() {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:e:");
 
     Component componentGave = ComponentFactory.forCoordinates(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
@@ -259,7 +258,7 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
-  public void testEvaluate_Maven_WildcardClassifierCoordinate_Matches_AnyClassifierValue() throws Exception {
+  public void testEvaluate_Maven_WildcardClassifierCoordinate_Matches_AnyClassifierValue() {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + ":g:a:v:e:*");
 
     Component componentGave = ComponentFactory
@@ -463,7 +462,7 @@ public class CoordinatesConditionTypeTest
   @Test
   public void testEvaluate_MatchPyPiCoordinatesIgnoreCase() {
     Constraint constraint = createConstraint("match", ComponentIdentifier.FORMAT_PYPI + ":PyYaMl:1:*:*");
-    List<Constraint> constraints = Arrays.asList(constraint);
+    List<Constraint> constraints = Collections.singletonList(constraint);
 
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
@@ -487,7 +486,7 @@ public class CoordinatesConditionTypeTest
   @Test
   public void testEvaluate_MatchPyPiCoordinates_OptionalCoordinates() {
     Constraint constraint = createConstraint("match", ComponentIdentifier.FORMAT_PYPI + ":PyYaMl:1::");
-    List<Constraint> constraints = Arrays.asList(constraint);
+    List<Constraint> constraints = Collections.singletonList(constraint);
 
     Policy policy = new Policy("PolicyId1", "Policy Name 1");
     policy.setConstraints(constraints);
@@ -534,36 +533,36 @@ public class CoordinatesConditionTypeTest
   @Test
   public void testValidateCondition_NullCoordinates() {
     Condition condition = new Condition(CoordinatesConditionType.ID, "match", null);
-    assertThatThrownBy(() -> {
-      new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Missing coordinates");
+    assertThatThrownBy(
+        () -> new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */))
+        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Missing coordinates");
   }
 
   @Test
   public void testValidateCondition_EmptyCoordinates() {
     Condition condition = new Condition(CoordinatesConditionType.ID, "match", " ");
-    assertThatThrownBy(() -> {
-      new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Missing coordinates");
+    assertThatThrownBy(
+        () -> new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */))
+        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Missing coordinates");
   }
 
   @Test
   public void testValidateCondition_UnsupportedCoordinateFormat() {
     Condition condition = new Condition(CoordinatesConditionType.ID, "match", "nuget");
-    assertThatThrownBy(() -> {
-      new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class)
+    assertThatThrownBy(
+        () -> new CoordinatesConditionType().validateCondition(null, condition, null /* applicationId */))
+        .isInstanceOf(InvalidConditionException.class)
         .hasMessageEndingWith("Unsupported component identifier format for coordinates policy condition: 'nuget'");
   }
 
   @Test
-  public void testConvertIfNeeded_UnsupportedCoordinateFormat_DoesNotThrowNullPointerException() throws Exception {
+  public void testConvertIfNeeded_UnsupportedCoordinateFormat_DoesNotThrowNullPointerException() {
     new Condition(CoordinatesConditionType.ID, "match", "nuget::").getValue();
     new Condition(CoordinatesConditionType.ID, "match", "unknown:").getValue();
   }
 
   @Test
-  public void testConvertIfNeeded() throws Exception {
+  public void testConvertIfNeeded() {
     assertConvertIfNeeded("maven:g", "maven:g:*:*:*:*");
     assertConvertIfNeeded("maven::a", "maven:*:a:*:*:*");
     assertConvertIfNeeded("maven:::v", "maven:*:*:v:*:*");

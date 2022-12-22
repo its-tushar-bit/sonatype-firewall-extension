@@ -37,7 +37,7 @@ import static org.awaitility.Awaitility.await;
 public class UserInterfaceLinksResourceTest
     extends AbstractResourceTest
 {
-  private void assertRedirect(HttpResponse response, String expected) throws Exception {
+  private void assertRedirect(HttpResponse response, String expected) {
     assertResponseStatus(307, response);
     assertThat(response.getHeader("Location")).isEqualTo(getRestBaseUrl() + expected);
   }
@@ -114,9 +114,10 @@ public class UserInterfaceLinksResourceTest
 
   private void testLinkToReport_WithSourceQuery(boolean anonymous) throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
-      responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
-    }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
+    initServer(config -> getHdsServer()
+        .respondWith((HttpResponseProcessor) (request, response) -> responses.put(
+            new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
+        .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
 
     Application application = tempEntity.newApplicationWithParent();
     String appPublicId = application.getPublicId();
@@ -157,9 +158,10 @@ public class UserInterfaceLinksResourceTest
   @ManualServerInit
   public void testLinkToReport_WithoutSourceQuery() throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
-      responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
-    }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
+    initServer(config -> getHdsServer()
+        .respondWith((HttpResponseProcessor) (request, response) -> responses.put(
+            new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
+        .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
 
     assertThat(UserInterfaceLinksHelper.getReportUrl("app id", "scan id"))
         .isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/application/app%20id/report/scan%20id");

@@ -29,7 +29,7 @@ public class InnerSourceComponentDAOTest
           .thenComparing(InnerSourceComponent::getId);
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     String purl = "pkg:maven/inner/source@1.0.0";
 
     // Create

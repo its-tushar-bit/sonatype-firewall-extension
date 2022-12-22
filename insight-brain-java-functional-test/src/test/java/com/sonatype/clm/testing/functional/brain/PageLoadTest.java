@@ -192,7 +192,7 @@ public class PageLoadTest
   }
 
   @Test
-  public void testLoadIndexHtml_NoDashboard() throws Exception {
+  public void testLoadIndexHtml_NoDashboard() {
     setMissingFeature(LicensedFeature.DASHBOARD);
 
     refreshOrOpen(IndexPage.url());
@@ -223,7 +223,7 @@ public class PageLoadTest
   }
 
   @Test
-  public void testLoadIndexHtml_NoLicense() throws Exception {
+  public void testLoadIndexHtml_NoLicense() {
     uninstallLicense();
 
     refreshOrOpen(IndexPage.url());
@@ -245,7 +245,7 @@ public class PageLoadTest
   }
 
   @Test
-  public void testLoadNonDefaultAuthPage_NoLicense() throws Exception {
+  public void testLoadNonDefaultAuthPage_NoLicense() {
     uninstallLicense();
 
     refreshOrOpen(SuccessMetricsReportListPage.url());
@@ -261,7 +261,7 @@ public class PageLoadTest
   }
 
   @Test
-  public void testLoadUnauthenticatedPage_NoLicense() throws Exception {
+  public void testLoadUnauthenticatedPage_NoLicense() {
     uninstallLicense();
 
     refreshOrOpen(VulnerabilitySearchPage.url());

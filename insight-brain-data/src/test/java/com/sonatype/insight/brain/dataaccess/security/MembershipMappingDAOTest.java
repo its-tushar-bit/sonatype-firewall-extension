@@ -49,7 +49,7 @@ public class MembershipMappingDAOTest
   }
 
   @Test
-  public void testSetMembershipMappingsForContextAndRole() throws Exception {
+  public void testSetMembershipMappingsForContextAndRole() {
     String roleId1 = roleDAO.getByName("Owner").getId();
     String roleId2 = roleDAO.getByName("Developer").getId();
 
@@ -76,7 +76,7 @@ public class MembershipMappingDAOTest
     // exercise update involving keeping, removing and adding new member for a role
     memberships1 = Arrays.asList(new MembershipMapping("john", MemberType.USER), new MembershipMapping("jane",
         MemberType.USER));
-    memberships2 = Arrays.asList();
+    memberships2 = Collections.emptyList();
     membershipDAO.setMembershipMappingsForContextAndRole(contextId, roleId1, memberships1);
     membershipDAO.setMembershipMappingsForContextAndRole(contextId, roleId2, memberships2);
     memberships = membershipDAO.getByContextId(contextId);
@@ -93,7 +93,7 @@ public class MembershipMappingDAOTest
   }
 
   @Test
-  public void testSetMembershipMappingsForContextAndRole_SetSemantic() throws Exception {
+  public void testSetMembershipMappingsForContextAndRole_SetSemantic() {
     String roleId1 = roleDAO.getByName("Owner").getId();
 
     List<MembershipMapping> memberships = Arrays.asList(new MembershipMapping("john", MemberType.USER),
@@ -104,7 +104,7 @@ public class MembershipMappingDAOTest
   }
 
   @Test
-  public void testAdminUserMappedToSystemAdminAndPolicyAdminRoles() throws Exception {
+  public void testAdminUserMappedToSystemAdminAndPolicyAdminRoles() {
     List<MembershipMapping> memberships = membershipDAO.getByContextIdAndUser(MembershipMapping.GLOBAL_CONTEXT_ID,
         User.ADMIN_USERNAME);
     assertThat(memberships).hasSize(2);
@@ -120,18 +120,16 @@ public class MembershipMappingDAOTest
   }
 
   @Test
-  public void testUpdateNotSupported() throws Exception {
+  public void testUpdateNotSupported() {
     String roleId1 = roleDAO.getApplicationRoles().get(0).getId();
 
-    List<MembershipMapping> memberships = Arrays.asList(new MembershipMapping("john", MemberType.USER));
+    List<MembershipMapping> memberships = Collections.singletonList(new MembershipMapping("john", MemberType.USER));
     membershipDAO.setMembershipMappingsForContextAndRole(contextId, roleId1, memberships);
     memberships = membershipDAO.getByContextId(contextId);
     assertThat(memberships).hasSize(1);
     MembershipMapping membership = memberships.get(0);
     membership.setMemberName("jane");
-    assertThatThrownBy(() -> {
-      membershipDAO.update(membership);
-    }).isInstanceOf(UnsupportedOperationException.class);
+    assertThatThrownBy(() -> membershipDAO.update(membership)).isInstanceOf(UnsupportedOperationException.class);
   }
 
   @Test

@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -44,7 +44,7 @@ public class ExportEmbeddedDatabaseCommandTest
   public TemporaryFolder tempDir = new TemporaryFolder();
 
   @Test
-  public void testRun_SupportsOnlyEmbeddedDatabase() throws Exception {
+  public void testRun_SupportsOnlyEmbeddedDatabase() {
     InsightConfig config = new InsightConfig();
     config.setDatabase(new DatabaseConfig());
     assertThatExceptionOfType(BadRequestException.class)
@@ -62,7 +62,7 @@ public class ExportEmbeddedDatabaseCommandTest
   }
 
   @Test
-  public void testRun_UninitializedDatabase() throws Exception {
+  public void testRun_UninitializedDatabase() {
     DataSourceFactory.clear_ForTestsOnly();
     try {
       File dumpFile = new File(tempDir.getRoot(), "dump.sql");
@@ -91,7 +91,7 @@ public class ExportEmbeddedDatabaseCommandTest
 
       assertThat(dumpFile).isFile();
 
-      try (InputStream is = new GZIPInputStream(new FileInputStream(dumpFile))) {
+      try (InputStream is = new GZIPInputStream(Files.newInputStream(dumpFile.toPath()))) {
         assertThat(is.read()).isPositive();
       }
     }

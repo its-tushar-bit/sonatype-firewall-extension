@@ -57,7 +57,7 @@ public class ApiOrganizationResourceV2Test
   }
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     organization = tempEntity.newOrganization("test-org");
     userA = tempEntity.newUser("user-a", "John", "Doe", "void@void.com");
     userB = tempEntity.newUser("user-b", "Jane", "Doe", "void@void.com");

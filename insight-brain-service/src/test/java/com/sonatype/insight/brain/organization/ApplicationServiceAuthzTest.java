@@ -79,20 +79,20 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
-  public void testGetAllApplications_Authorized() throws Exception {
+  public void testGetAllApplications_Authorized() {
     grantReadPermission(app.getId());
     final List<Application> applications = applicationService.getApplications();
     assertThat(applications).extracting(Application::getId).containsExactlyInAnyOrder(app.getId());
   }
 
   @Test
-  public void testGetAllApplications_Unauthenticated() throws Exception {
+  public void testGetAllApplications_Unauthenticated() {
     List<Application> applications = applicationService.getApplications();
     assertThat(applications).isEmpty();
   }
 
   @Test
-  public void testGetApplicationNamesForEvaluateComponent_Authorized() throws Exception {
+  public void testGetApplicationNamesForEvaluateComponent_Authorized() {
     tempEntity.newApplication(app.getOrganizationId());
 
     grantEvaluateComponentPermission(app.getId());
@@ -101,57 +101,57 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
-  public void testGetApplicationNamesForEvaluateComponent_Unauthorized() throws Exception {
+  public void testGetApplicationNamesForEvaluateComponent_Unauthorized() {
     login();
     Map<String, String> applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
     assertThat(applicationNames).isEmpty();
   }
 
   @Test
-  public void testGetApplicationNamesForEvaluateComponent_Unauthenticated() throws Exception {
+  public void testGetApplicationNamesForEvaluateComponent_Unauthenticated() {
     Map<String, String> applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
     assertThat(applicationNames).isEmpty();
   }
 
   @Test
-  public void testValidateApplicationPublicId_Authorized() throws Exception {
+  public void testValidateApplicationPublicId_Authorized() {
     grantWritePermission(app.getId());
     String value = applicationService.validateApplicationPublicId(app.getPublicId());
     assertThat(value).isEqualTo("OK");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testValidateApplicationPublicId_Unauthorized() throws Exception {
+  public void testValidateApplicationPublicId_Unauthorized() {
     login();
     applicationService.validateApplicationPublicId(app.getPublicId());
   }
 
   @Test
-  public void testGetApplicationByPublicIdForRead_Authorized() throws Exception {
+  public void testGetApplicationByPublicIdForRead_Authorized() {
     grantReadPermission(app.getId());
 
     applicationService.getApplicationByPublicIdForRead(app.getPublicId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetApplicationByPublicIdForRead_Unauthenticated() throws Exception {
+  public void testGetApplicationByPublicIdForRead_Unauthenticated() {
     applicationService.getApplicationByPublicIdForRead(app.getPublicId());
   }
 
   @Test
-  public void testGetApplicationByPublicIdNotNull_Authorized() throws Exception {
+  public void testGetApplicationByPublicIdNotNull_Authorized() {
     grantReadPermission(app.getId());
 
     applicationService.getApplicationByPublicIdNotNull(app.getPublicId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetApplicationByPublicIdNotNull_Unauthenticated() throws Exception {
+  public void testGetApplicationByPublicIdNotNull_Unauthenticated() {
     applicationService.getApplicationByPublicIdNotNull(app.getPublicId());
   }
 
   @Test
-  public void testUpdateApplication_Authorized() throws Exception {
+  public void testUpdateApplication_Authorized() {
     grantWritePermission(app.getId());
 
     String newName = "TestUpdateName";
@@ -160,13 +160,13 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testUpdateApplication_Unauthenticated() throws Exception {
+  public void testUpdateApplication_Unauthenticated() {
     app.setName("TestUpdateName");
     applicationService.updateApplication(app);
   }
 
   @Test
-  public void testGetApplicationsByPublicIdsAndTagIds_Authorized_byApp() throws Exception {
+  public void testGetApplicationsByPublicIdsAndTagIds_Authorized_byApp() {
     grantReadPermission(app.getId());
     final List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(null,
         Sets.newHashSet(app.getId()), null);
@@ -174,7 +174,7 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
-  public void testGetApplicationsByPublicIdsAndTagIds_Authorized_byOrg() throws Exception {
+  public void testGetApplicationsByPublicIdsAndTagIds_Authorized_byOrg() {
     grantReadPermission(app.getId());
     final List<Application> applications = applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(
         Sets.newHashSet(app.getParentOwnerId()), null, null);
@@ -182,7 +182,7 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
-  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_FilteredAuthorized() throws Exception {
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_FilteredAuthorized() {
     grantReadPermission(app.getId());
     List<Application> applications =
         applicationService.getApplicationsByIdsAndOrganizationIdsAndTagIds(null, null, null);
@@ -190,7 +190,7 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test()
-  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_TwoAppsAuthorized() throws Exception {
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_TwoAppsAuthorized() {
     Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
     grantReadPermission(app.getId());
     grantReadPermission(app2.getId());
@@ -201,7 +201,7 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
-  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_OrgAuthorized() throws Exception {
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_OrgAuthorized() {
     Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
     grantReadPermission(app.getId());
     grantReadPermission(app2.getId());
@@ -212,14 +212,14 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
-  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_Unauthenticated() throws Exception {
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_Unauthenticated() {
     List<Application> applications = applicationService
         .getApplicationsByIdsAndOrganizationIdsAndTagIds(null, Sets.newHashSet(app.getId()), null);
     assertThat(applications).isEmpty();
   }
 
   @Test
-  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_NotAuthorized() throws Exception {
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_NotAuthorized() {
     login();
     List<Application> applications = applicationService
         .getApplicationsByIdsAndOrganizationIdsAndTagIds(null, Sets.newHashSet(app.getId()), null);
@@ -227,7 +227,7 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
-  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_withOrg_NotAuthorized() throws Exception {
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_withOrg_NotAuthorized() {
     login();
     List<Application> applications = applicationService
         .getApplicationsByIdsAndOrganizationIdsAndTagIds(Sets.newHashSet(app.getParentOwnerId()), null, null);
@@ -235,7 +235,7 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
-  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_TwoAppsOneNotAuthorized() throws Exception {
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_TwoAppsOneNotAuthorized() {
     Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
     grantReadPermission(app.getId());
     List<Application> applications = applicationService
@@ -244,7 +244,7 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test()
-  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_OnlySeesAppsWithPermission() throws Exception {
+  public void testGetApplicationsByIdsAndOrganizationsAndTagIds_OnlySeesAppsWithPermission() {
     Application app2 = tempEntity.newApplication("App2", "appPubId2", org.getId());
     grantReadPermission(app.getId());
 

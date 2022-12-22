@@ -45,9 +45,8 @@ public class SuccessMetricsReportDAOTest
     // attempt to update metric
     String username2 = "bob";
     successMetrics.setUsername(username2);
-    assertThatThrownBy(() -> {
-      successMetricsReportDAO.update(successMetrics);
-    }).isInstanceOf(UnsupportedOperationException.class)
+    assertThatThrownBy(() -> successMetricsReportDAO.update(successMetrics))
+        .isInstanceOf(UnsupportedOperationException.class)
         .hasMessage("SuccessMetricsReport does not support update operations.");
 
     // Delete
@@ -87,26 +86,23 @@ public class SuccessMetricsReportDAOTest
   @Test
   public void testValidateNullName_Insert() {
     SuccessMetricsReport successMetrics = new SuccessMetricsReport(null);
-    assertThatThrownBy(() -> {
-      successMetricsReportDAO.insert(successMetrics);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> successMetricsReportDAO.insert(successMetrics)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateEmptyName_Insert() {
     SuccessMetricsReport successMetrics = new SuccessMetricsReport("");
-    assertThatThrownBy(() -> {
-      successMetricsReportDAO.insert(successMetrics);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> successMetricsReportDAO.insert(successMetrics)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       SuccessMetricsReport successMetrics = new SuccessMetricsReport(name);
-      assertThatThrownBy(() -> {
-        successMetricsReportDAO.insert(successMetrics);
-      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
+      assertThatThrownBy(() -> successMetricsReportDAO.insert(successMetrics)).isInstanceOf(InvalidNameException.class)
+          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -122,9 +118,8 @@ public class SuccessMetricsReportDAOTest
   public void testValidateNameSpaces_Insert() {
     String username = "test123";
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      assertThatThrownBy(() -> {
-        tempEntity.newSuccessMetricsReport(username, name, "testMetricsString 1");
-      }).isInstanceOf(InvalidNameException.class)
+      assertThatThrownBy(() -> tempEntity.newSuccessMetricsReport(username, name, "testMetricsString 1"))
+          .isInstanceOf(InvalidNameException.class)
           .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
@@ -147,18 +142,16 @@ public class SuccessMetricsReportDAOTest
   public void testDuplicateName_Insert() {
     String username = "test123";
     tempEntity.newSuccessMetricsReport(username, "Metrics12345", "testMetricsString 1111");
-    assertThatThrownBy(() -> {
-      tempEntity.newSuccessMetricsReport(username, "METRICS 12345", "testMetricsString 1111");
-    }).isInstanceOf(BadRequestException.class).hasMessage("METRICS 12345 is already used as a name.");
+    assertThatThrownBy(() -> tempEntity.newSuccessMetricsReport(username, "METRICS 12345", "testMetricsString 1111"))
+        .isInstanceOf(BadRequestException.class).hasMessage("METRICS 12345 is already used as a name.");
   }
 
   @Test
   public void testValidateNameLength_Insert() {
     String username = "test123";
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    assertThatThrownBy(() -> {
-      tempEntity.newSuccessMetricsReport(username, name + "a", "testMetricsString 1111");
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
+    assertThatThrownBy(() -> tempEntity.newSuccessMetricsReport(username, name + "a", "testMetricsString 1111"))
+        .isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
     tempEntity.newSuccessMetricsReport(username, name, "testMetricsString 1111");
   }
 

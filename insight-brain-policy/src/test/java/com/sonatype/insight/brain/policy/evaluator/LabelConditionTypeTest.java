@@ -198,9 +198,8 @@ public class LabelConditionTypeTest
   @Test
   public void testValidateCondition_InvalidLabelId() {
     Condition condition = new Condition(LabelConditionType.ID, "is", "abc");
-    assertThatThrownBy(() -> {
-      new LabelConditionType().validateCondition(null, condition, applicationId);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid label id: abc");
+    assertThatThrownBy(() -> new LabelConditionType().validateCondition(null, condition, applicationId))
+        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid label id: abc");
   }
 
   @Test

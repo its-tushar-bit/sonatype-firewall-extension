@@ -46,12 +46,10 @@ public class ApiLegalCopyrightServiceAuthzTest
   @Test
   public void testGetCopyrightFilePaths_Unauthenticated() {
     assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
-    {
-      apiLegalCopyrightService.getCopyrightFilePaths(
-          OwnerType.ORGANIZATION, org.getPublicId(),
-          COMPONENT_IDENTIFIER,
-          "hash", "copyright hash 2", 0, 10);
-    });
+        apiLegalCopyrightService.getCopyrightFilePaths(
+            OwnerType.ORGANIZATION, org.getPublicId(),
+            COMPONENT_IDENTIFIER,
+            "hash", "copyright hash 2", 0, 10));
   }
 
   @Test

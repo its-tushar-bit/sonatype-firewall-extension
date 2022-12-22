@@ -41,7 +41,7 @@ public class PolicyDroolsCodeMigratorTest
   private PolicyDAO policyDAO;
 
   @Test
-  public void testMigrate_GracefullyHandleInvalidPolicy() throws Exception {
+  public void testMigrate_GracefullyHandleInvalidPolicy() {
     LicenseThreatGroup ltg = tempEntity.newLicenseThreatGroup(Organization.ROOT_ORGANIZATION_ID);
     Organization org = tempEntity.newOrganization();
     Policy policy = new Policy(null, "Test Policy");
@@ -84,7 +84,7 @@ public class PolicyDroolsCodeMigratorTest
   }
 
   @Test
-  public void testMigrate_FromVersion3() throws Exception {
+  public void testMigrate_FromVersion3() {
     String policyId = tempEntity.newPolicy().getId();
     PolicyInternalDAO policyInternalDAO = new PolicyInternalDAO();
     PolicyInternal policyInternal = policyInternalDAO.getById(policyId);

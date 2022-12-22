@@ -51,14 +51,14 @@ public class DbDataTest
   }
 
   @Test
-  public void testGetWebhook_maskSecret() throws Exception {
+  public void testGetWebhook_maskSecret() {
     tempEntity.newWebhookWithSecret(Collections.singleton(POLICY_MANAGEMENT));
 
     assertThat(getWebhook().getSecretKey()).isEqualTo(SystemInfo.MASK);
   }
 
   @Test
-  public void testGetWebhook_secretEmpty() throws Exception {
+  public void testGetWebhook_secretEmpty() {
     final Webhook tempWebhook = tempEntity.newWebhook(Collections.singleton(POLICY_MANAGEMENT));
     tempWebhook.setSecretKey("");
     new WebhookDAO().update(tempWebhook);
@@ -67,7 +67,7 @@ public class DbDataTest
   }
 
   @Test
-  public void testGetWebhook_secretNull() throws Exception {
+  public void testGetWebhook_secretNull() {
     tempEntity.newWebhook(Collections.singleton(POLICY_MANAGEMENT));
 
     assertThat(getWebhook().getSecretKey()).isNull();

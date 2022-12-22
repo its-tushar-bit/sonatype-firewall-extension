@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -59,8 +59,8 @@ public abstract class AbstractPolicyEvaluationTest
 
   protected List<PolicyAlert> evaluate(Stage stage, Policy policy, List<Component> components) {
     DroolsGenerator.generate(policy);
-    return componentPolicyEvaluator.evaluate(null /* applicationId */, stage, Arrays.asList(policy), components)
-        .getActiveAlerts();
+    return componentPolicyEvaluator.evaluate(null /* applicationId */, stage, Collections.singletonList(policy),
+            components).getActiveAlerts();
   }
 
   protected Constraint createConstraint(String constraintId,

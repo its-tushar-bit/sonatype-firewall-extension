@@ -95,7 +95,7 @@ public class ClusterTelemetryTaskTest
   }
 
   @Test
-  public void testRegister() throws Exception {
+  public void testRegister() {
     clusterTelemetryTask.register();
 
     verify(taskSchedulerMock)

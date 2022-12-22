@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class LicenseThreatGroupLicenseDAOTest
     extends AbstractDbDAOTest
 {
-  private void testCRUD(String ownerId) throws Exception {
+  private void testCRUD(String ownerId) {
     LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
     LicenseThreatGroup group = new LicenseThreatGroup();
     group.setOwnerId(ownerId);
@@ -65,7 +65,7 @@ public class LicenseThreatGroupLicenseDAOTest
   }
 
   @Test
-  public void testAddSameLicenseToSameGroupTwice() throws Exception {
+  public void testAddSameLicenseToSameGroupTwice() {
     LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
     LicenseThreatGroup group = new LicenseThreatGroup();
     group.setOwnerId(application.getId());
@@ -79,15 +79,14 @@ public class LicenseThreatGroupLicenseDAOTest
     licenseThreatGroupLicense.setLicenseId("UNSPECIFIED");
     dao.insert(licenseThreatGroupLicense);
 
-    assertThatThrownBy(() -> {
-      dao.insert(
-          new LicenseThreatGroupLicense(application.getId(), group.getId(), licenseThreatGroupLicense.getLicenseId()));
-    }).isInstanceOf(InvalidLicenseThreatGroupLicenseException.class)
+    assertThatThrownBy(() -> dao.insert(
+        new LicenseThreatGroupLicense(application.getId(), group.getId(), licenseThreatGroupLicense.getLicenseId())))
+        .isInstanceOf(InvalidLicenseThreatGroupLicenseException.class)
         .hasMessage("The license is already in the license threat group");
   }
 
   @Test
-  public void testInsertInvalidLicenseId() throws Exception {
+  public void testInsertInvalidLicenseId() {
     LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
     LicenseThreatGroup group = new LicenseThreatGroup();
     group.setOwnerId(application.getId());
@@ -102,9 +101,8 @@ public class LicenseThreatGroupLicenseDAOTest
     licenseThreatGroupLicense.setOwnerId(application.getId());
     licenseThreatGroupLicense.setLicenseThreatGroupId(group.getId());
     licenseThreatGroupLicense.setLicenseId("BAZINGAAA");
-    assertThatThrownBy(() -> {
-      dao.insert(licenseThreatGroupLicense);
-    }).isInstanceOf(NotFoundException.class).hasMessage("A license with ID 'BAZINGAAA' does not exist.");
+    assertThatThrownBy(() -> dao.insert(licenseThreatGroupLicense)).isInstanceOf(NotFoundException.class)
+        .hasMessage("A license with ID 'BAZINGAAA' does not exist.");
   }
 
   @Test
@@ -170,7 +168,7 @@ public class LicenseThreatGroupLicenseDAOTest
     testAddSameLicenseToTwoGroups(organization.getId());
   }
 
-  private void testAddSameLicenseToTwoGroups(String ownerId) throws Exception {
+  private void testAddSameLicenseToTwoGroups(String ownerId) {
     LicenseThreatGroupDAO groupDAO = new LicenseThreatGroupDAO();
     LicenseThreatGroup group1 = new LicenseThreatGroup(ownerId, "My group 1", 4);
     groupDAO.insert(group1);

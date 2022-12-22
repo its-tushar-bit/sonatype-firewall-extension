@@ -72,7 +72,7 @@ public class TelemetrySchedulerTest
   }
 
   @Test
-  public void testGetTelemetryRunnableRun_SendSuccess() throws Exception {
+  public void testGetTelemetryRunnableRun_SendSuccess() {
     TelemetryData telemetryData1 = mock(TelemetryData.class);
     when(telemetryCollector1.collectData()).thenReturn(telemetryData1);
 
@@ -88,7 +88,7 @@ public class TelemetrySchedulerTest
   }
 
   @Test
-  public void testGetTelemetryRunnableRun_SendFailure() throws Exception {
+  public void testGetTelemetryRunnableRun_SendFailure() {
     when(telemetryCollector1.collectData()).thenThrow(new RuntimeException("Failure"));
 
     TelemetryData telemetryData2 = mock(TelemetryData.class);

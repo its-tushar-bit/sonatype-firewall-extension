@@ -25,7 +25,7 @@ public class NameHelperTest
       "1234567890", "-", "a.", "_", "a b" };
 
   @Test
-  public void validateNameCanNotBeBlank() throws Exception {
+  public void validateNameCanNotBeBlank() {
     verifyNameRequired(null);
     verifyNameRequired("");
     verifyNameRequired(" ");
@@ -45,7 +45,7 @@ public class NameHelperTest
   }
 
   @Test
-  public void validateNameCanNotHaveSpecialCharacters() throws Exception {
+  public void validateNameCanNotHaveSpecialCharacters() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       verifyNameHasBadCharacter(name, name.charAt(0));
     }
@@ -62,27 +62,22 @@ public class NameHelperTest
 
   @Test
   public void validateInvalidNameLength() {
-    assertThatThrownBy(() -> {
-      NameHelper.validate("test-field-name", "test-field-value", 2);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("test-field-name must be 2 characters or less.");
+    assertThatThrownBy(() -> NameHelper.validate("test-field-name", "test-field-value", 2))
+        .isInstanceOf(InvalidNameException.class).hasMessage("test-field-name must be 2 characters or less.");
   }
 
   private void verifyNameHasBadWhitespace(String name) {
-    assertThatThrownBy(() -> {
-      NameHelper.validate(name);
-    }).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> NameHelper.validate(name)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
   }
 
   private void verifyNameHasBadCharacter(String name, char c) {
-    assertThatThrownBy(() -> {
-      NameHelper.validate(name);
-    }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", c);
+    assertThatThrownBy(() -> NameHelper.validate(name)).isInstanceOf(InvalidNameException.class)
+        .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", c);
   }
 
   private void verifyNameRequired(String name) {
-    assertThatThrownBy(() -> {
-      NameHelper.validate(name);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> NameHelper.validate(name)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 }

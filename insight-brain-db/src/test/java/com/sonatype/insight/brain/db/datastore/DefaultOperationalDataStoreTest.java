@@ -57,9 +57,8 @@ public class DefaultOperationalDataStoreTest
     String oldVersion = String.valueOf(DefaultOperationalDataStore.MINIMUM_DATABASE_VERSION - 1);
     Files.write(databaseVersionFile.toPath(), oldVersion.getBytes(StandardCharsets.UTF_8));
 
-    assertThatThrownBy(() -> {
-      initDatabase(getDatabaseConfig(databaseDir, "ods"));
-    }).isInstanceOf(UnsupportedOperationException.class)
+    assertThatThrownBy(() -> initDatabase(getDatabaseConfig(databaseDir, "ods")))
+        .isInstanceOf(UnsupportedOperationException.class)
         .hasMessage("Cannot migrate insight_brain_ods database, this requires version "
             + DefaultOperationalDataStore.MINIMUM_DATABASE_VERSION + " at minimum, but you have version " + oldVersion
             + ".\nPlease upgrade to Nexus IQ Server version 1.16 before upgrading to this version.");
@@ -73,9 +72,8 @@ public class DefaultOperationalDataStoreTest
     String oldVersion = String.valueOf(DefaultOperationalDataStore.OLD_VIOLATION_MODEL_DATABASE_VERSION);
     Files.write(databaseVersionFile.toPath(), oldVersion.getBytes(StandardCharsets.UTF_8));
 
-    assertThatThrownBy(() -> {
-      dataStore.initWithMigration(getDatabaseConfig(databaseDir, "ods"), false);
-    }).isInstanceOf(UnsupportedOperationException.class).hasMessage("Consent to upgrade has not been given.");
+    assertThatThrownBy(() -> dataStore.initWithMigration(getDatabaseConfig(databaseDir, "ods"), false))
+        .isInstanceOf(UnsupportedOperationException.class).hasMessage("Consent to upgrade has not been given.");
     assertThat(logOutput).atErrorLevel().contains("Upgrade requires consent to proceed")
         .contains("https://links.sonatype.com/products/clm/doc/upgrade/1.45");
   }

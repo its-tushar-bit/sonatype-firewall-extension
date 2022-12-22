@@ -25,9 +25,8 @@ public class IdValidationUtilsTest
   @Test
   public void testGetScanDir_InvalidAppId() {
     for (String invalidValue : INVALID_CHARACTERS) {
-      assertThatThrownBy(() -> {
-        IdValidationUtils.validate(invalidValue);
-      }).isInstanceOf(BadRequestException.class).hasMessage("Invalid value: " + invalidValue);
+      assertThatThrownBy(() -> IdValidationUtils.validate(invalidValue)).isInstanceOf(BadRequestException.class)
+          .hasMessage("Invalid value: " + invalidValue);
     }
   }
 }

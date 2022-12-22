@@ -29,7 +29,7 @@ public class SamlConfigurationDAOTest
   private SamlConfigurationDAO dao = new SamlConfigurationDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     Date before = new Date();
     SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration(null, null);
@@ -76,9 +76,8 @@ public class SamlConfigurationDAOTest
   public void testInsert_MoreThanOneSamlConfigurations() {
     tempEntity.newSamlConfiguration();
 
-    assertThatThrownBy(() -> {
-      tempEntity.newSamlConfiguration();
-    }).isInstanceOf(BadRequestException.class).hasMessage("A SAML configuration already exists.");
+    assertThatThrownBy(() -> tempEntity.newSamlConfiguration())
+        .isInstanceOf(BadRequestException.class).hasMessage("A SAML configuration already exists.");
   }
 
   @Test

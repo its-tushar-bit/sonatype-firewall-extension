@@ -29,7 +29,7 @@ public class MultiLicenseDAOTest
   private static String MOCK_REMOTE_LICENSE_ID = "test";
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     MultiLicenseDAO dao = new MultiLicenseDAO();
 
     String shortName = "SDN";
@@ -79,9 +79,8 @@ public class MultiLicenseDAOTest
   public void testGetLicensesByMultiLicenseIdRefreshedRemotely() {
     MultiLicenseDAO dao = new MultiLicenseDAO();
 
-    assertThatThrownBy(() -> {
-      dao.getLicensesByMultiLicenseIdNotNull(MOCK_REMOTE_LICENSE_ID);
-    }).isInstanceOf(NotFoundException.class)
+    assertThatThrownBy(() -> dao.getLicensesByMultiLicenseIdNotNull(MOCK_REMOTE_LICENSE_ID))
+        .isInstanceOf(NotFoundException.class)
         .hasMessage("A multi-license with ID '" + MOCK_REMOTE_LICENSE_ID + "' does not exist locally or remotely.");
 
     MockLicenseDataUpdater updater = new MockLicenseDataUpdater();

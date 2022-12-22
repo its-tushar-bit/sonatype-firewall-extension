@@ -54,7 +54,7 @@ public class ComponentLabelResourceTest
   }
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     org = tempEntity.newOrganization();
     rootOrg = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
     app = tempEntity.newApplication("Test", "test-app", org.getId());

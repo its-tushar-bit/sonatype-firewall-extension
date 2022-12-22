@@ -73,12 +73,12 @@ public class FirewallMigrationServiceTest
   private Policy policy;
 
   @Before
-  public void createPolicy() throws Exception {
+  public void createPolicy() {
     policy = tempEntity.newPolicy();
   }
 
   @After
-  public void deleteAutoCreatedRepositoryManagers() throws Exception {
+  public void deleteAutoCreatedRepositoryManagers() {
     RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
     RepositoryManager manager = repositoryManagerDAO.getByInstanceId(TARGET_REPOSITORY_MANAGER_INSTANCE_ID);
     if (manager != null) {
@@ -87,19 +87,19 @@ public class FirewallMigrationServiceTest
   }
 
   @Test
-  public void testVerifyMigrationSupport() throws Exception {
+  public void testVerifyMigrationSupport() {
     migrationService.verifyMigrationSupport(PROTOCOL_V1);
   }
 
   @Test
-  public void testVerifyMigrationSupport_UnsupportedProtocolVersion() throws Exception {
+  public void testVerifyMigrationSupport_UnsupportedProtocolVersion() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> migrationService.verifyMigrationSupport("v2"))
         .withMessageEndingWith("does not support migration protocol v2, please update your IQ Server.");
   }
 
   @Test
-  public void testVerifyMigrationSupport_MissingLicenseFeature() throws Exception {
+  public void testVerifyMigrationSupport_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> migrationService.verifyMigrationSupport(PROTOCOL_V1))
@@ -107,7 +107,7 @@ public class FirewallMigrationServiceTest
   }
 
   @Test
-  public void testMigrateRepositoryHistory_MissingLicenseFeature() throws Exception {
+  public void testMigrateRepositoryHistory_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID,
@@ -116,7 +116,7 @@ public class FirewallMigrationServiceTest
   }
 
   @Test
-  public void testMigrateRepositoryHistory_UnknownSource() throws Exception {
+  public void testMigrateRepositoryHistory_UnknownSource() {
     createTargetRepository();
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> migrationService.migrateRepositoryHistory(SOURCE_REPOSITORY_MANAGER_INSTANCE_ID,
@@ -125,7 +125,7 @@ public class FirewallMigrationServiceTest
   }
 
   @Test
-  public void testMigrateRepositoryHistory_ExistingTarget() throws Exception {
+  public void testMigrateRepositoryHistory_ExistingTarget() {
     Repository repository = createTargetRepository();
     Repository sourceRepository = createSourceRepository();
     GeneratedRepositoryData data = generateRepositoryData(sourceRepository);
@@ -134,7 +134,7 @@ public class FirewallMigrationServiceTest
   }
 
   @Test
-  public void testMigrateRepositoryHistory_AutoCreateTarget() throws Exception {
+  public void testMigrateRepositoryHistory_AutoCreateTarget() {
     Repository sourceRepository = createSourceRepository();
     GeneratedRepositoryData data = generateRepositoryData(sourceRepository);
 
@@ -151,7 +151,7 @@ public class FirewallMigrationServiceTest
     testMigrateRepositoryHistoryRerun(MigrationState.FAILED);
   }
 
-  private void testMigrateRepositoryHistoryRerun(MigrationState migrationState) throws Exception {
+  private void testMigrateRepositoryHistoryRerun(MigrationState migrationState) {
     Repository repository = createTargetRepository();
     GeneratedRepositoryData previousRunData = generateRepositoryData(repository);
     Repository sourceRepository = createSourceRepository();
@@ -295,7 +295,7 @@ public class FirewallMigrationServiceTest
   }
 
   @Test
-  public void testMigrateRepositoryHistory_AlreadyRunning() throws Exception {
+  public void testMigrateRepositoryHistory_AlreadyRunning() {
     createSourceRepository();
     Repository targetRepository = createTargetRepository();
     RepositoryMigration repositoryMigration = new RepositoryMigration();
@@ -309,7 +309,7 @@ public class FirewallMigrationServiceTest
   }
 
   @Test
-  public void testGetRepositoryMigrationState_UnknownRepository() throws Exception {
+  public void testGetRepositoryMigrationState_UnknownRepository() {
     tempEntity.newRepositoryManager(TARGET_REPOSITORY_MANAGER_INSTANCE_ID);
 
     assertThatExceptionOfType(NotFoundException.class)
@@ -319,7 +319,7 @@ public class FirewallMigrationServiceTest
   }
 
   @Test
-  public void testGetRepositoryMigrationState_MigrationNotStarted() throws Exception {
+  public void testGetRepositoryMigrationState_MigrationNotStarted() {
     createTargetRepository();
 
     MigrationDetails migrationDetails = migrationService

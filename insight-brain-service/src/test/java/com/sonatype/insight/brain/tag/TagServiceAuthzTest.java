@@ -40,108 +40,108 @@ public class TagServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetApplicableTags_Unauthorized() throws Exception {
+  public void testGetApplicableTags_Unauthorized() {
     login();
     tagService.getApplicableTags(OwnerType.ORGANIZATION, org.getId());
   }
 
   @Test
-  public void testGetApplicableTags_Authorized() throws Exception {
+  public void testGetApplicableTags_Authorized() {
     grantReadPermission(org.getId());
     tagService.getApplicableTags(OwnerType.ORGANIZATION, org.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testAddTag_Unauthorized() throws Exception {
+  public void testAddTag_Unauthorized() {
     grantReadPermission(org.getId());
     Tag tag = new Tag(org.getId(), "name", "description", Color.yellow);
     tagService.addTag(org.getId(), TagService.toDTO(tag));
   }
 
   @Test
-  public void testAddTag_Authorized() throws Exception {
+  public void testAddTag_Authorized() {
     grantWritePermission(org.getId());
     Tag tag = new Tag(org.getId(), "name", "description", Color.yellow);
     tagService.addTag(org.getId(), TagService.toDTO(tag));
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testUpdateTag_Unauthorized() throws Exception {
+  public void testUpdateTag_Unauthorized() {
     grantReadPermission(org.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tagService.updateTag(org.getId(), TagService.toDTO(tag));
   }
 
   @Test
-  public void testUpdateTag_Authorized() throws Exception {
+  public void testUpdateTag_Authorized() {
     grantWritePermission(org.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tagService.updateTag(org.getId(), TagService.toDTO(tag));
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testDeleteTag_Unauthorized() throws Exception {
+  public void testDeleteTag_Unauthorized() {
     grantReadPermission(org.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tagService.deleteTag(org.getId(), tag.getId());
   }
 
   @Test
-  public void testDeleteTag_Authorized() throws Exception {
+  public void testDeleteTag_Authorized() {
     grantWritePermission(org.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tagService.deleteTag(org.getId(), tag.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetAppliedApplicationTags_Unauthorized() throws Exception {
+  public void testGetAppliedApplicationTags_Unauthorized() {
     login();
     tagService.getAppliedApplicationTags(app.getPublicId());
   }
 
   @Test
-  public void testGetAppliedApplicationTags_Authorized() throws Exception {
+  public void testGetAppliedApplicationTags_Authorized() {
     grantReadPermission(app.getId());
     tagService.getAppliedApplicationTags(app.getPublicId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetPolicyTags_Unauthorized() throws Exception {
+  public void testGetPolicyTags_Unauthorized() {
     login();
     tagService.getPolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId);
   }
 
   @Test
-  public void testGetPolicyTags_Authorized() throws Exception {
+  public void testGetPolicyTags_Authorized() {
     grantReadPermission(org.getId());
     tagService.getPolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId);
   }
 
   @Test
-  public void testUpdatePolicyTags_Authorized() throws Exception {
+  public void testUpdatePolicyTags_Authorized() {
     grantWritePermission(org.getId());
     tagService.updatePolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId, new ArrayList<>());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testUpdatePolicyTags_Unauthorized() throws Exception {
+  public void testUpdatePolicyTags_Unauthorized() {
     login();
     tagService.updatePolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId, new ArrayList<>());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testUpdatePolicyTags_Unauthenticated() throws Exception {
+  public void testUpdatePolicyTags_Unauthenticated() {
     tagService.updatePolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId, new ArrayList<>());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetAppliedTags_Unauthorized() throws Exception {
+  public void testGetAppliedTags_Unauthorized() {
     login();
     tagService.getAppliedTags(org.getId());
   }
 
   @Test
-  public void testGetAppliedTags_Authorized() throws Exception {
+  public void testGetAppliedTags_Authorized() {
     grantReadPermission(org.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tempEntity.newApplicationTag(app.getId(), tag.getId());
@@ -149,13 +149,13 @@ public class TagServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetAppliedPolicyTags_Unauthorized() throws Exception {
+  public void testGetAppliedPolicyTags_Unauthorized() {
     login();
     tagService.getAppliedPolicyTags(org.getId());
   }
 
   @Test
-  public void testGetAppliedPolicyTags_Authorize() throws Exception {
+  public void testGetAppliedPolicyTags_Authorize() {
     grantReadPermission(org.getId());
     Tag tag = tempEntity.newTag(org.getId(), "name");
     tempEntity.newPolicyTag(policyId, tag.getId());
@@ -163,13 +163,13 @@ public class TagServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetApplicableTagsByApplicationPublicId_Unauthorized() throws Exception {
+  public void testGetApplicableTagsByApplicationPublicId_Unauthorized() {
     login();
     tagService.getApplicableTagsByApplicationPublicId(app.getPublicId());
   }
 
   @Test
-  public void testGetApplicableTagsByApplicationPublicId_Authorized() throws Exception {
+  public void testGetApplicableTagsByApplicationPublicId_Authorized() {
     grantReadPermission(app.getId());
     tagService.getApplicableTagsByApplicationPublicId(app.getPublicId());
   }
@@ -193,36 +193,36 @@ public class TagServiceAuthzTest
   }
 
   @Test
-  public void testUpdateApplicationUpdateTags_Authorized() throws Exception {
+  public void testUpdateApplicationUpdateTags_Authorized() {
     grantWritePermission(app.getId());
     tagService.updateApplicationTags(app.getPublicId(), Collections.emptyList());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testUpdateApplicationUpdateTags_Unauthorized() throws Exception {
+  public void testUpdateApplicationUpdateTags_Unauthorized() {
     login();
     tagService.updateApplicationTags(app.getPublicId(), Collections.emptyList());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testUpdateApplicationUpdateTags_Unauthenticated() throws Exception {
+  public void testUpdateApplicationUpdateTags_Unauthenticated() {
     tagService.updateApplicationTags(app.getPublicId(), Collections.emptyList());
   }
 
   @Test
-  public void testGetTags_Authorized() throws Exception {
+  public void testGetTags_Authorized() {
     grantReadPermission(org.getId());
     tagService.getTags(org.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetTags_Unauthorized() throws Exception {
+  public void testGetTags_Unauthorized() {
     login();
     tagService.getTags(org.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetTags_Unauthenticated() throws Exception {
+  public void testGetTags_Unauthenticated() {
     tagService.getTags(org.getId());
   }
 }

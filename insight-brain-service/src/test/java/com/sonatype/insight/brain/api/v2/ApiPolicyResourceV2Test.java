@@ -31,7 +31,7 @@ public class ApiPolicyResourceV2Test
   private final Map<String, Policy> applicationPolicyMap = new HashMap<>();
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     for (int i = 0; i < 2; i++) {
       Organization organization = tempEntity.newOrganization();
       Policy policy = tempEntity.newPolicy(organization);

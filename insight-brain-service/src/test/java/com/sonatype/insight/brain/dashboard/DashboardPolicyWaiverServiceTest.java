@@ -588,7 +588,7 @@ public class DashboardPolicyWaiverServiceTest
     assertThat(dashboardPolicyWaivers.dashboardResults.get(6).componentMatchStrategy)
         .isEqualTo(waiverTypes.get(6));
 
-    orderBy = "-" + DashboardPolicyWaiverOrderByEnum.COMPONENT_SCOPE.toString();
+    orderBy = "-" + DashboardPolicyWaiverOrderByEnum.COMPONENT_SCOPE;
     risksFilterDTOBuilder.withOrderBy(orderBy);
     dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());

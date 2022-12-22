@@ -190,8 +190,8 @@ public class ComponentCategoryConditionTypeTest
   @Test
   public void testValidateCondition_InvalidValue() {
     Condition condition = new Condition(ComponentCategoryConditionType.ID, "is", "abc");
-    assertThatThrownBy(() -> {
-      new ComponentCategoryConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
+    assertThatThrownBy(() -> new ComponentCategoryConditionType()
+        .validateCondition(null, condition, null /* applicationId */)).isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("Value not supported: abc");
   }
 }

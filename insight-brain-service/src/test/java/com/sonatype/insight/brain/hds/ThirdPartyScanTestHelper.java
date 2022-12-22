@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.zip.GZIPOutputStream;
 
 import com.sonatype.insight.scan.model.ScanFileNames;
@@ -22,7 +22,7 @@ class ThirdPartyScanTestHelper
 
     // Gzip the Third Party scan file
     File sonatypeScanGzipFile = new File(stagingDir, ScanFileNames.SONATYPE_SCAN_FILENAME);
-    try (GZIPOutputStream gzipStream = new GZIPOutputStream(new FileOutputStream(sonatypeScanGzipFile))) {
+    try (GZIPOutputStream gzipStream = new GZIPOutputStream(Files.newOutputStream(sonatypeScanGzipFile.toPath()))) {
       FileUtils.copyFile(new File(sourceFilesDir, "scan.xml"), gzipStream);
     }
     return sonatypeScanGzipFile;

@@ -122,7 +122,7 @@ public class TelemetrySenderTest
   }
 
   @Test
-  public void testSend_ExceptionsAreHandled() throws Exception {
+  public void testSend_ExceptionsAreHandled() {
     telemetrySender.start();
 
     RuntimeException exception = new RuntimeException();
@@ -136,7 +136,7 @@ public class TelemetrySenderTest
   }
 
   @Test
-  public void testSend_ClientUserAgent() throws Exception {
+  public void testSend_ClientUserAgent() {
     telemetrySender.start();
 
     String clientUserAgent = "test_client_user_agent";

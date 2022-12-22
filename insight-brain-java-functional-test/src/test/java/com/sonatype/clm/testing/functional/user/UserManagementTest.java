@@ -149,7 +149,7 @@ public class UserManagementTest
     NewUserForm newUserForm = goToCreateUserForm(new UserManagementPage());
     String validationText = "Passwords must match!";
 
-    List<SelenideElement> passwordValidateInput = asList(newUserForm.passwordValidateInput());
+    List<SelenideElement> passwordValidateInput = Collections.singletonList(newUserForm.passwordValidateInput());
     keyInElementValue("23abc", passwordValidateInput);
 
     assertInputValidation(validationText, passwordValidateInput);
@@ -320,7 +320,7 @@ public class UserManagementTest
   }
 
   private void clearElementsValue(final List<SelenideElement> elements) {
-    elements.forEach(element -> clearField(element));
+    elements.forEach(this::clearField);
   }
 
   private void assertInputValidation(final String validationText, final List<SelenideElement> elements) {

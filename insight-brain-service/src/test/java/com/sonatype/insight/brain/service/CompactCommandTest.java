@@ -56,14 +56,14 @@ public class CompactCommandTest
     assertThat(newSize).isLessThan(originalSize);
     final BigDecimal percentChange = new BigDecimal(100 - newSize * 100.0d / originalSize)
         .setScale(2, BigDecimal.ROUND_HALF_EVEN);
-    assertThat(logOutput).atInfoLevel().contains("Compacting " + databasePath.toAbsolutePath().toString())
+    assertThat(logOutput).atInfoLevel().contains("Compacting " + databasePath.toAbsolutePath())
         .contains("This might take a while, please be patient.")
-        .contains("Successfully compacted " + databasePath.toAbsolutePath().toString() + " from " + originalSize
+        .contains("Successfully compacted " + databasePath.toAbsolutePath() + " from " + originalSize
             + " bytes to " + newSize + " bytes " + "(reduced by " + percentChange + "%) in");
   }
 
   @Test
-  public void testRun_Compact_NotH2Database() throws Exception {
+  public void testRun_Compact_NotH2Database() {
     InsightConfig insightConfig = new InsightConfig();
     insightConfig.setDatabase(new com.sonatype.insight.brain.service.DatabaseConfig());
 

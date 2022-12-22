@@ -33,13 +33,13 @@ public class PolicyStatusOverrideTelemetryCollectorTest
   }
 
   @Test
-  public void testCollectData_TelemetryPurpose() throws Exception {
+  public void testCollectData_TelemetryPurpose() {
     TelemetryData telemetryData = telemetryCollector.collectData();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.POLICY_STATUS_OVERRIDE);
   }
 
   @Test
-  public void testCollectData_SecurityVulnerabilityOverrideCounts() throws Exception {
+  public void testCollectData_SecurityVulnerabilityOverrideCounts() {
     assertThat(telemetryCollector.collectData().getAttributes())
         .containsEntry(PolicyStatusOverrideTelemetryCollector.SECURITY_VULNERABILITY_OVERRIDE_COUNT, "0");
 
@@ -55,7 +55,7 @@ public class PolicyStatusOverrideTelemetryCollectorTest
   }
 
   @Test
-  public void testCollectData_PolicyWaiverCount() throws Exception {
+  public void testCollectData_PolicyWaiverCount() {
     assertThat(telemetryCollector.collectData().getAttributes())
         .containsEntry(PolicyStatusOverrideTelemetryCollector.POLICY_WAIVER_COUNT, "0");
     Organization organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);

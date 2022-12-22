@@ -109,11 +109,12 @@ public class ScanClientTest
   }
 
   @Test
-  public void testUploadCLIScan_InvalidAppId() throws Exception {
+  public void testUploadCLIScan_InvalidAppId() {
     Configuration config = getCLMServer().getClientConfiguration();
-    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
-      new ScanClient(config, "invalid-id").uploadCLIScan(tmpDir.newFile("scan.xml.gz"), ClientScanType.SONATYPE);
-    }).withMessage("Could not find an application with public ID invalid-id.")
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> new ScanClient(config, "invalid-id").uploadCLIScan(tmpDir.newFile("scan.xml.gz"),
+            ClientScanType.SONATYPE))
+        .withMessage("Could not find an application with public ID invalid-id.")
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
 

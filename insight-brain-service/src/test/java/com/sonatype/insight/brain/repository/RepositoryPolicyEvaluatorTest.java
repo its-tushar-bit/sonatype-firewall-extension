@@ -728,7 +728,7 @@ public class RepositoryPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_Telemetry_SendNotificationsForNewComponent() throws Exception {
+  public void testEvaluate_Telemetry_SendNotificationsForNewComponent() {
     Repository repository = tempEntity.newRepository();
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
@@ -761,7 +761,7 @@ public class RepositoryPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_Telemetry_DontSendNotificationsForExistingComponent() throws Exception {
+  public void testEvaluate_Telemetry_DontSendNotificationsForExistingComponent() {
     Repository repository = tempEntity.newRepository();
 
     tempEntity.newPolicy(repository.getParentOwnerId());
@@ -792,7 +792,7 @@ public class RepositoryPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_UnquarantinesComponent() throws Exception {
+  public void testEvaluate_UnquarantinesComponent() {
     Repository repository = tempEntity.newRepository();
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
@@ -848,7 +848,7 @@ public class RepositoryPolicyEvaluatorTest
   }
 
   @Test
-  public void testEvaluate_ExistingComponent() throws Exception {
+  public void testEvaluate_ExistingComponent() {
     Repository repository = tempEntity.newRepository();
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1",

@@ -694,7 +694,7 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testGetMembersByQuery_AuthenticatedUsersGroup_GroupsDisabled() throws Exception {
+  public void testGetMembersByQuery_AuthenticatedUsersGroup_GroupsDisabled() {
     List<Member> members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME, false).get();
     assertThat(members).isEmpty();
 
@@ -703,7 +703,7 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testGetMembersByQuery_AuthenticatedUsersGroup_GroupsEnabled() throws Exception {
+  public void testGetMembersByQuery_AuthenticatedUsersGroup_GroupsEnabled() {
     // Exact name
     List<Member> members = userDirectory.getMembersByQuery(Group.AUTHENTICATED_USERS_GROUP_DISPLAY_NAME, true).get();
     assertThat(members).hasSize(1);
@@ -745,7 +745,7 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testGetMembersByName_AuthenticatedUsersGroup() throws Exception {
+  public void testGetMembersByName_AuthenticatedUsersGroup() {
     // Exact name
     List<Member> members = userDirectory.getMembersByName(
         Collections.singleton(createGroup(Group.AUTHENTICATED_USERS_GROUP_ID))).get();

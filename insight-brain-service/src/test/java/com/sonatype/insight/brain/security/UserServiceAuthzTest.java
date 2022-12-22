@@ -43,7 +43,7 @@ public class UserServiceAuthzTest
   }
 
   @Test
-  public void testGetAll_Authorized() throws Exception {
+  public void testGetAll_Authorized() {
     grantConfigureSystemPermission();
     assertThat(userService.getAll()).isNotEmpty();
   }
@@ -140,7 +140,7 @@ public class UserServiceAuthzTest
   }
 
   @Test
-  public void testAddUser_Authorized() throws Exception {
+  public void testAddUser_Authorized() {
     grantConfigureSystemPermission();
     User user = new User("testAddUser", "testAddUser", "testAddUser", "testAddUser", "testAddUser@sonatype.com");
     user = userService.addUser(user);
@@ -148,20 +148,20 @@ public class UserServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testAddUser_Unauthorized() throws Exception {
+  public void testAddUser_Unauthorized() {
     login();
     User user = new User("testAddUser", "testAddUser", "testAddUser", "testAddUser", "testAddUser@sonatype.com");
     userService.addUser(user);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testAddUser_Unauthenticated() throws Exception {
+  public void testAddUser_Unauthenticated() {
     User user = new User("testAddUser", "testAddUser", "testAddUser", "testAddUser", "testAddUser@sonatype.com");
     userService.addUser(user);
   }
 
   @Test
-  public void testUpdateUser_Authorized() throws Exception {
+  public void testUpdateUser_Authorized() {
     grantConfigureSystemPermission();
     User user = tempEntity.newUser("testUpdateUser");
     user.setPassword(UserService.FAKE_PASSWORD);
@@ -169,54 +169,54 @@ public class UserServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testUpdateUser_Unauthorized() throws Exception {
+  public void testUpdateUser_Unauthorized() {
     login();
     User user = tempEntity.newUser("testUpdateUser");
     userService.updateUser(user);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testUpdateUser_Unauthenticated() throws Exception {
+  public void testUpdateUser_Unauthenticated() {
     User user = tempEntity.newUser("testUpdateUser");
     userService.updateUser(user);
   }
 
   @Test
-  public void testDeleteUser_Authorized() throws Exception {
+  public void testDeleteUser_Authorized() {
     grantConfigureSystemPermission();
     User user = tempEntity.newUser("testDeleteUser");
     userService.deleteUser(user.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testDeleteUser_Unauthorized() throws Exception {
+  public void testDeleteUser_Unauthorized() {
     login();
     User user = tempEntity.newUser("testDeleteUser");
     userService.deleteUser(user.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testDeleteUser_Unauthenticated() throws Exception {
+  public void testDeleteUser_Unauthenticated() {
     User user = tempEntity.newUser("testDeleteUser");
     userService.deleteUser(user.getId());
   }
 
   @Test
-  public void testResetPassword_Authorized() throws Exception {
+  public void testResetPassword_Authorized() {
     grantConfigureSystemPermission();
     User user = tempEntity.newUser("testUpdateUser");
     userService.resetPassword(user.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testResetPassword_Unauthorized() throws Exception {
+  public void testResetPassword_Unauthorized() {
     login();
     User user = tempEntity.newUser("testUpdateUser");
     userService.resetPassword(user.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testResetPassword_Unauthenticated() throws Exception {
+  public void testResetPassword_Unauthenticated() {
     User user = tempEntity.newUser("testUpdateUser");
     userService.resetPassword(user.getId());
   }

@@ -40,7 +40,7 @@ public class ReleaseGraphResourceTest
   }
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     app = tempEntity.newApplicationWithParent();
     scanId = tempEntity.uuid();
   }

@@ -50,16 +50,14 @@ public class ProductLicenseDAOTest
   public void testInsert_EnforceSingleton() {
     dao.insert(createProductLicense());
 
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(createProductLicense());
-    }).withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(PersistenceException.class)
+        .isThrownBy(() -> dao.insert(createProductLicense())).withCauseInstanceOf(EntityExistsException.class);
 
     ProductLicense productLicense = createProductLicense();
     productLicense.setId("not-" + ProductLicenseDAO.SINGLETON_ENTITY_ID);
 
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(productLicense);
-    }).withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(PersistenceException.class)
+        .isThrownBy(() -> dao.insert(productLicense)).withCauseInstanceOf(EntityExistsException.class);
   }
 
   @Test

@@ -43,7 +43,7 @@ public class TelemetryServiceTest
   }
 
   @Test
-  public void testForwardFrontendTelemetryToHds() throws Exception {
+  public void testForwardFrontendTelemetryToHds() {
     String sessionId = "foo-session";
     String hashedSessionId = "d8fa4b2326f092919dc983bd895cabe6c10144f8359ec9d2787113908fcd0c7e";
     String groupName = "group";

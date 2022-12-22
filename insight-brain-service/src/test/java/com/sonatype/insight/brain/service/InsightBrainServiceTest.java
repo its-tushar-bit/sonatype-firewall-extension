@@ -115,13 +115,7 @@ public class InsightBrainServiceTest
   @Test
   @ManualServerInit
   public void testCreateSampleData_Enabled() throws Exception {
-    initServer(new Configurator()
-    {
-      @Override
-      public void configure(final InsightConfig config) {
-        config.setCreateSampleData(true);
-      }
-    });
+    initServer(config -> config.setCreateSampleData(true));
 
     Organization sampleOrg = new OrganizationDAO().getByName(SampleDataCreator.SAMPLE_ORGANIZATION_NAME);
     tempEntity.register(sampleOrg);

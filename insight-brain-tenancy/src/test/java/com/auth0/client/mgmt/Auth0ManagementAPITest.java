@@ -49,21 +49,21 @@ public class Auth0ManagementAPITest
   }
 
   @Test
-  public void testCreate_validateTenantSubdomain_Empty() throws Exception {
+  public void testCreate_validateTenantSubdomain_Empty() {
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> auth0ManagementAPI.createTenant("", "blah", "http://tenant1.com/logo.gif"))
         .withMessage("tenant name cannot be blank or invalid characters <,>");
   }
 
   @Test
-  public void testCreate_validateTenantSubdomain_InvalidCharacters() throws Exception {
+  public void testCreate_validateTenantSubdomain_InvalidCharacters() {
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> auth0ManagementAPI.createTenant("<sub-domain>", "blah", "http://tenant1.com/logo.gif"))
         .withMessage("tenant name cannot be blank or invalid characters <,>");
   }
 
   @Test
-  public void testCreate_validateDescription() throws Exception {
+  public void testCreate_validateDescription() {
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> auth0ManagementAPI.createTenant("tenant1", StringUtils.repeat("a", 141),
             "http://tenant1.com/logo.gif"))
@@ -71,7 +71,7 @@ public class Auth0ManagementAPITest
   }
 
   @Test
-  public void testCreate_validateLogoUrl() throws Exception {
+  public void testCreate_validateLogoUrl() {
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> auth0ManagementAPI.createTenant("tenant1", "blah", "blah"))
         .withMessage("tenant logo url must be a valid url");
@@ -130,7 +130,7 @@ public class Auth0ManagementAPITest
   }
 
   @Test
-  public void testGetSamlMetaData_NoAuth0Content() throws Exception {
+  public void testGetSamlMetaData_NoAuth0Content() {
     doReturn(null).when(auth0ManagementAPI)
         .downloadSamlMetadata("https://sonatype.auth0.com/samlp/metadata/abcdefg");
     File samlMetaDataFile = auth0ManagementAPI.getSamlMetaData("abcdefg");

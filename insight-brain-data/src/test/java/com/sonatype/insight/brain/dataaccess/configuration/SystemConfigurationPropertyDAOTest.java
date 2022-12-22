@@ -31,7 +31,7 @@ public class SystemConfigurationPropertyDAOTest
   }
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     SystemConfigurationProperty property = new SystemConfigurationProperty(DUMMY_PROPERTY_NAME, "TEST-VALUE");
     dao.insert(property);
 
@@ -49,23 +49,20 @@ public class SystemConfigurationPropertyDAOTest
 
     property = dao.getByName(DUMMY_PROPERTY_NAME);
     assertThat(property).isNull();
-    assertThatThrownBy(() -> {
-      dao.getByNameNotNull(DUMMY_PROPERTY_NAME);
-    }).isInstanceOf(NotFoundException.class).hasMessageContaining(DUMMY_PROPERTY_NAME);
+    assertThatThrownBy(() -> dao.getByNameNotNull(DUMMY_PROPERTY_NAME)).isInstanceOf(NotFoundException.class)
+        .hasMessageContaining(DUMMY_PROPERTY_NAME);
   }
 
   @Test
   public void testUpdateNonExistent() {
-    assertThatThrownBy(() -> {
-      dao.update(new SystemConfigurationProperty("FOO", "value"));
-    }).isInstanceOf(NotFoundException.class).hasMessage("A system configuration property 'FOO' does not exist.");
+    assertThatThrownBy(() -> dao.update(new SystemConfigurationProperty("FOO", "value"))).isInstanceOf(
+        NotFoundException.class).hasMessage("A system configuration property 'FOO' does not exist.");
   }
 
   @Test
   public void getGetByNameNotNullThrowsExceptionIfNotFound() {
-    assertThatThrownBy(() -> {
-      dao.getByNameNotNull("FOO");
-    }).isInstanceOf(NotFoundException.class).hasMessage("A system configuration property 'FOO' does not exist.");
+    assertThatThrownBy(() -> dao.getByNameNotNull("FOO")).isInstanceOf(NotFoundException.class)
+        .hasMessage("A system configuration property 'FOO' does not exist.");
   }
 
   @Test

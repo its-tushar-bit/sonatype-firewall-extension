@@ -53,12 +53,12 @@ public class PolicyDAOTest
   private PolicyDAO policyDAO;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     policyDAO = new PolicyDAO();
   }
 
   @Test
-  public void testUpdate_PolicyDoesNotExist() throws Exception {
+  public void testUpdate_PolicyDoesNotExist() {
     // Create a policy, but don't insert it
     Policy policy = new Policy();
     policy.setName("test policy");
@@ -67,33 +67,29 @@ public class PolicyDAOTest
     policy.setId("yeti");
 
     // Update the policy
-    assertThatThrownBy(() -> {
-      policyDAO.update(policy);
-    }).isInstanceOf(NotFoundException.class).hasMessage("Cannot find a policy with ID yeti.");
+    assertThatThrownBy(() -> policyDAO.update(policy)).isInstanceOf(NotFoundException.class)
+        .hasMessage("Cannot find a policy with ID yeti.");
   }
 
   @Test
-  public void testInsert_NameNotUnique() throws Exception {
+  public void testInsert_NameNotUnique() {
     // Add a policy
     String policyName = "Test Policy";
     tempEntity.newPolicy(application.getId(), policyName);
 
     // Add another policy with the same name
-    assertThatThrownBy(() -> {
-      tempEntity.newPolicy(application.getId(), policyName);
-    }
-    ).isInstanceOf(InvalidPolicyException.class)
+    assertThatThrownBy(() -> tempEntity.newPolicy(application.getId(), policyName))
+        .isInstanceOf(InvalidPolicyException.class)
         .hasMessage("A policy with name '" + policyName + "' already exists");
 
     // Add another policy with a case-/whitespace-equivalent name
-    assertThatThrownBy(() -> {
-      tempEntity.newPolicy(application.getId(), "testpolicy");
-    }).isInstanceOf(InvalidPolicyException.class)
+    assertThatThrownBy(() -> tempEntity.newPolicy(application.getId(), "testpolicy"))
+        .isInstanceOf(InvalidPolicyException.class)
         .hasMessage("A policy with name '" + policyName + "' already exists");
   }
 
   @Test
-  public void testInsert_NameClashWithChildOwnerPolicy() throws Exception {
+  public void testInsert_NameClashWithChildOwnerPolicy() {
     // Add a policy at app level
     String policyName = "Test Policy App";
     tempEntity.newPolicy(application.getId(), policyName);
@@ -112,7 +108,7 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testInsert_NameClashWithParentOrgPolicy() throws Exception {
+  public void testInsert_NameClashWithParentOrgPolicy() {
     // Add a policy at parent org level
     String policyName = "Test Policy";
     tempEntity.newPolicy(organization.getParentOrganizationId(), policyName);
@@ -128,24 +124,24 @@ public class PolicyDAOTest
 
   private void assertInsertPolicyWithDuplicateName(String ownerId, String policyName, Owner expectedOwner) {
     // Add a policy with a case-/whitespace-equivalent name
-    assertThatThrownBy(() -> {
-      tempEntity.newPolicy(ownerId, policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
-    }).isInstanceOf(InvalidPolicyException.class).hasMessage("A policy with the same name already exists for "
-        + expectedOwner.getType() + " '" + expectedOwner.getName() + "'");
+    assertThatThrownBy(
+        () -> tempEntity.newPolicy(ownerId, policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH)))
+        .isInstanceOf(InvalidPolicyException.class)
+        .hasMessage("A policy with the same name already exists for " + expectedOwner.getType() + " '" +
+            expectedOwner.getName() + "'");
   }
 
   private void assertUpdatePolicyWithDuplicateName(Owner owner, String policyName, Owner expectedOwner) {
     Policy policy = tempEntity.newPolicy(owner);
     // Update the policy with a case-/whitespace-equivalent name
     policy.setName(policyName.replaceAll("\\s", "").toLowerCase(Locale.ENGLISH));
-    assertThatThrownBy(() -> {
-      policyDAO.update(policy);
-    }).isInstanceOf(InvalidPolicyException.class).hasMessage("A policy with the same name already exists for "
-        + expectedOwner.getType() + " '" + expectedOwner.getName() + "'");
+    assertThatThrownBy(() -> policyDAO.update(policy)).isInstanceOf(InvalidPolicyException.class)
+        .hasMessage("A policy with the same name already exists for " + expectedOwner.getType() + " '" +
+            expectedOwner.getName() + "'");
   }
 
   @Test
-  public void testUpdate_NameNotUnique() throws Exception {
+  public void testUpdate_NameNotUnique() {
     // Add two policies
     String policyName1 = "Test Policy 1";
     Policy policy1 = tempEntity.newPolicy(application.getId(), policyName1);
@@ -157,21 +153,17 @@ public class PolicyDAOTest
 
     // Update a policy with a duplicate name
     policy1.setName(policyName2);
-    assertThatThrownBy(() -> {
-      policyDAO.update(policy1);
-    }).isInstanceOf(InvalidPolicyException.class)
+    assertThatThrownBy(() -> policyDAO.update(policy1)).isInstanceOf(InvalidPolicyException.class)
         .hasMessage("A policy with name '" + policyName2 + "' already exists");
 
     // Update a policy with a case-/whitespace-equivalent name
     policy1.setName(policyName2.replace("\\s", "").toLowerCase(Locale.ENGLISH));
-    assertThatThrownBy(() -> {
-      policyDAO.update(policy1);
-    }).isInstanceOf(InvalidPolicyException.class)
+    assertThatThrownBy(() -> policyDAO.update(policy1)).isInstanceOf(InvalidPolicyException.class)
         .hasMessage("A policy with name '" + policyName2 + "' already exists");
   }
 
   @Test
-  public void testUpdate_NameClashWithParentOrgPolicy() throws Exception {
+  public void testUpdate_NameClashWithParentOrgPolicy() {
     // Add a policy at parent org level
     String policyName = "Test Policy";
     tempEntity.newPolicy(organization.getParentOrganizationId(), policyName);
@@ -186,7 +178,7 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testUpdate_NameClashWithChildOwnerPolicy() throws Exception {
+  public void testUpdate_NameClashWithChildOwnerPolicy() {
     // Add a policy at app level
     String policyName = "Test Policy App";
     tempEntity.newPolicy(application.getId(), policyName);
@@ -205,7 +197,7 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testInsert_GeneratesConstraintIds() throws Exception {
+  public void testInsert_GeneratesConstraintIds() {
     Policy policy = new Policy();
     policy.setName("Test Policy");
     policy.setOwnerId(application.getId());
@@ -230,7 +222,7 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testUpdate_GeneratesConstraintIds() throws Exception {
+  public void testUpdate_GeneratesConstraintIds() {
     // Add a policy
     Policy policy = tempEntity.newPolicy(application);
 
@@ -255,7 +247,7 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Add
     Policy policy = tempEntity.newPolicy(application.getId());
 
@@ -286,27 +278,24 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testInsert_NullName() throws Exception {
+  public void testInsert_NullName() {
     String name = null;
-    assertThatThrownBy(() -> {
-      tempEntity.newPolicy(application.getId(), name);
-    }).isInstanceOf(InvalidPolicyException.class).hasMessage("The policy name is required.");
+    assertThatThrownBy(() -> tempEntity.newPolicy(application.getId(), name)).isInstanceOf(InvalidPolicyException.class)
+        .hasMessage("The policy name is required.");
   }
 
   @Test
-  public void testUpdate_NullName() throws Exception {
+  public void testUpdate_NullName() {
     // Add a policy
     Policy policy = tempEntity.newPolicy(application.getId());
 
     // Update the policy
     policy.setName(null);
-    assertThatThrownBy(() -> {
-      policyDAO.update(policy);
-    }).isInstanceOf(InvalidPolicyException.class);
+    assertThatThrownBy(() -> policyDAO.update(policy)).isInstanceOf(InvalidPolicyException.class);
   }
 
   @Test
-  public void testDeleteByOwnerId() throws Exception {
+  public void testDeleteByOwnerId() {
     tempEntity.newPolicy(application.getId());
     assertThat(policyDAO.getByOwnerId(application.getId())).hasSize(1);
 
@@ -421,7 +410,7 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testDelete_CascadesToPolicyWaivers() throws Exception {
+  public void testDelete_CascadesToPolicyWaivers() {
     Policy policy = tempEntity.newPolicy(application.getId());
 
     tempEntity.newWaiver(policy.getId(), "ownerId");
@@ -435,7 +424,7 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testDelete_CascadesToPolicyTags() throws Exception {
+  public void testDelete_CascadesToPolicyTags() {
     Policy policy = tempEntity.newPolicy(application.getId());
 
     Tag tag = tempEntity.newTag(organization.getId());
@@ -512,7 +501,7 @@ public class PolicyDAOTest
 
     Set<String> largeIdList = new HashSet<>();
     for (int i = 0; i < AbstractOperationalSqlDAO.POSTGRES_IN_OPERATOR_THRESHOLD; i++) {
-      largeIdList.add(new Integer(i).toString());
+      largeIdList.add(Integer.toString(i));
     }
     largeIdList.add(application.getId());
 
@@ -521,7 +510,7 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testUpdate_MovePolicyUpInHierarchy() throws Exception {
+  public void testUpdate_MovePolicyUpInHierarchy() {
     Policy policy = tempEntity.newPolicy(application);
 
     // Should not complain about name clashes
@@ -530,7 +519,7 @@ public class PolicyDAOTest
   }
 
   @Test
-  public void testGetByOwnerIdAndName() throws Exception {
+  public void testGetByOwnerIdAndName() {
     Policy policy1 = tempEntity.newPolicy(application.getId(), "Policy 1");
     Policy policy2 = tempEntity.newPolicy(organization.getId(), "Policy 2");
     tempEntity.newPolicy(organization.getId());

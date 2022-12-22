@@ -80,7 +80,7 @@ public class UserServiceTest
   private ApplicationDAO applicationDao = new ApplicationDAO();
 
   @Test
-  public void testDeleteUserNoLdapRemovesContact() throws Exception {
+  public void testDeleteUserNoLdapRemovesContact() {
     // Create a user
     String clmUserName = "test-user";
     User user = tempEntity.newUser(clmUserName);
@@ -173,7 +173,7 @@ public class UserServiceTest
   }
 
   @Test
-  public void testResetPassword() throws Exception {
+  public void testResetPassword() {
     User user = tempEntity.newUser("testResetPassword");
     user.setPassword("testResetPasswordPassword");
 
@@ -183,7 +183,7 @@ public class UserServiceTest
   }
 
   @Test
-  public void testUpdateUser_InternalUser() throws Exception {
+  public void testUpdateUser_InternalUser() {
     User user = tempEntity.newUser("TestUsername", "TestFirstName", "TestLastName", "TestEmail@example.com");
     user = userDAO.getByIdNotNull(user.getId());
 
@@ -202,7 +202,7 @@ public class UserServiceTest
   }
 
   @Test
-  public void testUpdateUser_InternalUser_CannotChangePassword() throws Exception {
+  public void testUpdateUser_InternalUser_CannotChangePassword() {
     User user = tempEntity.newUser("TestUsername", "TestFirstName", "TestLastName", "TestEmail@example.com");
     user = userDAO.getByIdNotNull(user.getId());
 
@@ -217,7 +217,7 @@ public class UserServiceTest
   }
 
   @Test
-  public void testUpdateUser_InternalUser_CannotChangeUsername() throws Exception {
+  public void testUpdateUser_InternalUser_CannotChangeUsername() {
     User user = tempEntity.newUser("TestUsername", "TestFirstName", "TestLastName", "TestEmail@example.com");
     user = userDAO.getByIdNotNull(user.getId());
 
@@ -265,7 +265,7 @@ public class UserServiceTest
   }
 
   @Test
-  public void testFindIqUsers() throws Exception {
+  public void testFindIqUsers() {
     FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*",
         false /* groupsEnabled */);
     assertMember(findMembersDTO, null, MemberType.USER, User.ADMIN_USERNAME, "Admin BuiltIn", "admin@localhost",
@@ -335,7 +335,7 @@ public class UserServiceTest
   }
 
   @Test
-  public void testNoLdapConnection() throws Exception {
+  public void testNoLdapConnection() {
     LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
     FindMembersDTO findMembersDTO = userService.findMembersForRoles(OwnerType.GLOBAL, null, User.ADMIN_USERNAME + "*",
         false /* groupsEnabled */);

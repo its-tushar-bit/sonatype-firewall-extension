@@ -41,7 +41,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     ThirdPartyFile scannedFile = tempEntity.newThirdPartyFile();
 

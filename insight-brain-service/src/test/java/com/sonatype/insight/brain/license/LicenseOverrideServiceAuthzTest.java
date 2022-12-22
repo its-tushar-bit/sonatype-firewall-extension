@@ -223,7 +223,7 @@ public class LicenseOverrideServiceAuthzTest
     testGetAppliedLicenseOverrides_Authorized(owner, owner.getId());
   }
 
-  private void testGetAppliedLicenseOverrides_Authorized(final Owner owner, final String ownerId) throws Exception {
+  private void testGetAppliedLicenseOverrides_Authorized(final Owner owner, final String ownerId) {
     grantReadPermission(owner.getId());
     licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
   }
@@ -252,7 +252,7 @@ public class LicenseOverrideServiceAuthzTest
     testGetAppliedLicenseOverrides_Unauthorized(owner, owner.getId());
   }
 
-  private void testGetAppliedLicenseOverrides_Unauthorized(final Owner owner, final String ownerId) throws Exception {
+  private void testGetAppliedLicenseOverrides_Unauthorized(final Owner owner, final String ownerId) {
     login();
     licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
   }
@@ -281,9 +281,7 @@ public class LicenseOverrideServiceAuthzTest
     testGetAppliedLicenseOverrides_Unauthenticated(owner, owner.getId());
   }
 
-  private void testGetAppliedLicenseOverrides_Unauthenticated(final Owner owner, final String ownerId)
-      throws Exception
-  {
+  private void testGetAppliedLicenseOverrides_Unauthenticated(final Owner owner, final String ownerId) {
     licenseOverrideService.getAppliedLicenseOverrides(owner.getType(), ownerId, COMPONENT_IDENTIFIER);
   }
 

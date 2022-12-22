@@ -37,20 +37,22 @@ public class ReportClientTest
 
   @Test
   public void testScanIdNull() {
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      new ReportClient(getCLMServer().getClientConfiguration(), applicationPublicId, null /* scanId */);
-    }).withMessage("Cannot create a ReportClient without a scanId");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(
+            () -> new ReportClient(getCLMServer().getClientConfiguration(), applicationPublicId, null /* scanId */))
+        .withMessage("Cannot create a ReportClient without a scanId");
   }
 
   @Test
   public void testScanIdEmpty() {
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      new ReportClient(getCLMServer().getClientConfiguration(), applicationPublicId, " " /* scanId */);
-    }).withMessage("Cannot create a ReportClient without a scanId");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(
+            () -> new ReportClient(getCLMServer().getClientConfiguration(), applicationPublicId, " " /* scanId */))
+        .withMessage("Cannot create a ReportClient without a scanId");
   }
 
   @Test
-  public void testLinkToReport() throws Exception {
+  public void testLinkToReport() {
     String appId = "app id";
     String scanId = "scan id";
     ReportClient reportClient = new ReportClient(getCLMServer().getClientConfiguration(), appId, scanId);
@@ -95,8 +97,7 @@ public class ReportClientTest
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(null);
     ReportClient client = new ReportClient(config, applicationPublicId, scanId);
-    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
-      client.downloadBundle(retrievedFile);
-    }).withMessage(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> client.downloadBundle(retrievedFile))
+        .withMessage(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
   }
 }

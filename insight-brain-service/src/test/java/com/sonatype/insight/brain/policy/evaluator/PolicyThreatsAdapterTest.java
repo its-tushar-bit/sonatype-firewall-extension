@@ -269,7 +269,7 @@ public class PolicyThreatsAdapterTest
       assertPolicyThreatsComponent(component, violation);
       return;
     }
-    fail("Unable to find matching violation for policy threats component " + component.toString() + ".");
+    fail("Unable to find matching violation for policy threats component " + component + ".");
   }
 
   private PolicyViolation getLargestThreatViolation(String hash, List<PolicyViolation> violations) {

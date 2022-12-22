@@ -30,7 +30,7 @@ public class TestTaskScheduler
 
   private static String getUniqueSchedulerName() {
     // ensure we don't reuse/hijack a pre-existing scheduler from another test out of the SchedulerRepository
-    return TestTaskScheduler.class.getSimpleName() + "-" + UUID.randomUUID().toString();
+    return TestTaskScheduler.class.getSimpleName() + "-" + UUID.randomUUID();
   }
 
   @Override

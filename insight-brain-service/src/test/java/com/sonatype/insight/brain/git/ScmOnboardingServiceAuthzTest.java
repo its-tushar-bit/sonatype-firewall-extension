@@ -35,7 +35,7 @@ public class ScmOnboardingServiceAuthzTest
   public ScmOnboardingService scmOnboardingService;
 
   @Test
-  public void testLoadRepositories_Authorized() throws Exception {
+  public void testLoadRepositories_Authorized() {
     grantAddApplicationPermission(org.getId());
 
     assertThatThrownBy(() -> scmOnboardingService.loadRepositories(org.getId(), GITHUB_COM))
@@ -60,37 +60,37 @@ public class ScmOnboardingServiceAuthzTest
   }
 
   @Test
-  public void testGetDefaultHostUrl_Authorized() throws Exception {
+  public void testGetDefaultHostUrl_Authorized() {
     grantAddApplicationPermission(org.getId());
     scmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetDefaultHostUrl_Unauthorized() throws Exception {
+  public void testGetDefaultHostUrl_Unauthorized() {
     login();
     scmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetDefaultHostUrl_Unauthenticated() throws Exception {
+  public void testGetDefaultHostUrl_Unauthenticated() {
     scmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
   }
 
   @Test
-  public void testImportRepositories_Authorized() throws Exception {
+  public void testImportRepositories_Authorized() {
     grantAddApplicationPermission(org.getId());
     scmOnboardingService
         .importRepositories(org.getId(), new ImportRepositoriesRequest(Collections.emptyList(), 0, 0));
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testImportRepositories_Unauthorized() throws Exception {
+  public void testImportRepositories_Unauthorized() {
     login();
     scmOnboardingService.importRepositories(org.getId(), new ImportRepositoriesRequest());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testImportRepositories_Unauthenticated() throws Exception {
+  public void testImportRepositories_Unauthenticated() {
     scmOnboardingService.importRepositories(org.getId(), new ImportRepositoriesRequest());
   }
 
@@ -112,7 +112,7 @@ public class ScmOnboardingServiceAuthzTest
   }
 
   @Test
-  public void testGetOrgsForOnboarding_Authorized() throws Exception {
+  public void testGetOrgsForOnboarding_Authorized() {
     grantReadPermission(org.getId());
 
     final List<OnboardingOrganization> organizations = scmOnboardingService.getOrgsForOnboarding();
@@ -123,7 +123,7 @@ public class ScmOnboardingServiceAuthzTest
   }
 
   @Test
-  public void testGetOrgsForOnboarding_partiallyAuthorized() throws Exception {
+  public void testGetOrgsForOnboarding_partiallyAuthorized() {
     // given a second org
     Organization org2 = tempEntity.newOrganization("org2");
 
@@ -150,7 +150,7 @@ public class ScmOnboardingServiceAuthzTest
   }
 
   @Test
-  public void testGetOrgsForOnboarding_Unauthorized() throws Exception {
+  public void testGetOrgsForOnboarding_Unauthorized() {
     final List<OnboardingOrganization> organizations = scmOnboardingService.getOrgsForOnboarding();
     assertThat(organizations).isEmpty();
   }

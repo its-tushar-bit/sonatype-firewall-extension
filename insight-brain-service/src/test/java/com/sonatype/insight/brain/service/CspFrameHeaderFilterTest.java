@@ -40,7 +40,7 @@ public class CspFrameHeaderFilterTest
   private CspFrameHeaderFilter serverHeaderFilter;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     openMocks(this);
     serverHeaderFilter = new CspFrameHeaderFilter(configuration);
   }

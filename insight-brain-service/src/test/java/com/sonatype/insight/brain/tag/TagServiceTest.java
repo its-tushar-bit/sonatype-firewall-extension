@@ -304,7 +304,7 @@ public class TagServiceTest
   }
 
   @Test
-  public void testUpdatePolicyTags_PolicyNotBelongingToOrg() throws Exception {
+  public void testUpdatePolicyTags_PolicyNotBelongingToOrg() {
     Organization org1 = tempEntity.newOrganization();
     Organization org2 = tempEntity.newOrganization();
     Policy policy = tempEntity.newPolicy(org2);
@@ -316,7 +316,7 @@ public class TagServiceTest
   }
 
   @Test
-  public void testUpdatePolicyTags_AppLevelPolicy() throws Exception {
+  public void testUpdatePolicyTags_AppLevelPolicy() {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app);
 
@@ -331,7 +331,7 @@ public class TagServiceTest
    * the wrong Organization the operation will fail.
    */
   @Test
-  public void testDeleteTagFromWrongOrg() throws Exception {
+  public void testDeleteTagFromWrongOrg() {
     Organization organization1 = tempEntity.newOrganization();
     Organization organization2 = tempEntity.newOrganization();
     Tag tag = tempEntity.newTag(organization1.getId(), "Tag");
@@ -439,7 +439,7 @@ public class TagServiceTest
   }
 
   @Test
-  public void testUpdateTag_DifferentOwnerId() throws Exception {
+  public void testUpdateTag_DifferentOwnerId() {
     Organization ownerOrg = tempEntity.newOrganization();
     Tag tag = tempEntity.newTag(ownerOrg.getId());
 

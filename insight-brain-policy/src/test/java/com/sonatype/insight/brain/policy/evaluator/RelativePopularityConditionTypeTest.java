@@ -230,26 +230,26 @@ public class RelativePopularityConditionTypeTest
   @Test
   public void testValidateCondition_ValueNotANumber() {
     Condition condition = new Condition(RelativePopularityConditionType.ID, "=", "abc");
-    assertThatThrownBy(() -> {
-      new RelativePopularityConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid relative popularity: abc");
+    assertThatThrownBy(
+        () -> new RelativePopularityConditionType().validateCondition(null, condition, null /* applicationId */))
+        .isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("Invalid relative popularity: abc");
   }
 
   @Test
   public void testValidateCondition_ValueLessThanZero() {
     Condition condition = new Condition(RelativePopularityConditionType.ID, "=", "-1");
-    assertThatThrownBy(() -> {
-      new RelativePopularityConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class)
+    assertThatThrownBy(
+        () -> new RelativePopularityConditionType().validateCondition(null, condition, null /* applicationId */))
+        .isInstanceOf(InvalidConditionException.class)
         .hasMessageEndingWith("Relative popularity must be between 0 and 100");
   }
 
   @Test
   public void testValidateCondition_ValueGreaterThan100() {
     Condition condition = new Condition(RelativePopularityConditionType.ID, "=", "101");
-    assertThatThrownBy(() -> {
-      new RelativePopularityConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class)
+    assertThatThrownBy(() -> new RelativePopularityConditionType().validateCondition(null, condition,
+        null /* applicationId */)).isInstanceOf(InvalidConditionException.class)
         .hasMessageEndingWith("Relative popularity must be between 0 and 100");
   }
 }

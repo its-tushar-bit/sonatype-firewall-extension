@@ -141,7 +141,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     app = tempEntity.newApplicationWithParent();
 
     MailConfiguration mailConfiguration = new MailConfiguration();

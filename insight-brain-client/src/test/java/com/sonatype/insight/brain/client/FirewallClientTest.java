@@ -435,7 +435,7 @@ public class FirewallClientTest
   }
 
   @Test
-  public void testGetQuarantinedComponentReport_NoRepositoryError() throws Exception {
+  public void testGetQuarantinedComponentReport_NoRepositoryError() {
     FirewallClient client =
         new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID,
             FirewallClient.NEXUS_RESOURCE_PATH);
@@ -447,7 +447,7 @@ public class FirewallClientTest
   }
 
   @Test
-  public void testGetQuarantinedComponentReport_NoRepositoryComponentError() throws Exception {
+  public void testGetQuarantinedComponentReport_NoRepositoryComponentError() {
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
     String pathname = "path";
 

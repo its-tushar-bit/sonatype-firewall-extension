@@ -31,7 +31,7 @@ public class LastPolicyEvaluationDAOTest
   final PolicyEvaluationDAO peDao = new PolicyEvaluationDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
 
     final String stageTypeId = ReleaseStageType.ID;
     final String scanId = "LastPolicyEvaluationDAOTest";
@@ -46,9 +46,7 @@ public class LastPolicyEvaluationDAOTest
     assertThat(policyEvaluation.getStageTypeId()).isEqualTo(stageTypeId);
 
     // Update is not allowed
-    assertThatThrownBy(() -> {
-      dao.update(policyEvaluation);
-    }).isInstanceOf(UnsupportedOperationException.class)
+    assertThatThrownBy(() -> dao.update(policyEvaluation)).isInstanceOf(UnsupportedOperationException.class)
         .hasMessage("The LastPolicyEvaluation table does not support update operations");
 
     // Delete

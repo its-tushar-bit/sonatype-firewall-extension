@@ -274,7 +274,7 @@ public class ThirdPartyDataServiceTest
   }
 
   @Test
-  public void testProcessThirdPartyData_withContainerContent_getSecurityVulnerabilitiesForScanId() throws Exception {
+  public void testProcessThirdPartyData_withContainerContent_getSecurityVulnerabilitiesForScanId() {
     String scanId = tempEntity.uuid();
     ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile();
     tempEntity.newThirdPartyScan(tempEntity.uuid(), scanId, thirdPartyFile1);

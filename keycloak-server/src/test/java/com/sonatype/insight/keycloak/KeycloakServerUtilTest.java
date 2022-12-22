@@ -6,7 +6,7 @@
 package com.sonatype.insight.keycloak;
 
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -173,9 +173,9 @@ public class KeycloakServerUtilTest
     userAttributes.put("key-01", asList("key-01-val01", "key-01-val02"));
 
     createUser(username, password, email, userAttributes);
-    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
-      createUser(username, password, email, userAttributes);
-    }).withMessage("User creation failed with status code: 409" + " for username:" + username);
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> createUser(username, password, email, userAttributes))
+        .withMessage("User creation failed with status code: 409" + " for username:" + username);
   }
 
   @Test
@@ -217,9 +217,9 @@ public class KeycloakServerUtilTest
 
     keycloak.createUser(firstName, lastName, username, email, password, new HashMap<>());
 
-    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
-      keycloak.createUser(firstName, lastName, username, email, password, new HashMap<>());
-    }).withMessage("User creation failed with status code: 409 for username:" + username);
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> keycloak.createUser(firstName, lastName, username, email, password, new HashMap<>()))
+        .withMessage("User creation failed with status code: 409 for username:" + username);
   }
 
   @Test
@@ -240,21 +240,21 @@ public class KeycloakServerUtilTest
     credential.setType(CredentialRepresentation.PASSWORD);
     credential.setValue(password);
     credential.setTemporary(false);
-    user.setCredentials(asList(credential));
+    user.setCredentials(Collections.singletonList(credential));
 
     Map<String, List<String>> userAttributes = new HashMap<>();
-    userAttributes.put("foo", asList("bar"));
+    userAttributes.put("foo", Collections.singletonList("bar"));
     user.setAttributes(userAttributes);
 
     keycloak.createUser(user);
     user = stream(keycloak.getUsers()).filter(u -> u.getUsername().equals(username)).findFirst().get();
-    assertThat(user.getAttributes().get("foo")).isEqualTo(Arrays.asList("bar"));
+    assertThat(user.getAttributes().get("foo")).isEqualTo(Collections.singletonList("bar"));
 
     user.getAttributes().get("foo").set(0, "baz");
     keycloak.updateUser(user);
 
     user = stream(keycloak.getUsers()).filter(u -> u.getUsername().equals(username)).findFirst().get();
-    assertThat(user.getAttributes().get("foo")).isEqualTo(Arrays.asList("baz"));
+    assertThat(user.getAttributes().get("foo")).isEqualTo(Collections.singletonList("baz"));
   }
 
   @Test
@@ -329,7 +329,7 @@ public class KeycloakServerUtilTest
     credential.setType(CredentialRepresentation.PASSWORD);
     credential.setValue(password);
     credential.setTemporary(false);
-    user.setCredentials(asList(credential));
+    user.setCredentials(Collections.singletonList(credential));
 
     user.setAttributes(userAttributes);
 

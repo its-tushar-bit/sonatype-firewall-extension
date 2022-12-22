@@ -68,7 +68,7 @@ public class SystemNoticeTest
 
   @Test
   @Ignore
-  public void systemNoticeTest() throws Exception {
+  public void systemNoticeTest() {
     disabledSystemNotice_NotShownOnLogin();
     enabledSystemNotice_ShownOnLogin();
 

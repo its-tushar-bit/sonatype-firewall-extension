@@ -101,8 +101,8 @@ public class HygieneRatingConditionTypeTest
   @Test
   public void testValidateCondition_InvalidValue() {
     Condition condition = new Condition(HygieneRatingConditionType.ID, "is", "abc");
-    assertThatThrownBy(() -> {
-      new HygieneRatingConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
+    assertThatThrownBy(
+        () -> new HygieneRatingConditionType().validateCondition(null, condition, null /* applicationId */))
+        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
   }
 }

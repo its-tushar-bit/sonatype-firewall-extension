@@ -24,7 +24,7 @@ public class ThirdPartyCoordinateLicenseDAOTest
   private final ThirdPartyCoordinateLicenseDAO dao = new ThirdPartyCoordinateLicenseDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     ThirdPartyFileCoordinate coordinateFile = tempEntity.newThirdPartyFileCoordinate();
 

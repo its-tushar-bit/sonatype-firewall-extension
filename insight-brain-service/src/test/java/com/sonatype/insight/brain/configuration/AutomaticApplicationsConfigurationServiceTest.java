@@ -62,7 +62,7 @@ public class AutomaticApplicationsConfigurationServiceTest
   }
 
   @Test
-  public void testUpdate_TelemetryEventsAreSent() throws Exception {
+  public void testUpdate_TelemetryEventsAreSent() {
     final InvocationOnMock[] invocation = new InvocationOnMock[1];
     doAnswer(x -> invocation[0] = x).when(telemetrySenderMock).send(any(TelemetryData.class));
     Organization org1 = tempEntity.newOrganization();

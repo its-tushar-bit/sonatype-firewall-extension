@@ -340,7 +340,7 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testPopulatesRepositories_scmAuthorizationFailure() throws Exception {
+  public void testPopulatesRepositories_scmAuthorizationFailure() {
     // given an SCM with authentication failure
     setupSourceControl();
     gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
@@ -360,7 +360,7 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testGitHost_afterAuthFailure() throws Exception {
+  public void testGitHost_afterAuthFailure() {
     // given an org with no apps
     setupOrgSourceControl();
 
@@ -403,7 +403,7 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testPopulatesRepositories_scmUnableToConnect() throws Exception {
+  public void testPopulatesRepositories_scmUnableToConnect() {
     // given an endpoint which does not respond
     setupSourceControl();
     gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
@@ -499,7 +499,7 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testPopulatesRepositories_noAvailableRepositories() throws Exception {
+  public void testPopulatesRepositories_noAvailableRepositories() {
     // given an SCM without git repos
     mockRepoForPage(1, EMPTY_JSON_ARRAY);
     setupSourceControl();
@@ -524,7 +524,7 @@ public class ScmOnboardingTest
     String repoUrl = "/org/repo.git";
     String cloneUrl = gitService.baseUrl() + repoUrl;
     String json = mapper.writeValueAsString(
-        Arrays.asList(of(
+        singletonList(of(
             "name", "test",
             "description", "",
             "private", false,
@@ -1172,7 +1172,7 @@ public class ScmOnboardingTest
     String repoUrl = "/org/repo.git";
     String cloneUrl = secondaryGitService.baseUrl() + repoUrl;
     String json = mapper.writeValueAsString(
-        Arrays.asList(of(
+        singletonList(of(
             "name", "test",
             "description", "",
             "private", false,
@@ -1440,7 +1440,7 @@ public class ScmOnboardingTest
     String repoUrl = "/org/repo.git";
     String cloneUrl = gitService.baseUrl() + repoUrl;
     String json = mapper.writeValueAsString(
-        Arrays.asList(of(
+        singletonList(of(
             "name", "test",
             "description", "",
             "private", false,
@@ -1638,7 +1638,7 @@ public class ScmOnboardingTest
   }
 
   @Test
-  public void testHostModal_scmAuthenticationFailure_rootToken() throws Exception {
+  public void testHostModal_scmAuthenticationFailure_rootToken() {
     // given an SCM with authentication failure
     setupSourceControl();
     gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))

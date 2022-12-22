@@ -33,7 +33,7 @@ public class HdsPingServiceTest
   }
 
   @Test
-  public void testPingHds_alive() throws Exception {
+  public void testPingHds_alive() {
     when(pingHdsClientMock.get(String.class, "ping")).thenReturn("alive");
 
     PingResponseDTO status = hdsPingService.pingHds();
@@ -44,7 +44,7 @@ public class HdsPingServiceTest
   }
 
   @Test
-  public void testPingHds_Unreachable() throws Exception {
+  public void testPingHds_Unreachable() {
     when(pingHdsClientMock.get(String.class, "ping")).thenThrow(new BadGatewayException("Unreachable"));
 
     PingResponseDTO status = hdsPingService.pingHds();

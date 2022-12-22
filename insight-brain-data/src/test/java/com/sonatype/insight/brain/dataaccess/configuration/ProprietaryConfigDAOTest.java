@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.configuration;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,7 +25,7 @@ public class ProprietaryConfigDAOTest
   private ProprietaryConfigDAO dao = new ProprietaryConfigDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     List<String> packages = Collections.singletonList("foo");
     List<String> regexes = Collections.singletonList("bar");
@@ -59,9 +58,7 @@ public class ProprietaryConfigDAOTest
     tempEntity.newProprietaryConfig(application.getId());
 
     ProprietaryConfig config1 = new ProprietaryConfig(application.getId(), null /* packages */, null /* regexes */);
-    assertThatThrownBy(() -> {
-      dao.insert(config1);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> dao.insert(config1)).isInstanceOf(BadRequestException.class)
         .hasMessage("A proprietary config already exists for owner id " + application.getId());
   }
 
@@ -71,9 +68,7 @@ public class ProprietaryConfigDAOTest
     ProprietaryConfig config1 = tempEntity.newProprietaryConfig(organization.getId());
 
     config1.setOwnerId(application.getId());
-    assertThatThrownBy(() -> {
-      dao.update(config1);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> dao.update(config1)).isInstanceOf(BadRequestException.class)
         .hasMessage("A proprietary config already exists for owner id " + application.getId());
   }
 
@@ -90,18 +85,16 @@ public class ProprietaryConfigDAOTest
   @Test
   public void testInsert_InvalidRegex() {
     for (String regex : ProprietaryConfigDAO.REGEX_BLACK_LIST) {
-      List<String> regexes = Arrays.asList(regex);
+      List<String> regexes = Collections.singletonList(regex);
       ProprietaryConfig config = new ProprietaryConfig(application.getId(), null /* packages */, regexes);
-      assertThatThrownBy(() -> {
-        dao.insert(config);
-      }).isInstanceOf(InvalidProprietaryConfigRegexException.class)
+      assertThatThrownBy(() -> dao.insert(config)).isInstanceOf(InvalidProprietaryConfigRegexException.class)
           .hasMessage("This regex is specifically disallowed: " + regex);
     }
   }
 
   @Test(expected = InvalidProprietaryConfigRegexException.class)
   public void testInsert_InvalidRegexStar() {
-    List<String> regexes = Arrays.asList("*");
+    List<String> regexes = Collections.singletonList("*");
     ProprietaryConfig config = new ProprietaryConfig(application.getId(), null /* packages */, regexes);
     dao.insert(config);
   }
@@ -119,11 +112,9 @@ public class ProprietaryConfigDAOTest
     ProprietaryConfig config = tempEntity.newProprietaryConfig(application.getId());
 
     for (String regex : ProprietaryConfigDAO.REGEX_BLACK_LIST) {
-      List<String> regexes = Arrays.asList(regex);
+      List<String> regexes = Collections.singletonList(regex);
       config.setRegexes(regexes);
-      assertThatThrownBy(() -> {
-        dao.update(config);
-      }).isInstanceOf(InvalidProprietaryConfigRegexException.class)
+      assertThatThrownBy(() -> dao.update(config)).isInstanceOf(InvalidProprietaryConfigRegexException.class)
           .hasMessage("This regex is specifically disallowed: " + regex);
     }
   }
@@ -132,7 +123,7 @@ public class ProprietaryConfigDAOTest
   public void testUpdate_InvalidRegexStar() {
     ProprietaryConfig config = tempEntity.newProprietaryConfig(application.getId());
 
-    List<String> regexes = Arrays.asList("*");
+    List<String> regexes = Collections.singletonList("*");
     config.setRegexes(regexes);
     dao.update(config);
   }

@@ -42,11 +42,7 @@ public class ReleaseGraphPerformanceUtils
     Map<ComponentPopularity, List<Long>> data = new HashMap<>();
     for (Map<ComponentPopularity, Long> row : results) {
       for (Entry<ComponentPopularity, Long> entry : row.entrySet()) {
-        List<Long> d = data.get(entry.getKey());
-        if (d == null) {
-          d = new LinkedList<>();
-          data.put(entry.getKey(), d);
-        }
+        List<Long> d = data.computeIfAbsent(entry.getKey(), k -> new LinkedList<>());
         d.add(entry.getValue());
       }
     }
@@ -64,7 +60,7 @@ public class ReleaseGraphPerformanceUtils
       FileUtils.fileWrite(new File(file), sb.toString());
     }
     else {
-      System.out.println(sb.toString());
+      System.out.println(sb);
     }
   }
 

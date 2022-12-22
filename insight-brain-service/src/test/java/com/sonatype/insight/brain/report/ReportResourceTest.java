@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -874,7 +873,7 @@ public class ReportResourceTest
 
     File temp = tempDir.newFile();
     Files.write(temp.toPath(), response.getBodyBytes());
-    InputStream targetStream = new FileInputStream(temp);
+    InputStream targetStream = Files.newInputStream(temp.toPath());
     JsonNode jsonNode = JsonUtils.parse(targetStream, JsonNode.class);
     assertThat(jsonNode.withArray("aaData").size()).isEqualTo(vulnerabilitiesSize);
   }

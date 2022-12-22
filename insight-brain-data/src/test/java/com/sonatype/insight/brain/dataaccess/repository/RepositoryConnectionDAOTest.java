@@ -23,7 +23,7 @@ public class RepositoryConnectionDAOTest
   private RepositoryConnectionDAO dao = new RepositoryConnectionDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     //Create
     RepositoryConnection connection =
         new RepositoryConnection("appId", "url", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
@@ -90,7 +90,7 @@ public class RepositoryConnectionDAOTest
   }
 
   @Test
-  public void testGetByOwnerIdAndBaseUrl() throws Exception {
+  public void testGetByOwnerIdAndBaseUrl() {
     tempEntity.newRepositoryConnection("owner1", "url1", "u1", "p1".toCharArray());
 
     RepositoryConnection connection = dao.getByOwnerIdAndBaseUrl("owner1", "url1");

@@ -103,8 +103,8 @@ public class MatchStateConditionTypeTest
   @Test
   public void testValidateCondition_ValueNotAStatusId() {
     Condition condition = new Condition(MatchStateConditionType.ID, "is", "abc");
-    assertThatThrownBy(() -> {
-      new MatchStateConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
+    assertThatThrownBy(() -> new MatchStateConditionType().validateCondition(null, condition, null /* applicationId */))
+        .isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("Value not supported: abc");
   }
 }

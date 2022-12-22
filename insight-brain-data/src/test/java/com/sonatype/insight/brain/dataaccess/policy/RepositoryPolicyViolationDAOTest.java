@@ -29,7 +29,7 @@ public class RepositoryPolicyViolationDAOTest
   private RepositoryPolicyViolationDAO dao = new RepositoryPolicyViolationDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
 
     // Create
@@ -90,7 +90,7 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
-  public void testGetActiveByRepositoryIdAndPathname_OrderByThreatLevelDesc_PolicyId() throws Exception {
+  public void testGetActiveByRepositoryIdAndPathname_OrderByThreatLevelDesc_PolicyId() {
     final String pathname = "pathname";
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, pathname, null);
 

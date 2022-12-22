@@ -51,7 +51,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
   private SourceControlSshService sourceControlSshService;
 
   @Before
-  public void setup() throws Exception {
+  public void setup() {
     sourceControlUtils = mock(SourceControlUtils.class);
     gitClientFactory = mock(GitClientFactory.class);
     gitApiFactory = mock(GitApiFactory.class);

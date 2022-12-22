@@ -5,7 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -140,7 +140,7 @@ public class RootOrganizationPolicyEditorTest
     Policy policy = tempEntity.newPolicy(rootOrganization.getId(), "original name", 1);
     Constraint constraint1 = new Constraint(policy.getId() + "1", "First Constraint with One Condition", null);
     constraint1.addCondition(new Condition(AgeInDaysConditionType.ID, "older than", "730"));
-    policy.setConstraints(Arrays.asList(constraint1));
+    policy.setConstraints(Collections.singletonList(constraint1));
 
     policy.setAction(Stage.ID_DEVELOP, Action.ID_WARN);
     policy.setAction(Stage.ID_BUILD, Action.ID_FAIL);

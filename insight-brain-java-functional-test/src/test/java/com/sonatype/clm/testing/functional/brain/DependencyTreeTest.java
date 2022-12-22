@@ -293,9 +293,7 @@ public class DependencyTreeTest
     filterInput.setValue("geronimo");
     treeItems.shouldHaveSize(9);
 
-    treeItems.forEach(item -> {
-      item.shouldHave(attribute("aria-expanded", "true"));
-    });
+    treeItems.forEach(item -> item.shouldHave(attribute("aria-expanded", "true")));
 
     SelenideElement firstCollapsibleTreeItem = treeItems.get(2);
     dependencyTreePage.tree().collapseIconFor(firstCollapsibleTreeItem).click();
@@ -318,9 +316,7 @@ public class DependencyTreeTest
     filterInput.setValue("geronimo");
     treeItems.shouldHaveSize(9);
 
-    treeItems.forEach(item -> {
-      item.shouldHave(attribute("aria-expanded", "true"));
-    });
+    treeItems.forEach(item -> item.shouldHave(attribute("aria-expanded", "true")));
   }
 
   @Test
@@ -328,21 +324,15 @@ public class DependencyTreeTest
     dependencyTreePage.tree().shouldBe(visible);
     ElementsCollection treeItems = dependencyTreePage.tree().collapsibleTreeItems();
 
-    treeItems.forEach(item -> {
-      item.shouldHave(attribute("aria-expanded", "true"));
-    });
+    treeItems.forEach(item -> item.shouldHave(attribute("aria-expanded", "true")));
 
     dependencyTreePage.collapseAllButton().click();
 
-    treeItems.forEach(item -> {
-      item.shouldHave(attribute("aria-expanded", "false"));
-    });
+    treeItems.forEach(item -> item.shouldHave(attribute("aria-expanded", "false")));
 
     dependencyTreePage.expandAllButton().click();
 
-    treeItems.forEach(item -> {
-      item.shouldHave(attribute("aria-expanded", "true"));
-    });
+    treeItems.forEach(item -> item.shouldHave(attribute("aria-expanded", "true")));
   }
 
   @Test
@@ -351,25 +341,19 @@ public class DependencyTreeTest
     SelenideElement filterInput = dependencyTreePage.componentNameFilterInput();
     ElementsCollection treeItems = dependencyTreePage.tree().collapsibleTreeItems();
 
-    treeItems.forEach(item -> {
-      item.shouldHave(attribute("aria-expanded", "true"));
-    });
+    treeItems.forEach(item -> item.shouldHave(attribute("aria-expanded", "true")));
 
     filterInput.setValue("geronimo-security");
     dependencyTreePage.collapseAllButton().click();
     filterInput.setValue("");
 
-    treeItems.forEach(item -> {
-      item.shouldHave(attribute("aria-expanded", "false"));
-    });
+    treeItems.forEach(item -> item.shouldHave(attribute("aria-expanded", "false")));
 
     filterInput.setValue("geronimo-security");
     dependencyTreePage.expandAllButton().click();
     filterInput.setValue("");
 
-    treeItems.forEach(item -> {
-      item.shouldHave(attribute("aria-expanded", "true"));
-    });
+    treeItems.forEach(item -> item.shouldHave(attribute("aria-expanded", "true")));
   }
 
   public void testDependencyTree_EmptyMessage() throws IOException {

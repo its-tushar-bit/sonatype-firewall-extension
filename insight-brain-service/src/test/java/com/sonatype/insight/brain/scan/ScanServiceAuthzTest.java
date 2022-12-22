@@ -47,18 +47,18 @@ public class ScanServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetTicket_Anon() throws Exception {
+  public void testGetTicket_Anon() {
     scanService.getTicket("any-app-id", "any-ticket-id");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetTicket_Unauthorized() throws Exception {
+  public void testGetTicket_Unauthorized() {
     login();
     scanService.getTicket(app.getPublicId(), "any-ticket-id");
   }
 
   @Test
-  public void testGetTicket_Authorized() throws Exception {
+  public void testGetTicket_Authorized() {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
     try {
       scanService.getTicket(app.getPublicId(), "any-ticket-id");

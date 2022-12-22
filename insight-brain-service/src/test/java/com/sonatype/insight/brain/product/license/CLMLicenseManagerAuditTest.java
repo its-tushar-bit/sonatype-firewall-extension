@@ -68,7 +68,7 @@ public class CLMLicenseManagerAuditTest
   }
 
   @Test
-  public void testInstallLicenseIfUnlicensed_ServerError() throws Exception {
+  public void testInstallLicenseIfUnlicensed_ServerError() {
     licenseManager.uninstallLicense();
 
     assertThatExceptionOfType(Exception.class).isThrownBy(

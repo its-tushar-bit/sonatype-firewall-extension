@@ -342,9 +342,9 @@ public class LicenseThreatGroupConditionTypeTest
   @Test
   public void testValidateCondition_InvalidLicenseThreatGroupId() {
     Condition condition = new Condition(LicenseThreatGroupConditionType.ID, "is", "abc");
-    assertThatThrownBy(() -> {
-      new LicenseThreatGroupConditionType().validateCondition(null, condition, app.getId());
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid license threat group id: abc");
+    assertThatThrownBy(() -> new LicenseThreatGroupConditionType().validateCondition(null, condition, app.getId()))
+        .isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("Invalid license threat group id: abc");
   }
 
   @Test

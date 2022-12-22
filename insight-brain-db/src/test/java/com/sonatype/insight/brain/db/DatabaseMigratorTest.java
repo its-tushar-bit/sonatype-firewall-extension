@@ -55,10 +55,9 @@ public class DatabaseMigratorTest
     // removed this table.
     // The version file must be updated to contain the number of the last incremental script applied successfully (in
     // this case, schema_incremental_0006.sql).
-    assertThatThrownBy(() -> {
-      new DatabaseMigrator().migrate(databaseConfig, DataMartDataStore.ID, DatamartProvider.getDatabaseSchema(),
-          dataSource);
-    }).isInstanceOf(ScriptStatementFailedException.class);
+    assertThatThrownBy(
+        () -> new DatabaseMigrator().migrate(databaseConfig, DataMartDataStore.ID, DatamartProvider.getDatabaseSchema(),
+            dataSource)).isInstanceOf(ScriptStatementFailedException.class);
     assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo("6");
   }
 
@@ -77,10 +76,9 @@ public class DatabaseMigratorTest
     // removed this table.
     // The version file must be updated to contain the number of the last incremental script applied successfully (in
     // this case, schema_incremental_0006.sql).
-    assertThatThrownBy(() -> {
-      new DatabaseMigrator().migrate(databaseConfig, DataMartDataStore.ID, DatamartProvider.getDatabaseSchema(),
-          dataSource);
-    }).isInstanceOf(ScriptStatementFailedException.class);
+    assertThatThrownBy(
+        () -> new DatabaseMigrator().migrate(databaseConfig, DataMartDataStore.ID, DatamartProvider.getDatabaseSchema(),
+            dataSource)).isInstanceOf(ScriptStatementFailedException.class);
 
     File backupFile = new File(databaseDir, "backup/dm.zip");
     assertThat(backupFile).isFile();
@@ -101,10 +99,9 @@ public class DatabaseMigratorTest
     // removed this table.
     // The version file must be updated to contain the number of the last incremental script applied successfully (in
     // this case, schema_incremental_0006.sql).
-    assertThatThrownBy(() -> {
-      new DatabaseMigrator().migrate(databaseConfig, DataMartDataStore.ID, DatamartProvider.getDatabaseSchema(),
-          dataSource);
-    }).isInstanceOf(ScriptStatementFailedException.class);
+    assertThatThrownBy(
+        () -> new DatabaseMigrator().migrate(databaseConfig, DataMartDataStore.ID, DatamartProvider.getDatabaseSchema(),
+            dataSource)).isInstanceOf(ScriptStatementFailedException.class);
 
     File backupFile = new File(databaseDir, "backup/dm.zip");
     assertThat(backupFile).isFile();
@@ -177,9 +174,8 @@ public class DatabaseMigratorTest
         new DataSourceFactory().createNewDataSource(databaseConfig, "MissingVersion", "MissingVersion");
     assertThat(DatabaseUtil.schemaVersionTableExists(dataSource, "MissingVersion")).isFalse();
 
-    assertThatThrownBy(() -> {
-      new DatabaseMigrator().migrate(databaseConfig, "MissingVersion", "MissingVersion", dataSource);
-    }).isInstanceOf(IllegalStateException.class).hasMessage(
+    assertThatThrownBy(() -> new DatabaseMigrator().migrate(databaseConfig, "MissingVersion", "MissingVersion",
+        dataSource)).isInstanceOf(IllegalStateException.class).hasMessage(
         "Missing the database schema version either in the database itself or in the database version file " +
             databaseVersionFile + ".");
   }
@@ -194,21 +190,19 @@ public class DatabaseMigratorTest
     DataSource dataSource = new DataSourceFactory().createNewDataSource(databaseConfig, DataMartDataStore.ID,
         DatamartProvider.getDatabaseSchema());
 
-    assertThatThrownBy(() -> {
-      new DatabaseMigrator().migrate(databaseConfig, DataMartDataStore.ID, DatamartProvider.getDatabaseSchema(),
-          dataSource);
-    }).isInstanceOf(IllegalStateException.class).hasMessageContaining("was created by a newer product version");
+    assertThatThrownBy(
+        () -> new DatabaseMigrator().migrate(databaseConfig, DataMartDataStore.ID, DatamartProvider.getDatabaseSchema(),
+            dataSource)).isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("was created by a newer product version");
     assertThat(readDatabaseVersion(databaseVersionFile)).isEqualTo("9999");
   }
 
   @Test
   public void testMigrate_OperationalDataStore_ThrowsExceptionDuringExecute() {
-    assertThatThrownBy(() -> {
-      new DatabaseMigrator().runPostIncrementalMigrator(
-          "/DatabaseMigratorTest/"
-              + "testMigrate_OperationalDataStore_ThrowsExecuteExceptionMessage/schema_incremental_0089.cls",
-          mock(DataSource.class));
-    }).isInstanceOf(RuntimeException.class)
+    assertThatThrownBy(() -> new DatabaseMigrator().runPostIncrementalMigrator(
+        "/DatabaseMigratorTest/"
+            + "testMigrate_OperationalDataStore_ThrowsExecuteExceptionMessage/schema_incremental_0089.cls",
+        mock(DataSource.class))).isInstanceOf(RuntimeException.class)
         .hasMessage("Failed to execute the PostIncrementalMigrator referenced in "
             + "/DatabaseMigratorTest/testMigrate_OperationalDataStore_ThrowsExecuteExceptionMessage/"
             + "schema_incremental_0089.cls.");
@@ -216,10 +210,9 @@ public class DatabaseMigratorTest
 
   @Test
   public void testMigrate_OperationalDataStore_ThrowsExceptionDuringLoad() {
-    assertThatThrownBy(() -> {
-      new DatabaseMigrator().runPostIncrementalMigrator("/DatabaseMigratorTest/"
-          + "testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/schema_incremental_0090.cls", null);
-    }).isInstanceOf(RuntimeException.class)
+    assertThatThrownBy(() -> new DatabaseMigrator().runPostIncrementalMigrator("/DatabaseMigratorTest/"
+            + "testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/schema_incremental_0090.cls", null))
+        .isInstanceOf(RuntimeException.class)
         .hasMessage("Failed to execute the PostIncrementalMigrator referenced in "
             + "/DatabaseMigratorTest/testMigrate_OperationalDataStore_ThrowsLoadExceptionMessage/"
             + "schema_incremental_0090.cls.");

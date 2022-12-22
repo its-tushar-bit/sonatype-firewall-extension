@@ -77,7 +77,7 @@ public class DefaultProductLicenseTest
   }
 
   @Test
-  public void testLicenseInformation_Auditor() throws Exception {
+  public void testLicenseInformation_Auditor() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK);
 
     refreshOrOpen(ProductLicensePage.url());
@@ -92,7 +92,7 @@ public class DefaultProductLicenseTest
   }
 
   @Test
-  public void testLicenseInformation_FirewallOnly() throws Exception {
+  public void testLicenseInformation_FirewallOnly() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL);
 
     refreshOrOpen(ProductLicensePage.url());
@@ -107,7 +107,7 @@ public class DefaultProductLicenseTest
   }
 
   @Test
-  public void testLicenseInformation_LifecycleOnly() throws Exception {
+  public void testLicenseInformation_LifecycleOnly() {
     productLicenseManager.setMaxFirewallUsers(null);
     setLicensedProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
 
@@ -123,7 +123,7 @@ public class DefaultProductLicenseTest
   }
 
   @Test
-  public void testLicenseInformation_LifecycleCloudOnly() throws Exception {
+  public void testLicenseInformation_LifecycleCloudOnly() {
     productLicenseManager.setMaxFirewallUsers(null);
     setLicensedProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_CLOUD);
 
@@ -139,7 +139,7 @@ public class DefaultProductLicenseTest
   }
 
   @Test
-  public void testLicenseInformation_LifecycleFoundationOnly() throws Exception {
+  public void testLicenseInformation_LifecycleFoundationOnly() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
 
     refreshOrOpen(ProductLicensePage.url());
@@ -153,7 +153,7 @@ public class DefaultProductLicenseTest
   }
 
   @Test
-  public void testLicenseInformation_NexusPlus() throws Exception {
+  public void testLicenseInformation_NexusPlus() {
     productLicenseManager.setMaxFirewallUsers(null);
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
 

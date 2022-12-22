@@ -34,9 +34,8 @@ public class FirewallIgnorePatternsDAOTest
 
   @Test
   public void testInsert_Unsupported() {
-    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
-      dao.insert(createFirewallIgnorePatterns());
-    });
+    assertThatExceptionOfType(UnsupportedOperationException.class)
+        .isThrownBy(() -> dao.insert(createFirewallIgnorePatterns()));
   }
 
   @Test
@@ -56,9 +55,7 @@ public class FirewallIgnorePatternsDAOTest
 
   @Test
   public void testDelete_Unsupported() {
-    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
-      dao.delete(dao.get());
-    });
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> dao.delete(dao.get()));
   }
 
   private FirewallIgnorePatterns createFirewallIgnorePatterns() {

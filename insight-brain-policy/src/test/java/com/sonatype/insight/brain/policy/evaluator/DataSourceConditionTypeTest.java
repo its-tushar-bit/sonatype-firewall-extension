@@ -84,9 +84,8 @@ public class DataSourceConditionTypeTest
   @Test
   public void testValidateCondition_InvalidValue() {
     Condition condition = new Condition(DataSourceConditionType.ID, HAS_SUPPORT_FOR, "abc");
-    assertThatThrownBy(() -> {
-      new DataSourceConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
+    assertThatThrownBy(() -> new DataSourceConditionType().validateCondition(null, condition, null /* applicationId */))
+        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
   }
   
   @Test

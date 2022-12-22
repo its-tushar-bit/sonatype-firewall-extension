@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -176,7 +175,7 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testApplicationNotMonitored() throws Exception {
+  public void testApplicationNotMonitored() {
     Organization org = tempEntity.newOrganization();
     // Create a monitored app only because the policy monitoring exits fast if nothing is monitored.
     Application monitoredApp = tempEntity.newApplication("MonitoredApp", org.getId());
@@ -204,7 +203,7 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testApplicationMonitored_NoScan() throws Exception {
+  public void testApplicationMonitored_NoScan() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication("MonitoredApp", org.getId());
     tempEntity.newPolicyMonitoring(app.getId(), ReleaseStageType.ID);
@@ -450,7 +449,7 @@ public class PolicyMonitorTest
                               String policyName,
                               Stage stage,
                               String notifyEmail,
-                              String monitorNotifyEmail) throws Exception
+                              String monitorNotifyEmail)
   {
     Policy policy = new Policy(null /* id */, policyName);
     policy.setOwnerId(ownerId);
@@ -506,7 +505,7 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testEvaluate_ScanFileDoesNotExist() throws Exception {
+  public void testEvaluate_ScanFileDoesNotExist() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication("MonitoredApp", org.getId());
     Stage stage = new Stage(ReleaseStageType.ID);
@@ -617,7 +616,7 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testEvaluate_TempScanFileIsDeletedWhenHdsUploadFails() throws Exception {
+  public void testEvaluate_TempScanFileIsDeletedWhenHdsUploadFails() {
     Application app = tempEntity.newApplicationWithParent();
     Stage stage = new Stage(ReleaseStageType.ID);
     PolicyMonitoring policyMonitoring = tempEntity.newPolicyMonitoring(app.getId(), stage.getStageTypeId());
@@ -1111,7 +1110,7 @@ public class PolicyMonitorTest
     File scanFile = insightWork.getScanFile(app.getId(), scanId);
     Files.createDirectories(scanFile.getParentFile().toPath());
 
-    try (GZIPOutputStream gzipStream = new GZIPOutputStream(new FileOutputStream(scanFile))) {
+    try (GZIPOutputStream gzipStream = new GZIPOutputStream(Files.newOutputStream(scanFile.toPath()))) {
       FileUtils.copyFile(scanXml, gzipStream);
     }
     return scanFile;

@@ -38,20 +38,20 @@ public class RoleDAOTest
   }
 
   @Test
-  public void testGetGlobalRoles() throws Exception {
+  public void testGetGlobalRoles() {
     List<Role> roles = roleDAO.getGlobalRoles();
     assertThat(roles).allMatch(Role::isGlobal).hasSizeGreaterThanOrEqualTo(2);
   }
 
   @Test
-  public void testGetApplicationRoles() throws Exception {
+  public void testGetApplicationRoles() {
     List<Role> roles = roleDAO.getApplicationRoles();
     assertThat(roles).noneMatch(Role::isGlobal).extracting(Role::getName).containsExactly("Application Evaluator",
         "Component Evaluator", "Developer", "Legal Reviewer", "Owner");
   }
 
   @Test
-  public void testDeleteCascadesToRolePermissions() throws Exception {
+  public void testDeleteCascadesToRolePermissions() {
     RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
     Role role = newRole("cascade");
     rolePermissionDAO.insert(new RolePermission(role.getId(), Permission.values()[0]));
@@ -60,7 +60,7 @@ public class RoleDAOTest
   }
 
   @Test
-  public void testDeleteCascadesToMembershipMappings() throws Exception {
+  public void testDeleteCascadesToMembershipMappings() {
     Role role = newRole("cascade");
     MembershipMapping membershipMapping = tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID,
         role.getId(), "username");
@@ -69,7 +69,7 @@ public class RoleDAOTest
   }
 
   @Test
-  public void testDeleteCascadesToPolicyNotifyActions() throws Exception {
+  public void testDeleteCascadesToPolicyNotifyActions() {
     Role role = newRole("cascade");
     tempEntity.newPolicy(organization);
     Policy policyWithNotifyActions = tempEntity.newPolicy(organization);
@@ -119,9 +119,8 @@ public class RoleDAOTest
   public void testValidateEmptyName_Insert() {
     Role role = new Role();
     role.setName("");
-    assertThatThrownBy(() -> {
-      roleDAO.insert(role);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> roleDAO.insert(role)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
@@ -129,9 +128,8 @@ public class RoleDAOTest
     Role role = new Role();
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       role.setName(name);
-      assertThatThrownBy(() -> {
-        roleDAO.insert(role);
-      }).isInstanceOf(InvalidNameException.class).hasMessage("Name contains an invalid character: '" + name + "'.");
+      assertThatThrownBy(() -> roleDAO.insert(role)).isInstanceOf(InvalidNameException.class)
+          .hasMessage("Name contains an invalid character: '" + name + "'.");
     }
   }
 
@@ -139,18 +137,16 @@ public class RoleDAOTest
   public void testDuplicateName_Insert() {
     Role role = new Role();
     role.setName("applicationEVALUATOR");
-    assertThatThrownBy(() -> {
-      roleDAO.insert(role);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("A role with the same name already exists.");
+    assertThatThrownBy(() -> roleDAO.insert(role)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("A role with the same name already exists.");
   }
 
   @Test
   public void testValidateEmptyName_Update() {
     Role role = newRole("Test");
     role.setName("");
-    assertThatThrownBy(() -> {
-      roleDAO.update(role);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
@@ -158,9 +154,8 @@ public class RoleDAOTest
     Role role = newRole("Test");
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       role.setName(name);
-      assertThatThrownBy(() -> {
-        roleDAO.update(role);
-      }).isInstanceOf(InvalidNameException.class).hasMessage("Name contains an invalid character: '" + name + "'.");
+      assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(InvalidNameException.class)
+          .hasMessage("Name contains an invalid character: '" + name + "'.");
     }
   }
 
@@ -168,9 +163,8 @@ public class RoleDAOTest
   public void testDuplicateName_Update() {
     Role role = newRole("Test");
     role.setName("applicationEVALUATOR");
-    assertThatThrownBy(() -> {
-      roleDAO.update(role);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("A role with the same name already exists.");
+    assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("A role with the same name already exists.");
   }
 
   @Test
@@ -187,9 +181,8 @@ public class RoleDAOTest
     // the protection must be based on the identifier, all other properties can be fudged
     role.setId(builtInRole.getId());
     assertThat(role.isBuiltIn()).isFalse();
-    assertThatThrownBy(() -> {
-      roleDAO.delete(role);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot delete built-in role 'Owner'.");
+    assertThatThrownBy(() -> roleDAO.delete(role)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Cannot delete built-in role 'Owner'.");
   }
 
   @Test
@@ -200,54 +193,47 @@ public class RoleDAOTest
     // the protection must be based on the identifier, all other properties can be fudged
     role.setId(builtInRole.getId());
     assertThat(role.isBuiltIn()).isFalse();
-    assertThatThrownBy(() -> {
-      roleDAO.update(role);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot change built-in role 'Owner'.");
+    assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Cannot change built-in role 'Owner'.");
   }
 
   @Test
   public void testBuiltInRoleCannotBeInserted() {
     Role role = new Role("Test", "Description");
     role.setBuiltIn(true);
-    assertThatThrownBy(() -> {
-      roleDAO.insert(role);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot add built-in role 'Test'.");
+    assertThatThrownBy(() -> roleDAO.insert(role)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Cannot add built-in role 'Test'.");
   }
 
   @Test
   public void testCustomRoleCannotBeGlobal_Insert() {
     Role role = new Role("Name", "Description");
     role.setGlobal(true);
-    assertThatThrownBy(() -> {
-      roleDAO.insert(role);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot add custom role 'Name' at global scope.");
+    assertThatThrownBy(() -> roleDAO.insert(role)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Cannot add custom role 'Name' at global scope.");
   }
 
   @Test
   public void testCustomRoleCannotBeGlobal_Update() {
     Role role = newRole("Name");
     role.setGlobal(true);
-    assertThatThrownBy(() -> {
-      roleDAO.update(role);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot change custom role 'Name' to global scope.");
+    assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Cannot change custom role 'Name' to global scope.");
   }
 
   @Test
   public void testCustomRoleCannotBeChangedToBuiltIn() {
     Role role = newRole("Name");
     role.setBuiltIn(true);
-    assertThatThrownBy(() -> {
-      roleDAO.update(role);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot change custom role 'Name' to built-in.");
+    assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Cannot change custom role 'Name' to built-in.");
   }
 
   @Test
   public void testValidateDescriptionLength_Insert() {
     String description = StringUtils.repeat("a", DescriptionHelper.MAX_DESC_LENGTH);
     Role role = new Role("name", description + "a");
-    assertThatThrownBy(() -> {
-      roleDAO.insert(role);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> roleDAO.insert(role)).isInstanceOf(BadRequestException.class)
         .hasMessage("The description cannot be longer than 255 characters, the one supplied has 256 characters.");
 
     role.setDescription(description);
@@ -261,9 +247,7 @@ public class RoleDAOTest
 
     String description = StringUtils.repeat("a", DescriptionHelper.MAX_DESC_LENGTH);
     role.setDescription(description + "a");
-    assertThatThrownBy(() -> {
-      roleDAO.update(role);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(BadRequestException.class)
         .hasMessage("The description cannot be longer than 255 characters, the one supplied has 256 characters.");
 
     role.setDescription(description);
@@ -273,9 +257,8 @@ public class RoleDAOTest
   @Test
   public void testValidateEmptyDescription_Insert() {
     Role role = new Role("name", " " /* description */);
-    assertThatThrownBy(() -> {
-      roleDAO.insert(role);
-    }).isInstanceOf(BadRequestException.class).hasMessage("The description is required.");
+    assertThatThrownBy(() -> roleDAO.insert(role)).isInstanceOf(BadRequestException.class)
+        .hasMessage("The description is required.");
   }
 
   @Test
@@ -283,17 +266,15 @@ public class RoleDAOTest
     Role role = tempEntity.newRole(false /* global */);
 
     role.setDescription(" ");
-    assertThatThrownBy(() -> {
-      roleDAO.update(role);
-    }).isInstanceOf(BadRequestException.class).hasMessage("The description is required.");
+    assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(BadRequestException.class)
+        .hasMessage("The description is required.");
   }
 
   @Test
   public void testValidateNullDescription_Insert() {
     Role role = new Role("name", null /* description */);
-    assertThatThrownBy(() -> {
-      roleDAO.insert(role);
-    }).isInstanceOf(BadRequestException.class).hasMessage("The description is required.");
+    assertThatThrownBy(() -> roleDAO.insert(role)).isInstanceOf(BadRequestException.class)
+        .hasMessage("The description is required.");
   }
 
   @Test
@@ -301,8 +282,7 @@ public class RoleDAOTest
     Role role = tempEntity.newRole(false /* global */);
 
     role.setDescription(null);
-    assertThatThrownBy(() -> {
-      roleDAO.update(role);
-    }).isInstanceOf(BadRequestException.class).hasMessage("The description is required.");
+    assertThatThrownBy(() -> roleDAO.update(role)).isInstanceOf(BadRequestException.class)
+        .hasMessage("The description is required.");
   }
 }

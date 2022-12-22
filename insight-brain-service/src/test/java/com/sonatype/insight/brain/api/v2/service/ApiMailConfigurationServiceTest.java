@@ -426,7 +426,7 @@ public class ApiMailConfigurationServiceTest
   }
 
   @Test
-  public void testTestConfiguration_PasswordNotIncluded_HostnameChanged_PortUnchanged() throws Exception {
+  public void testTestConfiguration_PasswordNotIncluded_HostnameChanged_PortUnchanged() {
     char[] password = "smtppass".toCharArray();
     MailConfiguration mailConfiguration = new MailConfiguration();
     mailConfiguration.setHostname("test");
@@ -455,7 +455,7 @@ public class ApiMailConfigurationServiceTest
   }
 
   @Test
-  public void testTestConfiguration_PasswordNotIncluded_HostnameUnchanged_PortChanged() throws Exception {
+  public void testTestConfiguration_PasswordNotIncluded_HostnameUnchanged_PortChanged() {
     char[] password = "smtppass".toCharArray();
     MailConfiguration mailConfiguration = new MailConfiguration();
     mailConfiguration.setHostname("test");

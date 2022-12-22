@@ -74,9 +74,8 @@ public class ComponentLabelDAOTest
 
     ComponentLabelDAO dao = new ComponentLabelDAO();
     dao.insert(new ComponentLabel(application.getId(), label.getId(), hash));
-    assertThatThrownBy(() -> {
-      dao.insert(new ComponentLabel(application.getId(), label.getId(), hash));
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> dao.insert(new ComponentLabel(application.getId(), label.getId(), hash)))
+        .isInstanceOf(BadRequestException.class)
         .hasMessage("The label 'label' is already applied to the component ababababab.");
   }
 
@@ -86,9 +85,7 @@ public class ComponentLabelDAOTest
 
     ComponentLabelDAO dao = new ComponentLabelDAO();
     ComponentLabel compLabel = new ComponentLabel(application.getOrganizationId(), label.getId(), hash);
-    assertThatThrownBy(() -> {
-      dao.insert(compLabel);
-    }).isInstanceOf(BadRequestException.class).hasMessage(
+    assertThatThrownBy(() -> dao.insert(compLabel)).isInstanceOf(BadRequestException.class).hasMessage(
         "The label 'label' is not applicable for the selected context " + application.getOrganizationId() + ".");
   }
 
@@ -101,9 +98,7 @@ public class ComponentLabelDAOTest
     ComponentLabel compLabel = new ComponentLabel(application.getId(), label.getId(), hash + "0");
     dao.insert(compLabel);
     compLabel.setHash(hash);
-    assertThatThrownBy(() -> {
-      dao.update(compLabel);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> dao.update(compLabel)).isInstanceOf(BadRequestException.class)
         .hasMessage("The label 'label' is already applied to the component ababababab.");
   }
 
@@ -115,9 +110,7 @@ public class ComponentLabelDAOTest
     ComponentLabel compLabel = new ComponentLabel(application.getId(), label.getId(), hash);
     dao.insert(compLabel);
     compLabel.setOwnerId(application.getOrganizationId());
-    assertThatThrownBy(() -> {
-      dao.update(compLabel);
-    }).isInstanceOf(BadRequestException.class).hasMessage(
+    assertThatThrownBy(() -> dao.update(compLabel)).isInstanceOf(BadRequestException.class).hasMessage(
         "The label 'label' is not applicable for the selected context " + application.getOrganizationId() + ".");
   }
 

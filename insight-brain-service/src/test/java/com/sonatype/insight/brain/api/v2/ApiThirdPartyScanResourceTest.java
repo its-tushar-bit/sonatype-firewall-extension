@@ -99,7 +99,7 @@ public class ApiThirdPartyScanResourceTest
         .get(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
 
-  private ApiThirdPartyScanResultDTO getApiThirdPartyTicketResultDTO(String statusUrl) throws Exception {
+  private ApiThirdPartyScanResultDTO getApiThirdPartyTicketResultDTO(String statusUrl) {
     HttpResponse response = await().atMost(10, TimeUnit.SECONDS).until(() -> restRequest().path(statusUrl).get(),
         resp -> resp.getStatusCode() == 200);
     return response.getBody(ApiThirdPartyScanResultDTO.class);

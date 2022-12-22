@@ -37,7 +37,7 @@ public class OrganizationSummaryServiceTest
     testGetOrganizations_SortedByCaseInsensitiveName(null);
   }
 
-  private void testGetOrganizations_SortedByCaseInsensitiveName(Goal goal) throws Exception {
+  private void testGetOrganizations_SortedByCaseInsensitiveName(Goal goal) {
     Organization org0 = tempEntity.newOrganization("A");
     Organization org1 = tempEntity.newOrganization("B");
     Organization org2 = tempEntity.newOrganization("C");

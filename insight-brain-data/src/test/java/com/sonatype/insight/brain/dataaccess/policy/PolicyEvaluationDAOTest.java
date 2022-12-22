@@ -46,7 +46,7 @@ public class PolicyEvaluationDAOTest
   private static final String COMMIT_HASH = "abcdef1234abcdef1234abcdef1234abcdef1234";
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 
     String stageTypeId = ReleaseStageType.ID;
@@ -68,9 +68,7 @@ public class PolicyEvaluationDAOTest
 
     // Update is not allowed
     PolicyEvaluation policyEvaluationToUpdate = policyEvaluation;
-    assertThatThrownBy(() -> {
-      dao.update(policyEvaluationToUpdate);
-    }).isInstanceOf(UnsupportedOperationException.class)
+    assertThatThrownBy(() -> dao.update(policyEvaluationToUpdate)).isInstanceOf(UnsupportedOperationException.class)
         .hasMessage("The PolicyEvaluation table does not support update operations");
 
     // Delete
@@ -407,9 +405,8 @@ public class PolicyEvaluationDAOTest
         new PolicyEvaluation(application.getId(), ReleaseStageType.ID, "scanId", "system",
             ScanTriggerType.CLI);
     policyEvaluation.setForObsoleteScan(true);
-    assertThatThrownBy(() -> {
-      dao.insert(policyEvaluation);
-    }).isInstanceOf(IllegalStateException.class).hasMessage("Primary evaluations cannot be for obsolete scans");
+    assertThatThrownBy(() -> dao.insert(policyEvaluation)).isInstanceOf(IllegalStateException.class)
+        .hasMessage("Primary evaluations cannot be for obsolete scans");
   }
 
   @Test

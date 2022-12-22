@@ -152,7 +152,7 @@ public class ScanTaskStateTest
     private State capturedState;
 
     @Override
-    public Object answer(InvocationOnMock invocation) throws Throwable {
+    public Object answer(InvocationOnMock invocation) {
       // can't assert conditions when answering because assertion checks throw exception to indicate failure and the
       // ScanTask catches all exceptions and wraps them.
       capturedState = task.getState();

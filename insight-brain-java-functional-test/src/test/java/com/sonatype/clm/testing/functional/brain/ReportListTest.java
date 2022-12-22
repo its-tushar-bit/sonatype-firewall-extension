@@ -111,7 +111,7 @@ public class ReportListTest
   }
 
   @Test
-  public void testContactName() throws Exception {
+  public void testContactName() {
     ReportListRow firstRow = ReportListPage.firstRow();
     firstRow.shouldBe(visible);
 

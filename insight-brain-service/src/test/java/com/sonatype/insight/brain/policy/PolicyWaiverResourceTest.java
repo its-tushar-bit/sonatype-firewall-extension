@@ -132,9 +132,10 @@ public class PolicyWaiverResourceTest
   @Test
   public void testCRU_NullConstraintFacts() throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
-      responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
-    }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
+    initServer(config -> getHdsServer()
+        .respondWith((HttpResponseProcessor) (request, response) -> responses.put(
+            new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
+        .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
 
     String appPublicId = "PolicyWaiverResourceTest_AppId";
     Application application = tempEntity.newApplicationWithParent(appPublicId);
@@ -155,9 +156,10 @@ public class PolicyWaiverResourceTest
       throws Exception
   {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
-    initServer(config -> getHdsServer().respondWith((HttpResponseProcessor) (request, response) -> {
-      responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus());
-    }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
+    initServer(config -> getHdsServer()
+        .respondWith((HttpResponseProcessor) (request, response) -> responses.put(
+            new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"), response.getStatus()))
+        .andStatus(204).atUri(TelemetrySender.RESOURCE_PATH));
 
     String policyId = createPolicy(ownerId).getId();
 

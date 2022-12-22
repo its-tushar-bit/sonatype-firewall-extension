@@ -27,7 +27,7 @@ public class ThirdPartyFileDAOTest
   private final ThirdPartyFileDAO dao = new ThirdPartyFileDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     Date created = new Date();
     ThirdPartyFile entity = new ThirdPartyFile("filename", created);
@@ -50,7 +50,7 @@ public class ThirdPartyFileDAOTest
   }
 
   @Test
-  public void testDelete_Cascade() throws Exception {
+  public void testDelete_Cascade() {
     //one scan, two coordinates with each having some sec issues
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScan scan = tempEntity.newThirdPartyScan(thirdPartyFile);

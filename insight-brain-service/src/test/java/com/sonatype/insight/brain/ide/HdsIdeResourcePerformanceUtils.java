@@ -67,7 +67,7 @@ public class HdsIdeResourcePerformanceUtils
     }
   }
 
-  static HttpServletRequest createRequest() throws Exception {
+  static HttpServletRequest createRequest() {
     HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
     when(request.getMethod()).thenReturn("GET");
     when(request.getHeaderNames()).thenReturn(EmptyEnumeration.getInstance());
@@ -91,7 +91,7 @@ public class HdsIdeResourcePerformanceUtils
     return mock(TelemetrySender.class);
   }
 
-  static void addPolicy(Application app, Policy[] policies) throws Exception {
+  static void addPolicy(Application app, Policy[] policies) {
     String appId = app.getId();
     PolicyDAO policyDAO = new PolicyDAO();
 

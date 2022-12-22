@@ -33,7 +33,7 @@ public class PolicyEvaluationSummaryServiceTest
   private TestProductLicense testProductLicense;
 
   @Test
-  public void testGetEvaluationSummaryByApplicationId() throws Exception {
+  public void testGetEvaluationSummaryByApplicationId() {
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "test-scanid";
 
@@ -56,7 +56,7 @@ public class PolicyEvaluationSummaryServiceTest
   }
 
   @Test
-  public void testGetEvaluationSummaryByApplicationId_NoApplication() throws Exception {
+  public void testGetEvaluationSummaryByApplicationId_NoApplication() {
     Stage stage = new Stage(Stage.ID_BUILD);
     String appId = "invalidAppId";
     assertThatExceptionOfType(NotFoundException.class)
@@ -65,7 +65,7 @@ public class PolicyEvaluationSummaryServiceTest
   }
 
   @Test
-  public void testGetEvaluationSummaryByApplicationId_NoPolicyEvaluationAvailable() throws Exception {
+  public void testGetEvaluationSummaryByApplicationId_NoPolicyEvaluationAvailable() {
     Stage stage = new Stage(Stage.ID_BUILD);
     Application application = tempEntity.newApplicationWithParent("test-app");
     PolicyEvaluationSummary policyEvaluationSummary = policyEvaluationSummaryService
@@ -74,7 +74,7 @@ public class PolicyEvaluationSummaryServiceTest
   }
 
   @Test
-  public void testGetEvaluationSummaryByApplicationId_Unlicensed() throws Exception {
+  public void testGetEvaluationSummaryByApplicationId_Unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.QUALITY);
 
     Stage stage = new Stage(Stage.ID_BUILD);

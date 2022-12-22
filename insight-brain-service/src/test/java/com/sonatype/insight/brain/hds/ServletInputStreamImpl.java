@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import javax.servlet.ReadListener;
@@ -27,7 +26,7 @@ class ServletInputStreamImpl
   }
 
   @Override
-  public int read() throws IOException {
+  public int read() {
     return wrappedInputStream.read();
   }
 

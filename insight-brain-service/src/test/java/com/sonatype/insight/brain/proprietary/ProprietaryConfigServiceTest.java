@@ -77,7 +77,7 @@ public class ProprietaryConfigServiceTest
   }
 
   @Test
-  public void testGetProprietaryConfig_InvalidGoal() throws Exception {
+  public void testGetProprietaryConfig_InvalidGoal() {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
             () -> proprietaryConfigService.getProprietaryConfig(Goal.SUMMARIZE_EVALUATION, application.getPublicId()))
@@ -85,7 +85,7 @@ public class ProprietaryConfigServiceTest
   }
 
   @Test
-  public void testGetProprietaryConfig_NoGoal() throws Exception {
+  public void testGetProprietaryConfig_NoGoal() {
     com.sonatype.clm.dto.model.ProprietaryConfig config = proprietaryConfigService.getProprietaryConfig((Goal) null,
         application.getPublicId());
 
@@ -94,7 +94,7 @@ public class ProprietaryConfigServiceTest
   }
 
   @Test
-  public void testGetProprietaryConfig_NoAppId() throws Exception {
+  public void testGetProprietaryConfig_NoAppId() {
     com.sonatype.clm.dto.model.ProprietaryConfig config = proprietaryConfigService
         .getProprietaryConfig(Goal.EVALUATE_APPLICATION, null);
 

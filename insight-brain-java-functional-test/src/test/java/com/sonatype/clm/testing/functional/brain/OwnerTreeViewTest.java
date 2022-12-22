@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -57,8 +58,8 @@ public class OwnerTreeViewTest
         .put("Silver Squadron", Arrays.asList("Garven Dreis", "Biggs Darklighter", "Luke Skywalker"))
         .put("Green Squadron", Arrays.asList("Arvel Crynyd", "Jake Farrell"))
         .put("Blue Squadron And Some Other Text To Force Overflow",
-            Arrays.asList("Merrick Simms And Some Other Text To Force Overflow"))
-        .put("Orange Squadron", Arrays.asList("PaulQuincyRandolph"))
+            Collections.singletonList("Merrick Simms And Some Other Text To Force Overflow"))
+        .put("Orange Squadron", Collections.singletonList("PaulQuincyRandolph"))
         .build();
 
     for (Entry<String, List<String>> organizationMeta : organizations.entrySet()) {

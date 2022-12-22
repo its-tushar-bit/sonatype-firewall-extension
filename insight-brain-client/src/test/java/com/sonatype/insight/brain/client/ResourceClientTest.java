@@ -21,10 +21,10 @@ public class ResourceClientTest
     extends AbstractBrainServiceTest
 {
   @Test
-  public void testMissingFile() throws Exception {
-    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
-      new ResourceClient(getCLMServer().getClientConfiguration()).getResource("/assets/foo/bar");
-    }).withMessageContaining("Not Found")
+  public void testMissingFile() {
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> new ResourceClient(getCLMServer().getClientConfiguration()).getResource("/assets/foo/bar"))
+        .withMessageContaining("Not Found")
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND));
   }
 

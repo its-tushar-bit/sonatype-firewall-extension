@@ -285,9 +285,8 @@ public class SourceControlDAOTest
 
   @Test
   public void testInsert_MissingOwnerId() {
-    assertThatThrownBy(() -> {
-      sourceControlDAO.insert(new SourceControl.Builder().build());
-    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl owner id is required");
+    assertThatThrownBy(() -> sourceControlDAO.insert(new SourceControl.Builder().build()))
+        .isInstanceOf(BadRequestException.class).hasMessage("SourceControl owner id is required");
   }
 
   @Test
@@ -348,9 +347,8 @@ public class SourceControlDAOTest
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl("https://not valid").setToken("token")
             .build();
-    assertThatThrownBy(() -> {
-      sourceControlDAO.insert(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessageContaining("repositoryUrl is invalid");
+    assertThatThrownBy(() -> sourceControlDAO.insert(sourceControl)).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("repositoryUrl is invalid");
   }
 
   @Test
@@ -358,9 +356,8 @@ public class SourceControlDAOTest
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB)
             .setRepositoryUrl("https://not valid").build();
-    assertThatThrownBy(() -> {
-      sourceControlDAO.insert(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessageContaining("SourceControl repositoryUrl is invalid");
+    assertThatThrownBy(() -> sourceControlDAO.insert(sourceControl)).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("SourceControl repositoryUrl is invalid");
   }
 
   @Test
@@ -368,9 +365,7 @@ public class SourceControlDAOTest
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId("baz").setRepositoryUrl(VALID_URL).setToken("bar")
             .build();
-    assertThatThrownBy(() -> {
-      sourceControlDAO.insert(sourceControl);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> sourceControlDAO.insert(sourceControl)).isInstanceOf(BadRequestException.class)
         .hasMessageContaining("SourceControl ownerId 'baz' cannot be found");
   }
 
@@ -390,9 +385,8 @@ public class SourceControlDAOTest
     SourceControl sourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", null);
     sourceControl.setOwnerId(null);
-    assertThatThrownBy(() -> {
-      sourceControlDAO.update(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessage("SourceControl owner id is required");
+    assertThatThrownBy(() -> sourceControlDAO.update(sourceControl)).isInstanceOf(BadRequestException.class)
+        .hasMessage("SourceControl owner id is required");
   }
 
   @Test
@@ -423,9 +417,8 @@ public class SourceControlDAOTest
     SourceControl sourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, "bar", null);
     sourceControl.setRepositoryUrl("https://not valid");
-    assertThatThrownBy(() -> {
-      sourceControlDAO.update(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessageContaining("repositoryUrl is invalid");
+    assertThatThrownBy(() -> sourceControlDAO.update(sourceControl)).isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("repositoryUrl is invalid");
   }
 
   @Test

@@ -84,7 +84,7 @@ public class OrganizationServiceTest
   }
 
   @Test
-  public void testGetAll() throws Exception {
+  public void testGetAll() {
     OrganizationService organizationService =
         new OrganizationService(null, null, null, new OrganizationDAO(), null, policyViolationLoggerFactory);
 

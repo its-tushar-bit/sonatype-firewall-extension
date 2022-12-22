@@ -44,14 +44,11 @@ public class ScanResourceUnitTest
   @Mock
   private AntiCsrfFilter antiCsrfFilter;
 
-  @Mock
-  private DefaultHdsClient hdsClient;
-
   private HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
 
   @Before
   public void setUp() {
-    when(hdsClient.getClientUserAgent(httpServletRequest)).thenReturn("userAgent");
+    when(DefaultHdsClient.getClientUserAgent(httpServletRequest)).thenReturn("userAgent");
   }
 
   @Test

@@ -165,7 +165,7 @@ public class ScanHandlerTest
   }
 
   @Test
-  public void testHandle_ApplicationDoesNotExist() throws Exception {
+  public void testHandle_ApplicationDoesNotExist() {
     String appPublicId = "NoSuchAppPublicID";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
 

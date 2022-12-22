@@ -19,7 +19,7 @@ public class PolicyMonitoringDAOTest
     extends AbstractDbDAOTest
 {
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
 
     String ownerId = application.getId();
@@ -58,7 +58,7 @@ public class PolicyMonitoringDAOTest
   }
 
   @Test
-  public void testAddDuplicate() throws Exception {
+  public void testAddDuplicate() {
     PolicyMonitoringDAO dao = new PolicyMonitoringDAO();
 
     String ownerId = application.getId();
@@ -66,9 +66,7 @@ public class PolicyMonitoringDAOTest
     dao.insert(policyMonitoring1);
 
     PolicyMonitoring policyMonitoring2 = new PolicyMonitoring(ownerId, Stage.ID_STAGE_RELEASE);
-    assertThatThrownBy(() -> {
-      dao.insert(policyMonitoring2);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> dao.insert(policyMonitoring2)).isInstanceOf(BadRequestException.class)
         .hasMessage("This application/organization already has policy monitoring.");
   }
 

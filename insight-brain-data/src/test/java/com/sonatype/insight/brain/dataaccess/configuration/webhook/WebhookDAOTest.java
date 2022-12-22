@@ -79,37 +79,34 @@ public class WebhookDAOTest
 
   @Test
   public void testInsert_MissingURL() {
-    assertThatThrownBy(() -> {
-      tempEntity.newWebhook("", Collections.singleton(POLICY_MANAGEMENT));
-    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL is required");
+    assertThatThrownBy(() -> tempEntity.newWebhook("", Collections.singleton(POLICY_MANAGEMENT))).isInstanceOf(
+        BadRequestException.class).hasMessage("Webhook URL is required");
   }
 
   @Test
   public void testInsert_NullURL() {
-    assertThatThrownBy(() -> {
-      tempEntity.newWebhook(null, Collections.singleton(POLICY_MANAGEMENT));
-    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL is required");
+    assertThatThrownBy(() -> tempEntity.newWebhook(null, Collections.singleton(POLICY_MANAGEMENT))).isInstanceOf(
+        BadRequestException.class).hasMessage("Webhook URL is required");
   }
 
   @Test
   public void testInsert_NonHttp() {
-    assertThatThrownBy(() -> {
-      tempEntity.newWebhook("ftp://test.com", Collections.singleton(POLICY_MANAGEMENT));
-    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL must start with http:// or https://");
+    assertThatThrownBy(
+        () -> tempEntity.newWebhook("ftp://test.com", Collections.singleton(POLICY_MANAGEMENT))).isInstanceOf(
+        BadRequestException.class).hasMessage("Webhook URL must start with http:// or https://");
   }
 
   @Test
   public void testInsert_BlankURL() {
-    assertThatThrownBy(() -> {
-      tempEntity.newWebhook("   ", Collections.singleton(POLICY_MANAGEMENT));
-    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL is required");
+    assertThatThrownBy(() -> tempEntity.newWebhook("   ", Collections.singleton(POLICY_MANAGEMENT))).isInstanceOf(
+        BadRequestException.class).hasMessage("Webhook URL is required");
   }
 
   @Test
   public void testInsert_InvalidURL() {
-    assertThatThrownBy(() -> {
-      tempEntity.newWebhook("http://boom crash", Collections.singleton(POLICY_MANAGEMENT));
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(
+        () -> tempEntity.newWebhook("http://boom crash", Collections.singleton(POLICY_MANAGEMENT))).isInstanceOf(
+            BadRequestException.class)
         .hasMessage("Webhook URL is invalid: Illegal character in authority at index 7: http://boom crash");
   }
 
@@ -118,9 +115,8 @@ public class WebhookDAOTest
     Webhook webhook = tempEntity.newWebhook(VALID_URL, Collections.singleton(POLICY_MANAGEMENT));
     webhook.setUrl("");
 
-    assertThatThrownBy(() -> {
-      dao.update(webhook);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL is required");
+    assertThatThrownBy(() -> dao.update(webhook)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Webhook URL is required");
   }
 
   @Test
@@ -128,9 +124,8 @@ public class WebhookDAOTest
     Webhook webhook = tempEntity.newWebhook(VALID_URL, Collections.singleton(POLICY_MANAGEMENT));
     webhook.setUrl(null);
 
-    assertThatThrownBy(() -> {
-      dao.update(webhook);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL is required");
+    assertThatThrownBy(() -> dao.update(webhook)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Webhook URL is required");
   }
 
   @Test
@@ -138,9 +133,8 @@ public class WebhookDAOTest
     Webhook webhook = tempEntity.newWebhook(VALID_URL, Collections.singleton(POLICY_MANAGEMENT));
     webhook.setUrl("   ");
 
-    assertThatThrownBy(() -> {
-      dao.update(webhook);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL is required");
+    assertThatThrownBy(() -> dao.update(webhook)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Webhook URL is required");
   }
 
   @Test
@@ -148,9 +142,8 @@ public class WebhookDAOTest
     Webhook webhook = tempEntity.newWebhook(VALID_URL, Collections.singleton(POLICY_MANAGEMENT));
     webhook.setUrl("ftp://test.com");
 
-    assertThatThrownBy(() -> {
-      dao.update(webhook);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Webhook URL must start with http:// or https://");
+    assertThatThrownBy(() -> dao.update(webhook)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Webhook URL must start with http:// or https://");
   }
 
   @Test
@@ -158,9 +151,7 @@ public class WebhookDAOTest
     Webhook webhook = tempEntity.newWebhook(VALID_URL, Collections.singleton(POLICY_MANAGEMENT));
     webhook.setUrl("http://not valid");
 
-    assertThatThrownBy(() -> {
-      dao.update(webhook);
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(() -> dao.update(webhook)).isInstanceOf(BadRequestException.class)
         .hasMessage("Webhook URL is invalid: Illegal character in authority at index 7: http://not valid");
   }
 

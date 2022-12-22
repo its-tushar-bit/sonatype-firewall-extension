@@ -122,7 +122,7 @@ public class PendoServiceTest
   }
 
   @Test
-  public void testGetConfig_TelemetryId_LicenseWithoutSalesforceIdWithCompanyName() throws Exception {
+  public void testGetConfig_TelemetryId_LicenseWithoutSalesforceIdWithCompanyName() {
     when(productLicense.getContactCompany()).thenReturn("Company A");
     String hashedCompanyName =
         Hashing.sha256().hashString(productLicense.getContactCompany(), StandardCharsets.UTF_8).toString();

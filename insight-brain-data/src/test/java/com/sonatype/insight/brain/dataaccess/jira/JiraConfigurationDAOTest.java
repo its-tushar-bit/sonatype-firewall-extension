@@ -79,15 +79,13 @@ public class JiraConfigurationDAOTest
 
     JiraConfiguration jiraConfiguration2 = new JiraConfiguration();
     jiraConfiguration2.setUrl("http://url");
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(jiraConfiguration2);
-    }).withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(jiraConfiguration2))
+        .withCauseInstanceOf(EntityExistsException.class);
     JiraConfiguration jiraConfiguration3 = new JiraConfiguration();
     jiraConfiguration3.setUrl("http://url");
     jiraConfiguration3.setId(tempEntity.uuid());
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(jiraConfiguration3);
-    }).withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(jiraConfiguration3))
+        .withCauseInstanceOf(EntityExistsException.class);
   }
 
   @Test

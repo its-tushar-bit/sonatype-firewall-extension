@@ -54,7 +54,7 @@ public class ResetAdminCommandTest
   }
 
   @Test
-  public void testRun_AdminDoesNotExist() throws Exception {
+  public void testRun_AdminDoesNotExist() {
     userDAO.delete(getAdmin());
 
     new ResetAdminCommand().run(null, null, insightConfig);
@@ -63,7 +63,7 @@ public class ResetAdminCommandTest
   }
 
   @Test
-  public void testRun_AdminExists() throws Exception {
+  public void testRun_AdminExists() {
     User admin = getAdmin();
     admin.setPassword("password");
     userDAO.update(admin);

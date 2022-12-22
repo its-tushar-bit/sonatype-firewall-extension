@@ -128,9 +128,7 @@ public class ComponentInfoServiceAuthzTest
   }
 
   @Deprecated
-  private void testGetComponentDetailsList_ReadPermission_Unauthorized(final Owner owner, final String ownerId)
-      throws Exception
-  {
+  private void testGetComponentDetailsList_ReadPermission_Unauthorized(final Owner owner, final String ownerId) {
     login();
     componentInfoService.getComponentDetailsList_ReadPermission(owner.getType(), ownerId, COMPONENT_IDENTIFIER,
         MatchState.EXACT.getId());

@@ -57,9 +57,8 @@ public class DefaultExecutorThreadPoolsTest
 
     testPool = ExecutorThreadPools.getInstance().createThreadPool(min, max, defaultValue, property);
 
-    CompletableFuture<Boolean> daemonCheck = CompletableFuture.supplyAsync(() -> {
-      return Thread.currentThread().isDaemon();
-    }, testPool);
+    CompletableFuture<Boolean> daemonCheck =
+        CompletableFuture.supplyAsync(() -> Thread.currentThread().isDaemon(), testPool);
 
     assertThat(daemonCheck.join()).isTrue();
   }

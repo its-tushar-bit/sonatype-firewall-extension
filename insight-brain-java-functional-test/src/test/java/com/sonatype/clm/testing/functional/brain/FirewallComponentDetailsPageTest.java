@@ -1869,7 +1869,7 @@ public class FirewallComponentDetailsPageTest
   private String[] expectedLabelsTexts = {"Label 1", "Label 2", "Label 3"};
 
   private ArrayList<Label> generateApplicableLabels() {
-    ArrayList<Label> labelsList = new ArrayList<Label>();
+    ArrayList<Label> labelsList = new ArrayList<>();
     labelsList.add(tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, expectedLabelsTexts[0], Color.dark_blue));
     labelsList.add(tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, expectedLabelsTexts[1], Color.dark_red));
     labelsList.add(tempEntity.newLabel(Organization.ROOT_ORGANIZATION_ID, expectedLabelsTexts[2], Color.dark_green));

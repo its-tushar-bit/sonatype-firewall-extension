@@ -60,7 +60,7 @@ public class HashComponentIdentifierServiceTest
   }
 
   @Test
-  public void testSet_KnownToHDS() throws Exception {
+  public void testSet_KnownToHDS() {
     when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
         .thenReturn(ComponentSummary.create(true));
 
@@ -71,7 +71,7 @@ public class HashComponentIdentifierServiceTest
   }
 
   @Test
-  public void testSet_NullComponentIdentifier() throws Exception {
+  public void testSet_NullComponentIdentifier() {
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, null);
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> hashComponentIdentifierService.set(hashComponentIdentifier))
@@ -88,7 +88,7 @@ public class HashComponentIdentifierServiceTest
   }
 
   @Test
-  public void testUpdateClaimedComponentWithOverriddenLicense() throws Exception {
+  public void testUpdateClaimedComponentWithOverriddenLicense() {
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
     hashComponentIdentifier.setComment(COMMENT);
     hashComponentIdentifier.setCreateTime(CREATED_TIME);

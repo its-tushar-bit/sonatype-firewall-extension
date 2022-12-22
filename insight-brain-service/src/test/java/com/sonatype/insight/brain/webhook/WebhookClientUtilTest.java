@@ -79,7 +79,7 @@ public class WebhookClientUtilTest
   }
 
   @Test
-  public void testPost_PopulatesHeaders() throws Exception {
+  public void testPost_PopulatesHeaders() {
     final Map<String, String> headers = getRequestHeaders();
     doWebhookClientUtilPost();
     assertThat(headers).containsEntry(WebhookClientUtil.WEBHOOK_ID_HEADER, webhookId)
@@ -103,7 +103,7 @@ public class WebhookClientUtilTest
     {
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
+          throws IOException
       {
         String body = IOUtils.toString(request.getInputStream(), "UTF-8");
         bodies.add(body);
@@ -120,9 +120,7 @@ public class WebhookClientUtilTest
     handler = new AbstractHandler()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
-      {
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         deliveryIds.add(request.getHeader(WebhookClientUtil.WEBHOOK_DELIVERY_HEADER));
         response.setStatus(400);
         baseRequest.setHandled(true);
@@ -136,12 +134,9 @@ public class WebhookClientUtilTest
 
   private Map<String, String> getRequestHeaders() {
     final Map<String, String> headers = new HashMap<>();
-    handler = new AbstractHandler()
-    {
+    handler = new AbstractHandler() {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
-      {
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
         for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
           String headerName = en.nextElement();

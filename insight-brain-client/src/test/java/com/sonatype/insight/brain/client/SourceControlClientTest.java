@@ -45,25 +45,25 @@ public class SourceControlClientTest
   }
 
   @Test
-  public void testAddOrUpdateSourceControlRecord_InvalidAppId() throws Exception {
+  public void testAddOrUpdateSourceControlRecord_InvalidAppId() {
     SourceControlClient client = new SourceControlClient(getCLMServer().getClientConfiguration());
 
-    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
-      client.addOrUpdateSourceControlRecord("abc-xyz", "https://github.com/org/proj2");
-    }).withMessageStartingWith("Could not find an application with public ID")
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> client.addOrUpdateSourceControlRecord("abc-xyz", "https://github.com/org/proj2"))
+        .withMessageStartingWith("Could not find an application with public ID")
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
 
   @Test
-  public void testAddOrUpdateSourceControlRecord_AddWithInvalidUrl() throws Exception {
+  public void testAddOrUpdateSourceControlRecord_AddWithInvalidUrl() {
     turnOnAutomaticSourceControl();
     Application newApp = tempEntity.newApplicationWithParent("testAddOrUpdateSourceControlRecord_AddWithInvalidUrl");
 
     SourceControlClient client = new SourceControlClient(getCLMServer().getClientConfiguration());
-    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
-      client.addOrUpdateSourceControlRecord(newApp.getPublicId(), "https://not good");
-    }).withMessage(
-        "SourceControl repositoryUrl is invalid: Illegal character in authority at index 8: https://not good")
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> client.addOrUpdateSourceControlRecord(newApp.getPublicId(), "https://not good"))
+        .withMessage(
+            "SourceControl repositoryUrl is invalid: Illegal character in authority at index 8: https://not good")
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(400));
   }
 

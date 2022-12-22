@@ -7,6 +7,7 @@ package com.sonatype.insight.rm.scan;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.scan.model.Repository;
@@ -191,7 +192,7 @@ public class ScanFactoryTest
   @Test
   public void testScan_ProprietaryRegex() throws Exception {
     ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
-    proprietaryConfig.setRegexes(Arrays.asList(".*com.sonatype.*"));
+    proprietaryConfig.setRegexes(Collections.singletonList(".*com.sonatype.*"));
     assertRepoH(proprietaryConfig);
   }
 

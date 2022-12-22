@@ -50,24 +50,24 @@ public class DatabaseConfigProviderTest
   }
 
   @Test
-  public void testGetDatabaseConfig_UsesDefaultCacheSize_GivenNullDbCacheSizePercent() throws Exception {
+  public void testGetDatabaseConfig_UsesDefaultCacheSize_GivenNullDbCacheSizePercent() {
     assertCacheSize(null, MAX_CACHE_SIZE_KILOBYTES * 1024 - 1, DEFAULT_CACHE_SIZE_KILOBYTES);
     assertCacheSize(null, MAX_CACHE_SIZE_KILOBYTES * 1024, DEFAULT_CACHE_SIZE_KILOBYTES);
     assertCacheSize(null, MAX_CACHE_SIZE_KILOBYTES * 1024 + 1, DEFAULT_CACHE_SIZE_KILOBYTES);
   }
 
   @Test
-  public void testGetDatabaseConfig_UsesCacheSize_IfLessThanMax() throws Exception {
+  public void testGetDatabaseConfig_UsesCacheSize_IfLessThanMax() {
     assertCacheSize(100, MAX_CACHE_SIZE_KILOBYTES * 1024 - 1, MAX_CACHE_SIZE_KILOBYTES - 1);
   }
 
   @Test
-  public void testGetDatabaseConfig_UsesCacheSize_IfEqualToMax() throws Exception {
+  public void testGetDatabaseConfig_UsesCacheSize_IfEqualToMax() {
     assertCacheSize(100, MAX_CACHE_SIZE_KILOBYTES * 1024, MAX_CACHE_SIZE_KILOBYTES);
   }
 
   @Test
-  public void testGetDatabaseConfig_UsesMaxCacheSize_IfCacheSizeGreaterThanMax() throws Exception {
+  public void testGetDatabaseConfig_UsesMaxCacheSize_IfCacheSizeGreaterThanMax() {
     assertCacheSize(100, MAX_CACHE_SIZE_KILOBYTES * 1024 + 1, MAX_CACHE_SIZE_KILOBYTES);
   }
 

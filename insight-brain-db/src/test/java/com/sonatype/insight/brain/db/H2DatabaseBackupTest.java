@@ -6,9 +6,9 @@
 package com.sonatype.insight.brain.db;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -60,7 +60,7 @@ public class H2DatabaseBackupTest
   }
 
   private byte[] getFileContent(File file) throws IOException {
-    try (InputStream is = new FileInputStream(file)) {
+    try (InputStream is = Files.newInputStream(file.toPath())) {
       return IOUtil.toByteArray(is);
     }
   }

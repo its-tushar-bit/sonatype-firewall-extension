@@ -63,19 +63,19 @@ public class ProductLicenseServiceAuthzTest
   }
 
   @Test
-  public void testUninstallLicense_Authorized() throws Exception {
+  public void testUninstallLicense_Authorized() {
     grantConfigureSystemPermission();
     productLicenseService.uninstallLicense();
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testUninstallLicense_Unauthorized() throws Exception {
+  public void testUninstallLicense_Unauthorized() {
     login();
     productLicenseService.uninstallLicense();
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testUninstallLicense_Unauthenticated() throws Exception {
+  public void testUninstallLicense_Unauthenticated() {
     productLicenseService.uninstallLicense();
   }
 

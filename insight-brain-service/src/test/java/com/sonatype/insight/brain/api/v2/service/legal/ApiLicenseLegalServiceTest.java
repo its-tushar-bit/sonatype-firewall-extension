@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2.service.legal;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -3067,7 +3066,7 @@ public class ApiLicenseLegalServiceTest
       Files.createDirectories(reportDir);
       Files.write(reportDir.resolve("report.zip"), Collections.singletonList("report.zip"));
       File reportFile = reportDir.resolve("report.zip").toFile();
-      try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(reportFile))) {
+      try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(reportFile.toPath()))) {
         zos.putNextEntry(new ZipEntry("index.html"));
       }
       String[] filenames = {

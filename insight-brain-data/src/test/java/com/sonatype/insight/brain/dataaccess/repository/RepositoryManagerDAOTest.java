@@ -20,7 +20,7 @@ public class RepositoryManagerDAOTest
   private RepositoryManagerDAO dao = new RepositoryManagerDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     RepositoryManager repoManager = tempEntity.newRepositoryManager("RepositoryManagerDAOTest");
     String id = repoManager.getId();
@@ -41,9 +41,8 @@ public class RepositoryManagerDAOTest
 
   @Test
   public void testValidateNullInstanceId_Insert() {
-    assertThatThrownBy(() -> {
-      tempEntity.newRepositoryManager(null);
-    }).isInstanceOf(InvalidRepositoryManagerException.class)
+    assertThatThrownBy(() -> tempEntity.newRepositoryManager(null))
+        .isInstanceOf(InvalidRepositoryManagerException.class)
         .hasMessage("The repository manager instance ID cannot be null or empty.");
   }
 
@@ -51,17 +50,14 @@ public class RepositoryManagerDAOTest
   public void testValidateNullInstanceId_Update() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     repoManager.setInstanceId(null);
-    assertThatThrownBy(() -> {
-      dao.update(repoManager);
-    }).isInstanceOf(InvalidRepositoryManagerException.class)
+    assertThatThrownBy(() -> dao.update(repoManager)).isInstanceOf(InvalidRepositoryManagerException.class)
         .hasMessage("The repository manager instance ID cannot be null or empty.");
   }
 
   @Test
   public void testValidateEmptyInstanceId_Insert() {
-    assertThatThrownBy(() -> {
-      tempEntity.newRepositoryManager(" ");
-    }).isInstanceOf(InvalidRepositoryManagerException.class)
+    assertThatThrownBy(() -> tempEntity.newRepositoryManager(" "))
+        .isInstanceOf(InvalidRepositoryManagerException.class)
         .hasMessage("The repository manager instance ID cannot be null or empty.");
   }
 
@@ -69,9 +65,8 @@ public class RepositoryManagerDAOTest
   public void testValidateEmptyInstanceId_Update() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     repoManager.setInstanceId(" ");
-    assertThatThrownBy(() -> {
-      dao.update(repoManager);
-    }).isInstanceOf(InvalidRepositoryManagerException.class)
+    assertThatThrownBy(() -> dao.update(repoManager))
+        .isInstanceOf(InvalidRepositoryManagerException.class)
         .hasMessage("The repository manager instance ID cannot be null or empty.");
   }
 
@@ -79,9 +74,8 @@ public class RepositoryManagerDAOTest
   public void testDuplicateInstanceId_Insert() {
     tempEntity.newRepositoryManager("MyInstanceId");
 
-    assertThatThrownBy(() -> {
-      tempEntity.newRepositoryManager("MyInstanceId");
-    }).isInstanceOf(InvalidRepositoryManagerException.class)
+    assertThatThrownBy(() -> tempEntity.newRepositoryManager("MyInstanceId"))
+        .isInstanceOf(InvalidRepositoryManagerException.class)
         .hasMessage("There is already a repository manager with instance ID MyInstanceId.");
   }
 
@@ -91,9 +85,7 @@ public class RepositoryManagerDAOTest
     RepositoryManager repoManager = tempEntity.newRepositoryManager("MyInstanceId2");
     repoManager.setInstanceId("MyInstanceId1");
 
-    assertThatThrownBy(() -> {
-      dao.update(repoManager);
-    }).isInstanceOf(InvalidRepositoryManagerException.class)
+    assertThatThrownBy(() -> dao.update(repoManager)).isInstanceOf(InvalidRepositoryManagerException.class)
         .hasMessage("There is already a repository manager with instance ID MyInstanceId1.");
   }
 

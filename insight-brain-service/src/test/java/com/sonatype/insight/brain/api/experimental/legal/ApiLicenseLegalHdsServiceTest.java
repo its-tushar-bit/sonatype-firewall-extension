@@ -416,12 +416,12 @@ public class ApiLicenseLegalHdsServiceTest
     ComponentIdentifier component1 = ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version");
     ComponentSourceLinkDTO componentSourceLink1 = new ComponentSourceLinkDTO();
     componentSourceLink1.setComponentIdentifier(component1);
-    componentSourceLink1.setSourceLinks(Arrays.asList("www.sltest.net"));
+    componentSourceLink1.setSourceLinks(Collections.singletonList("www.sltest.net"));
     Set<ComponentSourceLinkDTO> expectedComponentSourceLinkDTO =
         new LinkedHashSet<>(Collections.singletonList(componentSourceLink1));
 
     when(mockHdsClient.post(ComponentSourceLinkDTO[].class, ApiLicenseLegalHdsService.SOURCE_LINK_URL,
-        Arrays.asList(component1)))
+        Collections.singletonList(component1)))
         .thenReturn(expectedComponentSourceLinkDTO.toArray(new ComponentSourceLinkDTO[1]));
 
     Map<ComponentIdentifier, Set<LegalSourceLinkDTO>> results =

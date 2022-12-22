@@ -334,9 +334,9 @@ public class LicenseConditionTypeTest
   @Test
   public void testValidateCondition_InvalidLicenseId() {
     Condition condition = new Condition(LicenseConditionType.ID, "is", "abc");
-    assertThatThrownBy(() -> {
-      new LicenseConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Invalid license id: abc");
+    assertThatThrownBy(() -> new LicenseConditionType().validateCondition(null, condition, null /* applicationId */))
+        .isInstanceOf(InvalidConditionException.class)
+        .hasMessageEndingWith("Invalid license id: abc");
   }
 
   @Test

@@ -24,7 +24,7 @@ public class DashboardFilterDAOTest
     extends AbstractDbDAOTest
 {
   private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
-  
+
   @Test
   public void testCRUD() {
     // Add filter
@@ -136,17 +136,15 @@ public class DashboardFilterDAOTest
   @Test
   public void testValidateNullName_Insert() {
     DashboardFilter dashboardFilter = new DashboardFilter("testUsername", "testRealmId", null);
-    assertThatThrownBy(() -> {
-      dashboardFilterDAO.insert(dashboardFilter);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> dashboardFilterDAO.insert(dashboardFilter)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateNullName_Update() {
     DashboardFilter dashboardFilter = new DashboardFilter("testUsername", "testRealmId", null);
-    assertThatThrownBy(() -> {
-      dashboardFilterDAO.update(dashboardFilter);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
@@ -178,9 +176,8 @@ public class DashboardFilterDAOTest
   public void testValidateNameInvalidChars_Insert() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       DashboardFilter dashboardFilter = new DashboardFilter("testUsername", "testRealmId", name);
-      assertThatThrownBy(() -> {
-        dashboardFilterDAO.insert(dashboardFilter);
-      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
+      assertThatThrownBy(() -> dashboardFilterDAO.insert(dashboardFilter)).isInstanceOf(InvalidNameException.class)
+          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -191,9 +188,8 @@ public class DashboardFilterDAOTest
         tempEntity.newDashboardFilter(username, "testRealmId", "test 1", "testFilterString 1");
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       dashboardFilter.setName(name);
-      assertThatThrownBy(() -> {
-        dashboardFilterDAO.update(dashboardFilter);
-      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
+      assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(InvalidNameException.class)
+          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -219,9 +215,9 @@ public class DashboardFilterDAOTest
   public void testValidateNameSpaces_Insert() {
     String username = "test123";
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      assertThatThrownBy(() -> {
-        tempEntity.newDashboardFilter(username, "testRealmId", name, "testFilterString 1");
-      }).isInstanceOf(InvalidNameException.class)
+      assertThatThrownBy(
+          () -> tempEntity.newDashboardFilter(username, "testRealmId", name, "testFilterString 1")).isInstanceOf(
+              InvalidNameException.class)
           .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
@@ -233,9 +229,7 @@ public class DashboardFilterDAOTest
         tempEntity.newDashboardFilter(username, "testRealmId", "sample filter", "testFilterString 1111");
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       dashboardFilter.setName(name);
-      assertThatThrownBy(() -> {
-        dashboardFilterDAO.update(dashboardFilter);
-      }).isInstanceOf(InvalidNameException.class)
+      assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(InvalidNameException.class)
           .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
@@ -254,23 +248,23 @@ public class DashboardFilterDAOTest
     assertThat(actual).isNotNull();
     assertThat(actual.getId()).isEqualTo(dashboardFilter.getId());
   }
-  
+
   @Test
   public void testDuplicateName_Insert() {
     String username = "test123";
     tempEntity.newDashboardFilter(username, "testRealmId", "Filter12345", "testFilterString 1111");
-    assertThatThrownBy(() -> {
-      tempEntity.newDashboardFilter(username, "testRealmId", "FILTER 12345", "testFilterString 1111");
-    }).isInstanceOf(BadRequestException.class).hasMessage("FILTER 12345 is already used as a name.");
+    assertThatThrownBy(() -> tempEntity.newDashboardFilter(username, "testRealmId", "FILTER 12345",
+        "testFilterString 1111")).isInstanceOf(BadRequestException.class)
+        .hasMessage("FILTER 12345 is already used as a name.");
   }
 
   @Test
   public void testDuplicateName_Insert_LegacyFilter() {
     String username = "test123";
     tempEntity.newDashboardFilterLegacy(username, "Filter12345", "testFilterString 1111");
-    assertThatThrownBy(() -> {
-      tempEntity.newDashboardFilter(username, "testRealmId", "FILTER 12345", "testFilterString 1111");
-    }).isInstanceOf(BadRequestException.class).hasMessage("FILTER 12345 is already used as a name.");
+    assertThatThrownBy(() -> tempEntity.newDashboardFilter(username, "testRealmId", "FILTER 12345",
+        "testFilterString 1111")).isInstanceOf(BadRequestException.class)
+        .hasMessage("FILTER 12345 is already used as a name.");
   }
 
   @Test
@@ -280,9 +274,8 @@ public class DashboardFilterDAOTest
     DashboardFilter dashboardFilter =
         tempEntity.newDashboardFilter(username, "testRealmId", "Filter 0123", "testFilterString 1111");
     dashboardFilter.setName("FILTER 12345");
-    assertThatThrownBy(() -> {
-      dashboardFilterDAO.update(dashboardFilter);
-    }).isInstanceOf(BadRequestException.class).hasMessage("FILTER 12345 is already used as a name.");
+    assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("FILTER 12345 is already used as a name.");
   }
 
   @Test
@@ -292,18 +285,17 @@ public class DashboardFilterDAOTest
     DashboardFilter dashboardFilter =
         tempEntity.newDashboardFilter(username, "testRealmId", "Filter 0123", "testFilterString 1111");
     dashboardFilter.setName("FILTER 12345");
-    assertThatThrownBy(() -> {
-      dashboardFilterDAO.update(dashboardFilter);
-    }).isInstanceOf(BadRequestException.class).hasMessage("FILTER 12345 is already used as a name.");
+    assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("FILTER 12345 is already used as a name.");
   }
 
   @Test
   public void testValidateNameLength_Insert() {
     String username = "test123";
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    assertThatThrownBy(() -> {
-      tempEntity.newDashboardFilter(username, "testRealmId", name + "a", "testFilterString 1111");
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
+    assertThatThrownBy(
+        () -> tempEntity.newDashboardFilter(username, "testRealmId", name + "a", "testFilterString 1111")).isInstanceOf(
+        InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
     tempEntity.newDashboardFilter(username, "testRealmId", name, "testFilterString 1111");
   }
 
@@ -314,9 +306,8 @@ public class DashboardFilterDAOTest
     DashboardFilter dashboardFilter =
         tempEntity.newDashboardFilter(username, "testRealmId", "valid name", "testFilterString 1111");
     dashboardFilter.setName(name + "a");
-    assertThatThrownBy(() -> {
-      dashboardFilterDAO.update(dashboardFilter);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
+    assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name must be 60 characters or less.");
     dashboardFilter.setName(name);
     dashboardFilterDAO.update(dashboardFilter);
   }
@@ -325,9 +316,8 @@ public class DashboardFilterDAOTest
   public void testValidate_insertNamedFilterBasedOnAnother() {
     DashboardFilter dashboardFilter = new DashboardFilter("testUsername", "testRealmId", "valid name");
     dashboardFilter.setBasedOnFilterName("any non-null value");
-    assertThatThrownBy(() -> {
-      dashboardFilterDAO.insert(dashboardFilter);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Only the active filter can be based on another filter.");
+    assertThatThrownBy(() -> dashboardFilterDAO.insert(dashboardFilter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Only the active filter can be based on another filter.");
   }
 
   @Test
@@ -347,9 +337,8 @@ public class DashboardFilterDAOTest
         tempEntity.newDashboardFilter("test user", "testRealmId", "valid name", "originalFilter");
     dashboardFilter.setFilter("updatedFilter");
     dashboardFilter.setBasedOnFilterName("any non-null value");
-    assertThatThrownBy(() -> {
-      dashboardFilterDAO.update(dashboardFilter);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Only the active filter can be based on another filter.");
+    assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Only the active filter can be based on another filter.");
   }
 
   @Test
@@ -475,16 +464,14 @@ public class DashboardFilterDAOTest
 
   @Test
   public void testInsert_RealmIdNull() {
-    assertThatThrownBy(() -> {
-      tempEntity.newDashboardFilter("testUsername", null /* realmId */, "testFilterName", "testFilterString");
-    }).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+    assertThatThrownBy(() -> tempEntity.newDashboardFilter("testUsername", null /* realmId */, "testFilterName",
+        "testFilterString")).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
   }
 
   @Test
   public void testInsert_RealmIdWhitespace() {
-    assertThatThrownBy(() -> {
-      tempEntity.newDashboardFilter("testUsername", " " /* realmId */, "testFilterName", "testFilterString");
-    }).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+    assertThatThrownBy(() -> tempEntity.newDashboardFilter("testUsername", " " /* realmId */, "testFilterName",
+        "testFilterString")).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
   }
 
   @Test
@@ -493,9 +480,8 @@ public class DashboardFilterDAOTest
         tempEntity.newDashboardFilter("testUsername", "testRealmId", "testFilterName", "testFilterString");
 
     dashboardFilter.setRealmId(null);
-    assertThatThrownBy(() -> {
-      dashboardFilterDAO.update(dashboardFilter);
-    }).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+    assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("The realm ID is required.");
   }
 
   @Test
@@ -504,9 +490,8 @@ public class DashboardFilterDAOTest
         tempEntity.newDashboardFilter("testUsername", "testRealmId", "testFilterName", "testFilterString");
 
     dashboardFilter.setRealmId(" ");
-    assertThatThrownBy(() -> {
-      dashboardFilterDAO.update(dashboardFilter);
-    }).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+    assertThatThrownBy(() -> dashboardFilterDAO.update(dashboardFilter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("The realm ID is required.");
   }
 
   private void assertFilter(DashboardFilter actualFilter, DashboardFilter expectedFilter) {

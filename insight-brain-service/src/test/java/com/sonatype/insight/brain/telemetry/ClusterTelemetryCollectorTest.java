@@ -46,7 +46,7 @@ public class ClusterTelemetryCollectorTest
   }
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     taskScheduler.createScheduler();
   }
 
@@ -57,7 +57,7 @@ public class ClusterTelemetryCollectorTest
   }
 
   @Test
-  public void testCollectData_TelemetryPurpose() throws Exception {
+  public void testCollectData_TelemetryPurpose() {
     Mockito.when(productLicense.hasFeature(LicensedFeature.NODE_CLUSTERING)).thenReturn(true);
     TelemetryData telemetryData = collector.collectData();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.CLUSTER_USAGE);

@@ -98,18 +98,16 @@ public class MailConfigurationDAOTest
   private void testInsert_ValidateHostname(String hostname) {
     MailConfiguration config = newValidConfiguration();
     config.setHostname(hostname);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.insert(config);
-    }).withMessageContaining("host is required");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(config))
+        .withMessageContaining("host is required");
   }
 
   @Test
   public void testInsert_ValidatePort_LowerBound() {
     MailConfiguration config = newValidConfiguration();
     config.setPort(0);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.insert(config);
-    }).withMessageContaining("port must be from the range 1 - 65535");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(config))
+        .withMessageContaining("port must be from the range 1 - 65535");
 
     config.setPort(1);
     dao.insert(config);
@@ -119,9 +117,8 @@ public class MailConfigurationDAOTest
   public void testInsert_ValidatePort_UpperBound() {
     MailConfiguration config = newValidConfiguration();
     config.setPort(65536);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.insert(config);
-    }).withMessageContaining("port must be from the range 1 - 65535");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(config))
+        .withMessageContaining("port must be from the range 1 - 65535");
 
     config.setPort(65535);
     dao.insert(config);
@@ -145,18 +142,16 @@ public class MailConfigurationDAOTest
   private void testInsert_ValidateSystemEmail(String systemEmail) {
     MailConfiguration config = newValidConfiguration();
     config.setSystemEmail(systemEmail);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.insert(config);
-    }).withMessageContaining("system email address is required");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(config))
+        .withMessageContaining("system email address is required");
   }
 
   @Test
   public void testInsert_Validate_SystemEmail_Malformed() {
     MailConfiguration config = newValidConfiguration();
     config.setSystemEmail("malformed address");
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.insert(config);
-    }).withMessageContaining("system email address is malformed");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(config))
+        .withMessageContaining("system email address is malformed");
   }
 
   @Test
@@ -178,9 +173,8 @@ public class MailConfigurationDAOTest
     MailConfiguration config = newValidConfiguration();
     dao.insert(config);
     config.setHostname(hostname);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.update(config);
-    }).withMessageContaining("host is required");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(config))
+        .withMessageContaining("host is required");
   }
 
   @Test
@@ -188,9 +182,8 @@ public class MailConfigurationDAOTest
     MailConfiguration config = newValidConfiguration();
     dao.insert(config);
     config.setPort(0);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.update(config);
-    }).withMessageContaining("port must be from the range 1 - 65535");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(config))
+        .withMessageContaining("port must be from the range 1 - 65535");
 
     config.setPort(1);
     dao.update(config);
@@ -201,9 +194,8 @@ public class MailConfigurationDAOTest
     MailConfiguration config = newValidConfiguration();
     dao.insert(config);
     config.setPort(65536);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.update(config);
-    }).withMessageContaining("port must be from the range 1 - 65535");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(config))
+        .withMessageContaining("port must be from the range 1 - 65535");
 
     config.setPort(65535);
     dao.update(config);
@@ -233,24 +225,21 @@ public class MailConfigurationDAOTest
     MailConfiguration config = newValidConfiguration();
     dao.insert(config);
     config.setSystemEmail(systemEmail);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dao.update(config);
-    }).withMessageContaining(errMessage);
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.update(config))
+        .withMessageContaining(errMessage);
   }
 
   @Test
   public void testInsert_EnforceSingleton() {
     dao.insert(newValidConfiguration());
 
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(newValidConfiguration());
-    }).withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(newValidConfiguration()))
+        .withCauseInstanceOf(EntityExistsException.class);
 
     MailConfiguration config = newValidConfiguration();
     config.setId("not-singleton-id");
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(config);
-    }).withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(config))
+        .withCauseInstanceOf(EntityExistsException.class);
   }
 
   @Test

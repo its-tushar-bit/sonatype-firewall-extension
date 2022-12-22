@@ -84,7 +84,7 @@ public class SystemNoticeConfigurationTest
     systemNoticeConfigurationPage.explanation().shouldNotBe(empty);
   }
 
-  private void cannotUpdateWithoutChanges() throws Exception {
+  private void cannotUpdateWithoutChanges() {
     init();
     systemNoticeConfigurationPage.update().shouldHave(CLM.DISABLED);
     elementDisabled_WhenTextReverted(systemNoticeConfigurationPage.update(), CLM.DISABLED);
@@ -92,7 +92,7 @@ public class SystemNoticeConfigurationTest
     elementDisabled_WhenTextAndDisplayReverted(systemNoticeConfigurationPage.update(), CLM.DISABLED);
   }
 
-  private void cannotCancelWithoutChanges() throws Exception {
+  private void cannotCancelWithoutChanges() {
     init();
     systemNoticeConfigurationPage.cancel().shouldHave(attribute("disabled"));
     elementDisabled_WhenTextReverted(systemNoticeConfigurationPage.cancel(), attribute("disabled"));
@@ -100,7 +100,7 @@ public class SystemNoticeConfigurationTest
     elementDisabled_WhenTextAndDisplayReverted(systemNoticeConfigurationPage.cancel(), attribute("disabled"));
   }
 
-  private void noChangesToUpdateTooltipShowsWithoutChanges() throws Exception {
+  private void noChangesToUpdateTooltipShowsWithoutChanges() {
     init();
     systemNoticeConfigurationPage.update().hover();
     systemNoticeConfigurationPage.tooltipShowing(SystemNoticeConfigurationPage.NOT_DIRTY_FORM);
@@ -116,7 +116,7 @@ public class SystemNoticeConfigurationTest
     systemNoticeConfigurationPage.tooltipShowing(SystemNoticeConfigurationPage.NOT_DIRTY_FORM);
   }
 
-  private void noticeTextEmptyMessageTooltipShows() throws Exception {
+  private void noticeTextEmptyMessageTooltipShows() {
     init();
     systemNoticeConfigurationPage.setDisplay(true);
     systemNoticeConfigurationPage.setText(" ");
@@ -132,21 +132,21 @@ public class SystemNoticeConfigurationTest
     systemNoticeConfigurationPage.cancel().click();
   }
 
-  private void clickCancel_RevertsText() throws Exception {
+  private void clickCancel_RevertsText() {
     init();
     systemNoticeConfigurationPage.setText(text + " updated");
     systemNoticeConfigurationPage.cancel().click();
     systemNoticeConfigurationPage.textMatches(text);
   }
 
-  private void clickCancel_RevertsDisplay() throws Exception {
+  private void clickCancel_RevertsDisplay() {
     init();
     systemNoticeConfigurationPage.toggleDisplay();
     systemNoticeConfigurationPage.cancel().click();
     systemNoticeConfigurationPage.displayMatches(display);
   }
 
-  private void clickCancel_RevertsTextAndDisplay() throws Exception {
+  private void clickCancel_RevertsTextAndDisplay() {
     init();
     systemNoticeConfigurationPage.setTextAndToggleDisplay(text + " updated");
     systemNoticeConfigurationPage.cancel().click();
@@ -154,7 +154,7 @@ public class SystemNoticeConfigurationTest
     systemNoticeConfigurationPage.displayMatches(display);
   }
 
-  private void systemNotice_InitiallyMatchesConfiguration() throws Exception {
+  private void systemNotice_InitiallyMatchesConfiguration() {
     init();
     systemNoticeMatchesConfiguration();
 
@@ -167,7 +167,7 @@ public class SystemNoticeConfigurationTest
     systemNoticeMatchesConfiguration();
   }
 
-  private void clickUpdate_UpdatesSystemNoticeDisplay() throws Exception {
+  private void clickUpdate_UpdatesSystemNoticeDisplay() {
     init();
     systemNoticeConfigurationPage.toggleDisplayAndUpdate();
     systemNoticeMatchesConfiguration();
@@ -176,7 +176,7 @@ public class SystemNoticeConfigurationTest
     systemNoticeMatchesConfiguration();
   }
 
-  private void clickUpdate_UpdatesSystemNoticeText() throws Exception {
+  private void clickUpdate_UpdatesSystemNoticeText() {
     init();
     systemNoticeConfigurationPage.setDisplayAndUpdate(true);
     systemNoticeConfigurationPage.setTextAndUpdate(text + " updated");
@@ -188,7 +188,7 @@ public class SystemNoticeConfigurationTest
     systemNoticeMatchesConfiguration();
   }
 
-  private void clickUpdate_UpdatesSystemNoticeTextAndDisplay() throws Exception {
+  private void clickUpdate_UpdatesSystemNoticeTextAndDisplay() {
     init();
     systemNoticeConfigurationPage.setDisplayAndUpdate(true);
     systemNoticeConfigurationPage.setTextAndDisplayAndUpdate(text + " updated", false);
@@ -198,7 +198,7 @@ public class SystemNoticeConfigurationTest
     systemNoticeMatchesConfiguration();
   }
 
-  private void cannotEnterMoreThan500Characters() throws Exception {
+  private void cannotEnterMoreThan500Characters() {
     init();
     final String fiveHundredCharacters = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"

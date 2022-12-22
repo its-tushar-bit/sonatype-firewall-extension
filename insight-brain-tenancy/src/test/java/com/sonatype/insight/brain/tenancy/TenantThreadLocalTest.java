@@ -50,7 +50,7 @@ public class TenantThreadLocalTest
   }
 
   @Test
-  public void shouldAlwaysAllowRunAsGlobalTenant() throws Exception {
+  public void shouldAlwaysAllowRunAsGlobalTenant() {
     Tenant tenant1 = new Tenant("tenant1");
     TenantThreadLocal.setTenant(tenant1);
 

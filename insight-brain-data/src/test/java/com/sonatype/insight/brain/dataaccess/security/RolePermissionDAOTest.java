@@ -27,7 +27,7 @@ public class RolePermissionDAOTest
   private RoleDAO roleDAO = new RoleDAO();
 
   @Test
-  public void testSystemAdminRoleHasConfigureSystemPermissions() throws Exception {
+  public void testSystemAdminRoleHasConfigureSystemPermissions() {
     Role role = roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID);
     assertThat(role).isNotNull();
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
@@ -35,7 +35,7 @@ public class RolePermissionDAOTest
   }
 
   @Test
-  public void testPolicyAdminRoleHasIqPermissions() throws Exception {
+  public void testPolicyAdminRoleHasIqPermissions() {
     Role role = roleDAO.getById(Role.POLICY_ADMIN_ROLE_ID);
     assertThat(role).isNotNull();
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
@@ -48,7 +48,7 @@ public class RolePermissionDAOTest
   }
 
   @Test
-  public void testOwnerRoleHasExpectedPermissions() throws Exception {
+  public void testOwnerRoleHasExpectedPermissions() {
     Role role = roleDAO.getByName("Owner");
     assertThat(role).isNotNull();
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
@@ -59,7 +59,7 @@ public class RolePermissionDAOTest
   }
 
   @Test
-  public void testDeveloperRoleHasExpectedPermissions() throws Exception {
+  public void testDeveloperRoleHasExpectedPermissions() {
     Role role = roleDAO.getByName("Developer");
     assertThat(role).isNotNull();
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
@@ -67,7 +67,7 @@ public class RolePermissionDAOTest
   }
 
   @Test
-  public void testLegalReviewerRoleHasExpectedPermissions() throws Exception {
+  public void testLegalReviewerRoleHasExpectedPermissions() {
     Role role = roleDAO.getById(Role.LEGAL_REVIEWER_ROLE_ID);
     assertThat(role).isNotNull();
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
@@ -76,7 +76,7 @@ public class RolePermissionDAOTest
   }
 
   @Test
-  public void testGetRoleIdsByPermission() throws Exception {
+  public void testGetRoleIdsByPermission() {
     String roleId = tempEntity.newRole("testing", false /* global */).getId();
     for (Permission perm : Permission.values()) {
       assertThat(permDAO.getRoleIdsByPermission(perm)).doesNotContain(roleId);
@@ -103,17 +103,15 @@ public class RolePermissionDAOTest
   public void testUpdateNotSupported() {
     RolePermission rolePerm = permDAO.getByRoleId(tempEntity.newRole(false, Permission.WRITE).getId()).get(0);
     rolePerm.setPermission(Permission.READ);
-    assertThatThrownBy(() -> {
-      permDAO.update(rolePerm);
-    }).isInstanceOf(UnsupportedOperationException.class);
+    assertThatThrownBy(() -> permDAO.update(rolePerm)).isInstanceOf(UnsupportedOperationException.class);
   }
 
   @Test
   public void testSetPermissionsForRole_BuiltInRolesAreReadOnly() {
     Role role = roleDAO.getById(Role.SYSTEM_ADMIN_ROLE_ID);
-    assertThatThrownBy(() -> {
-      permDAO.setPermissionsForRole(role.getId(), EnumSet.of(Permission.CONFIGURE_SYSTEM));
-    }).isInstanceOf(BadRequestException.class)
+    assertThatThrownBy(
+        () -> permDAO.setPermissionsForRole(role.getId(), EnumSet.of(Permission.CONFIGURE_SYSTEM)))
+        .isInstanceOf(BadRequestException.class)
         .hasMessage("Cannot change permissions for built-in role '" + role.getName() + "'");
     assertThat(permDAO.getPermissionsForRole(role.getId())).hasSize(2);
   }
@@ -122,9 +120,10 @@ public class RolePermissionDAOTest
   public void testSetPermissionsForRole_CustomRolesCannotGetCertainPermissions() {
     Role role = tempEntity.newRole("Tester", false);
     assertThat(Permission.CONFIGURE_SYSTEM.isAllowedInCustomRoles()).isFalse();
-    assertThatThrownBy(() -> {
-      permDAO.setPermissionsForRole(role.getId(), EnumSet.of(Permission.CONFIGURE_SYSTEM));
-    }).isInstanceOf(BadRequestException.class).hasMessage(
+    assertThatThrownBy(
+        () -> permDAO.setPermissionsForRole(role.getId(), EnumSet.of(Permission.CONFIGURE_SYSTEM)))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage(
         "Cannot assign permission '" + Permission.CONFIGURE_SYSTEM + "' to custom role '" + role.getName() + "'");
     assertThat(permDAO.getPermissionsForRole(role.getId())).isEmpty();
   }

@@ -54,7 +54,7 @@ public class ResetAdminCommandAuditTest
   }
 
   @Test
-  public void testRun_Exception() throws Exception {
+  public void testRun_Exception() {
     assertThatExceptionOfType(Exception.class).isThrownBy(() -> new ResetAdminCommand().run(null, null, null));
     assertAuditLog(AuditEvent.RESET_USER_PASSWORD, "server-error", SYSTEM_USER);
   }

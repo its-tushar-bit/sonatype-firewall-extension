@@ -50,9 +50,7 @@ public class CloudPolicyEvaluatorTest
 
     CloudParameters parameters = defaultValidParameters("--waivers", "bla");
 
-    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> {
-      evaluator.run(parameters);
-    });
+    assertThatExceptionOfType(ExitException.class).isThrownBy(() -> evaluator.run(parameters));
 
     assertThat(cloudLogOutput).atErrorLevel().contains(
         "The waiver input is invalid JSON for waiving: Unrecognized token 'bla':" +

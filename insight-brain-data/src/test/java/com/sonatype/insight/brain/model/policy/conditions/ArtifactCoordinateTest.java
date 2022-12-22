@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ArtifactCoordinateTest
 {
   @Test
-  public void testSimple() throws Exception {
+  public void testSimple() {
     // one fixed coord
     ArtifactCoordinate coordF1 = new ArtifactCoordinate(ComponentIdentifier.createMavenCoordinates("org.group",
         "artifact", "1.0"));
@@ -112,7 +112,7 @@ public class ArtifactCoordinateTest
   }
 
   @Test
-  public void testMatches_EmptyClassifierCoordinate_DoesMatch_EmptyClassifierValue() throws Exception {
+  public void testMatches_EmptyClassifierCoordinate_DoesMatch_EmptyClassifierValue() {
     ArtifactCoordinate coordinateWithEmptyClassifier = new ArtifactCoordinate(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"));
     ComponentIdentifier valueWithEmptyClassifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e");
@@ -120,7 +120,7 @@ public class ArtifactCoordinateTest
   }
 
   @Test
-  public void testMatches_EmptyClassifierCoordinate_DoesNotMatch_NonEmptyClassifierValue() throws Exception {
+  public void testMatches_EmptyClassifierCoordinate_DoesNotMatch_NonEmptyClassifierValue() {
     ArtifactCoordinate coordinateWithEmptyClassifier = new ArtifactCoordinate(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "e"));
     ComponentIdentifier valueWithClassifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
@@ -128,7 +128,7 @@ public class ArtifactCoordinateTest
   }
 
   @Test
-  public void testMatches_WildcardCoordinate_DoesMatch_EmptyClassifierValue() throws Exception {
+  public void testMatches_WildcardCoordinate_DoesMatch_EmptyClassifierValue() {
     ArtifactCoordinate coordinateWithWildcardClassifier = new ArtifactCoordinate(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v", "*", "e"));
     ComponentIdentifier valueWithEmptyClassifier = ComponentIdentifier
@@ -137,7 +137,7 @@ public class ArtifactCoordinateTest
   }
 
   @Test
-  public void testMatches_NonEmptyCoordinate_DoesNotMatch_EmptyClassifierValue() throws Exception {
+  public void testMatches_NonEmptyCoordinate_DoesNotMatch_EmptyClassifierValue() {
     ArtifactCoordinate coordinate = new ArtifactCoordinate(
         ComponentIdentifier.createMavenCoordinates("org.apache.commons", "commons-lang3", "3.5", "sources", "jar"));
     ComponentIdentifier valueWithEmptyClassifier = ComponentIdentifier
@@ -146,7 +146,7 @@ public class ArtifactCoordinateTest
   }
 
   @Test
-  public void testMatches_ValueWithNull_DoesNotThrowNullPointerException() throws Exception {
+  public void testMatches_ValueWithNull_DoesNotThrowNullPointerException() {
     ArtifactCoordinate mavenCoordinate = new ArtifactCoordinate(
         ComponentIdentifier.createMavenCoordinates("g*", "a*", "v*", "c*", "e*"));
     ComponentIdentifier mavenValueWithNullGroupId = ComponentIdentifier

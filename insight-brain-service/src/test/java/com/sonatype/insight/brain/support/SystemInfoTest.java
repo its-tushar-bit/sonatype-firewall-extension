@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.support;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -14,6 +13,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileStore;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -186,7 +186,7 @@ public class SystemInfoTest
     assertThat(configYml.exists()).isTrue();
 
     final String obfuscatedYaml;
-    try (final InputStream reader = new FileInputStream(configYml)) {
+    try (final InputStream reader = Files.newInputStream(configYml.toPath())) {
       obfuscatedYaml = systemInfo.getObfuscatedYaml(reader);
     }
     final Map<String, Object> obufscatedMap = (Map<String, Object>) new Yaml().load(obfuscatedYaml);
@@ -237,7 +237,7 @@ public class SystemInfoTest
     String configYmlContent = FileUtils.readFileToString(configYml, StandardCharsets.UTF_8).replaceAll("\r\n", "\n");
 
     String obfuscatedYaml;
-    try (final InputStream reader = new FileInputStream(configYml)) {
+    try (final InputStream reader = Files.newInputStream(configYml.toPath())) {
       obfuscatedYaml = systemInfo.getObfuscatedYaml(reader).replaceAll("\r\n", "\n");
     }
     assertThat(obfuscatedYaml).isEqualTo(configYmlContent);

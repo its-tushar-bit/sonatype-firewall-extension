@@ -98,8 +98,8 @@ public class IdentificationSourceConditionTypeTest
   @Test
   public void testValidateCondition_InvalidValue() {
     Condition condition = new Condition(IdentificationSourceConditionType.ID, "is", "abc");
-    assertThatThrownBy(() -> {
-      new IdentificationSourceConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
+    assertThatThrownBy(
+        () -> new IdentificationSourceConditionType().validateCondition(null, condition, null /* applicationId */))
+        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
   }
 }

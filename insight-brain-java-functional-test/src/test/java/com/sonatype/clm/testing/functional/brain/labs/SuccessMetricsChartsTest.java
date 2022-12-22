@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain.labs;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.function.Predicate;
@@ -178,7 +179,7 @@ public class SuccessMetricsChartsTest
     fixViolations(app3Eval2, null);
 
     SuccessMetricsReportScopeDTO successMetricsScope = new SuccessMetricsReportScopeDTO();
-    successMetricsScope.organizationIds = new HashSet<>(Arrays.asList(app1.getParentOwnerId()));
+    successMetricsScope.organizationIds = new HashSet<>(Collections.singletonList(app1.getParentOwnerId()));
     successMetricsScope.applicationIds = new HashSet<>(Arrays.asList(app1.getId(), app2.getId()));
 
     // Include app2 using its app id and app1 using its parent org id. Do not include app3.
@@ -586,8 +587,8 @@ public class SuccessMetricsChartsTest
   public void testNonMatchSuccessMetrics() {
     // create a SuccessMetricsReport with only non-existant app and org ids
     SuccessMetricsReportScopeDTO invalidScopeDTO = new SuccessMetricsReportScopeDTO();
-    invalidScopeDTO.applicationIds = new HashSet<>(Arrays.asList("non-existent-app"));
-    invalidScopeDTO.organizationIds = new HashSet<>(Arrays.asList("non-existent-org"));
+    invalidScopeDTO.applicationIds = new HashSet<>(Collections.singletonList("non-existent-app"));
+    invalidScopeDTO.organizationIds = new HashSet<>(Collections.singletonList("non-existent-org"));
     SuccessMetricsReport successMetricsReport = tempEntity.newSuccessMetricsReport("admin", "invalid metrics",
         JsonUtils.format(invalidScopeDTO));
 

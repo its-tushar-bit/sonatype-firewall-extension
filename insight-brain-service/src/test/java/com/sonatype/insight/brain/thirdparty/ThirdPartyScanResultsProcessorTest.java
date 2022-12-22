@@ -6,11 +6,10 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -305,13 +304,13 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   private String contentOf(File gzippedScanFile) throws IOException {
-    return IOUtils.toString(new GZIPInputStream(new FileInputStream(gzippedScanFile)), UTF_8);
+    return IOUtils.toString(new GZIPInputStream(Files.newInputStream(gzippedScanFile.toPath())), UTF_8);
   }
 
   private File getScanXMLFile(File scanFile) throws Exception {
     File output = tempDir.newFile("scan-test.xml");
-    try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile))) {
-      IOUtils.copy(gis, new FileOutputStream(output));
+    try (GZIPInputStream gis = new GZIPInputStream(Files.newInputStream(scanFile.toPath()))) {
+      IOUtils.copy(gis, Files.newOutputStream(output.toPath()));
     }
     return output;
   }
@@ -324,7 +323,7 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   private void assertEmptyItemElement(File scanFile) throws Exception {
-    try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile))) {
+    try (GZIPInputStream gis = new GZIPInputStream(Files.newInputStream(scanFile.toPath()))) {
       XmlPullParser parser = new MXParser();
       parser.setInput(new XmlStreamReader(gis));
 
@@ -366,7 +365,7 @@ public class ThirdPartyScanResultsProcessorTest
     URL resource = getTestResource(fileName);
     // Gzip the Third Party scan file
     File sonatypeScanGzipFile = tempDir.newFile(ScanFileNames.SONATYPE_SCAN_FILENAME);
-    try (GZIPOutputStream gzipStream = new GZIPOutputStream(new FileOutputStream(sonatypeScanGzipFile))) {
+    try (GZIPOutputStream gzipStream = new GZIPOutputStream(Files.newOutputStream(sonatypeScanGzipFile.toPath()))) {
       FileUtils.copyFile(new File(resource.toURI()), gzipStream);
     }
     return sonatypeScanGzipFile;
@@ -382,7 +381,7 @@ public class ThirdPartyScanResultsProcessorTest
       boolean optionalValuesPresent,
       int expectedComponentCount) throws Exception
   {
-    try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile))) {
+    try (GZIPInputStream gis = new GZIPInputStream(Files.newInputStream(scanFile.toPath()))) {
       XmlPullParser parser = new MXParser();
       parser.setInput(new XmlStreamReader(gis));
 

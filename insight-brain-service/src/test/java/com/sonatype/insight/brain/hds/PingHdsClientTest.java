@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.Collections;
 
 import javax.inject.Inject;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -52,12 +51,12 @@ public class PingHdsClientTest
   }
 
   @Test
-  public void testSocketTimeout() throws Exception {
+  public void testSocketTimeout() {
     handler = new AbstractHandler()
     {
       @Override
       public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException
+          throws IOException
       {
         try {
           Thread.sleep(PingHdsClient.SOCKET_TIMEOUT + 1000);

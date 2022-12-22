@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.SearchIndexChange;
@@ -24,9 +24,8 @@ public class SearchIndexChangeDAOTest
 
   @Test
   public void testUpdate() {
-    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
-      dao.update(new SearchIndexChange(ChangeType.APPLICATION, "appId"));
-    });
+    assertThatExceptionOfType(UnsupportedOperationException.class)
+        .isThrownBy(() -> dao.update(new SearchIndexChange(ChangeType.APPLICATION, "appId")));
   }
 
   @Test
@@ -47,6 +46,6 @@ public class SearchIndexChangeDAOTest
 
     SearchIndexChange change = new SearchIndexChange(ChangeType.APPLICATION, "appId");
     dao.insert(change);
-    assertThat(dao.getAll()).usingRecursiveComparison().isEqualTo(Arrays.asList(change));
+    assertThat(dao.getAll()).usingRecursiveComparison().isEqualTo(Collections.singletonList(change));
   }
 }

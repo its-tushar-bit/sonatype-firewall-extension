@@ -141,7 +141,7 @@ public class PackageUrlConditionTypeTest
   }
 
   @Test
-  public void testEvaluate_Maven_MatchGavecNotGavce() throws Exception {
+  public void testEvaluate_Maven_MatchGavecNotGavce() {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + "/g/a@v?type=e&classifier=c");
 
     Component componentGavec = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
@@ -159,7 +159,7 @@ public class PackageUrlConditionTypeTest
   }
 
   @Test
-  public void testEvaluate_Maven_MatchGaveNotGavc() throws Exception {
+  public void testEvaluate_Maven_MatchGaveNotGavc() {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + "/g/a@v?type=e");
 
     Component componentGave = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
@@ -177,7 +177,7 @@ public class PackageUrlConditionTypeTest
   }
 
   @Test
-  public void testEvaluate_Maven_MatchGavAnyExtensionAnyClassifier() throws Exception {
+  public void testEvaluate_Maven_MatchGavAnyExtensionAnyClassifier() {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + "/g/a@v");
 
     Component componentGav3 = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v");
@@ -233,7 +233,7 @@ public class PackageUrlConditionTypeTest
 
   private void testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates(
       final String coordinatesValue,
-      final String expectedConditionMessage) throws Exception
+      final String expectedConditionMessage)
   {
     Policy policy = createPolicy(coordinatesValue);
 
@@ -275,7 +275,7 @@ public class PackageUrlConditionTypeTest
 
   private void testEvaluate_Aname_LegacyConditionsWithEmptyCoordinates(
       final String coordinatesValue,
-      final String expectedConditionMessage) throws Exception
+      final String expectedConditionMessage)
   {
     Policy policy = createPolicy(coordinatesValue);
 
@@ -292,7 +292,7 @@ public class PackageUrlConditionTypeTest
   }
 
   @Test
-  public void testEvaluate_Maven_EmptyClassifier_Matches_EmptyClassifierValue() throws Exception {
+  public void testEvaluate_Maven_EmptyClassifier_Matches_EmptyClassifierValue() {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + "/g/a@v?type=e&classifier=");
 
     Component componentGave = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
@@ -310,7 +310,7 @@ public class PackageUrlConditionTypeTest
   }
 
   @Test
-  public void testEvaluate_Maven_WildcardClassifierCoordinate_Matches_AnyClassifierValue() throws Exception {
+  public void testEvaluate_Maven_WildcardClassifierCoordinate_Matches_AnyClassifierValue() {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + "/g/a@v?type=e&classifier=*");
 
     Component componentGave = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
@@ -755,29 +755,26 @@ public class PackageUrlConditionTypeTest
   @Test
   public void testValidateCondition_NullPackageUrl() {
     Condition condition = new Condition(PackageUrlConditionType.ID, OPERATOR_MATCH, null);
-    assertThatThrownBy(() -> {
-      new PackageUrlConditionType().validateCondition(null, condition, null);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("missing package URL");
+    assertThatThrownBy(() -> new PackageUrlConditionType().validateCondition(null, condition, null))
+        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("missing package URL");
   }
 
   @Test
   public void testValidateCondition_EmptyPackageUrl() {
     Condition condition = new Condition(PackageUrlConditionType.ID, OPERATOR_MATCH, " ");
-    assertThatThrownBy(() -> {
-      new PackageUrlConditionType().validateCondition(null, condition, null);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("missing package URL");
+    assertThatThrownBy(() -> new PackageUrlConditionType().validateCondition(null, condition, null))
+        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("missing package URL");
   }
 
   @Test
   public void testValidateCondition_InvalidPackageUrl() {
     Condition condition = new Condition(PackageUrlConditionType.ID, OPERATOR_MATCH, "invalid");
-    assertThatThrownBy(() -> {
-      new PackageUrlConditionType().validateCondition(null, condition, null);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("invalid package URL");
+    assertThatThrownBy(() -> new PackageUrlConditionType().validateCondition(null, condition, null))
+        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("invalid package URL");
   }
 
   @Test
-  public void testConvertIfNeeded_UnsupportedCoordinateFormat_DoesNotThrowNullPointerException() throws Exception {
+  public void testConvertIfNeeded_UnsupportedCoordinateFormat_DoesNotThrowNullPointerException() {
     new Condition(PackageUrlConditionType.ID, OPERATOR_MATCH, "pkg:unknown/g1/a1@v1").getValue();
   }
 

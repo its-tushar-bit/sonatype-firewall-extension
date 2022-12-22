@@ -52,78 +52,78 @@ public class ConfigurationClientTest
   }
 
   @Test
-  public void testValidateConfiguration_BadContextRoot() throws Exception {
+  public void testValidateConfiguration_BadContextRoot() {
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerUrl(config.getServerUrl() + "/bad");
-    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
-      new ConfigurationClient(config).validateConfiguration();
-    }).withMessage("Resource not found, please check your request URL.")
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> new ConfigurationClient(config).validateConfiguration())
+        .withMessage("Resource not found, please check your request URL.")
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
 
   @Test
-  public void testValidateConfiguration_BadAuth() throws Exception {
+  public void testValidateConfiguration_BadAuth() {
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("bad:auth"));
-    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
-      new ConfigurationClient(config).validateConfiguration();
-    }).withMessage(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> new ConfigurationClient(config).validateConfiguration())
+        .withMessage(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
   }
 
   @Test
-  public void testValidateConfiguration_BadHost() throws Exception {
+  public void testValidateConfiguration_BadHost() {
     NetworkingHelper.assumeDnsResolutionIsNormal();
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerUrl("http://1234.bad.host.1234.com/");
-    assertThatExceptionOfType(IOException.class).isThrownBy(() -> {
-      new ConfigurationClient(config).validateConfiguration();
-    }).withMessageStartingWith("Unknown host:").withMessageContaining("1234.bad.host.1234.com");
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> new ConfigurationClient(config).validateConfiguration())
+        .withMessageStartingWith("Unknown host:")
+        .withMessageContaining("1234.bad.host.1234.com");
   }
 
   @Test
-  public void testValidateConfiguration_BadUrl() throws Exception {
+  public void testValidateConfiguration_BadUrl() {
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerUrl("FFFF");
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      new ConfigurationClient(config).validateConfiguration();
-    }).withMessage("Invalid URL: FFFF");
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> new ConfigurationClient(config).validateConfiguration()).withMessage("Invalid URL: FFFF");
   }
 
   @Test
-  public void testValidateConfiguration_BadPort() throws Exception {
+  public void testValidateConfiguration_BadPort() {
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerUrl("http://localhost:65535/");
-    assertThatExceptionOfType(IOException.class).isThrownBy(() -> {
-      new ConfigurationClient(config).validateConfiguration();
-    }).withMessageMatching("(?i).*Connection.* refused.*");
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> new ConfigurationClient(config).validateConfiguration())
+        .withMessageMatching("(?i).*Connection.* refused.*");
   }
 
   @Test
-  public void testValidateConfiguration_InvalidPort() throws Exception {
+  public void testValidateConfiguration_InvalidPort() {
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerUrl("http://localhost:NaN/");
-    assertThatExceptionOfType(Exception.class).isThrownBy(() -> {
-      new ConfigurationClient(config).validateConfiguration();
-    }).withMessageMatching("(?i).*Illegal .* port.*");
+    assertThatExceptionOfType(Exception.class)
+        .isThrownBy(() -> new ConfigurationClient(config).validateConfiguration())
+        .withMessageMatching("(?i).*Illegal .* port.*");
   }
 
   @Test
-  public void testValidateConfiguration_BadProxyHost() throws Exception {
+  public void testValidateConfiguration_BadProxyHost() {
     NetworkingHelper.assumeDnsResolutionIsNormal();
     Configuration config = getCLMServer().getClientConfiguration();
     config.setProxy("1234.bad.host.1234.com");
-    assertThatExceptionOfType(IOException.class).isThrownBy(() -> {
-      new ConfigurationClient(config).validateConfiguration();
-    }).withMessageStartingWith("Unknown host: 1234.bad.host.1234.com");
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> new ConfigurationClient(config).validateConfiguration())
+        .withMessageStartingWith("Unknown host: 1234.bad.host.1234.com");
   }
 
   @Test
-  public void testValidateConfiguration_BadProxyPort() throws Exception {
+  public void testValidateConfiguration_BadProxyPort() {
     Configuration config = getCLMServer().getClientConfiguration();
     config.setProxy("localhost:65535");
-    assertThatExceptionOfType(IOException.class).isThrownBy(() -> {
-      new ConfigurationClient(config).validateConfiguration();
-    }).withMessageMatching("(?i).*Connection.* refused.*");
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> new ConfigurationClient(config).validateConfiguration())
+        .withMessageMatching("(?i).*Connection.* refused.*");
   }
 
   @Test
@@ -134,10 +134,11 @@ public class ConfigurationClientTest
   }
 
   @Test
-  public void testValidateApplicationId_UnknownId() throws Exception {
-    assertThatExceptionOfType(IOException.class).isThrownBy(() -> {
-      new ConfigurationClient(getCLMServer().getClientConfiguration()).validateApplicationId("unknown-id");
-    }).withMessage("Invalid application ID unknown-id.");
+  public void testValidateApplicationId_UnknownId() {
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(
+            () -> new ConfigurationClient(getCLMServer().getClientConfiguration()).validateApplicationId("unknown-id"))
+        .withMessage("Invalid application ID unknown-id.");
   }
 
   private void assertApplicationSummaryList(ApplicationSummaryList actual, Application expected) {
@@ -160,12 +161,12 @@ public class ConfigurationClientTest
   }
 
   @Test
-  public void testGetApplicationsForApplicationEvaluation_BadAuth() throws Exception {
+  public void testGetApplicationsForApplicationEvaluation_BadAuth() {
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("bad:auth"));
-    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
-      new ConfigurationClient(config).getApplicationsForApplicationEvaluation();
-    }).withMessage(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT)
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> new ConfigurationClient(config).getApplicationsForApplicationEvaluation())
+        .withMessage(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT)
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(401));
   }
 
@@ -400,26 +401,27 @@ public class ConfigurationClientTest
     // Verify newer server version. There should be an exception because the client requires a minimal server version
     // that is newer than the current server version.
     String newerServerVersion = incrementVersion(currentServerVersion);
-    assertThatExceptionOfType(UnsupportedServerVersionException.class).isThrownBy(() -> {
-      client.validateServerVersion(newerServerVersion);
-    }).withMessage("The IQ Server version " + currentServerVersion
-        + " is not compatible. Supported IQ server versions are " + newerServerVersion + " or newer.");
+    assertThatExceptionOfType(UnsupportedServerVersionException.class)
+        .isThrownBy(() -> client.validateServerVersion(newerServerVersion))
+        .withMessage(
+            "The IQ Server version " + currentServerVersion + " is not compatible. Supported IQ server versions are " +
+                newerServerVersion + " or newer.");
   }
 
   private String decrementVersion(String versionAsString) {
     int dotAt = versionAsString.indexOf(".");
     if (dotAt > 0) {
-      return (Integer.valueOf(versionAsString.substring(0, dotAt)) - 1) + "." + versionAsString.substring(dotAt + 1);
+      return (Integer.parseInt(versionAsString.substring(0, dotAt)) - 1) + "." + versionAsString.substring(dotAt + 1);
     }
-    return String.valueOf(Integer.valueOf(versionAsString) - 1);
+    return String.valueOf(Integer.parseInt(versionAsString) - 1);
   }
 
   private String incrementVersion(String versionAsString) {
     int dotAt = versionAsString.indexOf(".");
     if (dotAt > 0) {
-      return (Integer.valueOf(versionAsString.substring(0, dotAt)) + 1) + "." + versionAsString.substring(dotAt + 1);
+      return (Integer.parseInt(versionAsString.substring(0, dotAt)) + 1) + "." + versionAsString.substring(dotAt + 1);
     }
-    return String.valueOf(Integer.valueOf(versionAsString) + 1);
+    return String.valueOf(Integer.parseInt(versionAsString) + 1);
   }
 
   @Test
@@ -443,13 +445,13 @@ public class ConfigurationClientTest
   }
 
   @Test
-  public void testGetApplicationsForApplicationEvaluationByOrganization_BadAuth() throws Exception {
+  public void testGetApplicationsForApplicationEvaluationByOrganization_BadAuth() {
     Organization organization = tempEntity.newOrganization("A");
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("bad:auth"));
-    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
-      new ConfigurationClient(config).getApplicationsForApplicationEvaluation(organization.getId());
-    }).withMessage(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT)
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> new ConfigurationClient(config).getApplicationsForApplicationEvaluation(organization.getId()))
+        .withMessage(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT)
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(401));
   }
 
@@ -464,12 +466,12 @@ public class ConfigurationClientTest
   }
 
   @Test
-  public void testGetOrganizationsForApplicationEvaluation_BadAuth() throws Exception {
+  public void testGetOrganizationsForApplicationEvaluation_BadAuth() {
     Configuration config = getCLMServer().getClientConfiguration();
     config.setServerAuth(SimpleAuthentication.parse("bad:auth"));
-    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
-      new ConfigurationClient(config).getOrganizationsForApplicationEvaluation();
-    }).withMessage(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT)
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> new ConfigurationClient(config).getOrganizationsForApplicationEvaluation())
+        .withMessage(ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT)
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(401));
   }
 

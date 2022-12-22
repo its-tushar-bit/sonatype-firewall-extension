@@ -51,7 +51,7 @@ public class SuccessMetricsReportServiceTest
   }
 
   @Test
-  public void testCreateSuccessMetricsReportForCurrentUser() throws Exception {
+  public void testCreateSuccessMetricsReportForCurrentUser() {
     SuccessMetricsReportScopeDTO scopeDTO = new SuccessMetricsReportScopeDTO(
         new HashSet<>(Arrays.asList(app1.getId(), app2.getId())),
         new HashSet<>(Collections.singletonList(org.getId())));
@@ -66,7 +66,7 @@ public class SuccessMetricsReportServiceTest
   }
 
   @Test
-  public void testCreateSuccessMetricsReportForCurrentUser_NullAppsAndOrgs() throws Exception {
+  public void testCreateSuccessMetricsReportForCurrentUser_NullAppsAndOrgs() {
     SuccessMetricsReportScopeDTO scopeDTO = new SuccessMetricsReportScopeDTO(null, null);
     SuccessMetricsReportDTO dto = new SuccessMetricsReportDTO("Metrics1", scopeDTO);
     SuccessMetricsReportDTO actualDto = successMetricsReportService.createSuccessMetricsReportForCurrentUser(dto);
@@ -79,7 +79,7 @@ public class SuccessMetricsReportServiceTest
   }
 
   @Test
-  public void testCreateSuccessMetricsReportForCurrentUser_NullScope() throws Exception {
+  public void testCreateSuccessMetricsReportForCurrentUser_NullScope() {
     SuccessMetricsReportScopeDTO scopeDTO = null;
     SuccessMetricsReportDTO dto = new SuccessMetricsReportDTO("Metrics1", scopeDTO);
     assertThatExceptionOfType(BadRequestException.class)
@@ -88,7 +88,7 @@ public class SuccessMetricsReportServiceTest
   }
 
   @Test
-  public void testCreateSuccessMetricsReportForCurrentUser_EmptyAppsAndOrgs() throws Exception {
+  public void testCreateSuccessMetricsReportForCurrentUser_EmptyAppsAndOrgs() {
     SuccessMetricsReportScopeDTO scopeDTO = new SuccessMetricsReportScopeDTO(Collections.emptySet(),
         Collections.emptySet());
     SuccessMetricsReportDTO dto = new SuccessMetricsReportDTO("Metrics1", scopeDTO);

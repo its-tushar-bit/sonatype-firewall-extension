@@ -30,7 +30,7 @@ public class StageTypeServiceTest
   private TestProductLicense testProductLicense;
 
   @Test
-  public void testGetLicensedStageTypes_OrderedByComponentLifecycle() throws Exception {
+  public void testGetLicensedStageTypes_OrderedByComponentLifecycle() {
     List<StageType> all = new ArrayList<>(StageTypes.getAll());
     Collections.reverse(all);
     testProductLicense.setStageTypes(all);
@@ -46,7 +46,7 @@ public class StageTypeServiceTest
   }
 
   @Test
-  public void testGetLicensedStageTypes_ContextAll() throws Exception {
+  public void testGetLicensedStageTypes_ContextAll() {
     testProductLicense.setStageTypes(StageTypes.getAll());
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.ALL_CONTEXT)).containsExactly( //
@@ -60,7 +60,7 @@ public class StageTypeServiceTest
   }
 
   @Test
-  public void testGetLicensedStageTypes_ContextDashboard() throws Exception {
+  public void testGetLicensedStageTypes_ContextDashboard() {
     testProductLicense.setStageTypes(StageTypes.getAll());
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.DASHBOARD_CONTEXT)).containsExactly( //
@@ -72,7 +72,7 @@ public class StageTypeServiceTest
   }
 
   @Test
-  public void testGetLicensedStageTypes_ContextCI() throws Exception {
+  public void testGetLicensedStageTypes_ContextCI() {
     testProductLicense.setStageTypes(StageTypes.getAll());
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CI_CONTEXT)).containsExactly( //
@@ -85,7 +85,7 @@ public class StageTypeServiceTest
   }
 
   @Test
-  public void testGetLicensedStageTypes_ContextCli() throws Exception {
+  public void testGetLicensedStageTypes_ContextCli() {
     testProductLicense.setStageTypes(StageTypes.getAll());
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.CLI_CONTEXT)).containsExactly( //
@@ -98,7 +98,7 @@ public class StageTypeServiceTest
   }
 
   @Test
-  public void testGetLicensedStageTypes_ContextQa() throws Exception {
+  public void testGetLicensedStageTypes_ContextQa() {
     testProductLicense.setStageTypes(StageTypes.getAll());
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.QA_CONTEXT)).containsExactly( //
@@ -110,7 +110,7 @@ public class StageTypeServiceTest
   }
 
   @Test
-  public void testGetLicensedStageTypes_ContextRm() throws Exception {
+  public void testGetLicensedStageTypes_ContextRm() {
     testProductLicense.setStageTypes(StageTypes.getAll());
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.RM_CONTEXT)).containsExactly( //
@@ -122,7 +122,7 @@ public class StageTypeServiceTest
   }
 
   @Test
-  public void testGetLicensedStageTypes_ContextMaven() throws Exception {
+  public void testGetLicensedStageTypes_ContextMaven() {
     testProductLicense.setStageTypes(StageTypes.getAll());
 
     assertThat(stageTypeService.getLicensedStageTypes(StageTypeService.MAVEN_CONTEXT)).containsExactly( //

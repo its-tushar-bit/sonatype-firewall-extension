@@ -37,7 +37,7 @@ public class DefaultLicenseDataUpdaterTest
   private LicenseDAO licenseDAO = new LicenseDAO();
 
   @Test
-  public void testLicense() throws Exception {
+  public void testLicense() {
     LicenseData licenseData = createLicenseData();
     hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     String newId = "New license id";
@@ -54,7 +54,7 @@ public class DefaultLicenseDataUpdaterTest
   }
 
   @Test
-  public void testMultiLicense_ById() throws Exception {
+  public void testMultiLicense_ById() {
     LicenseData licenseData = createLicenseData();
     hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     String newId = "New license id1";
@@ -76,7 +76,7 @@ public class DefaultLicenseDataUpdaterTest
   }
 
   @Test
-  public void testMultiLicense_ByName() throws Exception {
+  public void testMultiLicense_ByName() {
     LicenseData licenseData = createLicenseData();
     hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     String newId = "New license id2";
@@ -114,7 +114,7 @@ public class DefaultLicenseDataUpdaterTest
   }
 
   @Test
-  public void testMultiLicense_WithNullMappedLicenses_IsNotAdded() throws Exception {
+  public void testMultiLicense_WithNullMappedLicenses_IsNotAdded() {
     LicenseData licenseData = createLicenseData();
     hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     MultiLicense mlWithNullMappedLicenses = new MultiLicense("mlWithNullMappedLicenses",
@@ -128,7 +128,7 @@ public class DefaultLicenseDataUpdaterTest
   }
 
   @Test
-  public void testMultiLicense_WithEmptyMappedLicenses_IsNotAdded() throws Exception {
+  public void testMultiLicense_WithEmptyMappedLicenses_IsNotAdded() {
     LicenseData licenseData = createLicenseData();
     hdsRespondWith(licenseData).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
     MultiLicense mlWithEmptyMappedLicenses = new MultiLicense("mlWithEmptyMappedLicenses",
@@ -143,7 +143,7 @@ public class DefaultLicenseDataUpdaterTest
   }
 
   @Test
-  public void testExistingMultiLicense_CanHaveMappedLicenseAdded() throws Exception {
+  public void testExistingMultiLicense_CanHaveMappedLicenseAdded() {
     LicenseData licenseData = createLicenseData();
     MultiLicense existingMultiLicense = new MultiLicense("existingMultiLicense", "existingMultiLicenseShort",
         "existingMultiLicenseLong");

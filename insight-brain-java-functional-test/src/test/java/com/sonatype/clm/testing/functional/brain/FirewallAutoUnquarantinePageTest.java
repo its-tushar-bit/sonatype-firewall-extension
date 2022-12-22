@@ -42,7 +42,7 @@ public class FirewallAutoUnquarantinePageTest
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
   @BeforeClass
-  public static void beforeClass() throws Exception {
+  public static void beforeClass() {
     setupData();
   }
 

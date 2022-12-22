@@ -10,8 +10,6 @@ import java.util.Collections;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.test.networking.SslProperties;
 
 import io.dropwizard.jetty.HttpConnectorFactory;
@@ -242,20 +240,16 @@ public class LandingResourceTest
   }
 
   private void initServer(final boolean ssl, final boolean forceBaseUrl) throws Exception {
-    initServer(new Configurator()
-    {
-      @Override
-      public void configure(final InsightConfig config) {
-        if (ssl) {
-          HttpsConnectorFactory applicationHttpsConnector = new HttpsConnectorFactory();
-          applicationHttpsConnector.setUseForwardedHeaders(true);
-          applicationHttpsConnector.setKeyStorePath(SslProperties.SERVER_STORE_FILE.getAbsolutePath());
-          applicationHttpsConnector.setKeyStorePassword(SslProperties.KEY_STORE_PASSWORD);
-          DefaultServerFactory defaultServerFactory = (DefaultServerFactory) config.getServerFactory();
-          applicationHttpsConnector
-              .setPort(((HttpConnectorFactory) defaultServerFactory.getApplicationConnectors().get(0)).getPort());
-          defaultServerFactory.setApplicationConnectors(Collections.singletonList(applicationHttpsConnector));
-        }
+    initServer(config -> {
+      if (ssl) {
+        HttpsConnectorFactory applicationHttpsConnector = new HttpsConnectorFactory();
+        applicationHttpsConnector.setUseForwardedHeaders(true);
+        applicationHttpsConnector.setKeyStorePath(SslProperties.SERVER_STORE_FILE.getAbsolutePath());
+        applicationHttpsConnector.setKeyStorePassword(SslProperties.KEY_STORE_PASSWORD);
+        DefaultServerFactory defaultServerFactory = (DefaultServerFactory) config.getServerFactory();
+        applicationHttpsConnector
+            .setPort(((HttpConnectorFactory) defaultServerFactory.getApplicationConnectors().get(0)).getPort());
+        defaultServerFactory.setApplicationConnectors(Collections.singletonList(applicationHttpsConnector));
       }
     });
     setBaseUrl(BASE_URL, forceBaseUrl);

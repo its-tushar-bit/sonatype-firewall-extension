@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -76,7 +75,7 @@ public class OrganizationDAOTest
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     // Create
     organization = tempEntity.newOrganization("OrganizationDAOTest");
     String organizationId = organization.getId();
@@ -108,7 +107,7 @@ public class OrganizationDAOTest
   }
 
   @Test
-  public void testGetAll() throws Exception {
+  public void testGetAll() {
     // Create a few orgs
     int orgCount = 3;
     tempEntity.newOrganizations(orgCount);
@@ -129,9 +128,7 @@ public class OrganizationDAOTest
 
   @Test
   public void testGetByIdNotNull_null() {
-    assertThatThrownBy(() -> {
-      dao.getByIdNotNull("non-existent-org");
-    }).isInstanceOf(NotFoundException.class);
+    assertThatThrownBy(() -> dao.getByIdNotNull("non-existent-org")).isInstanceOf(NotFoundException.class);
   }
 
   @Test
@@ -174,9 +171,8 @@ public class OrganizationDAOTest
   @Test
   public void testCannotDeleteRootOrg() {
     organization = dao.getById(Organization.ROOT_ORGANIZATION_ID);
-    assertThatThrownBy(() -> {
-      dao.delete(organization);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot delete the root organization: Root Organization");
+    assertThatThrownBy(() -> dao.delete(organization)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Cannot delete the root organization: Root Organization");
   }
 
   @Test
@@ -199,9 +195,8 @@ public class OrganizationDAOTest
     organization = new Organization();
     organization.setName("testName");
     organization.setParentOrganizationId(tempEntity.newOrganization().getId());
-    assertThatThrownBy(() -> {
-      dao.insert(organization);
-    }).isInstanceOf(BadRequestException.class).hasMessage("Invalid parent organization");
+    assertThatThrownBy(() -> dao.insert(organization)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Invalid parent organization");
 
     organization.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
     try {
@@ -263,43 +258,38 @@ public class OrganizationDAOTest
   @Test
   public void testValidateNullName_Insert() {
     Organization organization = new Organization(null /* name */);
-    assertThatThrownBy(() -> {
-      dao.insert(organization);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> dao.insert(organization)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateNullName_Update() {
     organization.setName(null);
     assertThat(organization.getNameLowercaseNoWhitespace()).isNull();
-    assertThatThrownBy(() -> {
-      dao.update(organization);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateEmptyName_Insert() {
-    assertThatThrownBy(() -> {
-      tempEntity.newOrganization(" ");
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> tempEntity.newOrganization(" ")).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateEmptyName_Update() {
     organization.setName(" ");
     assertThat(organization.getNameLowercaseNoWhitespace()).isEqualTo("");
-    assertThatThrownBy(() -> {
-      dao.update(organization);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
+    assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       Organization organization = new Organization(name);
-      assertThatThrownBy(() -> {
-        dao.insert(organization);
-      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
+      assertThatThrownBy(() -> dao.insert(organization)).isInstanceOf(InvalidNameException.class)
+          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -307,9 +297,8 @@ public class OrganizationDAOTest
   public void testValidateNameInvalidChars_Update() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       organization.setName(name);
-      assertThatThrownBy(() -> {
-        dao.update(organization);
-      }).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
+      assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
+          .hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -332,9 +321,7 @@ public class OrganizationDAOTest
   @Test
   public void testValidateNameSpaces_Insert() {
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      assertThatThrownBy(() -> {
-        tempEntity.newOrganization(name);
-      }).isInstanceOf(InvalidNameException.class)
+      assertThatThrownBy(() -> tempEntity.newOrganization(name)).isInstanceOf(InvalidNameException.class)
           .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
@@ -343,9 +330,7 @@ public class OrganizationDAOTest
   public void testValidateNameSpaces_Update() {
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       organization.setName(name);
-      assertThatThrownBy(() -> {
-        dao.update(organization);
-      }).isInstanceOf(InvalidNameException.class)
+      assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
           .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
@@ -369,9 +354,9 @@ public class OrganizationDAOTest
   public void testDuplicateName_Insert() {
     tempEntity.newOrganization("testDuplicateName");
 
-    assertThatThrownBy(() -> {
-      tempEntity.newOrganization("testDuplicateName");
-    }).isInstanceOf(InvalidNameException.class).hasMessage("testDuplicateName is already used as a name.");
+    assertThatThrownBy(() -> tempEntity.newOrganization("testDuplicateName"))
+        .isInstanceOf(InvalidNameException.class)
+        .hasMessage("testDuplicateName is already used as a name.");
   }
 
   @Test
@@ -380,17 +365,14 @@ public class OrganizationDAOTest
     Organization organization1 = tempEntity.newOrganization("testDuplicateName1");
 
     organization1.setName("Test Duplicate Name");
-    assertThatThrownBy(() -> {
-      dao.update(organization1);
-    }).isInstanceOf(InvalidNameException.class).hasMessage("Test Duplicate Name is already used as a name.");
+    assertThatThrownBy(() -> dao.update(organization1)).isInstanceOf(InvalidNameException.class)
+        .hasMessage("Test Duplicate Name is already used as a name.");
   }
 
   @Test
   public void testValidateNameLength_Insert() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
-    assertThatThrownBy(() -> {
-      tempEntity.newOrganization(name + "a");
-    }).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> tempEntity.newOrganization(name + "a")).isInstanceOf(InvalidNameException.class)
         .hasMessage("Name must be " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters or less.");
 
     tempEntity.newOrganization(name);
@@ -400,9 +382,7 @@ public class OrganizationDAOTest
   public void testValidateNameLength_Update() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH_APP_ORG);
     organization.setName(name + "a");
-    assertThatThrownBy(() -> {
-      dao.update(organization);
-    }).isInstanceOf(InvalidNameException.class)
+    assertThatThrownBy(() -> dao.update(organization)).isInstanceOf(InvalidNameException.class)
         .hasMessage("Name must be " + NameHelper.MAX_NAME_LENGTH_APP_ORG + " characters or less.");
 
     organization.setName(name);
@@ -541,7 +521,7 @@ public class OrganizationDAOTest
     String roleId = new RoleDAO().getApplicationRoles().get(0).getId();
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     membershipMappingDAO.setMembershipMappingsForContextAndRole(organization.getId(), roleId,
-        Arrays.asList(new MembershipMapping("admin", MemberType.USER)));
+        Collections.singletonList(new MembershipMapping("admin", MemberType.USER)));
 
     dao.delete(organization);
 
@@ -630,9 +610,7 @@ public class OrganizationDAOTest
     automaticApplicationsConfigurationDAO.setEnabled(true);
     automaticApplicationsConfigurationDAO.setOrganizationId(organizationId);
 
-    assertThatThrownBy(() -> {
-      dao.delete(organization);
-    }).isInstanceOf(BadRequestException.class).hasMessage(
+    assertThatThrownBy(() -> dao.delete(organization)).isInstanceOf(BadRequestException.class).hasMessage(
         "Cannot delete the parent organization for automatic application creation: " + organization.getName() + ".");
 
     automaticApplicationsConfigurationDAO.setOrganizationId("");

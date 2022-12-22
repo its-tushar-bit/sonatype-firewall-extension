@@ -85,7 +85,7 @@ public class MembershipMappingResourceTest
   }
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     org = tempEntity.newOrganization("test-org");
     app = tempEntity.newApplication("test-app", "test-app", org.getId());
     userA = tempEntity.newUser("user-a", "John", "Doe", "void@void.com");

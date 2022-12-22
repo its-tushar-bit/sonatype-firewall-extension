@@ -13,16 +13,14 @@ public class PolicyMonitoringTest
 {
   @Test
   public void testInvalidStageTypeId_Constructor() {
-    assertThatThrownBy(() -> {
-      new PolicyMonitoring("fakeOwnerId", "fakeStageTypeId");
-    }).isInstanceOf(InvalidStageException.class).hasMessage("Invalid stage id=fakeStageTypeId");
+    assertThatThrownBy(() -> new PolicyMonitoring("fakeOwnerId", "fakeStageTypeId"))
+        .isInstanceOf(InvalidStageException.class).hasMessage("Invalid stage id=fakeStageTypeId");
   }
 
   @Test
   public void testInvalidStageTypeId_Setter() {
     PolicyMonitoring policyMonitoring = new PolicyMonitoring();
-    assertThatThrownBy(() -> {
-      policyMonitoring.setStageTypeId("fakeStageTypeId");
-    }).isInstanceOf(InvalidStageException.class).hasMessage("Invalid stage id=fakeStageTypeId");
+    assertThatThrownBy(() -> policyMonitoring.setStageTypeId("fakeStageTypeId"))
+        .isInstanceOf(InvalidStageException.class).hasMessage("Invalid stage id=fakeStageTypeId");
   }
 }

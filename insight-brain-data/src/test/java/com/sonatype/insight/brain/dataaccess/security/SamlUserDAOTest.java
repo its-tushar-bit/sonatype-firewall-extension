@@ -193,7 +193,7 @@ public class SamlUserDAOTest
   }
 
   @Test
-  public void testGetAll() throws Exception {
+  public void testGetAll() {
     SamlUser samlUser1 = tempEntity.newSamlUser();
     SamlUser samlUser2 = tempEntity.newSamlUser();
 

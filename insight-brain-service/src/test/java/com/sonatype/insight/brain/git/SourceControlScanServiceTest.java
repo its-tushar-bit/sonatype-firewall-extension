@@ -242,7 +242,7 @@ public class SourceControlScanServiceTest
   }
 
   @Test
-  public void testOnSourceControlScan_ExceptionBeforePolicyEvaluation() throws Exception {
+  public void testOnSourceControlScan_ExceptionBeforePolicyEvaluation() {
     // given an event
     String statusId = "testStatusId";
     sourceControlEvent.setBranchName("branch");

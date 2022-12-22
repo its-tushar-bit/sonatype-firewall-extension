@@ -205,7 +205,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testSetEnabled_NoRepositoryManager() throws Exception {
+  public void testSetEnabled_NoRepositoryManager() {
     getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true,null);
 
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
@@ -220,7 +220,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testSetEnabled_ExistingRepositoryManager() throws Exception {
+  public void testSetEnabled_ExistingRepositoryManager() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
 
     getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
@@ -233,7 +233,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testSetEnabled_TrueExistingRepository() throws Exception {
+  public void testSetEnabled_TrueExistingRepository() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
@@ -247,7 +247,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testSetEnabled_MissingLicenseFeature() throws Exception {
+  public void testSetEnabled_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(() -> getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null))
@@ -255,7 +255,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testSetEnabled_FalseExistingRepository() throws Exception {
+  public void testSetEnabled_FalseExistingRepository() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
 
@@ -269,14 +269,14 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testSetQuarantine_RepositoryDoesNotExist() throws Exception {
+  public void testSetQuarantine_RepositoryDoesNotExist() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> getRepositoryService().setQuarantine(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null))
         .withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
   @Test
-  public void testSetQuarantine_EnabledWhenRepositoryNotEnabled() throws Exception {
+  public void testSetQuarantine_EnabledWhenRepositoryNotEnabled() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
@@ -286,7 +286,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testSetQuarantine_DisabledWhenRepositoryNotEnabled() throws Exception {
+  public void testSetQuarantine_DisabledWhenRepositoryNotEnabled() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, true);
 
@@ -301,7 +301,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testSetQuarantine_EnabledWhenRepositoryEnabled() throws Exception {
+  public void testSetQuarantine_EnabledWhenRepositoryEnabled() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true);
 
@@ -314,7 +314,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testSetQuarantine_DisabledWhenRepositoryEnabled() throws Exception {
+  public void testSetQuarantine_DisabledWhenRepositoryEnabled() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
@@ -389,7 +389,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testGetPolicyEvaluationSummary_MissingLicenseFeature() throws Exception {
+  public void testGetPolicyEvaluationSummary_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(
@@ -398,7 +398,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_WithQuarantine_RepositoryDoesNotExist() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_RepositoryDoesNotExist() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(
             () -> getRepositoryService().evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, true, null))
@@ -406,7 +406,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_WithQuarantine_NullRequest() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_NullRequest() {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     RepositoryComponentEvaluationDataList componentEvaluationResultList = getRepositoryService()
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null, true, null);
@@ -414,7 +414,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_WithQuarantine_EmptyPathname() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_EmptyPathname() {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
         new RepositoryComponentEvaluationDataRequest();
@@ -434,7 +434,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_WithQuarantine_EmptyHash() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_EmptyHash() {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     RepositoryComponentEvaluationDataRequest repositoryComponentEvaluationDataRequest =
         new RepositoryComponentEvaluationDataRequest();
@@ -453,7 +453,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_WithQuarantine() throws Exception {
+  public void testEvaluateComponents_WithQuarantine() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     Policy policy = createQuarantiningPolicy(repository);
@@ -510,7 +510,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_WithQuarantine_QuarantineAndUnquarantineComponent() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_QuarantineAndUnquarantineComponent() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     Policy policy = createQuarantiningPolicy(repository);
 
@@ -588,9 +588,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_WithQuarantine_NotQuarantinedUnchangedComponentRemainsNotQuarantined()
-      throws Exception
-  {
+  public void testEvaluateComponents_WithQuarantine_NotQuarantinedUnchangedComponentRemainsNotQuarantined() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     Policy policy = createQuarantiningPolicy(repository);
 
@@ -662,7 +660,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_WithQuarantine_PathnameSlashPrefix() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_PathnameSlashPrefix() {
     String pathname = "path";
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
@@ -719,7 +717,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_WithQuarantine_NoViolations() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_NoViolations() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
@@ -766,7 +764,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_WithQuarantine_Waived() throws Exception {
+  public void testEvaluateComponents_WithQuarantine_Waived() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     String hash = "h";
@@ -821,9 +819,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_WithQuarantine_QuarantineRequestAfterAuditWithoutExplicitRemoval()
-      throws Exception
-  {
+  public void testEvaluateComponents_WithQuarantine_QuarantineRequestAfterAuditWithoutExplicitRemoval() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     createQuarantiningPolicy(repository);
 
@@ -876,9 +872,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_WithQuarantine_QuarantineRequestAfterUnquarantineWithoutExplicitRemoval()
-      throws Exception
-  {
+  public void testEvaluateComponents_WithQuarantine_QuarantineRequestAfterUnquarantineWithoutExplicitRemoval() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     createQuarantiningPolicy(repository);
 
@@ -937,14 +931,14 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_RepositoryDoesNotExist() throws Exception {
+  public void testEvaluateComponents_RepositoryDoesNotExist() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> getRepositoryService()
         .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, null /* componentEvaluationDataRequestList */,
             false, null)).withMessage(RepositoryDAO.getErrMsgMissingRepo(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID));
   }
 
   @Test
-  public void testEvaluateComponents_ExistingRepository_NotEnabled() throws Exception {
+  public void testEvaluateComponents_ExistingRepository_NotEnabled() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, false);
 
@@ -958,7 +952,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_ExistingRepository_QuarantineNotEnabled() throws Exception {
+  public void testEvaluateComponents_ExistingRepository_QuarantineNotEnabled() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, false);
 
@@ -972,7 +966,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_ExistingRepository_RepositoryAndQuarantineNotEnabled() throws Exception {
+  public void testEvaluateComponents_ExistingRepository_RepositoryAndQuarantineNotEnabled() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, false);
 
@@ -986,7 +980,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_MultipleComponents() throws Exception {
+  public void testEvaluateComponents_MultipleComponents() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
@@ -1100,7 +1094,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_NotificationFailuresDoNotFailTheEvaluation() throws Exception {
+  public void testEvaluateComponents_NotificationFailuresDoNotFailTheEvaluation() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     String userEmailAddress = "user@sonatype.com";
     tempEntity.newPolicy(repository.getParentOwnerId(), "Test Policy", 10, null, null,
@@ -1175,7 +1169,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_Reevaluation() throws Exception {
+  public void testEvaluateComponents_Reevaluation() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     Condition condition = new Condition(LicenseConditionType.ID, "is", "Apache-2.0");
     Constraint constraint = new Constraint("id", "name", LogicalOperator.AND);
@@ -1251,7 +1245,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_LicenseOverridden() throws Exception {
+  public void testEvaluateComponents_LicenseOverridden() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     Condition condition = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
     Constraint constraint = new Constraint("id", "name", LogicalOperator.AND);
@@ -1299,7 +1293,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_SecurityVulnerabilityOverridden() throws Exception {
+  public void testEvaluateComponents_SecurityVulnerabilityOverridden() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     Condition condition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
         SecurityVulnerabilityOverrideStatus.CONFIRMED.getId());
@@ -1351,7 +1345,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_ClaimedComponent() throws Exception {
+  public void testEvaluateComponents_ClaimedComponent() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     Condition condition = new Condition(IdentificationSourceConditionType.ID, "is",
         IdentificationSource.MANUAL.getId());
@@ -1401,7 +1395,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_LongHash() throws Exception {
+  public void testEvaluateComponents_LongHash() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     Condition condition = new Condition(LicenseConditionType.ID, "is", "Apache-2.0");
     Constraint constraint = new Constraint("id", "name", LogicalOperator.AND);
@@ -1451,7 +1445,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_UnknownComponent() throws Exception {
+  public void testEvaluateComponents_UnknownComponent() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
     Condition condition = new Condition(MatchStateConditionType.ID, "is", MatchState.UNKNOWN.getId());
     Constraint constraint = new Constraint("id", "name", LogicalOperator.AND);
@@ -1495,7 +1489,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_pathnameSlashPrefix() throws Exception {
+  public void testEvaluateComponents_pathnameSlashPrefix() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     String hash = "hash";
@@ -1526,7 +1520,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_NullPathname() throws Exception {
+  public void testEvaluateComponents_NullPathname() {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
@@ -1541,7 +1535,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_EmptyPathname() throws Exception {
+  public void testEvaluateComponents_EmptyPathname() {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
@@ -1555,7 +1549,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_NullFormat() throws Exception {
+  public void testEvaluateComponents_NullFormat() {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
@@ -1570,7 +1564,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_EmptyFormat() throws Exception {
+  public void testEvaluateComponents_EmptyFormat() {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
@@ -1585,7 +1579,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_NullHash() throws Exception {
+  public void testEvaluateComponents_NullHash() {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     String hash = null;
@@ -1602,7 +1596,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_EmptyHash() throws Exception {
+  public void testEvaluateComponents_EmptyHash() {
     tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
@@ -1617,7 +1611,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponents_MissingLicenseFeature() throws Exception {
+  public void testEvaluateComponents_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(
@@ -1778,7 +1772,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testRemoveComponent_RepositoryDoesNotExist() throws Exception {
+  public void testRemoveComponent_RepositoryDoesNotExist() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(
             () -> getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, "somepath", null))
@@ -1787,7 +1781,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testRemoveComponent_RepositoryNotEnabled() throws Exception {
+  public void testRemoveComponent_RepositoryNotEnabled() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false /* enabled */);
 
@@ -1799,7 +1793,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testRemoveComponent() throws Exception {
+  public void testRemoveComponent() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
     String pathname1 = "pathname1";
@@ -1825,7 +1819,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testRemoveComponent_pathnameSlashPrefix() throws Exception {
+  public void testRemoveComponent_pathnameSlashPrefix() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
     String pathname1 = "pathname1";
@@ -1858,7 +1852,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testGetUnquarantinedComponents() throws Exception {
+  public void testGetUnquarantinedComponents() {
     Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
 
     long since = System.currentTimeMillis();
@@ -1881,7 +1875,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testGetUnquarantinedComponents_RepositoryDoesNotExist() throws Exception {
+  public void testGetUnquarantinedComponents_RepositoryDoesNotExist() {
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(
             () -> getRepositoryService().getUnquarantinedComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, 0, null))
@@ -1978,7 +1972,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testAddProprietaryComponentNames_MissingLicenseFeature() throws Exception {
+  public void testAddProprietaryComponentNames_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(
@@ -2123,7 +2117,7 @@ public abstract class AbstractRepositoryServiceTest
         .getQuarantinedComponentReportUrl("repmanid", "repid", "", null));
   }
 
-  public void testEvaluateComponentMetadata_MissingLicenseFeature() throws Exception {
+  public void testEvaluateComponentMetadata_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(getRepositoryService().requiredFeature);
     assertThatExceptionOfType(InvalidLicenseException.class)
         .isThrownBy(
@@ -2133,7 +2127,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_ClaimedComponent() throws Exception {
+  public void testEvaluateComponentMetadata_ClaimedComponent() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
@@ -2184,7 +2178,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_EmptyFormat() throws Exception {
+  public void testEvaluateComponentMetadata_EmptyFormat() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
@@ -2202,7 +2196,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_NullFormat() throws Exception {
+  public void testEvaluateComponentMetadata_NullFormat() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
@@ -2220,7 +2214,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_EmptyHash() throws Exception {
+  public void testEvaluateComponentMetadata_EmptyHash() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
@@ -2238,7 +2232,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_NullHash() throws Exception {
+  public void testEvaluateComponentMetadata_NullHash() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
@@ -2256,7 +2250,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_EmptyPathname() throws Exception {
+  public void testEvaluateComponentMetadata_EmptyPathname() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
@@ -2274,7 +2268,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_NullPathname() throws Exception {
+  public void testEvaluateComponentMetadata_NullPathname() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
@@ -2292,7 +2286,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_ExistingRepository_NotEnabled() throws Exception {
+  public void testEvaluateComponentMetadata_ExistingRepository_NotEnabled() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false, false);
 
@@ -2304,7 +2298,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_ExistingRepository_QuarantineNotEnabled() throws Exception {
+  public void testEvaluateComponentMetadata_ExistingRepository_QuarantineNotEnabled() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, false);
 
@@ -2316,7 +2310,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_FormatIsNpmOrPypi() throws Exception {
+  public void testEvaluateComponentMetadata_FormatIsNpmOrPypi() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
@@ -2334,7 +2328,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_MultipleComponents() throws Exception {
+  public void testEvaluateComponentMetadata_MultipleComponents() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
@@ -2393,7 +2387,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_MultipleComponents_ScopedNpmComponents() throws Exception {
+  public void testEvaluateComponentMetadata_MultipleComponents_ScopedNpmComponents() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 
@@ -2452,7 +2446,7 @@ public abstract class AbstractRepositoryServiceTest
   }
 
   @Test
-  public void testEvaluateComponentMetadata_UnknownComponent() throws Exception {
+  public void testEvaluateComponentMetadata_UnknownComponent() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, true, true);
 

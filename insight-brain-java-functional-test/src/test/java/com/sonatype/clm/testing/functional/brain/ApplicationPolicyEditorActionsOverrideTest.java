@@ -384,9 +384,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
     policy.setPolicyActionsOverrideAllowed(policyActionsOverrideAllowed);
     policy.setPolicyActionsOverrides(actionsOverrides);
 
-    actions.forEach((String stage, String action) -> {
-      policy.setAction(stage, action);
-    });
+    actions.forEach(policy::setAction);
     policy.getNotifications().add(
         new UserNotification("test@foo.com", Stage.ID_BUILD, Notification.CONTINUOUS_MONITORING));
     policy.getNotifications().add(new RoleNotification(new RoleDAO().getByName("Developer").getId(), Stage.ID_BUILD));

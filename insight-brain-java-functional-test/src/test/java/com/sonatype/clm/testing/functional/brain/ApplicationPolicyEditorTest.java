@@ -50,7 +50,7 @@ public class ApplicationPolicyEditorTest
   }
 
   @Test
-  public void testParentPolicyChangeReflectedLocally() throws Exception {
+  public void testParentPolicyChangeReflectedLocally() {
     tempEntity.newPolicy(application.getParentOwnerId(), "policyName", 5, Action.ID_FAIL, StageTypes.BUILD.getId(),
         null);
     refreshOrOpen(OwnerSummaryPage.url(application));

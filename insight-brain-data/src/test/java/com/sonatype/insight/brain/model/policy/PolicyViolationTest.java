@@ -45,7 +45,7 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testConstructorConstraintFacts() throws Exception {
+  public void testConstructorConstraintFacts() {
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
 
@@ -58,7 +58,7 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testConstructorFilename_WithConstraintFacts() throws Exception {
+  public void testConstructorFilename_WithConstraintFacts() {
     String filename = "filename";
     // Violations must have constraint facts.
     List<ConstraintFact> constraintFacts = createConstraintFacts(1);
@@ -70,7 +70,7 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testConstructorConstraintFactsJson() throws Exception {
+  public void testConstructorConstraintFactsJson() {
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
 
@@ -81,7 +81,7 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testConstructorFilename_WithConstraintFactsJson() throws Exception {
+  public void testConstructorFilename_WithConstraintFactsJson() {
     String filename = "filename";
     // Violations must have constraint facts.
     String constraintFactsJson = JsonUtils.writeUnformatted(createConstraintFacts(1));
@@ -93,7 +93,7 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testSetConstraintFactsJson() throws Exception {
+  public void testSetConstraintFactsJson() {
     PolicyViolation policyViolation = new PolicyViolation();
 
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
@@ -104,25 +104,23 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testSetConstraintFactsJson_Null() throws Exception {
+  public void testSetConstraintFactsJson_Null() {
     PolicyViolation policyViolation = new PolicyViolation();
 
-    assertThatThrownBy(() -> {
-      policyViolation.setConstraintFactsJson(null);
-    }).isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFactsJson cannot be null or empty.");
+    assertThatThrownBy(() -> policyViolation.setConstraintFactsJson(null)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("ConstraintFactsJson cannot be null or empty.");
   }
 
   @Test
-  public void testSetConstraintFactsJson_Empty() throws Exception {
+  public void testSetConstraintFactsJson_Empty() {
     PolicyViolation policyViolation = new PolicyViolation();
 
-    assertThatThrownBy(() -> {
-      policyViolation.setConstraintFactsJson(" ");
-    }).isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFactsJson cannot be null or empty.");
+    assertThatThrownBy(() -> policyViolation.setConstraintFactsJson(" ")).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("ConstraintFactsJson cannot be null or empty.");
   }
 
   @Test
-  public void testConstructorConstraintFactsJson_Null() throws Exception {
+  public void testConstructorConstraintFactsJson_Null() {
     assertThatThrownBy(() -> {
       String constraintFactsJson = null;
       new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE,
@@ -131,7 +129,7 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testConstructorConstraintFactsJson_Empty() throws Exception {
+  public void testConstructorConstraintFactsJson_Empty() {
     assertThatThrownBy(() -> {
       String constraintFactsJson = " ";
       new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE,
@@ -140,7 +138,7 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testConstructorConstraintFacts_Null() throws Exception {
+  public void testConstructorConstraintFacts_Null() {
     assertThatThrownBy(() -> {
       List<ConstraintFact> constraintFacts = null;
       new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE,
@@ -149,7 +147,7 @@ public class PolicyViolationTest
   }
 
   @Test
-  public void testConstructorConstraintFacts_Empty() throws Exception {
+  public void testConstructorConstraintFacts_Empty() {
     assertThatThrownBy(() -> {
       List<ConstraintFact> constraintFacts = new ArrayList<>();
       new PolicyViolation(evaluation, "policyId", "policyName", 5 /* threatLevel */, PolicyThreatCategory.LICENSE,
@@ -201,9 +199,8 @@ public class PolicyViolationTest
     policyViolation.setWaiveTime(now);
     assertThat(policyViolation.getWaiveTime()).isEqualTo(now);
 
-    assertThatThrownBy(() -> {
-      policyViolation.setWaiveTime(null);
-    }).isInstanceOf(IllegalStateException.class).hasMessage("Cannot un-waive a policy violation.");
+    assertThatThrownBy(() -> policyViolation.setWaiveTime(null)).isInstanceOf(IllegalStateException.class)
+        .hasMessage("Cannot un-waive a policy violation.");
   }
 
   @Test
@@ -216,9 +213,8 @@ public class PolicyViolationTest
     policyViolation.setFixTime(now);
     assertThat(policyViolation.getFixTime()).isEqualTo(now);
 
-    assertThatThrownBy(() -> {
-      policyViolation.setFixTime(null);
-    }).isInstanceOf(IllegalStateException.class).hasMessage("Cannot un-fix a policy violation.");
+    assertThatThrownBy(() -> policyViolation.setFixTime(null)).isInstanceOf(IllegalStateException.class)
+        .hasMessage("Cannot un-fix a policy violation.");
   }
 
   @Test

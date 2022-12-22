@@ -189,25 +189,21 @@ public class SuccessMetricsPurgerTest
       CountDownLatch latchLocked = new CountDownLatch(1);
       CountDownLatch latchUnlock = new CountDownLatch(1);
       AtomicReference<Exception> error = new AtomicReference<>();
-      Thread thread = new Thread()
-      {
-        @Override
-        public void run() {
-          try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
-            tx.begin();
-            new PolicyViolationDAO() //
-                .createQuery("SELECT entity FROM PolicyViolation entity") //
-                .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
-                .getList(tx);
-            latchLocked.countDown();
-            latchUnlock.await(10, TimeUnit.SECONDS);
-            tx.commit();
-          }
-          catch (Exception e) {
-            error.set(e);
-          }
+      Thread thread = new Thread(() -> {
+        try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+          tx.begin();
+          new PolicyViolationDAO() //
+              .createQuery("SELECT entity FROM PolicyViolation entity") //
+              .setLockModeType(LockModeType.PESSIMISTIC_WRITE) //
+              .getList(tx);
+          latchLocked.countDown();
+          latchUnlock.await(10, TimeUnit.SECONDS);
+          tx.commit();
         }
-      };
+        catch (Exception e) {
+          error.set(e);
+        }
+      });
       thread.start();
 
       successMetricsPurger = spy(successMetricsPurger);

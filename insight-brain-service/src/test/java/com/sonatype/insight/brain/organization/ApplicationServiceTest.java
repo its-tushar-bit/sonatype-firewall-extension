@@ -150,7 +150,7 @@ public class ApplicationServiceTest
   }
 
   @Test
-  public void testAddApplication_LicenseWithoutApplicationLimit() throws Exception {
+  public void testAddApplication_LicenseWithoutApplicationLimit() {
     testProductLicense.setMaxApplications(null);
     Application app = new Application("appPublicId", "appName", org.getId());
     app = applicationService.addApplication(app);
@@ -214,7 +214,7 @@ public class ApplicationServiceTest
   }
 
   @Test
-  public void testAddApplication_NoOrganization() throws Exception {
+  public void testAddApplication_NoOrganization() {
     String applicationPublicId = "testAddApplication_NoOrganization";
     String applicationName = "testAddApplication-NoOrganization";
 
@@ -264,7 +264,7 @@ public class ApplicationServiceTest
   }
 
   @Test
-  public void testDeleteApplicationByPublicId_NonExistingApplication() throws Exception {
+  public void testDeleteApplicationByPublicId_NonExistingApplication() {
     String applicationPublicId = "NoSuchAppPublicId";
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> applicationService.deleteApplicationByPublicId(applicationPublicId))
@@ -272,7 +272,7 @@ public class ApplicationServiceTest
   }
 
   @Test
-  public void testUpdateApplication_NoOrganization() throws Exception {
+  public void testUpdateApplication_NoOrganization() {
     app1.setOrganizationId(null);
 
     assertThatExceptionOfType(InvalidApplicationException.class)
@@ -281,7 +281,7 @@ public class ApplicationServiceTest
   }
 
   @Test
-  public void testUpdateApplication_ChangeOrganization() throws Exception {
+  public void testUpdateApplication_ChangeOrganization() {
     app1.setOrganizationId("newOrganizationId");
 
     assertThatExceptionOfType(InvalidApplicationException.class)
@@ -503,9 +503,7 @@ public class ApplicationServiceTest
     Set<Organization> orgs = applicationService.getParentOrganizationsForApplicationsNoAuthz(applications);
     List<String> orgIds = orgs.stream().map(Organization::getId).collect(Collectors.toList());
     assertThat(orgs).hasSize(50);
-    applications.forEach(application -> {
-      assertThat(application.getOrganizationId()).isIn(orgIds);
-    });
+    applications.forEach(application -> assertThat(application.getOrganizationId()).isIn(orgIds));
   }
 
   @Test

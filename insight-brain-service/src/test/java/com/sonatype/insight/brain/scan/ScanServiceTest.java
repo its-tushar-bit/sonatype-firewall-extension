@@ -33,7 +33,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,15 +84,11 @@ public class ScanServiceTest
     lenient().when(scanUploader.upload((File) any(), any(Application.class), anyString(), eq(null)))
         .thenReturn(receipt);
     lenient().when(reportDownloader.downloadReport(eq(receipt.getScanId()), (File) any(), anyInt(), anyInt())).then(
-        new Answer<Boolean>()
-        {
-          @Override
-          public Boolean answer(InvocationOnMock invocation) throws Throwable {
-            File reportFile = (File) invocation.getArguments()[1];
-            FileUtils.copyURLToFile(ReportHelper.zipReport("/ScanServiceTest/report", tempDir),
-                reportFile);
-            return true;
-          }
+        (Answer<Boolean>) invocation -> {
+          File reportFile = (File) invocation.getArguments()[1];
+          FileUtils.copyURLToFile(ReportHelper.zipReport("/ScanServiceTest/report", tempDir),
+              reportFile);
+          return true;
         });
   }
 
@@ -152,7 +147,7 @@ public class ScanServiceTest
   }
 
   @Test
-  public void testFailEarlyOnInvalidStage() throws Exception {
+  public void testFailEarlyOnInvalidStage() {
     InputStream appBundle = getBundle("app01.zip");
     assertThatExceptionOfType(InvalidStageException.class).isThrownBy(() -> scanService
         .scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage("invalid-stage-id"), false, null, null))

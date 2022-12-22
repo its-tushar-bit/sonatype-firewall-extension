@@ -19,37 +19,37 @@ public class PolicyImportExportAuthzTest
   private PolicyImportExport policyImportExport;
 
   @Test(expected = UnauthorizedException.class)
-  public void testExportApplication_Unauthorized() throws Exception {
+  public void testExportApplication_Unauthorized() {
     login();
     policyImportExport.exportApplication(app);
   }
 
   @Test
-  public void testExportApplication_Authorized() throws Exception {
+  public void testExportApplication_Authorized() {
     grantReadPermission(app.getId());
     policyImportExport.exportApplication(app);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testExportOrganization_Unauthorized() throws Exception {
+  public void testExportOrganization_Unauthorized() {
     login();
     policyImportExport.exportOrganization(org);
   }
 
   @Test
-  public void testExportOrganization_Authorized() throws Exception {
+  public void testExportOrganization_Authorized() {
     grantReadPermission(org.getId());
     policyImportExport.exportOrganization(org);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testImportOrganization_Unauthorized() throws Exception {
+  public void testImportOrganization_Unauthorized() {
     login();
     policyImportExport.importOrganization(org, new PolicyExportResult());
   }
 
   @Test
-  public void testImportOrganization_Authorized() throws Exception {
+  public void testImportOrganization_Authorized() {
     grantWritePermission(org.getId());
     policyImportExport.importOrganization(org, new PolicyExportResult());
   }

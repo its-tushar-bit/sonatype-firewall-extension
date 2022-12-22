@@ -22,7 +22,7 @@ public class ApplicableContextTest
   }
 
   @Test
-  public void testSetTypeBad() throws Exception {
+  public void testSetTypeBad() {
     assertSetTypeBad(OwnerType.GLOBAL);
     assertSetTypeBad(null);
   }
@@ -33,7 +33,7 @@ public class ApplicableContextTest
   }
 
   @Test
-  public void testSetType() throws Exception {
+  public void testSetType() {
     applicableContext.setType(OwnerType.APPLICATION);
     applicableContext.setType(OwnerType.ORGANIZATION);
     applicableContext.setType(OwnerType.REPOSITORY);

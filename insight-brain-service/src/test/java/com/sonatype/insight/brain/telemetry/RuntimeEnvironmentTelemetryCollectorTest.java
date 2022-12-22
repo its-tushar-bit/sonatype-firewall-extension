@@ -24,7 +24,7 @@ public class RuntimeEnvironmentTelemetryCollectorTest
   private RuntimeEnvironmentTelemetryCollector telemetryCollector;
 
   @Test
-  public void testCollectData() throws Exception {
+  public void testCollectData() {
     TelemetryData telemetryData = telemetryCollector.collectData();
 
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.RUNTIME_ENVIRONMENT);

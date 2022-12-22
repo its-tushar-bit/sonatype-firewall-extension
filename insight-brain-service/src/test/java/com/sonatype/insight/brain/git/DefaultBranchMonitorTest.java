@@ -102,7 +102,7 @@ public class DefaultBranchMonitorTest
   }
 
   @Test
-  public void testExecute_Unlicensed() throws Exception {
+  public void testExecute_Unlicensed() {
     // mockLicenseChecker.isIqForScmSupported() returns false by default
 
     DefaultBranchMonitor defaultBranchMonitorSpy = spy(defaultBranchMonitor);
@@ -114,7 +114,7 @@ public class DefaultBranchMonitorTest
   }
 
   @Test
-  public void testStart_FeatureEnabled() throws Exception {
+  public void testStart_FeatureEnabled() {
     Date expectedStartTime = defaultBranchMonitor.getDefaultBranchMonitorStartTime(new SourceControlConfiguration());
     defaultBranchMonitor.register();
 
@@ -144,7 +144,7 @@ public class DefaultBranchMonitorTest
   }
 
   @Test
-  public void testStart_FeatureDisabled() throws Exception {
+  public void testStart_FeatureDisabled() {
     SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.setEnabled(false);
     defaultBranchMonitor.register();
 
@@ -195,7 +195,7 @@ public class DefaultBranchMonitorTest
   }
 
   @Test
-  public void testSourceControlConfigurationChanged_NullConfiguration() throws Exception {
+  public void testSourceControlConfigurationChanged_NullConfiguration() {
     defaultBranchMonitor.register();
 
     verify(taskSchedulerMock).schedulePeriodicTask(DefaultBranchMonitor.class, DefaultBranchMonitor.TASK_NAME,

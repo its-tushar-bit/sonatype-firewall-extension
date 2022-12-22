@@ -36,7 +36,7 @@ public class PolicyEvaluationThreadPoolExecutorTest
   }
 
   @Test
-  public void testNoWarningIsLoggedWhenThePoolIsNotExhausted() throws Exception {
+  public void testNoWarningIsLoggedWhenThePoolIsNotExhausted() {
     ThreadPoolExecutor threadPoolExecutor = new PolicyEvaluationThreadPoolExecutor();
 
     for (int i = 0; i < PolicyEvaluationThreadPoolExecutor.THREAD_POOL_SIZE; i++) {
@@ -46,7 +46,7 @@ public class PolicyEvaluationThreadPoolExecutorTest
   }
 
   @Test
-  public void testWarningIsLoggedWhenThePoolIsExhausted() throws Exception {
+  public void testWarningIsLoggedWhenThePoolIsExhausted() {
     ThreadPoolExecutor threadPoolExecutor = new PolicyEvaluationThreadPoolExecutor();
     for (int i = 0; i < PolicyEvaluationThreadPoolExecutor.THREAD_POOL_SIZE + 1; i++) {
       threadPoolExecutor.submit(() -> sleep(5000));

@@ -83,14 +83,12 @@ public class SourceControlConfigurationDAOTest
   public void testInsert_EnforceSingleton() {
     dao.insert(new SourceControlConfiguration());
 
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(new SourceControlConfiguration());
-    }).withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(new SourceControlConfiguration()))
+        .withCauseInstanceOf(EntityExistsException.class);
     SourceControlConfiguration config = new SourceControlConfiguration();
     config.setId(tempEntity.uuid());
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(config);
-    }).withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(config))
+        .withCauseInstanceOf(EntityExistsException.class);
   }
 
   @Test

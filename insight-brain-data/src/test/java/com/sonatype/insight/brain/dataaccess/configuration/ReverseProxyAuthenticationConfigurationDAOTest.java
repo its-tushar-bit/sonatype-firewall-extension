@@ -76,14 +76,13 @@ public class ReverseProxyAuthenticationConfigurationDAOTest
   public void testInsert_EnforceSingleton() {
     dao.insert(new ReverseProxyAuthenticationConfiguration());
 
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(new ReverseProxyAuthenticationConfiguration());
-    }).withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(PersistenceException.class)
+        .isThrownBy(() -> dao.insert(new ReverseProxyAuthenticationConfiguration()))
+        .withCauseInstanceOf(EntityExistsException.class);
     ReverseProxyAuthenticationConfiguration config = new ReverseProxyAuthenticationConfiguration();
     config.setId(tempEntity.uuid());
-    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> {
-      dao.insert(config);
-    }).withCauseInstanceOf(EntityExistsException.class);
+    assertThatExceptionOfType(PersistenceException.class).isThrownBy(() -> dao.insert(config))
+        .withCauseInstanceOf(EntityExistsException.class);
   }
 
   @Test

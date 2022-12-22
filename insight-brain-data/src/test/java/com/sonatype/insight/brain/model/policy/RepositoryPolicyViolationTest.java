@@ -29,7 +29,7 @@ public class RepositoryPolicyViolationTest
       "artifactId", "version");
 
   @Test
-  public void testConstructorConstraintFacts() throws Exception {
+  public void testConstructorConstraintFacts() {
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
 
@@ -43,7 +43,7 @@ public class RepositoryPolicyViolationTest
   }
 
   @Test
-  public void testConstructorConstraintFactsJson() throws Exception {
+  public void testConstructorConstraintFactsJson() {
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
     String constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
 
@@ -55,7 +55,7 @@ public class RepositoryPolicyViolationTest
   }
 
   @Test
-  public void testSetConstraintFactsJson() throws Exception {
+  public void testSetConstraintFactsJson() {
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
 
     List<ConstraintFact> constraintFacts = createConstraintFacts(2);
@@ -66,25 +66,23 @@ public class RepositoryPolicyViolationTest
   }
 
   @Test
-  public void testSetConstraintFactsJson_Null() throws Exception {
+  public void testSetConstraintFactsJson_Null() {
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
 
-    assertThatThrownBy(() -> {
-      policyViolation.setConstraintFactsJson(null);
-    }).isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFactsJson cannot be null or empty.");
+    assertThatThrownBy(() -> policyViolation.setConstraintFactsJson(null)).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("ConstraintFactsJson cannot be null or empty.");
   }
 
   @Test
-  public void testSetConstraintFactsJson_Empty() throws Exception {
+  public void testSetConstraintFactsJson_Empty() {
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation();
 
-    assertThatThrownBy(() -> {
-      policyViolation.setConstraintFactsJson(" ");
-    }).isInstanceOf(IllegalArgumentException.class).hasMessage("ConstraintFactsJson cannot be null or empty.");
+    assertThatThrownBy(() -> policyViolation.setConstraintFactsJson(" ")).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("ConstraintFactsJson cannot be null or empty.");
   }
 
   @Test
-  public void testConstructorConstraintFactsJson_Null() throws Exception {
+  public void testConstructorConstraintFactsJson_Null() {
     assertThatThrownBy(() -> {
       String constraintFactsJson = null;
       new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
@@ -93,7 +91,7 @@ public class RepositoryPolicyViolationTest
   }
 
   @Test
-  public void testConstructorConstraintFactsJson_Empty() throws Exception {
+  public void testConstructorConstraintFactsJson_Empty() {
     assertThatThrownBy(() -> {
       String constraintFactsJson = " ";
       new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
@@ -102,7 +100,7 @@ public class RepositoryPolicyViolationTest
   }
 
   @Test
-  public void testConstructorConstraintFacts_Null() throws Exception {
+  public void testConstructorConstraintFacts_Null() {
     assertThatThrownBy(() -> {
       List<ConstraintFact> constraintFacts = null;
       new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
@@ -111,7 +109,7 @@ public class RepositoryPolicyViolationTest
   }
 
   @Test
-  public void testConstructorConstraintFacts_Empty() throws Exception {
+  public void testConstructorConstraintFacts_Empty() {
     assertThatThrownBy(() -> {
       List<ConstraintFact> constraintFacts = new ArrayList<>();
       new RepositoryPolicyViolation("repositoryId", "path", new Date(), "policyId", "policyName", 5 /* threatLevel */,
@@ -164,9 +162,8 @@ public class RepositoryPolicyViolationTest
     policyViolation.setWaived(true);
     assertThat(policyViolation.isWaived()).isTrue();
 
-    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
-      policyViolation.setWaived(false);
-    }).withMessage("Cannot un-waive a repository policy violation.");
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> policyViolation.setWaived(false))
+        .withMessage("Cannot un-waive a repository policy violation.");
   }
 
   @Test
@@ -200,9 +197,8 @@ public class RepositoryPolicyViolationTest
         constraintFacts);
     policyViolation.setWaiveTime(waiveTime);
 
-    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
-      policyViolation.setWaiveTime(null);
-    }).withMessage("Cannot un-waive a repository policy violation.");
+    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> policyViolation.setWaiveTime(null))
+        .withMessage("Cannot un-waive a repository policy violation.");
   }
 
   @Test

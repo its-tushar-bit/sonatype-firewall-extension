@@ -38,7 +38,7 @@ public class RestRequestFilter
   }
 
   @Override
-  public void init(final FilterConfig filterConfig) throws ServletException {
+  public void init(final FilterConfig filterConfig) {
   }
 
   @Override

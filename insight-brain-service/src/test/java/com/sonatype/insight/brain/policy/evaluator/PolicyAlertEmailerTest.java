@@ -143,7 +143,7 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
-  public void testNotificationEmailSubject() throws Exception {
+  public void testNotificationEmailSubject() {
     String ownerName = "ownerName";
     assertThat(
         policyAlertEmailer.createPolicyMailSubject(new PolicyAlertCounts(1, 2, 3, 4, 5), ownerName, StageTypes.BUILD))
@@ -163,7 +163,7 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
-  public void testLogging_NewViolations_NoNotification() throws Exception {
+  public void testLogging_NewViolations_NoNotification() {
     Application app = tempEntity.newApplicationWithParent("test");
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";
@@ -184,7 +184,7 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
-  public void testLogging_NewViolations_Notification() throws Exception {
+  public void testLogging_NewViolations_Notification() {
     Application app = tempEntity.newApplicationWithParent("test");
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";
@@ -207,7 +207,7 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
-  public void testLogging_NewViolations_Notification_Error() throws Exception {
+  public void testLogging_NewViolations_Notification_Error() {
     Application app = tempEntity.newApplicationWithParent("test");
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";
@@ -232,7 +232,7 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
-  public void test_Notification_Email() throws Exception {
+  public void test_Notification_Email() {
     Application app = tempEntity.newApplicationWithParent("test");
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";
@@ -256,7 +256,7 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
-  public void testSendNotifications_MissingLicenseFeature() throws Exception {
+  public void testSendNotifications_MissingLicenseFeature() {
     testProductLicense.setMissingFeatures(LicensedFeature.NOTIFICATIONS);
 
     Application app = tempEntity.newApplicationWithParent("test");
@@ -277,7 +277,7 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
-  public void test_Monitoring_Notification_Email() throws Exception {
+  public void test_Monitoring_Notification_Email() {
     Application app = tempEntity.newApplicationWithParent("test");
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";
@@ -299,7 +299,7 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
-  public void test_Notification_Role() throws Exception {
+  public void test_Notification_Role() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     Role role = tempEntity.newRole(false /* global */, Permission.READ);
@@ -492,7 +492,7 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
-  public void test_Monitoring_Notification_Role() throws Exception {
+  public void test_Monitoring_Notification_Role() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
 
@@ -527,7 +527,7 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
-  public void test_Notification_Email_JiraNotificationsOnly() throws Exception {
+  public void test_Notification_Email_JiraNotificationsOnly() {
     Application app = tempEntity.newApplicationWithParent("test");
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";

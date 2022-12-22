@@ -6,9 +6,9 @@
 package com.sonatype.insight.brain;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
@@ -56,7 +56,7 @@ public class SslSettings
 
   private KeyStore getKeyStore(File keyStoreFile, String password) throws GeneralSecurityException, IOException {
     KeyStore keyStore = KeyStore.getInstance("jks");
-    try (InputStream in = new FileInputStream(keyStoreFile)) {
+    try (InputStream in = Files.newInputStream(keyStoreFile.toPath())) {
       keyStore.load(in, password.toCharArray());
     }
     return keyStore;

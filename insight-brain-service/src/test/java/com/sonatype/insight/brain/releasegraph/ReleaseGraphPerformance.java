@@ -21,7 +21,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -56,9 +55,9 @@ public class ReleaseGraphPerformance
 
   private LoadingCache<ReleaseGraphKey, byte[]> cache;
 
-  private ReleaseGraphPerformance(int threads) throws Exception {
+  private ReleaseGraphPerformance(int threads) {
     callables = new LinkedList<>();
-    pool = new ThreadPoolExecutor(threads, threads, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(threads));
+    pool = new ThreadPoolExecutor(threads, threads, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<>(threads));
     cache = CacheBuilder.newBuilder().maximumSize(1000)
         .build(new ReleaseGraphCacheLoader(new ReportItemCacheLoader(null, new ApplicationDAO())));
     ReleaseGraphCacheProvider mockReleaseGraphCacheProvider = mock(ReleaseGraphCacheProvider.class);
@@ -166,8 +165,8 @@ public class ReleaseGraphPerformance
   public static void main(String[] args) throws Exception {
     InsightWork work = createInsightWork();
     try {
-      int reports = Integer.valueOf(args[0]);
-      int usersPerReport = Integer.valueOf(args[1]);
+      int reports = Integer.parseInt(args[0]);
+      int usersPerReport = Integer.parseInt(args[1]);
 
       // ReleaseGraphPerformance test = new ReleaseGraphPerformance( reports * usersPerReport, true, work );
       ReleaseGraphPerformance test = new ReleaseGraphPerformance(reports, usersPerReport, work);
@@ -186,11 +185,7 @@ public class ReleaseGraphPerformance
     Map<ComponentPopularity, List<Long>> data = new HashMap<>();
     for (Map<ComponentPopularity, Long> row : results) {
       for (Entry<ComponentPopularity, Long> entry : row.entrySet()) {
-        List<Long> d = data.get(entry.getKey());
-        if (d == null) {
-          d = new LinkedList<>();
-          data.put(entry.getKey(), d);
-        }
+        List<Long> d = data.computeIfAbsent(entry.getKey(), k -> new LinkedList<>());
         d.add(entry.getValue());
       }
     }
@@ -208,7 +203,7 @@ public class ReleaseGraphPerformance
       FileUtils.fileWrite(new File(file), sb.toString());
     }
     else {
-      System.out.println(sb.toString());
+      System.out.println(sb);
     }
   }
 
@@ -236,7 +231,7 @@ public class ReleaseGraphPerformance
     return new UserCallable(scanId, reportResource, components);
   }
 
-  private List<ComponentPopularity> getComponents() throws ZipException, IOException {
+  private List<ComponentPopularity> getComponents() throws IOException {
     try (ZipFile zf = new ZipFile(srcFile); InputStream in = zf.getInputStream(zf.getEntry("popularity.json"))) {
       return JsonUtils.parse(IOUtil.toByteArray(in), ReportPopularity.class).getPopularity();
     }
@@ -260,7 +255,7 @@ public class ReleaseGraphPerformance
     }
 
     @Override
-    public Map<ComponentPopularity, Long> call() throws Exception {
+    public Map<ComponentPopularity, Long> call() {
       for (ComponentPopularity component : components) {
         if (ComponentIdentifier.FORMAT_MAVEN.equals(component.getComponentIdentifier().getFormat())) {
           long start = System.currentTimeMillis();

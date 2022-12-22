@@ -263,7 +263,7 @@ public class PolicyImportExportTest
   }
 
   @Test
-  public void testImport_ToRootOrganizationDeletesAllLtgsWaiversPolicies() throws Exception {
+  public void testImport_ToRootOrganizationDeletesAllLtgsWaiversPolicies() {
     final Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     final Policy rootOrganizationPolicy = tempEntity.newPolicy(rootOrganization);
     final PolicyWaiver rootOrganizationPolicyWaiver = tempEntity.newWaiver(rootOrganizationPolicy.getId(),
@@ -318,7 +318,7 @@ public class PolicyImportExportTest
   }
 
   @Test
-  public void testImport_ToChildOrganizationDoesNotDeleteAllLtgsWaiversPolicies() throws Exception {
+  public void testImport_ToChildOrganizationDoesNotDeleteAllLtgsWaiversPolicies() {
     final Organization rootOrganization = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     final Policy rootOrganizationPolicy = tempEntity.newPolicy(rootOrganization);
     final PolicyWaiver rootOrganizationPolicyWaiver = tempEntity.newWaiver(rootOrganizationPolicy.getId(),
@@ -486,7 +486,7 @@ public class PolicyImportExportTest
   }
 
   @Test
-  public void testExportOfTags() throws Exception {
+  public void testExportOfTags() {
     Policy policy1 = tempEntity.newPolicy(fromOrg);
     Policy policy2 = tempEntity.newPolicy(fromOrg);
 
@@ -517,7 +517,7 @@ public class PolicyImportExportTest
   }
 
   @Test
-  public void testImportDeletionOfExistingOrgPolicy() throws Exception {
+  public void testImportDeletionOfExistingOrgPolicy() {
     tempEntity.newPolicy(fromOrg);
     Label orgLabel = tempEntity.newLabel(fromOrg.getId(), fromOrg.getId(), Color.light_green);
     tempEntity.newComponentLabel(fromOrg.getId(), orgLabel.getId());

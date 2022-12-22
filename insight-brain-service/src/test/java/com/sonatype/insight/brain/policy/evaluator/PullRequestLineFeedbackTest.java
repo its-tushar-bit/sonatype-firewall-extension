@@ -196,7 +196,7 @@ public class PullRequestLineFeedbackTest
   }
 
   @Test
-  public void testPullRequestFeedback_nullViolations() throws Exception {
+  public void testPullRequestFeedback_nullViolations() {
     assertThatExceptionOfType(NullPointerException.class)
         .isThrownBy(
             () -> new PullRequestLineFeedback(null, "Test Component", lookup(DefaultBaseUrl.class).getConfigured(),
@@ -204,7 +204,7 @@ public class PullRequestLineFeedbackTest
   }
 
   @Test
-  public void testPullRequestFeedback_emptyViolations() throws Exception {
+  public void testPullRequestFeedback_emptyViolations() {
     assertThatExceptionOfType(IllegalStateException.class)
         .isThrownBy(() -> new PullRequestLineFeedback(new ArrayList<>(), "Test Component",
             lookup(DefaultBaseUrl.class).getConfigured(), null, null)
@@ -213,7 +213,7 @@ public class PullRequestLineFeedbackTest
   }
 
   @Test
-  public void testPullRequestFeedback_nullDisplayName() throws Exception {
+  public void testPullRequestFeedback_nullDisplayName() {
     assertThatExceptionOfType(NullPointerException.class)
         .isThrownBy(
             () -> new PullRequestLineFeedback(new ArrayList<>(), null, lookup(DefaultBaseUrl.class).getConfigured(),

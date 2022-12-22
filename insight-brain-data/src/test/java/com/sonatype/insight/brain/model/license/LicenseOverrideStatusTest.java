@@ -29,8 +29,7 @@ public class LicenseOverrideStatusTest
 
   @Test
   public void testGetByName_Invalid() {
-    assertThatThrownBy(() -> {
-      LicenseOverrideStatus.getByName("Yeti");
-    }).isInstanceOf(IllegalArgumentException.class).hasMessage("Unknown license override status with name: Yeti");
+    assertThatThrownBy(() -> LicenseOverrideStatus.getByName("Yeti")).isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Unknown license override status with name: Yeti");
   }
 }

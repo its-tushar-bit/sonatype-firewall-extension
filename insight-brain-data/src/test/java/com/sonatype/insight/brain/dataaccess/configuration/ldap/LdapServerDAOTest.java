@@ -75,9 +75,8 @@ public class LdapServerDAOTest
   @Test
   public void testValidateNullName_Insert() {
     LdapServer ldapServer = new LdapServer(null /* name */);
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> {
-      dao.insert(ldapServer);
-    }).withMessage("Name is required.");
+    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.insert(ldapServer))
+        .withMessage("Name is required.");
   }
 
   @Test
@@ -87,16 +86,14 @@ public class LdapServerDAOTest
 
     ldapServer.setName(null);
     assertThat(ldapServer.getNameLowercaseNoWhitespace()).isNull();
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> {
-      dao.update(ldapServer);
-    }).withMessage("Name is required.");
+    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(ldapServer))
+        .withMessage("Name is required.");
   }
 
   @Test
   public void testValidateEmptyName_Insert() {
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> {
-      tempEntity.newLdapServer(" ");
-    }).withMessage("Name is required.");
+    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> tempEntity.newLdapServer(" "))
+        .withMessage("Name is required.");
   }
 
   @Test
@@ -106,18 +103,16 @@ public class LdapServerDAOTest
 
     ldapServer.setName(" ");
     assertThat(ldapServer.getNameLowercaseNoWhitespace()).isEqualTo("");
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> {
-      dao.update(ldapServer);
-    }).withMessage("Name is required.");
+    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(ldapServer))
+        .withMessage("Name is required.");
   }
 
   @Test
   public void testValidateNameInvalidChars_Insert() {
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       LdapServer ldapServer = new LdapServer(name);
-      assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> {
-        dao.insert(ldapServer);
-      }).withMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
+      assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.insert(ldapServer))
+          .withMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -126,9 +121,8 @@ public class LdapServerDAOTest
     LdapServer ldapServer = tempEntity.newLdapServer("testValidateNameInvalidChars");
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       ldapServer.setName(name);
-      assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> {
-        dao.update(ldapServer);
-      }).withMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
+      assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(ldapServer))
+          .withMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
 
@@ -151,9 +145,8 @@ public class LdapServerDAOTest
   @Test
   public void testValidateNameSpaces_Insert() {
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> {
-        tempEntity.newLdapServer(name);
-      }).withMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
+      assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> tempEntity.newLdapServer(name))
+          .withMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
 
@@ -162,9 +155,8 @@ public class LdapServerDAOTest
     LdapServer ldapServer = tempEntity.newLdapServer("testValidateNameSpaces");
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       ldapServer.setName(name);
-      assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> {
-        dao.update(ldapServer);
-      }).withMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
+      assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(ldapServer))
+          .withMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
   }
 
@@ -187,9 +179,9 @@ public class LdapServerDAOTest
   public void testDuplicateName_Insert() {
     tempEntity.newLdapServer("testDuplicateName");
 
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> {
-      tempEntity.newLdapServer("testDuplicateName");
-    }).withMessage("testDuplicateName is already used as a name.");
+    assertThatExceptionOfType(InvalidNameException.class)
+        .isThrownBy(() -> tempEntity.newLdapServer("testDuplicateName"))
+        .withMessage("testDuplicateName is already used as a name.");
   }
 
   @Test
@@ -198,17 +190,15 @@ public class LdapServerDAOTest
     LdapServer ldapServer = tempEntity.newLdapServer("testDuplicateName1");
 
     ldapServer.setName("Test Duplicate Name");
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> {
-      dao.update(ldapServer);
-    }).withMessage("Test Duplicate Name is already used as a name.");
+    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(ldapServer))
+        .withMessage("Test Duplicate Name is already used as a name.");
   }
 
   @Test
   public void testValidateNameLength_Insert() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> {
-      tempEntity.newLdapServer(name + "a");
-    }).withMessage("Name must be 60 characters or less.");
+    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> tempEntity.newLdapServer(name + "a"))
+        .withMessage("Name must be 60 characters or less.");
 
     tempEntity.newLdapServer(name);
   }
@@ -219,9 +209,8 @@ public class LdapServerDAOTest
 
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH);
     ldapServer.setName(name + "a");
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> {
-      dao.update(ldapServer);
-    }).withMessage("Name must be 60 characters or less.");
+    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(ldapServer))
+        .withMessage("Name must be 60 characters or less.");
 
     ldapServer.setName(name);
     dao.update(ldapServer);
@@ -260,9 +249,8 @@ public class LdapServerDAOTest
 
     List<String> mismatchServerList = Collections.singletonList(ldapServer2.getId());
 
-    assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> {
-      dao.updatePriority(mismatchServerList);
-    }).withMessageContaining("Unable to update priority of Ldap servers due to server list mismatch.");
+    assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> dao.updatePriority(mismatchServerList))
+        .withMessageContaining("Unable to update priority of Ldap servers due to server list mismatch.");
   }
 
   @Test
@@ -275,9 +263,8 @@ public class LdapServerDAOTest
     serverPriorityList.add(ldapServer1.getId());
     serverPriorityList.add(ldapServer2.getId());
 
-    assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> {
-      dao.updatePriority(serverPriorityList);
-    }).withMessageContaining("Unable to update priority of Ldap servers due to duplicate server IDs.");
+    assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> dao.updatePriority(serverPriorityList))
+        .withMessageContaining("Unable to update priority of Ldap servers due to duplicate server IDs.");
   }
 
   @Test
@@ -289,9 +276,8 @@ public class LdapServerDAOTest
     serverPriorityList.add(ldapServer2.getId());
     serverPriorityList.add("incorrectServerId");
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      dao.updatePriority(serverPriorityList);
-    }).withMessageContaining("Cannot find LdapServer with ID incorrectServerId");
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> dao.updatePriority(serverPriorityList))
+        .withMessageContaining("Cannot find LdapServer with ID incorrectServerId");
   }
 
   @Test

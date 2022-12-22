@@ -108,8 +108,8 @@ public class LicenseStatusConditionTypeTest
   @Test
   public void testValidateCondition_ValueNotAStatusId() {
     Condition condition = new Condition(LicenseStatusConditionType.ID, "is", "abc");
-    assertThatThrownBy(() -> {
-      new LicenseStatusConditionType().validateCondition(null, condition, null /* applicationId */);
-    }).isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
+    assertThatThrownBy(
+        () -> new LicenseStatusConditionType().validateCondition(null, condition, null /* applicationId */))
+        .isInstanceOf(InvalidConditionException.class).hasMessageEndingWith("Value not supported: abc");
   }
 }

@@ -25,7 +25,7 @@ public class UserViewedProductNotificationDAOTest
   private UserViewedProductNotificationDAO userViewedProductNotificationDAO = new UserViewedProductNotificationDAO();
 
   @Test
-  public void testCRUD() throws Exception {
+  public void testCRUD() {
     String notificationId = UUID.randomUUID().toString();
     String username = "tmpUser";
     String realmId = "testRealmId";
@@ -39,9 +39,8 @@ public class UserViewedProductNotificationDAOTest
     assertUserViewedProductNotification(userViewedProductNotificationDAO.getById(userViewedProductNotification.getId()),
         userViewedProductNotification);
 
-    assertThatThrownBy(() -> {
-      userViewedProductNotificationDAO.update(userViewedProductNotification);
-    }).isInstanceOf(UnsupportedOperationException.class)
+    assertThatThrownBy(() -> userViewedProductNotificationDAO.update(userViewedProductNotification))
+        .isInstanceOf(UnsupportedOperationException.class)
         .hasMessage("The UserViewedProductNotification table does not support update operations");
 
     // Delete
@@ -190,15 +189,13 @@ public class UserViewedProductNotificationDAOTest
 
   @Test
   public void testInsert_RealmIdNull() {
-    assertThatThrownBy(() -> {
-      tempEntity.newUserViewedProductNotification("testUsername", null /* realmId */, "testNotificationId");
-    }).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+    assertThatThrownBy(() -> tempEntity.newUserViewedProductNotification("testUsername", null /* realmId */,
+        "testNotificationId")).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
   }
 
   @Test
   public void testInsert_RealmIdWhitespace() {
-    assertThatThrownBy(() -> {
-      tempEntity.newUserViewedProductNotification("testUsername", " " /* realmId */, "testNotificationId");
-    }).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
+    assertThatThrownBy(() -> tempEntity.newUserViewedProductNotification("testUsername", " " /* realmId */,
+        "testNotificationId")).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
   }
 }

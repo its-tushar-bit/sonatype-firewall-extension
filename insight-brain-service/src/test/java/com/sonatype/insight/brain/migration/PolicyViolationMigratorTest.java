@@ -290,7 +290,7 @@ public class PolicyViolationMigratorTest
   }
 
   @Test
-  public void testMigrate_BrokenViolation() throws Exception {
+  public void testMigrate_BrokenViolation() {
     assertThatExceptionOfType(UncheckedIOException.class)
         .isThrownBy(() -> migrate("broken-violation")).withMessageContaining("eval-0-vio-0");
   }

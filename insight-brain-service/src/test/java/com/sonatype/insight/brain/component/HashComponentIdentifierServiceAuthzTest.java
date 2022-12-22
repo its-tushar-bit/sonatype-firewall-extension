@@ -52,7 +52,7 @@ public class HashComponentIdentifierServiceAuthzTest
   }
 
   @Before
-  public void resetMockHdsClient() throws Exception {
+  public void resetMockHdsClient() {
     lenient().when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
         .thenReturn(componentSummary);
   }
@@ -66,20 +66,20 @@ public class HashComponentIdentifierServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testSet_Unauthenticated() throws Exception {
+  public void testSet_Unauthenticated() {
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
     hashComponentIdentifierService.set(hashComponentIdentifier);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testSet_Unauthorized() throws Exception {
+  public void testSet_Unauthorized() {
     login();
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
     hashComponentIdentifierService.set(hashComponentIdentifier);
   }
 
   @Test
-  public void testSet() throws Exception {
+  public void testSet() {
     grantClaimComponentPermission();
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
 
@@ -87,20 +87,20 @@ public class HashComponentIdentifierServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testUpdate_Unauthenticated() throws Exception {
+  public void testUpdate_Unauthenticated() {
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
     hashComponentIdentifierService.update(hashComponentIdentifier);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testUpdate_Unauthorized() throws Exception {
+  public void testUpdate_Unauthorized() {
     login();
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
     hashComponentIdentifierService.update(hashComponentIdentifier);
   }
 
   @Test
-  public void testUpdate() throws Exception {
+  public void testUpdate() {
     grantClaimComponentPermission();
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
     hashComponentIdentifierDAO.insert(hashComponentIdentifier);
@@ -110,18 +110,18 @@ public class HashComponentIdentifierServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testDelete_Unauthenticated() throws Exception {
+  public void testDelete_Unauthenticated() {
     hashComponentIdentifierService.delete(HASH);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testDelete_Unauthorized() throws Exception {
+  public void testDelete_Unauthorized() {
     login();
     hashComponentIdentifierService.delete(HASH);
   }
 
   @Test
-  public void testDelete() throws Exception {
+  public void testDelete() {
     grantClaimComponentPermission();
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
     hashComponentIdentifierDAO.insert(hashComponentIdentifier);
@@ -130,18 +130,18 @@ public class HashComponentIdentifierServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGet_Unauthenticated() throws Exception {
+  public void testGet_Unauthenticated() {
     hashComponentIdentifierService.get(HASH);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGet_Unauthorized() throws Exception {
+  public void testGet_Unauthorized() {
     login();
     hashComponentIdentifierService.get(HASH);
   }
 
   @Test
-  public void testGet() throws Exception {
+  public void testGet() {
     grantClaimComponentPermission();
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
     hashComponentIdentifierDAO.insert(hashComponentIdentifier);

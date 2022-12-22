@@ -27,7 +27,7 @@ public class LimitedFileInputStreamTest
   private final byte[] buff = new byte[1024];
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     configYml =
         new File(getClass().getResource("/" + getClass().getSimpleName() + "/config-support-test.yml").getFile());
     assertThat(configYml).isFile();

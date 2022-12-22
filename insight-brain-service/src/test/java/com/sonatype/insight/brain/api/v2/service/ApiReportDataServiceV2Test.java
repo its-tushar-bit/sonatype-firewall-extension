@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -79,7 +79,7 @@ public class ApiReportDataServiceV2Test
   private File makeReportFile() throws Exception {
     File reportFile = work.getReportFile(app.getId(), scanId);
     reportFile.getParentFile().mkdirs();
-    try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(reportFile))) {
+    try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(reportFile.toPath()))) {
       zos.putNextEntry(new ZipEntry("index.html"));
     }
     return reportFile;

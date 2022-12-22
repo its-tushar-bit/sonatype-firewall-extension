@@ -88,7 +88,7 @@ public class ClairScannerResultsHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_filterContent_newThirdPartyFileMultipleEntries() throws Exception {
+  public void testHandleAndFilterContents_filterContent_newThirdPartyFileMultipleEntries() {
     ClairScannerResult clairScannerResult = new ClairScannerResult();
     clairScannerResult.setImage("imageTest");
 
@@ -158,7 +158,7 @@ public class ClairScannerResultsHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_nullContent() throws Exception {
+  public void testHandleAndFilterContents_nullContent() {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, null);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -167,7 +167,7 @@ public class ClairScannerResultsHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_emptyContent() throws Exception {
+  public void testHandleAndFilterContents_emptyContent() {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, toJson(new ClairScannerResult()));
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -211,7 +211,7 @@ public class ClairScannerResultsHandlerTest
     assertClairFormatLength("long_format_third_party_scans_truncation_request_test");
   }
 
-  private void assertClairFormatLength(String format) throws Exception {
+  private void assertClairFormatLength(String format) {
     ClairScannerResult clairScannerResult = new ClairScannerResult();
     clairScannerResult.setImage("imageTest");
 

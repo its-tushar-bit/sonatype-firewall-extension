@@ -39,42 +39,42 @@ public class UserTokenServiceAuthzTest
   }
 
   @Test
-  public void testGetUserTokensCreatedBetweenAndRealmId_Authorized() throws Exception {
+  public void testGetUserTokensCreatedBetweenAndRealmId_Authorized() {
     grantConfigureSystemPermission();
     userTokenService.getUserTokensCreatedBetweenAndRealmId(null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetUserTokensCreatedBetweenAndRealmId_Unauthorized() throws Exception {
+  public void testGetUserTokensCreatedBetweenAndRealmId_Unauthorized() {
     login();
     userTokenService.getUserTokensCreatedBetweenAndRealmId(null, null, null);
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetUserTokensCreatedBetweenAndRealmId_Unauthenticated() throws Exception {
+  public void testGetUserTokensCreatedBetweenAndRealmId_Unauthenticated() {
     userTokenService.getUserTokensCreatedBetweenAndRealmId(null, null, null);
   }
 
   @Test
-  public void testDeleteUserTokenByUserCode_Authorized() throws Exception {
+  public void testDeleteUserTokenByUserCode_Authorized() {
     UserToken userToken = tempEntity.newUserToken("john.doe", InternalRealm.ID);
     grantConfigureSystemPermission();
     userTokenService.deleteUserTokenByUserCode(userToken.getUserCode());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testDeleteUserTokenByUserCode_Unauthorized() throws Exception {
+  public void testDeleteUserTokenByUserCode_Unauthorized() {
     login();
     userTokenService.deleteUserTokenByUserCode("a-user-code");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testDeleteUserTokenByUserCode_Unauthenticated() throws Exception {
+  public void testDeleteUserTokenByUserCode_Unauthenticated() {
     userTokenService.deleteUserTokenByUserCode("a-user-code");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testUserTokenExistsForCurrentUser_Unauthenticated() throws Exception {
+  public void testUserTokenExistsForCurrentUser_Unauthenticated() {
     userTokenService.userTokenExistsForCurrentUser();
   }
 

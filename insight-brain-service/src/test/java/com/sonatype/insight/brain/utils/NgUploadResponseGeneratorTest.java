@@ -48,13 +48,7 @@ public class NgUploadResponseGeneratorTest
 
   @Test
   public void run_CallsAntiCsrfFilter() throws Exception {
-    final Callable<Void> callable = new Callable<Void>()
-    {
-      @Override
-      public Void call() throws Exception {
-        return null;
-      }
-    };
+    final Callable<Void> callable = () -> null;
     ngUploadResponseGenerator.run(csrfToken, httpHeaders, false, callable);
     verify(antiCsrfFilter).validate(csrfToken, httpHeaders);
 
@@ -87,7 +81,7 @@ public class NgUploadResponseGeneratorTest
   }
 
   @Test
-  public void run_FailAjaxRequest() throws Exception {
+  public void run_FailAjaxRequest() {
     final String exceptionMessage = "foo";
 
     Callable<Object> callable = new NgUploadResponseResult(new BadRequestException(exceptionMessage));

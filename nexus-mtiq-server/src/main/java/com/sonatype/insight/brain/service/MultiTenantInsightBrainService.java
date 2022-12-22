@@ -48,6 +48,15 @@ import io.dropwizard.setup.Environment;
 public class MultiTenantInsightBrainService
     extends InsightBrainService
 {
+  /**
+   * SisuApplication#addManaged loads Managed beans outside the normal flow but does not respect the @Priority
+   * annotation however it does call SisuApplication#acceptComponent to check whether the component should be loaded or
+   * not. We make use of that functionality here to prevent Default* (i.e. on-prem implmentations) being loaded in MTIQ
+   * and causing conflicting behaviour.
+   */
+  private static final List<Class> BANNED_IMPLEMENTATIONS =
+      Arrays.asList(new Class[]{DefaultTenantManagedInitializer.class});
+
   public static void main(final String[] args) {
     TenantManager.initGlobalTenant();
 
@@ -178,5 +187,14 @@ public class MultiTenantInsightBrainService
   @Override
   public Class getConfigurationClass() {
     return MultiTenantInsightConfig.class;
+  }
+
+  @Override
+  protected boolean acceptComponent(Class<?> type) {
+    if (BANNED_IMPLEMENTATIONS.contains(type)) {
+      return false;
+    }
+
+    return super.acceptComponent(type);
   }
 }

@@ -63,12 +63,12 @@ public class TenantUtil
 
     if (GlobalTenantJob.class.isAssignableFrom(clazz) && !GLOBAL_TENANT.equals(tenant)) {
       logTenancyIssue("GlobalTenantJob was invoked which expects a global tenant to be set but instead a specific " +
-          "tenant was set");
+          "tenant was set: " + clazz);
     }
     else if (!GlobalTenantJob.class.isAssignableFrom(clazz) && TenantManaged.class.isAssignableFrom(clazz) &&
         GLOBAL_TENANT.equals(tenant)) {
       logTenancyIssue("TenantJob was invoked which expects a specific tenant to be set but instead global " +
-          "tenant was set");
+          "tenant was set: " + clazz);
     }
     else if (!GlobalTenantJob.class.isAssignableFrom(clazz) && !TenantManaged.class.isAssignableFrom(clazz)) {
       logTenancyIssue("Class specified for tenancy validation but no validation exists: " + clazz);

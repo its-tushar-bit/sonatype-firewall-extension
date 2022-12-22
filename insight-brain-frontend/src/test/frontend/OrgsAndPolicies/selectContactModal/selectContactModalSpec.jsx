@@ -87,7 +87,7 @@ describe('SelectContactModal', () => {
   });
 
   it('shows warning message, if there are no available users', (done) => {
-    axiosMock.onGet(decodeURIComponent(getUsersRoleMappingUrl('application', '4', '1*', false))).reply(200, {
+    axiosMock.onGet(getUsersRoleMappingUrl('application', '4', '1*', false)).reply(200, {
       members: [],
       error: null,
       query: '1',
@@ -138,7 +138,7 @@ describe('SelectContactModal', () => {
   });
 
   it('set partialError when there is an error', (done) => {
-    axiosMock.onGet(decodeURIComponent(getUsersRoleMappingUrl('application', '4', '1*', false))).reply(200, {
+    axiosMock.onGet(getUsersRoleMappingUrl('application', '4', '1*', false)).reply(200, {
       members: [
         {
           type: 'USER',

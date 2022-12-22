@@ -632,11 +632,11 @@ public class ApiLicenseLegalService
     CompletableFuture<Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>>>
         componentLegalCommentsByComponentIdentifier =
         CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
-                () -> getComponentLegalCommentsByComponentIdentifier(latestRawReports)));
+            () -> getComponentLegalCommentsByComponentIdentifier(latestRawReports)));
 
     CompletableFuture<Map<ComponentIdentifier, Set<ComponentLegalFileDTO>>> componentLegalFilesByComponentIdentifier =
         CompletableFuture.supplyAsync(new TenantAwareSupplier<>(
-                () -> getComponentLegalFilesByComponentIdentifier(latestRawReports)));
+            () -> getComponentLegalFilesByComponentIdentifier(latestRawReports)));
 
     CompletableFuture<Map<ComponentIdentifier, Set<LegalSourceLinkDTO>>> sourceLinksByComponentIdentifier =
         CompletableFuture.supplyAsync(new TenantAwareSupplier<>(

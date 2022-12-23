@@ -30,7 +30,7 @@ public abstract class OwnerTile
   }
 
   public SelenideElement subHeader() {
-    return child(".iq-tile-header__subtitle");
+    return child("h3.nx-tile-header__subtitle");
   }
 
   public SelenideElement nxSubHeader() {
@@ -39,5 +39,9 @@ public abstract class OwnerTile
 
   public SelenideElement newButton() {
     return getElement().find("button");
+  }
+
+  public SelenideElement addRoleButton() {
+    return child("#add-role-button");
   }
 }

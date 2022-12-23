@@ -86,7 +86,7 @@ import {
   loadExistingWaiversDataRequested,
   loadExistingWaiversDataFulfilled,
   loadExistingWaiversDataFailed,
-  onGoToFirewallWaiversPage,
+  onGoToRepositoryComponentWaiversPage,
   loadFirewallViolationDetails,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
@@ -127,7 +127,10 @@ describe('firewallActions', function () {
     licensesOverrideUrl = getLicenseOverrideUrl('repository', 'repositoryId', 'componentIdentifier'),
     erroneusLicensesOverrideUrl = getLicenseOverrideUrl('repository', 'repositoryId', 'erroneusComponentIdentifier');
 
-  let store, state;
+  let store,
+    state,
+    pathname = 'pathname',
+    routeName = 'firewall.whatever';
 
   beforeEach(function () {
     state = {
@@ -215,8 +218,11 @@ describe('firewallActions', function () {
           matchState: 'matchState',
           proprietary: 'proprietary',
           identificationSource: 'identificationSource',
-          pathname: 'pathname',
+          pathname,
         }),
+        currentState: {
+          name: routeName,
+        },
       }),
       componentDetails: {
         pendingLoads: new Set(),
@@ -1412,9 +1418,9 @@ describe('firewallActions', function () {
     });
   });
 
-  describe('onGoToFirewallWaiversPage', () => {
+  describe('onGoToRepositoryComponentWaiversPage', () => {
     it('calls stateGo with the appropriate parameters', () => {
-      store.dispatch(onGoToFirewallWaiversPage('policyViolationId'));
+      store.dispatch(onGoToRepositoryComponentWaiversPage('policyViolationId'));
 
       const actions = store.getActions();
 
@@ -1439,7 +1445,7 @@ describe('firewallActions', function () {
           matchState: 'matchState',
           proprietary: 'proprietary',
           identificationSource: 'identificationSource',
-          pathname: 'pathname',
+          pathname,
           tabId: undefined,
         },
         options: undefined,

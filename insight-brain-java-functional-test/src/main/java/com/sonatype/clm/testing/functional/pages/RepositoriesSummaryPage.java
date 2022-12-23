@@ -25,6 +25,6 @@ public class RepositoriesSummaryPage
   }
 
   public static AccessTile accessTile() {
-    return new AccessTile("#repositories-pill-access");
+    return new AccessTile("repositories-summary-view");
   }
 }

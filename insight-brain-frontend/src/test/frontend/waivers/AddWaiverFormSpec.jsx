@@ -101,6 +101,8 @@ describe('AddWaiverForm', function () {
       vulnerabilityId: 'CVE-12345',
       cancelAction: cancelActionSpy,
       currentUser: 'test user',
+      isFirewall: true,
+      isFirewallOrRepositoryComponent: true,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(AddWaiverForm, minimalProps);

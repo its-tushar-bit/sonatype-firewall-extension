@@ -1,0 +1,319 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { getAuditReportSummary, getRepositoryInfoUrl, getRepositoryEvaluateUrl } from 'MainRoot/util/CLMLocation';
+import { prop } from 'ramda';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { propSet } from 'MainRoot/util/reduxToolkitUtil';
+import { getRepositoryComponentsUrl } from 'MainRoot/util/CLMLocation';
+import {
+  selectComponentsRequestBody,
+  selectCurrentPage,
+  selectHasMoreResults,
+  selectRepositoryInformation,
+} from './repositoryResultsSummaryPageSelectors';
+import { debounce } from 'debounce';
+
+const REDUCER_NAME = 'repositoryResultsSummaryPage';
+const PAGE_SIZE = 12;
+const FILTER_DEBOUNCE_TIME = 500;
+const DEFAULT_SORTED_FIELD = 'POLICY_THREAT_LEVEL';
+
+const initialState = {
+  repositoryInfo: null,
+  affectedComponentCount: null,
+  criticalComponentCount: null,
+  knownComponentCount: null,
+  moderateComponentCount: null,
+  quarantinedComponentCount: null,
+  severeComponentCount: null,
+  totalComponentCount: null,
+  loadingSummaryTile: false,
+  loadingRepositoryInformation: false,
+  loadingRepositoryComponents: false,
+  errorSummaryTile: null,
+  errorRepositoryInformation: null,
+  selectedMatchStateFilters: new Set([]),
+  selectedViolationStateFilters: new Set([]),
+  showFilterPopover: false,
+  errorComponentsTable: null,
+  repositoryComponents: [],
+  componentsRequestBody: {
+    page: 1,
+    pageSize: PAGE_SIZE,
+    searchFilters: [],
+    sortFields: [
+      {
+        sortableField: DEFAULT_SORTED_FIELD,
+        asc: false,
+        sortPriority: 1,
+      },
+    ],
+    matchStateFilters: [],
+    violationStateFilters: [],
+  },
+  hasMoreResults: null,
+  searchFiltersValues: {
+    POLICY_NAME: '',
+    COMPONENT_COORDINATES: '',
+  },
+  reEvaluateMaskSuccess: false,
+  showMaskSuccessDialog: false,
+};
+
+const sortComponents = (sortData) => (dispatch, getState) => {
+  const repository = selectRepositoryInformation(getState());
+  dispatch(actions.setSorting(sortData));
+  dispatch(actions.getRepositoryComponents(repository?.id));
+};
+
+const setSorting = (state, { payload }) => {
+  let sortField = state.componentsRequestBody.sortFields[0];
+  if (sortField.sortableField === payload) {
+    sortField.asc = !sortField.asc;
+  } else {
+    sortField.sortableField = payload;
+    sortField.asc = true;
+  }
+  state.componentsRequestBody.page = 1;
+};
+
+const getRepositoryInformation = createAsyncThunk(
+  `${REDUCER_NAME}/getRepositoryInformation`,
+  (repoId, { rejectWithValue }) => {
+    return axios.get(getRepositoryInfoUrl(repoId)).then(prop('data')).catch(rejectWithValue);
+  }
+);
+
+const reevaluateReport = createAsyncThunk(`${REDUCER_NAME}/reevaluateReport`, (repoId, { rejectWithValue }) => {
+  return axios.post(getRepositoryEvaluateUrl(repoId)).then(prop('data')).catch(rejectWithValue);
+});
+
+const reevaluateReportPending = (state) => {
+  state.showMaskSuccessDialog = true;
+  state.reEvaluateMaskSuccess = false;
+  state.errorReevaluate = false;
+};
+
+const reevaluateReportFulfilled = (state) => {
+  state.showMaskSuccessDialog = true;
+  state.reEvaluateMaskSuccess = true;
+  state.errorReevaluate = false;
+};
+
+const reevaluateReportRejected = (state) => {
+  state.showMaskSuccessDialog = false;
+  state.reEvaluateMaskSuccess = false;
+};
+
+const changeViolationStateFilters = (state, { payload }) => {
+  state.selectedViolationStateFilters = payload;
+};
+
+const changeMachstateFilters = (state, { payload }) => {
+  state.selectedMatchStateFilters = payload;
+};
+
+const clearFilters = (state) => {
+  state.componentsRequestBody.page = 1;
+  state.selectedMatchStateFilters = new Set([]);
+  state.selectedViolationStateFilters = new Set([]);
+  state.componentsRequestBody.matchStateFilters = Array.from(state.selectedMatchStateFilters);
+  state.componentsRequestBody.violationStateFilters = Array.from(state.selectedViolationStateFilters);
+};
+
+const getRepositoryComponents = createAsyncThunk(
+  `${REDUCER_NAME}/getRepositoryComponents`,
+  (repoId, { getState, rejectWithValue }) => {
+    const componentsRequestBody = selectComponentsRequestBody(getState());
+    return axios
+      .post(getRepositoryComponentsUrl(repoId), componentsRequestBody)
+      .then(prop('data'))
+      .catch(rejectWithValue);
+  }
+);
+
+const applyFilters = (state) => {
+  state.componentsRequestBody.page = 1;
+  state.componentsRequestBody.matchStateFilters = Array.from(state.selectedMatchStateFilters);
+  state.componentsRequestBody.violationStateFilters = Array.from(state.selectedViolationStateFilters);
+};
+
+const getRepositorySummary = createAsyncThunk(`${REDUCER_NAME}/getRepositorySummary`, (repoId, { rejectWithValue }) => {
+  return axios.get(getAuditReportSummary(repoId)).then(prop('data')).catch(rejectWithValue);
+});
+
+const loadData = (repoId) => (dispatch) => {
+  return Promise.all([
+    dispatch(getRepositoryInformation(repoId)),
+    dispatch(getRepositorySummary(repoId)),
+    dispatch(getRepositoryComponents(repoId)),
+  ]);
+};
+
+const getRepositoryComponentsPending = (state) => {
+  state.loadingRepositoryComponents = true;
+  state.errorComponentsTable = null;
+};
+
+const getRepositoryComponentsFulfilled = (state, { payload }) => {
+  state.loadingRepositoryComponents = false;
+  state.errorComponentsTable = null;
+  state.repositoryComponents = payload.slice(0, state.componentsRequestBody.pageSize);
+  state.unsortedComponents = state.repositoryComponents;
+  state.hasMoreResults = payload?.length > state.componentsRequestBody.pageSize;
+};
+
+const getRepositoryComponentsRejected = (state, { payload }) => {
+  state.loadingRepositoryComponents = false;
+  state.errorComponentsTable = Messages.getHttpErrorMessage(payload);
+};
+
+const getRepositoryInformationFulfilled = (state, action) => {
+  state.repositoryInfo = action.payload.repository;
+  state.loadingRepositoryInformation = false;
+};
+
+const getRepositoryInformationRejected = (state, action) => {
+  state.repositoryInfo = null;
+  state.loadingRepositoryInformation = false;
+  state.errorRepositoryInformation = Messages.getHttpErrorMessage(action.payload);
+};
+
+const getRepositorySummaryPending = (state) => {
+  state.loadingSummaryTile = true;
+  state.errorSummaryTile = null;
+};
+
+const getRepositoryInformationPending = (state) => {
+  state.loadingRepositoryInformation = true;
+  state.errorRepositoryInformation = null;
+};
+
+const getRepositorySummaryFulfilled = (state, action) => {
+  const summary = action.payload;
+  state.affectedComponentCount = summary.affectedComponentCount;
+  state.criticalComponentCount = summary.criticalComponentCount;
+  state.knownComponentCount = summary.knownComponentCount;
+  state.moderateComponentCount = summary.moderateComponentCount;
+  state.quarantinedComponentCount = summary.quarantinedComponentCount;
+  state.severeComponentCount = summary.severeComponentCount;
+  state.totalComponentCount = summary.totalComponentCount;
+  state.loadingSummaryTile = false;
+  state.errorSummaryTile = null;
+};
+
+const getRepositorySummaryRejected = (state, action) => {
+  state.affectedComponentCount = initialState.affectedComponentCount;
+  state.criticalComponentCount = initialState.criticalComponentCount;
+  state.knownComponentCount = initialState.knownComponentCount;
+  state.moderateComponentCount = initialState.moderateComponentCount;
+  state.quarantinedComponentCount = initialState.quarantinedComponentCount;
+  state.severeComponentCount = initialState.severeComponentCount;
+  state.totalComponentCount = initialState.totalComponentCount;
+  state.loadingSummaryTile = false;
+  state.errorSummaryTile = Messages.getHttpErrorMessage(action.payload);
+};
+
+const increasePage = (state) => {
+  state.componentsRequestBody.page += 1;
+};
+
+const decreasePage = (state) => {
+  state.componentsRequestBody.page -= 1;
+};
+
+const loadNextPage = () => (dispatch, getState) => {
+  const repository = selectRepositoryInformation(getState());
+  const hasMoreResults = selectHasMoreResults(getState());
+  if (hasMoreResults) {
+    dispatch(actions.increasePage());
+    dispatch(actions.getRepositoryComponents(repository?.id));
+  }
+};
+
+const loadPreviousPage = () => (dispatch, getState) => {
+  const repository = selectRepositoryInformation(getState());
+  const currentPage = selectCurrentPage(getState());
+  if (currentPage > 1) {
+    dispatch(actions.decreasePage());
+    dispatch(actions.getRepositoryComponents(repository?.id));
+  }
+};
+
+const setFilter = (state, { payload: { filterName, filterValue } }) => {
+  let searchFilter = state.componentsRequestBody.searchFilters.find((filter) => filter.filterableField === filterName);
+  if (searchFilter) {
+    searchFilter.value = filterValue;
+  } else
+    state.componentsRequestBody.searchFilters.push({
+      filterableField: filterName,
+      value: filterValue,
+    });
+
+  state.searchFiltersValues[filterName] = filterValue;
+  state.componentsRequestBody.searchFilters = state.componentsRequestBody.searchFilters.filter(
+    (searchFilter) => searchFilter.value !== ''
+  );
+  state.componentsRequestBody.page = 1;
+};
+
+const filterComponentsDebounce = debounce((dispatch, repositoryId) => {
+  dispatch(actions.getRepositoryComponents(repositoryId));
+}, FILTER_DEBOUNCE_TIME);
+
+const searchComponents = (searchData) => (dispatch, getState) => {
+  const repository = selectRepositoryInformation(getState());
+  dispatch(actions.setFilter(searchData));
+  filterComponentsDebounce(dispatch, repository?.id);
+};
+
+export const repositoryResultsSummaryPageSlice = createSlice({
+  name: REDUCER_NAME,
+  initialState,
+  reducers: {
+    changeViolationStateFilters,
+    changeMachstateFilters,
+    clearFilters,
+    setShowFilterPopover: propSet('showFilterPopover'),
+    setFilter,
+    setSorting,
+    increasePage,
+    decreasePage,
+    applyFilters,
+  },
+  extraReducers: {
+    [getRepositoryInformation.fulfilled]: getRepositoryInformationFulfilled,
+    [getRepositoryInformation.rejected]: getRepositoryInformationRejected,
+    [getRepositoryInformation.pending]: getRepositoryInformationPending,
+    [getRepositorySummary.pending]: getRepositorySummaryPending,
+    [getRepositorySummary.fulfilled]: getRepositorySummaryFulfilled,
+    [getRepositorySummary.rejected]: getRepositorySummaryRejected,
+    [getRepositoryComponents.pending]: getRepositoryComponentsPending,
+    [getRepositoryComponents.fulfilled]: getRepositoryComponentsFulfilled,
+    [getRepositoryComponents.rejected]: getRepositoryComponentsRejected,
+
+    [reevaluateReport.pending]: reevaluateReportPending,
+    [reevaluateReport.fulfilled]: reevaluateReportFulfilled,
+    [reevaluateReport.rejected]: reevaluateReportRejected,
+  },
+});
+
+export const actions = {
+  ...repositoryResultsSummaryPageSlice.actions,
+  getRepositoryInformation,
+  getRepositorySummary,
+  getRepositoryComponents,
+  sortComponents,
+  searchComponents,
+  loadNextPage,
+  loadPreviousPage,
+  loadData,
+  reevaluateRepository: reevaluateReport,
+};
+export default repositoryResultsSummaryPageSlice.reducer;

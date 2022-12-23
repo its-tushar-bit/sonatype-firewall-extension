@@ -46,12 +46,13 @@ public class FirewallComponentDetailsPage
     super(ROOT);
   }
 
-  private static String getBaseUrl(RepositoryComponent component, String tabId) {
+  private static String getBaseUrl(RepositoryComponent component, String tabId, boolean fromFirewallRoute) {
     ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
     try {
       String componentIdentifierJSONString =
           URLEncoder.encode(toJson(componentIdentifier), String.valueOf(StandardCharsets.UTF_8));
-      String url = "/firewall/repository/" + component.getRepositoryId() + "/component/" + componentIdentifierJSONString
+      String url = (fromFirewallRoute ? "/firewall" : "") + "/repository/" + component.getRepositoryId() + "/component/"
+          + componentIdentifierJSONString
           + "/" + component.getHash() + "/" + component.getMatchStateId() + (tabId.isEmpty() ? NO_TAB_ID : "/" + tabId)
           + "?proprietary=false&pathname=" + component.getPathname();
       return BaseUrl.resolvePageUrl(url);
@@ -61,28 +62,36 @@ public class FirewallComponentDetailsPage
     }
   }
 
+  public static String defaultUrlFromRepositoryResultsView(RepositoryComponent component) {
+    return getBaseUrl(component, NO_TAB_ID, false);
+  }
+
   public static String defaultUrl(RepositoryComponent component) {
-    return getBaseUrl(component, NO_TAB_ID);
+    return getBaseUrl(component, NO_TAB_ID, true);
+  }
+
+  public static String urlViolationsTabFromRepositoryResultsView(RepositoryComponent component) {
+    return getBaseUrl(component, VIOLATIONS_TAB_ID, false);
   }
 
   public static String urlViolationsTab(RepositoryComponent component) {
-    return getBaseUrl(component, VIOLATIONS_TAB_ID);
+    return getBaseUrl(component, VIOLATIONS_TAB_ID, true);
   }
 
   public static String overviewTab(RepositoryComponent component) {
-    return getBaseUrl(component, OVERVIEW_TAB_ID);
+    return getBaseUrl(component, OVERVIEW_TAB_ID, true);
   }
 
   public static String urlSecurityTab(RepositoryComponent component) {
-    return getBaseUrl(component, SECURITY_TAB_ID);
+    return getBaseUrl(component, SECURITY_TAB_ID, true);
   }
 
   public static String urlLegalTab(RepositoryComponent component) {
-    return getBaseUrl(component, LEGAL_TAB_ID);
+    return getBaseUrl(component, LEGAL_TAB_ID, true);
   }
 
   public static String urlLabelsTab(RepositoryComponent component) {
-    return getBaseUrl(component, LABELS_TAB_ID);
+    return getBaseUrl(component, LABELS_TAB_ID, true);
   }
 
   public SelenideElement title() {

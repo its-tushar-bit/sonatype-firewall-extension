@@ -8,7 +8,7 @@ import moment from 'moment-timezone';
 export const STANDARD_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss [UTC]Z';
 export const STANDARD_DATE_FORMAT = 'MM/DD/YYYY';
 export const formatDate = (date, format = STANDARD_DATE_TIME_FORMAT) => {
-  if (typeof date === 'undefined') {
+  if (typeof date === 'undefined' || date === null) {
     return '';
   }
   return moment(date).format(format);

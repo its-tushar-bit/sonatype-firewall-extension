@@ -401,8 +401,8 @@ public abstract class AbstractSummaryViewTest
     int hierarchySize = getHierarchySize(currentOwner);
     AccessTile accessTile = OwnerSummaryPage.accessTile();
     accessTile.subHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText(currentOwner.getName()));
-    accessTile.newButton().shouldBe(visible, enabled);
-    accessTile.accessLists().shouldHaveSize(hierarchySize);
+    accessTile.addRoleButton().shouldBe(visible, enabled);
+    accessTile.accessLists().shouldHaveSize(1);
 
     // scroll to the access tile
     OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible);
@@ -552,7 +552,7 @@ public abstract class AbstractSummaryViewTest
 
     int hierarchySize = getHierarchySize(currentOwner);
     AccessTile accessTile = OwnerSummaryPage.accessTile();
-    accessTile.accessLists().shouldHaveSize(hierarchySize);
+    accessTile.accessLists().shouldHaveSize(1);
 
     // scroll to the access tile
     OwnerSummaryPage.summaryTile().accessButton().shouldBe(visible);

@@ -90,6 +90,7 @@ describe('waiverActions', function () {
       router: {
         currentParams: { violationId: 'policyViolationId', repositoryPolicyId: 'repositoryPolicyId' },
         prevParams: { repositoryPolicyId: 'repositoryPolicyId' },
+        currentState: { name: 'firewall.whatever' },
       },
       firewall: {
         componentDetailsPage: {
@@ -413,6 +414,8 @@ describe('waiverActions', function () {
   describe('loadAddWaiverData', function () {
     it('immediately dispatches a WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED action', function () {
       spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+      spyOn(routerSelectors, 'selectIsFirewallOrRepository').and.returnValue(false);
+
       spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
       spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
       store.dispatch(loadAddWaiverData('foo'));
@@ -423,6 +426,8 @@ describe('waiverActions', function () {
 
     it('calls fetchCrossStageViolation actionCreator', function (done) {
       spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+      spyOn(routerSelectors, 'selectIsFirewallOrRepository').and.returnValue(false);
+
       spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
       spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
       const violationDetailsUrl = getViolationDetailsUrl('foo'),
@@ -448,6 +453,8 @@ describe('waiverActions', function () {
     describe('when fetchCrossStageViolation succeeds', function () {
       it('calls loadOwnerContextHierarchy', function (done) {
         spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+        spyOn(routerSelectors, 'selectIsFirewallOrRepository').and.returnValue(false);
+
         spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
         spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
         const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
@@ -487,6 +494,8 @@ describe('waiverActions', function () {
       describe('when loadOwnerContextHierarchy fails', function () {
         it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED', function (done) {
           spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+          spyOn(routerSelectors, 'selectIsFirewallOrRepository').and.returnValue(false);
+
           spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
           spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
           const loadViolationDetailsUrl = getViolationDetailsUrl('foo'),
@@ -687,6 +696,8 @@ describe('waiverActions', function () {
     describe('when fetchCrossStageViolation fails', function () {
       it('dispatches WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED', function (done) {
         spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+        spyOn(routerSelectors, 'selectIsFirewallOrRepository').and.returnValue(false);
+
         spyOn(routerSelectors, 'selectRepositoryId').and.returnValue('repositoryId');
         spyOn(routerSelectors, 'selectPrevRepositoryPolicyId').and.returnValue('repositoryId');
         const applicableWaiversUrl = '/api/v2/policyViolations/foo/applicableWaivers';
@@ -717,6 +728,7 @@ describe('waiverActions', function () {
     beforeEach(() => {
       selectPreviousRouteNameSpy = spyOn(routerSelectors, 'selectPreviousRouteName').and.returnValue('abc');
       spyOn(routerSelectors, 'selectIsFirewall').and.returnValue(false);
+      spyOn(routerSelectors, 'selectIsFirewallOrRepository').and.returnValue(false);
     });
 
     it('immediately dispatches a WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED action', function () {

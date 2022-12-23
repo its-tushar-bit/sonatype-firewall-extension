@@ -15,12 +15,9 @@ import permissionServiceModule from '../utilAngular/PermissionService';
 import validatorsModule from '../utilAngular/Validators';
 import storesModule from '../utilAngular/Stores';
 import roleMembershipModule from '../role.membership/role.membership.module';
-import AccessTileController from './access/access.tile.controller';
-import AccessTile from './access/access.tile.directive';
 import SameOwnerStateNavigationService from './utility/same.owner.state.navigation.service';
 import ownerTreeView from './navigation/owner.tree.view.directive';
 import MonitoredStageService from './utility/monitored.stage.service';
-import ConfigurationTileController from './repositories/repositories.configuration.tile.controller';
 import OwnerImageDirective from './summary/owner.image.directive';
 import OwnerSummaryController from './summary/owner.summary.controller';
 import NumberInputWithStringValue from './utility/number.input.with.string.value';
@@ -29,9 +26,9 @@ import SameOwnerViewSref from './utility/same.owner.view.sref.directive';
 import sourceControlModule from './source.control/module';
 import viewTemplate from './state/owner.manager.view.html';
 import editTemplate from './state/owner.manager.edit.html';
-import repoSummaryTemplate from './repositories/repositories.summary.view.html';
 import summaryViewTemplate from './summary/owner.summary.view.html';
 import SourceControlService from './source.control/source.control.service';
+import RepositoriesSummaryView from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesSummaryView';
 import ContinuousMonitoringEditor from 'MainRoot/OrgsAndPolicies/сontinuousMonitoringEditor/ContinuousMonitoringEditor';
 import artifactoryRepositoryModule from './artifactory.repository/module';
 import LicenseThreatGroupEditor from 'MainRoot/OrgsAndPolicies/licenseThreatGroupEditor/LicenseThreatGroupEditor';
@@ -66,6 +63,7 @@ import SelectContactModal from 'MainRoot/OrgsAndPolicies/selectContactModal/Sele
 import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/EvaluateApplicationModal';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
 import OwnerDetailSidebar from 'MainRoot/owner.manager/navigation/OwnerDetailSidebar';
+import AccessTile from 'MainRoot/react/accessTile/AccessTile';
 import RepositoriesPills from 'MainRoot/owner.manager/repositories/RepositoriesPills/RepositoriesPills';
 
 export default angular
@@ -85,12 +83,10 @@ export default angular
     sourceControlModule.name,
     artifactoryRepositoryModule.name,
   ])
-  .controller('AccessTileController', AccessTileController)
   .directive('accessTile', AccessTile)
   .directive('ownerTreeView', ownerTreeView)
   .service('SameOwnerStateNavigationService', SameOwnerStateNavigationService)
   .service('monitored.stage.service', MonitoredStageService)
-  .controller('repositories.configuration.tile.controller', ConfigurationTileController)
   .directive('ownerImage', OwnerImageDirective)
   .controller('OwnerSummaryController', OwnerSummaryController)
   .controller('OwnerSummaryTilesContainerController', OwnerSummaryTilesContainerController)
@@ -98,6 +94,8 @@ export default angular
   .directive('numberInputWithStringValue', NumberInputWithStringValue)
   .directive('sameOwnerEditSref', SameOwnerEditSref)
   .directive('sameOwnerViewSref', SameOwnerViewSref)
+  .component('accessTile', iqReact2Angular(AccessTile, [], ['$ngRedux', '$state']))
+  .component('repositoriesSummaryView', iqReact2Angular(RepositoriesSummaryView, [], ['$ngRedux', '$state']))
   .component('licenseThreatGroupEditor', iqReact2Angular(LicenseThreatGroupEditor, [], ['$ngRedux']))
   .component('policyGrandfatheringTile', iqReact2Angular(PolicyGrandfatheringTile, [], ['$ngRedux', '$state']))
   .component('policiesTile', iqReact2Angular(PoliciesTile, [], ['$ngRedux']))
@@ -180,7 +178,7 @@ export default angular
             title: 'Repositories Management',
             viewportSized: true,
           },
-          template: repoSummaryTemplate,
+          component: 'repositoriesSummaryView',
         })
         .state('management.edit.repositories', {
           url: '/edit/repositories',

@@ -98,6 +98,66 @@ function routes($stateProvider) {
         title: 'Add Waiver',
       },
     });
+
+  $stateProvider
+    .state('repository', {
+      component: 'firewall',
+      abstract: true,
+    })
+    .state('repository.componentDetailsPage', {
+      url:
+        '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}?proprietary&identificationSource&pathname',
+      component: 'firewallComponentDetailsPage',
+      data: {
+        title: 'Repository Component Details',
+      },
+      params: {
+        tabId: 'overview',
+      },
+    })
+    .state('repository.componentDetailsPage.overview', {
+      url: '/overview',
+      params: {
+        tabId: 'overview',
+      },
+    })
+    .state('repository.componentDetailsPage.violations', {
+      url: '/violations',
+      params: {
+        tabId: 'violations',
+      },
+    })
+    .state('repository.componentDetailsPage.security', {
+      url: '/security',
+      params: {
+        tabId: 'security',
+      },
+    })
+    .state('repository.componentDetailsPage.legal', {
+      url: '/legal',
+      params: {
+        tabId: 'legal',
+      },
+    })
+    .state('repository.componentDetailsPage.labels', {
+      url: '/labels',
+      params: {
+        tabId: 'labels',
+      },
+    })
+    .state('repository.violationWaivers', {
+      url:
+        '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/waivers/{violationId}?proprietary&identificationSource&pathname',
+      component: 'listWaiversPage',
+    })
+    .state('repository.addWaiver', {
+      url:
+        '/repository/{repositoryId}/component/{componentIdentifier}/{componentHash}/{matchState}/{tabId}/addWaiver/{violationId}?proprietary&identificationSource&pathname',
+      component: 'addWaiverPage',
+      data: {
+        title: 'Add Waiver',
+      },
+    });
 }
 
 routes.$inject = ['$stateProvider'];

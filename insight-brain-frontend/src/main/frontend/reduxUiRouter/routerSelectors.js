@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { prop, split, contains, curryN, propOr, propEq } from 'ramda';
+import { prop, propOr, propEq } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 
 export const selectRouterSlice = prop('router');
@@ -19,17 +19,26 @@ export const selectRouterPrevParams = createSelector(selectRouterSlice, prop('pr
 
 export const selectPreviousRouteName = createSelector(selectRouterPrevState, prop('name'));
 
-const includesNamePart = curryN(2, (part, str) => contains(part, split('.', str)));
+const includesNamePart = (part) => (stringToSearch = '') => stringToSearch.includes(part);
 const nameIncludesOrganization = includesNamePart('organization');
 const nameIncludesApplication = includesNamePart('application');
 const nameIncludesRepositories = includesNamePart('repositories');
+const nameIncludesRepository = includesNamePart('repository');
 const nameIncludesFirewall = includesNamePart('firewall');
 
 export const selectIsOrganization = createSelector(selectCurrentRouteName, nameIncludesOrganization);
 export const selectIsApplication = createSelector(selectCurrentRouteName, nameIncludesApplication);
 export const selectIsRepositories = createSelector(selectCurrentRouteName, nameIncludesRepositories);
+export const selectIsRepository = createSelector(selectCurrentRouteName, nameIncludesRepository);
 export const selectIsFirewall = createSelector(selectCurrentRouteName, nameIncludesFirewall);
 export const selectIsPrevFirewall = createSelector(selectPreviousRouteName, nameIncludesFirewall);
+// we can access to component details page from application report but also from firewall or repository results view,
+// so this is used to find out if the route is a firewall route or repository route
+export const selectIsFirewallOrRepository = createSelector(
+  selectIsFirewall,
+  selectIsRepository,
+  (isFirewall, isRepository) => isFirewall || isRepository
+);
 
 export const selectOrganizationId = createSelector(selectRouterCurrentParams, propOr('', 'organizationId'));
 export const selectApplicationId = createSelector(selectRouterCurrentParams, propOr('', 'applicationPublicId'));

@@ -30,7 +30,7 @@ export default function FirewallQuarantineTable(props) {
     setQuarantineGridPage,
     setQuarantineGridSorting,
     setQuarantineGridPolicyFilter,
-    selectQuarantineComponent,
+    goToRepositoryComponentDetailsPage,
   } = props;
 
   // quarantineState.quarantineGridState
@@ -166,7 +166,6 @@ export default function FirewallQuarantineTable(props) {
             {quarantineList &&
               quarantineList.map((row, index) => {
                 let policyViolation = getHighestPolicyViolation(row.quarantinePolicyViolations);
-
                 return (
                   <NxTableRow key={index}>
                     <NxTableCell isNumeric>
@@ -188,8 +187,16 @@ export default function FirewallQuarantineTable(props) {
                         <div className="nx-truncate-ellipsis">
                           <button
                             className="nx-text-link"
-                            id="iq-firewall-quarantine-table--cip"
-                            onClick={() => selectQuarantineComponent(index)}
+                            id="iq-firewall-quarantine-table--component-details-page"
+                            onClick={() =>
+                              goToRepositoryComponentDetailsPage(
+                                row.repositoryId,
+                                row.componentIdentifier,
+                                row.hash,
+                                row.matchState,
+                                row.pathname
+                              )
+                            }
                           >
                             {row.componentDisplayText}
                           </button>
@@ -247,5 +254,5 @@ FirewallQuarantineTable.propTypes = {
   sortField: PropTypes.string,
   filterPolicy: PropTypes.string,
   lastUpdated: PropTypes.object,
-  selectQuarantineComponent: PropTypes.func.isRequired,
+  goToRepositoryComponentDetailsPage: PropTypes.func,
 };

@@ -24,11 +24,11 @@ describe('FirewallQuarantineTable', function () {
     setQuarantineGridPage,
     setQuarantineGridSorting,
     setQuarantineGridPolicyFilter,
-    selectQuarantineComponentSpy,
+    goToRepositoryComponentDetailsPageSpy,
     hrefSpy,
     routerContextMock;
 
-  selectQuarantineComponentSpy = jasmine.createSpy('selectQuarantineComponent');
+  goToRepositoryComponentDetailsPageSpy = jasmine.createSpy('goToRepositoryComponentDetailsPage');
 
   beforeEach(function () {
     FirewallQuarantineTable = require('inject-loader!../../../main/frontend/firewall/FirewallQuarantineTable')()
@@ -44,7 +44,7 @@ describe('FirewallQuarantineTable', function () {
     spyOn(routerContext, 'useRouterState').and.returnValue(routerContextMock);
 
     minimalProps = {
-      selectQuarantineComponent: selectQuarantineComponentSpy,
+      goToRepositoryComponentDetailsPage: goToRepositoryComponentDetailsPageSpy,
       loadQuarantineList: loadQuarantineList,
       setQuarantineGridPage: setQuarantineGridPage,
       setQuarantineGridSorting: setQuarantineGridSorting,
@@ -77,6 +77,19 @@ describe('FirewallQuarantineTable', function () {
             },
           ],
           repositoryId: 'test-repository-id',
+          hash: 'hash1',
+          pathname: 'pathname1',
+          matchState: 'exact',
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'test-component',
+              classifier: '',
+              extension: 'jar',
+              groupId: 'test-component',
+              version: '1.0.0',
+            },
+          },
         },
       ],
       policies: [
@@ -112,7 +125,7 @@ describe('FirewallQuarantineTable', function () {
       // then it contains the repository
       expect(
         tableBody.containsMatchingElement([
-          <NxTableRow key="1" isClickable="true" onClick={selectQuarantineComponentSpy(1)}>
+          <NxTableRow key="1">
             <NxTableCell key="1" isNumeric>
               <NxThreatIndicator policyThreatLevel={5} />
               <span>{5}</span>
@@ -161,7 +174,7 @@ describe('FirewallQuarantineTable', function () {
       // then it contains the repository
       expect(
         tableBody.containsMatchingElement([
-          <NxTableRow key="1" isClickable="true" onClick={selectQuarantineComponentSpy(1)}>
+          <NxTableRow key="1">
             <NxTableCell key="1" isNumeric>
               <NxThreatIndicator policyThreatLevel={0} />
               <span>{0}</span>
@@ -188,18 +201,6 @@ describe('FirewallQuarantineTable', function () {
           </NxTableRow>,
         ])
       ).toBeTruthy();
-    });
-
-    it('dispatches the selectQuarantineComponent action when a row is clicked', () => {
-      // when the results table is rendered, find the first row
-      let component = getShallowComponent(),
-        table = component.find(NxTable),
-        tableBody = table.find(NxTableBody),
-        row = tableBody.find(NxTableRow);
-
-      // then clicking on the row dispatches selectQuarantineComponentSpy with the correct index
-      row.simulate('click');
-      expect(selectQuarantineComponentSpy).toHaveBeenCalledWith(1);
     });
   });
 
@@ -228,13 +229,13 @@ describe('FirewallQuarantineTable', function () {
     });
   });
 
-  describe('renders CIP', () => {
-    it('calls the selectQuarantineComponent when Component cell is clicked', () => {
+  describe('renders CDP', () => {
+    it('calls the goToRepositoryComponentDetailsPage when Component cell is clicked', () => {
       let component = getShallowComponent(),
-        link = component.find('#iq-firewall-quarantine-table--cip');
+        link = component.find('#iq-firewall-quarantine-table--component-details-page');
 
       link.simulate('click');
-      expect(selectQuarantineComponentSpy).toHaveBeenCalled();
+      expect(goToRepositoryComponentDetailsPageSpy).toHaveBeenCalled();
     });
   });
 

@@ -12,7 +12,7 @@ import { fetchStageTypes } from '../stages/stagesActions';
 import ViolationPage from './ViolationPage';
 import { selectSelectedViolationId } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { actions } from '../componentDetails/ViolationsTableTile/policyViolationsSlice';
-import { onGoToFirewallWaiversPage, loadFirewallViolationDetails } from '../firewall/firewallActions';
+import { onGoToRepositoryComponentWaiversPage, loadFirewallViolationDetails } from '../firewall/firewallActions';
 import { loadApplicableWaivers } from 'MainRoot/waivers/waiverActions';
 
 function mapStateToProps(state, showViolationsDetailPopover) {
@@ -56,7 +56,7 @@ const mapDispatchToProps = {
   fetchStageTypes,
   stateGo,
   goToWaivers: actions.goToWaivers,
-  onGoToFirewallWaiversPage: onGoToFirewallWaiversPage,
+  onGoToRepositoryComponentWaiversPage: onGoToRepositoryComponentWaiversPage,
   loadFirewallViolationDetails: loadFirewallViolationDetails,
   loadApplicableWaivers: loadApplicableWaivers,
 };

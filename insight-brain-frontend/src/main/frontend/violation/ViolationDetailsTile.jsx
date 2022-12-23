@@ -37,7 +37,7 @@ export default function ViolationDetailsTile(props) {
       isFirewallContext,
       policyDetail,
       selectPolicyId,
-      onGoToFirewallWaiversPage,
+      onGoToRepositoryComponentWaiversPage,
       hasPermissionForAppWaivers,
     } = props,
     applicationPublicId = isFirewallContext ? null : violationDetails.applicationPublicId,
@@ -77,7 +77,7 @@ export default function ViolationDetailsTile(props) {
     ),
     onManageWaiversClick = () => {
       if (isFromPolicyViolations) {
-        isFirewallContext ? onGoToFirewallWaiversPage(selectedId) : goToWaivers(selectedId);
+        isFirewallContext ? onGoToRepositoryComponentWaiversPage(selectedId) : goToWaivers(selectedId);
       } else {
         stateGo('listWaivers', {
           violationId: selectedId,
@@ -301,6 +301,6 @@ ViolationDetailsTile.propTypes = {
   isFirewallContext: PropTypes.bool,
   policyDetail: PropTypes.object,
   selectPolicyId: PropTypes.string,
-  onGoToFirewallWaiversPage: PropTypes.func.isRequired,
+  onGoToRepositoryComponentWaiversPage: PropTypes.func.isRequired,
   hasPermissionForAppWaivers: PropTypes.bool,
 };

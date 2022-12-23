@@ -32,6 +32,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
@@ -47,9 +48,11 @@ import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTableRow;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListTable;
@@ -1392,8 +1395,7 @@ public class FirewallComponentDetailsPageTest
     editPopover.status().click();
     editPopover.statuses().get(EditLicensesPopover.LicensesStatuses.INHERITED.ordinal()).click();
     editPopover.saveButton().click();
-    NxSubmitMask.seeAndWaitForDismissal();
-
+    
     waitUntilSpinnersGone();
     editPopover.availableScopes().get(EditLicensesPopover.RepositoryComponentLicensesScopes.ORGANIZATION.ordinal())
         .shouldHave(Condition.attribute("className", "nx-radio-checkbox nx-radio tm-checked"));
@@ -2418,5 +2420,156 @@ public class FirewallComponentDetailsPageTest
     firewallComponentDetailsPage.getDeleteWaiverModalButton().click();
 
     componentWaiversTable.getRows().shouldHaveSize(2);
+  }
+
+  @Test
+  public void backButtonToFirewallDashboard_whenUserCameFromFirewallDashboard() {
+    FirewallPage firewallPage = new FirewallPage();
+    FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
+    String expectedComponentName = "com.lingocoder : abi.cli : 0.5.2";
+    createAllTypePolicies();
+    setupAllTestData();
+    refreshOrOpen(FirewallPage.url());
+    waitUntilSpinnersGone(); 
+    FirewallQuarantineTable firewallQuarantineTable = firewallPage.firewallQuarantineTable();
+    SelenideElement componentLink = firewallQuarantineTable.getComponentDetailsPageLinkFromRow(0);
+    componentLink.shouldHave(text(expectedComponentName));
+    componentLink.click();
+    waitUntilSpinnersGone();
+    firewallComponentDetailsPage.shouldBe(visible);
+    firewallComponentDetailsPage.title().shouldHave(text(expectedComponentName));
+    MainHeader.backButton().shouldHave(text("Back to Firewall Dashboard"));
+    MainHeader.backButton().click();
+    firewallPage.shouldBe(visible);
+    componentLink = firewallQuarantineTable.getComponentDetailsPageLinkFromRow(0);
+    componentLink.shouldHave(text(expectedComponentName));
+  }
+
+  @Test
+  public void backButtonToFirewallDashboard_whenUserAccesByURL() {
+    FirewallPage firewallPage = new FirewallPage();
+    FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
+    String expectedComponentName = "com.lingocoder : abi.cli : 0.5.2";
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrl(component));
+    waitUntilSpinnersGone(); 
+    firewallComponentDetailsPage.shouldBe(visible);
+    firewallComponentDetailsPage.title().shouldHave(text(expectedComponentName));
+    MainHeader.backButton().shouldHave(text("Back to Firewall Dashboard"));
+    MainHeader.backButton().click();
+    firewallPage.shouldBe(visible);
+    SelenideElement componentLink = firewallPage.firewallQuarantineTable().getComponentDetailsPageLinkFromRow(0);
+    componentLink.shouldHave(text(expectedComponentName));
+  }
+
+  @Test
+  public void backButtonToRepositoryResultsView_whenUserCameFromRepositoryResultsView() {
+    FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
+    String expectedComponentName = "com.lingocoder : abi.cli : 0.5.2";
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    waitUntilSpinnersGone(); 
+    RepositoryResultDetailPage.page().shouldBe(visible);
+    SelenideElement firstRowComponentNameCell = RepositoryResultDetailPage.table().row(0).component();
+    firstRowComponentNameCell.shouldHave(text(expectedComponentName));
+    firstRowComponentNameCell.click();
+    waitUntilSpinnersGone();
+    firewallComponentDetailsPage.shouldBe(visible);
+    firewallComponentDetailsPage.title().shouldHave(text(expectedComponentName));
+    MainHeader.backButton().shouldHave(text("Back to Repository results"));
+    MainHeader.backButton().click();
+    RepositoryResultDetailPage.page().shouldBe(visible);
+    RepositoryResultDetailPage.table().row(0).component().shouldHave(text(expectedComponentName));
+  }
+
+  @Test
+  public void backButtonToRepositoryResultsView_whenUserAccessByUrl() {
+    FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
+    String expectedComponentName = "com.lingocoder : abi.cli : 0.5.2";
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.defaultUrlFromRepositoryResultsView(component));
+    waitUntilSpinnersGone(); 
+    firewallComponentDetailsPage.shouldBe(visible);
+    firewallComponentDetailsPage.title().shouldHave(text(expectedComponentName));
+    MainHeader.backButton().shouldHave(text("Back to Repository results"));
+    MainHeader.backButton().click();
+    RepositoryResultDetailPage.page().shouldBe(visible);
+    RepositoryResultDetailPage.table().row(0).component().shouldHave(text(expectedComponentName));
+  }
+  
+  private void waiversPagesFromRepositoryComponentDetailsPage_commonBackButtonsAssertions(String stringToFindInUrl) {
+    FirewallPolicyViolationsTable policyViolationsTable =
+        FirewallComponentDetailsPage.getFirewallPolicyViolationsTable();
+    FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
+    String componentName = "com.lingocoder : abi.cli : 0.5.2";
+    String policyName = "Security-High";
+    
+    firewallComponentDetailsPage.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(6);
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+    violationRow1Cells.get(1).shouldHave(text(policyName));
+    violationRow1Cells.get(3).click();
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+    policyViolationDetailPopover.shouldBe(visible);
+    policyViolationDetailPopover.popoverHeaderTitle().shouldHave(text(policyName));
+    SelenideElement manageWaiversButton = policyViolationDetailPopover.getAddWaiversButton();
+    manageWaiversButton.click();
+
+    waitUntilSpinnersGone();
+    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
+    waiversForViolationPage.shouldBe(visible);
+    MainHeader.backButton().shouldHave(text("Back to Component Details"));
+    waiversForViolationPage.componentName().shouldHave(text(componentName));
+    waiversForViolationPage.policyName().shouldHave(text(policyName));
+    waiversForViolationPage.addWaiverButton().click();
+    AddWaiverPage addWaiverPage = new AddWaiverPage();
+    addWaiverPage.shouldBe(visible);
+    addWaiverPage.componentName().shouldBe(text(componentName));
+    addWaiverPage.policyName().shouldBe(text(policyName));
+    assertThat(getWebDriver().getCurrentUrl()).contains(stringToFindInUrl);
+    assertThat(getWebDriver().getCurrentUrl()).contains("/addWaiver/");
+    MainHeader.backButton().shouldHave(text("Back to Waivers"));
+    MainHeader.backButton().click();
+
+    waitUntilSpinnersGone();
+    waiversForViolationPage.shouldBe(visible);
+    waiversForViolationPage.componentName().shouldHave(text(componentName));
+    waiversForViolationPage.policyName().shouldHave(text(policyName));    
+    assertThat(getWebDriver().getCurrentUrl()).contains(stringToFindInUrl);
+    assertThat(getWebDriver().getCurrentUrl()).contains("/waivers/");
+    MainHeader.backButton().click();
+
+    waitUntilSpinnersGone();
+    firewallComponentDetailsPage.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(6);
+    violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+    violationRow1Cells.get(1).shouldHave(text(policyName));
+  }
+
+  @Test
+  public void testWaiversPagesBackButton_hasBaseRouteToMatchWithFirewallComponentDetailsPage() {
+    // this test is used to evaluate if the add waivers page being loaded from firewall dashboard CDP is prefixing back
+    // buttons routes as a firewall/ route
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
+    waitUntilSpinnersGone();
+
+    waiversPagesFromRepositoryComponentDetailsPage_commonBackButtonsAssertions("#/firewall/repository/");
+  }
+
+  @Test
+  public void testWaiversPagesBackButton_hasBaseRouteToMatchWithRepositoryResultsComponentDetailsPage() {
+    // this test is used to evaluate if the add waivers page being loaded from repository results CDP is prefixing back
+    // buttons routes as a repository/ route
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData();
+    refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTabFromRepositoryResultsView(component));
+    waitUntilSpinnersGone();
+
+    waiversPagesFromRepositoryComponentDetailsPage_commonBackButtonsAssertions("#/repository/");
   }
 }

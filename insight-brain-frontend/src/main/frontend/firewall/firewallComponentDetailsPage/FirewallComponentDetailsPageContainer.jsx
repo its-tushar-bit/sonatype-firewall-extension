@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
+import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as componentDetailsActions } from 'MainRoot/componentDetails/componentDetailsSlice';
 import FirewallComponentDetailsPage from './FirewallComponentDetailsPage';
 import {
@@ -24,6 +25,7 @@ function mapStateToProps(state) {
     componentDetailsPageResponseState: selectFirewallComponentDetailsPage(state),
     routeParams: selectFirewallComponentDetailsPageRouteParams(state),
     labels: selectLabels(state),
+    isFirewall: selectIsFirewall(state),
   };
 }
 

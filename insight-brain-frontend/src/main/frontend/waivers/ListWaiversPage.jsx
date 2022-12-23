@@ -48,6 +48,7 @@ export default function ListWaiversPage(props) {
     identificationSource,
     pathname,
     isFirewall,
+    isFirewallOrRepositoryComponent,
     tabId,
   } = backButtonProps;
 
@@ -68,10 +69,10 @@ export default function ListWaiversPage(props) {
   );
 
   const redirectToAddWaiverPage = () => {
-    if (isFirewall) {
+    if (isFirewallOrRepositoryComponent) {
       return (
         hasPermissionForAppWaivers &&
-        stateGo('firewall.addWaiver', {
+        stateGo(`${isFirewall ? 'firewall' : 'repository'}.addWaiver`, {
           repositoryId: repositoryPolicyId,
           componentIdentifier,
           componentHash: hash,

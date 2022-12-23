@@ -6,6 +6,7 @@
 
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import ComponentDetailsTabs from '../../componentDetails/ComponentDetailsTabs';
 import {
   ComponentDetailsReportInfo,
@@ -17,6 +18,7 @@ import { NxButton, NxFontAwesomeIcon, NxLoadWrapper, NxTooltip } from '@sonatype
 import { createTabConfiguration } from '../../componentDetails/componentDetailsUtils';
 import FirewallOverview from './overview/FirewallOverview';
 import FirewallPolicyViolations from './policyViolations/FirewallPolicyViolations';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 import FirewallSecurityTab from 'MainRoot/firewall/firewallComponentDetailsPage/security/FirewallSecurityTab';
 import FirewallLegalTab from 'MainRoot/firewall/firewallComponentDetailsPage/legal/FirewallLegalTab';
 import FirewallLabelsTab from 'MainRoot/firewall/firewallComponentDetailsPage/labels/FirewallLabelsTab';
@@ -42,11 +44,21 @@ export default function FirewallComponentDetailsPage(props) {
     reevaluateComponent,
     firewallLoadApplicableLabels,
     labels,
+    isFirewall,
   } = props;
   const { tabId } = routeParams;
   const { componentDetails, isLoadingComponentDetails, componentDetailsError } = componentDetailsPageResponseState;
   const componentCoordinates =
     componentDetails?.displayName?.parts?.reduce((prev, part) => prev + part.value, '') || '';
+  let backButtonParams = {};
+  const uiRouterState = useRouterState();
+
+  if (isFirewall) {
+    backButtonParams = { text: 'Back to Firewall Dashboard', stateName: 'firewall.firewallPage' };
+  } else {
+    const href = '#' + uiRouterState.get('repository-report').url.replace('{repositoryId}', routeParams.repositoryId);
+    backButtonParams = { text: 'Back to Repository results', href };
+  }
 
   useEffect(() => {
     loadComponentDetails(routeParams);
@@ -64,6 +76,7 @@ export default function FirewallComponentDetailsPage(props) {
 
   return (
     <main id="firewall-component-details-page" className="nx-viewport-sized nx-page-main">
+      <MenuBarBackButton {...backButtonParams} />
       <div className="nx-viewport-sized__scrollable nx-scrollable firewall-component-details-page__container">
         <NxLoadWrapper
           loading={isLoadingComponentDetails}
@@ -131,4 +144,5 @@ FirewallComponentDetailsPage.propTypes = {
   reevaluateComponent: PropTypes.func,
   firewallLoadApplicableLabels: PropTypes.func,
   labels: PropTypes.array,
+  isFirewall: PropTypes.bool.isRequired,
 };

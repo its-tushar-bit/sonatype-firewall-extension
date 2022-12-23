@@ -25,7 +25,19 @@ describe('ReportStatusBar', () => {
     };
     spyOn(applicationReportSelectors, 'selectSelectedReport').and.returnValue(selectedReport);
 
-    renderComponent = () => render(<ReportStatusBar />);
+    renderComponent = () =>
+      render(
+        <ReportStatusBar
+          knownArtifactCount={selectedReport.knownArtifactCount}
+          totalArtifactCount={selectedReport.totalArtifactCount}
+          policyComponentCount={selectedReport.policyComponentCount}
+          grandfatheredPolicyViolationCount={selectedReport.grandfatheredPolicyViolationCount}
+          criticalViolationCount={selectedReport.criticalViolationCount}
+          severeViolationCount={selectedReport.severeViolationCount}
+          moderateViolationCount={selectedReport.moderateViolationCount}
+          nonLowViolationCount={selectedReport.nonLowViolationCount}
+        />
+      );
   });
 
   it('renders critical threat indicator with count', () => {

@@ -18,7 +18,7 @@ public class RepositoryReportContainerPage
   }
 
   public static SelenideElement title() {
-    return $("#report-title-left");
+    return $(".nx-page-title");
   }
 
   public static SelenideElement refreshButton() {
@@ -27,10 +27,6 @@ public class RepositoryReportContainerPage
 
   public static SelenideElement oldestEvalTime() {
     return $("#report-title .last-eval");
-  }
-
-  public static SelenideElement getIframe() {
-    return $("#evaluation-report-container > iframe");
   }
 
   public static class ReEvaluateModal

@@ -1,0 +1,212 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import React from 'react';
+import { render, screen } from 'TestRoot/SpecUtil';
+import { fireEvent } from '@testing-library/react';
+import * as repositoriesResultsSummaryPageSelectors from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSelectors';
+import RepositoryResultsSummaryPage from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/RepositoryResultsSummaryPage';
+
+describe('RepositoryResultsSummaryPage', () => {
+  let renderComponent, spyTileSummary, spyRepoInformation, spyMaskSuccess;
+  const repoId = 'testRepo';
+  const repositoryInfo = {
+    publicId: repoId,
+  };
+
+  const repositorySummaryInfo = {
+    repositoryInfo,
+    affectedComponentCount: 1,
+    criticalComponentCount: 1,
+    knownComponentCount: 1,
+    moderateComponentCount: 1,
+    quarantinedComponentCount: 1,
+    severeComponentCount: 1,
+    totalComponentCount: 6,
+    loadingSummaryTile: false,
+    loadingRepositoryInformation: false,
+    errorSummaryTile: null,
+    errorRepositoryInformation: null,
+  };
+
+  beforeEach(() => {
+    renderComponent = () => render(<RepositoryResultsSummaryPage repoId={repoId} />);
+  });
+
+  describe('when data are being loaded', () => {
+    beforeEach(() => {
+      spyTileSummary = spyOn(
+        repositoriesResultsSummaryPageSelectors,
+        'selectRepositoryResultsSummaryPageSlice'
+      ).and.callThrough();
+
+      spyRepoInformation = spyOn(
+        repositoriesResultsSummaryPageSelectors,
+        'selectRepositoryInformation'
+      ).and.callThrough();
+
+      spyTileSummary.and.returnValue(repositorySummaryInfo);
+      spyRepoInformation.and.returnValue(repositorySummaryInfo.repositoryInfo);
+    });
+
+    it('shows proper values for threat counters', () => {
+      spyTileSummary.and.returnValue({
+        ...repositorySummaryInfo,
+        severeComponentCount: 998,
+        moderateComponentCount: 997,
+        criticalComponentCount: 996,
+      });
+
+      renderComponent();
+      expect(screen.getByText('998')).toBeInTheDocument();
+      expect(screen.getByText('997')).toBeInTheDocument();
+      expect(screen.getByText('996')).toBeInTheDocument();
+    });
+
+    it('shows summary information with more than 1 component for each summary count property', () => {
+      spyTileSummary.and.returnValue({
+        ...repositorySummaryInfo,
+        affectedComponentCount: 2,
+        quarantinedComponentCount: 2,
+        knownComponentCount: 2,
+      });
+
+      renderComponent();
+      expect(screen.getByText('Affecting 2 components')).toBeInTheDocument();
+      expect(screen.getByText('6 COMPONENTS')).toBeInTheDocument();
+      expect(screen.getByText('2 QUARANTINED')).toBeInTheDocument();
+      expect(screen.getByText('components')).toBeInTheDocument();
+    });
+
+    it('renders page component, title and button ', () => {
+      spyTileSummary.and.returnValue({
+        ...repositorySummaryInfo,
+        loadingSummaryTile: false,
+        loadingRepositoryInformation: false,
+      });
+
+      renderComponent();
+      expect(screen.getByText('Re-Evaluate Repository')).toBeInTheDocument();
+      expect(screen.getByText('Repository results for testRepo')).toBeInTheDocument();
+      expect(screen.getByText('1 QUARANTINED')).toBeInTheDocument();
+      expect(screen.getByText('component')).toBeInTheDocument();
+    });
+
+    it('renders components table and filter button ', () => {
+      renderComponent();
+
+      expect(screen.getByRole('button', { name: 'Filter' })).toBeInTheDocument();
+      expect(screen.getByTestId('iq-repository-summary-table')).toBeInTheDocument();
+    });
+
+    it('renders filter popover', () => {
+      renderComponent();
+      const filterButton = screen.getByRole('button', { name: 'Filter' });
+
+      fireEvent.click(filterButton);
+
+      // The drawer is not fully open with contents accessible until after a CSS animation completes.
+      // We don't load the CSS in unit tests so we have to mock the animationEnd event here
+      const drawer = screen.getByRole('dialog', { hidden: true });
+      fireEvent.animationEnd(drawer);
+
+      const clearButton = screen.getByRole('button', { name: 'Clear' });
+      const applyButton = screen.getByRole('button', { name: 'Apply' });
+
+      expect(screen.getByTestId('components-filter-popover')).toBeVisible();
+      expect(screen.getByText('Filters')).toBeVisible();
+      expect(screen.getByText('Component Match State')).toBeVisible();
+      expect(screen.getByText('Violations')).toBeVisible();
+      expect(clearButton).toBeEnabled();
+      expect(applyButton).toBeEnabled();
+    });
+
+    it('shows summary tile error message', () => {
+      spyTileSummary.and.returnValue({
+        ...repositorySummaryInfo,
+        errorSummaryTile: 'test',
+      });
+      renderComponent();
+      expect(screen.getByText('An error occurred loading data. test')).toBeInTheDocument();
+    });
+
+    it('shows repository information error message', () => {
+      spyTileSummary.and.returnValue({
+        ...repositorySummaryInfo,
+        errorRepositoryInformation: 'test',
+      });
+      renderComponent();
+      expect(screen.getByText('An error occurred loading data. test')).toBeInTheDocument();
+    });
+
+    it('renders loading indicator', () => {
+      spyTileSummary.and.returnValue({
+        ...repositorySummaryInfo,
+        loadingSummaryTile: true,
+        loadingRepositoryInformation: true,
+      });
+      renderComponent();
+      expect(screen.getByText('Loading…')).toBeInTheDocument();
+    });
+  });
+
+  describe('when report is re-evaluated', () => {
+    beforeEach(() => {
+      spyTileSummary = spyOn(
+        repositoriesResultsSummaryPageSelectors,
+        'selectRepositoryResultsSummaryPageSlice'
+      ).and.callThrough();
+
+      spyRepoInformation = spyOn(
+        repositoriesResultsSummaryPageSelectors,
+        'selectRepositoryInformation'
+      ).and.callThrough();
+
+      spyMaskSuccess = spyOn(repositoriesResultsSummaryPageSelectors, 'selectReEvaluateMaskSuccess').and.callThrough();
+      spyTileSummary.and.returnValue(repositorySummaryInfo);
+      spyRepoInformation.and.returnValue(repositorySummaryInfo.repositoryInfo);
+    });
+
+    it('shows reevaluation modal success', async () => {
+      SpecUtil.requestIdleCallbackInvokeImmediate();
+      spyMaskSuccess.and.returnValue(true);
+      renderComponent();
+
+      const btnReevaluate = screen.getByRole('button', { name: 'Re-Evaluate Repository' });
+      expect(btnReevaluate).toBeInTheDocument();
+      fireEvent.click(btnReevaluate);
+      const btnModalReevaluate = screen.getByText('Re-evaluate');
+      expect(btnModalReevaluate).toBeInTheDocument();
+      fireEvent.click(btnModalReevaluate);
+      const txtSuccess = screen.getByText('Success!');
+      expect(txtSuccess).toBeInTheDocument();
+    });
+
+    it('shows reevaluation modal re-evaluating', async () => {
+      renderComponent();
+      const btnReevaluate = screen.getByRole('button', { name: 'Re-Evaluate Repository' });
+      expect(btnReevaluate).toBeInTheDocument();
+      fireEvent.click(btnReevaluate);
+      const btnModalReevaluate = screen.getByText('Re-evaluate');
+      expect(btnModalReevaluate).toBeInTheDocument();
+      fireEvent.click(btnModalReevaluate);
+      const txtReevaluating = screen.getByText('Re-Evaluating');
+      expect(txtReevaluating).toBeInTheDocument();
+    });
+
+    it('cancels and hide reevaluation modal success', async () => {
+      renderComponent();
+      const btnReevaluate = screen.getByRole('button', { name: 'Re-Evaluate Repository' });
+      expect(btnReevaluate).toBeInTheDocument();
+      fireEvent.click(btnReevaluate);
+
+      const btnModalCancel = screen.getByText('Cancel');
+      expect(btnModalCancel).toBeInTheDocument();
+      fireEvent.click(btnModalCancel);
+      expect(btnModalCancel).not.toBeInTheDocument();
+    });
+  });
+});

@@ -230,6 +230,15 @@ export function getCompositeSourceControlUrl(ownerType, ownerId) {
   return uriTemplate`/api/v2/compositeSourceControl/${ownerType}/${ownerId}`;
 }
 
+export const getRepositoriesUrl = () => uriTemplate`/rest/repositories/`;
+
+export const getRepositoryInfoUrl = (repositoryId) => uriTemplate`/rest/repositories/${repositoryId}`;
+
+export const getRepositoryEvaluateUrl = (repositoryId) => uriTemplate`/rest/repositories/${repositoryId}/evaluate`;
+
+export const getRepositoryComponentsUrl = (repositoryId) =>
+  uriTemplate`/api/experimental/repositories/${repositoryId}/results/details`;
+
 export function getDashboardDeleteFilterUrl(filterName) {
   return uriTemplate`/rest/dashboard/filters/named/delete?filterName=${filterName}`;
 }
@@ -720,6 +729,10 @@ export function getRoleMappingUrl(roleId) {
   return uriTemplate`/rest/membershipMapping/global/global/role/${roleId}`;
 }
 
+export function getRoleMappingsForRepositories() {
+  return uriTemplate`/rest/membershipMapping/repository_container`;
+}
+
 export function getRoleMappingForCurrentOwnerUrl(ownerType, ownerId) {
   return uriTemplate`/rest/membershipMapping/${ownerType}/${ownerId ?? ''}`;
 }
@@ -1083,6 +1096,11 @@ export const getComponentRiskDetailsUrl = (hash) => {
 export const getComponentNameUrl = (hash) => {
   return uriTemplate`/rest/componentDetails/name?hash=${hash}`;
 };
+
+export const getAuditReportSummary = function (repositoryId) {
+  return uriTemplate`/rest/repositories/${encodeURIComponent(repositoryId)}/report/summary`;
+};
+
 export function getPermissionsTestUrl(ownerType, ownerId) {
   return uriTemplate`/rest/user/permissions/${ownerType}/${ownerId}`;
 }

@@ -29,6 +29,7 @@ import {
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as applicationReportActions from './applicationReportActions';
+import { selectSelectedReport } from './applicationReportSelectors';
 import { NxStatefulErrorAlert } from '@sonatype/react-shared-components';
 
 export default function ReportPage() {
@@ -38,7 +39,7 @@ export default function ReportPage() {
   const isPolicyTypeFilterEnabled = useSelector(selectIsPolicyTypeFilterEnabled);
   const isOldReportWithNoDependencyInfo = useSelector(selectDependencyTreeIsOldReport);
   const hasUnscannedComponents = useSelector(selectHasUnscannedComponents);
-
+  const selectedReport = useSelector(selectSelectedReport);
   const { loadError, reevaluateMaskState } = pick(['loadError', 'reevaluateMaskState'], applicationReport);
   const [showUnscannedComponentsModal, setShowUnscannedComponentsModal] = useState(false);
   const modalCloseHandler = () => setShowUnscannedComponentsModal(false);
@@ -117,10 +118,12 @@ export default function ReportPage() {
               This report was generated with an older version of IQ. Please re-scan the application.
             </NxWarningAlert>
           )}
+
           {reevaluationError === 'Insufficient permissions' && (
             <NxStatefulErrorAlert>Insufficient Permissions to Re-Evaluate</NxStatefulErrorAlert>
           )}
-          <ReportStatusBar />
+
+          <ReportStatusBar {...selectedReport} />
           <ReportContent />
         </NxLoadWrapper>
       </main>

@@ -11,8 +11,8 @@ import { originNamesForAddRequestPages } from 'MainRoot/util/waiverUtils';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 
 export default function AddAndRequestWaiversBackButton(props) {
-  const { violationId, prevStateName, prevParams, isFirewall } = props;
-  const { hash, scanId, publicId, sidebarReference, type, repositoryPolicyId } = prevParams;
+  const { violationId, prevStateName, prevParams, isFirewall, isFirewallOrRepositoryComponent } = props;
+  const { hash, scanId, publicId, sidebarReference, type } = prevParams;
 
   const uiRouterState = useRouterState();
 
@@ -49,7 +49,7 @@ export default function AddAndRequestWaiversBackButton(props) {
   */
 
   // No previous state information
-  if (!prevStateName && !isFirewall) {
+  if (!prevStateName && !isFirewallOrRepositoryComponent) {
     backButtonHref = uiRouterState.href(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, { violationId });
   }
 
@@ -74,12 +74,15 @@ export default function AddAndRequestWaiversBackButton(props) {
       backButtonHref = uiRouterState.href(originNamesForAddRequestPages.WAIVERS_FOR_VIOLATION, { violationId });
     }
   }
-  // Navigated from Firewall Component Details Page
-  else if (prevStateName === originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS || isFirewall) {
-    backButtonHref = uiRouterState.href(originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS, {
-      ...props,
-      violationId,
-    });
+  // Navigated from Firewall - Component Details Page or Repository Results View - Component Details Page
+  else if (isFirewallOrRepositoryComponent) {
+    backButtonHref = uiRouterState.href(
+      originNamesForAddRequestPages[`${isFirewall ? 'FIREWALL' : 'REPOSITORY'}_VIOLATION_WAIVERS`],
+      {
+        ...props,
+        violationId,
+      }
+    );
     //Navigated from a shareable URL
   }
   // Navigated from Dashboard
@@ -115,4 +118,6 @@ AddAndRequestWaiversBackButton.propTypes = {
     type: PropTypes.string,
     repositoryPolicyId: PropTypes.string,
   }),
+  isFirewall: PropTypes.bool,
+  isFirewallOrRepositoryComponent: PropTypes.bool,
 };

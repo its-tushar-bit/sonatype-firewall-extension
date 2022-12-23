@@ -44,7 +44,7 @@ public class DeleteModal
   public static SelenideElement cancelButton() {
     return root().$(".iq-btn:not(.iq-btn--primary)[type='button']");
   }
-
+  
   public static SelenideElement retryButton() {
     return root().$(".iq-btn--error");
   }

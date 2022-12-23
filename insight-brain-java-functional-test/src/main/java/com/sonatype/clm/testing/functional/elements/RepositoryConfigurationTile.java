@@ -28,11 +28,11 @@ public class RepositoryConfigurationTile
   }
 
   public ConfigurationTable configurationTable() {
-    return new ConfigurationTable(createSelector(selector, ".repository-configuration-list"));
+    return new ConfigurationTable(createSelector(selector, "#iq-repositories-configuration-table"));
   }
 
   public SelenideElement emptyDescriptor() {
-    return child(".iq-list__item--empty");
+    return child(".nx-cell--meta-info");
   }
 
   public static class ConfigurationTable
@@ -75,7 +75,7 @@ public class RepositoryConfigurationTile
       }
 
       public SelenideElement deleteButton() {
-        return child("td", nthChild(4), "> button");
+        return child("td", nthChild(4), "> div > button");
       }
 
       public static Condition deleteRepositoryText(String publicId) {

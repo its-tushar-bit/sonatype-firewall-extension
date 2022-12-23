@@ -12,7 +12,8 @@ import RepositoryReEvaluateModalController from './repository.reevaluate.modal.c
 import ReEvaluateModalService from './repository.reevaluate.service';
 import RepositoryReportController from './repository.report.controller';
 import appReportTemplate from './report/report.html';
-import repoReportTemplate from './report/repository.report.html';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
+import RepositoryResultsSummaryPage from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/RepositoryResultsSummaryPage';
 
 var reportModule = angular
   .module(
@@ -31,16 +32,12 @@ var reportModule = angular
         });
         $stateProvider.state('repository-report', {
           url: '/repository/{repositoryId}/result',
-          controller: 'repository.report.controller',
-          controllerAs: 'vm',
-          template: repoReportTemplate,
-          data: {
-            title: 'Repository Results',
-          },
+          component: 'repositoryResultsSummaryPage',
         });
       },
     ]
   )
+  .component('repositoryResultsSummaryPage', iqReact2Angular(RepositoryResultsSummaryPage, [], ['$ngRedux', '$state']))
   .controller('repository.reevaluate.modal.controller', RepositoryReEvaluateModalController)
   .service('ReEvaluateModal', ReEvaluateModalService)
   .controller('repository.report.controller', RepositoryReportController);

@@ -28,7 +28,7 @@ import {
 import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { actions as componentDetailsLicenseDetectionsTileActions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
-import { selectHash, selectRepositoryId } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectHash, selectRepositoryId, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as componentDetailsActions } from 'MainRoot/componentDetails/componentDetailsSlice';
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 
@@ -534,12 +534,13 @@ export function selectComponent(componentIndex) {
 }
 
 export function onComponentDetailsPageTabChange(tabId) {
-  return (dispatch) => {
-    return dispatch(stateGo(`firewall.componentDetailsPage.${tabId}`));
+  return (dispatch, getState) => {
+    const abstractRouteName = selectIsFirewall(getState()) ? 'firewall' : 'repository';
+    return dispatch(stateGo(`${abstractRouteName}.componentDetailsPage.${tabId}`));
   };
 }
 
-export function onGoToFirewallWaiversPage(violationId) {
+export function onGoToRepositoryComponentWaiversPage(violationId) {
   return (dispatch, getState) => {
     const {
       repositoryId,
@@ -552,7 +553,7 @@ export function onGoToFirewallWaiversPage(violationId) {
       tabId,
     } = selectFirewallComponentDetailsPageRouteParams(getState());
     dispatch(
-      stateGo('firewall.violationWaivers', {
+      stateGo(`${selectIsFirewall(getState()) ? 'firewall' : 'repository'}.violationWaivers`, {
         repositoryId,
         componentIdentifier,
         componentHash,
@@ -618,5 +619,25 @@ export function loadComponentLicenses(repositoryId, componentIdentifier) {
       .catch((error) => {
         return dispatch(loadComponentLicensesFailed(Messages.getHttpErrorMessage(error)));
       });
+  };
+}
+
+export function goToRepositoryComponentDetailsPage(
+  repositoryId,
+  componentIdentifier,
+  componentHash,
+  matchState,
+  pathname
+) {
+  return (dispatch, getState) => {
+    dispatch(
+      stateGo(`${selectIsFirewall(getState()) ? 'firewall' : 'repository'}.componentDetailsPage`, {
+        repositoryId,
+        componentIdentifier: JSON.stringify(componentIdentifier),
+        componentHash,
+        matchState,
+        pathname,
+      })
+    );
   };
 }

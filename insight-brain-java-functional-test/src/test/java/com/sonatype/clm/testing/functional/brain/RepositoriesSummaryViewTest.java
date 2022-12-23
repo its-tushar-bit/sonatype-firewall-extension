@@ -12,15 +12,14 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
-import com.sonatype.clm.testing.functional.elements.DeleteModal;
-import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
-import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -44,9 +43,6 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
-import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.DISABLED_ICON;
-import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow.ENABLED_ICON;
-import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrolledOffTop;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoriesSummaryViewTest
@@ -73,9 +69,6 @@ public class RepositoriesSummaryViewTest
   public void repositorySummaryViewTest() {
     RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
     summaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
-    summaryTile.configButton().shouldBe(visible);
-    summaryTile.accessButton().shouldBe(visible);
-
     repositorySummaryViewTest_configurationTile();
   }
 
@@ -84,7 +77,6 @@ public class RepositoriesSummaryViewTest
     ConfigurationTable configurationTable = configurationTile.configurationTable();
 
     configurationTile.emptyDescriptor().shouldBe(visible).shouldHave(EMPTY_LIST_TEXT);
-    configurationTable.rows().shouldHaveSize(0);
 
     eyesWatcher.eyesCheck("Empty state (no repositories added)");
 
@@ -111,8 +103,6 @@ public class RepositoriesSummaryViewTest
       configurationRow.managerId()
           .shouldHave(text(repositoryManagerDAO.getById(repository.getRepositoryManagerId()).getInstanceId()));
       configurationRow.status().shouldHave(text(repository.isEnabled() ? "Enabled" : "Disabled"));
-      configurationRow.statusIcon().shouldHave(repository.isEnabled() ? ENABLED_ICON : DISABLED_ICON);
-
     }
 
     Repository firstRepo = repositories.get(0);
@@ -135,21 +125,24 @@ public class RepositoriesSummaryViewTest
       Repository repositoryToDelete)
   {
     repositoryRow.deleteButton().shouldBe(visible, enabled).click();
-    DeleteModal.root().shouldBe(visible);
-    DeleteModal.header().shouldHave(text("Remove Repository"));
-    DeleteModal.body().shouldHave(ConfigurationTableRow.deleteRepositoryText(repositoryToDelete.getPublicId()));
-    DeleteModal.continueButton().shouldBe(visible);
-    DeleteModal.cancelButton().shouldBe(visible).click();
-    DeleteModal.root().shouldBe(hidden);
+
+    NxDeleteModal deleteModal = new NxDeleteModal("#repositories-delete-modal");
+
+    deleteModal.shouldBe(visible);
+    deleteModal.header().shouldHave(text("Remove Repository"));
+    deleteModal.alertContent().shouldHave(ConfigurationTableRow.deleteRepositoryText(repositoryToDelete.getPublicId()));
+    deleteModal.submitButton().shouldBe(visible);
+    deleteModal.closeButton().shouldBe(visible).click();
+    deleteModal.shouldBe(hidden);
 
     assertThat(repositoryDAO.getById(repositoryToDelete.getId())).isNotNull();
 
     repositoryRow.deleteButton().shouldBe(visible, enabled).click();
-    DeleteModal.root().shouldBe(visible);
-    DeleteModal.cancelButton().shouldBe(visible);
-    DeleteModal.continueButton().shouldBe(visible).click();
-    FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldBe(hidden);
+    deleteModal.shouldBe(visible);
+    deleteModal.closeButton().shouldBe(visible);
+    deleteModal.submitButton().shouldBe(visible).click();
+    NxSubmitMask.seeAndWaitForDismissal();
+    deleteModal.shouldBe(hidden);
 
     assertThat(repositoryDAO.getById(repositoryToDelete.getId())).isNull();
   }
@@ -157,12 +150,9 @@ public class RepositoriesSummaryViewTest
   @Test
   public void testRepositoryTile_default() {
     AccessTile accessTile = RepositoriesSummaryPage.accessTile();
-    accessTile.subHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText("All Repositories"));
+    accessTile.nxSubHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText("All Repositories"));
     accessTile.newButton().shouldBe(visible, enabled);
-    accessTile.accessLists().shouldHaveSize(HIERARCHY_SIZE);
-
-    // scroll to the access tile
-    RepositoriesSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
+    accessTile.accessLists().shouldHaveSize(1);
 
     AccessTileList localList = accessTile.accessList(0);
 
@@ -192,10 +182,7 @@ public class RepositoriesSummaryViewTest
     refresh();
 
     AccessTile accessTile = RepositoriesSummaryPage.accessTile();
-    accessTile.accessLists().shouldHaveSize(HIERARCHY_SIZE);
-
-    // scroll to the access tile
-    RepositoriesSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
+    accessTile.accessLists().shouldHaveSize(1);
 
     AccessTileList localList = accessTile.accessList(0);
     localList.emptyDescriptor().shouldBe(hidden);
@@ -235,9 +222,6 @@ public class RepositoriesSummaryViewTest
     AccessTile accessTile = RepositoriesSummaryPage.accessTile();
     accessTile.accessLists().shouldHaveSize(HIERARCHY_SIZE);
 
-    // scroll to the access tile
-    RepositoriesSummaryPage.summaryTile().accessButton().shouldBe(visible).click();
-
     AccessTileList localList = accessTile.accessList(0);
 
     localList.ownerName().shouldBe(visible).shouldHave(text("Local"));
@@ -260,27 +244,5 @@ public class RepositoriesSummaryViewTest
     writeOnly.role().shouldBe(visible).shouldHave(text("Write Only"));
     writeOnly.userIcon().shouldBe(visible);
     writeOnly.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
-  }
-
-  @Test
-  public void testScrollSpy() {
-    RepositoriesSummaryPage.configTile().shouldNotBe(scrolledOffTop);
-    RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
-
-    RepositoriesSummaryPage.summaryTile().accessButton().click();
-    RepositoriesSummaryPage.configTile().shouldBe(scrolledOffTop);
-    RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
-
-    RepositoriesSummaryPage.summaryTile().configButton().click();
-    RepositoriesSummaryPage.configTile().shouldNotBe(scrolledOffTop);
-    RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
-
-    ScrollUtil.scrollToTop(RepositoriesSummaryPage.accessTile().getElement());
-    RepositoriesSummaryPage.configTile().shouldBe(scrolledOffTop);
-    RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
-
-    ScrollUtil.scrollToTop(RepositoriesSummaryPage.configTile().getElement());
-    RepositoriesSummaryPage.configTile().shouldNotBe(scrolledOffTop);
-    RepositoriesSummaryPage.accessTile().shouldNotBe(scrolledOffTop);
   }
 }

@@ -38,7 +38,6 @@
 
 // Directives
 @use '../directives/directives';
-@use '../owner.manager/access/access.tile.directive';
 @use '../utility/widgets/age.in.days.input.directive';
 @use '../owner.manager/navigation/ownerTreeView';
 
@@ -52,7 +51,7 @@
 @use '../configuration/configuration';
 @use 'policy-editor';
 @use '../owner.manager/summary/owner.summary.view';
-@use '../owner.manager/repositories/repositories.summary.view';
+@use '../OrgsAndPolicies/repositories/repositoriesSummaryView';
 @use '../applicationReport/applicationReport';
 @use '../role.membership/role.membership.view';
 @use '../security/users/user-list';
@@ -123,6 +122,7 @@
 @use '../OrgsAndPolicies/access/accessPage';
 @use '../OrgsAndPolicies/proprietaryComponentConfig/proprietaryComponentConfiguration';
 @use '../firewall/firewallComponentDetailsPage/firewallComponentDetailsPage';
+@use '../../frontend/react/accessTile/accessTile';
 @use '../OrgsAndPolicies/assignAppCategory/assignAppCategory';
 @use '../dashboard/results/componentRisk/component-risk';
 @use '../dashboard/results/componentRisk/componentRiskItem/componentRiskItem';
@@ -138,7 +138,10 @@
 @use '../OrgsAndPolicies/сontinuousMonitoringEditor/continuousMonitoringEditor';
 @use '../OrgsAndPolicies/ownerModal/ownerModal';
 @use '../firewall/firewallComponentDetailsPage/overview/componentInformationTile/FirewallOverviewComponentInformation';
+@use '../OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPage';
 @use '../api/apiPage';
+@use '../OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsComponentsTable/repositoryResultsComponentsTable';
+@use '../OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsComponentsTable/repositoryResultsComponentsFilter/repositoryResultsComponentsFilter';
 @use '../OrgsAndPolicies/policyViolationGrandfatheringEditor/policyViolationGrandfatheringEditor';
 @use '../OrgsAndPolicies/selectContactModal/selectContactModal';
 @use '../OrgsAndPolicies/dataRetentionEditor/dataRetentionEditor';

@@ -68,6 +68,10 @@ public class ComponentDetailsPage
     return $("#menu-bar__back-button-container .nx-text-link");
   }
 
+  public static SelenideElement title() {
+    return $("#component-details-title");
+  }
+
   public SelenideElement unknownComponentAlert() {
     return child(".iq-component-details-unknown-component-alert");
   }

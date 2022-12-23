@@ -29,6 +29,8 @@ describe('ListWaiversBackButton', function () {
           return 'componentDetailsHref';
         case `firewall.componentDetailsPage.violations`:
           return 'firewallComponentDetailsPageHref';
+        case `repository.componentDetailsPage.violations`:
+          return 'repositoryComponentDetailsPageHref';
         default:
           return 'violationDetailsHref';
       }
@@ -125,6 +127,7 @@ describe('ListWaiversBackButton', function () {
       publicId: 'publicId',
       previousRouterStateNameForComponentDetails: 'applicationReport.componentDetails.violations',
       isFirewall: false,
+      isFirewallOrRepositoryComponent: false,
     });
 
     expect(routerContext.useRouterState).toHaveBeenCalled();
@@ -138,7 +141,7 @@ describe('ListWaiversBackButton', function () {
     expect(component).toHaveProp('href', 'componentDetailsHref');
   });
 
-  it('renders an MenuBarBackButton with title `Back to Component Details` if prevParams and previousRouterStateNameForComponentDetails are provided as props', () => {
+  it('renders an MenuBarBackButton with title `Back to Component Details` for Firewall route if prevParams and previousRouterStateNameForComponentDetails are provided as props', () => {
     const component = getShallowComponent({
       previousRouterStateNameForComponentDetails: 'firewall.componentDetailsPage.violations',
       repositoryId: 'repositoryPolicyId',
@@ -147,6 +150,7 @@ describe('ListWaiversBackButton', function () {
       matchState: 'matchState',
       pathname: 'pathname',
       isFirewall: true,
+      isFirewallOrRepositoryComponent: true,
     });
 
     expect(routerContext.useRouterState).toHaveBeenCalled();
@@ -160,5 +164,30 @@ describe('ListWaiversBackButton', function () {
     expect(component).toMatchSelector(MenuBarBackButton);
     expect(component).toHaveProp('text', 'Back to Component Details');
     expect(component).toHaveProp('href', 'firewallComponentDetailsPageHref');
+  });
+
+  it('renders an MenuBarBackButton with title `Back to Component Details` for Respository route if prevParams and previousRouterStateNameForComponentDetails are provided as props', () => {
+    const component = getShallowComponent({
+      previousRouterStateNameForComponentDetails: 'firewall.componentDetailsPage.violations',
+      repositoryId: 'repositoryPolicyId',
+      componentIdentifier: 'componentIdentifier',
+      componentHash: 'hash',
+      matchState: 'matchState',
+      pathname: 'pathname',
+      isFirewall: false,
+      isFirewallOrRepositoryComponent: true,
+    });
+
+    expect(routerContext.useRouterState).toHaveBeenCalled();
+    expect(hrefSpy).toHaveBeenCalledWith('repository.componentDetailsPage.violations', {
+      repositoryId: 'repositoryPolicyId',
+      componentIdentifier: 'componentIdentifier',
+      componentHash: 'hash',
+      matchState: 'matchState',
+      pathname: 'pathname',
+    });
+    expect(component).toMatchSelector(MenuBarBackButton);
+    expect(component).toHaveProp('text', 'Back to Component Details');
+    expect(component).toHaveProp('href', 'repositoryComponentDetailsPageHref');
   });
 });

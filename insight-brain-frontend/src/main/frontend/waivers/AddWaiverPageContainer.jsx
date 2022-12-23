@@ -22,12 +22,13 @@ import {
   openVulnerabilityDetailsModal,
   closeVulnerabilityDetailsModal,
 } from '../vulnerabilityDetails/vulnerabilityDetailsModalActions';
-import { selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsFirewall, selectIsFirewallOrRepository } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 
 function mapStateToProps(state) {
   const { addWaiver, violation, router, user } = state;
   const isFirewall = selectIsFirewall(state);
+  const isFirewallOrRepositoryComponent = selectIsFirewallOrRepository(state);
   const {
     repositoryId,
     componentIdentifier,
@@ -46,6 +47,7 @@ function mapStateToProps(state) {
     prevParams: router.prevParams,
     currentUser: user?.currentUser?.displayName,
     isFirewall,
+    isFirewallOrRepositoryComponent,
     repositoryId,
     componentIdentifier,
     componentHash,

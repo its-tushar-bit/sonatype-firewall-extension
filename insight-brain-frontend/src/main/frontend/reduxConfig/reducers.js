@@ -80,6 +80,8 @@ import reportsSlice from 'MainRoot/report/react/reportsSlice';
 import productFeaturesSlice from 'MainRoot/productFeatures/productFeaturesSlice';
 import originalSourcesFormReducer from 'MainRoot/legal/originalSources/originalSourcesFormReducer';
 import atlassianCrowdConfigurationSlice from '../configuration/crowd/atlassianCrowdConfigurationSlice';
+import repositoriesConfigurationSlice from '../OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
+import repositoryResultsSummaryPageSlice from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSlice';
 import apiPageSlice from 'MainRoot/api/apiPageSlice';
 import waiverDetailsSlice from 'MainRoot/waivers/waiverDetails/waiverDetailsSlice';
 import toastSlice from '../toastContainer/toastSlice';
@@ -161,6 +163,8 @@ export default combineReducers({
   reports: reportsSlice,
   productFeatures: productFeaturesSlice,
   atlassianCrowdConfiguration: atlassianCrowdConfigurationSlice,
+  repositories: repositoriesConfigurationSlice,
+  repositoryResultsSummaryPage: repositoryResultsSummaryPageSlice,
   apiPage: apiPageSlice,
   waiverDetails: waiverDetailsSlice,
   toast: toastSlice,

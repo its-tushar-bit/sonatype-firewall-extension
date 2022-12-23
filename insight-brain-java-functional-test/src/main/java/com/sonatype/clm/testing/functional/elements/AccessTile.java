@@ -30,12 +30,13 @@ public class AccessTile
     return Condition.text(ownerName + " users by role");
   }
 
+  @Override
   public SelenideElement addRoleButton() {
     return $("#add-role-button");
   }
 
   private String accessListSelector() {
-    return createSelector(selector, ".iq-list");
+    return createSelector(selector, ".nx-tile-content section");
   }
 
   public ElementsCollection accessLists() {
@@ -43,11 +44,10 @@ public class AccessTile
   }
 
   public AccessTileList accessList(int num) {
-    return new AccessTileList(accessListSelector(),
-        nthChild(num + 1));
+    return new AccessTileList(accessListSelector(),nthChild(num + 1));
   }
 
   public SelenideElement localAccessRole(String roleName) {
-    return children("table td.iq-cell--access-role").findBy(text(roleName));
+    return children("#iq-access-tile-local-access-list .nx-list__item").findBy(text(roleName));
   }
 }

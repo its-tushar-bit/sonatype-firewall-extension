@@ -33,7 +33,7 @@ export default function ViolationPage(props) {
     policyViolations,
     selectPolicyId,
     loadFirewallPolicyVulnerabilityDetails,
-    onGoToFirewallWaiversPage,
+    onGoToRepositoryComponentWaiversPage,
     loadFirewallViolationDetails,
     hasPermissionForAppWaivers,
     loadApplicableWaivers,
@@ -96,7 +96,7 @@ export default function ViolationPage(props) {
             policyViolations,
             selectPolicyId,
             policyDetail,
-            onGoToFirewallWaiversPage,
+            onGoToRepositoryComponentWaiversPage,
             hasPermissionForAppWaivers,
           }}
         />
@@ -141,7 +141,7 @@ export const violationPageTypes = {
   vulnerabilityDetailsError: LoadWrapper.propTypes.error,
   activeWaivers: ViolationDetailsTile.propTypes.activeWaivers,
   goToWaivers: PropTypes.func.isRequired,
-  onGoToFirewallWaiversPage: PropTypes.func.isRequired,
+  onGoToRepositoryComponentWaiversPage: PropTypes.func.isRequired,
   loadFirewallViolationDetails: PropTypes.func.isRequired,
   loadApplicableWaivers: PropTypes.func.isRequired,
   isFromPolicyViolations: PropTypes.bool,

@@ -20,19 +20,20 @@ public class AccessTileList
   }
 
   public ElementsCollection elements() {
-    return children("tr");
+    return children("div");
   }
 
   public AccessTileListElement element(int num) {
-    return new AccessTileListElement(selector, "tr", nthChild(num + 1));
+    return new AccessTileListElement(selector, "div", nthChild(num + 1));
   }
 
   public SelenideElement ownerName() {
-    return child(".iq-list__title");
+    return child(".nx-h3");
   }
 
   public SelenideElement emptyDescriptor() {
-    return child(".iq-list__item--empty");
+    return child(".nx-list__item.nx-list__item--empty");
+
   }
 
   public static class AccessTileListElement
@@ -45,15 +46,15 @@ public class AccessTileList
     }
 
     public SelenideElement chevron() {
-      return child(".fa-chevron-right");
+      return child(".fa-angle-right");
     }
 
     public SelenideElement role() {
-      return child(".iq-cell--access-role");
+      return child(".nx-list__text");
     }
 
     public SelenideElement members() {
-      return child(".iq-cell--access-members");
+      return child(".iq-access-tile-member-container");
     }
 
     public SelenideElement userIcon() {

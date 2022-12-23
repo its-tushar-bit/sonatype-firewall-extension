@@ -10,10 +10,10 @@ import {
   loadFirewallData,
   loadQuarantineList,
   openConfigurationModal,
-  selectQuarantineComponent,
   setQuarantineGridPage,
   setQuarantineGridPolicyFilter,
   setQuarantineGridSorting,
+  goToRepositoryComponentDetailsPage,
 } from './firewallActions';
 
 function mapStateToProps({ firewall }) {
@@ -53,7 +53,7 @@ const mapDispatchToProps = {
   setQuarantineGridSorting,
   setQuarantineGridPolicyFilter,
   openConfigurationModal,
-  selectQuarantineComponent,
+  goToRepositoryComponentDetailsPage,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(FirewallPage);

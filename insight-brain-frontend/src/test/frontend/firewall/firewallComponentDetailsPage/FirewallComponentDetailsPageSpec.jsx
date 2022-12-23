@@ -70,6 +70,7 @@ describe('FirewallComponentDetailsPage', function () {
       loadExistingWaiversData: loadExistingWaiversDataSpy,
       reevaluateComponent: reevaluateComponentSpy,
       firewallLoadApplicableLabels: firewallLoadApplicableLabelsSpy,
+      isFirewall: true,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(FirewallComponentDetailsPage, minimalProps);

@@ -7,16 +7,11 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import NxFontAwesomeIcon from '@sonatype/react-shared-components/components/NxFontAwesomeIcon/NxFontAwesomeIcon';
 import { faHistory } from '@fortawesome/pro-solid-svg-icons';
-import { propOr } from 'ramda';
+import { propOr, toUpper } from 'ramda';
 import { NxBinaryDonutChart, NxSmallThreatCounter } from '@sonatype/react-shared-components';
-import { useSelector } from 'react-redux';
+export default function ReportStatusBar(props) {
+  const getReportProp = (propName) => propOr(0, propName, props);
 
-import { selectSelectedReport } from './applicationReportSelectors';
-
-export default function ReportStatusBar() {
-  const selectedReport = useSelector(selectSelectedReport);
-
-  const getReportProp = (propName) => propOr(0, propName, selectedReport);
   const criticalViolationCount = getReportProp('criticalViolationCount');
   const severeViolationCount = getReportProp('severeViolationCount');
   const moderateViolationCount = getReportProp('moderateViolationCount');
@@ -25,6 +20,12 @@ export default function ReportStatusBar() {
   const totalArtifactCount = getReportProp('totalArtifactCount');
   const knownArtifactCount = getReportProp('knownArtifactCount');
   const grandfatheredPolicyViolationCount = getReportProp('grandfatheredPolicyViolationCount');
+  const quarantinedComponentCount = getReportProp('quarantinedComponentCount');
+
+  const showSectionDefault = (propName) => propOr(true, propName, props);
+  const hideSectionDefault = (propName) => propOr(false, propName, props);
+  const showGrandfatheredSection = showSectionDefault('showGrandfatheredSection');
+  const showQuarantinedSection = hideSectionDefault('showQuarantinedSection');
 
   const coveragePercent = () => {
     if (knownArtifactCount !== 0 && totalArtifactCount !== 0) {
@@ -32,6 +33,8 @@ export default function ReportStatusBar() {
     }
     return 0;
   };
+
+  const pluralTermination = (components) => (components === 1 ? '' : 's');
 
   return (
     <section className="nx-tile">
@@ -46,11 +49,11 @@ export default function ReportStatusBar() {
             <div className="iq-caption">
               <h3 className="iq-caption__text">
                 {nonLowViolationCount} VIOLATION
-                {nonLowViolationCount === 1 ? '' : 'S'}
+                {toUpper(pluralTermination(nonLowViolationCount))}
               </h3>
               <p className="iq-caption__sub-text">
                 Affecting {policyComponentCount} component
-                {policyComponentCount === 1 ? '' : 's'}
+                {pluralTermination(policyComponentCount)}
               </p>
             </div>
           </div>
@@ -61,17 +64,29 @@ export default function ReportStatusBar() {
               role="presentation"
             />
             <div className="iq-caption">
-              <h3 className="iq-caption__text">{totalArtifactCount} COMPONENTS</h3>
+              <h3 className="iq-caption__text">
+                {totalArtifactCount} COMPONENT{toUpper(pluralTermination(totalArtifactCount))}
+              </h3>
               <p className="iq-caption__sub-text">{coveragePercent()}% of all components identified</p>
             </div>
           </div>
-          <div className="iq-grandfathering-indicator">
-            <NxFontAwesomeIcon icon={faHistory} />
-            <div className="iq-caption">
-              <h3 className="iq-caption__text">{grandfatheredPolicyViolationCount} Grandfathered</h3>
-              <p className="iq-caption__sub-text">violations</p>
+          {showGrandfatheredSection && (
+            <div className="iq-grandfathering-indicator">
+              <NxFontAwesomeIcon icon={faHistory} />
+              <div className="iq-caption">
+                <h3 className="iq-caption__text">{grandfatheredPolicyViolationCount} Grandfathered</h3>
+                <p className="iq-caption__sub-text">violations</p>
+              </div>
             </div>
-          </div>
+          )}
+          {showQuarantinedSection && (
+            <div className="iq-quarantine-indicator">
+              <div className="iq-caption">
+                <h3 className="iq-caption__text">{quarantinedComponentCount} QUARANTINED</h3>
+                <p className="iq-caption__sub-text">component{pluralTermination(quarantinedComponentCount)}</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -79,14 +94,14 @@ export default function ReportStatusBar() {
 }
 
 ReportStatusBar.propTypes = {
-  selectedReport: PropTypes.shape({
-    knownArtifactCount: PropTypes.number.isRequired,
-    totalArtifactCount: PropTypes.number.isRequired,
-    policyComponentCount: PropTypes.number.isRequired,
-    grandfatheredPolicyViolationCount: PropTypes.number.isRequired,
-    criticalViolationCount: PropTypes.number.isRequired,
-    severeViolationCount: PropTypes.number.isRequired,
-    moderateViolationCount: PropTypes.number.isRequired,
-    nonLowViolationCount: PropTypes.number.isRequired,
-  }),
+  knownArtifactCount: PropTypes.number,
+  totalArtifactCount: PropTypes.number,
+  policyComponentCount: PropTypes.number,
+  grandfatheredPolicyViolationCount: PropTypes.number,
+  criticalViolationCount: PropTypes.number,
+  severeViolationCount: PropTypes.number,
+  moderateViolationCount: PropTypes.number,
+  nonLowViolationCount: PropTypes.number,
+  showGrandfatheredSection: PropTypes.bool,
+  showQuarantinedSection: PropTypes.bool,
 };

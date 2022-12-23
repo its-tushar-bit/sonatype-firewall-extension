@@ -224,6 +224,10 @@ describe('CLMLocation.js', function () {
     );
   });
 
+  it('should return the url to get the role mapping info for repositories', function () {
+    expect(CLMLocation.getRoleMappingsForRepositories()).toBe('/rest/membershipMapping/repository_container');
+  });
+
   it('should return the delete url for waivers', function () {
     expect(CLMLocation.deleteWaiverUrl('organization', 'orgId', 'waiverId')).toBe(
       '/api/v2/policyWaivers/organization/orgId/waiverId/'
@@ -951,6 +955,22 @@ describe('CLMLocation.js', function () {
     });
   });
 
+  describe('getRepositoriesUrl', () => {
+    it('returns repositories url', () => {
+      const expectedUrl = '/rest/repositories/';
+
+      expect(clmLocation.getRepositoriesUrl()).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getRepositoryInfoUrl', () => {
+    it('returns url for delete repository', () => {
+      const expectedUrl = '/rest/repositories/someRepositoryId';
+
+      expect(clmLocation.getRepositoryInfoUrl('someRepositoryId')).toEqual(expectedUrl);
+    });
+  });
+
   describe('getPermissionsTestUrl', () => {
     it('returns url for checking user permissions', () => {
       const expectedUrl = '/rest/user/permissions/ownerType/ownerId';
@@ -972,6 +992,14 @@ describe('CLMLocation.js', function () {
       const expectedUrl = '/api/v2/endpoints/api-type';
 
       expect(clmLocation.getEndpointsUrl('api-type')).toEqual(expectedUrl);
+    });
+  });
+
+  describe('getRepositoryComponentsUrl', () => {
+    it('returns url to get repository components details', () => {
+      const expectedUrl = '/api/experimental/repositories/repositoryId/results/details';
+
+      expect(clmLocation.getRepositoryComponentsUrl('repositoryId')).toEqual(expectedUrl);
     });
   });
 
@@ -1003,6 +1031,12 @@ describe('CLMLocation.js', function () {
       expect(CLMLocation.getRepositoryPolicyViolationUrl('repositoryId', 'repositoryPolicyId')).toBe(
         '/rest/repositories/repositoryId/policyViolation/repositoryPolicyId'
       );
+    });
+  });
+
+  describe('getRepositoryPolicyViolationUrl', () => {
+    it('should return a URL with proper repositoryId and repositoryPolicyId', () => {
+      expect(CLMLocation.getRepositoryEvaluateUrl('repositoryId')).toBe('/rest/repositories/repositoryId/evaluate');
     });
   });
 });

@@ -19,14 +19,11 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.clm.testing.functional.pages.ReportPage;
 import com.sonatype.clm.testing.functional.pages.ReportPolicyPage;
-import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
-import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.WebhookEditPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 
@@ -148,32 +145,6 @@ public class SessionTimeoutTest
     // ensure the report is loaded again. Since a full page refresh happened the state within the iframe is lost
     Selenide.switchTo().frame(ApplicationReportContainerPage.getIframe());
     ReportPage.summaryTabButton().shouldBe(visible);
-
-    // cleanup
-    Selenide.switchTo().defaultContent();
-  }
-
-  @Test
-  public void testReloginPromptOnAjaxDetectedSessionExpirationInRepositoryReport() {
-    Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "central");
-    tempEntity.newRepositoryComponent(repo.getId());
-
-    loginAsAdmin();
-
-    refreshOrOpen(RepositoryReportContainerPage.url(repo.getId()));
-
-    Selenide.switchTo().frame(RepositoryReportContainerPage.getIframe());
-    RepositoryReportPage.table().shouldBe(visible);
-
-    hardreset();
-
-    RepositoryReportPage.table().row(0).component().click();
-
-    Selenide.switchTo().defaultContent();
-    assertUiClearedAndLogBackIn();
-
-    Selenide.switchTo().frame(RepositoryReportContainerPage.getIframe());
-    RepositoryReportPage.table().row(0).component().shouldBe(visible);
 
     // cleanup
     Selenide.switchTo().defaultContent();

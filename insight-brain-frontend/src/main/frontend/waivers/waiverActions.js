@@ -30,9 +30,9 @@ import { loadTransitiveViolationWaivers } from '../violation/transitiveViolation
 import {
   selectPreviousRouteName,
   selectHash,
-  selectIsFirewall,
   selectPrevRepositoryPolicyId,
   selectRepositoryId,
+  selectIsFirewallOrRepository,
   selectViolationId,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
@@ -140,8 +140,9 @@ export const saveWaiverAndLoadPolicyViolationData = (
  */
 export function loadAddWaiverData(violationId) {
   return (dispatch, getState) => {
-    const isCurrentRouteName = selectIsFirewall(getState());
-    const repositoryPolicyId = selectIsFirewall(getState())
+    const isFirewallOrRepositoryComponent = selectIsFirewallOrRepository(getState());
+    const isCurrentRouteName = isFirewallOrRepositoryComponent;
+    const repositoryPolicyId = isFirewallOrRepositoryComponent
       ? selectRepositoryId(getState())
       : selectPrevRepositoryPolicyId(getState());
 
@@ -177,7 +178,7 @@ export function loadManageWaiversData(violationId) {
 
     return dispatch(fetchCrossStageViolation(violationId))
       .then(() =>
-        selectIsFirewall(getState())
+        selectIsFirewallOrRepository(getState())
           ? getAddWaiverPermissionForRepository(selectRepositoryId(getState()))
           : loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId)
       )
@@ -216,6 +217,9 @@ export function returnToAddWaiverOriginPage() {
 
       case originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS:
         return dispatch(stateGo(originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS, prevParams));
+
+      case originNamesForAddRequestPages.REPOSITORY_VIOLATION_WAIVERS:
+        return dispatch(stateGo(originNamesForAddRequestPages.REPOSITORY_VIOLATION_WAIVERS, prevParams));
 
       // Came from a direct link to the Add Waiver Page or some other origin
       default:
@@ -307,7 +311,7 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
     const { violation, componentDetailsPolicyViolations, router, sidebarNavList } = getState();
     const { reloadComponentWaivers } = componentDetailsPolicyViolations;
 
-    if (selectIsFirewall(getState())) {
+    if (selectIsFirewallOrRepository(getState())) {
       policyViolationId = selectViolationId(getState());
     } else {
       policyViolationId = path(['violationDetails', 'policyViolationId'], violation);
@@ -326,11 +330,7 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
           const scanId = router.currentParams.scanId;
           const hash = router.currentParams.hash;
           dispatch(loadTransitiveViolationWaivers(ownerId, scanId, hash));
-        } else if (
-          currentState.name === 'firewall.componentDetailsPage.violations' ||
-          currentState.name === 'firewall.componentDetailsPage.legal' ||
-          currentState.name === 'firewall.componentDetailsPage.security'
-        ) {
+        } else if (currentState.name.match(/componentDetailsPage\.(?:security|violations|legal)/)) {
           const hash = selectHash(getState());
           const ownerId = selectRepositoryId(getState());
           dispatch(loadExistingWaiversData('repository', ownerId, hash));

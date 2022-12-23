@@ -18,7 +18,7 @@ import { convertToWaiverViolationFormat } from '../util/waiverUtils';
 import { selectComponentViolations } from '../componentDetails/ViolationsTableTile/PolicyViolationsSelectors';
 import { loadPermissionForAppWaivers } from 'MainRoot/waivers/waiverActions';
 import {
-  selectIsFirewall,
+  selectIsFirewallOrRepository,
   selectPrevRepositoryPolicyId,
   selectRepositoryId,
   selectRepositoryPolicyId,
@@ -65,7 +65,6 @@ export function fetchCrossStageViolation(id) {
   return function (dispatch, getState) {
     const state = getState();
     const { showManageWaiverPage } = state.firewall.componentDetailsPage;
-
     if (!showManageWaiverPage) {
       const { selectedViolationId, violationDetails } = state.violation;
       if (selectedViolationId === id) {
@@ -79,14 +78,16 @@ export function fetchCrossStageViolation(id) {
       return Promise.resolve(violationDetails);
     }
 
-    const repositoryId = selectIsFirewall(state) ? selectRepositoryId(state) : selectRepositoryPolicyId(state);
+    const repositoryId = selectIsFirewallOrRepository(state)
+      ? selectRepositoryId(state)
+      : selectRepositoryPolicyId(state);
 
-    const getDataUrl = selectIsFirewall(state)
+    const getDataUrl = selectIsFirewallOrRepository(state)
       ? getRepositoryPolicyViolationUrl(repositoryId, id)
       : getViolationDetailsUrl(id);
 
     return axios.get(getDataUrl).then(({ data }) => {
-      const violationData = selectIsFirewall(state) ? convertToWaiverViolationFormat(data) : data;
+      const violationData = selectIsFirewallOrRepository(state) ? convertToWaiverViolationFormat(data) : data;
       const violations = selectComponentViolations(state);
       const waived = violations
         ? prop('waived', find(propEq('policyViolationId', violationData.policyViolationId), violations))
@@ -105,7 +106,9 @@ export function fetchCrossStageViolationAddWaiver(id) {
   return function (dispatch, getState) {
     const state = getState();
 
-    const repositoryId = selectIsFirewall(state) ? selectRepositoryId(state) : selectPrevRepositoryPolicyId(state);
+    const repositoryId = selectIsFirewallOrRepository(state)
+      ? selectRepositoryId(state)
+      : selectPrevRepositoryPolicyId(state);
 
     return axios.get(getRepositoryPolicyViolationUrl(repositoryId, id)).then(({ data }) => {
       const violationData = convertToWaiverViolationFormat(data);

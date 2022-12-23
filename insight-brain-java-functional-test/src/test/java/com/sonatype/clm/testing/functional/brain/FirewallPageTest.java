@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -14,6 +15,7 @@ import java.util.Date;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxTableHeader;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
+import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantine;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
@@ -31,18 +33,27 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 
 public class FirewallPageTest
     extends AbstractFunctionalTest
 {
   private final FirewallPage page = new FirewallPage();
+
+  private final FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
@@ -92,6 +103,17 @@ public class FirewallPageTest
         "g:a:4", date2, null, false);
     staticTempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent4.getPathname(), false,
         FailActionType.ID, policy.getId(), "policyName", repositoryComponent4.getComponentIdentifier());
+  }
+
+  private Wait<WebDriver> getWebDriverAwait() {
+    return new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(240)).pollingEvery(Duration.ofSeconds(2))
+        .ignoring(NoSuchElementException.class);
+  }
+
+  private void waitUntilSpinnersGone() {
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.invisibilityOf(firewallComponentDetailsPage.getAllLoadingSpinners().get(0)));
+    firewallComponentDetailsPage.getAllLoadingSpinners().shouldHave(size(0));
   }
 
   @Test
@@ -196,5 +218,16 @@ public class FirewallPageTest
     page.firewallQuarantineTable().tableBodyRows().get(0).find("#iq-firewall-quarantine-table--repo-view-link").click();
     Selenide.switchTo().window(1);
     RepositoryReportContainerPage.title().shouldHave(text("Repository results for maven-central"));
+  }
+
+  @Test
+  public void testRedirectToComponentDetailsPage() {
+    refreshOrOpen(FirewallPage.url());
+
+    page.firewallQuarantineTable().tableBodyRows().get(0).find("#iq-firewall-quarantine-table--component-details-page")
+        .click();
+
+    waitUntilSpinnersGone();
+    firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
   }
 }

@@ -13,7 +13,7 @@ describe('FirewallPageContainer', function () {
     loadFirewallDataMock,
     openConfigurationModalMock,
     loadQuarantineListMock,
-    selectQuarantineComponentMock,
+    goToRepositoryComponentDetailsPageMock,
     store,
     state,
     vdom;
@@ -31,16 +31,18 @@ describe('FirewallPageContainer', function () {
       type: 'LOAD_QUARANTINE_LIST',
     });
 
-    selectQuarantineComponentMock = jasmine.createSpy('selectQuarantineComponentMock').and.returnValue({
-      type: 'SELECT_QUARANTINE_COMPONENT',
-    });
+    goToRepositoryComponentDetailsPageMock = jasmine
+      .createSpy('goToRepositoryComponentDetailsPageMock')
+      .and.returnValue({
+        type: 'firewall.componentDetailsPage',
+      });
 
     FirewallPageContainer = require('inject-loader!../../../main/frontend/firewall/FirewallPageContainer')({
       './firewallActions': {
         loadFirewallData: loadFirewallDataMock,
         openConfigurationModal: openConfigurationModalMock,
         loadQuarantineList: loadQuarantineListMock,
-        selectQuarantineComponent: selectQuarantineComponentMock,
+        goToRepositoryComponentDetailsPage: goToRepositoryComponentDetailsPageMock,
       },
     }).default;
 
@@ -159,12 +161,12 @@ describe('FirewallPageContainer', function () {
       loadFirewallDataActionCreator = wrapper.prop('loadFirewallData'),
       openConfigurationModalActionCreator = wrapper.prop('openConfigurationModal'),
       loadQuarantineListActionCreator = wrapper.prop('loadQuarantineList'),
-      selectQuarantineComponentActionCreator = wrapper.prop('selectQuarantineComponent');
+      goToRepositoryComponentDetailsPageActionCreator = wrapper.prop('goToRepositoryComponentDetailsPage');
 
     expect(loadFirewallDataActionCreator).toEqual(jasmine.any(Function));
     expect(openConfigurationModalActionCreator).toEqual(jasmine.any(Function));
     expect(loadQuarantineListActionCreator).toEqual(jasmine.any(Function));
-    expect(selectQuarantineComponentActionCreator).toEqual(jasmine.any(Function));
+    expect(goToRepositoryComponentDetailsPageActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
 
@@ -181,12 +183,12 @@ describe('FirewallPageContainer', function () {
       { type: 'OPEN_FIREWALL_CONFIGURATION' },
     ]);
 
-    selectQuarantineComponentActionCreator();
+    goToRepositoryComponentDetailsPageActionCreator();
     expect(store.getActions()).toEqual([
       { type: 'LOAD_FIREWALL_DATA' },
       { type: 'LOAD_QUARANTINE_LIST' },
       { type: 'OPEN_FIREWALL_CONFIGURATION' },
-      { type: 'SELECT_QUARANTINE_COMPONENT' },
+      { type: 'firewall.componentDetailsPage' },
     ]);
   });
 

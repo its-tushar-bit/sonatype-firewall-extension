@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
@@ -47,7 +48,7 @@ public class KeycloakServerUtil
 
   private final Set<String> createdGroupIds = new HashSet<>();
 
-  public KeycloakServerUtil(String url) {
+  public KeycloakServerUtil(String url) throws InterruptedException {
     this.url = url;
     RealmRepresentation realmRepresentation = getMasterRealm();
     realmRepresentation.setAccessTokenLifespan(ADMIN_TOKEN_LIFESPAN_IN_SECONDS);
@@ -59,12 +60,25 @@ public class KeycloakServerUtil
 
   /**
    * @return Bearer token for the passed in user
+   * @throws InterruptedException
    */
-  public String getToken(String username, String password) {
-    return ClientBuilder.newClient().target(url).path("realms/master/protocol/openid-connect/token")
-        .request(MediaType.APPLICATION_JSON_TYPE).post(Entity.entity(
-            new Form().param("username", username).param("password", password).param("client_id", "admin-cli")
-                .param("grant_type", "password"), MediaType.APPLICATION_FORM_URLENCODED_TYPE), Token.class).accessToken;
+  public String getToken(String username, String password) throws InterruptedException {
+    for (int i = 5;; i--) {
+      try {
+        return ClientBuilder.newClient().target(url).path("realms/master/protocol/openid-connect/token")
+            .request(MediaType.APPLICATION_JSON_TYPE)
+            .post(Entity.entity(new Form().param("username", username).param("password", password)
+                .param("client_id", "admin-cli").param("grant_type", "password"),
+                MediaType.APPLICATION_FORM_URLENCODED_TYPE), Token.class).accessToken;
+      }
+      catch (NotAuthorizedException e) {
+        if (i <= 0) {
+          throw e;
+        }
+        log.warn("Failed to get keycloak token for user {}. Will retry. Error: {}", username, e.getMessage(), e);
+        Thread.sleep(1000);
+      }
+    }
   }
 
   public void createClient(ClientRepresentation client) {
@@ -289,7 +303,7 @@ public class KeycloakServerUtil
         .header("Authorization", "Bearer " + adminToken).get(UserSessionRepresentation[].class);
   }
 
-  RealmRepresentation getMasterRealm() {
+  RealmRepresentation getMasterRealm() throws InterruptedException {
     return ClientBuilder.newClient().target(url).path("admin/realms/master").request()
         .header("Authorization", "Bearer " + getToken(KeycloakServer.USERNAME, KeycloakServer.PASSWORD))
         .get(RealmRepresentation.class);

@@ -49,7 +49,7 @@ public class KeycloakServerUtilTest
   }
 
   @Test
-  public void testKeycloakServerUtil() {
+  public void testKeycloakServerUtil() throws Exception {
     Response response = newClient().target(keycloak.getUrl()).request().get();
     assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
     assertThat(keycloak.getMasterRealm().getAccessTokenLifespan())
@@ -58,7 +58,7 @@ public class KeycloakServerUtilTest
   }
 
   @Test
-  public void testGetToken_admin() {
+  public void testGetToken_admin() throws Exception {
     assertThat(keycloak.getToken(KeycloakServer.USERNAME, KeycloakServer.PASSWORD)).isNotBlank();
   }
 
@@ -140,7 +140,7 @@ public class KeycloakServerUtilTest
   }
 
   @Test
-  public void testCreateUser_UsingUserRepresentation() {
+  public void testCreateUser_UsingUserRepresentation() throws Exception {
     String username = faker.name().username();
     String password = faker.internet().password();
     String email = faker.internet().emailAddress();
@@ -179,7 +179,7 @@ public class KeycloakServerUtilTest
   }
 
   @Test
-  public void testCreateUser_UsingUserAttributes() {
+  public void testCreateUser_UsingUserAttributes() throws Exception {
     Name name = faker.name();
     Internet internet = faker.internet();
 
@@ -266,7 +266,7 @@ public class KeycloakServerUtilTest
   }
 
   @Test
-  public void testLogoutUser() {
+  public void testLogoutUser() throws Exception {
     Name name = faker.name();
     Internet internet = faker.internet();
 

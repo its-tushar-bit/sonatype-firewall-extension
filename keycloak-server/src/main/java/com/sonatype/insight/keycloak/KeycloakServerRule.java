@@ -19,7 +19,7 @@ public class KeycloakServerRule
   }
 
   @Override
-  public void before() {
+  public void before() throws InterruptedException {
     keycloakServer = new KeycloakServer();
     keycloakServerUtil = new KeycloakServerUtil(keycloakServer.getUrl());
   }

@@ -7,10 +7,10 @@ import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPolic
 import { actions } from 'MainRoot/OrgsAndPolicies/grandfatheringModal/grandfatheringSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
 const OWNER_ORG_NAME = 'Organization One';
-const REDUCER_NAME = `${OWNER_EDITOR}/grandfathering`;
+const REDUCER_NAME = `${OWNER_ACTIONS}/grandfathering`;
 
 describe('grandfatheringActions', () => {
   let store, state, axiosMock;

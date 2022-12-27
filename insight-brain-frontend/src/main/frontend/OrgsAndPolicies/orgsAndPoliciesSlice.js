@@ -48,7 +48,7 @@ export default combineReducers({
   organizations: organizationsSlice,
   stages: stagesSlice,
   policy: policySlice,
-  ownerEditor: combineReducers({
+  ownerActions: combineReducers({
     importPolicies: importPoliciesSlice,
     deleteOwner: deleteOwnerSlice,
     grandfathering: grandfatheringSlice,

@@ -14,9 +14,9 @@ import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
-const REDUCER_NAME = `${OWNER_EDITOR}/delete`;
+const REDUCER_NAME = `${OWNER_ACTIONS}/delete`;
 
 export const initialState = {
   submitError: null,

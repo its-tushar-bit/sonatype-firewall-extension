@@ -8,5 +8,5 @@ import { createSelector } from '@reduxjs/toolkit';
 
 export const selectMoveApplicationSlice = createSelector(
   selectOrgsAndPoliciesSlice,
-  ({ ownerEditor: { moveApplication } }) => moveApplication
+  ({ ownerActions: { moveApplication } }) => moveApplication
 );

@@ -8,5 +8,5 @@ import { createSelector } from '@reduxjs/toolkit';
 
 export const selectActionDropdownSlice = createSelector(
   selectOrgsAndPoliciesSlice,
-  ({ ownerEditor: { actionDropdown } }) => actionDropdown
+  ({ ownerActions: { actionDropdown } }) => actionDropdown
 );

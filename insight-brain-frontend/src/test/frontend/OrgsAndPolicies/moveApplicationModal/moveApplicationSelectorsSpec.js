@@ -8,7 +8,7 @@ import { selectMoveApplicationSlice } from 'MainRoot/OrgsAndPolicies/moveApplica
 describe('selectMoveApplicationSelectors', () => {
   const mockState = {
     orgsAndPolicies: {
-      ownerEditor: {
+      ownerActions: {
         moveApplication: {
           isMoveAppModalOpen: true,
         },

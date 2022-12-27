@@ -10,7 +10,7 @@ import { selectOrgsAndPoliciesSlice } from '../orgsAndPoliciesSelectors';
 
 export const selectChangeApplicationIdSlice = createSelector(
   selectOrgsAndPoliciesSlice,
-  ({ ownerEditor: { changeAppId } }) => changeAppId
+  ({ ownerActions: { changeAppId } }) => changeAppId
 );
 
 export const selectNewPublicId = createSelector(selectChangeApplicationIdSlice, prop('newPublicId'));

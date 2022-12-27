@@ -5,7 +5,7 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { selectApplicationId } from '../../reduxUiRouter/routerSelectors';
 import { getApplicationSummaryUrl } from 'MainRoot/util/CLMLocation.js';
 import { includes, prop } from 'ramda';
@@ -13,7 +13,7 @@ import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectOwnerProperties, selectSelectedOwnerId } from '../orgsAndPoliciesSelectors';
 import { getPermissions } from 'MainRoot/util/authorizationUtil';
 
-const REDUCER_NAME = `${OWNER_EDITOR}/actionDropdown`;
+const REDUCER_NAME = `${OWNER_ACTIONS}/actionDropdown`;
 export const permissions = ['WRITE', 'EVALUATE_APPLICATION'];
 
 export const initialState = {

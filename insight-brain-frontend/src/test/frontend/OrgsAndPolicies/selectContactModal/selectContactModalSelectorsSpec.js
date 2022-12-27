@@ -36,7 +36,7 @@ describe('selectContactModalSelectors', () => {
         },
       },
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           contact: {
             selectedUser: null,
             fetchedUsers: { data: [], loading: false, loadError: null, partialError: null },

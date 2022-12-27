@@ -26,9 +26,9 @@ describe('CopyIdToClipboard actions', () => {
       const actions = store.getActions();
       expect(actions.length).toBe(3);
       expect(actions).toHaveActionTypesInOrder([
-        'ownerEditor/copyIdToClipboard/pending',
+        'ownerActions/copyIdToClipboard/pending',
         'toast/addToast',
-        'ownerEditor/copyIdToClipboard/fulfilled',
+        'ownerActions/copyIdToClipboard/fulfilled',
       ]);
 
       done();
@@ -42,9 +42,9 @@ describe('CopyIdToClipboard actions', () => {
       const actions = store.getActions();
       expect(actions.length).toBe(3);
       expect(actions).toHaveActionTypesInOrder([
-        'ownerEditor/copyIdToClipboard/pending',
+        'ownerActions/copyIdToClipboard/pending',
         'toast/addToast',
-        'ownerEditor/copyIdToClipboard/fulfilled',
+        'ownerActions/copyIdToClipboard/fulfilled',
       ]);
 
       done();
@@ -58,9 +58,9 @@ describe('CopyIdToClipboard actions', () => {
       const actions = store.getActions();
       expect(actions.length).toBe(3);
       expect(actions).toHaveActionTypesInOrder([
-        'ownerEditor/copyIdToClipboard/pending',
+        'ownerActions/copyIdToClipboard/pending',
         'toast/addToast',
-        'ownerEditor/copyIdToClipboard/fulfilled',
+        'ownerActions/copyIdToClipboard/fulfilled',
       ]);
 
       done();

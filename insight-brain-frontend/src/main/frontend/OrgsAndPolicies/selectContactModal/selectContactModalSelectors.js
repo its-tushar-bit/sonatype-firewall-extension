@@ -6,4 +6,7 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { selectOrgsAndPoliciesSlice } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
-export const selectContactSlice = createSelector(selectOrgsAndPoliciesSlice, ({ ownerEditor: { contact } }) => contact);
+export const selectContactSlice = createSelector(
+  selectOrgsAndPoliciesSlice,
+  ({ ownerActions: { contact } }) => contact
+);

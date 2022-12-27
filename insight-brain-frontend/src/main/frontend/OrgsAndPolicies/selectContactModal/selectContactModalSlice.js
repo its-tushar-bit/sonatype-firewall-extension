@@ -15,10 +15,10 @@ import { getUsersRoleMappingUrl, getApplicationsUrl } from 'MainRoot/util/CLMLoc
 import { formatMembersForTransferList } from 'MainRoot/util/formatGroupUsers';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
-const REDUCER_NAME = `${OWNER_EDITOR}/selectContact`;
+const REDUCER_NAME = `${OWNER_ACTIONS}/selectContact`;
 
 export const initialState = {
   selectedContact: null,

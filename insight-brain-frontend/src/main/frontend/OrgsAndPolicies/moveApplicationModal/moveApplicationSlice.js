@@ -11,8 +11,8 @@ import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { actions as applicationsActions } from 'MainRoot/OrgsAndPolicies/applicationsSlice';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
-const REDUCER_NAME = `${OWNER_EDITOR}/moveApplication`;
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
+const REDUCER_NAME = `${OWNER_ACTIONS}/moveApplication`;
 
 export const initialState = {
   isMoveAppModalOpen: false,

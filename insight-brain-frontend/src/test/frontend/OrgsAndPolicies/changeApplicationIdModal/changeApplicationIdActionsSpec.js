@@ -77,23 +77,23 @@ describe('ChangeApplicationIdModal actions', () => {
       const actions = store.getActions();
       expect(actions.length).toBe(5);
       expect(actions).toHaveActionTypesInOrder([
-        'ownerEditor/changeApplicationId/changeApplicationId/pending',
-        'ownerEditor/updateApplication/pending',
+        'ownerActions/changeApplicationId/changeApplicationId/pending',
+        'ownerActions/updateApplication/pending',
         'applications/updateApplication',
-        'ownerEditor/updateApplication/fulfilled',
-        'ownerEditor/changeApplicationId/changeApplicationId/fulfilled',
+        'ownerActions/updateApplication/fulfilled',
+        'ownerActions/changeApplicationId/changeApplicationId/fulfilled',
       ]);
 
       jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
       expect(actions.length).toBe(6);
       expect(actions).toHaveActionTypesInOrder([
-        'ownerEditor/changeApplicationId/changeApplicationId/pending',
-        'ownerEditor/updateApplication/pending',
+        'ownerActions/changeApplicationId/changeApplicationId/pending',
+        'ownerActions/updateApplication/pending',
         'applications/updateApplication',
-        'ownerEditor/updateApplication/fulfilled',
-        'ownerEditor/changeApplicationId/changeApplicationId/fulfilled',
-        'ownerEditor/changeApplicationId/closeModal',
+        'ownerActions/updateApplication/fulfilled',
+        'ownerActions/changeApplicationId/changeApplicationId/fulfilled',
+        'ownerActions/changeApplicationId/closeModal',
       ]);
 
       done();

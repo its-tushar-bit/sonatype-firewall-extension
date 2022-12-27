@@ -33,7 +33,7 @@ describe('SelectContactModal', () => {
             publicId: '4',
           },
         },
-        ownerEditor: {
+        ownerActions: {
           contact: {
             selectedUser: null,
             query: '',
@@ -56,7 +56,7 @@ describe('SelectContactModal', () => {
   it('doesn"t show modal without being open', () => {
     renderComponent({
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           contact: {
             fetchedUsers: { data: [], loading: false, loadError: null, partialError: null },
             isContactModalOpen: false,
@@ -107,7 +107,7 @@ describe('SelectContactModal', () => {
             publicId: '4',
           },
         },
-        ownerEditor: {
+        ownerActions: {
           contact: {
             selectedUser: null,
             query: '',
@@ -166,7 +166,7 @@ describe('SelectContactModal', () => {
             publicId: '4',
           },
         },
-        ownerEditor: {
+        ownerActions: {
           contact: {
             selectedUser: null,
             query: '',
@@ -237,7 +237,7 @@ describe('SelectContactModal', () => {
             publicId: '4',
           },
         },
-        ownerEditor: {
+        ownerActions: {
           contact: {
             selectedUser: null,
             query: '',
@@ -297,7 +297,7 @@ describe('SelectContactModal', () => {
             publicId: '4',
           },
         },
-        ownerEditor: {
+        ownerActions: {
           contact: {
             selectedContact: {
               displayName: 'admin second',
@@ -402,7 +402,7 @@ describe('SelectContactModal', () => {
               publicId: '4',
             },
           },
-          ownerEditor: {
+          ownerActions: {
             contact: {
               selectedUser: null,
               query: '',
@@ -478,7 +478,7 @@ describe('SelectContactModal', () => {
               publicId: '4',
             },
           },
-          ownerEditor: {
+          ownerActions: {
             contact: {
               selectedContact: {
                 displayName: 'admin second',
@@ -571,7 +571,7 @@ describe('SelectContactModal', () => {
               publicId: '4',
             },
           },
-          ownerEditor: {
+          ownerActions: {
             contact: {
               selectedContact: {
                 displayName: 'admin second',
@@ -644,7 +644,7 @@ describe('SelectContactModal', () => {
             publicId: '4',
           },
         },
-        ownerEditor: {
+        ownerActions: {
           contact: {
             selectedUser: null,
             query: '',

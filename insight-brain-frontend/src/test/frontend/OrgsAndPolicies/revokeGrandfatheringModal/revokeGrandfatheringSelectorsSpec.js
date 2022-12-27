@@ -11,7 +11,7 @@ describe('revokeGrandfatheringSelectors', () => {
   beforeEach(() => {
     mockState = {
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           revokeGrandfathering: {
             submitError: 'Some error',
             submitMaskState: null,

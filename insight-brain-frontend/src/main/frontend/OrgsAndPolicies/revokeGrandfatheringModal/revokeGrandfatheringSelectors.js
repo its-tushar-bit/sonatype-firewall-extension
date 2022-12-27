@@ -9,5 +9,5 @@ import { selectOrgsAndPoliciesSlice } from '../orgsAndPoliciesSelectors';
 
 export const selectRevokeGrandfatheringSlice = createSelector(
   selectOrgsAndPoliciesSlice,
-  ({ ownerEditor: { revokeGrandfathering } }) => revokeGrandfathering
+  ({ ownerActions: { revokeGrandfathering } }) => revokeGrandfathering
 );

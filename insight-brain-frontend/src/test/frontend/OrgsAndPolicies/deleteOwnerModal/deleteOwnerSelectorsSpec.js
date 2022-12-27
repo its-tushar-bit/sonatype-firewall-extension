@@ -11,7 +11,7 @@ describe('deleteOwnerSelectors', () => {
   beforeEach(() => {
     mockState = {
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           deleteOwner: {
             submitError: 'Some error',
             submitMaskState: null,

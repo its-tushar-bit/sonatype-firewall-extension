@@ -7,7 +7,7 @@ import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPolic
 import { actions } from 'MainRoot/OrgsAndPolicies/revokeGrandfatheringModal/revokeGrandfatheringSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
 const OWNER_ORG_NAME = 'Organization Two Name';
 
@@ -66,17 +66,17 @@ describe('revokeGrandfatheringActions', () => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionTypesInOrder([
-          `${OWNER_EDITOR}/revokeGrandfathering/revoke/pending`,
-          `${OWNER_EDITOR}/revokeGrandfathering/revoke/fulfilled`,
+          `${OWNER_ACTIONS}/revokeGrandfathering/revoke/pending`,
+          `${OWNER_ACTIONS}/revokeGrandfathering/revoke/fulfilled`,
         ]);
 
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
-          `${OWNER_EDITOR}/revokeGrandfathering/revoke/pending`,
-          `${OWNER_EDITOR}/revokeGrandfathering/revoke/fulfilled`,
-          `${OWNER_EDITOR}/revokeGrandfathering/closeModal`,
+          `${OWNER_ACTIONS}/revokeGrandfathering/revoke/pending`,
+          `${OWNER_ACTIONS}/revokeGrandfathering/revoke/fulfilled`,
+          `${OWNER_ACTIONS}/revokeGrandfathering/closeModal`,
         ]);
 
         done();

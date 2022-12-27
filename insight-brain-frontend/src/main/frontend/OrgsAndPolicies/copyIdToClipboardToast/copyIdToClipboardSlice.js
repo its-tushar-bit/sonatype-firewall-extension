@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { selectOwnerProperties } from '../orgsAndPoliciesSelectors';
 import { actions as toastActions } from 'MainRoot/toastContainer/toastSlice';
 import { copyToClipboard } from 'MainRoot/util/jsUtil';
 
-const REDUCER_NAME = `${OWNER_EDITOR}/copyIdToClipboard`;
+const REDUCER_NAME = `${OWNER_ACTIONS}/copyIdToClipboard`;
 
 const copyIdToClipboardAction = createAsyncThunk(REDUCER_NAME, async (_, { getState, dispatch }) => {
   const { ownerId } = selectOwnerProperties(getState());

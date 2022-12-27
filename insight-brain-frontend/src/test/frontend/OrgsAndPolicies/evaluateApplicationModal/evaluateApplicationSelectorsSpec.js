@@ -8,7 +8,7 @@ import { selectEvaluateApplicationSlice } from 'MainRoot/OrgsAndPolicies/evaluat
 describe('selectEvaluateApplicationSelectors', () => {
   const mockState = {
     orgsAndPolicies: {
-      ownerEditor: {
+      ownerActions: {
         evaluateApplication: {
           isEvaluationModalOpen: true,
         },

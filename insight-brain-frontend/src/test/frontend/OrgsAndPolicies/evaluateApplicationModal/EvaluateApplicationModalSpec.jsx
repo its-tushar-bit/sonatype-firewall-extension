@@ -32,7 +32,7 @@ describe('EvaluateApplicationModal', () => {
             publicId: 'testApplicationPublicID',
           },
         },
-        ownerEditor: {
+        ownerActions: {
           evaluateApplication: {
             isEvaluationModalOpen: true,
             isStatusModalOpen: false,
@@ -72,7 +72,7 @@ describe('EvaluateApplicationModal', () => {
             publicId: 'testApplicationPublicID',
           },
         },
-        ownerEditor: {
+        ownerActions: {
           evaluateApplication: {
             isEvaluationModalOpen: false,
             isStatusModalOpen: false,
@@ -163,7 +163,7 @@ describe('EvaluateApplicationModal', () => {
               publicId: 'testApplicationPublicID',
             },
           },
-          ownerEditor: {
+          ownerActions: {
             evaluateApplication: {
               isEvaluationModalOpen: true,
               isStatusModalOpen: false,

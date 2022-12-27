@@ -8,5 +8,5 @@ import { createSelector } from '@reduxjs/toolkit';
 
 export const selectEvaluateApplicationSlice = createSelector(
   selectOrgsAndPoliciesSlice,
-  ({ ownerEditor: { evaluateApplication } }) => evaluateApplication
+  ({ ownerActions: { evaluateApplication } }) => evaluateApplication
 );

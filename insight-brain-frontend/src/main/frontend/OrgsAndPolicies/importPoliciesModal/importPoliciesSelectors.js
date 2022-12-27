@@ -9,5 +9,5 @@ import { selectOrgsAndPoliciesSlice } from '../orgsAndPoliciesSelectors';
 
 export const selectImportPoliciesSlice = createSelector(
   selectOrgsAndPoliciesSlice,
-  ({ ownerEditor: { importPolicies } }) => importPolicies
+  ({ ownerActions: { importPolicies } }) => importPolicies
 );

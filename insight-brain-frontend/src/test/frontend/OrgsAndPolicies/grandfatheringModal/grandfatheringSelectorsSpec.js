@@ -11,7 +11,7 @@ describe('grandfatheringSelectors', () => {
   beforeEach(() => {
     mockState = {
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           grandfathering: {
             submitError: 'Some error',
             submitMaskState: null,

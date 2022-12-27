@@ -9,7 +9,7 @@ describe('importPoliciesSelectors', () => {
   describe('selectImportPoliciesSelectors', () => {
     const mockState = {
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           importPolicies: {
             isModalOpen: true,
             submitError: 'Some error',

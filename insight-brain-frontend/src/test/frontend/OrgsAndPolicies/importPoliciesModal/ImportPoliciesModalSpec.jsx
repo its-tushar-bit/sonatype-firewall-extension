@@ -10,7 +10,7 @@ import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
 describe('ImportPoliciesModal', () => {
   const defaultPreloadedState = {
     orgsAndPolicies: {
-      ownerEditor: {
+      ownerActions: {
         importPolicies: {
           submitError: null,
           isModalOpen: true,
@@ -26,7 +26,7 @@ describe('ImportPoliciesModal', () => {
   it('does not render the modal when isModalOpen is false', () => {
     renderComponent({
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           importPolicies: {
             submitError: null,
             isModalOpen: false,
@@ -52,7 +52,7 @@ describe('ImportPoliciesModal', () => {
   it('renders error on submitError', () => {
     renderComponent({
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           importPolicies: {
             submitError: 'Error 404',
             isModalOpen: true,

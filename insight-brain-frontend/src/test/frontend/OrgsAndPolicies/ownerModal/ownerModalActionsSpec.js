@@ -66,7 +66,7 @@ const createOrgState = {
         name: 'Root Organization',
       },
     },
-    ownerEditor: {
+    ownerActions: {
       ownerModal: {
         submitError: null,
         submitMaskState: null,
@@ -105,7 +105,7 @@ const createAppState = {
         name: 'OrganizationOneName',
       },
     },
-    ownerEditor: {
+    ownerActions: {
       ownerModal: {
         submitError: null,
         submitMaskState: null,
@@ -144,7 +144,7 @@ const editOrgState = {
         name: 'OrganizationOneName',
       },
     },
-    ownerEditor: {
+    ownerActions: {
       ownerModal: {
         submitError: null,
         submitMaskState: null,
@@ -185,7 +185,7 @@ const editAppState = {
         name: 'ApplicationOneName',
       },
     },
-    ownerEditor: {
+    ownerActions: {
       ownerModal: {
         submitError: null,
         submitMaskState: null,
@@ -230,23 +230,23 @@ describe('ownerModal actions', () => {
       const actions = store.getActions();
       expect(actions.length).toBe(5);
       expect(actions).toHaveActionTypesInOrder([
-        'ownerEditor/ownerModal/createOwner/pending',
-        'ownerEditor/updateApplication/pending',
+        'ownerActions/ownerModal/createOwner/pending',
+        'ownerActions/updateApplication/pending',
         'organizations/updateOrganization',
-        'ownerEditor/updateApplication/fulfilled',
-        'ownerEditor/ownerModal/createOwner/fulfilled',
+        'ownerActions/updateApplication/fulfilled',
+        'ownerActions/ownerModal/createOwner/fulfilled',
       ]);
 
       jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
       expect(actions.length).toBe(6);
       expect(actions).toHaveActionTypesInOrder([
-        'ownerEditor/ownerModal/createOwner/pending',
-        'ownerEditor/updateApplication/pending',
+        'ownerActions/ownerModal/createOwner/pending',
+        'ownerActions/updateApplication/pending',
         'organizations/updateOrganization',
-        'ownerEditor/updateApplication/fulfilled',
-        'ownerEditor/ownerModal/createOwner/fulfilled',
-        'ownerEditor/ownerModal/closeModal',
+        'ownerActions/updateApplication/fulfilled',
+        'ownerActions/ownerModal/createOwner/fulfilled',
+        'ownerActions/ownerModal/closeModal',
       ]);
 
       done();
@@ -271,23 +271,23 @@ describe('ownerModal actions', () => {
       const actions = store.getActions();
       expect(actions.length).toBe(5);
       expect(actions).toHaveActionTypesInOrder([
-        'ownerEditor/ownerModal/createOwner/pending',
-        'ownerEditor/updateApplication/pending',
+        'ownerActions/ownerModal/createOwner/pending',
+        'ownerActions/updateApplication/pending',
         'applications/updateApplication',
-        'ownerEditor/updateApplication/fulfilled',
-        'ownerEditor/ownerModal/createOwner/fulfilled',
+        'ownerActions/updateApplication/fulfilled',
+        'ownerActions/ownerModal/createOwner/fulfilled',
       ]);
 
       jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
       expect(actions.length).toBe(6);
       expect(actions).toHaveActionTypesInOrder([
-        'ownerEditor/ownerModal/createOwner/pending',
-        'ownerEditor/updateApplication/pending',
+        'ownerActions/ownerModal/createOwner/pending',
+        'ownerActions/updateApplication/pending',
         'applications/updateApplication',
-        'ownerEditor/updateApplication/fulfilled',
-        'ownerEditor/ownerModal/createOwner/fulfilled',
-        'ownerEditor/ownerModal/closeModal',
+        'ownerActions/updateApplication/fulfilled',
+        'ownerActions/ownerModal/createOwner/fulfilled',
+        'ownerActions/ownerModal/closeModal',
       ]);
 
       done();
@@ -311,23 +311,23 @@ describe('ownerModal actions', () => {
       const actions = store.getActions();
       expect(actions.length).toBe(5);
       expect(actions).toHaveActionTypesInOrder([
-        'ownerEditor/ownerModal/editCurrentOwner/pending',
-        'ownerEditor/updateApplication/pending',
+        'ownerActions/ownerModal/editCurrentOwner/pending',
+        'ownerActions/updateApplication/pending',
         'organizations/updateOrganization',
-        'ownerEditor/updateApplication/fulfilled',
-        'ownerEditor/ownerModal/editCurrentOwner/fulfilled',
+        'ownerActions/updateApplication/fulfilled',
+        'ownerActions/ownerModal/editCurrentOwner/fulfilled',
       ]);
 
       jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
       expect(actions.length).toBe(6);
       expect(actions).toHaveActionTypesInOrder([
-        'ownerEditor/ownerModal/editCurrentOwner/pending',
-        'ownerEditor/updateApplication/pending',
+        'ownerActions/ownerModal/editCurrentOwner/pending',
+        'ownerActions/updateApplication/pending',
         'organizations/updateOrganization',
-        'ownerEditor/updateApplication/fulfilled',
-        'ownerEditor/ownerModal/editCurrentOwner/fulfilled',
-        'ownerEditor/ownerModal/closeModal',
+        'ownerActions/updateApplication/fulfilled',
+        'ownerActions/ownerModal/editCurrentOwner/fulfilled',
+        'ownerActions/ownerModal/closeModal',
       ]);
 
       done();
@@ -352,23 +352,23 @@ describe('ownerModal actions', () => {
 
       expect(actions.length).toBe(5);
       expect(actions).toHaveActionTypesInOrder([
-        'ownerEditor/ownerModal/editCurrentOwner/pending',
-        'ownerEditor/updateApplication/pending',
+        'ownerActions/ownerModal/editCurrentOwner/pending',
+        'ownerActions/updateApplication/pending',
         'applications/updateApplication',
-        'ownerEditor/updateApplication/fulfilled',
-        'ownerEditor/ownerModal/editCurrentOwner/fulfilled',
+        'ownerActions/updateApplication/fulfilled',
+        'ownerActions/ownerModal/editCurrentOwner/fulfilled',
       ]);
 
       jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
       expect(actions.length).toBe(6);
       expect(actions).toHaveActionTypesInOrder([
-        'ownerEditor/ownerModal/editCurrentOwner/pending',
-        'ownerEditor/updateApplication/pending',
+        'ownerActions/ownerModal/editCurrentOwner/pending',
+        'ownerActions/updateApplication/pending',
         'applications/updateApplication',
-        'ownerEditor/updateApplication/fulfilled',
-        'ownerEditor/ownerModal/editCurrentOwner/fulfilled',
-        'ownerEditor/ownerModal/closeModal',
+        'ownerActions/updateApplication/fulfilled',
+        'ownerActions/ownerModal/editCurrentOwner/fulfilled',
+        'ownerActions/ownerModal/closeModal',
       ]);
 
       done();

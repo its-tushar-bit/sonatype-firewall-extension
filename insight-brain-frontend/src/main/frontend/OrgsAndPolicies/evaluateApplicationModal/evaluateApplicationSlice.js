@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
@@ -15,7 +15,7 @@ import { getBundleUploadUrl, getEvaluationStatusUrl } from 'MainRoot/util/CLMLoc
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsNotificationsSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
-const REDUCER_NAME = `${OWNER_EDITOR}/evaluateApplication`;
+const REDUCER_NAME = `${OWNER_ACTIONS}/evaluateApplication`;
 const validEvaluateBundleStages = ['build', 'stage-release', 'release', 'operate'];
 const { initialState: rscInitialFileUploadState, userInput: userFileUploadInput } = nxFileUploadStateHelpers;
 

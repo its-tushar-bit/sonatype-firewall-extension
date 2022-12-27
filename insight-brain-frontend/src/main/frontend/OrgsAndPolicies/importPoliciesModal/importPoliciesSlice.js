@@ -12,10 +12,10 @@ import { selectImportPoliciesSlice } from './importPoliciesSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
 
-const REDUCER_NAME = `${OWNER_EDITOR}/importPolicies`;
+const REDUCER_NAME = `${OWNER_ACTIONS}/importPolicies`;
 
 const { initialState: rscInitialFileUploadState, userInput: userFileUploadInput } = nxFileUploadStateHelpers;
 

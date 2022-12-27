@@ -18,7 +18,7 @@ import { propSet } from 'MainRoot/util/jsUtil';
 
 const { initialState: rscInitialState, userInput } = nxTextInputStateHelpers;
 
-const REDUCER_NAME = 'ownerEditor/changeApplicationId';
+const REDUCER_NAME = 'ownerActions/changeApplicationId';
 
 export const initialState = {
   submitError: null,

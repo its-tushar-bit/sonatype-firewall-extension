@@ -27,12 +27,12 @@ import { selectOwnerModalSlice } from './ownerModalSelectors';
 import { stateGo, stateReload } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
 const { initialState: rscInitialState, userInput } = nxTextInputStateHelpers;
 const { initialState: rscInitialFileUploadState, userInput: userFileUploadInput } = nxFileUploadStateHelpers;
 
-const REDUCER_NAME = `${OWNER_EDITOR}/ownerModal`;
+const REDUCER_NAME = `${OWNER_ACTIONS}/ownerModal`;
 const NO_ICON_VALIDATION = 'No file selected';
 export const iconTypes = { custom: 'custom', robot: 'robot' };
 

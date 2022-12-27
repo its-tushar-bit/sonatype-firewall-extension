@@ -12,7 +12,7 @@ import { selectOrgsAndPoliciesSlice } from '../orgsAndPoliciesSelectors';
 
 export const selectOwnerModalSlice = createSelector(
   selectOrgsAndPoliciesSlice,
-  ({ ownerEditor: { ownerModal } }) => ownerModal
+  ({ ownerActions: { ownerModal } }) => ownerModal
 );
 
 export const selectNewOwnerName = createSelector(selectOwnerModalSlice, prop('ownerName'));

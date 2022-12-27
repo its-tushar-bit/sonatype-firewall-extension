@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reducer from 'MainRoot/OrgsAndPolicies/selectContactModal/selectContactModalSlice';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
 describe('selectContactModal reducer', () => {
   describe('selectContact (fetchusers)', () => {
@@ -18,7 +18,7 @@ describe('selectContactModal reducer', () => {
       const {
         fetchedUsers: { loading },
       } = reducer(state, {
-        type: `${OWNER_EDITOR}/selectContact/setFetchUsersLoading`,
+        type: `${OWNER_ACTIONS}/selectContact/setFetchUsersLoading`,
         meta: { arg: '*' },
       });
 
@@ -39,7 +39,7 @@ describe('selectContactModal reducer', () => {
         });
 
         const { fetchedUsers } = reducer(state, {
-          type: `${OWNER_EDITOR}/selectContact/loadFetchUsers/fulfilled`,
+          type: `${OWNER_ACTIONS}/selectContact/loadFetchUsers/fulfilled`,
           payload: {
             error: null,
             members: [
@@ -84,7 +84,7 @@ describe('selectContactModal reducer', () => {
         });
 
         const { fetchedUsers } = reducer(state, {
-          type: `${OWNER_EDITOR}/selectContact/loadFetchUsers/rejected`,
+          type: `${OWNER_ACTIONS}/selectContact/loadFetchUsers/rejected`,
           payload: {
             error: 'error',
           },
@@ -108,7 +108,7 @@ describe('selectContactModal reducer', () => {
       });
 
       const { submitError, submitMaskState } = reducer(state, {
-        type: `${OWNER_EDITOR}/selectContact/saveContact/pending`,
+        type: `${OWNER_ACTIONS}/selectContact/saveContact/pending`,
       });
 
       expect(submitError).toBeNull();
@@ -124,7 +124,7 @@ describe('selectContactModal reducer', () => {
       });
 
       const { submitMaskState, submitError, isDirty } = reducer(state, {
-        type: `${OWNER_EDITOR}/selectContact/saveContact/fulfilled`,
+        type: `${OWNER_ACTIONS}/selectContact/saveContact/fulfilled`,
         payload: {
           contact: {
             displayName: '12 12',
@@ -151,7 +151,7 @@ describe('selectContactModal reducer', () => {
         submitError: null,
       });
       const { submitMaskState, submitError } = reducer(state, {
-        type: `${OWNER_EDITOR}/selectContact/saveContact/rejected`,
+        type: `${OWNER_ACTIONS}/selectContact/saveContact/rejected`,
         payload: 'error',
       });
       expect(submitMaskState).toBeNull();
@@ -174,7 +174,7 @@ describe('selectContactModal reducer', () => {
       });
 
       const { submitError, submitMaskState } = reducer(state, {
-        type: `${OWNER_EDITOR}/selectContact/saveContact/pending`,
+        type: `${OWNER_ACTIONS}/selectContact/saveContact/pending`,
       });
 
       expect(submitError).toBeNull();
@@ -190,7 +190,7 @@ describe('selectContactModal reducer', () => {
       });
 
       const { submitMaskState, submitError, isDirty } = reducer(state, {
-        type: `${OWNER_EDITOR}/selectContact/saveContact/fulfilled`,
+        type: `${OWNER_ACTIONS}/selectContact/saveContact/fulfilled`,
         payload: {
           contact: null,
           displayName: '12 12',
@@ -213,7 +213,7 @@ describe('selectContactModal reducer', () => {
       });
 
       const { submitMaskState, submitError } = reducer(state, {
-        type: `${OWNER_EDITOR}/selectContact/saveContact/rejected`,
+        type: `${OWNER_ACTIONS}/selectContact/saveContact/rejected`,
         payload: 'error',
       });
 
@@ -229,7 +229,7 @@ describe('selectContactModal reducer', () => {
       isValid: true,
     });
     const { query, isDirty, isValid } = reducer(state, {
-      type: `${OWNER_EDITOR}/selectContact/setQuery`,
+      type: `${OWNER_ACTIONS}/selectContact/setQuery`,
       payload: 'query',
     });
     expect(query).toBe('query');
@@ -244,7 +244,7 @@ describe('selectContactModal reducer', () => {
     });
 
     const { isValid, selectedContact } = reducer(state, {
-      type: `${OWNER_EDITOR}/selectContact/setSelectedContact`,
+      type: `${OWNER_ACTIONS}/selectContact/setSelectedContact`,
       payload: {
         displayName: 'test my',
         email: 'my@gmail.com',

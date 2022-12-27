@@ -14,7 +14,7 @@ describe('changeApplicationIdSelectors', () => {
   beforeEach(() => {
     mockState = {
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           changeAppId: {
             submitError: 'Some error',
             submitMaskState: null,

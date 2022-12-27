@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reducer from 'MainRoot/OrgsAndPolicies/importPoliciesModal/importPoliciesSlice';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
 
 const { initialState: rscInitialFileUploadState } = nxFileUploadStateHelpers;
@@ -17,7 +17,7 @@ describe('importPolicies reducer', () => {
     });
 
     const newState = reducer(state, {
-      type: `${OWNER_EDITOR}/importPolicies/fulfilled`,
+      type: `${OWNER_ACTIONS}/importPolicies/fulfilled`,
     });
 
     expect(newState).toEqual({
@@ -39,7 +39,7 @@ describe('importPolicies reducer', () => {
     ];
 
     const newState = reducer(state, {
-      type: `${OWNER_EDITOR}/importPolicies/selectFile`,
+      type: `${OWNER_ACTIONS}/importPolicies/selectFile`,
       payload: { ...testJSONFile },
     });
 
@@ -49,14 +49,14 @@ describe('importPolicies reducer', () => {
     });
   });
 
-  it('resets state on ownerEditor/importPolicies/closeModal', () => {
+  it('resets state on ownerActions/importPolicies/closeModal', () => {
     const state = Object.freeze({
       submitMaskState: false,
       submitError: 'not null',
     });
 
     const newState = reducer(state, {
-      type: `${OWNER_EDITOR}/importPolicies/closeModal`,
+      type: `${OWNER_ACTIONS}/importPolicies/closeModal`,
     });
 
     expect(newState).toEqual({
@@ -74,7 +74,7 @@ describe('importPolicies reducer', () => {
     });
 
     const newState = reducer(state, {
-      type: `${OWNER_EDITOR}/importPolicies/rejected`,
+      type: `${OWNER_ACTIONS}/importPolicies/rejected`,
       payload: 'Some error',
     });
 

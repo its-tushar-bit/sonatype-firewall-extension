@@ -12,7 +12,7 @@ const { initialState: rscInitialFileUploadState } = nxFileUploadStateHelpers;
 describe('ownerModalSelectors - selectOwnerModal', () => {
   const mockState = {
     orgsAndPolicies: {
-      ownerEditor: {
+      ownerActions: {
         ownerModal: {
           submitError: 'Some error',
           submitMaskState: null,

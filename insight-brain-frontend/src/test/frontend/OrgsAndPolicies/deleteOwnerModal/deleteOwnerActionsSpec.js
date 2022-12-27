@@ -68,19 +68,19 @@ describe('deleteOwnerActions', () => {
         const actions = store.getActions();
         expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
-          'ownerEditor/delete/removeOwner/pending',
+          'ownerActions/delete/removeOwner/pending',
           'organizations/removeOrganizationFromList',
-          'ownerEditor/delete/removeOwner/fulfilled',
+          'ownerActions/delete/removeOwner/fulfilled',
         ]);
 
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
-          'ownerEditor/delete/removeOwner/pending',
+          'ownerActions/delete/removeOwner/pending',
           'organizations/removeOrganizationFromList',
-          'ownerEditor/delete/removeOwner/fulfilled',
-          'ownerEditor/delete/closeModal',
+          'ownerActions/delete/removeOwner/fulfilled',
+          'ownerActions/delete/closeModal',
         ]);
 
         done();
@@ -133,19 +133,19 @@ describe('deleteOwnerActions', () => {
         const actions = store.getActions();
         expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
-          'ownerEditor/delete/removeOwner/pending',
+          'ownerActions/delete/removeOwner/pending',
           'applications/removeApplicationFromList',
-          'ownerEditor/delete/removeOwner/fulfilled',
+          'ownerActions/delete/removeOwner/fulfilled',
         ]);
 
         jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         expect(actions.length).toBe(4);
         expect(actions).toHaveActionTypesInOrder([
-          'ownerEditor/delete/removeOwner/pending',
+          'ownerActions/delete/removeOwner/pending',
           'applications/removeApplicationFromList',
-          'ownerEditor/delete/removeOwner/fulfilled',
-          'ownerEditor/delete/closeModal',
+          'ownerActions/delete/removeOwner/fulfilled',
+          'ownerActions/delete/closeModal',
         ]);
 
         done();

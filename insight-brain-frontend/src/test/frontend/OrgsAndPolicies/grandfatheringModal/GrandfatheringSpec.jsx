@@ -18,7 +18,7 @@ describe('Grandfathering modal', () => {
   beforeEach(() => {
     const defaultPreloadedState = {
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           grandfathering: {
             submitError: null,
             isModalOpen: true,
@@ -34,7 +34,7 @@ describe('Grandfathering modal', () => {
   it('does not render the modal when isModalOpen is false', () => {
     renderComponent({
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           grandfathering: {
             submitError: null,
             isModalOpen: false,
@@ -60,7 +60,7 @@ describe('Grandfathering modal', () => {
   it('renders error on submitError', () => {
     renderComponent({
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           grandfathering: {
             submitError: 'Error 404',
             isModalOpen: true,
@@ -78,7 +78,7 @@ describe('Grandfathering modal', () => {
   it('triggers grandfathering', () => {
     renderComponent({
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           grandfathering: {
             submitError: null,
             isModalOpen: true,

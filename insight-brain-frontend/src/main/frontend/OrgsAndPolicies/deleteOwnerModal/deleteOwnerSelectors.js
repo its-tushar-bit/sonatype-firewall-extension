@@ -9,5 +9,5 @@ import { selectOrgsAndPoliciesSlice } from '../orgsAndPoliciesSelectors';
 
 export const selectDeleteOwnerSlice = createSelector(
   selectOrgsAndPoliciesSlice,
-  ({ ownerEditor: { deleteOwner } }) => deleteOwner
+  ({ ownerActions: { deleteOwner } }) => deleteOwner
 );

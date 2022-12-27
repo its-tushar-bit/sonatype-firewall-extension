@@ -11,9 +11,9 @@ import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSel
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet } from 'MainRoot/util/jsUtil';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
-const REDUCER_NAME = `${OWNER_EDITOR}/revokeGrandfathering`;
+const REDUCER_NAME = `${OWNER_ACTIONS}/revokeGrandfathering`;
 
 export const initialState = {
   submitError: null,

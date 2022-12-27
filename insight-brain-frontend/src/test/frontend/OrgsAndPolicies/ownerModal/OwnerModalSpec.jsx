@@ -69,7 +69,7 @@ const defaultPreloadedState = {
         name: 'Root Organization',
       },
     },
-    ownerEditor: {
+    ownerActions: {
       ownerModal: {
         submitError: null,
         submitMaskState: null,
@@ -107,7 +107,7 @@ const createAppState = {
     root: {
       selectedOwner: ORGS[0],
     },
-    ownerEditor: {
+    ownerActions: {
       ownerModal: {
         submitError: null,
         submitMaskState: null,
@@ -145,7 +145,7 @@ const editOrgState = {
     root: {
       selectedOwner: ORGS[0],
     },
-    ownerEditor: {
+    ownerActions: {
       ownerModal: {
         submitError: null,
         submitMaskState: null,
@@ -183,7 +183,7 @@ const editAppState = {
     root: {
       selectedOwner: APPS[0],
     },
-    ownerEditor: {
+    ownerActions: {
       ownerModal: {
         submitError: null,
         submitMaskState: null,
@@ -213,7 +213,7 @@ describe('OwnerModal', () => {
 
   it('does not render modal without being open', () => {
     const state = defaultPreloadedState;
-    state.orgsAndPolicies.ownerEditor.ownerModal.isModalOpen = false;
+    state.orgsAndPolicies.ownerActions.ownerModal.isModalOpen = false;
     renderComponent(state);
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -221,7 +221,7 @@ describe('OwnerModal', () => {
 
   it('close modal on cancel', () => {
     const state = defaultPreloadedState;
-    state.orgsAndPolicies.ownerEditor.ownerModal.isModalOpen = true;
+    state.orgsAndPolicies.ownerActions.ownerModal.isModalOpen = true;
     renderComponent();
 
     const closeButton = screen.getByRole('button', { name: 'Cancel' });

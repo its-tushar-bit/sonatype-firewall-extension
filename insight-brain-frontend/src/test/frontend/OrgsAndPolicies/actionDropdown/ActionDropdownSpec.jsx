@@ -70,7 +70,7 @@ describe('ActionDropdown', () => {
             contact: null,
           },
         },
-        ownerEditor: {
+        ownerActions: {
           actionDropdown: {
             loading: false,
             loadError: null,
@@ -186,7 +186,7 @@ describe('ActionDropdown', () => {
               allowArtifactoryConnectionOverride: true,
             },
           },
-          ownerEditor: {
+          ownerActions: {
             loading: false,
             loadError: null,
             applicationSummary: null,
@@ -234,7 +234,7 @@ describe('ActionDropdown', () => {
               allowArtifactoryConnectionOverride: true,
             },
           },
-          ownerEditor: {
+          ownerActions: {
             loading: false,
             loadError: null,
             applicationSummary: null,
@@ -586,7 +586,7 @@ describe('ActionDropdown', () => {
             contact: null,
           },
         },
-        ownerEditor: {
+        ownerActions: {
           actionDropdown: {
             loading: false,
             loadError: null,

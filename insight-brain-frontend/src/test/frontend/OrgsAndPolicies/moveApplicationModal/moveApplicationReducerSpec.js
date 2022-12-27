@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reducer from 'MainRoot/OrgsAndPolicies/moveApplicationModal/moveApplicationSlice';
-import { OWNER_EDITOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
+import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
 describe('moveApplication reducer', () => {
   describe('moveApplication/loadAvailableToMoveOrganizations', () => {
@@ -19,7 +19,7 @@ describe('moveApplication reducer', () => {
       const {
         fetchOrgs: { loading, loadError },
       } = reducer(state, {
-        type: `${OWNER_EDITOR}/moveApplication/loadAvailableToMoveOrganizations/pending`,
+        type: `${OWNER_ACTIONS}/moveApplication/loadAvailableToMoveOrganizations/pending`,
       });
 
       expect(loading).toBeTrue();
@@ -37,7 +37,7 @@ describe('moveApplication reducer', () => {
       });
 
       const { fetchOrgs } = reducer(state, {
-        type: `${OWNER_EDITOR}/moveApplication/loadAvailableToMoveOrganizations/fulfilled`,
+        type: `${OWNER_ACTIONS}/moveApplication/loadAvailableToMoveOrganizations/fulfilled`,
         payload: [
           { organizationId: '5f2a22b9360b4626985e706ed3502e1f', organizationName: 'Awesome org' },
           { organizationId: '0aba574e1c634737b7affd87a8789a0a', organizationName: 'New org' },
@@ -66,7 +66,7 @@ describe('moveApplication reducer', () => {
       });
 
       const { fetchOrgs } = reducer(state, {
-        type: `${OWNER_EDITOR}/moveApplication/loadAvailableToMoveOrganizations/fulfilled`,
+        type: `${OWNER_ACTIONS}/moveApplication/loadAvailableToMoveOrganizations/fulfilled`,
         payload: [],
       });
 
@@ -89,7 +89,7 @@ describe('moveApplication reducer', () => {
       const {
         fetchOrgs: { loading, loadError },
       } = reducer(state, {
-        type: `${OWNER_EDITOR}/moveApplication/loadAvailableToMoveOrganizations/rejected`,
+        type: `${OWNER_ACTIONS}/moveApplication/loadAvailableToMoveOrganizations/rejected`,
         payload: 'error',
       });
 
@@ -105,7 +105,7 @@ describe('moveApplication reducer', () => {
       });
 
       const action = {
-        type: `${OWNER_EDITOR}/moveApplication/moveApplication/pending`,
+        type: `${OWNER_ACTIONS}/moveApplication/moveApplication/pending`,
       };
 
       const newState = reducer(state, action);
@@ -123,7 +123,7 @@ describe('moveApplication reducer', () => {
       });
 
       const action = {
-        type: `${OWNER_EDITOR}/moveApplication/moveApplication/fulfilled`,
+        type: `${OWNER_ACTIONS}/moveApplication/moveApplication/fulfilled`,
       };
 
       const newState = reducer(state, action);
@@ -142,7 +142,7 @@ describe('moveApplication reducer', () => {
       });
 
       const action = {
-        type: `${OWNER_EDITOR}/moveApplication/moveApplication/fulfilled`,
+        type: `${OWNER_ACTIONS}/moveApplication/moveApplication/fulfilled`,
         payload: ['Warning 1', 'Warning 2'],
       };
 
@@ -161,7 +161,7 @@ describe('moveApplication reducer', () => {
       });
 
       const action = {
-        type: `${OWNER_EDITOR}/moveApplication/moveApplication/rejected`,
+        type: `${OWNER_ACTIONS}/moveApplication/moveApplication/rejected`,
         payload: 'Error',
       };
 
@@ -186,7 +186,7 @@ describe('moveApplication reducer', () => {
       });
 
       const action = {
-        type: `${OWNER_EDITOR}/moveApplication/setOrganization`,
+        type: `${OWNER_ACTIONS}/moveApplication/setOrganization`,
         payload: {
           applicationId: '53425b02cc4d44adac5c63716e0f3e78',
           currentParentOrganization: '5f2a22b9360b4626985e706ed3502e1f',
@@ -229,7 +229,7 @@ describe('moveApplication reducer', () => {
       });
 
       const action = {
-        type: `${OWNER_EDITOR}/moveApplication/setOrganization`,
+        type: `${OWNER_ACTIONS}/moveApplication/setOrganization`,
         payload: {
           applicationId: '53425b02cc4d44adac5c63716e0f3e78',
           currentParentOrganization: '5f2a22b9360b4626985e706ed3502e1f',

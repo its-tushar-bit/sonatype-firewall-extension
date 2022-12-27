@@ -8,7 +8,7 @@ import { selectActionDropdownSlice } from 'MainRoot/OrgsAndPolicies/actionDropdo
 describe('actionDropdownSelector', () => {
   const mockState = {
     orgsAndPolicies: {
-      ownerEditor: {
+      ownerActions: {
         actionDropdown: {
           loading: false,
           loadError: null,

@@ -10,7 +10,7 @@ import { getOrganizationsUrl, getApplicationsUrl } from '../util/CLMLocation';
 import { actions as organizationActions } from './organizationsSlice';
 import { actions as applicationsActions } from './applicationsSlice';
 
-const REDUCER_NAME = 'ownerEditor';
+const REDUCER_NAME = 'ownerActions';
 
 const updateOwner = createAsyncThunk(
   `${REDUCER_NAME}/updateApplication`,

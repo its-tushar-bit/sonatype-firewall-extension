@@ -29,7 +29,7 @@ describe('MoveApplicationModal', () => {
             contact: null,
           },
         },
-        ownerEditor: {
+        ownerActions: {
           moveApplication: {
             isMoveAppModalOpen: true,
             fetchOrgs: {
@@ -55,7 +55,7 @@ describe('MoveApplicationModal', () => {
   it('doesn"t show modal without being open', () => {
     renderComponent({
       orgsAndPolicies: {
-        ownerEditor: {
+        ownerActions: {
           moveApplication: {
             isMoveAppModalOpen: false,
             fetchOrgs: {

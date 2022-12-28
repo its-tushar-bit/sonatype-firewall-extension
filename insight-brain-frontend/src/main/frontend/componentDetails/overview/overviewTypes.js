@@ -81,6 +81,7 @@ export const componentInformationPropType = PropTypes.shape({
     })
   ),
   pathnames: PropTypes.arrayOf(PropTypes.string).isRequired,
+  policyThreatLevel: PropTypes.number,
   website: PropTypes.string,
   directDependency: PropTypes.bool.isRequired,
 });

@@ -958,6 +958,12 @@
       </dependency>
 
       <dependency>
+        <!-- Avoid SVs in earlier versions -->
+        <groupId>com.thoughtworks.xstream</groupId>
+        <artifactId>xstream</artifactId>
+        <version>1.4.20</version>
+      </dependency>
+      <dependency>
         <groupId>com.beust</groupId>
         <artifactId>jcommander</artifactId>
        <version>1.82</version>

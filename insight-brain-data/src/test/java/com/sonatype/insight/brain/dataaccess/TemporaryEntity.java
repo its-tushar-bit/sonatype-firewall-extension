@@ -121,6 +121,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -235,6 +236,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerability;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability;
 import com.sonatype.insight.brain.utils.ThreatLevel;
@@ -360,6 +362,8 @@ public class TemporaryEntity
 
   private final VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO =
       new VulnerabilityGroupVulnerabilityDAO();
+
+  private final VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
 
   private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
 
@@ -522,6 +526,8 @@ public class TemporaryEntity
 
   private Collection<VulnerabilityGroupVulnerability> vulnerabilityGroupsVulnerability;
 
+  private Collection<VulnerabilityCustomDetail> vulnerabilityCustomDetails;
+
   private Collection<MembershipMapping> membershipMappings;
 
   private Collection<Webhook> webhooks;
@@ -592,6 +598,7 @@ public class TemporaryEntity
     securityVulnerabilityOverrides = new ArrayList<>();
     vulnerabilityGroups = new ArrayList<>();
     vulnerabilityGroupsVulnerability = new ArrayList<>();
+    vulnerabilityCustomDetails = new ArrayList<>();
     membershipMappings = new ArrayList<>();
     webhooks = new ArrayList<>();
     policyViolationAggregations = new ArrayList<>();
@@ -647,6 +654,7 @@ public class TemporaryEntity
     delete(securityVulnerabilityOverrides, securityVulnerabilityOverrideDAO);
     delete(vulnerabilityGroupsVulnerability, vulnerabilityGroupVulnerabilityDAO);
     delete(vulnerabilityGroups, vulnerabilityGroupDAO);
+    delete(vulnerabilityCustomDetails, vulnerabilityCustomDetailDAO);
     delete(users, userDAO);
     delete(samlUsers, samlUserDAO);
     delete(usernames, userDAO);
@@ -991,6 +999,10 @@ public class TemporaryEntity
 
   public void register(VulnerabilityGroup... vulnerabilityGroup) {
     Collections.addAll(this.vulnerabilityGroups, vulnerabilityGroup);
+  }
+
+  public void register(VulnerabilityCustomDetail... vulnerabilityCustomDetail) {
+    Collections.addAll(this.vulnerabilityCustomDetails, vulnerabilityCustomDetail);
   }
 
   public Application newApplicationWithParent() {
@@ -2685,6 +2697,46 @@ public class TemporaryEntity
     vulnerabilityGroupVulnerabilityDAO.insert(vuln1);
     vulnerabilityGroupsVulnerability.add(vuln1);
     return vuln1;
+  }
+
+  public VulnerabilityCustomDetail newVulnerabilityCustomDetail(
+      String ownerId,
+      String refId,
+      ComponentIdentifier componentIdentifier)
+  {
+    VulnerabilityCustomDetail
+        vulnerabilityCustomDetail = new VulnerabilityCustomDetail(ownerId, refId, componentIdentifier, "username");
+    vulnerabilityCustomDetailDAO.insert(vulnerabilityCustomDetail);
+    vulnerabilityCustomDetails.add(vulnerabilityCustomDetail);
+    return vulnerabilityCustomDetail;
+  }
+
+  public VulnerabilityCustomDetail newVulnerabilityCustomDetail(
+      String ownerId,
+      String refId,
+      ComponentIdentifier componentIdentifier,
+      Date lastUpdatedAt)
+  {
+    VulnerabilityCustomDetail
+        vulnerabilityCustomDetail = new VulnerabilityCustomDetail(ownerId, refId, componentIdentifier, "username");
+    vulnerabilityCustomDetail.setLastUpdatedAt(lastUpdatedAt);
+    vulnerabilityCustomDetailDAO.insert(vulnerabilityCustomDetail);
+    vulnerabilityCustomDetails.add(vulnerabilityCustomDetail);
+    return vulnerabilityCustomDetail;
+  }
+
+  public VulnerabilityCustomDetail newVulnerabilityCustomDetailWithApplicationTag(
+      String ownerId,
+      String refId,
+      ComponentIdentifier componentIdentifier,
+      ApplicationTag applicationTag)
+  {
+    VulnerabilityCustomDetail
+        vulnerabilityCustomDetail = new VulnerabilityCustomDetail(ownerId, refId, componentIdentifier, "username");
+    vulnerabilityCustomDetail.setApplicationTagId(applicationTag.getId());
+    vulnerabilityCustomDetailDAO.insert(vulnerabilityCustomDetail);
+    vulnerabilityCustomDetails.add(vulnerabilityCustomDetail);
+    return vulnerabilityCustomDetail;
   }
 
   public ProprietaryConfig newProprietaryConfig(String ownerId) {

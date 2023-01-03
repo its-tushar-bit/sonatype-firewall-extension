@@ -96,6 +96,7 @@
     <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult</class> 
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup</class>
     <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability</class>
+    <class>com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail</class>
     <properties>
       <!--
       <property name="openjpa.ConnectionURL" value="jdbc:hsqldb:tutorial_database"/>

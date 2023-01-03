@@ -170,6 +170,8 @@ public class LegalApplicationDetailsTest
     final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
 
     componentTable.componentNames().shouldHaveSize(3);
+    // Avoids hover randomness over the first row
+    LegalApplicationDetailsPage.title().click();
     eyesWatcher.eyesCheck();
     componentTable.sortByComponent().click();
     componentTable.componentNames().get(0).shouldHave(text("com.package : component1 : 3.0"));

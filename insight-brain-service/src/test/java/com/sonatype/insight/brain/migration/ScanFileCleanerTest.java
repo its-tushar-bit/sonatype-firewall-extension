@@ -25,6 +25,7 @@ import com.sonatype.insight.test.LogOutput;
 import com.google.inject.Binder;
 import org.joda.time.DateTimeConstants;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -58,8 +59,17 @@ public class ScanFileCleanerTest
   @Mock
   private TaskScheduler taskSchedulerMock;
 
+  @Before
+  public void before() {
+    new MigrationTrackerDAO().deleteById(ScanFileCleaner.MARKER_ID);
+  }
+
   @After
-  public void resetSecurityManager() {
+  public void after() {
+    MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+    if (migrationTrackerDAO.getById(ScanFileCleaner.MARKER_ID) == null) {
+      migrationTrackerDAO.insertTracker(ScanFileCleaner.MARKER_ID);
+    }
     System.setSecurityManager(ORIGINAL_SECURITY_MANAGER);
   }
 

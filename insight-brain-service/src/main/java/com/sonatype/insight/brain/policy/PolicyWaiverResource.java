@@ -166,6 +166,18 @@ public class PolicyWaiverResource
     return repositoryComponent != null ? repositoryComponent.getComponentIdentifier() : null;
   }
 
+  private ComponentIdentifier getComponentIdentifierFromOwnerAndHash(Owner owner, String hash) {
+    if (owner.getType().equals(OwnerType.REPOSITORY)) {
+      return getComponentIdentifierFromOwnerIdAndHash(owner.getId(), hash,
+          repositoryComponentDAO::getByRepositoryIdAndHash);
+    }
+    else if (owner.getType().equals(OwnerType.APPLICATION)) {
+      return getComponentIdentifierFromOwnerIdAndHash(owner.getId(), hash,
+          applicationComponentDAO::getByApplicationIdAndHash);
+    }
+    return null;
+  }
+
   /**
    * Supports the "View Waivers" functionality of the UI. Most notably, the returned DTO holds the names of relevant
    * entities and public IDs as opposed to internal IDs to facilitate follow-up REST requests like deletion.
@@ -192,16 +204,7 @@ public class PolicyWaiverResource
     ComponentIdentifier componentIdentifier = null;
     for (Owner owner : ownerDAO.walkHierarchy(ownerId)) {
       if (componentIdentifier == null) {
-        if (owner.getType().equals(OwnerType.REPOSITORY)) {
-          componentIdentifier =
-              getComponentIdentifierFromOwnerIdAndHash(owner.getId(), hash,
-                  repositoryComponentDAO::getByRepositoryIdAndHash);
-        }
-        else if (owner.getType().equals(OwnerType.APPLICATION)) {
-          componentIdentifier =
-              getComponentIdentifierFromOwnerIdAndHash(owner.getId(), hash,
-                  applicationComponentDAO::getByApplicationIdAndHash);
-        }
+        componentIdentifier = getComponentIdentifierFromOwnerAndHash(owner, hash);
       }
       result.add(owner, getApplicableWaivers(owner.getId(), hash, policyNameLoader, componentIdentifier));
     }

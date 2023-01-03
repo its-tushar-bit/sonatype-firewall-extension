@@ -11,8 +11,8 @@ import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 
 export default function ActiveWaiversIndicator({ activeWaiverCount = 0, waived, showUnapplied }) {
   const hasActiveWaivers = activeWaiverCount > 0;
-  const showActiveWaiverIndicator = hasActiveWaivers && (!showUnapplied || waived);
-  const showUnappliedWaiverIndicator = hasActiveWaivers && showUnapplied && !waived;
+  const showUnappliedWaiverIndicator = hasActiveWaivers && showUnapplied && waived === false;
+  const showActiveWaiverIndicator = hasActiveWaivers & !showUnappliedWaiverIndicator;
   const containerClass = classnames('iq-waiver-indicator', {
     'iq-waiver-indicator--inactive': !hasActiveWaivers,
     'iq-waiver-indicator--active': showActiveWaiverIndicator,

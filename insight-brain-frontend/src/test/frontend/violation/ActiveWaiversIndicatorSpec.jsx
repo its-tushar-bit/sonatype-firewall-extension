@@ -57,6 +57,19 @@ describe('ActiveWaiversIndicator', function () {
     expect(screen.getByText(unappliedTextSingular).closest('div')).not.toHaveClassName(activeClass);
   });
 
+  it('renders as active when waived is undefined and showUnapplied is true', function () {
+    renderComponent({
+      activeWaiverCount: 1,
+      waived: undefined,
+      showUnapplied: true,
+    });
+
+    expect(screen.getByText('1')).toBeVisible();
+    expect(screen.getByText(activeTextSingular)).toBeVisible();
+    expect(screen.getByText(activeTextSingular).closest('div')).not.toHaveClassName(inactiveClass);
+    expect(screen.getByText(activeTextSingular).closest('div')).toHaveClassName(activeClass);
+  });
+
   it('renders as active when waived is false and showUnapplied is false', function () {
     renderComponent({
       activeWaiverCount: 1,

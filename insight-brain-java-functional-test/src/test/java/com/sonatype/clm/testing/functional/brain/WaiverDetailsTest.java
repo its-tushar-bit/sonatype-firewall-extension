@@ -33,7 +33,6 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.cssClass;
@@ -238,7 +237,6 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     eyesWatcher.eyesCheck();
   }
 
-  @Ignore
   @Test
   public void testScrollingToSelection() {
     Instant now = Instant.now();
@@ -264,8 +262,9 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.RELEASE.getId(),
         "scan1", false, false, Date.from(now.minus(29, ChronoUnit.DAYS)));
 
+    // Open the last waiver available in the list
     refreshOrOpen(WaiverDetailsPage.urlWithQueryParams(application.getType().toString().toLowerCase(Locale.ROOT),
-        application.getId(), policyWaivers.get(0).getId(), "waiver", "filter"));
+        application.getId(), policyWaivers.get(2).getId(), "waiver", "filter"));
     WaiverDetailsPage waiverDetailsPage = new WaiverDetailsPage();
     WaiverDetailsPage.SidebarNav sidebarNav = waiverDetailsPage.sidebarNav();
     sidebarNav.sidebarNavTitle().shouldHave(text("Waivers"));
@@ -273,7 +272,7 @@ public class WaiverDetailsTest extends AbstractFunctionalTest
     ElementsCollection navItems = sidebarNav.sidebarNavItems();
     navItems.shouldHaveSize(26);
 
-    WaiverDetailsPage.SidebarNavListItem selectedItem = sidebarNav.navItem(25).click();
+    WaiverDetailsPage.SidebarNavListItem selectedItem = sidebarNav.navItem(25);
     selectedItem.shouldBe(visible);
     selectedItem.shouldHave(cssClass("selected"));
   }

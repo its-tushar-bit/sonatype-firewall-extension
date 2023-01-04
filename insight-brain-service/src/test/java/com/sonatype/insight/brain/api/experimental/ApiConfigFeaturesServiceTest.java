@@ -679,4 +679,33 @@ public class ApiConfigFeaturesServiceTest
         () -> service.disableFeature(SystemConfigurationProperty.SCAN_POM_FILES_IN_META_INF_DIRECTORY)).isInstanceOf(
         BadRequestException.class).hasMessage("Feature is already disabled.");
   }
+
+  @Test
+  public void testEnableFeature_ScanNpmDevAndOptDependencies() {
+    service.enableFeature(SCAN_NPM_DEV_AND_OPT_DEPENDENCIES);
+    assertThat(systemConfigurationPropertyDAO.getByName(SCAN_NPM_DEV_AND_OPT_DEPENDENCIES).getValue()).isEqualTo(
+        "true");
+  }
+
+  @Test
+  public void testEnableFeature_ScanNpmDevAndOptDependencies_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES);
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_ScanNpmDevAndOptDependencies() {
+    tempEntity.newSystemConfigurationProperty(
+        SystemConfigurationPropertyFeature.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES.getPropertyName(), "true");
+    service.disableFeature(SystemConfigurationProperty.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES);
+    assertThat(systemConfigurationPropertyDAO.getByName(
+        SystemConfigurationProperty.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES)).isNull();
+  }
+
+  @Test
+  public void testDisableFeature_ScanNpmDevAndOptDependencies_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
 }

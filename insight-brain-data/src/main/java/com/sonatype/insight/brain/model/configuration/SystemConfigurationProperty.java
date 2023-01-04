@@ -147,6 +147,8 @@ public class SystemConfigurationProperty
 
   public static final String PURGE_SCAN_FILES = "purgeScanFiles";
 
+  public static final String SCAN_NPM_DEV_AND_OPT_DEPENDENCIES = "scanNpmDevAndOptDependencies";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

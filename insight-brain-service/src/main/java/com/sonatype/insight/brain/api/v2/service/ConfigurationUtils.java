@@ -9,9 +9,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,11 +22,16 @@ import java.util.stream.Stream;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.security.AllowedIp;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Strings;
+import inet.ipaddr.IPAddress;
+import inet.ipaddr.IPAddressString;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.slf4j.Logger;
@@ -123,6 +130,56 @@ public class ConfigurationUtils
       }
     }
     return null;
+  }
+
+  public static List<AllowedIp> stringToAccessAllowlist(String values) {
+    if (values != null) {
+      try {
+        return JsonUtils.parse(values, new TypeReference<List<AllowedIp>>() { });
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException("Invalid json: " + values, e);
+      }
+    }
+    return null;
+  }
+
+  public static String accessAllowlistToString(List<Map<String, String>> values) {
+    if (values == null || values.isEmpty()) {
+      return null;
+    }
+
+    List<String> invalids = new ArrayList<>();
+    for (Map<String, String> value : values) {
+      if (value == null) {
+        invalids.add("null");
+        continue;
+      }
+      String ipAddress = null;
+      try {
+        ipAddress = value.get("ipAddress");
+      }
+      catch (ClassCastException e) {
+        invalids.add("Invalid type, expected String");
+        continue;
+      }
+      if (isInvalidAllowlistIP(ipAddress)) {
+        invalids.add(ipAddress);
+      }
+    }
+    if (!invalids.isEmpty()) {
+      throw new BadRequestException(String.format("Invalid IP addresses: %s", invalids));
+    }
+
+    return JsonUtils.writeUnformatted(values);
+  }
+
+  private static boolean isInvalidAllowlistIP(String allowlistIp) {
+    if (Strings.isNullOrEmpty(allowlistIp)) {
+      return true;
+    }
+    IPAddress ipAddress = new IPAddressString(allowlistIp).getAddress();
+    return ipAddress == null;
   }
 
   public static String userAgentSuffix(Object userAgentSuffix) {

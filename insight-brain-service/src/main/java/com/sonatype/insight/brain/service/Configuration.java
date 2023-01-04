@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,7 +15,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.AllowedIp;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.util.CollectionUtils;
@@ -120,6 +121,7 @@ public class Configuration
 
   private void initializeValues() {
     updateValueByPropertyNames(CollectionUtils.asSet(
+        SystemConfigurationProperty.ACCESS_ALLOWLIST,
         SystemConfigurationProperty.PURGE_SCAN_FILES,
         SystemConfigurationProperty.BASE_URL,
         SystemConfigurationProperty.FORCE_BASE_URL,
@@ -436,6 +438,11 @@ public class Configuration
 
   public List<String> getFrameAncestorsAllowList() {
     return (List<String>) valueByPropertyName.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST);
+  }
+
+  public List<AllowedIp> getAccessAllowlist() {
+    List<AllowedIp> allowlist = (List<AllowedIp>)valueByPropertyName.get(SystemConfigurationProperty.ACCESS_ALLOWLIST);
+    return allowlist == null ? new ArrayList<>() : allowlist;
   }
 
   public String getBfsArtifactoryExpiredTokenRegex() {

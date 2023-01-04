@@ -73,6 +73,7 @@ public class ConfigurationInfo
     entries.put(SystemConfigurationProperty.FORCE_BASE_URL,
         configuration.getBaseUrlConfiguration() != null ? configuration.getBaseUrlConfiguration()
             .isForceBaseUrl() : null);
+    entries.put(SystemConfigurationProperty.ACCESS_ALLOWLIST, configuration.getAccessAllowlist());
 
     List<String> frameAncestorsAllowList = configuration.getFrameAncestorsAllowList();
     if (frameAncestorsAllowList != null) {

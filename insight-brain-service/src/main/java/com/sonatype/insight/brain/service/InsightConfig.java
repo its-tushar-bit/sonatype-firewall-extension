@@ -7,8 +7,9 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.migration.ProxyServerConfigurationMigrator;
 import com.sonatype.insight.brain.migration.ReverseProxyAuthenticationConfigurationMigrator.ReverseProxyAuthenticationConfig;
 import com.sonatype.insight.brain.migration.SourceControlConfigurationMigrator;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.security.AllowedIp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -752,6 +754,20 @@ public class InsightConfig
    */
   @JsonProperty
   private Integer pullRequestMonitoringIntervalInSeconds;
+
+  /**
+   * @since 1.152
+   */
+  @JsonProperty
+  private List<AllowedIp> systemAllowlist;
+
+  public List<AllowedIp> getSystemAllowlist() {
+    return systemAllowlist == null ? new ArrayList<>() : systemAllowlist;
+  }
+
+  public void setSystemAllowlist(List<AllowedIp> systemAllowlist) {
+    this.systemAllowlist = systemAllowlist;
+  }
 
   public Integer getConnectTimeoutInSeconds() {
     return connectTimeoutInSeconds;

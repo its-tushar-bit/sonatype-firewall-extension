@@ -57,6 +57,12 @@ server:
         archivedLogFilenamePattern: "${REQUEST_LOG_ARCHIVED_FILENAME_PATTERN:-/var/log/nexus-iq-server/request-%d.log.gz}"
         archivedFileCount: ${REQUEST_LOG_ARCHIVED_FILE_COUNT:-5}
 
+# System IP Address Filter Allowlist
+# Supports single IP address and IP address range in CIDR notation
+# systemAllowlist:
+  # - ipAddress: 192.168.33.33
+  #   description: Only allow access from 192.168.33.33
+
 # Logging settings.
 logging:
   # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.

@@ -69,6 +69,8 @@ public class SystemConfigurationProperty
 
   public static final String INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS = "INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS";
 
+  public static final String ACCESS_ALLOWLIST = "accessAllowlist";
+
   public static final String BASE_URL = "baseUrl";
 
   public static final String FORCE_BASE_URL = "forceBaseUrl";

@@ -76,9 +76,14 @@ public class ConfigurationInfoTest
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.FORCE_BASE_URL, String.valueOf(true));
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
         "[\"*first.com\",\"second.*\"]");
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.ACCESS_ALLOWLIST,
+        "[{\"ipAddress\": \"192.168.33.10\", \"description\": \"Test IPv4 address\"}," +
+            "{\"ipAddress\": \"8ed5:9e96:1da1:f53b:587e:9f4d:a7f9:817e\", \"description\": \"Test IPv6 address\"}]");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.PURGE_SCAN_FILES, "newScan");
+
     configuration.configurationChanged(Sets.newHashSet(
         SystemConfigurationProperty.PURGE_SCAN_FILES,
+        SystemConfigurationProperty.ACCESS_ALLOWLIST,
         SystemConfigurationProperty.BASE_URL,
         SystemConfigurationProperty.FORCE_BASE_URL,
         SystemConfigurationProperty.HDS_URL,
@@ -145,6 +150,9 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.FORCE_BASE_URL).asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST).asText())
         .isEqualTo("*first.com,second.*");
+    assertThat(configNode.get(SystemConfigurationProperty.ACCESS_ALLOWLIST)).hasToString(
+        "[{\"ipAddress\":\"192.168.33.10\",\"description\":\"Test IPv4 address\"}," +
+            "{\"ipAddress\":\"8ed5:9e96:1da1:f53b:587e:9f4d:a7f9:817e\",\"description\":\"Test IPv6 address\"}]");
     assertThat(configNode.get(SystemConfigurationProperty.PURGE_SCAN_FILES).asText()).isEqualTo("newScan");
   }
 
@@ -184,6 +192,7 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.BASE_URL).asText()).isEqualTo("null");
     assertThat(configNode.get(SystemConfigurationProperty.FORCE_BASE_URL).asText()).isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST).asText()).isEqualTo("null");
+    assertThat(configNode.get(SystemConfigurationProperty.ACCESS_ALLOWLIST).isEmpty()).isTrue();
     assertThat(configNode.get(SystemConfigurationProperty.PURGE_SCAN_FILES).asText()).isEqualTo("null");
   }
 }

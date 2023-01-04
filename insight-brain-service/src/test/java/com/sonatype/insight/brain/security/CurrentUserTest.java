@@ -54,6 +54,9 @@ public class CurrentUserTest
     // IPs that start with "[" are considered IPv6, so this is a special case
     when(request.getHeader(eq(CurrentUser.XFF_HEADER))).thenReturn("[missing], 127.0.0.1, {unknown}");
     assertThat(currentUser.getIP(request)).isEqualTo("127.0.0.1");
+
+    when(request.getHeader(eq(CurrentUser.XFF_HEADER))).thenReturn("[missing], [0:0:0:0:0:0:0:1], {unknown}");
+    assertThat(currentUser.getIP(request)).isEqualTo("[0:0:0:0:0:0:0:1]");
   }
 
   @Test

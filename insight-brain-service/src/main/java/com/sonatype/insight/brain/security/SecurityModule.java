@@ -43,9 +43,9 @@ public class SecurityModule
 {
   public static final String SESSION_COOKIE_NAME = "CLMSESSIONID";
 
-  private static final String CUSTOM_CSRF_FILTERS = "noSessionCreation, antiCsrf[%s], " +
+  private static final String CUSTOM_CSRF_FILTERS = "noSessionCreation, clientIPAddressFilter, antiCsrf[%s], " +
       "reverseProxy, sessionExpirationCookie, secureCookies, authcBasic, requireAuth";
-  
+
   @Override
   protected void configureShiro() {
     bind(Managed.class).toInstance(new Destroyer());
@@ -74,14 +74,15 @@ public class SecurityModule
   private void configureFilterChains(FilterChainManager manager) {
     configureFilterChainsForIntegrations(manager);
 
-    String anonFilters = "anon, sessionExpirationCookie, secureCookies";
-    String telemetryFilters = "anon, secureCookies";
+    String anonFilters = "anon, clientIPAddressFilter, sessionExpirationCookie, secureCookies";
+    String anonUnrestrictedIPFilters = "anon, sessionExpirationCookie, secureCookies";
+    String telemetryFilters = "anon, clientIPAddressFilter, secureCookies";
 
     // Activate the antiCsrf filter for static assets so that the first resource loaded for any given page sets the CSRF
     // token cookie. We want the cookie to be available for the front-end code as soon as possible so that subsequent
     // requests that are unsafe can access it.
-    manager.createChain("/*assets/**", anonFilters + ", antiCsrf"); // assets for the web interface
-    manager.createChain("/favicon.ico", anonFilters); // favicon for web interface
+    manager.createChain("/*assets/**", anonUnrestrictedIPFilters + ", antiCsrf"); // assets for the web interface
+    manager.createChain("/favicon.ico", anonUnrestrictedIPFilters); // favicon for web interface
     manager.createChain("/rest/ide/brain/**", anonFilters); // only redirects
     manager.createChain("/rest/report/*/*/brain/**", anonFilters); // only redirects
     manager.createChain("/rest/user/session/logout", anonFilters); // client logout requires no auth
@@ -110,7 +111,7 @@ public class SecurityModule
         anonFilters + ", noSessionCreation, " +
             "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
             "authcBasic[permissive]");
-    manager.createChain("/ping", anonFilters);
+    manager.createChain("/ping", anonUnrestrictedIPFilters);
 
     // Legal attribution report doesn't need CSRF check as it doesn't update server state (despite being POST form)
     manager.createChain("/api/v2/licenseLegalMetadata/application/*/stage/*/report",
@@ -124,22 +125,23 @@ public class SecurityModule
         anonFilters + ", antiCsrf");
 
     // public REST API
-    manager.createChain("/api/**", "noSessionCreation, antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], " +
+    manager.createChain("/api/**", "noSessionCreation, clientIPAddressFilter, " +
+        "antiCsrf[" + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], " +
         "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + "], authcBasic, saml, requireAuth");
 
     // login, only means to create sessions, also used by integrations for auth validation
-    manager.createChain("/rest/user/session", "sessionExpirationCookie, antiCsrf["
+    manager.createChain("/rest/user/session", "sessionExpirationCookie, clientIPAddressFilter, antiCsrf["
         + AntiCsrfFilter.EXPLICIT_AUTH_ALLOWED + "], reverseProxy, authcBasic, saml, requireAuth, secureCookies");
 
     configureFilterChainsForNonAjaxFormSubmissions(manager);
 
     // SAML callbacks
-    manager.createChain("/saml/**", "saml");
+    manager.createChain("/saml/**", "clientIPAddressFilter, saml");
 
     // internal REST API
     manager.createChain("/**/*",
-        "noSessionCreation, antiCsrf, reverseProxy, authcBasic, saml, requireAuth, sessionExpirationCookie, " +
-        "secureCookies");
+        "noSessionCreation, clientIPAddressFilter, antiCsrf, reverseProxy, authcBasic, saml, requireAuth, " +
+            "sessionExpirationCookie, secureCookies");
   }
 
   private void configureFilterChainsForNonAjaxFormSubmissions(FilterChainManager manager) {
@@ -230,6 +232,7 @@ public class SecurityModule
     public void configureFilters(
         FilterChainManager filterChainManager,
         AntiCsrfFilter antiCsrfFilter,
+        ClientIPAddressFilter clientIPAddressFilter,
         UserFriendlyBasicHttpAuthenticationFilter basicHttpAuthenticationFilter,
         ReverseProxyAuthenticationFilter reverseProxyAuthenticationFilter,
         SecureCookiesFilter secureCookiesFilter,
@@ -240,6 +243,7 @@ public class SecurityModule
     {
       filterChainManager.addFilter("antiCsrf", antiCsrfFilter);
       filterChainManager.addFilter("authcBasic", basicHttpAuthenticationFilter);
+      filterChainManager.addFilter("clientIPAddressFilter", clientIPAddressFilter);
       filterChainManager.addFilter("requireAuth", missingAuthenticationFilter);
       filterChainManager.addFilter("saml", samlFilter);
       filterChainManager.addFilter("reverseProxy", reverseProxyAuthenticationFilter);

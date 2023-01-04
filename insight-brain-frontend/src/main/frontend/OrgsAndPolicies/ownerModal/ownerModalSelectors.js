@@ -17,7 +17,6 @@ export const selectOwnerModalSlice = createSelector(
 
 export const selectNewOwnerName = createSelector(selectOwnerModalSlice, prop('ownerName'));
 export const selectNewOwnerAppId = createSelector(selectOwnerModalSlice, prop('appId'));
-
 export const selectValidationError = createSelector(selectOwnerModalSlice, ({ validationErrors, ownerName }) => {
   if (ownerName.value === '') {
     return GLOBAL_FORM_VALIDATION_ERROR;

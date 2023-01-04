@@ -57,7 +57,6 @@ export default function OwnerModal() {
   const orgsList = useSelector(selectOrganizations);
   const selectedOwner = useSelector(selectSelectedOwner);
   const validationErrors = useSelector(selectValidationError);
-
   const contentRef = useRef(null);
   const closeModalWithCheck = () => dispatch(actions.closeModal({ isDirty }));
   const closeUnsavedChangesModal = () => dispatch(actions.closeUnsavedChangesModal());
@@ -82,12 +81,6 @@ export default function OwnerModal() {
       dispatch(applicationsActions.loadApplications());
     }
   }, []);
-
-  useEffect(() => {
-    if (isEditMode) {
-      onChangeOwnerName(selectedOwner.name);
-    }
-  }, [isEditMode]);
 
   useEffect(() => {
     return () => {

@@ -83,7 +83,7 @@ const ActionDropdown = () => {
   const isGrandfatheringSupported = useSelector(selectIsGrandfatheringSupported);
   const isGrandfatheringEnabled = useSelector(selectCalculatedEnabled);
   const isEvaluateApplicationAvailable = useSelector(selectIsEvaluateApplicationAvailable);
-  const { name: ownerName } = useSelector(selectSelectedOwner);
+  const owner = useSelector(selectSelectedOwner);
   const { applicationSummary, hasPermissionToChangeAppId, hasPermissionToEvaluateApp } = useSelector(
     selectActionDropdownSlice
   );
@@ -162,7 +162,7 @@ const ActionDropdown = () => {
         <NxOverflowTooltip>
           <button
             id="app-org-link"
-            onClick={() => dispatch(ownerModalActions.openEditModal())}
+            onClick={() => dispatch(ownerModalActions.openEditModal(owner))}
             className="nx-dropdown-button"
           >
             <NxFontAwesomeIcon icon={faPen} />
@@ -191,7 +191,7 @@ const ActionDropdown = () => {
               className="nx-dropdown-button"
             >
               <NxFontAwesomeIcon icon={faArrowsAlt} />
-              <span>Move {ownerName}</span>
+              <span>Move {owner.name}</span>
             </button>
           </NxOverflowTooltip>
         )}
@@ -215,7 +215,7 @@ const ActionDropdown = () => {
               className="nx-dropdown-button"
             >
               <NxFontAwesomeIcon icon={faTrash} />
-              <span>Delete {ownerName}</span>
+              <span>Delete {owner.name}</span>
             </button>
           </NxOverflowTooltip>
         )}
@@ -236,7 +236,7 @@ const ActionDropdown = () => {
                 className={`nx-dropdown-button ${grandfatheringDisabled ? 'disabled' : ''}`}
               >
                 <NxFontAwesomeIcon icon={faHammer} className="fa-flip-horizontal" />
-                <span>Grandfather {ownerName}</span>
+                <span>Grandfather {owner.name}</span>
               </button>
             </GrandfatheringTooltip>
 

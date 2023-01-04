@@ -91,9 +91,10 @@ const closeUnsavedChangesModal = (state) => {
   state.isUnsavedChangesModalOpen = false;
 };
 
-const openEditModal = (state) => {
+const openEditModal = (state, { payload }) => {
   state.isModalOpen = true;
   state.isEditMode = true;
+  state.ownerName = rscInitialState(payload.name, validateNonEmpty);
 };
 
 const requestFulfilled = (state) => {

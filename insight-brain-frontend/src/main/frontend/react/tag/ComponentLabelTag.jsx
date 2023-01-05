@@ -45,7 +45,7 @@ export default function ComponentLabelTag({ children, color, description }) {
 TagWithFontAwesomeIcon.propTypes = {
   faIcon: PropTypes.oneOfType([PropTypes.object, PropTypes.array, PropTypes.string]).isRequired,
   color: PropTypes.string,
-  description: PropTypes.string,
+  tooltip: PropTypes.string,
   children: PropTypes.node.isRequired,
 };
 

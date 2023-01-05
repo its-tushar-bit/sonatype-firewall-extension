@@ -65,11 +65,11 @@ public class HdsIdeResourcePerformance
     System.out.println("Sum: " + sum);
   }
 
-  private ExecutorService pool;
+  private final ExecutorService pool;
 
-  private IdeResource resource;
+  private final IdeResource resource;
 
-  private Application testApplication;
+  private final Application testApplication;
 
   private final int iterations;
 
@@ -122,7 +122,7 @@ public class HdsIdeResourcePerformance
 
     private final IdeResource resource;
 
-    private HttpServletRequest request;
+    private final HttpServletRequest request;
 
     ClientRunnable(IdeResource resource, String applicationId, String hash, HttpServletRequest request) {
       this.applicationId = applicationId;

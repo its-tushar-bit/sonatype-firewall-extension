@@ -26,11 +26,11 @@ public class SearchTestHelper
 
   public static class PolicyViolationInfo
   {
-    public String policyName;
+    public final String policyName;
 
-    public String reason;
+    public final String reason;
 
-    public int threatLevel;
+    public final int threatLevel;
 
     public PolicyViolationInfo(final String policyName, final String reason, final int threatLevel) {
       this.policyName = policyName;
@@ -41,11 +41,11 @@ public class SearchTestHelper
 
   public static class ComponentInfo
   {
-    public String hash;
+    public final String hash;
 
-    public ComponentIdentifier componentIdentifier;
+    public final ComponentIdentifier componentIdentifier;
 
-    public List<PolicyViolationInfo> policyViolationInfos;
+    public final List<PolicyViolationInfo> policyViolationInfos;
 
     public ComponentInfo(final String hash,
                          final ComponentIdentifier componentIdentifier,

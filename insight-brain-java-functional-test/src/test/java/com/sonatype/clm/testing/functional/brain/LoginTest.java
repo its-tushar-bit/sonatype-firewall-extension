@@ -37,11 +37,11 @@ import static com.sonatype.clm.testing.functional.utils.InputUtils.clearInput;
 public class LoginTest
     extends AbstractFunctionalTest
 {
-  private LoginModal loginModal = new LoginModal();
+  private final LoginModal loginModal = new LoginModal();
 
-  private VulnerabilitySearchPage vulnPage = new VulnerabilitySearchPage();
+  private final VulnerabilitySearchPage vulnPage = new VulnerabilitySearchPage();
 
-  private InsightConfig insightConfig = testCLMServer.getCLMServer().getInstance(InsightConfig.class);
+  private final InsightConfig insightConfig = testCLMServer.getCLMServer().getInstance(InsightConfig.class);
 
   @Before
   @After

@@ -61,9 +61,9 @@ public class RepositoryComponentDAOTest
 
   private final Date june8th2020 = Date.from(LocalDateTime.of(2020, 6, 8, 1, 0).toInstant(ZoneOffset.UTC));
 
-  private RepositoryComponentDAO dao = new RepositoryComponentDAO();
+  private final RepositoryComponentDAO dao = new RepositoryComponentDAO();
 
-  private QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = new QuarantinedComponentAccessDAO();
+  private final QuarantinedComponentAccessDAO quarantinedComponentAccessDAO = new QuarantinedComponentAccessDAO();
 
   private Repository repositoryTwo;
 

@@ -39,7 +39,7 @@ public class RevokeGrandfatheringTest
 
   private Application application;
 
-  private PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+  private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
   @BeforeClass
   public static void beforeClass() {

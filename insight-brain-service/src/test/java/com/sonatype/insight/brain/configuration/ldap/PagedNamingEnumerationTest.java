@@ -52,11 +52,11 @@ public class PagedNamingEnumerationTest
 
   private final SearchControls searchControls = new SearchControls();
 
-  private byte pageSize = 17;
+  private final byte pageSize = 17;
 
-  private byte resultSize = 0;
+  private final byte resultSize = 0;
 
-  private byte cookie = 13;
+  private final byte cookie = 13;
 
   private byte[] berEncoded(byte results, Byte cookie) {
     if (cookie == null) {

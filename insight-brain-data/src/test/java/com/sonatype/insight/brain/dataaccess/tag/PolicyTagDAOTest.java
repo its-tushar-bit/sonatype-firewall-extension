@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class PolicyTagDAOTest
     extends AbstractDbDAOTest
 {
-  private PolicyTagDAO dao = new PolicyTagDAO();
+  private final PolicyTagDAO dao = new PolicyTagDAO();
 
   private Tag tag;
 

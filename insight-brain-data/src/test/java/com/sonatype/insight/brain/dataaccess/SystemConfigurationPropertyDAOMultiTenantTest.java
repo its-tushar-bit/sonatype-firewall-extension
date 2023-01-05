@@ -140,7 +140,7 @@ public class SystemConfigurationPropertyDAOMultiTenantTest
   private class MockSystemConfigurationPropertyDAO
       extends SystemConfigurationPropertyDAO
   {
-    private List<Tenant> usedTenants = new ArrayList<>();
+    private final List<Tenant> usedTenants = new ArrayList<>();
 
     // This method is overridden to prevent having to mock all the transaction internals
     @Override

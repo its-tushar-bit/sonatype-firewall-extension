@@ -92,9 +92,9 @@ public class DashboardFilterTest
   private static final ComponentIdentifier DEFAULT_COMPONENT_IDENTIFIER = createMavenCoordinates("Group1", "Artifact1",
       "Version1");
 
-  private static ApplicationDAO appDAO = new ApplicationDAO();
+  private static final ApplicationDAO appDAO = new ApplicationDAO();
 
-  private static OrganizationDAO orgDAO = new OrganizationDAO();
+  private static final OrganizationDAO orgDAO = new OrganizationDAO();
 
   private static Organization rootOrg;
 

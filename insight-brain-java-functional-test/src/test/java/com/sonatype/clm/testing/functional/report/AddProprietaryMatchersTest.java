@@ -53,7 +53,7 @@ public class AddProprietaryMatchersTest
 
   private static final com.codeborne.selenide.Condition ERROR = cssClass("error");
 
-  private ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
+  private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
 
   private Application app;
 

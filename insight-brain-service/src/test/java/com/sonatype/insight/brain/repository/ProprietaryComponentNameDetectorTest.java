@@ -34,7 +34,7 @@ public class ProprietaryComponentNameDetectorTest
 
   private String repoManId;
 
-  private String repoId = "hosted-repo-with-proprietary-components";
+  private final String repoId = "hosted-repo-with-proprietary-components";
 
   private Map<String, ComponentNameMatcher> matchersByFormat;
 

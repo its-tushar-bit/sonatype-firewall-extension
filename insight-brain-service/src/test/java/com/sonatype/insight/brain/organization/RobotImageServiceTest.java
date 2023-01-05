@@ -18,7 +18,7 @@ public class RobotImageServiceTest
   public void testGetImage() throws IOException {
     RobotImageService robotImageService = new RobotImageService();
     for (int i = 0; i <= RobotImageService.IMAGE_NUMBER_MAX; i++) {
-      String hash = new String(new char[]{(char) i});
+      String hash = String.valueOf((char) i);
       assertThat(hash.hashCode()).isEqualTo(i);
       int expectedFileIndex = (i == 0 || i == RobotImageService.IMAGE_NUMBER_MAX) ? 1 : i + 1;
       byte[] expectedFileBytes = IOUtils.toByteArray(getClass()

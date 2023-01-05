@@ -31,9 +31,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ComponentLabelResourceTest
     extends AbstractResourceTest
 {
-  private String componentHash = "bababababa";
+  private final String componentHash = "bababababa";
 
-  private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+  private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
   private Organization org;
 

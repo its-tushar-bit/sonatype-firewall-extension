@@ -56,11 +56,11 @@ public class CreateOwnerTest
 
   private static final String NAME = "gibberish";
 
-  private ApplicationDAO appDAO = new ApplicationDAO();
+  private final ApplicationDAO appDAO = new ApplicationDAO();
 
-  private IconDAO iconDAO = new IconDAO();
+  private final IconDAO iconDAO = new IconDAO();
 
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private static Organization parentOrg;
 

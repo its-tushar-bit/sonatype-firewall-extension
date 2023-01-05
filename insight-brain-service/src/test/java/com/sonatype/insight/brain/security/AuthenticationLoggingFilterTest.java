@@ -128,7 +128,7 @@ public class AuthenticationLoggingFilterTest
     filter = new AuthenticationLoggingFilter(currentUser);
   }
 
-  private class FilterChainStub
+  private static class FilterChainStub
       implements FilterChain
   {
     private String mdcUsername;

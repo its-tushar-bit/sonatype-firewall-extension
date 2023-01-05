@@ -198,7 +198,7 @@ public class TestProductLicenseManager
 
     private Set<StageType> stageTypes;
 
-    private Map<String, String> properties = new HashMap<>();
+    private final Map<String, String> properties = new HashMap<>();
 
     private boolean forceInstallIOFailure = false;
     

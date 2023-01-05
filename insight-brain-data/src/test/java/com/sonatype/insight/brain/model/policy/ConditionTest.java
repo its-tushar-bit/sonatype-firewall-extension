@@ -14,7 +14,7 @@ import static com.sonatype.insight.brain.model.policy.ValidationAssert.assertVal
 
 public class ConditionTest
 {
-  private String ownerId = "ownerId";
+  private final String ownerId = "ownerId";
 
   @Test
   public void testValidate_ConditionTypeIdNull() {

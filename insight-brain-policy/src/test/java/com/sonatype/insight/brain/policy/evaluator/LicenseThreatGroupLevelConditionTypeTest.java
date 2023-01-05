@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class LicenseThreatGroupLevelConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-  private static LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private static final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
   private Organization org;
 

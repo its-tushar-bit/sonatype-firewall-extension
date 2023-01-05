@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class RepositoryManagerDAOTest
     extends AbstractDbDAOTest
 {
-  private RepositoryManagerDAO dao = new RepositoryManagerDAO();
+  private final RepositoryManagerDAO dao = new RepositoryManagerDAO();
 
   @Test
   public void testCRUD() {

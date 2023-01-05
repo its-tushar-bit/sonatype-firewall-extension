@@ -51,7 +51,7 @@ public class ProprietaryMatchersTest
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
 
-  private ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
+  private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
 
   private Application app;
 

@@ -61,10 +61,10 @@ public class SystemNoticeTest
       SystemNoticeConfigurationPage.url()
   };
 
-  private com.sonatype.clm.testing.functional.elements.SystemNotice systemNotice =
+  private final com.sonatype.clm.testing.functional.elements.SystemNotice systemNotice =
       new com.sonatype.clm.testing.functional.elements.SystemNotice();
 
-  private SystemNoticeDAO systemNoticeDAO = new SystemNoticeDAO();
+  private final SystemNoticeDAO systemNoticeDAO = new SystemNoticeDAO();
 
   @Test
   @Ignore

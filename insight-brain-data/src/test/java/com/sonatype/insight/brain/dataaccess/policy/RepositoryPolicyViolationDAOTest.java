@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryPolicyViolationDAOTest
     extends AbstractDbDAOTest
 {
-  private RepositoryPolicyViolationDAO dao = new RepositoryPolicyViolationDAO();
+  private final RepositoryPolicyViolationDAO dao = new RepositoryPolicyViolationDAO();
 
   @Test
   public void testCRUD() {

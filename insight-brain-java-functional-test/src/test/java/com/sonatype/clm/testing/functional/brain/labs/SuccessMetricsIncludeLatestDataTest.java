@@ -34,11 +34,11 @@ import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage
 public class SuccessMetricsIncludeLatestDataTest
     extends AbstractFunctionalTest
 {
-  private SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
+  private final SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
-  private SuccessMetricsReportListPage successMetricsReportListPage = new SuccessMetricsReportListPage();
+  private final SuccessMetricsReportListPage successMetricsReportListPage = new SuccessMetricsReportListPage();
 
-  private AddSuccessMetricsModal addSuccessMetricsModal = new AddSuccessMetricsModal();
+  private final AddSuccessMetricsModal addSuccessMetricsModal = new AddSuccessMetricsModal();
 
   private Application app;
 

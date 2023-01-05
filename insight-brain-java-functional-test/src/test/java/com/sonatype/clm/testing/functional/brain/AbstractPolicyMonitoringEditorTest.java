@@ -40,7 +40,7 @@ public abstract class AbstractPolicyMonitoringEditorTest
 
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
-  private OrganizationDAO orgDao = new OrganizationDAO();
+  private final OrganizationDAO orgDao = new OrganizationDAO();
 
   @BeforeClass
   public static void boot() {

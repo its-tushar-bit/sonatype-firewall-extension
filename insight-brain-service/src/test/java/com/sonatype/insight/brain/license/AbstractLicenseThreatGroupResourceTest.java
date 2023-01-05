@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 abstract class AbstractLicenseThreatGroupResourceTest
     extends AbstractResourceTest
 {
-  protected OrganizationDAO orgDAO = new OrganizationDAO();
+  protected final OrganizationDAO orgDAO = new OrganizationDAO();
 
   protected HttpRequest restRequest(String ownerId) {
     return restRequest().path(LicenseThreatGroupResource.RESOURCE_PATH).parameter(getOwnerType(), ownerId);

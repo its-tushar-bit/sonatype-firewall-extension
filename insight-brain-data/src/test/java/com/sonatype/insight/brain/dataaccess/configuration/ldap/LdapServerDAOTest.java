@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class LdapServerDAOTest
     extends AbstractDbDAOTest
 {
-  private LdapServerDAO dao = new LdapServerDAO();
+  private final LdapServerDAO dao = new LdapServerDAO();
 
   @Test
   public void testCRUD() {

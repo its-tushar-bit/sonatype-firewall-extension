@@ -45,23 +45,23 @@ public class ApplicationAdapterTest
   private UserDirectory userDirectory;
 
   // Application variables
-  private String applicationId = "AppId";
+  private final String applicationId = "AppId";
 
-  private String applicationName = "MyApplication";
+  private final String applicationName = "MyApplication";
 
-  private String publicId = "publicId";
+  private final String publicId = "publicId";
 
   private String organizationId;
 
-  private String organizationName = "My Organization";
+  private final String organizationName = "My Organization";
 
-  private String contactInternalName = "jsmith";
+  private final String contactInternalName = "jsmith";
 
-  private String userFirstName = "John";
+  private final String userFirstName = "John";
 
-  private String userLastName = "Smith";
+  private final String userLastName = "Smith";
 
-  private String userEmail = "jsmith@sonatype.com";
+  private final String userEmail = "jsmith@sonatype.com";
 
   @Override
   @Before

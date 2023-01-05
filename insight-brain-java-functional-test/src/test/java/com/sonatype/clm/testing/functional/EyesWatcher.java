@@ -34,7 +34,7 @@ import static java.lang.Boolean.parseBoolean;
 public class EyesWatcher
     extends TestWatcher
 {
-  public static Eyes eyes = new Eyes();
+  public static final Eyes eyes = new Eyes();
 
   private String testName;
 
@@ -42,7 +42,7 @@ public class EyesWatcher
 
   private static String batchId;
 
-  private static String localBranchName;
+  private static final String localBranchName;
 
   private static final String APPLITOOLS_KEY = System.getProperty("applitoolsKey");
 

@@ -35,11 +35,11 @@ public class SystemNoticeConfigurationTest
     DEFAULT_SYSTEM_NOTICE.setEnabled(false);
   }
 
-  private SystemNoticeConfigurationPage systemNoticeConfigurationPage = new SystemNoticeConfigurationPage();
+  private final SystemNoticeConfigurationPage systemNoticeConfigurationPage = new SystemNoticeConfigurationPage();
 
-  private SystemNotice systemNotice = new SystemNotice();
+  private final SystemNotice systemNotice = new SystemNotice();
 
-  private SystemNoticeDAO systemNoticeDAO = new SystemNoticeDAO();
+  private final SystemNoticeDAO systemNoticeDAO = new SystemNoticeDAO();
 
   private String text;
 

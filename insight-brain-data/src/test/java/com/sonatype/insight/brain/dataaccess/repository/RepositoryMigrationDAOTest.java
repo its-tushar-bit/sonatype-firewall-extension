@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryMigrationDAOTest
     extends AbstractDbDAOTest
 {
-  private RepositoryMigrationDAO dao = new RepositoryMigrationDAO();
+  private final RepositoryMigrationDAO dao = new RepositoryMigrationDAO();
 
   @Test
   public void testCRUD() {

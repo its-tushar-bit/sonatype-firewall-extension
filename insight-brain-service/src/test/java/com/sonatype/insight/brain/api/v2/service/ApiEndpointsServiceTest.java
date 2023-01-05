@@ -134,11 +134,11 @@ public class ApiEndpointsServiceTest
   {
   }
 
-  private abstract class ApiEndpointsServiceTestAbstractClass
+  private abstract static class ApiEndpointsServiceTestAbstractClass
   {
   }
 
-  private class ApiEndpointsServiceTestClass
+  private static class ApiEndpointsServiceTestClass
   {
   }
 

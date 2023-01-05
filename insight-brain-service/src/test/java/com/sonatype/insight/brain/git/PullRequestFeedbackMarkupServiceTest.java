@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -103,7 +104,7 @@ public class PullRequestFeedbackMarkupServiceTest
         tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID);
     PolicyEvaluation featureBranchPolicyEvaluation =
         tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
-    featureBranchPolicyEvaluation.setTime(new GregorianCalendar(2020, 5, 21, 9, 15, 32).getTime());
+    featureBranchPolicyEvaluation.setTime(new GregorianCalendar(2020, Calendar.JUNE, 21, 9, 15, 32).getTime());
 
     //setup diff
     PolicyViolationDiff<PolicyViolation> diff =

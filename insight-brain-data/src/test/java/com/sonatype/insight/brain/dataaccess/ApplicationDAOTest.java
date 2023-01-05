@@ -93,7 +93,7 @@ public class ApplicationDAOTest
   /** Prohibited application public ID whitespace characters. */
   public static final char[] PUBLIC_ID_WHITESPACE_CHARS = { '\t', '\n', '\u000B', '\f', '\r' };
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
+  private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -1042,7 +1042,7 @@ public class ApplicationDAOTest
     }
   }
 
-  class ApplicationComparator
+  static class ApplicationComparator
       implements Comparator<Application>
   {
     @Override

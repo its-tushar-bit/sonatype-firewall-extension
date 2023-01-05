@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class RepositoryClientConfigurationDAOTest
     extends AbstractDbDAOTest
 {
-  private RepositoryClientConfigurationDAO dao = new RepositoryClientConfigurationDAO();
+  private final RepositoryClientConfigurationDAO dao = new RepositoryClientConfigurationDAO();
 
   @After
   public void exit() {

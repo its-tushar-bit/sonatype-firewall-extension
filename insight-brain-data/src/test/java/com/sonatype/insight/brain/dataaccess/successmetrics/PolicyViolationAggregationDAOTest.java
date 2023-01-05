@@ -58,7 +58,7 @@ public class PolicyViolationAggregationDAOTest
 {
   private static final double TOLERANCE = 0.00001;
 
-  private PolicyViolationAggregationDAO dao = new PolicyViolationAggregationDAO();
+  private final PolicyViolationAggregationDAO dao = new PolicyViolationAggregationDAO();
 
   @Test
   public void testCRUD() {

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
@@ -127,7 +128,7 @@ public class BitbucketCodeInsightsServiceTest
         .newPolicyEvaluation(application.getId(), BuildStageType.ID, FROM_SCAN_ID);
     featureBranchPolicyEvaluation = tempEntity
         .newPolicyEvaluation(application.getId(), ReleaseStageType.ID, TO_SCAN_ID);
-    featureBranchPolicyEvaluation.setTime(new GregorianCalendar(2020, 5, 21, 9, 15, 32).getTime());
+    featureBranchPolicyEvaluation.setTime(new GregorianCalendar(2020, Calendar.JUNE, 21, 9, 15, 32).getTime());
     featureBranchPolicyEvaluation.setCommitHash("12345678abcd12345678");
 
     //setup diff

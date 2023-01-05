@@ -33,7 +33,7 @@ public class ChangeDefaultAdminPasswordNoticeTest
       RoleManagementPage.url()
   };
 
-  private UserDAO userDAO = new UserDAO();
+  private final UserDAO userDAO = new UserDAO();
 
   @Before
   public void before() {

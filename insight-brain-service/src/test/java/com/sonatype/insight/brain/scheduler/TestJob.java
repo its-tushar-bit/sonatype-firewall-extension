@@ -24,9 +24,9 @@ public class TestJob
 
   private static volatile boolean shouldThrowException;
 
-  private static AtomicInteger executions = new AtomicInteger();
+  private static final AtomicInteger executions = new AtomicInteger();
 
-  private static ConcurrentMap<Integer, Map<String, Object>> jobParamsByExecution = new ConcurrentHashMap<>();
+  private static final ConcurrentMap<Integer, Map<String, Object>> jobParamsByExecution = new ConcurrentHashMap<>();
 
   private static IntUnaryOperator durations;
 

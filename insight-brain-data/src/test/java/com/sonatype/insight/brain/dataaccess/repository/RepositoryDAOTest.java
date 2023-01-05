@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class RepositoryDAOTest
     extends AbstractDbDAOTest
 {
-  private RepositoryDAO dao = new RepositoryDAO();
+  private final RepositoryDAO dao = new RepositoryDAO();
 
   @Test
   public void testCRUD() {

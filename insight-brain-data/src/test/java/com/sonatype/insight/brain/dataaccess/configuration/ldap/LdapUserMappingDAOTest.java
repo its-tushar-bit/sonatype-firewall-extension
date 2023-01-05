@@ -50,7 +50,7 @@ public class LdapUserMappingDAOTest
 
   private final String userMemberOfGroupAttribute = "userMemberOfGroupAttribute";
 
-  private LdapUserMappingDAO dao = new LdapUserMappingDAO();
+  private final LdapUserMappingDAO dao = new LdapUserMappingDAO();
 
   private LdapServer ldapServer;
 

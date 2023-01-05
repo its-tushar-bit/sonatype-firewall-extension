@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class AbstractPolicyEvaluatorTest
 {
-  private AbstractPolicyEvaluator abstractPolicyEvaluator = new AbstractPolicyEvaluator(null, null)
+  private final AbstractPolicyEvaluator abstractPolicyEvaluator = new AbstractPolicyEvaluator(null, null)
   {
     @Override
     protected ClientScanType getClientScanType() {

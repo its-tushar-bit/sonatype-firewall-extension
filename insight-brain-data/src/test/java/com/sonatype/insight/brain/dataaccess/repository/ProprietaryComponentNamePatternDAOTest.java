@@ -25,13 +25,13 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ProprietaryComponentNamePatternDAOTest
     extends AbstractDbDAOTest
 {
-  private ProprietaryComponentNamePatternDAO dao = new ProprietaryComponentNamePatternDAO();
+  private final ProprietaryComponentNamePatternDAO dao = new ProprietaryComponentNamePatternDAO();
 
   private RepositoryManager repoManager;
 
   private String repoManId;
 
-  private String repoId = "repo-id";
+  private final String repoId = "repo-id";
 
   @Before
   public void init() {

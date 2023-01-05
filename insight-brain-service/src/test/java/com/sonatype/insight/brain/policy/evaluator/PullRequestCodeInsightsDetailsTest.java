@@ -14,6 +14,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -115,7 +116,7 @@ public class PullRequestCodeInsightsDetailsTest
 
   private Application app;
 
-  private String repositoryUrl;
+  private final String repositoryUrl;
 
   private LocationDiscoveryResult locationDiscoveryResult;
 
@@ -438,7 +439,7 @@ public class PullRequestCodeInsightsDetailsTest
     //setup evaluations
     defaultBranchPolicyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, FROM_SCAN_ID);
     featureBranchPolicyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ReleaseStageType.ID, TO_SCAN_ID);
-    featureBranchPolicyEvaluation.setTime(new GregorianCalendar(2020, 5, 21, 9, 15, 32).getTime());
+    featureBranchPolicyEvaluation.setTime(new GregorianCalendar(2020, Calendar.JUNE, 21, 9, 15, 32).getTime());
 
     //setup diff
     diff = policyEvaluationDiffService.createPolicyViolationDiff(defaultBranchPolicyEvaluation,

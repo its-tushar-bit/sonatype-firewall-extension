@@ -98,7 +98,7 @@ public class JiraPolicyAlertNotifierTest
     Application application = tempEntity.newApplicationWithParent("app");
 
     final String projectKey = "projectKey";
-    final Long issueTypeId = 1L;
+    final long issueTypeId = 1L;
 
     Stage stage = new Stage(Stage.ID_BUILD, "BUILD");
     String scanId = "scan-id";
@@ -134,7 +134,7 @@ public class JiraPolicyAlertNotifierTest
     Application application = tempEntity.newApplicationWithParent("app");
 
     final String projectKey = "projectKey";
-    final Long issueTypeId = 1L;
+    final long issueTypeId = 1L;
 
     Stage stage = new Stage(Stage.ID_BUILD, "BUILD");
     String scanId = "scan-id";
@@ -166,7 +166,7 @@ public class JiraPolicyAlertNotifierTest
     Application application = tempEntity.newApplicationWithParent("app");
 
     final String projectKey = "projectKey";
-    final Long issueTypeId = 1L;
+    final long issueTypeId = 1L;
 
     Stage stage = new Stage(Stage.ID_BUILD, "BUILD");
     String scanId = "scan-id";
@@ -247,7 +247,7 @@ public class JiraPolicyAlertNotifierTest
     Application application = tempEntity.newApplicationWithParent("app");
 
     final String projectKey = "projectKey";
-    final Long issueTypeId = 1L;
+    final long issueTypeId = 1L;
 
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";

@@ -257,8 +257,7 @@ public class ScmOnboardingServiceTest
     assertThat(repositories.availableRepositories.size()).isEqualTo(12);
     assertThat(repositories.availableRepositories.stream()
         .map(scmRepo -> scmRepo.getHttpCloneUrl().toLowerCase(Locale.ENGLISH))
-        .filter(url -> url.contains("mixedcase"))
-        .findAny().isPresent())
+        .anyMatch(url -> url.contains("mixedcase")))
         .isFalse();
 
     // and: no source control evaluation events
@@ -277,8 +276,7 @@ public class ScmOnboardingServiceTest
     assertThat(repositories.availableRepositories.size()).isEqualTo(13);
     assertThat(repositories.availableRepositories.stream() //
         .map(SCMRepository::getHttpCloneUrl) //
-        .filter(url -> url.contains("MixedCase")) //
-        .findAny().isPresent()) //
+        .anyMatch(url -> url.contains("MixedCase"))) //
         .isTrue();
 
     // when the repo is added with lower-case
@@ -293,8 +291,7 @@ public class ScmOnboardingServiceTest
     assertThat(repositories.availableRepositories.size()).isEqualTo(12);
     assertThat(repositories.availableRepositories.stream() //
         .map(SCMRepository::getHttpCloneUrl) //
-        .filter(url -> url.contains("MixedCase")) //
-        .findAny().isPresent()) //
+        .anyMatch(url -> url.contains("MixedCase"))) //
         .isFalse();
 
     // and: no source control evaluation events

@@ -44,17 +44,17 @@ public class UserTokenAuthcTest
   // Must match the username defined in the LDAP config for these tests.
   private static final String USERNAME = "testuser";
 
-  private boolean setupLdap;
+  private final boolean setupLdap;
 
-  private boolean isLdapUser;
+  private final boolean isLdapUser;
 
-  private boolean isInternalUser;
+  private final boolean isInternalUser;
 
-  private boolean isSamlUser;
+  private final boolean isSamlUser;
 
   private String realmId = "testRealmId";
 
-  private String userTokenPassword = "TestPassword";
+  private final String userTokenPassword = "TestPassword";
 
   private UserToken userToken;
 

@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.utils;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -32,7 +33,7 @@ public class IqConditions
   private static class AllHaveClass
       extends CollectionCondition
   {
-    private String className;
+    private final String className;
 
     public AllHaveClass(String className) {
       this.className = className;
@@ -122,7 +123,7 @@ public class IqConditions
 
   private static List<String> getSafeValues(List<WebElement> elements, Function<WebElement, String> valueGetter) {
     return elements != null ? elements.stream().map(element -> getSafeValue(element, valueGetter)).collect(toList())
-        : Arrays.asList();
+        : Collections.emptyList();
   }
 
   private static String getSafeValue(WebElement element, Function<WebElement, String> valueGetter) {

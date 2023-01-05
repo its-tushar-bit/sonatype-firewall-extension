@@ -105,11 +105,13 @@ public class RepositoryReevaluationTaskTest
 
   private RepositoryComponent component;
 
-  private ComponentIdentifier claimedIdentifier = ComponentIdentifier.createMavenCoordinates("com", "claimed", "3.0");
+  private final ComponentIdentifier claimedIdentifier =
+      ComponentIdentifier.createMavenCoordinates("com", "claimed", "3.0");
 
-  private ComponentIdentifier newIdentifier = ComponentIdentifier.createMavenCoordinates("com", "new-component", "2.0");
+  private final ComponentIdentifier newIdentifier =
+      ComponentIdentifier.createMavenCoordinates("com", "new-component", "2.0");
 
-  private ExecutorService executorService = Executors.newFixedThreadPool(1);
+  private final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
   @Override
   public void configure(Binder binder) {

@@ -24,7 +24,7 @@ import static org.eclipse.jetty.http.HttpStatus.NO_CONTENT_204;
 public class ApiConfigFeaturesResourceTest
     extends AbstractResourceTest
 {
-  private SystemConfigurationPropertyDAO configurationPropertyDAO = new SystemConfigurationPropertyDAO();
+  private final SystemConfigurationPropertyDAO configurationPropertyDAO = new SystemConfigurationPropertyDAO();
 
   @Override
   protected HttpRequest restRequest() {

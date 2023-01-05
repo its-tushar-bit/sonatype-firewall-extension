@@ -26,11 +26,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationComparatorTest
 {
-  private Comparator<PolicyViolationComparable> comparator = PolicyViolationComparator.COMPARATOR;
+  private final Comparator<PolicyViolationComparable> comparator = PolicyViolationComparator.COMPARATOR;
 
-  private ComponentIdentifier componentA = ComponentIdentifier.createMavenCoordinates("A", "A", "A");
+  private final ComponentIdentifier componentA = ComponentIdentifier.createMavenCoordinates("A", "A", "A");
 
-  private ComponentIdentifier componentB = ComponentIdentifier.createMavenCoordinates("B", "B", "B");
+  private final ComponentIdentifier componentB = ComponentIdentifier.createMavenCoordinates("B", "B", "B");
 
   @Test
   public void testCompare_PolicyViolation_SortOrder() {

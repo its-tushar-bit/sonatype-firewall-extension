@@ -36,7 +36,7 @@ public class RepositoryPolicyViolationLoggerTest
 
   private Repository repository;
 
-  private Date evaluationTime = new Date();
+  private final Date evaluationTime = new Date();
 
   @Before
   public void before() {

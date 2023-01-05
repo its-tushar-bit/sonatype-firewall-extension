@@ -52,7 +52,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class TagDAOTest
     extends AbstractDbDAOTest
 {
-  private TagDAO dao = new TagDAO();
+  private final TagDAO dao = new TagDAO();
 
   @Before
   public void before() {

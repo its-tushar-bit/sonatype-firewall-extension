@@ -35,11 +35,11 @@ public class AuthorizationCheckerTest
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
-  private AuthorizationChecker checker = new AuthorizationChecker();
+  private final AuthorizationChecker checker = new AuthorizationChecker();
 
-  private MembershipMappingDAO membershipDAO = new MembershipMappingDAO();
+  private final MembershipMappingDAO membershipDAO = new MembershipMappingDAO();
 
-  private RoleDAO roleDAO = new RoleDAO();
+  private final RoleDAO roleDAO = new RoleDAO();
 
   private MembershipMapping newMembershipMapping(User user, String contextId, String roleId) {
     MembershipMapping membership = new MembershipMapping(contextId, roleId, user.getUsername(), MemberType.USER);

@@ -126,7 +126,7 @@ public class PolicyAlertEmailerTest
   @Mock
   private CrowdClientFactory mockCrowdClientFactory;
 
-  private PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO = new PolicyDAO();
 
   @Override
   public void configure(Binder binder) {

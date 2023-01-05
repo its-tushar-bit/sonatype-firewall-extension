@@ -64,9 +64,9 @@ import static org.mockito.Mockito.when;
 public class UserDirectoryTest
     extends AbstractComponentTest
 {
-  public TestLdapServer testLdapServer1 = new TestLdapServer();
+  public final TestLdapServer testLdapServer1 = new TestLdapServer();
 
-  public TestLdapServer testLdapServer2 = new TestLdapServer();
+  public final TestLdapServer testLdapServer2 = new TestLdapServer();
 
   @Rule
   public RuleChain ruleChain = RuleChain.outerRule(tempDir) //

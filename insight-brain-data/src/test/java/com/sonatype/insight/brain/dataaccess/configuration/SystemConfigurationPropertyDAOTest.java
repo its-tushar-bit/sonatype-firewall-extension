@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SystemConfigurationPropertyDAOTest
     extends AbstractDbDAOTest
 {
-  private SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
+  private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
 
   private static final String DUMMY_PROPERTY_NAME = "TEST-NAME";
 

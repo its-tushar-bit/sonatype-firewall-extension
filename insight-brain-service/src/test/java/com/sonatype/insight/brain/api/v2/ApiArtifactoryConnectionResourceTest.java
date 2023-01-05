@@ -50,7 +50,7 @@ public class ApiArtifactoryConnectionResourceTest
   @Rule
   public WireMockRule artifactoryMockServer = new WireMockRule(wireMockConfig().dynamicPort());
 
-  private ArtifactoryConnectionDAO dao = new ArtifactoryConnectionDAO();
+  private final ArtifactoryConnectionDAO dao = new ArtifactoryConnectionDAO();
 
   private PasswordHandler pwHandler;
 

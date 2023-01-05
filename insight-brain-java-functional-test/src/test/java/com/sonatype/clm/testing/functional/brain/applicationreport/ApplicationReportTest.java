@@ -94,9 +94,9 @@ public class ApplicationReportTest
 
   private TestReportEvaluator evaluator;
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
+  private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
-  private PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO = new PolicyDAO();
 
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
 

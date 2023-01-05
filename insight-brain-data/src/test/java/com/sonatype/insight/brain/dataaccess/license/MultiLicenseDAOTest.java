@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 public class MultiLicenseDAOTest
     extends AbstractDbDAOTest
 {
-  private static String MOCK_REMOTE_LICENSE_ID = "test";
+  private static final String MOCK_REMOTE_LICENSE_ID = "test";
 
   @Test
   public void testCRUD() {
@@ -177,14 +177,14 @@ public class MultiLicenseDAOTest
   /**
    * Inserts License/Multilicense records locally to mock out updates from HDS
    */
-  private class MockLicenseDataUpdater
+  private static class MockLicenseDataUpdater
       extends LicenseDataUpdater
   {
-    LicenseDAO licenseDAO = new LicenseDAO();
+    final LicenseDAO licenseDAO = new LicenseDAO();
 
-    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+    final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
-    MultiLicenseLicenseInternalDAO multiLicenseLicenseInternalDAO = new MultiLicenseLicenseInternalDAO();
+    final MultiLicenseLicenseInternalDAO multiLicenseLicenseInternalDAO = new MultiLicenseLicenseInternalDAO();
 
     License license;
 

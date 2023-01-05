@@ -625,7 +625,7 @@ public class DefaultHdsClientTest
       extends ServletInputStream
   {
     // ByteArrayInputStream.close is a noop, so we don't need to close this stream
-    private ByteArrayInputStream wrappedInputStream;
+    private final ByteArrayInputStream wrappedInputStream;
 
     public ServletInputStreamImpl(byte[] data) {
       wrappedInputStream = new ByteArrayInputStream(data);

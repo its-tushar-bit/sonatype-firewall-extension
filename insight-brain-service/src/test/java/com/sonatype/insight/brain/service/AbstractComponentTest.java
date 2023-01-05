@@ -111,7 +111,7 @@ public class AbstractComponentTest
   @Mock
   private SecurityManager securityManager;
 
-  private Collection<Managed> managedComponents = new ArrayList<>();
+  private final Collection<Managed> managedComponents = new ArrayList<>();
 
   @Before
   public final void beforeTest() {

@@ -434,7 +434,7 @@ public class PolicyViolationTelemetryCollectorTest
   }
 
   private long msForHours(int hours) {
-    return 1000 * 60 * 60 * hours;
+    return 1000L * 60 * 60 * hours;
   }
 
   private void assertTelemetryAttributes(

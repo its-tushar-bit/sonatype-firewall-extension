@@ -55,14 +55,14 @@ public class CacheBusterTest
 
   }
 
-  private class RequestCopyHandler
+  private static class RequestCopyHandler
       implements IRequestHandler
   {
     private final String url;
 
     private final ReverseProxyHandler reverseProxy;
 
-    private ArrayList<String> timestamps;
+    private final ArrayList<String> timestamps;
 
     public RequestCopyHandler(int brainPort, String url) {
       this.url = url;

@@ -135,12 +135,12 @@ public class PullRequestEligibilityValidatorTest
     assertThat(testScenario.isPullRequestEligibleForCommenting()).isTrue();
   }
 
-  private class TestScenario
+  private static class TestScenario
   {
     @Mock
     private PullRequest mockPullRequest;
 
-    private PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+    private final PolicyEvaluation policyEvaluation = new PolicyEvaluation();
 
     @Mock
     private GitRepositoryInfo mockGitRepositoryInfo;

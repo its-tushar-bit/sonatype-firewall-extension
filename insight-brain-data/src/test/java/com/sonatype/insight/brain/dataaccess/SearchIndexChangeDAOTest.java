@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class SearchIndexChangeDAOTest
     extends AbstractDbDAOTest
 {
-  private SearchIndexChangeDAO dao = new SearchIndexChangeDAO();
+  private final SearchIndexChangeDAO dao = new SearchIndexChangeDAO();
 
   @Test
   public void testUpdate() {

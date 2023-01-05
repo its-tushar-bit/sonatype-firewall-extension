@@ -42,9 +42,9 @@ public class SuccessMetricsConfigurationTest
 
   private final SuccessMetricsConfigurationPage metricsConfigPage = new SuccessMetricsConfigurationPage();
 
-  private SuccessMetricsReportListPage successMetricsPage = new SuccessMetricsReportListPage();
+  private final SuccessMetricsReportListPage successMetricsPage = new SuccessMetricsReportListPage();
 
-  private SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
+  private final SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
   @BeforeClass
   public static void startup() {

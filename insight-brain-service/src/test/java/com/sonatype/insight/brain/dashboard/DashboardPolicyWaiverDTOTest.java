@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DashboardPolicyWaiverDTOTest
 {
-  DateTimeFormatter csvDateFormatter =
+  final DateTimeFormatter csvDateFormatter =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(TimeZone.getTimeZone("UTC").toZoneId());
 
   @Test
@@ -53,7 +53,6 @@ public class DashboardPolicyWaiverDTOTest
     addJoiner(expectedLine);
     expectedLine.append("test policy");
     addJoiner(expectedLine);
-    expectedLine.append(""); /* constraints */
     addJoiner(expectedLine);
     expectedLine.append("organization");
     addJoiner(expectedLine);
@@ -65,13 +64,11 @@ public class DashboardPolicyWaiverDTOTest
     addJoiner(expectedLine);
     expectedLine.append("hash");
     addJoiner(expectedLine);
-    expectedLine.append(""); /* component name */
     addJoiner(expectedLine);
     expectedLine.append("admin");
     addJoiner(expectedLine);
     expectedLine.append("Admin User");
     addJoiner(expectedLine);
-    expectedLine.append(""); /* comments */
 
     assertThat(dtoAsCSV).isEqualTo(expectedLine.toString());
   }
@@ -97,7 +94,6 @@ public class DashboardPolicyWaiverDTOTest
     addJoiner(expectedLine);
     expectedLine.append("test policy");
     addJoiner(expectedLine);
-    expectedLine.append(""); /* constraints */
     addJoiner(expectedLine);
     expectedLine.append("organization");
     addJoiner(expectedLine);

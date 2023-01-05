@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 public class UserFriendlyBasicHttpAuthenticationFilterTest
     extends AbstractComponentTest
 {
-  private UserFriendlyBasicHttpAuthenticationFilter userFriendlyBasicHttpAuthenticationFilter =
+  private final UserFriendlyBasicHttpAuthenticationFilter userFriendlyBasicHttpAuthenticationFilter =
       new UserFriendlyBasicHttpAuthenticationFilter();
 
   @Test

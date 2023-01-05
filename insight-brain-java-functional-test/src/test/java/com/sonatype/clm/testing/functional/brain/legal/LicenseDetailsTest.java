@@ -33,7 +33,7 @@ public class LicenseDetailsTest
 {
   private Application app;
 
-  private ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
+  private final ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
 
   @BeforeClass
   public static void boot() {

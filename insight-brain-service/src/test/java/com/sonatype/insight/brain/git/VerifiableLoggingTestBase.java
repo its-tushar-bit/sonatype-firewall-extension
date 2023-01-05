@@ -20,7 +20,7 @@ public class VerifiableLoggingTestBase
 {
   private ListAppender<ILoggingEvent> listAppender;
 
-  private Class<?> classUnderTest;
+  private final Class<?> classUnderTest;
 
   public VerifiableLoggingTestBase(Class<?> classUnderTest) {
     this.classUnderTest = classUnderTest;

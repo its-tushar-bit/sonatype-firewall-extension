@@ -41,11 +41,11 @@ public class GrandfatherTest
 
   private Application application;
 
-  private PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO = new PolicyDAO();
 
-  private PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+  private final PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
+  private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
   @BeforeClass
   public static void beforeClass() {

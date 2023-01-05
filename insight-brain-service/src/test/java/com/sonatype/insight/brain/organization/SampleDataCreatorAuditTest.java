@@ -21,9 +21,9 @@ import org.junit.Test;
 public class SampleDataCreatorAuditTest
     extends AbstractComponentAuditTest
 {
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
+  private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   @Inject
   private SampleDataCreator sampleDataCreator;

@@ -218,7 +218,7 @@ public class PullRequestCommentingEligibilityValidatorTest
     assertThat(testScenario.isPullRequestLineCommentingEnabled()).isFalse();
   }
 
-  private class TestScenario
+  private static class TestScenario
   {
     @Mock
     private PolicyViolationDiff<PolicyViolation> mockPolicyViolationDiff;

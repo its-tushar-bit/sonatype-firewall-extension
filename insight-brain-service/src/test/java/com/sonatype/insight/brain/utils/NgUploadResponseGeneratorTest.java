@@ -123,7 +123,7 @@ public class NgUploadResponseGeneratorTest
   private static class NgUploadResponseResult
       implements Callable<Object>
   {
-    private Object result;
+    private final Object result;
 
     public NgUploadResponseResult(Object result) {
       this.result = result;

@@ -275,7 +275,7 @@ public class PullRequestCommentingServiceTest
 
     private boolean omitPolicyViolationDiff;
 
-    private Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff =
+    private final Optional<PolicyViolationDiff<PolicyViolation>> policyViolationDiff =
         Optional.of(new PolicyViolationDiff<>());
 
     TestablePullRequestCommentingService withAppearedViolation() {

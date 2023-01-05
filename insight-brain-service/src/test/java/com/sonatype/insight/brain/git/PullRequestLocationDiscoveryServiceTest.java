@@ -69,14 +69,14 @@ public class PullRequestLocationDiscoveryServiceTest
   @Mock
   private SourceControlSshService sourceControlSshService;
 
-  private GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("https://github.com/org/proj", null, "user",
+  private final GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("https://github.com/org/proj", null, "user",
       "token", SourceControlProvider.GITHUB, "master", true, true, true, true, false, null);
 
-  private String branch = "branch";
+  private final String branch = "branch";
 
-  private String applicationId = "appId";
+  private final String applicationId = "appId";
 
-  private PolicyEvaluation evaluation =
+  private final PolicyEvaluation evaluation =
       new PolicyEvaluation(applicationId, "stage-type-id", "scan-id", CurrentUser.SYSTEM, ScanTriggerType.CLI);
 
   // Subject

@@ -24,7 +24,7 @@ public class PolicyEvaluationPollingResultUtilsTest
   @Inject
   private PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils;
 
-  private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO =
+  private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO =
       new PersistedPolicyEvaluationPollingResultDAO();
 
   @Test

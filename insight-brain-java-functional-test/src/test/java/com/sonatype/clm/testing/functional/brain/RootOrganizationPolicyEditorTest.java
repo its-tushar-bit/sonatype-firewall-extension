@@ -43,7 +43,7 @@ public class RootOrganizationPolicyEditorTest
 {
   private Organization rootOrganization;
 
-  private PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO = new PolicyDAO();
 
   @Before
   public void init() {

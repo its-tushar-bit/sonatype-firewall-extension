@@ -106,10 +106,10 @@ public class ApiComponentRemediationServiceTest
   private static final ComponentIdentifier RPM_COORDINATES_NO_ARCH =
       ComponentIdentifier.createRpmCoordinates("n", "v", null);
 
-  PolicyAlert failAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10),
+  final PolicyAlert failAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10),
       Collections.singletonList(new Action(Action.ID_FAIL)));
 
-  PolicyAlert warnAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10),
+  final PolicyAlert warnAlert = new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10),
       Collections.singletonList(new Action(Action.ID_WARN)));
 
   private Application app;

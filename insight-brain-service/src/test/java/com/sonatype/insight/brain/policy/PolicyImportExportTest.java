@@ -72,23 +72,23 @@ public class PolicyImportExportTest
 
   private Application fromApp;
 
-  private PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO = new PolicyDAO();
 
-  private LabelDAO labelDAO = new LabelDAO();
+  private final LabelDAO labelDAO = new LabelDAO();
 
-  private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
+  private final LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
 
-  private LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
+  private final LicenseThreatGroupLicenseDAO licenseThreatGroupLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
-  private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+  private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
-  private TagDAO tagDAO = new TagDAO();
+  private final TagDAO tagDAO = new TagDAO();
 
-  private PolicyTagDAO policyTagDAO = new PolicyTagDAO();
+  private final PolicyTagDAO policyTagDAO = new PolicyTagDAO();
 
-  private PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+  private final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   @Before
   public void setUp() {

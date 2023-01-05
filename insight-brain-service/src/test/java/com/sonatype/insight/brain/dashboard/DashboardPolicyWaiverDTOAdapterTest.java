@@ -46,9 +46,9 @@ public class DashboardPolicyWaiverDTOAdapterTest
 
   private PolicyWaiver testPolicyWaiver;
 
-  private Map<String, Owner> ownersById = new HashMap<>();
+  private final Map<String, Owner> ownersById = new HashMap<>();
 
-  private Map<String, Policy> policiesById = new HashMap<>();
+  private final Map<String, Policy> policiesById = new HashMap<>();
 
   @Before
   public void beforeEach() {

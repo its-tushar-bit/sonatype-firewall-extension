@@ -501,7 +501,7 @@ public class PullRequestPolicyEvaluationResolverTest
     @Mock
     private PullRequestEligibilityValidator mockPullRequestEligibilityValidator;
 
-    private CommitInformation commitInformation = new CommitInformation();
+    private final CommitInformation commitInformation = new CommitInformation();
 
     TestablePolicyEvaluationResolver() {
       MockitoAnnotations.openMocks(this);

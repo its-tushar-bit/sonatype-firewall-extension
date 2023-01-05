@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class TelemetryIdTest
 {
-  private SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
+  private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
 
   @After
   @Before

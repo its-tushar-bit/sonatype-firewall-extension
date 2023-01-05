@@ -43,13 +43,13 @@ import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 public class WebhookConfigurationTest
     extends AbstractFunctionalTest
 {
-  private WebhookDAO webhookDAO = new WebhookDAO();
+  private final WebhookDAO webhookDAO = new WebhookDAO();
 
-  private WebhookEditPage webhookEditPage = new WebhookEditPage();
+  private final WebhookEditPage webhookEditPage = new WebhookEditPage();
 
-  private WebhookConfigurationPage webhookConfigurationPage = new WebhookConfigurationPage();
+  private final WebhookConfigurationPage webhookConfigurationPage = new WebhookConfigurationPage();
   
-  private List<Webhook> webhookList = new ArrayList<>();
+  private final List<Webhook> webhookList = new ArrayList<>();
 
   @BeforeClass
   public static void startup() {

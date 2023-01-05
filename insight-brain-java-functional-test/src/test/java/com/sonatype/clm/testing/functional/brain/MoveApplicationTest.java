@@ -45,7 +45,7 @@ public class MoveApplicationTest
 
   private Organization otherOrg;
 
-  private ApplicationDAO appDAO = new ApplicationDAO();
+  private final ApplicationDAO appDAO = new ApplicationDAO();
 
   @BeforeClass
   public static void beforeClass() {

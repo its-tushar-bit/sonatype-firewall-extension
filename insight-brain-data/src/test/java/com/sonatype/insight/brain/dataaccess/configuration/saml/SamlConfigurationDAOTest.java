@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SamlConfigurationDAOTest
     extends AbstractDbDAOTest
 {
-  private SamlConfigurationDAO dao = new SamlConfigurationDAO();
+  private final SamlConfigurationDAO dao = new SamlConfigurationDAO();
 
   @Test
   public void testCRUD() {

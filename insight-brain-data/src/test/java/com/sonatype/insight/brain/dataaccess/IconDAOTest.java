@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class IconDAOTest
 {
-  private IconDAO iconDAO = new IconDAO();
+  private final IconDAO iconDAO = new IconDAO();
 
   private static final String BAD_OWNER_ID = "/../bad";
 

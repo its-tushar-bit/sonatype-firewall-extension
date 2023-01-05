@@ -43,17 +43,17 @@ import static org.mockito.Mockito.when;
 
 public class ReleaseGraphPerformance
 {
-  private ThreadPoolExecutor pool;
+  private final ThreadPoolExecutor pool;
 
-  private List<UserCallable> callables;
+  private final List<UserCallable> callables;
 
-  private File srcFile = new File("src/test/resources/report.popularity.json.zip").getAbsoluteFile();
+  private final File srcFile = new File("src/test/resources/report.popularity.json.zip").getAbsoluteFile();
 
-  private Application testApplication;
+  private final Application testApplication;
 
-  private ReleaseGraphResource reportResource;
+  private final ReleaseGraphResource reportResource;
 
-  private LoadingCache<ReleaseGraphKey, byte[]> cache;
+  private final LoadingCache<ReleaseGraphKey, byte[]> cache;
 
   private ReleaseGraphPerformance(int threads) {
     callables = new LinkedList<>();
@@ -240,13 +240,13 @@ public class ReleaseGraphPerformance
   private static class UserCallable
       implements Callable<Map<ComponentPopularity, Long>>
   {
-    private String scanId;
+    private final String scanId;
 
-    private ReleaseGraphResource resource;
+    private final ReleaseGraphResource resource;
 
-    private List<ComponentPopularity> components;
+    private final List<ComponentPopularity> components;
 
-    private Map<ComponentPopularity, Long> results = new HashMap<>();
+    private final Map<ComponentPopularity, Long> results = new HashMap<>();
 
     public UserCallable(String scanId, ReleaseGraphResource resource, List<ComponentPopularity> components) {
       this.scanId = scanId;

@@ -460,33 +460,33 @@ public class GitCommitStatusServiceTest
 
     private SourceControlProvider provider = SourceControlProvider.GITLAB;
 
-    private String username = "username";
+    private final String username = "username";
 
     private String token = "testToken";
 
-    private String org = "testOrg";
+    private final String org = "testOrg";
 
-    private String repo = "testRepo";
+    private final String repo = "testRepo";
 
-    private String baseBranch = "master";
+    private final String baseBranch = "master";
 
-    private boolean remediationPullRequestsEnabled = true;
+    private final boolean remediationPullRequestsEnabled = true;
 
-    private boolean statusChecksEnabled = true;
+    private final boolean statusChecksEnabled = true;
 
-    private boolean sshEnabled = false;
+    private final boolean sshEnabled = false;
 
     private boolean skipRepositoryInfo = false;
 
-    private String statusMessage = "status message";
+    private final String statusMessage = "status message";
 
-    private String baseUrl = "http://localhost:8070";
+    private final String baseUrl = "http://localhost:8070";
 
-    private boolean pullRequestCommentingEnabled = true;
+    private final boolean pullRequestCommentingEnabled = true;
 
-    private boolean sourceControlEvaluationsEnabled = true;
+    private final boolean sourceControlEvaluationsEnabled = true;
 
-    private String sourceControlScanTarget = null;
+    private final String sourceControlScanTarget = null;
 
     private String expectedRequestState = SUCCESS_STATE;
 

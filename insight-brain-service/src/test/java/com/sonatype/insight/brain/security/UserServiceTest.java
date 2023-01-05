@@ -77,7 +77,7 @@ public class UserServiceTest
   @Rule
   public TestLdapServer embeddedLdapServer = new TestLdapServer();
 
-  private ApplicationDAO applicationDao = new ApplicationDAO();
+  private final ApplicationDAO applicationDao = new ApplicationDAO();
 
   @Test
   public void testDeleteUserNoLdapRemovesContact() {

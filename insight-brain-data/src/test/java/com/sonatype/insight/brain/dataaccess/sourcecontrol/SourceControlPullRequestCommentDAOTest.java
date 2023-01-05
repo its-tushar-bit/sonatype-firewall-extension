@@ -24,7 +24,7 @@ import static org.assertj.core.api.ThrowableAssert.catchThrowable;
 public class SourceControlPullRequestCommentDAOTest
     extends AbstractDbDAOTest
 {
-  private SourceControlPullRequestCommentDAO pullRequestCommentDAO = new SourceControlPullRequestCommentDAO();
+  private final SourceControlPullRequestCommentDAO pullRequestCommentDAO = new SourceControlPullRequestCommentDAO();
 
   @Test
   public void testGetCommentForPullRequest_commentDoesNotExist() {

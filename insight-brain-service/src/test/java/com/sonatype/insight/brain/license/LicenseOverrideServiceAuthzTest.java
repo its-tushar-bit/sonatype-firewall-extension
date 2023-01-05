@@ -31,7 +31,7 @@ public class LicenseOverrideServiceAuthzTest
   @Inject
   private LicenseOverrideService licenseOverrideService;
 
-  private HttpServletRequest mockRequest = mock(HttpServletRequest.class);
+  private final HttpServletRequest mockRequest = mock(HttpServletRequest.class);
 
   private void testAddLicenseOverride_Authorized(final Owner owner) throws Exception {
     testAddLicenseOverride_Authorized(owner, owner.getId());

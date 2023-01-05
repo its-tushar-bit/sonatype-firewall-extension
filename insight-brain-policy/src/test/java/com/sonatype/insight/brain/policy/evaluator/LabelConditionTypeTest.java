@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class LabelConditionTypeTest
     extends AbstractPolicyEvaluationTest
 {
-  private static String applicationPublicId = "LabelConditionTypeTest";
+  private static final String applicationPublicId = "LabelConditionTypeTest";
 
   private static String organizationId;
 

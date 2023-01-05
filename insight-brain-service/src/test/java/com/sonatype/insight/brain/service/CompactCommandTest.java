@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,7 +56,7 @@ public class CompactCommandTest
     final long newSize = Files.size(databasePath);
     assertThat(newSize).isLessThan(originalSize);
     final BigDecimal percentChange = new BigDecimal(100 - newSize * 100.0d / originalSize)
-        .setScale(2, BigDecimal.ROUND_HALF_EVEN);
+        .setScale(2, RoundingMode.HALF_EVEN);
     assertThat(logOutput).atInfoLevel().contains("Compacting " + databasePath.toAbsolutePath())
         .contains("This might take a while, please be patient.")
         .contains("Successfully compacted " + databasePath.toAbsolutePath() + " from " + originalSize

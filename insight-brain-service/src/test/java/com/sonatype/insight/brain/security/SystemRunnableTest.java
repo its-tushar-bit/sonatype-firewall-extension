@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class SystemRunnableTest
 {
-  private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 1, 1, TimeUnit.SECONDS,
+  private final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 1, 1, TimeUnit.SECONDS,
       new ArrayBlockingQueue<>(1));
 
   /**
@@ -60,7 +60,7 @@ public class SystemRunnableTest
     assertThat(runnableStub.username).isEqualTo(MDCUsernameScope.SYSTEM);
   }
 
-  private class RunnableStub
+  private static class RunnableStub
       implements Runnable
   {
     private String username;

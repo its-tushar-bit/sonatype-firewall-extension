@@ -52,7 +52,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 public class ApiReportDataServiceV2Test
     extends AbstractComponentTest
@@ -596,7 +596,7 @@ public class ApiReportDataServiceV2Test
     ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
     assertThat(response).isNotNull();
     List<ApiDependencyTreeNodeDTO> children = response.getChildren();
-    assertTrue(!children.isEmpty());
+    assertFalse(children.isEmpty());
     assertThat(size(children)).isEqualTo(209);
     validateDependencyTree(children);
   }
@@ -610,7 +610,7 @@ public class ApiReportDataServiceV2Test
     ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
     assertThat(response).isNotNull();
     List<ApiDependencyTreeNodeDTO> children = response.getChildren();
-    assertTrue(!children.isEmpty());
+    assertFalse(children.isEmpty());
     assertThat(size(children)).isEqualTo(209);
     validateDependencyTree(children);
   }
@@ -624,7 +624,7 @@ public class ApiReportDataServiceV2Test
     ApiDependencyTreeNodeDTO response = reportDataService.getDependencyTreeNoAuth(app.getPublicId(), scanId);
     assertThat(response).isNotNull();
     List<ApiDependencyTreeNodeDTO> children = response.getChildren();
-    assertTrue(!children.isEmpty());
+    assertFalse(children.isEmpty());
     assertThat(size(children)).isEqualTo(15);
     validateDependencyTree(children);
   }
@@ -639,7 +639,7 @@ public class ApiReportDataServiceV2Test
     assertThat(response).isNotNull();
     assertThat(response.getComponentIdentifier()).isNull();
     List<ApiDependencyTreeNodeDTO> children = response.getChildren();
-    assertTrue(!children.isEmpty());
+    assertFalse(children.isEmpty());
     assertThat(size(children)).isEqualTo(15);
     validateDependencyTree(children);
   }

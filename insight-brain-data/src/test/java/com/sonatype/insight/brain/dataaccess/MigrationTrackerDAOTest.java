@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MigrationTrackerDAOTest
     extends AbstractDbDAOTest
 {
-  private MigrationTrackerDAO dao = new MigrationTrackerDAO();
+  private final MigrationTrackerDAO dao = new MigrationTrackerDAO();
 
   @Test
   public void testCRUD() {

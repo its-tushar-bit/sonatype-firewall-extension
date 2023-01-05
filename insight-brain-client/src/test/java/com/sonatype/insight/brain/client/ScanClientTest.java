@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.Collections;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.signature.ComponentWithSignatures;
 import com.sonatype.clm.dto.model.signature.ComponentWithSignaturesList;
@@ -69,7 +68,7 @@ public class ScanClientTest
     receipt.setPdfUrl("the-pdf-url");
     receipt.setDataUrl("the-data-url");
     PolicyEvaluationResult evaluationResult = new PolicyEvaluationResult();
-    evaluationResult.setAlerts(Collections.<PolicyAlert>emptyList());
+    evaluationResult.setAlerts(Collections.emptyList());
     evaluationResult.setCriticalComponentCount(CRITICAL_COMPONENT_COUNT);
     evaluationResult.setSevereComponentCount(SEVERE_COMPONENT_COUNT);
     evaluationResult.setModerateComponentCount(MODERATE_COMPONENT_COUNT);

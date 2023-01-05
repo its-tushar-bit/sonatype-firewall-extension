@@ -1061,8 +1061,8 @@ public class IdeResourceTest
       assertThat(telemetryAttributes.get("number_of_npm_components")).isNull();
     }
 
-    Integer total = mavenComponents + npmComponents;
-    assertThat(telemetryAttributes).containsEntry("number_of_components", total.toString());
+    int total = mavenComponents + npmComponents;
+    assertThat(telemetryAttributes).containsEntry("number_of_components", Integer.toString(total));
   }
 
   private void assertUserAgentData(Map<String, Object> telemetryAttributes, String userAgent) {

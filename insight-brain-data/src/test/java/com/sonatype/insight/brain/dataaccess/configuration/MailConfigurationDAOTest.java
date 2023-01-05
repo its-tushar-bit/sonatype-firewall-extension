@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class MailConfigurationDAOTest
     extends AbstractDbDAOTest
 {
-  private MailConfigurationDAO dao = new MailConfigurationDAO();
+  private final MailConfigurationDAO dao = new MailConfigurationDAO();
 
   @After
   public void exit() {

@@ -56,15 +56,15 @@ public class LdapServiceTest
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  public final TemporaryFolder tempDir = new TemporaryFolder();
 
-  public TestLdapServer testLdapServer1 = new TestLdapServer();
+  public final TestLdapServer testLdapServer1 = new TestLdapServer();
 
-  public TestLdapServer testLdapServer2 = new TestLdapServer();
+  public final TestLdapServer testLdapServer2 = new TestLdapServer();
 
-  public TestLdapServer testLdapServer3 = new TestLdapServer();
+  public final TestLdapServer testLdapServer3 = new TestLdapServer();
 
-  public TestLdapServer testLdapServer4 = new TestLdapServer();
+  public final TestLdapServer testLdapServer4 = new TestLdapServer();
 
   @Inject
   private PasswordHandler passwordHandler;

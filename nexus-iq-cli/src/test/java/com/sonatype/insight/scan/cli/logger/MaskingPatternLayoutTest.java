@@ -21,9 +21,9 @@ public class MaskingPatternLayoutTest
 {
   private MaskingPatternLayout dataMaskingLayout;
 
-  private LoggerContext loggerContext = new LoggerContext();
+  private final LoggerContext loggerContext = new LoggerContext();
 
-  private Logger logger = loggerContext.getLogger(MaskingPatternLayoutTest.class);
+  private final Logger logger = loggerContext.getLogger(MaskingPatternLayoutTest.class);
 
   private static final String MASK_PATTERN_1 = "Authorization: (.*)";
 

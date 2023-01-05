@@ -22,9 +22,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class RolePermissionDAOTest
     extends AbstractDbDAOTest
 {
-  private RolePermissionDAO permDAO = new RolePermissionDAO();
+  private final RolePermissionDAO permDAO = new RolePermissionDAO();
 
-  private RoleDAO roleDAO = new RoleDAO();
+  private final RoleDAO roleDAO = new RoleDAO();
 
   @Test
   public void testSystemAdminRoleHasConfigureSystemPermissions() {

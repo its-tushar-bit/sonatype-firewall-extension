@@ -39,9 +39,9 @@ import static com.codeborne.selenide.Condition.visible;
 public class OwnerTreeViewTest
     extends AbstractFunctionalTest
 {
-  private List<Organization> organizations = new ArrayList<>();
+  private final List<Organization> organizations = new ArrayList<>();
 
-  private List<Application> applications = new ArrayList<>();
+  private final List<Application> applications = new ArrayList<>();
 
   private final String browserName = System.getProperty("browser");
 

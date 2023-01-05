@@ -31,7 +31,7 @@ import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 public class SystemConfigurationMenuTest
     extends AbstractFunctionalTest
 {
-  private SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
+  private final SystemConfigMenu systemConfigMenu = MainHeader.systemConfigMenu();
 
   @After
   public void clearCookies() {

@@ -59,9 +59,9 @@ public class PullRequestPollingServiceTest
   @Mock
   private SourceControlEventPublisher sourceControlEventPublisher;
 
-  private SourceControlPullRequestDAO sourceControlPullRequestDAO = new SourceControlPullRequestDAO();
+  private final SourceControlPullRequestDAO sourceControlPullRequestDAO = new SourceControlPullRequestDAO();
 
-  private Map<String, PullRequestInfoProvider> mockClientMap = new HashMap<>();
+  private final Map<String, PullRequestInfoProvider> mockClientMap = new HashMap<>();
 
   public PullRequestPollingServiceTest() {
     super(PullRequestPollingService.class);
@@ -579,15 +579,15 @@ public class PullRequestPollingServiceTest
 
   private class TestablePullRequestPollingServiceBuilder
   {
-    private List<MockRepo> mockRepoList = new ArrayList<>();
+    private final List<MockRepo> mockRepoList = new ArrayList<>();
 
-    private Map<String, List<Application>> repoApplications = new HashMap<>();
+    private final Map<String, List<Application>> repoApplications = new HashMap<>();
 
     private MockRepo currentMockRepo;
 
-    private ApplicationDAO applicationDAO = new ApplicationDAO();
+    private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
-    private SourceControlDAO sourceControlDAO = new SourceControlDAO();
+    private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
     @Mock
     private SourceControlInstanceManager mockSourceControlInstanceManager;
@@ -770,9 +770,9 @@ public class PullRequestPollingServiceTest
     }
   }
 
-  private class MockRepo
+  private static class MockRepo
   {
-    private GitApiClient mockGitApiClient = mock(GitApiClient.class);
+    private final GitApiClient mockGitApiClient = mock(GitApiClient.class);
 
     final String orgAndRepoName;
 
@@ -790,7 +790,7 @@ public class PullRequestPollingServiceTest
 
     GitRepositoryInfo gitRepositoryInfo;
 
-    List<PullRequest> pullRequests = new ArrayList<>();
+    final List<PullRequest> pullRequests = new ArrayList<>();
 
     MockRepo(String orgAndRepoName) {
       this.orgAndRepoName = orgAndRepoName;

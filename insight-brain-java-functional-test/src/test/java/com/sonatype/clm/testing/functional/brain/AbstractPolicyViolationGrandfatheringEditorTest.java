@@ -40,7 +40,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
 
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
 

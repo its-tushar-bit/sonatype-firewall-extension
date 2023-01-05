@@ -44,11 +44,11 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class ApplicationComponentDAOTest
     extends AbstractDbDAOTest
 {
-  private ApplicationComponentDAO dao = new ApplicationComponentDAO();
+  private final ApplicationComponentDAO dao = new ApplicationComponentDAO();
 
-  private AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
+  private final AggregateFileDAO aggregateFileDAO = new AggregateFileDAO();
 
-  private ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
+  private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
 
   @Test
   public void testCRUD() {

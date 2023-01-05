@@ -58,7 +58,7 @@ public class PullRequestMonitorTest
   @Inject
   private PullRequestMonitor pullRequestMonitor;
 
-  private SourceControlPullRequestDAO pullRequestDAO = new SourceControlPullRequestDAO();
+  private final SourceControlPullRequestDAO pullRequestDAO = new SourceControlPullRequestDAO();
 
   @Mock
   private TaskScheduler taskSchedulerMock;

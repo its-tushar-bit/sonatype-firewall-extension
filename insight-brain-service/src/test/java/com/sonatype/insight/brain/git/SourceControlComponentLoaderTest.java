@@ -40,13 +40,13 @@ public class SourceControlComponentLoaderTest
 
   private Application application;
 
-  private ComponentIdentifier log4jCoreComponentId =
+  private final ComponentIdentifier log4jCoreComponentId =
       ComponentIdentifier.createMavenCoordinates("org.apache.logging.log4j", "log4j-core", "2.6.1", "", "jar");
 
-  private ComponentIdentifier log4jApiComponentId =
+  private final ComponentIdentifier log4jApiComponentId =
       ComponentIdentifier.createMavenCoordinates("org.apache.logging.log4j", "log4j-api", "2.6.1", "", "jar");
 
-  private String unknownComponentHash = "3c2501b9238143b17d2c";
+  private final String unknownComponentHash = "3c2501b9238143b17d2c";
 
   // Subject
   @Inject

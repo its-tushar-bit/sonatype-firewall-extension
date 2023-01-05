@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContextResolverTest
 {
-  private ContextResolver resolver = new ContextResolver();
+  private final ContextResolver resolver = new ContextResolver();
 
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();

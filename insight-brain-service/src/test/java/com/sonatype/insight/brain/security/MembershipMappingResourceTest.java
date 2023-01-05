@@ -46,11 +46,11 @@ public class MembershipMappingResourceTest
 
   private User userC;
 
-  private RoleDAO roleDAO = new RoleDAO();
+  private final RoleDAO roleDAO = new RoleDAO();
 
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
-  private UserDAO userDAO = new UserDAO();
+  private final UserDAO userDAO = new UserDAO();
 
   private User adminUser;
 

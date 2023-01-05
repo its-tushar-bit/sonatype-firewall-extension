@@ -64,7 +64,7 @@ public class SuccessMetricsPurgerTest
   @Mock
   private TaskScheduler taskSchedulerMock;
 
-  private ZonedDateTime now = ZonedDateTime.now();
+  private final ZonedDateTime now = ZonedDateTime.now();
 
   private Date monthsAgo(int months) {
     return Date.from(now.withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS).minusMonths(months).toInstant());

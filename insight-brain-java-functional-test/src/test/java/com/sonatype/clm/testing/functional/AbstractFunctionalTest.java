@@ -98,7 +98,7 @@ import static org.mockito.Mockito.mock;
 
 public abstract class AbstractFunctionalTest
 {
-  private static Logger log = LoggerFactory.getLogger(AbstractFunctionalTest.class);
+  private static final Logger log = LoggerFactory.getLogger(AbstractFunctionalTest.class);
 
   protected static final TestProductLicenseManager productLicenseManager;
 
@@ -108,9 +108,9 @@ public abstract class AbstractFunctionalTest
 
   protected static final JiraService jiraService;
 
-  protected static TestCLMServer testCLMServer;
+  protected static final TestCLMServer testCLMServer;
 
-  protected static ReverseProxyServer reverseProxyServer;
+  protected static final ReverseProxyServer reverseProxyServer;
 
   private static final int VIEWPORT_WIDTH = 1366;
 

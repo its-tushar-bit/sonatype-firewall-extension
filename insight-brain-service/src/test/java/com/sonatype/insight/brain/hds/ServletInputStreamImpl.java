@@ -15,7 +15,7 @@ class ServletInputStreamImpl
     extends ServletInputStream
 {
   // ByteArrayInputStream.close is a noop, so we don't need to close this stream
-  private ByteArrayInputStream wrappedInputStream;
+  private final ByteArrayInputStream wrappedInputStream;
 
   public ServletInputStreamImpl(String data) {
     this(data.getBytes(StandardCharsets.UTF_8));

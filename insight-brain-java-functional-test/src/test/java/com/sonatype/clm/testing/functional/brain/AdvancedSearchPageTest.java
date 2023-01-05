@@ -37,13 +37,13 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 public class AdvancedSearchPageTest
     extends AbstractFunctionalTest
 {
-  private IndexService indexService = testCLMServer.getCLMServer().getInstance(IndexService.class);
+  private final IndexService indexService = testCLMServer.getCLMServer().getInstance(IndexService.class);
 
   private final AdvancedSearchPage page = new AdvancedSearchPage();
 
   private final SystemConfigurationPropertyDAO dao = new SystemConfigurationPropertyDAO();
 
-  private InsightWork insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+  private final InsightWork insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 
   private PolicyEvaluation newAppReport(String appId, String stageId, String reportId, String reportResourceName)
       throws Exception

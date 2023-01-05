@@ -16,11 +16,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SourceControlInstanceManagerTest
 {
   // test subject 1
-  SourceControlInstanceManager instanceManager1 = new SourceControlInstanceManager()
+  final SourceControlInstanceManager instanceManager1 = new SourceControlInstanceManager()
       .setInstanceLockCacheExpirationForTesting(1);
 
   // test subject 2
-  SourceControlInstanceManager instanceManager2 = new SourceControlInstanceManager()
+  final SourceControlInstanceManager instanceManager2 = new SourceControlInstanceManager()
       .setInstanceLockCacheExpirationForTesting(1);
 
   @Before

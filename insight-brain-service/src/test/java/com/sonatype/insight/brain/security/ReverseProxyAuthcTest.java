@@ -40,11 +40,11 @@ public class ReverseProxyAuthcTest
   @Rule
   public LogOutput logOutput = new LogOutput(ReverseProxyAuthenticationFilter.class);
 
-  private boolean setupLdap;
+  private final boolean setupLdap;
 
-  private boolean ldapUser;
+  private final boolean ldapUser;
 
-  private boolean localUser;
+  private final boolean localUser;
 
   public ReverseProxyAuthcTest(boolean setupLdap, boolean ldapUser, boolean localUser) {
     this.setupLdap = setupLdap;

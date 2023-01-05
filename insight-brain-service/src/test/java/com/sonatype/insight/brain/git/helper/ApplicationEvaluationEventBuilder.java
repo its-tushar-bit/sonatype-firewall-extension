@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 
 public class ApplicationEvaluationEventBuilder
 {
-  private ApplicationEvaluationEvent applicationEvaluationEvent;
+  private final ApplicationEvaluationEvent applicationEvaluationEvent;
 
   public ApplicationEvaluationEventBuilder() {
     applicationEvaluationEvent = new ApplicationEvaluationEvent();

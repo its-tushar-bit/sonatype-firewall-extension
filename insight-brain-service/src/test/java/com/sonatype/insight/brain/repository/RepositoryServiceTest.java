@@ -94,11 +94,11 @@ public class RepositoryServiceTest extends AbstractComponentTest
   @Inject
   private RepositoryService repositoryService;
 
-  private RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
+  private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
   private static final RepositoryDAO repositoryDAO = new RepositoryDAO();
 
-  private RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
   @Mock
   private FirewallAuditHdsClient auditHdsClient;

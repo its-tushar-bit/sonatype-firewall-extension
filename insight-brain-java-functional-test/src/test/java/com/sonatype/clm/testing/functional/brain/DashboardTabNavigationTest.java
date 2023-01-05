@@ -38,7 +38,7 @@ public class DashboardTabNavigationTest
 
   private static Policy policy;
 
-  private static List<ComponentData> COMPONENTS = new ArrayList<>();
+  private static final List<ComponentData> COMPONENTS = new ArrayList<>();
 
   static final List<PolicyWaiver> existingWaivers = new ArrayList<>();
 
@@ -210,9 +210,9 @@ public class DashboardTabNavigationTest
 
   private static class ComponentData
   {
-    ComponentIdentifier componentIdentifier;
+    final ComponentIdentifier componentIdentifier;
 
-    String hash;
+    final String hash;
 
     public ComponentData(ComponentIdentifier componentIdentifier, String hash) {
       this.componentIdentifier = componentIdentifier;

@@ -26,7 +26,7 @@ public class PullRequestPollingTrackerTest
 {
   private static final long MS_PER_MINUTE = 60_000;
 
-  private SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
   // test subject
   private PullRequestPollingTracker pollingTracker;

@@ -47,7 +47,7 @@ public class ApiRepositoryConnectionResourceTest
   @Rule
   public WireMockRule nxrm3MockSever = new WireMockRule(wireMockConfig().dynamicPort());
 
-  private RepositoryConnectionDAO dao = new RepositoryConnectionDAO();
+  private final RepositoryConnectionDAO dao = new RepositoryConnectionDAO();
 
   private PasswordHandler pwHandler;
 

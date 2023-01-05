@@ -71,41 +71,41 @@ public class DashboardWaiversTest
           " Policy Id, Policy Name, Policy Constraints, Scope Type, Scope Id, Scope Name," +
           " Component Match Strategy, Component Hash, Component Name, Created by Id, Created by Name,Comment";
 
-  private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+  private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-  private Instant now = Instant.now();
+  private final Instant now = Instant.now();
 
-  private Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
+  private final Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
 
-  private Instant threeDaysAgo = now.minus(3, ChronoUnit.DAYS);
+  private final Instant threeDaysAgo = now.minus(3, ChronoUnit.DAYS);
 
-  private Instant fiveDaysAgo = now.minus(5, ChronoUnit.DAYS);
+  private final Instant fiveDaysAgo = now.minus(5, ChronoUnit.DAYS);
 
-  private Instant sixDaysAgo = now.minus(6, ChronoUnit.DAYS);
+  private final Instant sixDaysAgo = now.minus(6, ChronoUnit.DAYS);
 
-  private Instant sevenDaysAgo = now.minus(7, ChronoUnit.DAYS);
+  private final Instant sevenDaysAgo = now.minus(7, ChronoUnit.DAYS);
 
-  private Instant eightDaysAgo = now.minus(8, ChronoUnit.DAYS);
+  private final Instant eightDaysAgo = now.minus(8, ChronoUnit.DAYS);
 
-  private Instant nineDaysAgo = now.minus(9, ChronoUnit.DAYS);
+  private final Instant nineDaysAgo = now.minus(9, ChronoUnit.DAYS);
 
-  private Instant fourteenDaysAgo = now.minus(14, ChronoUnit.DAYS);
+  private final Instant fourteenDaysAgo = now.minus(14, ChronoUnit.DAYS);
 
-  private Instant fiveDaysFromNow = now.plus(5, ChronoUnit.DAYS);
+  private final Instant fiveDaysFromNow = now.plus(5, ChronoUnit.DAYS);
 
-  private Instant sixDaysFromNow = now.plus(6, ChronoUnit.DAYS);
+  private final Instant sixDaysFromNow = now.plus(6, ChronoUnit.DAYS);
 
-  private Instant sevenDaysFromNow = now.plus(7, ChronoUnit.DAYS);
+  private final Instant sevenDaysFromNow = now.plus(7, ChronoUnit.DAYS);
 
-  private Instant eightDaysFromNow = now.plus(8, ChronoUnit.DAYS);
+  private final Instant eightDaysFromNow = now.plus(8, ChronoUnit.DAYS);
 
-  private Instant threeDaysFromNow = now.plus(3, ChronoUnit.DAYS);
+  private final Instant threeDaysFromNow = now.plus(3, ChronoUnit.DAYS);
 
-  private Instant nineDaysFromNow = now.plus(9, ChronoUnit.DAYS);
+  private final Instant nineDaysFromNow = now.plus(9, ChronoUnit.DAYS);
 
-  private Instant fourteenDaysFromNow = now.plus(14,ChronoUnit.DAYS);
+  private final Instant fourteenDaysFromNow = now.plus(14,ChronoUnit.DAYS);
 
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private static final String NO_DATA_MSG =
       "No data available in the last 30 days given the applied filters and permissions.";

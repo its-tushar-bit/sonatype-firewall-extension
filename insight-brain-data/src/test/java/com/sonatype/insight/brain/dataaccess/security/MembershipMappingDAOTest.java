@@ -31,11 +31,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class MembershipMappingDAOTest
     extends AbstractDbDAOTest
 {
-  private String contextId = "some-app";
+  private final String contextId = "some-app";
 
-  private MembershipMappingDAO membershipDAO = new MembershipMappingDAO();
+  private final MembershipMappingDAO membershipDAO = new MembershipMappingDAO();
 
-  private RoleDAO roleDAO = new RoleDAO();
+  private final RoleDAO roleDAO = new RoleDAO();
 
   private static final Comparator<MembershipMapping> MEMBERSHIP_COMPARATOR =
       Comparator.comparing(MembershipMapping::getContextId).thenComparing(MembershipMapping::getRoleId)

@@ -83,7 +83,7 @@ public class DefaultHdsClientProxyTimeOutTest
 
   private volatile String requestMethod = "";
 
-  private Runnable nonResponsiveServer = () -> {
+  private final Runnable nonResponsiveServer = () -> {
     try (ServerSocket serverSocket = new ServerSocket(port)) {
       countDownLatch.countDown();
       try (Socket socket = serverSocket.accept();

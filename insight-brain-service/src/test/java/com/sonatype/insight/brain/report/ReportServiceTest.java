@@ -84,7 +84,7 @@ public class ReportServiceTest
 
   private Application app;
 
-  private String scanId = "ReportServiceTestScanId";
+  private final String scanId = "ReportServiceTestScanId";
 
   @Inject
   private Configuration configuration;

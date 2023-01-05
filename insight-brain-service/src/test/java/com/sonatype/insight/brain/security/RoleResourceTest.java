@@ -23,9 +23,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RoleResourceTest
     extends AbstractResourceTest
 {
-  private RoleDAO roleDAO = new RoleDAO();
+  private final RoleDAO roleDAO = new RoleDAO();
 
-  private RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
+  private final RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
 
   @Override
   protected HttpRequest restRequest() {

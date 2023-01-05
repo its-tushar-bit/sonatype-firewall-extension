@@ -60,9 +60,9 @@ public class OrganizationSummaryViewTest
 
   private Organization rootOrganization;
 
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
-  private SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
   @Before
   public void init() {
@@ -411,7 +411,7 @@ public class OrganizationSummaryViewTest
     tile.maxAge(Stage.ID_OPERATE).shouldBe(visible).shouldHave(exactTextCaseSensitive("1 w"));
     tile.maxReport(Stage.ID_OPERATE).shouldBe(visible)
         .shouldHave(exactTextCaseSensitive(DataRetentionTile.NOT_AVAILABLE));
-    tile.successMetrics().shouldBe(visible).shouldHave(exactTextCaseSensitive("Don\'t Purge"));
+    tile.successMetrics().shouldBe(visible).shouldHave(exactTextCaseSensitive("Don't Purge"));
   }
 
   @Test

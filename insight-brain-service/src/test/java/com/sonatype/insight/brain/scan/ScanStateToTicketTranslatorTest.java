@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ScanStateToTicketTranslatorTest
 {
-  private ScanTicket updatableTicket = new ScanTicket();
+  private final ScanTicket updatableTicket = new ScanTicket();
 
   @Test
   public void totalStepsAreCalculated() {

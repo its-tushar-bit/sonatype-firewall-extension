@@ -40,7 +40,7 @@ public abstract class AbstractSourceControlEditorTest
 
   protected Organization organization;
 
-  protected OrganizationDAO organizationDAO = new OrganizationDAO();
+  protected final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   protected static final String YE_OLE_APPLICATION = "Ye Ole Application";
 

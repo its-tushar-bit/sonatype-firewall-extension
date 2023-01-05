@@ -31,7 +31,7 @@ public abstract class AbstractRepositoryServiceAuthzTest
 
   protected static final String REPOSITORY_PUBLIC_ID = "publicId";
 
-  private RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
+  private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
   @Mock
   private RepositoryPolicyEvaluator repositoryPolicyEvaluator;

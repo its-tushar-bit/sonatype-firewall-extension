@@ -58,9 +58,9 @@ public class ApplicationSummaryViewTest
 
   private Organization rootOrganization;
 
-  private SourceControlDAO sourceControlDAO = new SourceControlDAO();
+  private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
-  private OrganizationDAO organizationDAO = new OrganizationDAO();
+  private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   @Before
   public void init() {

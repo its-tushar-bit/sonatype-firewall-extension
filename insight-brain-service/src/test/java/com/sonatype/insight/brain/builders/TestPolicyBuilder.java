@@ -16,7 +16,7 @@ import org.apache.commons.lang3.RandomUtils;
 
 public class TestPolicyBuilder
 {
-  private Policy policy;
+  private final Policy policy;
 
   public TestPolicyBuilder() {
     this.policy = new Policy();

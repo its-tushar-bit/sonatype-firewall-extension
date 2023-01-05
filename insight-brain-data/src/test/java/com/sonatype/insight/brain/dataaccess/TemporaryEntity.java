@@ -370,7 +370,7 @@ public class TemporaryEntity
   private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
       new ProprietaryComponentNamePatternDAO();
 
-  private ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
+  private final ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
 
   private ProxyServerConfiguration savedProxyServerConfiguration;
 
@@ -402,7 +402,7 @@ public class TemporaryEntity
 
   private final UserTokenDAO userTokenDAO = new UserTokenDAO();
 
-  private MailConfigurationDAO mailConfigurationDAO = new MailConfigurationDAO();
+  private final MailConfigurationDAO mailConfigurationDAO = new MailConfigurationDAO();
 
   private final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO =
       new SourceControlDefaultBranchCommitHistoryDAO();

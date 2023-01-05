@@ -36,9 +36,9 @@ public class InactiveRepositoryViolationCleanerTest
   @Inject
   private InactiveRepositoryViolationCleaner inactiveRepositoryViolationCleaner;
 
-  private MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
+  private final MigrationTrackerDAO migrationTrackerDAO = new MigrationTrackerDAO();
 
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
   @Test
   public void testStart() throws Exception {

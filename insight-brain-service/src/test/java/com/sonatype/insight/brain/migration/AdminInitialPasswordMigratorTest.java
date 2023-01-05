@@ -28,12 +28,12 @@ public class AdminInitialPasswordMigratorTest
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
   // Same with the one in schema.sql
-  private String defaultAdminPasswordHashed =
+  private final String defaultAdminPasswordHashed =
       "$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM=";
 
-  private String customPassword = "not-admin-123";
+  private final String customPassword = "not-admin-123";
 
-  private String adminId = "ADMIN";
+  private final String adminId = "ADMIN";
 
   @Inject
   private UserDAO userDAO;

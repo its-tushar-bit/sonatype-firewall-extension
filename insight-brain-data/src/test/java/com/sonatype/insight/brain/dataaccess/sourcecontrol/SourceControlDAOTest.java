@@ -66,7 +66,7 @@ public class SourceControlDAOTest
 
   @After
   public void cleanup() {
-    sourceControlDAO.getAll().stream().forEach(sourceControlDAO::delete);
+    sourceControlDAO.getAll().forEach(sourceControlDAO::delete);
   }
 
   @Test
@@ -1486,7 +1486,7 @@ public class SourceControlDAOTest
 
   private class TestableHierarchy
   {
-    private SourceControl collatedSourceControl = new SourceControl();
+    private final SourceControl collatedSourceControl = new SourceControl();
 
     private SourceControl rootOrgSourceControl = new SourceControl();
 

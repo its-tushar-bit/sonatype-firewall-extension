@@ -41,9 +41,9 @@ public class ComponentDAOTest
 {
   private static final String COMP_HASH = "12345678901234567890";
 
-  private LabelDAO labelDAO = new LabelDAO();
+  private final LabelDAO labelDAO = new LabelDAO();
 
-  private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+  private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
   @Before
   public void createLTGs() {

@@ -51,7 +51,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class RepositoryServiceTest
     extends AbstractRepositoryServiceTest
 {
-  private RepositoryDAO repositoryDAO = new RepositoryDAO();
+  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
 
   @Inject
   private RepositoryService repositoryService;

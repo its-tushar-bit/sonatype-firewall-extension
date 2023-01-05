@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RepositoryConnectionDAOTest
     extends AbstractDbDAOTest
 {
-  private RepositoryConnectionDAO dao = new RepositoryConnectionDAO();
+  private final RepositoryConnectionDAO dao = new RepositoryConnectionDAO();
 
   @Test
   public void testCRUD() {

@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class DataRetentionPolicyDAOTest
     extends AbstractDbDAOTest
 {
-  private DataRetentionPolicyDAO dao = new DataRetentionPolicyDAO();
+  private final DataRetentionPolicyDAO dao = new DataRetentionPolicyDAO();
 
   @Test
   public void testCRUD() {

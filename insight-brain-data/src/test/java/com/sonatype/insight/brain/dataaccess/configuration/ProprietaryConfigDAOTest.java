@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class ProprietaryConfigDAOTest
     extends AbstractDbDAOTest
 {
-  private ProprietaryConfigDAO dao = new ProprietaryConfigDAO();
+  private final ProprietaryConfigDAO dao = new ProprietaryConfigDAO();
 
   @Test
   public void testCRUD() {

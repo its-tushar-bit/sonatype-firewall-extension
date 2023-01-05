@@ -48,7 +48,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
 
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
-  private ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
+  private final ProprietaryConfigDAO proprietaryConfigDAO = new ProprietaryConfigDAO();
 
   @BeforeClass
   public static void boot() {

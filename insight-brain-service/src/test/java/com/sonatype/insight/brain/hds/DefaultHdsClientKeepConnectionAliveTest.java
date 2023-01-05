@@ -70,7 +70,7 @@ public class DefaultHdsClientKeepConnectionAliveTest
 
   private final AtomicReference<Exception> serverException = new AtomicReference<>();
 
-  private Runnable stallingServer = () -> {
+  private final Runnable stallingServer = () -> {
     try (ServerSocket serverSocket = new ServerSocket(port)) {
       countDownLatch.countDown();
       try (Socket socket = serverSocket.accept();

@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class QuarantinedComponentAccessDAOTest
     extends AbstractDbDAOTest
 {
-  private QuarantinedComponentAccessDAO dao = new QuarantinedComponentAccessDAO();
+  private final QuarantinedComponentAccessDAO dao = new QuarantinedComponentAccessDAO();
 
   @Test
   public void testCRUD() {

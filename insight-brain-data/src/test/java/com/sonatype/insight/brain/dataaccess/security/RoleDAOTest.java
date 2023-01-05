@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class RoleDAOTest
     extends AbstractDbDAOTest
 {
-  private RoleDAO roleDAO = new RoleDAO();
+  private final RoleDAO roleDAO = new RoleDAO();
 
   private Role newRole(String name) {
     return tempEntity.newRole(name, name + " description", false /* global */);

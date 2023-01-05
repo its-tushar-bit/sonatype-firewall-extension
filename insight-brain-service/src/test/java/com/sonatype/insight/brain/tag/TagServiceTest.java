@@ -55,9 +55,9 @@ public class TagServiceTest
   @Inject
   private AsyncEventBus eventBus;
 
-  private Comparator<HasStringId> byId = Comparator.comparing(HasStringId::getId);
+  private final Comparator<HasStringId> byId = Comparator.comparing(HasStringId::getId);
 
-  private Comparator<ApiApplicationCategoryDTO> dtoComparator = Comparator.comparing(dto -> dto.id);
+  private final Comparator<ApiApplicationCategoryDTO> dtoComparator = Comparator.comparing(dto -> dto.id);
 
   @Test
   public void testAddTag() {

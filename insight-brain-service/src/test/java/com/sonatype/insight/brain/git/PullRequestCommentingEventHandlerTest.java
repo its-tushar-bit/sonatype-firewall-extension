@@ -587,29 +587,29 @@ public class PullRequestCommentingEventHandlerTest
 
     private boolean scmEnabled = true;
 
-    private String org = "testOrg";
+    private final String org = "testOrg";
 
-    private String repo = "testRepo";
+    private final String repo = "testRepo";
 
-    private String username = null;
+    private final String username = null;
 
-    private String token = "testToken";
+    private final String token = "testToken";
 
     private SourceControlProvider provider = SourceControlProvider.GITHUB;
 
-    private String baseBranch = "master";
+    private final String baseBranch = "master";
 
-    private boolean remediationPullRequestsEnabled = true;
+    private final boolean remediationPullRequestsEnabled = true;
 
-    private boolean statusChecksEnabled = true;
+    private final boolean statusChecksEnabled = true;
 
     private boolean pullRequestCommentingEnabled = true;
 
-    private boolean sourceControlEvaluationsEnabled = true;
+    private final boolean sourceControlEvaluationsEnabled = true;
 
-    private boolean sshEnabled = true;
+    private final boolean sshEnabled = true;
 
-    private String sourceControlScanTarget = null;
+    private final String sourceControlScanTarget = null;
 
     private GitRepositoryInfo gitRepositoryInfo;
 

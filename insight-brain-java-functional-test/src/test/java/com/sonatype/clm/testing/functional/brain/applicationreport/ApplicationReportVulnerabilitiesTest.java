@@ -62,11 +62,11 @@ public class ApplicationReportVulnerabilitiesTest
 
   private Organization org;
 
-  private InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
+  private final InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
 
-  private ApplicationDAO applicationDAO = new ApplicationDAO();
+  private final ApplicationDAO applicationDAO = new ApplicationDAO();
 
-  private PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO = new PolicyDAO();
 
   private PolicyViolationGrandfatheringService policyViolationGrandfatheringService;
 

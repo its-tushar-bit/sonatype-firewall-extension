@@ -48,7 +48,7 @@ public class SuccessMetricsReportDataServiceAuthzTest
   @Inject
   private SuccessMetricsReportDataService successMetricsReportDataService;
 
-  private LocalDate today = new LocalDate();
+  private final LocalDate today = new LocalDate();
 
   private Set<String> orgIds;
 

@@ -59,7 +59,7 @@ public class TelemetrySenderTest
   @Inject
   private TelemetryId telemetryId;
 
-  private HdsClient mockHdsClient = mock(DefaultHdsClient.class);
+  private final HdsClient mockHdsClient = mock(DefaultHdsClient.class);
 
   @Override
   public void configure(Binder binder) {

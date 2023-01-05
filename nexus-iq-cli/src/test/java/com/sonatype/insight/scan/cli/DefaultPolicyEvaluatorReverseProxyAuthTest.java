@@ -45,7 +45,7 @@ public abstract class DefaultPolicyEvaluatorReverseProxyAuthTest
 
   private ReverseProxyServer reverseProxy;
 
-  private boolean rutEnabled;
+  private final boolean rutEnabled;
 
   public DefaultPolicyEvaluatorReverseProxyAuthTest(boolean rutEnabled) {
     this.rutEnabled = rutEnabled;

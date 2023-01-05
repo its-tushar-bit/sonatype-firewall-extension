@@ -113,7 +113,7 @@ public class PolicyEvaluateServiceTest
   @Inject
   private UserDirectory userDirectory;
 
-  private PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO = new PolicyDAO();
 
   private Application app;
 

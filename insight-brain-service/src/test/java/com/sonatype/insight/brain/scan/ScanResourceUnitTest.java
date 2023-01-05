@@ -44,7 +44,7 @@ public class ScanResourceUnitTest
   @Mock
   private AntiCsrfFilter antiCsrfFilter;
 
-  private HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+  private final HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
 
   @Before
   public void setUp() {

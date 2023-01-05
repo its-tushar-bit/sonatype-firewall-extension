@@ -77,9 +77,9 @@ public class ComponentIdentifierAndHashComparatorTest
   private static class ComponentIdentifierAndHashComparableImpl
       implements ComponentIdentifierAndHashComparable
   {
-    private String hash;
+    private final String hash;
 
-    private ComponentIdentifier componentIdentifier;
+    private final ComponentIdentifier componentIdentifier;
 
     public ComponentIdentifierAndHashComparableImpl(String hash, ComponentIdentifier componentIdentifier) {
       this.hash = hash;

@@ -52,9 +52,9 @@ public class ScannerTest
   @Inject
   private ScanReader scanReader;
 
-  private ProductLicense productLicense = mock(ProductLicense.class);
+  private final ProductLicense productLicense = mock(ProductLicense.class);
 
-  private FeaturesService featuresService = mock(FeaturesService.class);
+  private final FeaturesService featuresService = mock(FeaturesService.class);
 
   @Override
   public void configure(Binder binder) {

@@ -56,7 +56,7 @@ public class ComponentIdentifierAdapterTest
 
   private static final String GAV_CONTENT = "{\"groupId\":\"g\", \"artifactId\":\"a\", \"version\":\"v\"}";
 
-  private static ObjectMapper mapper = new ObjectMapper();
+  private static final ObjectMapper mapper = new ObjectMapper();
 
   @Test
   public void testGetComponentIdentifier() throws Exception {

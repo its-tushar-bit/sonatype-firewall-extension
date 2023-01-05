@@ -22,7 +22,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class UserViewedProductNotificationDAOTest
     extends AbstractDbDAOTest
 {
-  private UserViewedProductNotificationDAO userViewedProductNotificationDAO = new UserViewedProductNotificationDAO();
+  private final UserViewedProductNotificationDAO userViewedProductNotificationDAO =
+      new UserViewedProductNotificationDAO();
 
   @Test
   public void testCRUD() {

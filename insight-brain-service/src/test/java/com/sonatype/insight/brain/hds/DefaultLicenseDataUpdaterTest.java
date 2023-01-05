@@ -32,9 +32,9 @@ public class DefaultLicenseDataUpdaterTest
 
   private static final License license2 = new License("license2", "l2Short", "l2Long");
 
-  private MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+  private final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
-  private LicenseDAO licenseDAO = new LicenseDAO();
+  private final LicenseDAO licenseDAO = new LicenseDAO();
 
   @Test
   public void testLicense() {

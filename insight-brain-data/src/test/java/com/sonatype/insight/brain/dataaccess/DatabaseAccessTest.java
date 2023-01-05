@@ -118,11 +118,11 @@ public class DatabaseAccessTest
   private static class DatabaseAccessThread
       extends Thread
   {
-    private int id;
+    private final int id;
 
-    private String orgId;
+    private final String orgId;
 
-    public List<Exception> errors = new ArrayList<>();
+    public final List<Exception> errors = new ArrayList<>();
 
     DatabaseAccessThread(int id, String orgId) {
       super("DatabaseAccessThread" + id);

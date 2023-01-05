@@ -99,9 +99,9 @@ class HttpServletResponseCopier
 class ServletOutputStreamCopier
     extends ServletOutputStream
 {
-  private OutputStream outputStream;
+  private final OutputStream outputStream;
 
-  private ByteArrayOutputStream copy;
+  private final ByteArrayOutputStream copy;
 
   ServletOutputStreamCopier(OutputStream outputStream) {
     this.outputStream = outputStream;

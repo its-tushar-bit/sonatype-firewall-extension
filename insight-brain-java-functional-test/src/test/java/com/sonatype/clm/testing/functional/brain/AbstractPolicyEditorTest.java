@@ -120,7 +120,7 @@ public abstract class AbstractPolicyEditorTest
 
   private Owner currentOwner;
 
-  private PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO = new PolicyDAO();
 
   private JiraProject jiraProject;
 

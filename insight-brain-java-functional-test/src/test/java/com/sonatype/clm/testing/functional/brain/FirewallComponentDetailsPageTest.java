@@ -1868,7 +1868,7 @@ public class FirewallComponentDetailsPageTest
     componentWaiversTableRefreshed.getRows().get(0).shouldHave(text("No existing component waivers"));
   }
 
-  private String[] expectedLabelsTexts = {"Label 1", "Label 2", "Label 3"};
+  private final String[] expectedLabelsTexts = {"Label 1", "Label 2", "Label 3"};
 
   private ArrayList<Label> generateApplicableLabels() {
     ArrayList<Label> labelsList = new ArrayList<>();

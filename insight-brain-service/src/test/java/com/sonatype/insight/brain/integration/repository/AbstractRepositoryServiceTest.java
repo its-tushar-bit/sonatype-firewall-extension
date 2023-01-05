@@ -135,15 +135,15 @@ public abstract class AbstractRepositoryServiceTest
   @Inject
   protected TestProductLicense testProductLicense;
 
-  private RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
+  private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
 
-  private RepositoryDAO repositoryDAO = new RepositoryDAO();
+  private final RepositoryDAO repositoryDAO = new RepositoryDAO();
 
-  private RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
-  private ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
+  private final ProprietaryComponentNamePatternDAO proprietaryComponentNamePatternDAO =
       new ProprietaryComponentNamePatternDAO();
 
   @Mock

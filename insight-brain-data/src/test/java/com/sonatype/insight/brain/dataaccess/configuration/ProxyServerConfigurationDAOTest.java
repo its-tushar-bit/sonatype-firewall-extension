@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 public class ProxyServerConfigurationDAOTest
     extends AbstractDbDAOTest
 {
-  private ProxyServerConfigurationDAO dao = new ProxyServerConfigurationDAO();
+  private final ProxyServerConfigurationDAO dao = new ProxyServerConfigurationDAO();
 
   @Test
   public void testCRUD() {

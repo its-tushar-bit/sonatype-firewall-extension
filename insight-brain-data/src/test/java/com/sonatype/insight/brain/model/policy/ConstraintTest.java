@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConstraintTest
 {
-  private String ownerId = "ownerId";
+  private final String ownerId = "ownerId";
 
   @Test
   public void testValidate_NameNull() {

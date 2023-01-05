@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 public class MockReportDownloader
 {
-  private ReportDownloader reportDownloader = mock(ReportDownloader.class);
+  private final ReportDownloader reportDownloader = mock(ReportDownloader.class);
 
   /**
    * Simulates that a report (based on the specified resource) exists.
@@ -46,7 +46,7 @@ public class MockReportDownloader
    * @param reportResourceName can be a report.zip file or a directory that will be zipped up into a report.
    */
   public void mockDownloadReport(String scanId, String reportResourceName) {
-    when(reportDownloader.downloadReport(eq(scanId), (File) any(), anyInt(), anyInt())).then(new Answer<Boolean>()
+    when(reportDownloader.downloadReport(eq(scanId), any(), anyInt(), anyInt())).then(new Answer<Boolean>()
     {
       @Override
       public Boolean answer(InvocationOnMock invocation) throws Throwable {

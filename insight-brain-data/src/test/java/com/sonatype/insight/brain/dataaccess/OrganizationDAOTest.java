@@ -69,7 +69,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class OrganizationDAOTest
     extends AbstractDbDAOTest
 {
-  private OrganizationDAO dao = new OrganizationDAO();
+  private final OrganizationDAO dao = new OrganizationDAO();
 
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();

@@ -41,7 +41,7 @@ public class RepositoryServiceAuthzTest
 
   private static final String REPOSITORY_PUBLIC_ID = "publicId";
 
-  private RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
+  private final RepositoryManagerDAO repositoryManagerDAO = new RepositoryManagerDAO();
   
   @Inject
   private RepositoryService repositoryService;

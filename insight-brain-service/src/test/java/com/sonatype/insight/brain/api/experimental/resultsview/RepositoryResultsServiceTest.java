@@ -44,7 +44,7 @@ public class RepositoryResultsServiceTest
 
   private Repository repository;
 
-  private Date date = new Date();
+  private final Date date = new Date();
 
   @Before
   public void setup() {

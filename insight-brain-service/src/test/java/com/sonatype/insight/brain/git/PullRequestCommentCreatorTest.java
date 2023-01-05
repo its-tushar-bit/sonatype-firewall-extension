@@ -171,7 +171,7 @@ public class PullRequestCommentCreatorTest
     verify(mockPostCommentAction, times(1)).invokeAction(any(), any(), any(), any(), any(), any(), any(), any());
   }
 
-  private class TestCase
+  private static class TestCase
   {
     private final PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO =
         new PullRequestPolicyEvaluationsDTO();
@@ -252,9 +252,9 @@ public class PullRequestCommentCreatorTest
     @Mock
     private SourceControlComponentLoader mockComponentLoader;
 
-    private LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
+    private final LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
 
-    private List<PullRequestPostCommentAction> postCommentActionList = new ArrayList<>();
+    private final List<PullRequestPostCommentAction> postCommentActionList = new ArrayList<>();
 
     private Optional<String> markup = Optional.of("default-markup");
 
@@ -297,7 +297,7 @@ public class PullRequestCommentCreatorTest
       return this;
     }
 
-    private PullRequestLineCommentCreationResult result = new PullRequestLineCommentCreationResult();
+    private final PullRequestLineCommentCreationResult result = new PullRequestLineCommentCreationResult();
 
     TestablePullRequestCommentCreatorBuilder withLineComments(int lineCommentCount) {
       List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();

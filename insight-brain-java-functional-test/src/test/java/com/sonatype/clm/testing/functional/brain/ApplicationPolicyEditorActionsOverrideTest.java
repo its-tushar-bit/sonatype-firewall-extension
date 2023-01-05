@@ -58,7 +58,7 @@ public class ApplicationPolicyEditorActionsOverrideTest
 
   private Owner currentOwner;
 
-  private PolicyDAO policyDAO = new PolicyDAO();
+  private final PolicyDAO policyDAO = new PolicyDAO();
 
   private Organization organization;
 

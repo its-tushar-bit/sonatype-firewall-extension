@@ -38,7 +38,7 @@ public class LabelEditorTest
 {
   private static final String LABEL_NAME = "a label";
 
-  private LabelDAO labelDAO = new LabelDAO();
+  private final LabelDAO labelDAO = new LabelDAO();
 
   private Application app;
 

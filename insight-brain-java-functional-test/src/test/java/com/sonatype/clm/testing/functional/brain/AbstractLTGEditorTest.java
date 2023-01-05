@@ -49,11 +49,11 @@ public abstract class AbstractLTGEditorTest
 
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
 
-  protected LicenseThreatGroupDAO ltgDAO = new LicenseThreatGroupDAO();
+  protected final LicenseThreatGroupDAO ltgDAO = new LicenseThreatGroupDAO();
 
-  protected LicenseDAO licenseDAO = new LicenseDAO();
+  protected final LicenseDAO licenseDAO = new LicenseDAO();
 
-  protected LicenseThreatGroupLicenseDAO ltgLicenseDAO = new LicenseThreatGroupLicenseDAO();
+  protected final LicenseThreatGroupLicenseDAO ltgLicenseDAO = new LicenseThreatGroupLicenseDAO();
 
   @BeforeClass
   public static void beforeClass() {

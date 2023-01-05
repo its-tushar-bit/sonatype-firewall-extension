@@ -33,9 +33,9 @@ public class CategoryEditorTest
 {
   private static final String CATEGORY_NAME = "a category";
 
-  private TagDAO tagDAO = new TagDAO();
+  private final TagDAO tagDAO = new TagDAO();
 
-  private ApplicationTagDAO appTagDao = new ApplicationTagDAO();
+  private final ApplicationTagDAO appTagDao = new ApplicationTagDAO();
 
   private Organization org;
 

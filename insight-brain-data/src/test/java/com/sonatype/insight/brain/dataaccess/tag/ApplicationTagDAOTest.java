@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationTagDAOTest
     extends AbstractDbDAOTest
 {
-  private ApplicationTagDAO dao = new ApplicationTagDAO();
+  private final ApplicationTagDAO dao = new ApplicationTagDAO();
 
   private Tag tag;
 

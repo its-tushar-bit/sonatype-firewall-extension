@@ -60,7 +60,7 @@ public class FirewallClientTest
 
   private final RepositoryDAO repositoryDAO = new RepositoryDAO();
 
-  private String resourcePath;
+  private final String resourcePath;
 
   public FirewallClientTest(final String resourcePath) {
     this.resourcePath = resourcePath;

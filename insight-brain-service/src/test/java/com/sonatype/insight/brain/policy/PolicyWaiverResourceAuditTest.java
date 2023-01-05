@@ -33,7 +33,7 @@ public class PolicyWaiverResourceAuditTest
 {
   private static final String COMPONENT_HASH = "hash";
 
-  private PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+  private final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
   private Policy policy;
 

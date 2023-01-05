@@ -50,31 +50,31 @@ import static org.mockito.Mockito.when;
  */
 public class ScanTaskTest
 {
-  private Scanner scanner = mock(Scanner.class);
+  private final Scanner scanner = mock(Scanner.class);
 
-  private ScanUploader uploader = mock(ScanUploader.class);
+  private final ScanUploader uploader = mock(ScanUploader.class);
 
-  private ScanPolicyEvaluator scanPolicyEvaluator = mock(ScanPolicyEvaluator.class);
+  private final ScanPolicyEvaluator scanPolicyEvaluator = mock(ScanPolicyEvaluator.class);
 
-  private PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
+  private final PolicyAlertNotifier notifier = mock(PolicyAlertNotifier.class);
 
-  private InsightWork work = mock(InsightWork.class);
+  private final InsightWork work = mock(InsightWork.class);
 
-  FileCleaner fileCleaner = mock(FileCleaner.class);
+  final FileCleaner fileCleaner = mock(FileCleaner.class);
 
-  private ProprietaryConfigService proprietaryConfigService = mock(ProprietaryConfigService.class);
+  private final ProprietaryConfigService proprietaryConfigService = mock(ProprietaryConfigService.class);
 
-  private ThirdPartyScanService thirdPartyScanService = mock(ThirdPartyScanService.class);
+  private final ThirdPartyScanService thirdPartyScanService = mock(ThirdPartyScanService.class);
 
-  private ScanTask task =
+  private final ScanTask task =
       new ScanTask(scanner, uploader, scanPolicyEvaluator, notifier, work, fileCleaner, proprietaryConfigService,
            thirdPartyScanService, new PersistedScanTicketDAO());
 
-  private Application app = newApp("public-app-id");
+  private final Application app = newApp("public-app-id");
 
   private Stage stage = new Stage(Stage.ID_BUILD);
 
-  private ScanReceipt scanReceipt = new ScanReceipt();
+  private final ScanReceipt scanReceipt = new ScanReceipt();
 
   private File bundleFile;
 

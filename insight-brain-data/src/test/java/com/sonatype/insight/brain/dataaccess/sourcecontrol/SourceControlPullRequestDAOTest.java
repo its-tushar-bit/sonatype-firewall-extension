@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SourceControlPullRequestDAOTest
     extends AbstractDbDAOTest
 {
-  private SourceControlPullRequestDAO dao = new SourceControlPullRequestDAO();
+  private final SourceControlPullRequestDAO dao = new SourceControlPullRequestDAO();
 
   @Test
   public void testCRUD() {

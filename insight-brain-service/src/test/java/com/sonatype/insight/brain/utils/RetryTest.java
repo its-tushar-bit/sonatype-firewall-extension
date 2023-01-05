@@ -34,6 +34,8 @@ public class RetryTest
     doReturn(result).when(callable).call();
 
     Retry retry = new Retry("test", 1, null, e -> true, attempt -> Duration.ZERO);
+    //Type arguments <Object, RuntimeException> are required and can't be removed to avoid JDK bug - JDK-8066974.
+    //https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8066974
     assertThat(retry.<Object, RuntimeException>executeCallable(callable)).isEqualTo(result);
     verify(callable, times(1)).call();
   }
@@ -81,6 +83,8 @@ public class RetryTest
     doThrow(error).doReturn(result).when(callable).call();
 
     Retry retry = new Retry("test", 1, null, e -> e == error, attempt -> Duration.ZERO);
+    //Type arguments <Object, RuntimeException> are required and can't be removed to avoid JDK bug - JDK-8066974.
+    //https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8066974
     assertThat(retry.<Object, RuntimeException>executeCallable(callable)).isEqualTo(result);
     verify(callable, times(2)).call();
   }

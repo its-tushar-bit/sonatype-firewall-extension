@@ -39,7 +39,7 @@ public class KeycloakServerUtilTest
   @ClassRule
   public static KeycloakServerRule rule = new KeycloakServerRule();
 
-  private KeycloakServerUtil keycloak = rule.getServerUtil();
+  private KeycloakServerUtil keycloak = rule.getKeycloakServerUtil();
 
   private final Faker faker = new Faker();
 
@@ -50,7 +50,7 @@ public class KeycloakServerUtilTest
 
   @Test
   public void testKeycloakServerUtil() throws Exception {
-    Response response = newClient().target(keycloak.getUrl()).request().get();
+    Response response = newClient().target(keycloak.getBaseUrl()).request().get();
     assertThat(response.getStatus()).isEqualTo(OK.getStatusCode());
     assertThat(keycloak.getMasterRealm().getAccessTokenLifespan())
         .isEqualTo(KeycloakServerUtil.ADMIN_TOKEN_LIFESPAN_IN_SECONDS);
@@ -59,7 +59,7 @@ public class KeycloakServerUtilTest
 
   @Test
   public void testGetToken_admin() throws Exception {
-    assertThat(keycloak.getToken(KeycloakServer.USERNAME, KeycloakServer.PASSWORD)).isNotBlank();
+    assertThat(keycloak.getToken(KeycloakServer.DEFAULT_USERNAME, KeycloakServer.DEFAULT_PASSWORD)).isNotBlank();
   }
 
   @Test
@@ -100,7 +100,7 @@ public class KeycloakServerUtilTest
 
     int builtInClientsCount = keycloak.getClients().length;
     assertThat(keycloak.getUsers()).extracting(UserRepresentation::getUsername)
-        .containsExactly(KeycloakServer.USERNAME);
+        .containsExactly(KeycloakServer.DEFAULT_USERNAME);
 
     ClientRepresentation clientRepresentation = new ClientRepresentation();
     clientRepresentation.setClientId(clientId);
@@ -123,7 +123,7 @@ public class KeycloakServerUtilTest
 
     assertThat(keycloak.getClients()).hasSize(builtInClientsCount);
     assertThat(keycloak.getUsers()).extracting(UserRepresentation::getUsername)
-        .containsExactly(KeycloakServer.USERNAME);
+        .containsExactly(KeycloakServer.DEFAULT_USERNAME);
   }
 
   @Test

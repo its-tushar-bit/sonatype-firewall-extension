@@ -56,17 +56,8 @@
     </dependency>
 
     <dependency>
-      <groupId>com.spotify</groupId>
-      <artifactId>docker-client</artifactId>
-      <classifier>shaded</classifier>
-    </dependency>
-    <dependency>
-      <!--
-      direct dependency of docker-client which unfortunately isn't declared by it
-      and only provided via transitive dependencies of httpclient (which we however exclude)
-      -->
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
     </dependency>
 
     <dependency>

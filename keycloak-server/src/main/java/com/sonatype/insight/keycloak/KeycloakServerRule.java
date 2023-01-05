@@ -6,22 +6,33 @@
 package com.sonatype.insight.keycloak;
 
 import org.junit.rules.ExternalResource;
+import org.testcontainers.containers.Network;
 
 public class KeycloakServerRule
     extends ExternalResource
 {
-  private KeycloakServerUtil keycloakServerUtil;
+  private final Network network;
 
   private KeycloakServer keycloakServer;
 
-  public KeycloakServerUtil getServerUtil() {
-    return keycloakServerUtil;
+  private KeycloakServerUtil keycloakServerUtil;
+
+  public KeycloakServerRule() {
+    this(null);
+  }
+
+  public KeycloakServerRule(Network network) {
+    this.network = network;
   }
 
   @Override
   public void before() throws InterruptedException {
-    keycloakServer = new KeycloakServer();
-    keycloakServerUtil = new KeycloakServerUtil(keycloakServer.getUrl());
+    keycloakServer = new KeycloakServer(network);
+    keycloakServerUtil = new KeycloakServerUtil(keycloakServer.getBaseUrl());
+  }
+
+  public KeycloakServerUtil getKeycloakServerUtil() {
+    return keycloakServerUtil;
   }
 
   @Override

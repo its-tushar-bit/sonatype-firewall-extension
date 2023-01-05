@@ -5,289 +5,145 @@
  */
 package com.sonatype.insight.keycloak;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.time.Duration;
+import java.time.ZoneId;
 import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
-import com.spotify.docker.client.DefaultDockerClient;
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.DockerClient.LogsParam;
-import com.spotify.docker.client.LogMessage;
-import com.spotify.docker.client.LogStream;
-import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.exceptions.ImageNotFoundException;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerInfo;
-import com.spotify.docker.client.messages.HostConfig;
-import com.spotify.docker.client.messages.PortBinding;
-import org.junit.AssumptionViolatedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.utility.DockerImageName;
 
-/**
- * Wraps a dockerized Keycloak server for testing.
- */
-class KeycloakServer
+public class KeycloakServer
     implements AutoCloseable
 {
   private static final Logger log = LoggerFactory.getLogger(KeycloakServer.class);
 
-  private static Optional<Exception> dockerError;
+  public static final String IMAGE_NAME = "keycloak/keycloak";
 
-  private String hostname;
+  public static final String IMAGE_VERSION = "20.0.2-1";
 
-  private final int port;
+  public static final String IMAGE = IMAGE_NAME + ":" + IMAGE_VERSION;
 
-  public static final String USERNAME = "admin";
+  public static final String DEFAULT_USERNAME = "admin";
 
-  public static final String PASSWORD = "admin";
+  public static final String DEFAULT_PASSWORD = "admin";
 
-  private final DockerClient dockerClient;
+  public static final int DEFAULT_PORT = 8080;
+
+  private final GenericContainer<?> container;
+
+  private final String username = DEFAULT_USERNAME;
+
+  private final String password = DEFAULT_PASSWORD;
+
+  private final String networkAlias;
 
   private final String containerId;
 
-  private final DockerLogger containerLog;
+  private final String containerName;
 
-  private static boolean isSupported() {
-    if (dockerError == null) {
-      try (DockerClient dockerClient =
-               DefaultDockerClient.fromEnv().connectTimeoutMillis(TimeUnit.SECONDS.toMillis(3)).build()) {
-        log.info("Docker: {}", dockerClient.version());
-        dockerError = Optional.empty();
-      }
-      catch (Exception e) {
-        log.warn("Docker not available", e);
-        dockerError = Optional.of(e);
-      }
-    }
-    return !dockerError.isPresent();
-  }
+  private final int port;
 
-  private static void assumeSupported() {
-    if (!isSupported()) {
-      if (Boolean.getBoolean("docker.optional")) {
-        throw new AssumptionViolatedException("Docker unavailable", dockerError.get());
-      }
-      throw new AssertionError("Docker unavailable, either start docker daemon"
-          + " or set system property docker.optional=true to skip docker-based tests", dockerError.get());
-    }
-  }
+  private final String hostname;
 
   public KeycloakServer() {
-    assumeSupported();
+    this(null);
+  }
+
+  public KeycloakServer(Network network) {
+    Utils.assumeSupported();
     try {
-      dockerClient = DefaultDockerClient.fromEnv().apiVersion("v1.30").build();
-      hostname = dockerClient.getHost();
-      String image = applyRegistry("keycloak/keycloak:20.0.1");
-      log.info("Creating keycloak server from image {}", image);
-      try {
-        dockerClient.inspectImage(image);
+      container = new GenericContainer<>(DockerImageName.parse(Utils.applyRegistry(IMAGE)));
+      container.addExposedPort(DEFAULT_PORT);
+      container.waitingFor(Wait.forLogMessage(".*Keycloak .* started in.*", 1));
+      container.withStartupTimeout(Duration.ofMinutes(2));
+      container.addEnv("DB_VENDOR", "h2");
+      container.addEnv("KEYCLOAK_ADMIN", username);
+      container.addEnv("KEYCLOAK_ADMIN_PASSWORD", password);
+      container.addEnv("TZ", ZoneId.systemDefault().getId());
+      if (network != null) {
+        container.setNetwork(network);
       }
-      catch (ImageNotFoundException ignored) {
-        for (int i = 5;; i--) {
-          try {
-            dockerClient.pull(image);
-            break;
-          }
-          catch (DockerException e) {
-            if (i <= 0) {
-              throw e;
-            }
-            log.warn("Failed to pull docker image {}. Will retry. Error: {}", image, e.getMessage(), e);
-            Thread.sleep(5000);
-          }
-        }
-      }
-      containerId = dockerClient.createContainer(ContainerConfig.builder() //
-          .image(image) //
-          .env("KEYCLOAK_ADMIN=" + USERNAME, "KEYCLOAK_ADMIN_PASSWORD=" + PASSWORD) //
-          .hostConfig(HostConfig.builder() //
-              .autoRemove(true) //
-              .portBindings(Collections.singletonMap("8080/tcp", Arrays.asList(PortBinding.randomPort(null)))) //
-              .build())
-          .cmd("start-dev")
-          .build(), "keycloak-" + UUID.randomUUID().toString().substring(0, 8)).id();
-      log.info("Starting keycloak server");
-      dockerClient.startContainer(containerId);
-      ContainerInfo containerInfo = dockerClient.inspectContainer(containerId);
-      port = Integer.parseInt(containerInfo.networkSettings().ports().get("8080/tcp").get(0).hostPort());
-      LogStream logStream = dockerClient.logs(containerId, LogsParam.follow(), LogsParam.stdout(), LogsParam.stderr());
-      containerLog = new DockerLogger("keycloak", logStream);
+      networkAlias = "keycloak-" + UUID.randomUUID().toString().substring(0, 8);
+      container.setNetworkAliases(Collections.singletonList(networkAlias));
+      container.setCommand("start-dev");
+      container.start();
+      container.followOutput(new Slf4jLogConsumer(log).withSeparateOutputStreams());
+      containerId = container.getContainerId();
+      containerName = container.getContainerName();
+      port = container.getMappedPort(DEFAULT_PORT);
+      hostname = Utils.getHostname(container.getHost(), port);
+      log.info("Started Keycloak Sever {}.", this);
     }
     catch (Exception e) {
-      throw new IllegalStateException("Could not start keycloak server", e);
-    }
-    awaitServerPort();
-    if ("localhost".equalsIgnoreCase(hostname) || "127.0.0.1".equals(hostname)) {
-      // for the server to be reachable from other containers, it needs to have a non-loopback address
-      hostname = findHostIpAddress();
-    }
-    log.info("Started keycloak server {}:{}", hostname, port);
-  }
-
-  private static String applyRegistry(String image) {
-    String registry = System.getProperty("docker.registry", "");
-    return (registry.isEmpty() ? "" : registry + '/') + image;
-  }
-
-  private void awaitServerPort() {
-    log.info("Awaiting keycloak server {}:{}", hostname, port);
-    for (long start = System.currentTimeMillis(); ; ) {
-      try {
-        testConnection(hostname, port);
-        break;
-      }
-      catch (IOException e) {
-        if (System.currentTimeMillis() - start > TimeUnit.SECONDS.toMillis(120)) {
-          throw new IllegalStateException("Could not connect to keycloak server", e);
-        }
-        // port not yet ready, keep trying
-      }
+      log.error(e.getMessage(), e);
+      throw new IllegalStateException("Could not start keycloak docker container.", e);
     }
   }
 
-  private String findHostIpAddress() {
-    try {
-      for (Enumeration<NetworkInterface> netInterfaces = NetworkInterface.getNetworkInterfaces();
-          netInterfaces.hasMoreElements();) {
-        NetworkInterface netInterface = netInterfaces.nextElement();
-        try {
-          if (netInterface.isUp() && !netInterface.isLoopback()) {
-            for (Enumeration<InetAddress> addresses = netInterface.getInetAddresses(); addresses.hasMoreElements();) {
-              InetAddress address = addresses.nextElement();
-              try {
-                if (!address.isLoopbackAddress()) {
-                  testConnection(address.getHostAddress(), port);
-                  return address.getHostAddress();
-                }
-              }
-              catch (IOException ignored) {
-                // try the next address
-              }
-            }
-          }
-        }
-        catch (IOException ignored) {
-          // try the next interface
-        }
-      }
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-    throw new IllegalStateException("Could not determine IP address");
+  @Override
+  public String toString() {
+    return "KeycloakServer{" +
+        "container=" + container +
+        ", username='" + username + '\'' +
+        ", password='" + password + '\'' +
+        ", networkAlias='" + networkAlias + '\'' +
+        ", containerId='" + containerId + '\'' +
+        ", containerName='" + containerName + '\'' +
+        ", port=" + port +
+        ", hostname='" + hostname + '\'' +
+        '}';
   }
 
-  private static void testConnection(String hostname, int port) throws IOException {
-    HttpURLConnection connection = (HttpURLConnection) new URL("http://" + hostname + ":" + port).openConnection();
-    connection.setConnectTimeout(1000);
-    connection.setReadTimeout(1000);
-    try (InputStream is = connection.getInputStream()) {
-      return;
-    }
-    finally {
-      connection.disconnect();
+  @Override
+  public void close() {
+    if (container != null) {
+      container.stop();
     }
   }
 
-  public String getHostname() {
-    return hostname;
+  public String getUsername() {
+    return username;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public GenericContainer<?> getContainer() {
+    return container;
+  }
+
+  public String getNetworkAlias() {
+    return networkAlias;
+  }
+
+  public String getContainerId() {
+    return containerId;
+  }
+
+  public String getContainerName() {
+    return containerName;
   }
 
   public int getPort() {
     return port;
   }
 
-  @Override
-  public void close() {
-    if (dockerClient != null) {
-      try {
-        try {
-          if (containerId != null) {
-            log.info("Stopping keycloak server {}:{}", hostname, port);
-            dockerClient.stopContainer(containerId, 1);
-          }
-        }
-        catch (DockerException | InterruptedException e) {
-          log.warn("Failed to stop keycloak server", e);
-        }
-        finally {
-          if (containerLog != null) {
-            containerLog.close();
-          }
-        }
-      }
-      finally {
-        dockerClient.close();
-      }
-    }
+  public String getHostname() {
+    return hostname;
   }
 
-  public String getUrl() {
-    return String.format("http://%s:%d/", hostname, port);
+  public String getBaseUrl() {
+    return "http://" + getHostname() + ":" + getPort();
   }
 
-  /**
-   * Forwards the stdout/stderr from the docker container to the test log to aid troubleshooting.
-   */
-  private static class DockerLogger
-      extends Thread
-      implements AutoCloseable
-  {
-    private final LogStream logStream;
-
-    private volatile boolean closed;
-
-    public DockerLogger(String processName, LogStream logStream) {
-      this.logStream = logStream;
-      setName(processName);
-      setDaemon(true);
-      start();
-    }
-
-    @Override
-    public void close() {
-      closed = true;
-      interrupt();
-    }
-
-    @Override
-    public void run() {
-      try {
-        while (!closed && logStream.hasNext()) {
-          String logMessage = getLogMessageText(logStream.next());
-          log.info(logMessage);
-        }
-      }
-      catch (RuntimeException t) {
-        log.warn("Failed to read server log", t);
-      }
-      finally {
-        logStream.close();
-      }
-    }
-
-    private static String getLogMessageText(final LogMessage logMessage) {
-      ByteBuffer buffer = logMessage.content();
-      byte[] bytes = new byte[buffer.remaining()];
-      buffer.get(bytes);
-      int length = bytes.length;
-      while (length > 0 && (bytes[length - 1] == '\n' || bytes[length - 1] == '\r')) {
-        length--;
-      }
-      return new String(bytes, 0, length, StandardCharsets.UTF_8);
-    }
+  public String getInternalBaseUrl() {
+    return "http://" + getNetworkAlias() + ":" + DEFAULT_PORT;
   }
 }

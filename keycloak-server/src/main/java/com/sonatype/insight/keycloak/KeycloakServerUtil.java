@@ -53,9 +53,9 @@ public class KeycloakServerUtil
     RealmRepresentation realmRepresentation = getMasterRealm();
     realmRepresentation.setAccessTokenLifespan(ADMIN_TOKEN_LIFESPAN_IN_SECONDS);
     ClientBuilder.newClient().target(url).path("admin/realms/master").request()
-        .header("Authorization", "Bearer " + getToken(KeycloakServer.USERNAME, KeycloakServer.PASSWORD))
+        .header("Authorization", "Bearer " + getToken(KeycloakServer.DEFAULT_USERNAME, KeycloakServer.DEFAULT_PASSWORD))
         .put(Entity.entity(realmRepresentation, MediaType.APPLICATION_JSON_TYPE));
-    adminToken = getToken(KeycloakServer.USERNAME, KeycloakServer.PASSWORD);
+    adminToken = getToken(KeycloakServer.DEFAULT_USERNAME, KeycloakServer.DEFAULT_PASSWORD);
   }
 
   /**
@@ -230,7 +230,7 @@ public class KeycloakServerUtil
         .get(String.class);
   }
 
-  public String getUrl() {
+  public String getBaseUrl() {
     return url;
   }
 
@@ -305,7 +305,7 @@ public class KeycloakServerUtil
 
   RealmRepresentation getMasterRealm() throws InterruptedException {
     return ClientBuilder.newClient().target(url).path("admin/realms/master").request()
-        .header("Authorization", "Bearer " + getToken(KeycloakServer.USERNAME, KeycloakServer.PASSWORD))
+        .header("Authorization", "Bearer " + getToken(KeycloakServer.DEFAULT_USERNAME, KeycloakServer.DEFAULT_PASSWORD))
         .get(RealmRepresentation.class);
   }
 }

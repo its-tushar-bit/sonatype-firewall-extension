@@ -26,10 +26,10 @@ import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.SupportConfig;
 import com.sonatype.insight.test.LogOutput;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import com.google.inject.Inject;
 import com.google.inject.matcher.Matchers;
-import com.spotify.docker.client.shaded.com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;

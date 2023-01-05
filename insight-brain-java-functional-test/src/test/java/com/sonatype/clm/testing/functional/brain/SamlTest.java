@@ -50,7 +50,7 @@ public class SamlTest
   @ClassRule
   public static KeycloakServerRule keycloakServerRule = new KeycloakServerRule();
 
-  private final KeycloakServerUtil keycloak = keycloakServerRule.getServerUtil();
+  private final KeycloakServerUtil keycloak = keycloakServerRule.getKeycloakServerUtil();
 
   private final ApiSamlConfigurationService apiSamlConfigurationService =
       testCLMServer.getCLMServer().getInstance(ApiSamlConfigurationService.class);
@@ -58,7 +58,7 @@ public class SamlTest
   @BeforeClass
   public static void beforeClass() {
     // Load the keycloak spa in browser once
-    Selenide.open(keycloakServerRule.getServerUtil().getUrl() + "admin/");
+    Selenide.open(keycloakServerRule.getKeycloakServerUtil().getBaseUrl() + "/admin/");
     Selenide.Wait().until(webDriver -> webDriver.getCurrentUrl().contains("redirect_uri"));
   }
 
@@ -276,9 +276,8 @@ public class SamlTest
   }
 
   /**
-   * Maps SAML attribute firstName to users first name.
-   * Maps SAML attribute lastName to users last name.
-   * Maps SAML attribute groups to users groups.
+   * Maps SAML attribute firstName to users first name. Maps SAML attribute lastName to users last name. Maps SAML
+   * attribute groups to users groups.
    *
    * @return All the mappings created in a list.
    */

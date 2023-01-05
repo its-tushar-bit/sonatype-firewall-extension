@@ -25,13 +25,13 @@ public class PostgresServerTest
       assertThat(postgres.getPort()).isPositive();
       assertThat(postgres.getUsername()).isNotBlank();
       assertThat(postgres.getPassword()).isNotBlank();
-      assertThat(postgres.getDatabaseName()).isNotBlank();
+      assertThat(postgres.getName()).isNotBlank();
 
       try (Connection connection =
           DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())) {
         assertThat(connection.isValid(10)).isTrue();
         assertThat(connection.getMetaData().getDatabaseProductName()).isEqualTo("PostgreSQL");
-        assertThat(connection.getMetaData().getDatabaseProductVersion()).isEqualTo("10.7");
+        assertThat(connection.getMetaData().getDatabaseProductVersion()).isEqualTo("15.1");
 
         postgres.loadSqlDump(Paths.get(getClass().getResource("/dump-valid.sql").toURI()));
         try (Statement statement = connection.createStatement();

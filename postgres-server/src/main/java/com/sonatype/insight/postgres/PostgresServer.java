@@ -5,46 +5,27 @@
  */
 package com.sonatype.insight.postgres;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.Arrays;
+import java.time.Duration;
+import java.time.ZoneId;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.zip.GZIPOutputStream;
 
 import com.sonatype.insight.db.DatabaseConfig;
 
-import com.spotify.docker.client.DefaultDockerClient;
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.DockerClient.ExecCreateParam;
-import com.spotify.docker.client.DockerClient.LogsParam;
-import com.spotify.docker.client.LogMessage;
-import com.spotify.docker.client.LogStream;
-import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.exceptions.ImageNotFoundException;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerInfo;
-import com.spotify.docker.client.messages.ExecState;
-import com.spotify.docker.client.messages.HostConfig;
-import com.spotify.docker.client.messages.PortBinding;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.junit.AssumptionViolatedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.Container.ExecResult;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.MountableFile;
 
 /**
  * Wraps a dockerized Postgres server for testing.
- * 
+ *
  * <pre>
  * try (PostgresServer postgres = new PostgresServer()) {
  *   // use server, data is discarded when server is closed
@@ -56,132 +37,96 @@ public class PostgresServer
 {
   private static final Logger log = LoggerFactory.getLogger(PostgresServer.class);
 
-  private static Optional<Exception> dockerError;
+  public static final String IMAGE_NAME = "postgres";
 
-  private final String hostname;
+  public static final String IMAGE_VERSION = "15.1-alpine";
 
-  private final int port;
+  public static final String IMAGE = IMAGE_NAME + ":" + IMAGE_VERSION;
 
-  private final String username;
+  public static final String DEFAULT_NAME = "testdata";
 
-  private final String password;
+  public static final String DEFAULT_USERNAME = "testuser";
 
-  private final String databaseName;
+  public static final String DEFAULT_PASSWORD = "testpass";
 
-  private final DockerClient dockerClient;
+  public static final int DEFAULT_PORT = 5432;
+
+  private final GenericContainer<?> container;
+
+  private final String name = DEFAULT_NAME;
+
+  private final String username = DEFAULT_USERNAME;
+
+  private final String password = DEFAULT_PASSWORD;
+
+  private final String networkAlias;
 
   private final String containerId;
 
-  private final DockerLogger containerLog;
+  private final String containerName;
 
-  private static boolean isSupported() {
-    if (dockerError == null) {
-      try (DockerClient dockerClient =
-          DefaultDockerClient.fromEnv().connectTimeoutMillis(TimeUnit.SECONDS.toMillis(3)).build()) {
-        log.info("Docker: {}", dockerClient.version());
-        dockerError = Optional.empty();
-      }
-      catch (Exception e) {
-        log.warn("Docker not available", e);
-        dockerError = Optional.of(e);
-      }
-    }
-    return !dockerError.isPresent();
-  }
+  private final int port;
 
-  private static void assumeSupported() {
-    if (!isSupported()) {
-      if (Boolean.getBoolean("docker.optional")) {
-        throw new AssumptionViolatedException("Docker unavailable", dockerError.get());
-      }
-      throw new AssertionError("Docker unavailable, either start docker daemon"
-          + " or set system property docker.optional=true to skip docker-based tests", dockerError.get());
-    }
-  }
+  private final String hostname;
 
   public PostgresServer() {
-    assumeSupported();
-    username = "testuser";
-    password = "testpass";
-    databaseName = "testdata";
+    this(null);
+  }
+
+  public PostgresServer(Network network) {
+    Utils.assumeSupported();
     try {
-      dockerClient = DefaultDockerClient.fromEnv().apiVersion("v1.30").build();
-      hostname = dockerClient.getHost();
-      String image = applyRegistry("postgres:10.7-alpine");
-      log.info("Creating postgres server from image {}", image);
-      try {
-        dockerClient.inspectImage(image);
+      container = new GenericContainer<>(DockerImageName.parse(Utils.applyRegistry(IMAGE)));
+      container.addExposedPort(DEFAULT_PORT);
+      container.waitingFor(Wait.forLogMessage(".*database system is ready to accept connections.*", 2));
+      container.withStartupTimeout(Duration.ofMinutes(2));
+      container.addEnv("POSTGRES_DB", name);
+      container.addEnv("POSTGRES_USER", username);
+      container.addEnv("POSTGRES_PASSWORD", password);
+      container.addEnv("TZ", ZoneId.systemDefault().getId());
+      if (network != null) {
+        container.setNetwork(network);
       }
-      catch (ImageNotFoundException ignored) {
-        for (int i = 2;; i--) {
-          try {
-            dockerClient.pull(image);
-            break;
-          }
-          catch (DockerException e) {
-            if (i <= 0) {
-              throw e;
-            }
-          }
-        }
-      }
-      containerId = dockerClient.createContainer(ContainerConfig.builder() //
-          .image(image) //
-          .cmd("-c", "log_statement=all", //
-              "-c", "log_connections=on", //
-              "-c", "log_disconnections=on") //
-          .env("POSTGRES_DB=" + databaseName, //
-              "POSTGRES_USER=" + username, //
-              "POSTGRES_PASSWORD=" + password) //
-          .hostConfig(HostConfig.builder() //
-              .autoRemove(true) //
-              .portBindings(Collections.singletonMap("5432/tcp", Arrays.asList(PortBinding.randomPort(null)))) //
-              .build())
-          .build(), "postgres-" + UUID.randomUUID().toString().substring(0, 8)).id();
-      log.info("Starting postgres server");
-      dockerClient.startContainer(containerId);
-      ContainerInfo containerInfo = dockerClient.inspectContainer(containerId);
-      port = Integer.parseInt(containerInfo.networkSettings().ports().get("5432/tcp").get(0).hostPort());
-      LogStream logStream = dockerClient.logs(containerId, LogsParam.follow(), LogsParam.stdout(), LogsParam.stderr());
-      containerLog = new DockerLogger("postgres", logStream);
+      networkAlias = "postgres-" + UUID.randomUUID().toString().substring(0, 8);
+      container.setNetworkAliases(Collections.singletonList(networkAlias));
+      container.start();
+      container.followOutput(new Slf4jLogConsumer(log).withSeparateOutputStreams());
+      containerId = container.getContainerId();
+      containerName = container.getContainerName();
+      port = container.getMappedPort(DEFAULT_PORT);
+      hostname = container.getHost();
+      log.info("Started Postgres Sever {}.", this);
     }
     catch (Exception e) {
-      throw new IllegalStateException("Could not start postgres server", e);
-    }
-    awaitServerPort();
-    log.info("Started postgres server {}:{}", hostname, port);
-  }
-
-  private static String applyRegistry(String image) {
-    String registry = System.getProperty("docker.registry", "");
-    return (registry.isEmpty() ? "" : registry + '/') + image;
-  }
-
-  private void awaitServerPort() {
-    log.info("Awaiting postgres server {}:{}", hostname, port);
-    for (long start = System.currentTimeMillis();;) {
-      try (Connection connection = DriverManager.getConnection(getJdbcUrl(), getUsername(), getPassword())) {
-        return;
-      }
-      catch (SQLException e) {
-        if (System.currentTimeMillis() - start > TimeUnit.SECONDS.toMillis(60)) {
-          throw new IllegalStateException("Could not connect to postgres server", e);
-        }
-        // port not yet ready, keep trying
-      }
+      log.error(e.getMessage(), e);
+      throw new IllegalStateException("Could not start postgres docker container.", e);
     }
   }
 
-  public String getJdbcUrl() {
-    return "jdbc:postgresql://" + getHostname() + ":" + getPort() + "/" + getDatabaseName();
+  @Override
+  public String toString() {
+    return "PostgresServer{" +
+        "container=" + container +
+        ", name='" + name + '\'' +
+        ", username='" + username + '\'' +
+        ", password='" + password + '\'' +
+        ", networkAlias='" + networkAlias + '\'' +
+        ", containerId='" + containerId + '\'' +
+        ", containerName='" + containerName + '\'' +
+        ", port=" + port +
+        ", hostname='" + hostname + '\'' +
+        '}';
   }
 
-  public String getHostname() {
-    return hostname;
+  @Override
+  public void close() {
+    if (container != null) {
+      container.stop();
+    }
   }
 
-  public int getPort() {
-    return port;
+  public String getName() {
+    return name;
   }
 
   public String getUsername() {
@@ -192,41 +137,44 @@ public class PostgresServer
     return password;
   }
 
-  public String getDatabaseName() {
-    return databaseName;
+  public GenericContainer<?> getContainer() {
+    return container;
   }
 
-  @Override
-  public void close() {
-    if (dockerClient != null) {
-      try {
-        try {
-          if (containerId != null) {
-            log.info("Stopping postgres server {}:{}", hostname, port);
-            dockerClient.stopContainer(containerId, 1);
-          }
-        }
-        catch (DockerException | InterruptedException e) {
-          log.warn("Failed to stop postgres server", e);
-        }
-        finally {
-          if (containerLog != null) {
-            containerLog.close();
-          }
-        }
-      }
-      finally {
-        dockerClient.close();
-      }
-    }
+  public String getNetworkAlias() {
+    return networkAlias;
+  }
+
+  public String getContainerId() {
+    return containerId;
+  }
+
+  public String getContainerName() {
+    return containerName;
+  }
+
+  public int getPort() {
+    return port;
+  }
+
+  public String getHostname() {
+    return hostname;
+  }
+
+  public String getJdbcUrl() {
+    return "jdbc:postgresql://" + getHostname() + ":" + getPort() + "/" + getName();
+  }
+
+  public String getInternalJdbcUrl() {
+    return "jdbc:postgresql://" + getNetworkAlias() + ":" + DEFAULT_PORT + "/" + getName();
   }
 
   public DatabaseConfig getDatabaseConfig() {
     DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName(org.postgresql.Driver.class.getName());
     databaseConfig.setUrl(getJdbcUrl());
-    databaseConfig.setUsername(username);
-    databaseConfig.setPassword(password);
+    databaseConfig.setUsername(getUsername());
+    databaseConfig.setPassword(getPassword());
     databaseConfig.setMaxConnections(50);
     return databaseConfig;
   }
@@ -234,87 +182,18 @@ public class PostgresServer
   public void loadSqlDump(Path sqlFile) {
     log.info("Loading SQL dump {}", sqlFile);
     try {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      try (TarArchiveOutputStream tar = new TarArchiveOutputStream(new GZIPOutputStream(baos))) {
-        byte[] sql = Files.readAllBytes(sqlFile);
-        TarArchiveEntry tarEntry = new TarArchiveEntry("pq-dump.sql");
-        tarEntry.setSize(sql.length);
-        tar.putArchiveEntry(tarEntry);
-        tar.write(sql);
-        tar.closeArchiveEntry();
-      }
-      dockerClient.copyToContainer(new ByteArrayInputStream(baos.toByteArray()), containerId, "/tmp");
-      String[] cmd = {"/usr/local/bin/psql", "--variable", "ON_ERROR_STOP=1", "--dbname", databaseName, "--username",
-          username, "--file", "/tmp/pq-dump.sql"};
-      String execId = dockerClient
-          .execCreate(containerId, cmd, ExecCreateParam.attachStdout(), ExecCreateParam.attachStderr()).id();
-      try (DockerLogger execLog = new DockerLogger("psql", dockerClient.execStart(execId))) {
-        while (true) {
-          ExecState execState = dockerClient.execInspect(execId);
-          if (!execState.running()) {
-            if (execState.exitCode() != 0) {
-              throw new Exception("psql returned " + execState.exitCode());
-            }
-            break;
-          }
-          Thread.sleep(10);
-        }
+      container.copyFileToContainer(MountableFile.forHostPath(sqlFile), "/tmp/" + sqlFile.getFileName());
+      String[] cmd = {
+          "/usr/local/bin/psql", "--variable", "ON_ERROR_STOP=1", "--dbname", getName(), "--username",
+          getUsername(), "--file", "/tmp/" + sqlFile.getFileName()
+      };
+      ExecResult execResult = container.execInContainer(cmd);
+      if (execResult.getExitCode() != 0) {
+        throw new Exception("psql returned " + execResult.getExitCode());
       }
     }
     catch (Exception e) {
       throw new IllegalStateException("Could not load SQL dump into postgres server", e);
-    }
-  }
-
-  /**
-   * Forwards the stdout/stderr from the docker container to the test log to aid troubleshooting.
-   */
-  private static class DockerLogger
-      extends Thread
-      implements AutoCloseable
-  {
-    private final LogStream logStream;
-
-    private volatile boolean closed;
-
-    public DockerLogger(String processName, LogStream logStream) {
-      this.logStream = logStream;
-      setName(processName);
-      setDaemon(true);
-      start();
-    }
-
-    @Override
-    public void close() {
-      closed = true;
-      interrupt();
-    }
-
-    @Override
-    public void run() {
-      try {
-        while (!closed && logStream.hasNext()) {
-          String logMessage = getLogMessageText(logStream.next());
-          log.info(logMessage);
-        }
-      }
-      catch (RuntimeException t) {
-        log.warn("Failed to read server log", t);
-      }
-      finally {
-        logStream.close();
-      }
-    }
-
-    private static String getLogMessageText(final LogMessage logMessage) {
-      ByteBuffer buffer = logMessage.content();
-      byte[] bytes = new byte[buffer.remaining()];
-      buffer.get(bytes);
-      int length = bytes.length;
-      while (length > 0 && (bytes[length - 1] == '\n' || bytes[length - 1] == '\r')) {
-        length--;
-      }
-      return new String(bytes, 0, length, StandardCharsets.UTF_8);
     }
   }
 }

@@ -16,6 +16,8 @@ import org.mockito.Mockito;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.verify;
 
 public class TenantThreadLocalTest
@@ -106,5 +108,16 @@ public class TenantThreadLocalTest
 
     TenantThreadLocal.setGlobalTenant();
     assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(GLOBAL_TENANT);
+  }
+
+  @Test
+  public void shouldUseInternedTenantString_forSynchronization() {
+    char[] tenantNameCharArray = {'t', '1'};
+
+    // Strings initialized from char arrays do not get interned
+    TenantThreadLocal.setTenant(new Tenant(new String(tenantNameCharArray)));
+
+    assertNotSame(new String(tenantNameCharArray), TenantThreadLocal.getTenantSlugForSynchronization());
+    assertSame(new String(tenantNameCharArray).intern(), TenantThreadLocal.getTenantSlugForSynchronization());
   }
 }

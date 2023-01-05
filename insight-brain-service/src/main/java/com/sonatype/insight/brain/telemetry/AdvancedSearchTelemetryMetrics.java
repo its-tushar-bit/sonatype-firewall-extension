@@ -10,9 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Named;
 import javax.inject.Singleton;
+
+import com.sonatype.insight.brain.tenancy.TenantReference;
+
+import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.getTenantSlugForSynchronization;
 
 /**
  * @since 1.88
@@ -21,28 +24,36 @@ import javax.inject.Singleton;
 @Singleton
 public class AdvancedSearchTelemetryMetrics
 {
-  private final Map<String, Long> searchesByFieldNameMap = new HashMap<>();
+  /**
+   * This same bean is used for both IQ and MTIQ. Wrapping the in-memory state in a "TenantReference" means that the
+   * telemetry will be stored and accessed per tenant and in the case of on-prem there will only be a single tenant.
+   */
+  private final TenantReference<Map<String, Long>> searchesByFieldNameMap = new TenantReference<>(HashMap::new);
 
-  private long totalSearches = 0;
+  private final TenantReference<Long> totalSearches = new TenantReference<>(() -> 0L);
 
-  public synchronized void addSearch(Set<String> fieldNames) {
-    fieldNames.forEach(fieldName -> searchesByFieldNameMap.merge(fieldName, 1L, Long::sum));
-    totalSearches++;
+  public void addSearch(Set<String> fieldNames) {
+    // Synchronize by tenant so that the counts and searches do not get out of sync
+    synchronized (getTenantSlugForSynchronization()) {
+      fieldNames.forEach(fieldName -> searchesByFieldNameMap.get().merge(fieldName, 1L, Long::sum));
+      totalSearches.set(totalSearches.get() + 1);
+    }
   }
 
   /**
-   * Compute statistics of searches since last call to this method.
-   * Results are cleared after computation.
+   * Compute statistics of searches since last call to this method. Results are cleared after computation.
    */
-  synchronized AggregatedSearchStats computeStatsAndReset() {
-    List<SearchCount> searchCounts = searchesByFieldNameMap.entrySet().stream()
-        .map(p -> new SearchCount(p.getKey(), p.getValue())).collect(Collectors.toList());
+  AggregatedSearchStats computeStatsAndReset() {
+    synchronized (getTenantSlugForSynchronization()) {
+      List<SearchCount> searchCounts = searchesByFieldNameMap.get().entrySet().stream()
+          .map(p -> new SearchCount(p.getKey(), p.getValue())).collect(Collectors.toList());
 
-    AggregatedSearchStats stats = new AggregatedSearchStats(totalSearches, searchCounts);
+      AggregatedSearchStats stats = new AggregatedSearchStats(totalSearches.get(), searchCounts);
 
-    searchesByFieldNameMap.clear();
-    totalSearches = 0;
-    return stats;
+      searchesByFieldNameMap.get().clear();
+      totalSearches.set(0L);
+      return stats;
+    }
   }
 
   static class AggregatedSearchStats

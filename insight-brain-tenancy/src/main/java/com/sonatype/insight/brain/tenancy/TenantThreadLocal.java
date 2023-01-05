@@ -119,6 +119,10 @@ public class TenantThreadLocal
     return runAs(GLOBAL_TENANT, supplier);
   }
 
+  public static String getTenantSlugForSynchronization() {
+    return getTenantWithoutValidation().tenantSlug.intern();
+  }
+
   /**
    * PACKAGE PRIVATE!!! Only trusted callers should be able to run code as a specific tenant. Note: Using this method
    * will invalidate the tenant when finished. Use cloneTenant before using this.

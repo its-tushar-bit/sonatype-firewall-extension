@@ -98,6 +98,7 @@ const openEditModal = (state, { payload }) => {
 };
 
 const requestFulfilled = (state) => {
+  state.isDirty = false;
   state.submitError = null;
   state.submitMaskState = true;
 };
@@ -184,7 +185,6 @@ const createNewOwner = createAsyncThunk(
         await axios.post(iconUrl, formData);
       }
 
-      state.isDirty = false;
       startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() => {
         dispatch(
           stateGo(

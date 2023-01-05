@@ -97,7 +97,7 @@ class SamlConfigurationInternal
       samlConfiguration.setSigningKeyPair(new KeyPair(certificate.getPublicKey(), privateKey));
     }
     catch (Exception e) {
-      throw new IllegalStateException("Could not load SAML keystore.", e);
+      throw new IllegalStateException("Could not load SAML keystore: " + e.getMessage(), e);
     }
   }
 

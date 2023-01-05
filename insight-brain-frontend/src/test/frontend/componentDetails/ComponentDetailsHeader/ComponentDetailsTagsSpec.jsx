@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxTooltip } from '@sonatype/react-shared-components';
 import { ComponentDetailsTags } from '../../../../main/frontend/componentDetails/ComponentDetailsHeader';
 import ComponentFormatTag from '../../../../main/frontend/react/tag/ComponentFormatTag';
 import DependencyTypeTag from '../../../../main/frontend/react/tag/DependencyTypeTag';
@@ -24,7 +23,7 @@ describe('ComponentDetailsTags', () => {
     {
       id: 'purple-label',
       label: 'Purple Label',
-      description: 'It is the purple label',
+      description: '',
       color: 'purple',
     },
   ];
@@ -137,13 +136,9 @@ describe('ComponentDetailsTags', () => {
     const labels = mockLabels;
 
     const component = getShallowComponentNoProps({ labels });
-    expect(component.find(ComponentLabelTag).length).toBe(mockLabels.length);
-  });
-
-  it('renders a NxTooltip for every label object passed in the labels prop', () => {
-    const labels = mockLabels;
-
-    const component = getShallowComponentNoProps({ labels });
-    expect(component.find(NxTooltip).length).toBe(mockLabels.length);
+    const labelElements = component.find(ComponentLabelTag);
+    expect(labelElements.length).toBe(mockLabels.length);
+    expect(labelElements.at(0)).toHaveProp('description', 'It is the orange label');
+    expect(labelElements.at(1)).toHaveProp('description', '');
   });
 });

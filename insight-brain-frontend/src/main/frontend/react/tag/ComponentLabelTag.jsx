@@ -6,7 +6,7 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 
-import { NxFontAwesomeIcon, NxTag } from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTag, NxTooltip } from '@sonatype/react-shared-components';
 import { faTag } from '@fortawesome/pro-solid-svg-icons';
 
 export const rscColorMap = {
@@ -22,19 +22,21 @@ export const rscColorMap = {
   'light-green': 'lime',
 };
 
-export function TagWithFontAwesomeIcon({ faIcon, color, children }) {
+export function TagWithFontAwesomeIcon({ faIcon, color, children, tooltip }) {
   return (
-    <NxTag color={color} aria-label={`Label ${children}`}>
-      <NxFontAwesomeIcon icon={faIcon} />
-      <span>{children}</span>
-    </NxTag>
+    <NxTooltip title={tooltip}>
+      <NxTag color={color} aria-label={`Label ${children}`}>
+        <NxFontAwesomeIcon icon={faIcon} />
+        <span>{children}</span>
+      </NxTag>
+    </NxTooltip>
   );
 }
 
-export default function ComponentLabelTag({ children, color }) {
+export default function ComponentLabelTag({ children, color, description }) {
   const mappedColor = rscColorMap[color];
   return (
-    <TagWithFontAwesomeIcon faIcon={faTag} color={mappedColor}>
+    <TagWithFontAwesomeIcon faIcon={faTag} color={mappedColor} tooltip={description}>
       {children}
     </TagWithFontAwesomeIcon>
   );
@@ -43,10 +45,12 @@ export default function ComponentLabelTag({ children, color }) {
 TagWithFontAwesomeIcon.propTypes = {
   faIcon: PropTypes.oneOfType([PropTypes.object, PropTypes.array, PropTypes.string]).isRequired,
   color: PropTypes.string,
+  description: PropTypes.string,
   children: PropTypes.node.isRequired,
 };
 
 ComponentLabelTag.propTypes = {
   children: PropTypes.node.isRequired,
   color: PropTypes.string,
+  description: PropTypes.string,
 };

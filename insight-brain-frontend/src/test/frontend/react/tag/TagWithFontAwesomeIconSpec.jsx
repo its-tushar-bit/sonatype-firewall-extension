@@ -5,7 +5,7 @@
  */
 
 import { faTag } from '@fortawesome/pro-solid-svg-icons';
-import { NxFontAwesomeIcon, NxTag } from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTag, NxTooltip } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../enzymeUtils';
 import { TagWithFontAwesomeIcon } from '../../../../main/frontend/react/tag/ComponentLabelTag';
@@ -22,10 +22,14 @@ describe('TagWithFontAwesomeIcon', function () {
     getShallowTag = enzymeUtils.getShallowComponent(TagWithFontAwesomeIcon, minimalProps);
   });
 
-  it('renders an NxTag with a color', function () {
-    const component = getShallowTag({ color: 'test-color' });
-    expect(component).toMatchSelector(NxTag);
-    expect(component).toHaveProp('color', 'test-color');
+  it('renders an NxTag with a tooltip and color', function () {
+    const component = getShallowTag({ color: 'test-color', tooltip: 'test tooltip' });
+    expect(component).toMatchSelector(NxTooltip);
+    expect(component).toHaveProp('title', 'test tooltip');
+
+    const nxTag = component.childAt(0);
+    expect(nxTag).toMatchSelector(NxTag);
+    expect(nxTag).toHaveProp('color', 'test-color');
   });
 
   it('renders an NxFontAwesomeIcon with the given icon', function () {

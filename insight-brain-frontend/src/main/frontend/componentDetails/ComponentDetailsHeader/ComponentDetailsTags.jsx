@@ -3,10 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import cx from 'classnames';
-import { NxTooltip } from '@sonatype/react-shared-components';
 import { DependencyTypeTag, ComponentLabelTag, ComponentFormatTag } from '../../react/tag';
 
 const nothingToRender = ({ format, dependencyType, isInnerSource, labels }) =>
@@ -29,11 +28,9 @@ export const ComponentDetailsTags = ({ format, dependencyType, isInnerSource, la
       {labels.length > 0 && (
         <>
           {labels.map(({ id, color, label, description }) => (
-            <NxTooltip key={id} title={description}>
-              <div className="iq-component-details-tags__labels">
-                <ComponentLabelTag color={color}>{label}</ComponentLabelTag>
-              </div>
-            </NxTooltip>
+            <ComponentLabelTag key={id} color={color} description={description}>
+              {label}
+            </ComponentLabelTag>
           ))}
         </>
       )}

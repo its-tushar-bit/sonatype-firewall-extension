@@ -231,16 +231,29 @@ public class ConfigurationUtilsTest
   public void testAccessAllowlistToString_ThrowBadRequestForInvalidIPs() {
     List<AllowedIp> allowlist = getAccessAllowlist();
     allowlist.add(new AllowedIp("192.168.33.999", "Invalid IPv4 address"));
+    allowlist.add(new AllowedIp("192.168.33.1/31", "Invalid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.160.1.0/12", "Invalid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.128.1.0/10", "Invalid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.1.0.0/8", "Invalid IPv4 CIDR"));
     allowlist.add(new AllowedIp("2600:1f18:3fff:f800/56", "Invalid IPv6 address"));
+    allowlist.add(new AllowedIp("2600:1f18:3fff:f800::0001/56", "Invalid IPv6 CIDR"));
     allowlist.add(new AllowedIp(null, "Null IP address"));
     allowlist.add(new AllowedIp("", "Empty String"));
     allowlist.add(null);
+
+    allowlist.add(new AllowedIp("192.168.33.1/32", "Valid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.168.33.0/31", "Valid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.168.0.0/18", "Valid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.128.0.0/9", "Valid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.0.0.0/8", "Valid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("2600:1f18:3fff:f800::/56", "Valid IPv6 CIDR"));
+
     List<Map<String, String>> allowlistMap = getAllowlistMap(allowlist);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> ConfigurationUtils.accessAllowlistToString(allowlistMap))
-        .withMessageContaining(
-            "Invalid IP addresses: [192.168.33.999, 2600:1f18:3fff:f800/56, null, , null]");
+        .withMessageContaining("Invalid IP addresses: [192.168.33.999, 192.168.33.1/31, 192.160.1.0/12, " +
+            "192.128.1.0/10, 192.1.0.0/8, 2600:1f18:3fff:f800/56, 2600:1f18:3fff:f800::0001/56, null, , null]");
   }
 
   private List<AllowedIp> getAccessAllowlist() {

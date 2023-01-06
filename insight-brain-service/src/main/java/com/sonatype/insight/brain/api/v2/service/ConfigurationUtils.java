@@ -178,8 +178,12 @@ public class ConfigurationUtils
     if (Strings.isNullOrEmpty(allowlistIp)) {
       return true;
     }
-    IPAddress ipAddress = new IPAddressString(allowlistIp).getAddress();
-    return ipAddress == null;
+    IPAddress addr = new IPAddressString(allowlistIp).getAddress();
+    if (addr == null) {
+      return true;
+    }
+    return addr.getPrefixLength() != null &&
+        !addr.mask(addr.getNetworkMask()).toInetAddress().equals(addr.toInetAddress());
   }
 
   public static String userAgentSuffix(Object userAgentSuffix) {

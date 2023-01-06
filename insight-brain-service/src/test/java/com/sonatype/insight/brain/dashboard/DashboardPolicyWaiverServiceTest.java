@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStra
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -221,6 +222,28 @@ public class DashboardPolicyWaiverServiceTest
         .isEqualTo(1);
 
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), policyWaiver, repository);
+
+    PolicyWaiver policyWaiver2 = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy.getId())
+        .withOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
+        .withExpiryTime(Date.from(Instant.now().plus(5, ChronoUnit.DAYS)))
+        .build();
+
+    tempEntity.newWaiver(policyWaiver2);
+
+    risksFilterDTOBuilder.withRepositoryIds(Collections.singleton(RepositoryContainer.REPOSITORY_CONTAINER_ID));
+
+    dashboardPolicyWaivers = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+
+    assertThat(dashboardPolicyWaivers.numResults)
+        .isEqualTo(1);
+
+    assertPolicyWaiverWithoutDetails(
+        dashboardPolicyWaivers.dashboardResults.get(0),
+        policyWaiver2,
+        RepositoryContainer.SINGLETON,
+        "all_repositories");
   }
 
   @Test
@@ -504,8 +527,8 @@ public class DashboardPolicyWaiverServiceTest
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
 
     assertThat(dashboardPolicyWaivers.numResults).isEqualTo(5);
-    assertThat(dashboardPolicyWaivers.dashboardResults.get(0).ownerName).isEqualTo(org.getName());
-    assertThat(dashboardPolicyWaivers.dashboardResults.get(1).ownerName).isEqualTo("Root Organization");
+    assertThat(dashboardPolicyWaivers.dashboardResults.get(0).ownerName).isEqualTo("Root Organization");
+    assertThat(dashboardPolicyWaivers.dashboardResults.get(1).ownerName).isEqualTo(org.getName());
     assertThat(dashboardPolicyWaivers.dashboardResults.get(2).ownerName).isEqualTo(app3.getName());
     assertThat(dashboardPolicyWaivers.dashboardResults.get(3).ownerName).isEqualTo(app2.getName());
     assertThat(dashboardPolicyWaivers.dashboardResults.get(4).ownerName).isEqualTo(app1.getName());
@@ -945,7 +968,14 @@ public class DashboardPolicyWaiverServiceTest
       final DashboardPolicyWaiverDTO dashboardPolicyWaiverDTO,
       final PolicyWaiver policyWaiver, Owner owner)
   {
-    assertPolicyWaiverDTOBasicFields(dashboardPolicyWaiverDTO, policyWaiver, owner);
+    assertPolicyWaiverWithoutDetails(dashboardPolicyWaiverDTO, policyWaiver, owner, null);
+  }
+
+  private void assertPolicyWaiverWithoutDetails(
+      final DashboardPolicyWaiverDTO dashboardPolicyWaiverDTO,
+      final PolicyWaiver policyWaiver, Owner owner, String customOwnerType)
+  {
+    assertPolicyWaiverDTOBasicFields(dashboardPolicyWaiverDTO, policyWaiver, owner, customOwnerType);
 
     assertThat(dashboardPolicyWaiverDTO.constraintFacts).isNull();
     assertThat(dashboardPolicyWaiverDTO.comment).isNull();
@@ -956,7 +986,8 @@ public class DashboardPolicyWaiverServiceTest
   private void assertPolicyWaiverDTOBasicFields(
       final DashboardPolicyWaiverDTO dashboardPolicyWaiverDTO,
       final PolicyWaiver policyWaiver,
-      final Owner owner)
+      final Owner owner,
+      final String customOwnerType)
   {
     Policy waiverPolicy = policyDAO.getById(policyWaiver.getPolicyId());
 
@@ -966,7 +997,8 @@ public class DashboardPolicyWaiverServiceTest
     assertThat(dashboardPolicyWaiverDTO.expiryTime).isEqualTo(policyWaiver.getExpiryTime());
     assertThat(dashboardPolicyWaiverDTO.policyId).isEqualTo(policyWaiver.getPolicyId());
     assertThat(dashboardPolicyWaiverDTO.policyName).isEqualTo(waiverPolicy.getName());
-    assertThat(dashboardPolicyWaiverDTO.ownerType).isEqualTo(owner.getType());
+    assertThat(dashboardPolicyWaiverDTO.ownerType)
+        .isEqualTo(customOwnerType != null ? customOwnerType : owner.getType().toString());
     assertThat(dashboardPolicyWaiverDTO.ownerId).isEqualTo(owner.getId());
     assertThat(dashboardPolicyWaiverDTO.ownerName).isEqualTo(owner.getName());
     assertThat(dashboardPolicyWaiverDTO.componentMatchStrategy).isEqualTo(policyWaiver.getComponentMatchStrategy());
@@ -983,7 +1015,7 @@ public class DashboardPolicyWaiverServiceTest
       final DashboardPolicyWaiverDTO dashboardPolicyWaiverDTO,
       final PolicyWaiver policyWaiver, Owner owner)
   {
-    assertPolicyWaiverDTOBasicFields(dashboardPolicyWaiverDTO, policyWaiver, owner);
+    assertPolicyWaiverDTOBasicFields(dashboardPolicyWaiverDTO, policyWaiver, owner, null);
 
     if (policyWaiver.getConstraintFacts() != null) {
       assertThat(dashboardPolicyWaiverDTO.constraintFacts).hasSize(policyWaiver.getConstraintFacts().size());

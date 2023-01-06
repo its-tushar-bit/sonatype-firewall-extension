@@ -18,6 +18,7 @@ import {
   getDashboardFilters,
   getDashboardSavedFilters,
   getNewestRisksUrl,
+  getRepositoriesUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 
 import defaultFilter from '../../../../main/frontend/dashboard/filter/defaultFilter';
@@ -33,11 +34,22 @@ describe('dashboardFilterActions: non-angular', function () {
     needsAcknowledgement: false,
   };
 
+  const repositoriesMockResponse = {
+    data: {
+      repositories: [
+        { repository: { id: 'id-foo', publicId: 'foo' } },
+        { repository: { id: 'id-bar', publicId: 'bar' } },
+        { repository: { id: 'id-foobar', publicId: 'foobar' } },
+      ],
+    },
+  };
+
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const mockGetData = {
     [getApplicationsUrl()]: Promise.resolve({ data: 'applications data' }),
     [getOrganizationsUrl()]: Promise.resolve({ data: 'organizations data' }),
     [getApplicationTagsUrl()]: Promise.resolve({ data: 'tag data' }),
+    [getRepositoriesUrl()]: Promise.resolve(repositoriesMockResponse),
     [getDashboardFilters()]: Promise.resolve({ data: filterJson }),
     [getDashboardSavedFilters()]: Promise.resolve({
       data: 'saved filters data',
@@ -66,6 +78,7 @@ describe('dashboardFilterActions: non-angular', function () {
     maxResults: 100,
     organizationIds: undefined,
     applicationIds: undefined,
+    repositoryIds: undefined,
     stageIds: undefined,
     tagIds: undefined,
     policyViolationStates: undefined,
@@ -128,6 +141,7 @@ describe('dashboardFilterActions: non-angular', function () {
           expect(axios.get).toHaveBeenCalledWith(getApplicationsUrl());
           expect(axios.get).toHaveBeenCalledWith(getOrganizationsUrl());
           expect(axios.get).toHaveBeenCalledWith(getApplicationTagsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getRepositoriesUrl());
           expect(axios.get).toHaveBeenCalledWith(getDashboardFilters());
           expect(axios.get).toHaveBeenCalledWith(getDashboardSavedFilters());
 
@@ -145,6 +159,7 @@ describe('dashboardFilterActions: non-angular', function () {
               applications: 'applications data',
               stages: initialState.stages.dashboard.stageTypes,
               categories: 'tag data',
+              repositories: repositoriesMockResponse.data.repositories,
             },
           });
 

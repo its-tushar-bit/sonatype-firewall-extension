@@ -12,7 +12,6 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
-import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -43,7 +42,7 @@ public class DashboardPolicyWaiverDTO
 
   public String ownerName;
 
-  public OwnerType ownerType;
+  public String ownerType;
 
   public ComponentMatcherStrategyForWaiver componentMatchStrategy;
 

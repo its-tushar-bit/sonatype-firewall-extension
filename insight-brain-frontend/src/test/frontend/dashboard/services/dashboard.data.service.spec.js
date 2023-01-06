@@ -22,6 +22,7 @@ describe('dashboard.data.service.spec', function () {
     maxResults: 100,
     organizationIds: undefined,
     applicationIds: undefined,
+    repositoryIds: undefined,
     stageIds: undefined,
     tagIds: undefined,
     policyViolationStates: undefined,

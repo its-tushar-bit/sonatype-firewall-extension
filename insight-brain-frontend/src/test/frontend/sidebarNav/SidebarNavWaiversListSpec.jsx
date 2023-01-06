@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
-import { waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
+import { waiverMatcherStrategy, displayWaiverScope } from 'MainRoot/util/waiverUtils';
 import SidebarNavWaiversList from 'MainRoot/sidebarNav/SidebarNavWaiversList';
 
 describe('SidebarNavWaiversList', function () {
@@ -26,8 +26,9 @@ describe('SidebarNavWaiversList', function () {
           policyName: 'Component-Similar',
           ownerId: 'ROOT_ORGANIZATION_ID',
           ownerName: 'Root Organization',
-          ownerType: 'organization',
+          ownerType: 'root_organization',
           associatedPackageUrl: 'a/package/url',
+          scope: 'Root Organization',
           componentMatchStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
           displayName: {
             parts: [
@@ -60,6 +61,7 @@ describe('SidebarNavWaiversList', function () {
           ownerId: '79e2b6864a4d4f5fbce461cf930c3f2c',
           ownerName: 'unprotected zip big java app',
           ownerType: 'application',
+          scope: 'Application - unprotected zip big java app',
           associatedPackageUrl: 'a/package/url',
           componentMatchStrategy: waiverMatcherStrategy.ALL_VERSIONS,
           displayName: {
@@ -120,7 +122,9 @@ describe('SidebarNavWaiversList', function () {
     }
 
     const fullOrgName = subTextItems.children[1];
-    expect(fullOrgName.textContent).toEqual(`${ownerType} - ${ownerName}`);
+    expect(fullOrgName.textContent).toEqual(
+      displayWaiverScope({ scopeOwnerType: ownerType, scopeOwnerName: ownerName })
+    );
   }
 
   it('properly renders a list of waivers', function () {

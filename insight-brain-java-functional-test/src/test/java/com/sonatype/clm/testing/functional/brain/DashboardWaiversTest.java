@@ -193,7 +193,7 @@ public class DashboardWaiversTest
     waiver6.createTime().shouldHave(text(dateFormat.format(Date.from(eightDaysAgo))));
     waiver6.expiryTime().shouldHave(text(dateFormat.format(Date.from(eightDaysFromNow))));
     waiver6.policy().shouldHave(text("Policy 4"));
-    waiver6.scope().shouldHave(text(rootOrg.getType().toString() + " - " + rootOrg.getName()));
+    waiver6.scope().shouldHave(text(rootOrg.getName()));
     waiver6.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
 
     WaiverTile repositoryWaiver = table.waiver(5);
@@ -211,7 +211,7 @@ public class DashboardWaiversTest
     repositoryContainerWaiver.createTime().shouldHave(text(dateFormat.format(Date.from(fourteenDaysAgo))));
     repositoryContainerWaiver.expiryTime().shouldHave(text(dateFormat.format(Date.from(fourteenDaysFromNow))));
     repositoryContainerWaiver.policy().shouldHave(text("Policy 2"));
-    repositoryContainerWaiver.scope().shouldHave(text(" "));
+    repositoryContainerWaiver.scope().shouldHave(text("All Repositories"));
     repositoryContainerWaiver.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
 
     WaiverTile waiver5 = table.waiver(7);
@@ -320,7 +320,7 @@ public class DashboardWaiversTest
     headers.scopeHeader().click();
 
     table.firstWaiver().scope().shouldHave(text("All Repositories"));
-    table.lastWaiver().scope().shouldHave(text(" ")); // todo: fix no scope description for container
+    table.lastWaiver().scope().shouldHave(text("Root Organization"));
 
     // assert csv export
     String exportCsvData = exportWaiversCSV();
@@ -870,13 +870,13 @@ public class DashboardWaiversTest
     String waiverRepoContainerString =
         policyWaiver7.getId() + ",9," + dateFormatCsv.format(Date.from(fourteenDaysAgo)) + "," +
             dateFormatCsv.format(Date.from(fourteenDaysFromNow)) + "," + policyWaiver7.getPolicyId() +
-            ",Policy 2,,repository_container," + policyWaiver7.getOwnerId() +
+            ",Policy 2,,all_repositories," + policyWaiver7.getOwnerId() +
             ",All Repositories,EXACT_COMPONENT,hash8," +
             "Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
 
     String waiver5String = policyWaiver5.getId() + ",4," + dateFormatCsv.format(Date.from(eightDaysAgo)) + "," +
         dateFormatCsv.format(Date.from(eightDaysFromNow)) + "," + policyWaiver5.getPolicyId() +
-        ",Policy 4,,organization," + policyWaiver5.getOwnerId() +
+        ",Policy 4,,root_organization," + policyWaiver5.getOwnerId() +
         "," + rootOrg.getName() + ",EXACT_COMPONENT,hash6,Group1 : Artifact1 : 1.2.3,testuser,Test User,comment";
 
     String waiver6String = policyWaiver2.getId() + ",3," + dateFormatCsv.format(Date.from(fiveDaysAgo)) + ",," +
@@ -902,7 +902,7 @@ public class DashboardWaiversTest
       case "scope":
         return new String[]{
             waiverRepoContainerString, waiver4String, waiver6String, waiver2String, waiver1String, waiver3String,
-            waiver5String, waiverRepoString
+            waiverRepoString, waiver5String
         };
       case "component":
         return new String[]{

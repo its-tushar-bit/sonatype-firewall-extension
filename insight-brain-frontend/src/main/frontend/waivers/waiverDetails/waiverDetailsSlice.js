@@ -18,9 +18,15 @@ export const initialState = Object.freeze({
   waiverDetails: null,
 });
 
+const mapWaiverOwnerType = {
+  all_repositories: 'repository_container',
+  root_organization: 'organization',
+};
+
 // Axios request to get waiver details
 const loadWaiver = createAsyncThunk(`${REDUCER_NAME}/loadWaiver`, (_, { getState, rejectWithValue }) => {
-  const { ownerType, ownerId, waiverId } = selectRouterCurrentParams(getState());
+  const { ownerType: ownerTypeRaw, ownerId, waiverId } = selectRouterCurrentParams(getState());
+  const ownerType = mapWaiverOwnerType[ownerTypeRaw] || ownerTypeRaw;
   return axios.get(getWaiverDetailsUrl(ownerType, ownerId, waiverId)).then(prop('data')).catch(rejectWithValue);
 });
 

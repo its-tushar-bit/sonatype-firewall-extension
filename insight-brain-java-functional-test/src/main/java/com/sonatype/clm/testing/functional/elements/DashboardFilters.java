@@ -51,6 +51,10 @@ public class DashboardFilters
     return new NxTreeViewMultiSelect("#org-app-filters > div:nth-child(2)");
   }
 
+  public static NxTreeViewMultiSelect repositoryFilter() {
+    return new NxTreeViewMultiSelect("#repositories-filter");
+  }
+
   public static CategoryFilter applicationCategoryFilter() {
     return new CategoryFilter("#category-filter");
   }

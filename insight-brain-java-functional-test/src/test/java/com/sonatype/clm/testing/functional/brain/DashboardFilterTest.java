@@ -9,6 +9,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -57,6 +59,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.OperateStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.security.InternalRealm;
@@ -102,6 +106,10 @@ public class DashboardFilterTest
 
   private static Application firstApp;
 
+  private static Repository repository1;
+
+  private static Repository repository2;
+
   private static Tag firstAppCategory1;
 
   private static Tag firstAppCategory2;
@@ -134,6 +142,8 @@ public class DashboardFilterTest
 
   private static void setupData() {
     rootOrg = orgDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    repository1 = staticTempEntity.newRepository("Repository 1");
+    repository2 = staticTempEntity.newRepository("Repository 2");
     org = staticTempEntity.newOrganization("DashboardTest");
     staticTempEntity.newOrganization("DashboardTestEmptyOrg");
     firstApp = staticTempEntity.newApplication("DashboardTestAppOne", "DashboardTestAppOne", org.getId());
@@ -202,6 +212,12 @@ public class DashboardFilterTest
         Date.from(seeDate.plus(7, ChronoUnit.DAYS)));
     staticTempEntity.newWaiver("hash-waived-4", policy.getId(), firstApp.getId(), "",
         Date.from(seeDate.plus(8, ChronoUnit.DAYS)));
+    staticTempEntity.newWaiver("hash-waived-5", policy.getId(), repository1.getId(), "",
+        Date.from(seeDate.plus(9, ChronoUnit.DAYS)));
+    staticTempEntity.newWaiver("hash-waived-6", policy.getId(), repository2.getId(), "",
+        Date.from(seeDate.plus(9, ChronoUnit.DAYS)));
+    staticTempEntity.newWaiver("hash-waived-7", policy.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID, "",
+        Date.from(seeDate.plus(12, ChronoUnit.DAYS)));
     staticTempEntity.newWaivedPolicyViolation(secondPolicyEvaluation, policy, 3, PolicyThreatCategory.QUALITY,
         ComponentIdentifier.createMavenCoordinates("Group2", "Artifact2", "Version2"), "hash-waived", policyWaiver);
 
@@ -294,7 +310,7 @@ public class DashboardFilterTest
     violationsTab().counter().shouldBe(visible).shouldHave(text("3"));
     componentsTab().counter().shouldBe(visible).shouldHave(text("1"));
     applicationsTab().counter().shouldBe(visible).shouldHave(text("2"));
-    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
 
     // check waiver results change
     DashboardFilters.apply();
@@ -302,11 +318,11 @@ public class DashboardFilterTest
 
     expirationDateFilter.in30days().shouldNotBe(selected).click();
     DashboardFilters.apply();
-    waiversTab().counter().shouldBe(visible).shouldHave(text("4"));
+    waiversTab().counter().shouldBe(visible).shouldHave(text("7"));
 
     expirationDateFilter.all().shouldNotBe(selected).click();
     DashboardFilters.apply();
-    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
 
     refreshOrOpen(DashboardPage.urlToWaivers());
     DashboardPage.filterToggle().shouldBe(visible).click();
@@ -433,7 +449,8 @@ public class DashboardFilterTest
             "  \"stageTypeFilters\" : [ \"release\" ],\n" +
             "  \"maxDaysOld\" : 30,\n" +
             "  \"policyViolationStates\" : [ \"OPEN\", \"WAIVED\", \"GRANDFATHERED\" ],\n" +
-            "  \"expirationDate\" : \"ALL\"\n" +
+            "  \"expirationDate\" : \"ALL\",\n" +
+            "  \"repositoryFilters\" : [ ]\n" +
             "}");
 
     // assert applied filters
@@ -1046,7 +1063,7 @@ public class DashboardFilterTest
     DashboardPage.filterToggle().shouldBe(visible).click();
 
     // all waivers should be listed without filter
-    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
 
     // select All applications filter option
     DashboardFilters.applicationFilter().twisty().click();
@@ -1063,7 +1080,7 @@ public class DashboardFilterTest
     DashboardPage.filterToggle().shouldBe(visible).click();
 
     // all waivers should be listed without filter
-    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
 
     // select All applications category filter option
     DashboardFilters.applicationCategoryFilter().twisty().click();
@@ -1080,7 +1097,7 @@ public class DashboardFilterTest
     DashboardPage.filterToggle().shouldBe(visible).click();
 
     // all waivers should be listed without filter
-    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
 
     // select no category filter option
     DashboardFilters.applicationCategoryFilter().twisty().click();
@@ -1106,7 +1123,7 @@ public class DashboardFilterTest
     DashboardPage.filterToggle().shouldBe(visible).click();
 
     // all waivers should be listed without filter
-    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
 
     // select no category filter option
     DashboardFilters.applicationCategoryFilter().twisty().click();
@@ -1147,7 +1164,7 @@ public class DashboardFilterTest
     DashboardFilters.apply();
 
     WaiverTile firstWaiver = DashboardPage.waiversView().results().firstWaiver();
-    firstWaiver.scope().shouldHave(text(getWaiverDashboardTableScopeName(rootOrg)));
+    firstWaiver.scope().shouldHave(text(rootOrg.getName()));
     WaiverTile lastWaiver = DashboardPage.waiversView().results().lastWaiver();
     lastWaiver.scope().shouldHave(text(getWaiverDashboardTableScopeName(firstApp)));
   }
@@ -1158,7 +1175,7 @@ public class DashboardFilterTest
     DashboardPage.filterToggle().shouldBe(visible).click();
 
     // all waivers should be listed without filter
-    waiversTab().counter().shouldBe(visible).shouldHave(text("5"));
+    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
 
     // assert that waivers are by default sorted by expiry date
     WaiverTile firstWaiver = DashboardPage.waiversView().results().firstWaiver();
@@ -1179,8 +1196,7 @@ public class DashboardFilterTest
 
     // assert items order after filtering.
     firstWaiver = DashboardPage.waiversView().results().firstWaiver();
-    firstWaiver.scope().shouldHave(text(getWaiverDashboardTableScopeName(rootOrg)));
-
+    firstWaiver.scope().shouldHave(text(rootOrg.getName()));
     lastWaiver = DashboardPage.waiversView().results().lastWaiver();
     lastWaiver.scope().shouldHave(text(getWaiverDashboardTableScopeName(firstApp)));
   }
@@ -1189,15 +1205,81 @@ public class DashboardFilterTest
     if (CollectionUtils.isEmpty(waivers)) {
       return false;
     }
-    return waivers.stream()
-        .anyMatch(waiverTile -> waiverTile.scope()
-            .getText()
-            .toLowerCase()
-            .contains(getWaiverDashboardTableScopeName(owner)));
+
+    Predicate<WaiverTile> ownerPredicate = waiverTile -> waiverTile.scope()
+        .getText()
+        .toLowerCase()
+        .contains(getWaiverDashboardTableScopeName(owner));
+
+    // root org and repository container display name is not lower cased
+    Predicate<WaiverTile> rootOrgOrRepoContainerPredicate = waiverTile -> waiverTile.scope()
+        .getText()
+        .contains(getWaiverDashboardTableScopeName(owner));
+
+    if (isOwnerRootOrgOrRepoContainer(owner)) {
+      return waivers.stream().anyMatch(rootOrgOrRepoContainerPredicate);
+    }
+
+    return waivers.stream().anyMatch(ownerPredicate);
   }
 
   private String getWaiverDashboardTableScopeName(Owner owner) {
+    if (isOwnerRootOrgOrRepoContainer(owner)) {
+      return owner.getName();
+    }
     return owner.getType().toString() + " - " + owner.getName().toLowerCase();
+  }
+
+  private boolean isOwnerRootOrgOrRepoContainer(final Owner owner) {
+    return Objects.equals(owner.getId(), Organization.ROOT_ORGANIZATION_ID) ||
+        Objects.equals(owner.getId(), RepositoryContainer.REPOSITORY_CONTAINER_ID);
+  }
+
+  @Test
+  public void testWaiverReposFilterIncludesRootOrgAndAllRepositories() {
+    refreshOrOpen(DashboardPage.urlToWaivers());
+    DashboardPage.filterToggle().shouldBe(visible).click();
+
+    waiversTab().counter().shouldBe(visible).shouldHave(text("8"));
+
+    WaiverTile firstWaiver = DashboardPage.waiversView().results().firstWaiver();
+    firstWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+    WaiverTile lastWaiver = DashboardPage.waiversView().results().lastWaiver();
+    lastWaiver.scope().shouldHave(text(secondApp.getType().toString() + " - " + secondApp.getName()));
+
+    DashboardFilters.repositoryFilter().twisty().click();
+    DashboardFilters.repositoryFilter().allItems().click();
+    DashboardFilters.apply();
+
+    waiversTab().counter().shouldBe(visible).shouldHave(text("4"));
+    Owner rootOrgAsOwner = orgDAO.getById(Organization.ROOT_ORGANIZATION_ID);
+    List<WaiverTile> waiverTiles = DashboardPage.waiversView().results().allWaivers();
+    assertThat(containsWaiverWithScope(waiverTiles, rootOrgAsOwner)).isTrue();
+    assertThat(containsWaiverWithScope(waiverTiles, repository1)).isTrue();
+    assertThat(containsWaiverWithScope(waiverTiles, repository2)).isTrue();
+    assertThat(containsWaiverWithScope(waiverTiles, RepositoryContainer.SINGLETON)).isTrue();
+
+    DashboardFilters.repositoryFilter().allItems().click();
+    DashboardFilters.repositoryFilter().checkboxItem(2).click();
+    DashboardFilters.apply();
+
+    waiversTab().counter().shouldBe(visible).shouldHave(text("3"));
+    waiverTiles = DashboardPage.waiversView().results().allWaivers();
+    assertThat(containsWaiverWithScope(waiverTiles, rootOrgAsOwner)).isTrue();
+    assertThat(containsWaiverWithScope(waiverTiles, repository1)).isTrue();
+    assertThat(containsWaiverWithScope(waiverTiles, repository2)).isFalse();
+    assertThat(containsWaiverWithScope(waiverTiles, RepositoryContainer.SINGLETON)).isTrue();
+
+    DashboardFilters.repositoryFilter().checkboxItem(2).click();
+    DashboardFilters.repositoryFilter().checkboxItem(3).click();
+    DashboardFilters.apply();
+
+    waiversTab().counter().shouldBe(visible).shouldHave(text("3"));
+    waiverTiles = DashboardPage.waiversView().results().allWaivers();
+    assertThat(containsWaiverWithScope(waiverTiles, rootOrgAsOwner)).isTrue();
+    assertThat(containsWaiverWithScope(waiverTiles, repository1)).isFalse();
+    assertThat(containsWaiverWithScope(waiverTiles, repository2)).isTrue();
+    assertThat(containsWaiverWithScope(waiverTiles, RepositoryContainer.SINGLETON)).isTrue();
   }
 
   @Test

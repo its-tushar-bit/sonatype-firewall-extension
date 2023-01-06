@@ -216,7 +216,7 @@ public class DashboardPolicyWaiverDTOTest
     dto.policyName = "test policy";
     dto.ownerId = "ownerId";
     dto.ownerName = "ownerName";
-    dto.ownerType = OwnerType.ORGANIZATION;
+    dto.ownerType = OwnerType.ORGANIZATION.toString();
     dto.componentMatchStrategy = ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
     dto.hash = "hash";
     dto.constraintFacts = null;

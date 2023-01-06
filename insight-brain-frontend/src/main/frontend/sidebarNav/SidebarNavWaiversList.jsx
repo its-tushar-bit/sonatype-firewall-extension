@@ -43,8 +43,9 @@ export default function SidebarNavWaiversList({ currentWaiverId, waivers, onClic
 
   const getFullPolicyName = (item) => `${item.threatLevel} ${item.policyName}`;
 
-  const getFullOwner = (item) =>
-    item.ownerType ? `${item.ownerType} - ${item.ownerName}` : `${displayWaiverScope(item)} - ${item.scopeOwnerName}`;
+  const getFullOwner = (item) => {
+    return !item.scope ? displayWaiverScope(item) : item.scope;
+  };
 
   const listItems = waivers.map((item) => (
     <li

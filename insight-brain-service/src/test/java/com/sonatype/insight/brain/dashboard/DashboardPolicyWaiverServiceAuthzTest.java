@@ -135,6 +135,53 @@ public class DashboardPolicyWaiverServiceAuthzTest
   }
 
   @Test
+  public void getDashboardPolicyWaivers_ExplicitRepositoryFilter_Unauthenticated() {
+    risksFilterDTOBuilder
+        .withRepositoryIds(Collections.singleton(repository.getId()));
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+    assertThat(dashboardPolicyWaivers.numResults).isZero();
+    assertThat(dashboardPolicyWaivers.dashboardResults.size()).isZero();
+  }
+
+  @Test
+  public void getDashboardPolicyWaivers_ExplicitRepositoryFilter_Unauthorized() {
+    login();
+    risksFilterDTOBuilder
+        .withRepositoryIds(Collections.singleton(repository.getId()));
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+    assertThat(dashboardPolicyWaivers.numResults).isZero();
+    assertThat(dashboardPolicyWaivers.dashboardResults.size()).isZero();
+  }
+
+  @Test
+  public void getDashboardPolicyWaivers_ExplicitRepositoryFilter_Authorized() {
+    grantReadPermission(repository.getId());
+    risksFilterDTOBuilder
+        .withRepositoryIds(Collections.singleton(repository.getId()));
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+    assertThat(dashboardPolicyWaivers.numResults)
+        .as("At the repo level we should get the repo, the repo container and the root org")
+        .isEqualTo(3);
+    assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(3);
+  }
+
+  @Test
+  public void getDashboardPolicyWaivers_ExplicitRepositoryContainerFilter_Authorized() {
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    risksFilterDTOBuilder
+        .withRepositoryIds(Collections.singleton(RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+    assertThat(dashboardPolicyWaivers.numResults)
+        .as("At the repo container level we should get the repo container and the root org")
+        .isEqualTo(2);
+    assertThat(dashboardPolicyWaivers.dashboardResults.size()).isEqualTo(2);
+  }
+
+  @Test
   public void getDashboardPolicyWaivers_ImplicitExpirationFilter_Unauthenticated() {
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app.getId())).withExpirationDate(NEVER);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =

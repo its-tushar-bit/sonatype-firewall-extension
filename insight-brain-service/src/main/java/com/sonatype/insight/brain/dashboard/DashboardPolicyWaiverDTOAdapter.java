@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
 
 public class DashboardPolicyWaiverDTOAdapter
 {
@@ -40,7 +41,7 @@ public class DashboardPolicyWaiverDTOAdapter
     dto.policyName = policiesById.get(policyWaiver.getPolicyId()).getName();
     dto.ownerId = policyWaiver.getOwnerId();
     dto.ownerName = ownersById.get(policyWaiver.getOwnerId()).getName();
-    dto.ownerType = ownersById.get(policyWaiver.getOwnerId()).getType();
+    dto.ownerType = ScopeOwnerUtils.getScopeOwnerType(ownersById.get(policyWaiver.getOwnerId()).getType(), dto.ownerId);
     dto.componentMatchStrategy = policyWaiver.getComponentMatchStrategy();
     dto.hash = policyWaiver.getHash();
 

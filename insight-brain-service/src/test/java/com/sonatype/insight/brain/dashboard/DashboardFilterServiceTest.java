@@ -156,6 +156,7 @@ public class DashboardFilterServiceTest
     assertThat(actual.filter.minPolicyThreatLevel).isEqualTo(2);
     assertThat(actual.filter.maxPolicyThreatLevel).isEqualTo(10);
     assertThat(actual.filter.applicationFilters).isEmpty();
+    assertThat(actual.filter.repositoryFilters).isEmpty();
     assertThat(actual.filter.tagFilters).isEmpty();
     assertThat(actual.filter.policyThreatCategoryFilters).isEmpty();
     assertThat(actual.filter.stageTypeFilters).isEmpty();
@@ -386,6 +387,7 @@ public class DashboardFilterServiceTest
     assertThat(actualDto.maxPolicyThreatLevel).isEqualTo(maxPolicyThreatLevel);
     assertThat(actualDto.applicationFilters).isEmpty();
     assertThat(actualDto.organizationFilters).isEmpty();
+    assertThat(actualDto.repositoryFilters).isEmpty();
     assertThat(actualDto.tagFilters).isEmpty();
     assertThat(actualDto.policyThreatCategoryFilters).isEmpty();
     assertThat(actualDto.stageTypeFilters).isEmpty();
@@ -612,6 +614,7 @@ public class DashboardFilterServiceTest
     DashboardFilterDTO filter = new DashboardFilterDTO();
     filter.applicationFilters = new ArrayList<>();
     filter.organizationFilters = new ArrayList<>();
+    filter.repositoryFilters = new ArrayList<>();
     filter.minPolicyThreatLevel = minPolicyThreatLevel;
     filter.maxPolicyThreatLevel = maxPolicyThreatLevel;
     filter.stageTypeFilters = new ArrayList<>();

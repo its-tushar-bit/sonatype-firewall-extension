@@ -14,6 +14,7 @@ import {
   getOrganizationsUrl,
   getApplicationTagsUrl,
   getDashboardFilters,
+  getRepositoriesUrl,
 } from '../../util/CLMLocation';
 import { filterToJson } from './dashboardFilterService';
 import defaultFilter from './defaultFilter';
@@ -32,6 +33,7 @@ export const REFRESH_VIOLATION_DETAILS = 'REFRESH_VIOLATION_DETAILS';
 export const REFRESH_VIOLATION_DETAILS_FAILED = 'REFRESH_VIOLATION_DETAILS_FAILED';
 export const TOGGLE_FILTER = 'TOGGLE_FILTER';
 export const TOGGLE_APPS_AND_ORGS = 'TOGGLE_APPS_AND_ORGS';
+export const TOGGLE_REPOSITORIES = 'TOGGLE_REPOSITORIES';
 export const SELECT_AGE = 'SELECT_AGE';
 export const SELECT_EXPIRATION_DATE = 'SELECT_EXPIRATION_DATE';
 export const REVERT_FILTER = 'REVERT_FILTER';
@@ -47,11 +49,12 @@ export function loadFilter(resultsType = null, isLoadResults = false) {
       axios.get(getOrganizationsUrl()),
       axios.get(getApplicationTagsUrl()),
       axios.get(getDashboardFilters()),
+      axios.get(getRepositoriesUrl()),
       dispatch(fetchStageTypes('dashboard')),
       dispatch(fetchSavedFilters()),
     ])
       .then((data) => {
-        const [applications, organizations, categoriesData, filterData] = data;
+        const [applications, organizations, categoriesData, filterData, repositories] = data;
         // Get dashboard-stages from general state
         const { dashboard } = getState().stages;
 
@@ -60,7 +63,8 @@ export function loadFilter(resultsType = null, isLoadResults = false) {
             applications.data,
             organizations.data,
             categoriesData.data,
-            dashboard.stageTypes
+            dashboard.stageTypes,
+            repositories.data.repositories
           )
         );
         return dispatch(fetchCurrentFilterFulfilled(filterData.data, resultsType, isLoadResults));
@@ -72,7 +76,7 @@ export function loadFilter(resultsType = null, isLoadResults = false) {
   };
 }
 
-function fetchAvailableFilterOptionsFulfilled(applications, organizations, categories, stages) {
+function fetchAvailableFilterOptionsFulfilled(applications, organizations, categories, stages, repositories) {
   return {
     type: FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED,
     payload: {
@@ -80,6 +84,7 @@ function fetchAvailableFilterOptionsFulfilled(applications, organizations, categ
       organizations,
       categories,
       stages,
+      repositories,
     },
   };
 }
@@ -175,6 +180,8 @@ export function toggleAppsAndOrgs(selectedOrganizations, selectedApplications) {
     payload: { selectedOrganizations, selectedApplications },
   };
 }
+
+export const toggleRepositories = payloadParamActionCreator(TOGGLE_REPOSITORIES);
 
 export const toggleFilterSidebar = payloadParamActionCreator(TOGGLE_FILTER_SIDEBAR);
 

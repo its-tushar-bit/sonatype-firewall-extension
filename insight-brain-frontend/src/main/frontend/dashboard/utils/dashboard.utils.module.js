@@ -39,6 +39,7 @@ export function createDashboardDataRequestPayload(filter, maxResults, sortFields
   if (filter) {
     params.organizationIds = setToArray(filter.organizations);
     params.applicationIds = setToArray(filter.applications);
+    params.repositoryIds = setToArray(filter.repositories);
     params.stageIds = setToArray(filter.stages);
     params.tagIds = setToArray(filter.categories);
     params.policyViolationStates = setToArray(filter.policyViolationStates);

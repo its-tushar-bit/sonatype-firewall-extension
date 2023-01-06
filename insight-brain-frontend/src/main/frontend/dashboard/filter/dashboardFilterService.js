@@ -9,6 +9,7 @@ export function filterToJson(filter) {
   return {
     organizationFilters: setToArray(filter.organizations),
     applicationFilters: setToArray(filter.applications),
+    repositoryFilters: setToArray(filter.repositories),
     policyThreatCategoryFilters: setToArray(filter.policyTypes),
     stageTypeFilters: setToArray(filter.stages),
     tagFilters: setToArray(filter.categories),

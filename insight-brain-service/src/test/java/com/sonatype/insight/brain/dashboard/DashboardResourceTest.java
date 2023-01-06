@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -37,6 +38,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageReleaseStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -46,6 +48,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.Sets;
+import org.apache.commons.collections.CollectionUtils;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dashboard.DashboardResource.GET_APPLICATION_RISKS_EXPORT_PATH;
@@ -117,8 +120,14 @@ public class DashboardResourceTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     Tag tag = tempEntity.newTag(org.getId());
+    Repository repository1 = tempEntity.newRepository("repo1");
+    Repository repository2 = tempEntity.newRepository("repo2");
+
     // creating a new filter
     NamedDashboardFilterDTO dashboardFilterDTO = createNamedDashboardFilter(app, tag);
+    dashboardFilterDTO.filter.repositoryFilters = new ArrayList<>();
+    dashboardFilterDTO.filter.repositoryFilters.addAll(Arrays.asList(repository1.getId(),repository2.getId()));
+
     // Test the create
     HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.FILTERS_PATH);
     HttpResponse response = request.body(dashboardFilterDTO).put();
@@ -139,14 +148,23 @@ public class DashboardResourceTest
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
     Tag tag = tempEntity.newTag(org.getId());
+    Repository repository1 = tempEntity.newRepository("repo1");
+    Repository repository2 = tempEntity.newRepository("repo2");
     String filterName = "";
     NamedDashboardFilterDTO dashboardFilterDTO = createNamedDashboardFilter(app, tag);
+    dashboardFilterDTO.filter.repositoryFilters = new ArrayList<>();
+    dashboardFilterDTO.filter.repositoryFilters.addAll(Arrays.asList(repository1.getId(),repository2.getId()));
+
     // creating a new filter
     tempEntity.newDashboardFilter(tempUser.getUsername(), InternalRealm.ID, filterName,
         JsonUtils.format(dashboardFilterDTO));
+
     // updating the new filter
     dashboardFilterDTO.filter.minPolicyThreatLevel = 4;
     dashboardFilterDTO.filter.maxPolicyThreatLevel = 9;
+    dashboardFilterDTO.filter.repositoryFilters = new ArrayList<>(Collections.singletonList(repository2.getId()));
+    dashboardFilterDTO.filter.expirationDate = ExpirationDate.NEVER;
+
     HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.FILTERS_PATH);
     HttpResponse response = request.body(dashboardFilterDTO).put();
     assertResponseStatus(200, response);
@@ -159,14 +177,15 @@ public class DashboardResourceTest
   private void assertDashboardFilterDTO(DashboardFilterDTO actual, DashboardFilterDTO expected) {
     assertThat(actual.minPolicyThreatLevel).isEqualTo(expected.minPolicyThreatLevel);
     assertThat(actual.maxPolicyThreatLevel).isEqualTo(expected.maxPolicyThreatLevel);
-    assertThat(actual.applicationFilters).hasSize(1);
-    assertThat(actual.applicationFilters.get(0)).isEqualTo(expected.applicationFilters.get(0));
-    assertThat(actual.tagFilters).hasSize(1);
-    assertThat(actual.tagFilters.get(0)).isEqualTo(expected.tagFilters.get(0));
-    assertThat(actual.policyThreatCategoryFilters).hasSize(1);
-    assertThat(actual.policyThreatCategoryFilters.get(0)).isEqualTo(expected.policyThreatCategoryFilters.get(0));
-    assertThat(actual.stageTypeFilters).hasSize(1);
-    assertThat(actual.stageTypeFilters.get(0)).isEqualTo(expected.stageTypeFilters.get(0));
+
+    assertThat(CollectionUtils.isEqualCollection(actual.organizationFilters, expected.organizationFilters)).isTrue();
+    assertThat(CollectionUtils.isEqualCollection(actual.applicationFilters, expected.applicationFilters)).isTrue();
+    assertThat(CollectionUtils.isEqualCollection(actual.tagFilters, expected.tagFilters)).isTrue();
+    assertThat(CollectionUtils.isEqualCollection(actual.policyThreatCategoryFilters,
+        expected.policyThreatCategoryFilters)).isTrue();
+    assertThat(CollectionUtils.isEqualCollection(actual.stageTypeFilters, expected.stageTypeFilters)).isTrue();
+    assertThat(CollectionUtils.isEqualCollection(actual.repositoryFilters, expected.repositoryFilters)).isTrue();
+    assertThat(actual.expirationDate).isEqualTo(expected.expirationDate);
   }
 
   private DashboardFilterDTO createDashboardFilter(Application application, Tag tag) {
@@ -190,6 +209,7 @@ public class DashboardResourceTest
 
     dashboardFilterDTO.stageTypeFilters = new ArrayList<>();
     dashboardFilterDTO.stageTypeFilters.add(Stage.ID_BUILD);
+    dashboardFilterDTO.expirationDate = ExpirationDate.IN_30_DAYS;
 
     return dashboardFilterDTO;
   }

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.Collections;
 import java.util.Set;
 
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;
@@ -47,7 +48,7 @@ public class RisksFilterDTO
   /**
    * @since 1.149
    */
-  public Set<String> repositoryIds;
+  public Set<String> repositoryIds = Collections.emptySet();
 
   public int maxResults = 1000;
 }

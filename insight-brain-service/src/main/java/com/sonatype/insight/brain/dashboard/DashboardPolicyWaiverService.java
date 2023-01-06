@@ -203,7 +203,9 @@ public class DashboardPolicyWaiverService
     owners.putAll(repositories.stream().collect(ownerCollector));
 
     // add repo container if there is at least one repo
-    if (!repositories.isEmpty()) {
+    if (!repositories.isEmpty() ||
+        (CollectionUtils.isNotEmpty(repositoryIds) &&
+        repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID))) {
       owners.put(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON);
     }
 

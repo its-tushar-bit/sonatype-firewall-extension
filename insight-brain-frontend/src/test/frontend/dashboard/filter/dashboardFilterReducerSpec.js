@@ -158,6 +158,11 @@ describe('dashboardFilterReducer', () => {
             },
           ],
           stages: MockData.getDashboardStageData(),
+          repositories: [
+            { managerInstanceId: '12345-67890', repository: { id: 'id-foo', publicId: 'foo' } },
+            { managerInstanceId: '12345-67890', repository: { id: 'id-bar', publicId: 'bar' } },
+            { managerInstanceId: '12345-67890', repository: { id: 'id-foobar', publicId: 'foobar' } },
+          ],
         },
       };
     });
@@ -172,7 +177,7 @@ describe('dashboardFilterReducer', () => {
 
     it('sets available filter options', () => {
       const state = Object.freeze(initState);
-      const { other, applications, organizations, stages, categories } = reduce(state, action);
+      const { other, applications, organizations, stages, categories, repositories } = reduce(state, action);
 
       expect(other).toBe(otherObject);
 
@@ -203,6 +208,14 @@ describe('dashboardFilterReducer', () => {
       expect(categories[1].id).toBe(action.payload.categories[0].id);
       // populates owner
       expect(categories[1].owner).toBe(action.payload.organizations[0].name);
+
+      // transform repositories data
+      expect(repositories[0].name).toBe('foo - 12345');
+      expect(repositories[0].fullName).toBe('foo - 12345-67890');
+      expect(repositories[1].name).toBe('bar - 12345');
+      expect(repositories[1].fullName).toBe('bar - 12345-67890');
+      expect(repositories[2].name).toBe('foobar - 12345');
+      expect(repositories[2].fullName).toBe('foobar - 12345-67890');
     });
   });
 
@@ -224,6 +237,7 @@ describe('dashboardFilterReducer', () => {
       filterJson = {
         organizationFilters: ['orgId1', 'orgId2', 'org3'],
         policyThreatCategoryFilters: ['QUALITY', 'OTHER', 'SECURITY'],
+        repositoryFilters: ['id-foo', 'id-bar', 'id-foobar'],
         stageTypeFilters: ['release', 'stage-release', 'build'],
         tagFilters: ['tagId1', 'tagId2', null],
         applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
@@ -246,6 +260,11 @@ describe('dashboardFilterReducer', () => {
           { id: 'applicationIdQ', organizationId: 'orgId2' },
           { id: 'applicationIdR', organizationId: 'orgId2' },
           { id: 'applicationIdS', organizationId: 'noPermissionOrgId' },
+        ],
+        repositories: [
+          { repository: { fullName: 'id-foo - 12345-67890', id: 'id-foo', publicId: 'foo - 12345' } },
+          { repository: { fullName: 'id-bar - 12345-67890', id: 'id-bar', publicId: 'bar - 12345' } },
+          { repository: { fullName: 'id-foobar - 12345-67890', id: 'id-foobar', publicId: 'foobar - 12345' } },
         ],
         ages: [
           { name: 'past 24 hours', id: 1 },
@@ -485,6 +504,7 @@ describe('dashboardFilterReducer', () => {
         showStagesFilter: false,
         showViolationStateFilter: false,
         showExpirationDateFilter: false,
+        showRepositoriesFilter: false,
         selected: {
           maxDaysOld: 30,
         },
@@ -492,34 +512,40 @@ describe('dashboardFilterReducer', () => {
       };
     });
 
-    describe('showAgeFilter, showStagesFilter, showViolationStateFilter, showExpirationDateFilter', () => {
+    describe('showAgeFilter, showStagesFilter, showViolationStateFilter, showExpirationDateFilter, showRepositoriesFilter', () => {
       NxTabs.forEach((tab) => {
         const [route, filterValues] = tab;
-        it(`is set to ${filterValues.showAgeFilter}, ${filterValues.showStagesFilter}, ${filterValues.showViolationStateFilter} and ${filterValues.showExpirationDateFilter} if the route is ${route}`, () => {
+        it(`is set to ${filterValues.showAgeFilter}, ${filterValues.showStagesFilter}, ${filterValues.showViolationStateFilter} ${filterValues.showRepositoriesFilter} and ${filterValues.showExpirationDateFilter} if the route is ${route}`, () => {
           const state = Object.freeze(initState);
 
           expect(state.showAgeFilter).toBe(false);
           expect(state.showStagesFilter).toBe(false);
           expect(state.showViolationStateFilter).toBe(false);
           expect(state.showExpirationDateFilter).toBe(false);
+          expect(state.showRepositoriesFilter).toBe(false);
 
-          const { showAgeFilter, showStagesFilter, showViolationStateFilter, showExpirationDateFilter, other } = reduce(
-            state,
-            {
-              type: '@@reduxUiRouter/onFinish',
-              payload: {
-                toState: {
-                  name: route,
-                },
-                toParams: {},
+          const {
+            showAgeFilter,
+            showStagesFilter,
+            showViolationStateFilter,
+            showExpirationDateFilter,
+            showRepositoriesFilter,
+            other,
+          } = reduce(state, {
+            type: '@@reduxUiRouter/onFinish',
+            payload: {
+              toState: {
+                name: route,
               },
-            }
-          );
+              toParams: {},
+            },
+          });
 
           expect(showAgeFilter).toBe(filterValues.showAgeFilter);
           expect(showStagesFilter).toBe(filterValues.showStagesFilter);
           expect(showViolationStateFilter).toBe(filterValues.showViolationStateFilter);
           expect(showExpirationDateFilter).toBe(filterValues.showExpirationDateFilter);
+          expect(showRepositoriesFilter).toBe(filterValues.showRepositoriesFilter);
           expect(other).toBe(otherObject);
         });
       });
@@ -544,6 +570,25 @@ describe('dashboardFilterReducer', () => {
 
       expect(selected.organizations).toBe(action.payload.selectedOrganizations);
       expect(selected.applications).toBe(action.payload.selectedApplications);
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe('TOGGLE_REPOSITORIES action', () => {
+    it('sets selected repositories and sets filtersAreDirty to true', () => {
+      const state = Object.freeze({
+        other: otherObject,
+        filtersAreDirty: false,
+        selected: {},
+      });
+      const action = {
+        type: 'TOGGLE_REPOSITORIES',
+        payload: new Set(['repo1', 'repo2']),
+      };
+      const { selected, filtersAreDirty, other } = reduce(state, action);
+
+      expect(selected.repositories).toBe(action.payload);
       expect(filtersAreDirty).toBe(true);
       expect(other).toBe(otherObject);
     });

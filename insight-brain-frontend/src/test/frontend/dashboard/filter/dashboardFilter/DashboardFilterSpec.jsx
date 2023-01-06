@@ -36,6 +36,13 @@ describe('DashboardFilter', function () {
         organizationName: 'Org1',
       },
     ],
+    repositories: [
+      {
+        fullName: 'maven-central - 12345-67890',
+        id: 'repo123',
+        publicId: 'maven-central - 12345',
+      },
+    ],
     categories: [uncategorizedCategory, { id: 'cat', name: 'Cat', owner: 'Org1' }],
     stages: [
       { id: 'build', name: 'Build' },
@@ -50,6 +57,7 @@ describe('DashboardFilter', function () {
     selected: {
       organizations: new Set(),
       applications: new Set(),
+      repositories: new Set(),
       categories: new Set(),
       stages: new Set(),
       policyTypes: new Set(),
@@ -336,6 +344,44 @@ describe('DashboardFilter', function () {
       expect(maxSlider).toHaveTextContent('10');
     });
 
+    it('renders the repositories filter when loading prop is false', function () {
+      renderComponent({
+        ...filterData,
+        repositories: [
+          { fullName: 'foo - 12345-67890', id: '1', name: 'foo - 12345' },
+          { fullName: 'bar - 12345-67890', id: '2', name: 'bar - 12345' },
+          { fullName: 'foobar - 12345-67890', id: '3', name: 'foobar - 12345' },
+          { fullName: 'test - 12345-67890', id: '4', name: 'test - 12345' },
+        ],
+        showRepositoriesFilter: true,
+        loading: false,
+        toggleAppsAndOrgs: toggleAppsAndOrgsSpy,
+        toggleFilter: toggleFilterSpy,
+      });
+
+      const [, repositoriesFilter] = getInnerFilters();
+
+      const allNone = within(repositoriesFilter).getByRole('menuitemcheckbox', { name: 'all/none' });
+      const repo1 = within(repositoriesFilter).getByRole('menuitemcheckbox', { name: 'foo - 12345' });
+      const repo2 = within(repositoriesFilter).getByRole('menuitemcheckbox', { name: 'bar - 12345' });
+      const repo3 = within(repositoriesFilter).getByRole('menuitemcheckbox', { name: 'foobar - 12345' });
+      const repo4 = within(repositoriesFilter).getByRole('menuitemcheckbox', { name: 'test - 12345' });
+
+      expect(allNone).toBeVisible();
+      expect(repo1).toBeVisible();
+      expect(repo2).toBeVisible();
+      expect(repo3).toBeVisible();
+      expect(repo4).toBeVisible();
+
+      fireEvent.click(allNone);
+      fireEvent.click(repo1);
+      fireEvent.click(repo2);
+      fireEvent.click(repo3);
+      fireEvent.click(repo4);
+
+      expect(toggleFilterSpy).toHaveBeenCalledTimes(5);
+    });
+
     it('renders a loading loadWrapper if it is loading', function () {
       renderComponent({ loading: true });
       const loading = screen.getByText('Loading…');
@@ -408,6 +454,7 @@ describe('DashboardFilter', function () {
     const selectedItems = {
       organizations: new Set(['666hell666']),
       applications: new Set(['777heaven777']),
+      repositories: new Set(['repo123']),
       policyTypes: new Set(['QUALITY', 'OTHER', 'SECURITY']),
       stages: new Set(['release', 'stage-release', 'build']),
       categories: new Set([null]),
@@ -419,6 +466,7 @@ describe('DashboardFilter', function () {
     const expectedJsonFilter = {
       organizationFilters: ['666hell666'],
       applicationFilters: ['777heaven777'],
+      repositoryFilters: ['repo123'],
       policyThreatCategoryFilters: ['QUALITY', 'OTHER', 'SECURITY'],
       stageTypeFilters: ['release', 'stage-release', 'build'],
       tagFilters: [null],

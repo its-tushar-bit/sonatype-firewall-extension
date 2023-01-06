@@ -28,6 +28,7 @@ import {
   APPLY_SAVED_FILTER_FAILED,
   TOGGLE_FILTER,
   TOGGLE_APPS_AND_ORGS,
+  TOGGLE_REPOSITORIES,
   SELECT_AGE,
   SELECT_EXPIRATION_DATE,
   REVERT_FILTER,
@@ -48,6 +49,7 @@ const initState = Object.freeze({
   needsAcknowledgement: false,
   showAgeFilter: false,
   showStagesFilter: false,
+  showRepositoriesFilter: false,
   showViolationStateFilter: false,
   showExpirationDateFilter: false,
   showSaveFilterModal: false,
@@ -58,6 +60,7 @@ const initState = Object.freeze({
   applications: null,
   categories: null,
   stages: null,
+  repositories: null,
   ages,
   policyTypes,
   policyViolationStates,
@@ -118,6 +121,9 @@ export default function dashboardFilterReducer(state = initState, { type, payloa
     case TOGGLE_APPS_AND_ORGS:
       return compose(setFiltersAreDirty, toggleAppsAndOrgs(payload))(state);
 
+    case TOGGLE_REPOSITORIES:
+      return compose(setFiltersAreDirty, toggleRepositories(payload))(state);
+
     case SELECT_AGE:
       return compose(setFiltersAreDirty, selectAge(payload))(state);
 
@@ -166,6 +172,10 @@ const toggleAppsAndOrgs = ({ selectedOrganizations, selectedApplications }) => (
   )(state);
 };
 
+const toggleRepositories = (selectedRepositories) => (state) => {
+  return compose(pathSet(['selected', 'repositories'], selectedRepositories))(state);
+};
+
 function setFiltersAreDirty(state) {
   return {
     ...state,
@@ -209,7 +219,15 @@ function setAvailable(state, payload) {
     name: stageName,
   }));
 
-  return { ...state, organizations, applications, categories, stages };
+  const repositories = Array.isArray(payload.repositories)
+    ? payload.repositories.map(({ managerInstanceId, repository }) => ({
+        fullName: `${repository.publicId} - ${managerInstanceId}`,
+        name: `${repository.publicId} - ${managerInstanceId.substring(0, managerInstanceId.indexOf('-'))}`,
+        id: repository.id,
+      }))
+    : [];
+
+  return { ...state, organizations, applications, categories, stages, repositories };
 }
 
 const applyFilter = ({ filter }) => (state) => {
@@ -228,6 +246,12 @@ const applyFilter = ({ filter }) => (state) => {
   const appsFromSelectedOrgs = state.applications.filter(belongsToSelectedOrg).map(prop('id'));
   const applications = new Set([...filter.applicationFilters, ...appsFromSelectedOrgs]);
 
+  // repositories: select only visible repositories
+  const repositoryFilters = filter.repositoryFilters || [];
+  const findAvailableReposById = (id) => find(propEq('id', id), state.repositories);
+  const visibleRepoIds = repositoryFilters.filter(findAvailableReposById);
+  const repositories = new Set(visibleRepoIds);
+
   // categories: avoid adding no-longer-existing category ids to selected.categories
   const tagFilters = filter.tagFilters || [];
   const existingCategoryIds = new Set(state.categories.map(prop('id')));
@@ -244,6 +268,7 @@ const applyFilter = ({ filter }) => (state) => {
   const selected = Object.freeze({
     organizations,
     applications,
+    repositories,
     categories,
     stages,
     policyTypes,

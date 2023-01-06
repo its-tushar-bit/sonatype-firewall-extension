@@ -36,7 +36,4 @@ sidebar-view {
   display: flex;
   flex-flow: column;
   max-width: calc($sidebar-width - (var(--nx-spacing-16x) * 2));
-  > span:last-child {
-    text-transform: capitalize;
-  }
 }

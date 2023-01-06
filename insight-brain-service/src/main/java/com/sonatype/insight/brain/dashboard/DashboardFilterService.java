@@ -117,6 +117,7 @@ public class DashboardFilterService
     DashboardFilterDTO dashboardFilterDTO = new DashboardFilterDTO();
     dashboardFilterDTO.applicationFilters = new ArrayList<>();
     dashboardFilterDTO.organizationFilters = new ArrayList<>();
+    dashboardFilterDTO.repositoryFilters = new ArrayList<>();
     // Threat levels of 0 or 1 are intended to be informational only, and therefore are
     // not pertinent to assessing the "real" risk of a given Application or component
     dashboardFilterDTO.minPolicyThreatLevel = 2;

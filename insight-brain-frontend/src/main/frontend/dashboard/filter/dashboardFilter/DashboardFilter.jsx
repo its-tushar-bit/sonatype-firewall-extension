@@ -11,6 +11,7 @@ import {
   NxErrorAlert,
   NxStatefulTreeViewMultiSelect,
   NxStatefulTreeViewRadioSelect,
+  NxStatefulCollapsibleMultiSelect,
 } from '@sonatype/react-shared-components';
 
 import IqOrgAppPicker from '../../../components/iqOrgAppPicker/IqOrgAppPicker';
@@ -38,6 +39,7 @@ export default function DashboardFilter(props) {
     showStagesFilter,
     showViolationStateFilter,
     showExpirationDateFilter,
+    showRepositoriesFilter,
     showSaveFilterModal,
     savedFilters,
 
@@ -50,6 +52,7 @@ export default function DashboardFilter(props) {
     policyTypes,
     expirationDates,
     policyViolationStates,
+    repositories,
 
     // selected items
     appliedFilterName,
@@ -74,6 +77,7 @@ export default function DashboardFilter(props) {
   const curriedToggleFilter = curryN(2, toggleFilter),
     onCategoriesChange = curriedToggleFilter('categories'),
     onStagesChange = curriedToggleFilter('stages'),
+    onRepositoriesChange = curriedToggleFilter('repositories'),
     onPolicyTypesChange = curriedToggleFilter('policyTypes'),
     onPolicyViolationStatesChange = curriedToggleFilter('policyViolationStates'),
     onPolicyThreatChange = curriedToggleFilter('policyThreatLevels');
@@ -161,7 +165,20 @@ export default function DashboardFilter(props) {
                 onChange={toggleAppsAndOrgs}
                 id="org-app-filters"
               />
-
+              {showRepositoriesFilter && (
+                <NxStatefulCollapsibleMultiSelect
+                  options={repositories}
+                  optionTooltipGenerator={(repository) => repository.fullName}
+                  selectedIds={selected.repositories}
+                  onChange={onRepositoriesChange}
+                  filterThreshold={3}
+                  filterPlaceholder="Repository Name"
+                  name="repositories"
+                  id="repositories-filter"
+                >
+                  <span>Repositories</span>
+                </NxStatefulCollapsibleMultiSelect>
+              )}
               <NxStatefulTreeViewMultiSelect
                 options={categories}
                 selectedIds={selected.categories}
@@ -174,7 +191,6 @@ export default function DashboardFilter(props) {
                 <Hexagon className="size-16px size-fw outline" />
                 <span>Application Categories</span>
               </NxStatefulTreeViewMultiSelect>
-
               {showStagesFilter && (
                 <NxStatefulTreeViewMultiSelect
                   options={stages}
@@ -187,7 +203,6 @@ export default function DashboardFilter(props) {
                   <span>Stages</span>
                 </NxStatefulTreeViewMultiSelect>
               )}
-
               <NxStatefulTreeViewMultiSelect
                 options={policyTypes}
                 selectedIds={selected.policyTypes}
@@ -198,7 +213,6 @@ export default function DashboardFilter(props) {
               >
                 <span>Policy Types</span>
               </NxStatefulTreeViewMultiSelect>
-
               {showViolationStateFilter && (
                 <NxStatefulTreeViewMultiSelect
                   options={policyViolationStates}
@@ -211,7 +225,6 @@ export default function DashboardFilter(props) {
                   <span>Violation State</span>
                 </NxStatefulTreeViewMultiSelect>
               )}
-
               {showExpirationDateFilter && (
                 <NxStatefulTreeViewRadioSelect
                   id="expiration-date-filter"
@@ -223,7 +236,6 @@ export default function DashboardFilter(props) {
                   <span>Expiration Date</span>
                 </NxStatefulTreeViewRadioSelect>
               )}
-
               {showAgeFilter && (
                 <NxStatefulTreeViewRadioSelect
                   id="age-filter"
@@ -235,7 +247,6 @@ export default function DashboardFilter(props) {
                   <span>Age</span>
                 </NxStatefulTreeViewRadioSelect>
               )}
-
               <IqTreeViewPolicyThreatSlider
                 id="threat-level-filter"
                 value={selected.policyThreatLevels}
@@ -277,12 +288,14 @@ export const dashboardFilterPropTypes = {
   showStagesFilter: PropTypes.bool,
   showViolationStateFilter: PropTypes.bool,
   showExpirationDateFilter: PropTypes.bool,
+  showRepositoriesFilter: PropTypes.bool,
   selectExpirationDate: PropTypes.func,
   expirationDates: PropTypes.array,
   organizations: PropTypes.array,
   applications: PropTypes.array,
   categories: PropTypes.array,
   stages: PropTypes.array,
+  repositories: PropTypes.array,
   ages: PropTypes.array,
   policyTypes: PropTypes.array,
   policyViolationStates: PropTypes.array,

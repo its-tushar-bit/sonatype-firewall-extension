@@ -8,6 +8,7 @@ import { defaultMaxDaysOld, defaultMinExpiration } from './staticFilterEntries';
 export default Object.freeze({
   organizations: new Set(),
   applications: new Set(),
+  repositories: new Set(),
   categories: new Set(),
   stages: new Set(),
   policyTypes: new Set(),

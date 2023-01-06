@@ -420,7 +420,7 @@ public class RepositoryService
   }
 
   @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY)
-  List<Repository> getRepositoriesWithReadPermission() {
+  public List<Repository> getRepositoriesWithReadPermission() {
     return repositoryDAO.getAll();
   }
 

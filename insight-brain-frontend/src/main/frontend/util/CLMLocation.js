@@ -1323,9 +1323,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       /**
        * @since 1.19.0
        */
-      getRepositoriesUrl: function () {
-        return baseUrl.get() + '/rest/repositories/';
-      },
+      getRepositoriesUrl,
 
       /**
        * @since 1.20.0

@@ -64,11 +64,9 @@ export const displayWaiverScope = (waiver) => {
     case 'repository': {
       return `Repository - ${waiver.scopeOwnerName}`;
     }
-    case 'all_repositories': {
-      return `Repository - ${waiver.scopeOwnerName}`;
-    }
+    case 'all_repositories':
     case 'repository_container': {
-      return `${waiver.scopeOwnerName}`;
+      return 'All Repositories';
     }
   }
   return null;
@@ -171,7 +169,6 @@ export const formatWaiverDetails = (waiver) => {
       displayName,
       matcherStrategy,
     };
-
   return {
     policyName,
     constraintName,

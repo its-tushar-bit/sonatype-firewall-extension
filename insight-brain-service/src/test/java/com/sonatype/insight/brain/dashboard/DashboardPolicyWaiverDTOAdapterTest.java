@@ -72,7 +72,7 @@ public class DashboardPolicyWaiverDTOAdapterTest
     assertThat(dto.policyName).isEqualTo(policiesById.get(testPolicyWaiver.getPolicyId()).getName());
     assertThat(dto.ownerId).isEqualTo(testPolicyWaiver.getOwnerId());
     assertThat(dto.ownerName).isEqualTo(ownersById.get(testPolicyWaiver.getOwnerId()).getName());
-    assertThat(dto.ownerType).isEqualTo(ownersById.get(testPolicyWaiver.getOwnerId()).getType());
+    assertThat(dto.ownerType).isEqualTo(ownersById.get(testPolicyWaiver.getOwnerId()).getType().toString());
     assertThat(dto.componentMatchStrategy).isEqualTo(testPolicyWaiver.getComponentMatchStrategy());
     assertThat(dto.hash).isEqualTo(testPolicyWaiver.getHash());
     assertThat(dto.componentIdentifier.toComponentIdentifier()).isEqualTo(testPolicyWaiver.getComponentIdentifier());
@@ -98,7 +98,7 @@ public class DashboardPolicyWaiverDTOAdapterTest
     assertThat(dto.policyName).isEqualTo(policiesById.get(testPolicyWaiver.getPolicyId()).getName());
     assertThat(dto.ownerId).isEqualTo(testPolicyWaiver.getOwnerId());
     assertThat(dto.ownerName).isEqualTo(ownersById.get(testPolicyWaiver.getOwnerId()).getName());
-    assertThat(dto.ownerType).isEqualTo(ownersById.get(testPolicyWaiver.getOwnerId()).getType());
+    assertThat(dto.ownerType).isEqualTo(ownersById.get(testPolicyWaiver.getOwnerId()).getType().toString());
     assertThat(dto.componentMatchStrategy).isEqualTo(testPolicyWaiver.getComponentMatchStrategy());
     assertThat(dto.hash).isEqualTo(testPolicyWaiver.getHash());
     assertThat(dto.componentIdentifier.toComponentIdentifier()).isEqualTo(testPolicyWaiver.getComponentIdentifier());

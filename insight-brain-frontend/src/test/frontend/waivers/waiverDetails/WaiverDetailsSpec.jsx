@@ -18,6 +18,10 @@ describe('When the WaiverDetailsPage', function () {
     allComponentsWaiverDetails,
     allVersionsWaiverDetails,
     unknownComponentWaiverDetails,
+    ownerType,
+    ownerId,
+    waiverId,
+    initialState,
     expectedDeleteWaiverUrl;
 
   beforeAll(function () {
@@ -25,9 +29,9 @@ describe('When the WaiverDetailsPage', function () {
   });
 
   beforeEach(function () {
-    const ownerType = 'owner-type';
-    const ownerId = 'owner-id';
-    const waiverId = 'waiver-id';
+    ownerType = 'owner-type';
+    ownerId = 'owner-id';
+    waiverId = 'waiver-id';
 
     waiverDetails = {
       comment: 'a comment',
@@ -98,7 +102,7 @@ describe('When the WaiverDetailsPage', function () {
 
     // Required to the render function in order for it to supercede
     // what's in the redux state so we don't have to mock the store/selectors
-    const preloadedState = {
+    initialState = {
       router: {
         currentParams: {
           ownerType,
@@ -111,7 +115,7 @@ describe('When the WaiverDetailsPage', function () {
     expectedWaiverDetailsUrl = getWaiverDetailsUrl(ownerType, ownerId, waiverId);
     expectedDeleteWaiverUrl = deleteWaiverUrl('organization', waiverDetails.scopeOwnerId, waiverDetails.policyWaiverId);
     // Ensure render function includes the router currentParams we will need
-    renderComponent = () => render(<WaiverDetails />, { preloadedState });
+    renderComponent = (preloadedState = initialState) => render(<WaiverDetails />, { preloadedState });
   });
 
   describe('has a loading error', () => {
@@ -195,6 +199,34 @@ describe('When the WaiverDetailsPage', function () {
       await waitFor(() => {
         expect(screen.queryByText('*Indicates the component name when the waiver was created')).not.toBeInTheDocument();
       });
+    });
+
+    it('should render waiver details with scope equals to All Repositories if ownerType is all_repositories', async function () {
+      initialState.router.currentParams.ownerType = 'all_repositories';
+      waiverDetails.scopeOwnerId = 'REPOSITORY_CONTAINER_ID';
+      waiverDetails.scopeOwnerName = 'All Repositories';
+      waiverDetails.scopeOwnerType = 'all_repositories';
+
+      expectedWaiverDetailsUrl = getWaiverDetailsUrl('repository_container', ownerId, waiverId);
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverDetails);
+      renderComponent();
+
+      expect(screen.getByText('Loading…')).toBeVisible();
+      expect(await screen.findByText('All Repositories')).toBeVisible();
+    });
+
+    it('should render waiver details with scope equals to Root Organization if ownerType is root_organization', async function () {
+      initialState.router.currentParams.ownerType = 'root_organization';
+      waiverDetails.scopeOwnerId = 'ROOT_ORGANIZATION';
+      waiverDetails.scopeOwnerName = 'root org';
+      waiverDetails.scopeOwnerType = 'root_organization';
+
+      expectedWaiverDetailsUrl = getWaiverDetailsUrl('organization', ownerId, waiverId);
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, waiverDetails);
+      renderComponent();
+
+      expect(screen.getByText('Loading…')).toBeVisible();
+      expect(await screen.findByText('Root Organization')).toBeVisible();
     });
   });
 

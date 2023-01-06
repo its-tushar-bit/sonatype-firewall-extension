@@ -47,6 +47,15 @@ describe('waiverUtils', function () {
       expect(result).toEqual('Repository - maven-central');
     });
 
+    it('returns a readable label with name if the scopeOwnerType is `repository_container`', () => {
+      const waiver = {
+        scopeOwnerType: 'repository_container',
+        scopeOwnerName: 'my-repo-123',
+      };
+      const result = displayWaiverScope(waiver);
+      expect(result).toEqual('All Repositories');
+    });
+
     it('returns null if the scopeOwnerType is not valid', () => {
       let waiver = {
         scopeOwnerType: 'weird',

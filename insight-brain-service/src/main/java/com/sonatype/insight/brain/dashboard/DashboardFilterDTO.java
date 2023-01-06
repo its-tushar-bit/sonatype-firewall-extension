@@ -48,6 +48,11 @@ public class DashboardFilterDTO
    */
   public ExpirationDate expirationDate = ExpirationDate.ALL;
 
+  /**
+   * @since 1.152
+   */
+  public List<String> repositoryFilters = Collections.emptyList();
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {
@@ -69,6 +74,9 @@ public class DashboardFilterDTO
       return false;
     }
     if (!organizationFilters.equals(that.organizationFilters)) {
+      return false;
+    }
+    if (!repositoryFilters.equals(that.repositoryFilters)) {
       return false;
     }
     if (!tagFilters.equals(that.tagFilters)) {
@@ -95,6 +103,7 @@ public class DashboardFilterDTO
     result = 31 * result + maxPolicyThreatLevel;
     result = 31 * result + applicationFilters.hashCode();
     result = 31 * result + organizationFilters.hashCode();
+    result = 31 * result + repositoryFilters.hashCode();
     result = 31 * result + tagFilters.hashCode();
     result = 31 * result + policyThreatCategoryFilters.hashCode();
     result = 31 * result + stageTypeFilters.hashCode();

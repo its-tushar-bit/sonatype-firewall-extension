@@ -44,6 +44,9 @@ public class RepositoryComponent
   @Column(name = "hash")
   private String hash;
 
+  @Column(name = "display_name")
+  private String displayName;
+
   @Column(name = "match_state_id")
   private String matchStateId;
 
@@ -201,5 +204,13 @@ public class RepositoryComponent
 
   public Boolean getAutoUnquarantined() {
     return autoUnquarantined;
+  }
+
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
   }
 }

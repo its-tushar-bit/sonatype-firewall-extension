@@ -216,7 +216,7 @@ public class RepositoryPolicyViolationDAO
   {
     try (TransactionContext tx = createTransactionContext()) {
       String baseQuery = "SELECT violation.threat_level, violation.policy_name, component.component_id_format," + //
-          " component.pathname, component.component_id_coordinates_json, component.hash," + //
+          " component.pathname, component.component_id_coordinates_json, component.display_name, component.hash," + //
           " component.match_state_id," + //
           " CASE WHEN (component.quarantine_time IS NOT NULL AND component.unquarantine_time IS NULL) THEN" + //
           " component.quarantine_time END AS quarantine_time, violation.waived" + //
@@ -251,7 +251,8 @@ public class RepositoryPolicyViolationDAO
       List<RepositoryResultsDetails> results = ((Stream<Object[]>) query.getResultStream())
           .map(array -> new RepositoryResultsDetails(getInteger(array[0]), (String) array[1],
               (String) array[2], (String) array[3], (String) array[4], (String) array[5], (String) array[6],
-              array[7] == null ? null : new Date(((Timestamp) array[7]).getTime()), (Boolean) array[8]))
+              (String) array[7],
+              array[8] == null ? null : new Date(((Timestamp) array[8]).getTime()), (Boolean) array[9]))
           .collect(Collectors.toList());
 
       return results;
@@ -307,7 +308,7 @@ public class RepositoryPolicyViolationDAO
           query.append(" AND LOWER(violation.policy_name) LIKE ?2");
         }
         if (filter.getKey().equals("COMPONENT_COORDINATES")) {
-          query.append(" AND LOWER(component.component_id_coordinates_json) LIKE ?3");
+          query.append(" AND LOWER(component.display_name) LIKE ?3");
         }
       }
     }
@@ -346,7 +347,7 @@ public class RepositoryPolicyViolationDAO
       case POLICY_NAME:
         return "policy_name";
       case COMPONENT_COORDINATES:
-        return "component_id_coordinates_json";
+        return "display_name";
       case QUARANTINE_TIME:
         return "quarantine_time";
       default:

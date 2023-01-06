@@ -18,6 +18,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -165,6 +166,8 @@ public class RepositoryComponentDAOTest
     assertThat(actual.getHash()).isEqualTo(hash);
     assertThat(actual.getTime()).isEqualTo(time);
     assertThat(actual.getComponentIdentifier()).isEqualTo(componentIdentifier);
+    assertThat(actual.getDisplayName())
+        .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString());
     assertThat(actual.getMatchStateId()).isEqualTo(matchStateId);
     assertThat(actual.getIdentificationSourceId()).isEqualTo(identificationSourceId);
     assertThat(actual.getLastEvaluationTime()).isEqualTo(lastEvaluationTime);

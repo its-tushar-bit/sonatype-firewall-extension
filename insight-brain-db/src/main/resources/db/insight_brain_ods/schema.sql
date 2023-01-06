@@ -522,6 +522,7 @@ CREATE TABLE repository_component (
   hash varchar(20) NOT NULL,
   component_id_format varchar(10),
   component_id_coordinates_json varchar(1000), -- the component identifier coordinates stored in json format
+  display_name varchar(1000),
   match_state_id varchar(20) NOT NULL,
   identification_source_id varchar(20) NOT NULL,
   last_evaluation_time timestamp NOT NULL,
@@ -726,6 +727,7 @@ INSERT INTO migration_tracker(migration_tracker_id) VALUES('jira-config');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('source-control-config');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('simple-config');
 INSERT INTO migration_tracker(migration_tracker_id) VALUES('obsoletescanfiles-cleaned');
+INSERT INTO migration_tracker(migration_tracker_id) VALUES('repository-component-display-name');
 
 CREATE TABLE search_index_change (
   search_index_change_id varchar(50) NOT NULL,

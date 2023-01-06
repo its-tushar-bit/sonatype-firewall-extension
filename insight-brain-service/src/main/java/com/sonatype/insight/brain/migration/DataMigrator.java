@@ -60,6 +60,8 @@ public class DataMigrator
 
   private final PolicyWaiverComponentPurlMigrator policyWaiverComponentPurlMigrator;
 
+  private final RepositoryComponentDisplayNameMigrator repositoryComponentDisplayNameMigrator;
+
   @Inject
   public DataMigrator(
       PolicyJsonMigrator policyJsonMigrator,
@@ -81,7 +83,8 @@ public class DataMigrator
       SourceControlConfigurationMigrator sourceControlConfigurationMigrator,
       SourceControlFileStorageMigrator sourceControlFileStorageMigrator,
       SimpleConfigurationMigrator simpleConfigurationMigrator,
-      PolicyWaiverComponentPurlMigrator policyWaiverComponentPurlMigrator)
+      PolicyWaiverComponentPurlMigrator policyWaiverComponentPurlMigrator,
+      RepositoryComponentDisplayNameMigrator repositoryComponentDisplayNameMigrator)
   {
     this.policyJsonMigrator = policyJsonMigrator;
     this.policyDroolsCodeMigrator = policyDroolsCodeMigrator;
@@ -103,6 +106,7 @@ public class DataMigrator
     this.sourceControlFileStorageMigrator = sourceControlFileStorageMigrator;
     this.simpleConfigurationMigrator = simpleConfigurationMigrator;
     this.policyWaiverComponentPurlMigrator = policyWaiverComponentPurlMigrator;
+    this.repositoryComponentDisplayNameMigrator = repositoryComponentDisplayNameMigrator;
   }
 
   /**
@@ -137,5 +141,6 @@ public class DataMigrator
     sourceControlFileStorageMigrator.migrate();
     simpleConfigurationMigrator.migrate();
     policyWaiverComponentPurlMigrator.migrate();
+    repositoryComponentDisplayNameMigrator.migrate();
   }
 }

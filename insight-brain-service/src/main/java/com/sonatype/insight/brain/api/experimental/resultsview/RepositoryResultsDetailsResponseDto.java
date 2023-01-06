@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.experimental.resultsview;
 
 import java.util.Date;
 
-import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
@@ -42,27 +41,12 @@ public class RepositoryResultsDetailsResponseDto
 
     this.threatLevel = details.policyThreatLevel;
     this.policyName = details.policyName;
-    this.componentDisplayText = buildComponentDisplayText(details, componentIdentifierFromJson);
+    this.componentDisplayText = details.componentDisplayName;
     this.pathname = details.pathname;
     this.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifierFromJson);
     this.hash = details.hash;
     this.matchStateId = details.matchStateId;
     this.quarantineTime = details.quarantineTime;
     this.waived = details.waived;
-  }
-
-  private static String buildComponentDisplayText(
-      final RepositoryResultsDetails details,
-      final ComponentIdentifier componentIdentifier)
-  {
-    if (componentIdentifier != null) {
-      return ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();
-    }
-    String pathname = details.pathname;
-    if (pathname == null) {
-      return null;
-    }
-
-    return pathname.substring(pathname.lastIndexOf('/') + 1) + " (" + pathname + ")";
   }
 }

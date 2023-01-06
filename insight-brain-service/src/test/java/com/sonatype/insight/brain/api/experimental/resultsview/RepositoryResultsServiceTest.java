@@ -50,6 +50,7 @@ public class RepositoryResultsServiceTest
   public void setup() {
     repository = tempEntity.newRepository();
 
+    // Repository components
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path1", "hash1",
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"), date, date, null);
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path3", "hash3",
@@ -57,6 +58,7 @@ public class RepositoryResultsServiceTest
     tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, "path4", "hash4",
         ComponentIdentifier.createMavenCoordinates("g4", "a4", "v4", "c4", "e4"), date, date, null);
 
+    // Repository policy violations
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 10, "path1", false, Action.ID_FAIL, "1", "policy1",
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1"));
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "path1", false, Action.ID_WARN, "2", "policy2",
@@ -823,5 +825,85 @@ public class RepositoryResultsServiceTest
     map.put("COMPONENT_COORDINATES", "g3");
     assertThat(filter.searchFilters).isEqualTo(map);
     assertThat(filter.sortFields).isEqualTo(detailsRequest.sortFields);
+  }
+
+  @Test
+  public void testGetDetails_SearchByComponentCoordinates() {
+    SortField sortField = new SortField();
+    sortField.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField.sortPriority = 1;
+    sortField.asc = false;
+
+    SearchFilter searchFilter = new SearchFilter();
+    searchFilter.filterableField = FilterableField.COMPONENT_COORDINATES;
+    searchFilter.value = "g1 : a1";
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.searchFilters = Collections.singletonList(searchFilter);
+    detailsRequest.sortFields = Collections.singletonList(sortField);
+
+    List<RepositoryResultsDetailsResponseDto> responseDtos =
+        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+
+    assertThat(responseDtos).hasSize(2);
+    assertThat(responseDtos.get(0).threatLevel).isEqualTo(10);
+    assertThat(responseDtos.get(0).policyName).isEqualTo("policy1");
+    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
+    assertThat(responseDtos.get(0).waived).isEqualTo(false);
+    assertThat(responseDtos.get(1).threatLevel).isEqualTo(5);
+    assertThat(responseDtos.get(1).policyName).isEqualTo("policy2");
+    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
+    assertThat(responseDtos.get(1).waived).isEqualTo(false);
+  }
+
+  @Test
+  public void testGetDetails_SortByComponentCoordinates() {
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path0", "hash0",
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v0", "c1", "e1"), date, date, null);
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "path0", false, Action.ID_FAIL, "1", "policy1",
+        ComponentIdentifier.createMavenCoordinates("g1", "a1", "v0", "c1", "e1"));
+
+    SortField sortField1 = new SortField();
+    sortField1.sortableField = SortableField.COMPONENT_COORDINATES;
+    sortField1.sortPriority = 1;
+    sortField1.asc = true;
+    SortField sortField2 = new SortField();
+    sortField2.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField2.sortPriority = 2;
+    sortField2.asc = false;
+
+    SearchFilter searchFilter = new SearchFilter();
+    searchFilter.filterableField = FilterableField.COMPONENT_COORDINATES;
+    searchFilter.value = "g1 : a1";
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.searchFilters = Collections.singletonList(searchFilter);
+    detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
+
+    List<RepositoryResultsDetailsResponseDto> responseDtos =
+        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+
+    assertThat(responseDtos).hasSize(3);
+    assertThat(responseDtos.get(0).threatLevel).isEqualTo(5);
+    assertThat(responseDtos.get(0).policyName).isEqualTo("policy1");
+    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v0");
+    assertThat(responseDtos.get(0).quarantineTime).isEqualTo(date);
+    assertThat(responseDtos.get(0).waived).isEqualTo(false);
+    assertThat(responseDtos.get(1).threatLevel).isEqualTo(10);
+    assertThat(responseDtos.get(1).policyName).isEqualTo("policy1");
+    assertThat(responseDtos.get(1).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(responseDtos.get(1).quarantineTime).isEqualTo(date);
+    assertThat(responseDtos.get(1).waived).isEqualTo(false);
+    assertThat(responseDtos.get(2).threatLevel).isEqualTo(5);
+    assertThat(responseDtos.get(2).policyName).isEqualTo("policy2");
+    assertThat(responseDtos.get(2).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
+    assertThat(responseDtos.get(2).quarantineTime).isEqualTo(date);
+    assertThat(responseDtos.get(2).waived).isEqualTo(false);
   }
 }

@@ -19,6 +19,8 @@ public class RepositoryResultsDetails
 
   public String componentIdCoordinatesJson;
 
+  public String componentDisplayName;
+
   public String hash;
 
   public String matchStateId;
@@ -33,6 +35,7 @@ public class RepositoryResultsDetails
       final String componentIdFormat,
       final String pathname,
       final String componentIdCoordinatesJson,
+      final String componentDisplayName,
       final String hash,
       final String matchStateId,
       final Date quarantineTime,
@@ -43,6 +46,7 @@ public class RepositoryResultsDetails
     this.componentIdFormat = componentIdFormat;
     this.pathname = pathname;
     this.componentIdCoordinatesJson = componentIdCoordinatesJson;
+    this.componentDisplayName = componentDisplayName;
     this.hash = hash;
     this.matchStateId = matchStateId;
     this.quarantineTime = quarantineTime;

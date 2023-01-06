@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
@@ -352,5 +353,37 @@ public class RepositoryComponentDAO
         " AND entity.componentIdFormat=?2 AND entity.componentIdCoordinatesJson=?3";
     return get(sQuery, repositoryId, componentIdentifier.getFormat(),
         ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
+  }
+
+  public List<RepositoryComponent> getByRepositoryIdAndDisplayName(String repositoryId, String displayName) {
+    String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
+        " WHERE entity.repositoryId=?1 AND entity.displayName=?2";
+    return getList(sQuery, repositoryId, displayName);
+  }
+
+  @Override
+  public void insert(TransactionContext tx, RepositoryComponent entity) {
+    fillDisplayName(entity);
+    super.insert(tx, entity);
+  }
+
+  @Override
+  public void update(TransactionContext tx, RepositoryComponent entity) {
+    fillDisplayName(entity);
+    super.update(tx, entity);
+  }
+
+  private void fillDisplayName(RepositoryComponent entity) {
+    if (entity.getComponentIdentifier() != null) {
+      entity.setDisplayName(ComponentDisplayNameUtil.fromIdentifier(entity.getComponentIdentifier()).toString());
+      return;
+    }
+
+    String pathname = entity.getPathname();
+    if (pathname == null) {
+      return;
+    }
+
+    entity.setDisplayName(pathname.substring(pathname.lastIndexOf('/') + 1) + " (" + pathname + ")");
   }
 }

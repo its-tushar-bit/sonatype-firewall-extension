@@ -161,9 +161,7 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
                     name="POLICY_NAME"
                     placeholder="policy name"
                     id="nx-repository-policy-filter"
-                    onChange={(filterValue, filterName) =>
-                      searchComponents({ filterValue, filterName: filterName.target.name })
-                    }
+                    onChange={(filterValue) => searchComponents({ filterValue, filterName: 'POLICY_NAME' })}
                     value={searchFiltersValues['POLICY_NAME']}
                   />
                 </NxTable.Cell>
@@ -173,9 +171,7 @@ const RepositoryResultsComponentsTable = ({ repositoryId }) => {
                     name="COMPONENT_COORDINATES"
                     placeholder="component name"
                     id="nx-repository-component-filter"
-                    onChange={(filterValue, filterName) =>
-                      searchComponents({ filterValue, filterName: filterName.target.name })
-                    }
+                    onChange={(filterValue) => searchComponents({ filterValue, filterName: 'COMPONENT_COORDINATES' })}
                     value={searchFiltersValues['COMPONENT_COORDINATES']}
                   />
                 </NxTable.Cell>

@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.NxSmallThreatCounter;
 import com.sonatype.clm.testing.functional.elements.NxTextInput;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -126,8 +127,16 @@ public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDet
       return new NxTextInput(child("#nx-repository-policy-filter"));
     }
 
+    public Button policyNameClearFilterButton() {
+      return new Button(".iq-repository-filter--policy button");
+    }
+
     public NxTextInput componentName() {
       return new NxTextInput(child("#nx-repository-component-filter"));
+    }
+
+    public Button componentNameClearFilterButton() {
+      return new Button(".iq-repository-filter--component button");
     }
   }
 

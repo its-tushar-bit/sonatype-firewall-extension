@@ -198,6 +198,7 @@ public class RepositoryResultsSummaryTest
     testRow(RepositoryResultDetailPage.table().row(1), "10", "Policy 2", "", "g : a : v");
     RepositoryResultDetailPage.table().policyName().input().shouldBe(visible);
     RepositoryResultDetailPage.table().policyName().input().sendKeys("Test");
+    RepositoryResultDetailPage.table().policyNameClearFilterButton().should(visible);
 
     RepositoryResultDetailPage.table().rows().shouldHaveSize(9);
     SelenideElement leftPagination = page.paginationButtons().get(0);
@@ -205,9 +206,13 @@ public class RepositoryResultsSummaryTest
     leftPagination.shouldNotBe(visible);
     rightPagination.shouldNotBe(visible);
 
-    RepositoryResultDetailPage.table().policyName().input().sendKeys("");
+    RepositoryResultDetailPage.table().policyNameClearFilterButton().click();
     RepositoryResultDetailPage.table().componentName().input().sendKeys("nothing");
     RepositoryResultDetailPage.table().rows().shouldHaveSize(1);
+
+    RepositoryResultDetailPage.table().componentNameClearFilterButton().should(visible);
+    RepositoryResultDetailPage.table().componentNameClearFilterButton().click();
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
   }
 
   @Test

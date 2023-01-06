@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.db.MultiTenantOperationalDataStore;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
-import com.sonatype.insight.brain.tenancy.TenantManager;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.postgres.PostgresServer;
@@ -28,7 +28,7 @@ public class MultiTenantDbMigrationCommandTest
 
   @BeforeClass
   public static void beforeClass() {
-    TenantManager.initGlobalTenant();
+    new TenantUtil().setGlobalTenant();
   }
 
   @Test

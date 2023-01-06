@@ -24,7 +24,7 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
-import com.sonatype.insight.brain.tenancy.TenantManager;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.postgres.PostgresServer;
@@ -68,7 +68,7 @@ public class MultiTenantDatabaseTestRule
 
   @Override
   protected void before() {
-    TenantManager.initGlobalTenant();
+    new TenantUtil().setGlobalTenant();
 
     multiTenantDataSourceFactory = new MultiTenantDataSourceFactory();
 

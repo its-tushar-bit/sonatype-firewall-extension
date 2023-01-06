@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.tenancy.MultiTenantTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.dataaccess.AbstractDAO.Query;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -25,7 +26,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
-import static com.sonatype.insight.brain.tenancy.TenantUtil.isGlobalTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -65,7 +65,7 @@ public class SystemConfigurationPropertyDAOMultiTenantTest
     when(query.setLockModeType(any())).thenReturn(query);
 
     when(query.get(any())).thenAnswer(invocationOnMock -> {
-      if (isGlobalTenant()) {
+      if (new TenantUtil().isGlobalTenant()) {
         return globalTenantProperty;
       }
       else {

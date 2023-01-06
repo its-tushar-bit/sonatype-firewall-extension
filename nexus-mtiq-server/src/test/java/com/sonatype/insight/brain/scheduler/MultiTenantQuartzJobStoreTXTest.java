@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.tenancy.MultiTenantTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -79,7 +80,7 @@ public class MultiTenantQuartzJobStoreTXTest
         InsightConfig insightConfig,
         OperationalDataStore operationalDataStore) throws InvalidConfigurationException
     {
-      super(productLicense, insightConfig, operationalDataStore);
+      super(productLicense, insightConfig, operationalDataStore, new TenantUtil());
     }
 
     @Override

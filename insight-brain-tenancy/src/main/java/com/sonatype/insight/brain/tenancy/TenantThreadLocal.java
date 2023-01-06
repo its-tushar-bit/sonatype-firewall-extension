@@ -11,7 +11,6 @@ import org.slf4j.MDC;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
-import static com.sonatype.insight.brain.tenancy.TenantUtil.isMultiTenant;
 
 /**
  * Java {@link ThreadLocal} to manage IQ tenants in our IQ multi-tenant saas offering. Application code should always
@@ -20,6 +19,8 @@ import static com.sonatype.insight.brain.tenancy.TenantUtil.isMultiTenant;
 public class TenantThreadLocal
 {
   private static final ThreadLocal<Tenant> tenantThreadLocal = new InheritableThreadLocal<>();
+
+  private static final TenantUtil tenantUtil = new TenantUtil();
 
   static {
     tenantThreadLocal.set(SINGLE_TENANT);
@@ -31,7 +32,7 @@ public class TenantThreadLocal
    */
   public static Tenant getTenant() {
     // Check the ThreadLocal if a tenant is set yet
-    Tenant tenant = TenantUtil.validateTenant(getTenantWithoutValidation());
+    Tenant tenant = tenantUtil.validateTenant(getTenantWithoutValidation());
 
     checkPermission(tenantThreadLocal.get());
 
@@ -108,8 +109,7 @@ public class TenantThreadLocal
   }
 
   /**
-   * PACKAGE PRIVATE!!! This setter is to remain package private. Use the TenantManager class in the
-   * insight-brain-service to set the tenant
+   * PACKAGE PRIVATE!!! This setter is to remain package private. Use the TenantUtil class to init the global tenant
    */
   static void setGlobalTenant() {
     setTenant(GLOBAL_TENANT);
@@ -119,16 +119,12 @@ public class TenantThreadLocal
     return runAs(GLOBAL_TENANT, supplier);
   }
 
-  public static String getTenantSlugForSynchronization() {
-    return getTenantWithoutValidation().tenantSlug.intern();
-  }
-
   /**
    * PACKAGE PRIVATE!!! Only trusted callers should be able to run code as a specific tenant. Note: Using this method
    * will invalidate the tenant when finished. Use cloneTenant before using this.
    */
   static <T> T runAs(Tenant tenant, Supplier<T> supplier) {
-    if (!isMultiTenant()) {
+    if (!tenantUtil.isMultiTenant()) {
       return supplier.get();
     }
 
@@ -150,7 +146,7 @@ public class TenantThreadLocal
   }
 
   static void invalidateTenant() {
-    if (!isMultiTenant()) {
+    if (!tenantUtil.isMultiTenant()) {
       return;
     }
 

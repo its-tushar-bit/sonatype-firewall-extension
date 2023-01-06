@@ -47,7 +47,7 @@ public class TenantContextJobListenerTest
     when(context.getJobDetail()).thenReturn(detail);
     when(context.getJobInstance()).thenReturn(job);
 
-    underTest = new TenantContextJobListener(tenantManager);
+    underTest = new TenantContextJobListener(tenantManager, new TenantUtil());
   }
 
   @Test

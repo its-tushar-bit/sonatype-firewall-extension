@@ -12,17 +12,18 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.listeners.JobListenerSupport;
 
-import static com.sonatype.insight.brain.tenancy.TenantUtil.isGlobalTenant;
-
 @Named
 public class TenantContextJobListener
     extends JobListenerSupport
 {
   private final TenantManager tenantManager;
 
+  private final TenantUtil tenantUtil;
+
   @Inject
-  TenantContextJobListener(final TenantManager tenantManager) {
+  TenantContextJobListener(final TenantManager tenantManager, final TenantUtil tenantUtil) {
     this.tenantManager = tenantManager;
+    this.tenantUtil = tenantUtil;
   }
 
   @Override
@@ -35,14 +36,14 @@ public class TenantContextJobListener
     String group = context.getJobDetail().getKey().getGroup();
 
     Tenant tenant;
-    if (isGlobalTenant(group)) {
+    if (tenantUtil.isGlobalTenant(group)) {
       tenant = Tenant.GLOBAL_TENANT;
     }
     else {
       tenant = new Tenant(group);
     }
 
-    TenantUtil.validateTenantForType(context.getJobInstance().getClass(), tenant);
+    tenantUtil.validateTenantForType(context.getJobInstance().getClass(), tenant);
 
     tenantManager.setTenant(tenant);
   }
@@ -57,9 +58,9 @@ public class TenantContextJobListener
     tidyUp();
   }
 
-  private static void tidyUp() {
+  private void tidyUp() {
     TenantThreadLocal.invalidateTenant();
 
-    TenantManager.initGlobalTenant();
+    tenantUtil.setGlobalTenant();
   }
 }

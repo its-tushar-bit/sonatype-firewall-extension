@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import javax.inject.Named;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,27 +14,12 @@ import org.slf4j.LoggerFactory;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
 
+@Named
 public class TenantUtil
 {
   private static final Logger log = LoggerFactory.getLogger(TenantUtil.class);
 
-  public static boolean isMultiTenant() {
-    return !isSingleTenant();
-  }
-
-  public static boolean isSingleTenant() {
-    return SINGLE_TENANT.equals(TenantThreadLocal.getTenantWithoutValidation());
-  }
-
-  public static boolean isGlobalTenant() {
-    return GLOBAL_TENANT.equals(validateTenant(TenantThreadLocal.getTenant()));
-  }
-
-  public static boolean isGlobalTenant(String tenantSlug) {
-    return GLOBAL_TENANT.tenantSlug.equals(tenantSlug);
-  }
-
-  static Tenant validateTenant(Tenant tenant) {
+  Tenant validateTenant(Tenant tenant) {
     return validateTenantForType(null, tenant);
   }
 
@@ -41,7 +28,7 @@ public class TenantUtil
       During MTIQ development this can be used as a catch-all for any tenancy issues which still need to be addressed.
       Most commonly for system initiated events you need to call TenantUtils.initTenancy
    */
-  public static Tenant validateTenantForType(Class clazz, Tenant tenant) {
+  public Tenant validateTenantForType(Class clazz, Tenant tenant) {
     if (!isMultiTenant()) {
       return SINGLE_TENANT;
     }
@@ -85,18 +72,6 @@ public class TenantUtil
     log.warn("----------------------------------------------------------------------------------------------------");
   }
 
-  /**
-   * Extracts the tenant slug from the vanity url. The first part of the URL (before the first .) is the tenant slug.
-   *
-   * @param serverName - server name not including http://
-   * @return the tenant slug
-   */
-  public static String getTenantName(final String serverName) {
-    validateTenantName(serverName);
-
-    return serverName.substring(0, serverName.indexOf("."));
-  }
-
   private static void validateTenantName(String serverName) {
     if ("localhost".equals(serverName)) {
       throw new RuntimeException("You should not be accessing multi-tenant IQ via localhost. Use a fake vanity URL");
@@ -113,5 +88,41 @@ public class TenantUtil
     }
 
     return false;
+  }
+
+  public boolean isGlobalTenant(String tenantSlug) {
+    return GLOBAL_TENANT.tenantSlug.equals(tenantSlug);
+  }
+
+  public boolean isGlobalTenant() {
+    return GLOBAL_TENANT.equals(validateTenant(TenantThreadLocal.getTenant()));
+  }
+
+  /**
+   * Extracts the tenant slug from the vanity url. The first part of the URL (before the first .) is the tenant slug.
+   *
+   * @param serverName - server name not including http://
+   * @return the tenant slug
+   */
+  public String getTenantName(final String serverName) {
+    validateTenantName(serverName);
+
+    return serverName.substring(0, serverName.indexOf("."));
+  }
+
+  public boolean isSingleTenant() {
+    return SINGLE_TENANT.equals(TenantThreadLocal.getTenantWithoutValidation());
+  }
+
+  public boolean isMultiTenant() {
+    return !isSingleTenant();
+  }
+
+  public void setGlobalTenant() {
+    TenantThreadLocal.setGlobalTenant();
+  }
+
+  public String getTenantSlugForSynchronization() {
+    return TenantThreadLocal.getTenantWithoutValidation().tenantSlug.intern();
   }
 }

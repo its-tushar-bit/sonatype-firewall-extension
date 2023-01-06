@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.tenancy.TenantReference;
-
-import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.getTenantSlugForSynchronization;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 /**
  * @since 1.88
@@ -32,9 +32,16 @@ public class AdvancedSearchTelemetryMetrics
 
   private final TenantReference<Long> totalSearches = new TenantReference<>(() -> 0L);
 
+  private final TenantUtil tenantUtil;
+
+  @Inject
+  public AdvancedSearchTelemetryMetrics(TenantUtil tenantUtil) {
+    this.tenantUtil = tenantUtil;
+  }
+
   public void addSearch(Set<String> fieldNames) {
     // Synchronize by tenant so that the counts and searches do not get out of sync
-    synchronized (getTenantSlugForSynchronization()) {
+    synchronized (tenantUtil.getTenantSlugForSynchronization()) {
       fieldNames.forEach(fieldName -> searchesByFieldNameMap.get().merge(fieldName, 1L, Long::sum));
       totalSearches.set(totalSearches.get() + 1);
     }
@@ -44,7 +51,7 @@ public class AdvancedSearchTelemetryMetrics
    * Compute statistics of searches since last call to this method. Results are cleared after computation.
    */
   AggregatedSearchStats computeStatsAndReset() {
-    synchronized (getTenantSlugForSynchronization()) {
+    synchronized (tenantUtil.getTenantSlugForSynchronization()) {
       List<SearchCount> searchCounts = searchesByFieldNameMap.get().entrySet().stream()
           .map(p -> new SearchCount(p.getKey(), p.getValue())).collect(Collectors.toList());
 

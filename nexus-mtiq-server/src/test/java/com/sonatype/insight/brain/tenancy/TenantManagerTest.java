@@ -68,16 +68,17 @@ public class TenantManagerTest
     tenantManagedBeans.add(job);
 
     underTest =
-        new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils, databaseConfigProvider);
+        new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils,
+            databaseConfigProvider);
   }
 
   @Test
   public void shouldSetGlobalTenant_andMultiTenantMode() {
     testAs(new Tenant(TENANT_NAME), tenant -> {
-      TenantManager.initGlobalTenant();
+      TenantThreadLocal.setGlobalTenant();
 
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(GLOBAL_TENANT);
-      assertThat(TenantUtil.isMultiTenant()).isTrue();
+      assertThat(new TenantUtil().isMultiTenant()).isTrue();
     });
   }
 

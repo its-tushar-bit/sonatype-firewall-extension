@@ -35,8 +35,8 @@ import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.tenancy.MultiTenantExecutorThreadPools;
 import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
-import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 
@@ -60,7 +60,7 @@ public class MultiTenantInsightBrainService
       Arrays.asList(new Class[]{DefaultTenantManagedInitializer.class});
 
   public static void main(final String[] args) {
-    TenantManager.initGlobalTenant();
+    new TenantUtil().setGlobalTenant();
 
     try {
       setupServerLogging(args);
@@ -109,7 +109,7 @@ public class MultiTenantInsightBrainService
 
   @Override
   public void run(String... arguments) throws Exception {
-    TenantManager.initGlobalTenant();
+    new TenantUtil().setGlobalTenant();
 
     super.run(arguments);
   }

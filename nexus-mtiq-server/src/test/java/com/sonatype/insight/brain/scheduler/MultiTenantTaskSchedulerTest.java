@@ -10,6 +10,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
 import com.sonatype.insight.brain.tenancy.TenantManager;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
@@ -55,6 +56,9 @@ public class MultiTenantTaskSchedulerTest
   TenantManager tenantManager;
 
   @Mock
+  TenantUtil tenantUtil;
+
+  @Mock
   Scheduler scheduler;
 
   @Mock
@@ -67,7 +71,7 @@ public class MultiTenantTaskSchedulerTest
     try {
       underTest = new TestMultiTenantTaskScheduler(quartzJobStoreTX, jobFactory, name.getMethodName(),
           quartzTriggerListener, tenantContextJobListener, systemConfigurationPropertyDAO, tenantManager,
-          scheduler);
+          scheduler, tenantUtil);
 
       when(scheduler.getListenerManager()).thenReturn(listenerManager);
     }
@@ -106,7 +110,7 @@ public class MultiTenantTaskSchedulerTest
   public void shouldUnscheduleJobForAllTenants_whenGlobalTenant() throws Exception {
     ImmutableList<String> tenants = ImmutableList.of("tenant1", "tenant2");
 
-    when(tenantManager.isGlobalTenant()).thenReturn(true);
+    when(tenantUtil.isGlobalTenant()).thenReturn(true);
     when(scheduler.getJobGroupNames()).thenReturn(tenants);
 
     underTest.unscheduleTask(name.getMethodName());
@@ -121,7 +125,7 @@ public class MultiTenantTaskSchedulerTest
     String tenantSlug = "test-tenant";
     when(tenantManager.getTenant()).thenReturn(new Tenant(tenantSlug));
 
-    when(tenantManager.isGlobalTenant()).thenReturn(false);
+    when(tenantUtil.isGlobalTenant()).thenReturn(false);
 
     underTest.unscheduleTask(name.getMethodName());
 
@@ -151,10 +155,11 @@ public class MultiTenantTaskSchedulerTest
         TenantContextJobListener tenantContextJobListener,
         SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
         TenantManager tenantManager,
-        Scheduler scheduler)
+        Scheduler scheduler,
+        TenantUtil tenantUtil)
     {
       super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener, tenantContextJobListener,
-          systemConfigurationPropertyDAO, tenantManager);
+          systemConfigurationPropertyDAO, tenantManager, tenantUtil);
       this.scheduler = scheduler;
     }
 

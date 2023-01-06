@@ -49,7 +49,7 @@ public class TenantUrlFilterTest
   public void setup() {
     super.setup();
 
-    underTest = new TenantUrlFilter(tenantManager);
+    underTest = new TenantUrlFilter(tenantManager, new TenantUtil());
     when(request.getServerName()).thenReturn(SERVER_NAME);
     when(tenantManager.getTenant()).thenReturn(new Tenant(TENANT_NAME));
   }

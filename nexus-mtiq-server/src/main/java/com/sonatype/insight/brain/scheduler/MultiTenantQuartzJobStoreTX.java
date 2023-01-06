@@ -12,7 +12,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.tenancy.TenantManager;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import org.quartz.JobPersistenceException;
 import org.quartz.impl.jdbcjobstore.InvalidConfigurationException;
@@ -23,14 +23,18 @@ import org.quartz.utils.ConnectionProvider;
 public class MultiTenantQuartzJobStoreTX
     extends QuartzJobStoreTX
 {
+  private final TenantUtil tenantUtil;
+
   @Inject
   public MultiTenantQuartzJobStoreTX(
       ProductLicense productLicense,
       InsightConfig insightConfig,
-      OperationalDataStore operationalDataStore)
+      OperationalDataStore operationalDataStore,
+      TenantUtil tenantUtil)
       throws InvalidConfigurationException
   {
     super(productLicense, insightConfig, operationalDataStore);
+    this.tenantUtil = tenantUtil;
   }
 
   @Override
@@ -40,7 +44,7 @@ public class MultiTenantQuartzJobStoreTX
 
   @Override
   protected boolean doCheckin() throws JobPersistenceException {
-    TenantManager.initGlobalTenant();
+    tenantUtil.setGlobalTenant();
 
     return doSuperCheckIn();
   }

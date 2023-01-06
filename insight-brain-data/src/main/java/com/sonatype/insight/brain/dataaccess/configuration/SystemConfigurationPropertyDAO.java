@@ -9,12 +9,11 @@ import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.runAsGlobal;
-import static com.sonatype.insight.brain.tenancy.TenantUtil.isGlobalTenant;
-import static com.sonatype.insight.brain.tenancy.TenantUtil.isSingleTenant;
 
 /**
  * @since 1.33
@@ -120,7 +119,7 @@ public class SystemConfigurationPropertyDAO
   protected SystemConfigurationProperty get(TransactionContext tx, String sQuery, Object... parameters) {
     SystemConfigurationProperty result = super.get(tx, sQuery, null, parameters);
 
-    if (result != null || isSingleTenant() || isGlobalTenant()) {
+    if (result != null || new TenantUtil().isSingleTenant() || new TenantUtil().isGlobalTenant()) {
       return result;
     }
     else {

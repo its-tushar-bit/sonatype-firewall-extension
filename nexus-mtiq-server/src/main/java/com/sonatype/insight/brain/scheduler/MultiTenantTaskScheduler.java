@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
 import com.sonatype.insight.brain.tenancy.TenantManager;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import org.quartz.Job;
 import org.quartz.JobBuilder;
@@ -38,6 +39,8 @@ public class MultiTenantTaskScheduler
 
   private final TenantManager tenantManager;
 
+  private final TenantUtil tenantUtil;
+
   @Inject
   public MultiTenantTaskScheduler(
       QuartzJobStoreTX quartzJobStoreTX,
@@ -46,13 +49,15 @@ public class MultiTenantTaskScheduler
       QuartzTriggerListener quartzTriggerListener,
       TenantContextJobListener tenantContextJobListener,
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-      TenantManager tenantManager)
+      TenantManager tenantManager,
+      TenantUtil tenantUtil)
   {
     super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener);
 
     this.tenantContextJobListener = tenantContextJobListener;
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.tenantManager = tenantManager;
+    this.tenantUtil = tenantUtil;
   }
 
   @Override
@@ -87,7 +92,7 @@ public class MultiTenantTaskScheduler
   @Override
   public boolean unscheduleTask(String name) {
     // When no tenant is specified (e.g. global) unschedule this task for all tenants
-    if (tenantManager.isGlobalTenant()) {
+    if (tenantUtil.isGlobalTenant()) {
       try {
         List<String> tenantSlugs = getScheduler().getJobGroupNames();
 

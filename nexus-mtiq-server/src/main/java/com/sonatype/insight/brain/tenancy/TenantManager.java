@@ -22,7 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Manages access to tenants
+ * Exposes setTenant methods to be called by tenant "entry-points" so that a tenant can be correctly provisioned.
+ * <p>
+ * This class is currently responsible for Tenant onboarding which will eventually be moved to some external process.
  */
 @Named
 @Singleton
@@ -56,15 +58,6 @@ public class TenantManager
     this.tenantLifecycle = tenantLifecycle;
     this.databaseProvisionUtils = databaseProvisionUtils;
     this.databaseConfigProvider = databaseConfigProvider;
-  }
-
-  /**
-   * Set the global tenant. Should be called at any 'init' point such as application start or schedules. Specifically
-   * where there is no tenant set (such as through a URL). Will ensure that the {@link TenantThreadLocal} is properly
-   * set to the global tenant.
-   */
-  public static void initGlobalTenant() {
-    TenantThreadLocal.setGlobalTenant();
   }
 
   public Tenant getTenant() {
@@ -141,9 +134,5 @@ public class TenantManager
     log.info("Tenant {} {} completed in {}ms", tenant.tenantSlug, name, System.currentTimeMillis() - start);
 
     return System.currentTimeMillis();
-  }
-
-  public boolean isGlobalTenant() {
-    return TenantUtil.isGlobalTenant();
   }
 }

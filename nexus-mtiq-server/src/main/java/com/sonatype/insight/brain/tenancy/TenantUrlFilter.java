@@ -19,8 +19,6 @@ import com.google.common.net.InetAddresses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.tenancy.TenantUtil.getTenantName;
-
 /**
  * Servlet filter that captures the application's base URL from the incoming request.
  */
@@ -32,9 +30,12 @@ public class TenantUrlFilter
 
   private final TenantManager tenantManager;
 
+  private final TenantUtil tenantUtil;
+
   @Inject
-  public TenantUrlFilter(final TenantManager tenantManager) {
+  public TenantUrlFilter(final TenantManager tenantManager, final TenantUtil tenantUtil) {
     this.tenantManager = tenantManager;
+    this.tenantUtil = tenantUtil;
   }
 
   @Override
@@ -45,10 +46,10 @@ public class TenantUrlFilter
 
     if (InetAddresses.isInetAddress(serverName)) {
       // the application health check comes in as an IP Address
-      TenantManager.initGlobalTenant();
+      tenantUtil.setGlobalTenant();
     }
     else {
-      String tenantName = getTenantName(serverName);
+      String tenantName = tenantUtil.getTenantName(serverName);
 
       tenantManager.setTenant(tenantName);
     }

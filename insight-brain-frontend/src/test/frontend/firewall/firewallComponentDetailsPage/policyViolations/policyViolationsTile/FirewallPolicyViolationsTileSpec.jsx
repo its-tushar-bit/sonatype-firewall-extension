@@ -189,7 +189,7 @@ describe('FirewallPolicyViolationsTile component', () => {
         setShowComponentWaiversPopover: jasmine.any(Function),
         showPolicyWaiversPopover: false,
         violations: originalselectPolicyViolations(minState),
-        showProxyState: false,
+        showProxyState: true,
         componentName: originalSelectComponentName(minState),
         componentNameWithoutVersion: originalSelectComponentNameWithoutVersion(minState),
         waivers: originalSelectWaivers(minState),

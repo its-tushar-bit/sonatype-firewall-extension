@@ -884,21 +884,21 @@ public class FirewallComponentDetailsPageTest
     ElementsCollection securityViolationCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
     securityViolationCells.shouldHaveSize(6);
     securityViolationCells.get(0).shouldHave(text("10"));
-    securityViolationCells.get(1).shouldHave(text("Security-High"));
+    securityViolationCells.get(1).shouldHave(text("Security-High Proxy Failing"));
     securityViolationCells.get(2).shouldHave(text("Security constraint"));
     securityViolationCells.get(3).shouldHave(text("security vulnerability severity >= 9.1"));
     securityViolationCells.get(4).shouldBe(empty);
 
     ElementsCollection securityLowViolationCells = policyViolationsTable.getRows().get(1).findAll(By.tagName("td"));
     securityLowViolationCells.get(0).shouldHave(text("6"));
-    securityLowViolationCells.get(1).shouldHave(text("Security-Low"));
+    securityLowViolationCells.get(1).shouldHave(text("Security-Low Proxy Warning"));
     securityLowViolationCells.get(2).shouldHave(text("Security-low constraint"));
     securityLowViolationCells.get(3).shouldHave(text("security vulnerability severity >= 4.3"));
     securityLowViolationCells.get(4).shouldHave(text("1 Active Waiver"));
 
     ElementsCollection licenseViolationCells = policyViolationsTable.getRows().get(2).findAll(By.tagName("td"));
     licenseViolationCells.get(0).shouldHave(text("5"));
-    licenseViolationCells.get(1).shouldHave(text("LicensePolicy"));
+    licenseViolationCells.get(1).shouldHave(text("LicensePolicy Proxy Warning"));
     licenseViolationCells.get(2).shouldHave(text("LicensePolicy constraint"));
     licenseViolationCells.get(3).shouldHave(text("Found license threat group"));
     licenseViolationCells.get(4).shouldBe(empty);
@@ -906,7 +906,7 @@ public class FirewallComponentDetailsPageTest
     ElementsCollection qualityAgeInDaysViolationCells =
         policyViolationsTable.getRows().get(3).findAll(By.tagName("td"));
     qualityAgeInDaysViolationCells.get(0).shouldHave(text("4"));
-    qualityAgeInDaysViolationCells.get(1).shouldHave(text("QualityPolicyAgeInDays"));
+    qualityAgeInDaysViolationCells.get(1).shouldHave(text("QualityPolicyAgeInDays Proxy Warning"));
     qualityAgeInDaysViolationCells.get(2).shouldHave(text("QualityPolicyAgeInDays constraint"));
     qualityAgeInDaysViolationCells.get(3).shouldHave(text("Found component younger than 50 days"));
     qualityAgeInDaysViolationCells.get(4).shouldBe(empty);
@@ -914,14 +914,14 @@ public class FirewallComponentDetailsPageTest
     ElementsCollection qualityPopularityViolationCells =
         policyViolationsTable.getRows().get(4).findAll(By.tagName("td"));
     qualityPopularityViolationCells.get(0).shouldHave(text("2"));
-    qualityPopularityViolationCells.get(1).shouldHave(text("QualityPolicyRelativePopularity"));
+    qualityPopularityViolationCells.get(1).shouldHave(text("QualityPolicyRelativePopularity Proxy Warning"));
     qualityPopularityViolationCells.get(2).shouldHave(text("QualityPolicyRelativePopularity constraint"));
     qualityPopularityViolationCells.get(3).shouldHave(text("Low popularity"));
     qualityPopularityViolationCells.get(4).shouldBe(empty);
 
     ElementsCollection otherViolationCells = policyViolationsTable.getRows().get(5).findAll(By.tagName("td"));
     otherViolationCells.get(0).shouldHave(text("1"));
-    otherViolationCells.get(1).shouldHave(text("CoordinatesPolicy"));
+    otherViolationCells.get(1).shouldHave(text("CoordinatesPolicy Proxy Failing"));
     otherViolationCells.get(2).shouldHave(text("CoordinatesPolicy constraint"));
     otherViolationCells.get(3).shouldHave(text("Coordinates were com.lingocoder"));
     otherViolationCells.get(4).shouldBe(empty);

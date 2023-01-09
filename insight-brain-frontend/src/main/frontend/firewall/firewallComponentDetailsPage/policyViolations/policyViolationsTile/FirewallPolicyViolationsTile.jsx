@@ -22,7 +22,7 @@ import { selectWaiverToDelete } from 'MainRoot/waivers/deleteWaiverModal/deleteW
 import { setWaiverToDelete } from 'MainRoot/waivers/waiverActions';
 import ViewAllPoliciesWaiversButton from './ViewAllPoliciesWaiversButton';
 
-export default function FirewallPolicyViolationsTile({ title, violations, showProxyState = false }) {
+export default function FirewallPolicyViolationsTile({ title, violations }) {
   const [showPolicyWaiversPopover, setShowComponentWaiversPopover] = useState(false);
   const { isLoadingPolicyViolations, policyViolationsError } = useSelector(selectFirewallComponentDetailsPage);
   const dispatch = useDispatch();
@@ -52,7 +52,7 @@ export default function FirewallPolicyViolationsTile({ title, violations, showPr
             setShowComponentWaiversPopover={setShowComponentWaiversPopover}
             showPolicyWaiversPopover={showPolicyWaiversPopover}
             {...{ violations }}
-            showProxyState={showProxyState}
+            showProxyState
             componentName={componentName}
             componentNameWithoutVersion={componentNameWithoutVersion}
             waivers={waivers}
@@ -68,7 +68,6 @@ export default function FirewallPolicyViolationsTile({ title, violations, showPr
 FirewallPolicyViolationsTile.propTypes = {
   title: PropTypes.string.isRequired,
   violations: FirewallPolicyViolationsTable.propTypes.violations,
-  showProxyState: FirewallPolicyViolationsTable.propTypes.showProxyState,
   showPolicyWaiversPopover: PropTypes.func,
   componentName: PropTypes.string,
   componentNameWithoutVersion: PropTypes.string,

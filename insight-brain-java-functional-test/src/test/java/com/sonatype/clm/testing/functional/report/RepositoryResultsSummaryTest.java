@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.report;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -43,8 +42,6 @@ public class RepositoryResultsSummaryTest
 {
   private Repository repo;
 
-  public static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
-
   private final FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
 
   private Wait<WebDriver> getWebDriverAwait() {
@@ -65,7 +62,7 @@ public class RepositoryResultsSummaryTest
   }
 
   @Before
-  public void before() throws IOException {
+  public void before() {
     RepositoryManager repositoryManager =
         tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
     repo = tempEntity.newRepository(repositoryManager, "central");

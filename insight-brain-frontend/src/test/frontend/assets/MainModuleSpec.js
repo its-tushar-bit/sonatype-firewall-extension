@@ -141,6 +141,38 @@ describe('mainModuleSpec', function () {
       expect(pendoServiceMock.start).toHaveBeenCalled();
     }));
 
+    it('validate state after license check 403 error', inject(function (
+      $httpBackend,
+      CLMLocations,
+      initService,
+      $rootScope
+    ) {
+      const errorMsg = 'Access from this IP is not allowed, please contact an administrator.';
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond(403, errorMsg);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
+
+      $rootScope.error = undefined;
+      initService.start();
+      $httpBackend.flush();
+      expect($rootScope.error).toEqual(errorMsg);
+    }));
+
+    it('validate state after waitForLogin 403 error', inject(function (
+      $httpBackend,
+      CLMLocations,
+      initService,
+      $rootScope
+    ) {
+      const errorMsg = 'Access from this IP is not allowed, please contact an administrator.';
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond(403, errorMsg);
+
+      $rootScope.error = undefined;
+      initService.start();
+      $httpBackend.flush();
+      expect($rootScope.error).toEqual(errorMsg);
+    }));
+
     it('validate state after external hyperlinks are disabled', inject(function (
       $httpBackend,
       CLMLocations,

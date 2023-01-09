@@ -300,7 +300,7 @@ export const InitModule = angular
           if (err.status === 402) {
             $state.go('productlicense');
           } else {
-            return $q.reject();
+            return $q.reject(err);
           }
         }
 
@@ -327,8 +327,8 @@ export const InitModule = angular
         SessionSecurityService.init();
       }
 
-      function initFailure() {
-        $rootScope.error = 'Unable to initialize the application';
+      function initFailure(err) {
+        $rootScope.error = Messages.getHttpErrorMessage(err) || 'Unable to initialize the application';
       }
 
       $transitions.onStart({ from: 'productlicense', to: 'gettingStarted' }, () => {

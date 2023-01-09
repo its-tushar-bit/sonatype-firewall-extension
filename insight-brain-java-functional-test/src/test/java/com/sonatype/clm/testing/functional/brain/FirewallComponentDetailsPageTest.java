@@ -31,31 +31,31 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ManageLabelsContentTab;
+import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover;
-import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilityDetailsPopover.VulnerabilityOverrideForm;
+import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTableRow;
-import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
+import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
-import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
-import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
-import com.sonatype.clm.testing.functional.pages.DeleteWaiverModal;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListTable;
+import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -85,7 +86,6 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -104,14 +104,14 @@ import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
 
 import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -1710,7 +1710,7 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void tesAddWaiverComponent_cancelButtonClick() {
+  public void testAddWaiverComponent_cancelButtonClick() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
@@ -1742,7 +1742,7 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void tesAddWaiverComponent__clickingDifferentScopes_and_submitButtonClick() {
+  public void testAddWaiverComponent__clickingDifferentScopes_and_submitButtonClick() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
@@ -1795,7 +1795,7 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void tesAddWaiverComponent_findBackButtonAndClick() {
+  public void testAddWaiverComponent_findBackButtonAndClick() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
@@ -1894,7 +1894,7 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test 
-  public void tesLabelsTab_displayApplicableLabels() {
+  public void testLabelsTab_displayApplicableLabels() {
     RepositoryComponent component = setupAllTestData();    
     generateApplicableLabels();
     refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
@@ -1999,7 +1999,7 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void tesAvailable_ActiveWaiverInTableRow() {
+  public void testAvailable_ActiveWaiverInTableRow() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));
@@ -2067,7 +2067,7 @@ public class FirewallComponentDetailsPageTest
   }
 
   @Test
-  public void tesAvailable_UnappliedWaiverInTableRow() {
+  public void testAvailable_UnappliedWaiverInTableRow() {
     createAllTypePolicies();
     RepositoryComponent component = setupAllTestData();
     refreshOrOpen(FirewallComponentDetailsPage.urlViolationsTab(component));

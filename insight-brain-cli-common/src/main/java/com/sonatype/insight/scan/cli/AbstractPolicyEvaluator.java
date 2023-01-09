@@ -193,10 +193,6 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
     return scanTarget.startsWith("container:");
   }
 
-  private boolean isIacTargetSoSkipFileExistsCheck(final String scanTarget) {
-    return scanTarget.startsWith("iac:");
-  }
-
   protected CliScanResult scan(
       P params,
       ProprietaryConfig proprietaryConfig,

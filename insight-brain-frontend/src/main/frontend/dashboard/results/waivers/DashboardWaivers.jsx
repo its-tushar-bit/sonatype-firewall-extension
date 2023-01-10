@@ -44,8 +44,7 @@ export default function DashboardWaivers() {
   }, [filterLoading, needsAcknowledgement]);
 
   return (
-    <div id="dashboard-waivers" className="iq-dashboard-waivers nx-viewport-sized__container">
-      {filtersAreDirty && !needsAcknowledgement && !isLoading && <DashboardMask />}
+    <>
       <NxInfoAlert>
         This list shows all existing waivers applied at the same or higher hierarchy level, based on your filter
         selections.{' '}
@@ -53,7 +52,10 @@ export default function DashboardWaivers() {
           Learn more about waivers.
         </NxTextLink>
       </NxInfoAlert>
-      <DashboardWaiversTable {...tableProps} />
-    </div>
+      <div id="dashboard-waivers" className="iq-dashboard-waivers nx-viewport-sized__container">
+        {filtersAreDirty && !needsAcknowledgement && !isLoading && <DashboardMask />}
+        <DashboardWaiversTable {...tableProps} />
+      </div>
+    </>
   );
 }

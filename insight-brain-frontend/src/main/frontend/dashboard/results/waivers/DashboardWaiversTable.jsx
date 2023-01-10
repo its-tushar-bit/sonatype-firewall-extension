@@ -88,7 +88,7 @@ export default function DashboardWaiversTable(props) {
   };
   return (
     <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
-      <NxTable>
+      <NxTable className="nx-table--fixed-layout">
         <NxTable.Head>
           <NxTable.Row className="iq-dashboard-waivers-headers">
             <NxTable.Cell onClick={() => doSort(0)} sortDir={getColumnDirection(0)} isSortable>

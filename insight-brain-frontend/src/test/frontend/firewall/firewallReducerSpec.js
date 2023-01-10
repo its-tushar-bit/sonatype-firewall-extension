@@ -799,11 +799,20 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_LOAD_DATA_REQUESTED action', function () {
-    let minimumState = {};
-
     it('updates to the initial state', function () {
-      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_DATA_REQUESTED' })).toEqual({
+      const customMinimumState = {
+        quarantineGridState: {
+          sortDir: 'asc',
+          sortField: 'componentName',
+          filterPolicy: '123',
+        },
+      };
+      expect(reduce(customMinimumState, { type: 'FIREWALL_LOAD_DATA_REQUESTED' })).toEqual({
         ...defaultState,
+        quarantineGridState: {
+          ...defaultState.quarantineGridState,
+          ...customMinimumState.quarantineGridState,
+        },
       });
     });
   });

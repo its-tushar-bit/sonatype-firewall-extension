@@ -133,6 +133,14 @@ public class FirewallPageComponents
     public NxTableHeader quarantineTimeHeader() {
       return new NxTableHeader("#quarantineTime-header");
     }
+
+    public SelenideElement policyNameSelect() {
+      return child(".nx-table-row--filter-header .nx-form-select");
+    }
+
+    public ElementsCollection policyNameOptions() {
+      return children(".nx-table-row--filter-header .nx-form-select option");
+    }
   }
 
   public static class FirewallAutoUnquarantineYtd

@@ -13,6 +13,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -55,6 +56,7 @@ import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListTable;
+import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTable;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -90,7 +92,6 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
@@ -111,6 +112,7 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -256,6 +258,54 @@ public class FirewallComponentDetailsPageTest
     testCLMServer.getHdsServer().respondWith(componentDependenciesDTO).atUri("/rest/component/dependencies");
   }
 
+  private void configureQuarantinedComponents(List<ComponentDetails> componentDetailsArrayList) {
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
+    ComponentDetails mainComponentDetail = componentDetailsArrayList.get(0);
+    // the second component detail is used as a valid alternative in version explorer, so we use the third as
+    // an additional quarantined component
+    ComponentDetails secondaryComponentDetail = componentDetailsArrayList.get(2);
+
+    addComponentDetailSecurityVulnerability(mainComponentDetail, (float) 9.1);
+    addComponentDetailSecurityVulnerability(mainComponentDetail, (float) 4.3);
+    mainComponentDetail.setCatalogDate(new Date().getTime());
+
+    addComponentDetailSecurityVulnerability(secondaryComponentDetail, (float) 7.1);
+    addComponentDetailSecurityVulnerability(secondaryComponentDetail, (float) 2.3);
+    secondaryComponentDetail.setCatalogDate(new Date().getTime());
+
+    componentDetailsList.setList(componentDetailsArrayList);
+    ComponentDependenciesDTO componentDependenciesDTO = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+
+    try {
+      // Used when componentDetails are requested
+      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+          .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
+              + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8") + "&hash="
+              + mainComponentDetail.getHash());
+      // Used when multi license details are requested
+      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+          .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
+              + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8"));
+      // Used when componentDetails are requested
+      testCLMServer.getHdsServer().respondWith(secondaryComponentDetail)
+          .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
+              + URLEncoder.encode(JsonUtils.format(secondaryComponentDetail.getComponentIdentifier()), "UTF-8")
+              + "&hash="
+              + secondaryComponentDetail.getHash());
+      // Used when multi license details are requested
+      testCLMServer.getHdsServer().respondWith(secondaryComponentDetail)
+          .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
+              + URLEncoder.encode(JsonUtils.format(secondaryComponentDetail.getComponentIdentifier()), "UTF-8"));
+    }
+    catch (UnsupportedEncodingException e) {
+      throw new UncheckedIOException(e);
+    }
+    testCLMServer.getHdsServer().respondWith(componentDetailsList).atUri("/rest/ci/componentDetails/list");
+    testCLMServer.getHdsServer().respondWith(componentDependenciesDTO).atUri("/rest/component/dependencies");
+  }
+
   private Policy createPolicy(
       String ownerId,
       int threatLevel,
@@ -302,6 +352,10 @@ public class FirewallComponentDetailsPageTest
 
   private ComponentIdentifier createComponentIdentifier(String version) {
     return ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", version, "", "jar");
+  }
+
+  private ComponentIdentifier createComponentIdentifier(String componentName, String version) {
+    return ComponentIdentifier.createMavenCoordinates("com.lingocoder", componentName, version, "", "jar");
   }
 
   private RepositoryComponent createRepositoryComponent(
@@ -415,6 +469,36 @@ public class FirewallComponentDetailsPageTest
     createOtherPolicies();
   }
 
+  private ArrayList<RepositoryComponent> setupBaseTestDataFor2QuarantineComponents(String componentLicenseCondition) {
+    ComponentDetails componentDetails1 =
+        createComponentDetail("hash1", createComponentIdentifier("0.5.2"), componentLicenseCondition);
+    ComponentDetails componentDetails2 =
+        createComponentDetail("hash2", createComponentIdentifier("0.5.3"), componentLicenseCondition);
+    ComponentDetails componentDetails3 =
+        createComponentDetail("hash3", createComponentIdentifier("best.component.ever", "0.5.4"),
+            componentLicenseCondition);
+    componentDetailsArrayList.add(componentDetails1);
+    componentDetailsArrayList.add(componentDetails2);
+    componentDetailsArrayList.add(componentDetails3);
+
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTime(date);
+    calendar.add(Calendar.DATE, -1);
+    Date yesterday = calendar.getTime();
+
+    RepositoryComponent mainRepositoryComponent =
+        createRepositoryComponent(componentDetails1.getHash(), componentDetails1.getComponentIdentifier(), date, date);
+    createRepositoryComponent(componentDetails2.getHash(), componentDetails2.getComponentIdentifier(), date, null);
+    RepositoryComponent secondaryRepositoryComponent = 
+        createRepositoryComponent(componentDetails3.getHash(), componentDetails3.getComponentIdentifier(), date,
+            yesterday);
+
+    ArrayList<RepositoryComponent> repositoryComponentList = new ArrayList<RepositoryComponent>();
+    repositoryComponentList.add(mainRepositoryComponent);
+    repositoryComponentList.add(secondaryRepositoryComponent);
+    return repositoryComponentList;
+  }
+
   private RepositoryComponent setupBaseTestData(String mainComponentLicenseCondition) {
     ComponentDetails componentDetails1 =
         createComponentDetail("hash1", createComponentIdentifier("0.5.2"), mainComponentLicenseCondition);
@@ -428,6 +512,16 @@ public class FirewallComponentDetailsPageTest
     createRepositoryComponent(componentDetails2.getHash(), componentDetails2.getComponentIdentifier(), date, null);
 
     return mainRepositoryComponent;
+  }
+
+  private ArrayList<RepositoryComponent> setupAllTestDataFor2QuarantinedComponents() {
+    ArrayList<RepositoryComponent> repositoryComponentList = setupBaseTestDataFor2QuarantineComponents(singleLicense);
+    
+    configureQuarantinedComponents(componentDetailsArrayList);
+    policyViolationsTableSetup(repositoryComponentList.get(0));
+    policyViolationsTableSetup(repositoryComponentList.get(1));
+
+    return repositoryComponentList;
   }
 
   private RepositoryComponent setupAllTestData() {
@@ -1397,8 +1491,10 @@ public class FirewallComponentDetailsPageTest
     editPopover.saveButton().click();
     
     waitUntilSpinnersGone();
-    editPopover.availableScopes().get(EditLicensesPopover.RepositoryComponentLicensesScopes.ORGANIZATION.ordinal())
-        .shouldHave(Condition.attribute("className", "nx-radio-checkbox nx-radio tm-checked"));
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.attributeContains(
+        editPopover.availableScopes().get(EditLicensesPopover.RepositoryComponentLicensesScopes.ORGANIZATION.ordinal()),
+        "className", "nx-radio-checkbox nx-radio tm-checked"));
     String inherietedScope = editPopover.scopeStatuses().last().getText().replaceAll("[()]", "");
     effectiveLicenses.shouldHaveSize(1);
     effectiveLicenses.first().shouldHave(text("GPL-1.0"));
@@ -2428,10 +2524,23 @@ public class FirewallComponentDetailsPageTest
     FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
     String expectedComponentName = "com.lingocoder : abi.cli : 0.5.2";
     createAllTypePolicies();
-    setupAllTestData();
+    setupAllTestDataFor2QuarantinedComponents();
     refreshOrOpen(FirewallPage.url());
     waitUntilSpinnersGone(); 
     FirewallQuarantineTable firewallQuarantineTable = firewallPage.firewallQuarantineTable();
+    SelenideElement policyNameSelect = firewallQuarantineTable.policyNameSelect();
+    policyNameSelect.click();
+    SelenideElement policyNameOption = firewallQuarantineTable.policyNameOptions().get(1);
+    policyNameOption.click();
+    policyNameSelect.shouldHave(text("CoordinatesPolicy"));
+    // quarantine date order: null
+    waitUntilSpinnersGone();
+    // quarantine date order: asc
+    firewallQuarantineTable.quarantineTimeHeader().click();
+    waitUntilSpinnersGone();
+    // quarantine date order: desc
+    firewallQuarantineTable.quarantineTimeHeader().click();
+    waitUntilSpinnersGone();
     SelenideElement componentLink = firewallQuarantineTable.getComponentDetailsPageLinkFromRow(0);
     componentLink.shouldHave(text(expectedComponentName));
     componentLink.click();
@@ -2443,6 +2552,8 @@ public class FirewallComponentDetailsPageTest
     firewallPage.shouldBe(visible);
     componentLink = firewallQuarantineTable.getComponentDetailsPageLinkFromRow(0);
     componentLink.shouldHave(text(expectedComponentName));
+    policyNameSelect = firewallQuarantineTable.policyNameSelect();
+    policyNameSelect.shouldHave(text("CoordinatesPolicy"));
   }
 
   @Test
@@ -2468,20 +2579,31 @@ public class FirewallComponentDetailsPageTest
     FirewallComponentDetailsPage firewallComponentDetailsPage = new FirewallComponentDetailsPage();
     String expectedComponentName = "com.lingocoder : abi.cli : 0.5.2";
     createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData();
-    refreshOrOpen(RepositoryResultDetailPage.url(component.getRepositoryId()));
+    ArrayList<RepositoryComponent> repositoryComponents = setupAllTestDataFor2QuarantinedComponents();
+    refreshOrOpen(RepositoryResultDetailPage.url(repositoryComponents.get(0).getRepositoryId()));
     waitUntilSpinnersGone(); 
     RepositoryResultDetailPage.page().shouldBe(visible);
-    SelenideElement firstRowComponentNameCell = RepositoryResultDetailPage.table().row(0).component();
-    firstRowComponentNameCell.shouldHave(text(expectedComponentName));
-    firstRowComponentNameCell.click();
+    RepositoryResultTable repositoryResultsTable = new RepositoryResultTable();
+    repositoryResultsTable.policyName().input().setValue("Security");
+    SelenideElement quarantinedHeader = repositoryResultsTable.header().quarantined();
+    // sorted by quarantined date by null order
+    quarantinedHeader.click();
+    waitUntilSpinnersGone();
+    // sorted by quarantined date by asc order
+    quarantinedHeader.click();
+    waitUntilSpinnersGone();
+    // sorted by quarantined date by desc order
+    SelenideElement componentNameCell = RepositoryResultDetailPage.table().row(1).component();
+    componentNameCell.shouldHave(text(expectedComponentName));
+    componentNameCell.click();
     waitUntilSpinnersGone();
     firewallComponentDetailsPage.shouldBe(visible);
     firewallComponentDetailsPage.title().shouldHave(text(expectedComponentName));
     MainHeader.backButton().shouldHave(text("Back to Repository results"));
     MainHeader.backButton().click();
     RepositoryResultDetailPage.page().shouldBe(visible);
-    RepositoryResultDetailPage.table().row(0).component().shouldHave(text(expectedComponentName));
+    RepositoryResultDetailPage.table().row(1).component().shouldHave(text(expectedComponentName));
+    repositoryResultsTable.policyName().input().shouldHave(attribute("value", "Security"));
   }
 
   @Test

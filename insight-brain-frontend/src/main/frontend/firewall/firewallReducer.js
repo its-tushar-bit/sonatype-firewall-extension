@@ -689,8 +689,23 @@ const reevaluateComponentFailed = (error, state) => ({
   },
 });
 
+const setFirewallLoadDataRequested = (_, state) => {
+  const sortAndFilterConfig = {
+    sortDir: state.quarantineGridState.sortDir,
+    sortField: state.quarantineGridState.sortField,
+    filterPolicy: state.quarantineGridState.filterPolicy,
+  };
+  return {
+    ...initialState,
+    quarantineGridState: {
+      ...initialState.quarantineGridState,
+      ...sortAndFilterConfig,
+    },
+  };
+};
+
 const reducerActionMap = {
-  [FIREWALL_LOAD_DATA_REQUESTED]: always(initialState),
+  [FIREWALL_LOAD_DATA_REQUESTED]: setFirewallLoadDataRequested,
   [FIREWALL_SET_SHOW_CONFIGURATION_MODAL]: setShowConfigurationModal,
   [FIREWALL_LOAD_CONFIGURATION_REQUESTED]: loadConfigurationRequested,
   [FIREWALL_LOAD_CONFIGURATION_FULFILLED]: loadConfigurationFulfilled,

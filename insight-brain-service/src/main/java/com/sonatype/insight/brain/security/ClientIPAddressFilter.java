@@ -24,8 +24,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import inet.ipaddr.IPAddress;
 import inet.ipaddr.IPAddressString;
@@ -53,11 +55,19 @@ public class ClientIPAddressFilter
 
   private final InsightConfig insightConfig;
 
+  private final ProductLicense productLicense;
+
   @Inject
-  public ClientIPAddressFilter(CurrentUser currentUser, Configuration configuration, InsightConfig insightConfig) {
+  public ClientIPAddressFilter(
+      CurrentUser currentUser,
+      Configuration configuration,
+      InsightConfig insightConfig,
+      ProductLicense productLicense)
+  {
     this.currentUser = currentUser;
     this.configuration = configuration;
     this.insightConfig = insightConfig;
+    this.productLicense = productLicense;
   }
 
   @Override
@@ -71,6 +81,11 @@ public class ClientIPAddressFilter
   {
     HttpServletRequest httpRequest = (HttpServletRequest) request;
     HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+    if (!productLicense.hasFeature(LicensedFeature.IP_ALLOWLIST)) {
+      chain.doFilter(request, response);
+      return;
+    }
 
     List<AllowedIp> allowlist = Stream.concat(configuration.getAccessAllowlist().stream(),
         insightConfig.getSystemAllowlist().stream()).collect(Collectors.toList());

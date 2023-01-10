@@ -287,7 +287,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.NOTIFICATIONS, //
         LicensedFeature.POLICY_GRANDFATHERING, //
         LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
-        LicensedFeature.AUTOMATION);
+        LicensedFeature.AUTOMATION,
+        LicensedFeature.IP_ALLOWLIST);
   }
 
   @Test
@@ -358,7 +359,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY,
         LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
         LicensedFeature.RM_STAGING_INTEGRATION, //
-        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+        LicensedFeature.WEBHOOKS_FOR_REPOSITORIES,
+        LicensedFeature.IP_ALLOWLIST);
   }
 
   @Test

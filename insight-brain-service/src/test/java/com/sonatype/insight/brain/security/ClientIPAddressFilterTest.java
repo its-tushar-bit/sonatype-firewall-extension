@@ -17,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -273,6 +274,25 @@ public class ClientIPAddressFilterTest
     assertThat(logOutput).atWarnLevel().containsPattern(
         String.format("Rejecting request from %s as the IP was not found in the configured allowlist", DENY_IPV6));
     verify(mockFilterChain, never()).doFilter(mockHttpServletRequest, mockHttpServletResponse);
+  }
+
+  @Test
+  public void testClientIPAddressFilter_AccessIsAllowedWithoutLicensedFeatureIP_ALLOWLIST() throws Exception {
+    // Remove the PRODUCT_LIFECYCLE_CLOUD feature flag LicensedFeature.IP_ALLOWLIST
+    setFeatures(LicensedFeature.DASHBOARD);
+    setSystemAllowlist(getTestAccessAllowlist());
+
+    FilterChain mockFilterChain = mock(FilterChain.class);
+
+    HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
+    when(mockHttpServletRequest.getRemoteAddr()).thenReturn(DENY_IPV4);
+
+    HttpServletResponse mockHttpServletResponse = mock(HttpServletResponse.class);
+
+    getCLMServer().getInstance(ClientIPAddressFilter.class)
+        .doFilter(mockHttpServletRequest, mockHttpServletResponse, mockFilterChain);
+
+    verify(mockFilterChain).doFilter(mockHttpServletRequest, mockHttpServletResponse);
   }
 
   @Test

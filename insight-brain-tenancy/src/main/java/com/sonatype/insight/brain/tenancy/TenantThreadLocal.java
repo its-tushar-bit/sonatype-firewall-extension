@@ -18,12 +18,12 @@ import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
  */
 public class TenantThreadLocal
 {
-  private static final ThreadLocal<Tenant> tenantThreadLocal = new InheritableThreadLocal<>();
+  private static final ThreadLocal<TenantState> tenantThreadLocal = new InheritableThreadLocal<>();
 
   private static final TenantUtil tenantUtil = new TenantUtil();
 
   static {
-    tenantThreadLocal.set(SINGLE_TENANT);
+    tenantThreadLocal.set(new TenantState(SINGLE_TENANT));
   }
 
   /**
@@ -34,7 +34,7 @@ public class TenantThreadLocal
     // Check the ThreadLocal if a tenant is set yet
     Tenant tenant = tenantUtil.validateTenant(getTenantWithoutValidation());
 
-    checkPermission(tenantThreadLocal.get());
+    checkPermission(tenantThreadLocal.get().current);
 
     return tenant;
   }
@@ -45,7 +45,7 @@ public class TenantThreadLocal
    * needed.
    */
   static Tenant getTenantWithoutValidation() {
-    return tenantThreadLocal.get();
+    return tenantThreadLocal.get().current;
   }
 
   /**
@@ -55,8 +55,11 @@ public class TenantThreadLocal
    * future.
    */
   private static void checkPermission(Tenant tenant) {
+    Tenant currentTenant = tenantThreadLocal.get().current;
+    Tenant previousTenant = tenantThreadLocal.get().previous;
+
     // This is initialization, once the tenant has been set to a value it can no longer be nullified.
-    if (tenantThreadLocal.get() == null) {
+    if (currentTenant == null) {
       return;
     }
 
@@ -65,8 +68,33 @@ public class TenantThreadLocal
       return;
     }
 
+    // Once a tenant has been invalidated it should never be used again
     if (tenant.isInvalid()) {
-      throw new RuntimeException("Attempting to use a tenant from a previous request/process");
+      throw new InvalidTenantOperationException("Attempting to use a tenant from a previous request/process");
+    }
+
+    // No need to perform further validation if this is essentially a no-op, can always re-set the current tenant or go
+    // back to the previous tenant.
+    if (tenant.equals(currentTenant) || tenant.equals(previousTenant)) {
+      return;
+    }
+
+    // Cannot go from a valid tenant to another valid tenant. Must invalidate the current tenant first to ensure that it
+    // cannot be reused.
+    if (!GLOBAL_TENANT.equals(currentTenant) && !currentTenant.isInvalid()) {
+      throw new InvalidTenantOperationException(
+          "Cannot transition from one valid tenant to another. This is to prevent data leakage");
+    }
+
+    // Cannot use the global tenant to transition from a valid tenant to another valid tenant. First the valid tenant
+    // must be invalidated before changing tenant, to prevent reuse. Alternatively can transition back to the previous
+    // tenant.
+    if (GLOBAL_TENANT.equals(currentTenant)
+        && previousTenant != null
+        && !previousTenant.isInvalid()) {
+      throw new InvalidTenantOperationException(
+          "Cannot transition from one valid tenant to another via Global. This is to prevent " +
+              "data leakage");
     }
   }
 
@@ -103,9 +131,9 @@ public class TenantThreadLocal
     setTenantWithoutValidation(tenant);
   }
 
-  private static void setTenantWithoutValidation(Tenant tenant) {
+  static void setTenantWithoutValidation(Tenant tenant) {
     MDC.put("tenant", tenant.tenantSlug);
-    tenantThreadLocal.set(tenant);
+    tenantThreadLocal.set(new TenantState(tenant));
   }
 
   /**
@@ -151,5 +179,41 @@ public class TenantThreadLocal
     }
 
     getTenantWithoutValidation().invalidate();
+
+    Tenant previousTenant = tenantThreadLocal.get().previous;
+
+    if (previousTenant != null) {
+      previousTenant.invalidate();
+    }
+  }
+
+  private static class TenantState
+  {
+    private final Tenant previous;
+
+    private final Tenant current;
+
+    public TenantState(Tenant current) {
+      this.previous = getCurrentTenantOrNull();
+      this.current = current;
+    }
+
+    private static Tenant getCurrentTenantOrNull() {
+      if (tenantThreadLocal.get() == null
+          || SINGLE_TENANT.equals(tenantThreadLocal.get().current)
+          || GLOBAL_TENANT.equals(tenantThreadLocal.get().current)) {
+        return null;
+      }
+
+      return tenantThreadLocal.get().current;
+    }
+  }
+
+  private static class InvalidTenantOperationException
+      extends RuntimeException
+  {
+    public InvalidTenantOperationException(String message) {
+      super(message);
+    }
   }
 }

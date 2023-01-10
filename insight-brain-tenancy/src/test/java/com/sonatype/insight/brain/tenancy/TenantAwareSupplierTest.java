@@ -17,14 +17,14 @@ public class TenantAwareSupplierTest
     String resultString = "complete";
 
     Tenant expectedTenant = new Tenant("correcttenant");
-    TenantThreadLocal.setTenant(expectedTenant);
+    TenantTestHelper.setTenant(expectedTenant);
     TenantAwareSupplier<String> supplier = new TenantAwareSupplier<>(() -> {
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(expectedTenant);
       return resultString;
     });
 
     // Swap the tenant before running the supplier
-    TenantThreadLocal.setTenant(new Tenant("wrongtenant"));
+    TenantTestHelper.setTenant(new Tenant("wrongtenant"));
 
     String result = supplier.get();
 

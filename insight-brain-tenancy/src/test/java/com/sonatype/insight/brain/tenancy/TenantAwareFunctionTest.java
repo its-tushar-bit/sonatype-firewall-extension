@@ -17,14 +17,14 @@ public class TenantAwareFunctionTest
     String resultString = "complete";
 
     Tenant expectedTenant = new Tenant("correcttenant");
-    TenantThreadLocal.setTenant(expectedTenant);
+    TenantTestHelper.setTenant(expectedTenant);
     TenantAwareFunction<String, String> function = new TenantAwareFunction<>(input -> {
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(expectedTenant);
       return input;
     });
 
     // Swap the tenant before running the function
-    TenantThreadLocal.setTenant(new Tenant("wrongtenant"));
+    TenantTestHelper.setTenant(new Tenant("wrongtenant"));
 
     String result = function.apply(resultString);
 

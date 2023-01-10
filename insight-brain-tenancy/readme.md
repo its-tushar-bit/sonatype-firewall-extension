@@ -64,7 +64,7 @@ a `RuntimeException` will be thrown, preventing any data access.
 ### Problems
 
 There is a potential loop-hole here which involves parallel requests and re-used threads but is highly unlikely IMO.
-Threading work doesn’t happen often, less so within a thread pool, however when it does we need to encourage good
+Threading work doesn’t happen often, less so within a thread pool, however when it does, we need to encourage good
 practice (making use of TenantAwareRunnable) and failing that the tenant validation is incredibly likely to catch a
 mistake before we release (it will break the feature as soon as tenant reuse is encountered)
 This could happen if you have two requests at the same time, a developer has used a native thread (not the tenant aware
@@ -74,6 +74,28 @@ timing and our development team to screw up in a very perfect way.
 The saving grace is that as soon as this situation is hit where the timing is off (the most likely scenario) we will hit
 the runtime exception and notice very fast. This will only while the very first request hasn't been invalidated. As soon
 as it has we will see the exception.
+
+
+### Valid tenant transitions
+To further guard against mistakes we define a set of allowed/disallowed tenant transitions. Essentially before changing
+from one tenant to another the current tenant _must be invalidated_. The only exception is when making use of Global.
+
+- Tn = Individual tenant (e.g. T1 is tenant1, T2 is tenant2)
+- G = The Global tenant
+- (V) = A valid tenant
+- (In) = An invalid tenant
+
+#### Allowed transitions
+
+1. T1(V) → T1(In) → T2(V)
+2. T1(V) → G → T1(V)
+3. T1(V) → T1(V) 
+
+#### Disallowed transitions
+
+1. T1(V) → T2(V)
+2. T1(V) → T2(In)
+3. T1(V) → G → T2(V)
 
 ## Asynchronous work
 

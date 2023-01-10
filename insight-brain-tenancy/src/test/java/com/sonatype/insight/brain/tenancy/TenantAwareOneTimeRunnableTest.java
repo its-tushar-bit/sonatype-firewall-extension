@@ -21,7 +21,7 @@ public class TenantAwareOneTimeRunnableTest
     Runnable mockRunnable = mock(Runnable.class);
 
     Tenant expectedTenant = new Tenant("correcttenant");
-    TenantThreadLocal.setTenant(expectedTenant);
+    TenantTestHelper.setTenant(expectedTenant);
 
     doAnswer(invocationOnMock -> {
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(expectedTenant);
@@ -30,7 +30,7 @@ public class TenantAwareOneTimeRunnableTest
 
     TenantAwareOneTimeRunnable runnable = new TenantAwareOneTimeRunnable(mockRunnable);
 
-    TenantThreadLocal.setTenant(new Tenant("wrongtenant"));
+    TenantTestHelper.setTenant(new Tenant("wrongtenant"));
 
     runnable.run();
 

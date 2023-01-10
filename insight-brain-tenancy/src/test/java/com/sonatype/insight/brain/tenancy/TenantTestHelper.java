@@ -16,7 +16,7 @@ public class TenantTestHelper
   }
 
   public static void setTenant(final Tenant tenant) {
-    TenantThreadLocal.setTenant(tenant);
+    TenantThreadLocal.setTenantWithoutValidation(tenant);
   }
 
   public static void assertTenantSet(Tenant tenant) {
@@ -26,12 +26,12 @@ public class TenantTestHelper
   public static void testAs(Tenant tenant, Consumer<Tenant> test) {
     Tenant currentTenant = TenantThreadLocal.getTenantWithoutValidation();
     try {
-      TenantThreadLocal.setTenant(tenant);
+      setTenant(tenant);
 
       test.accept(tenant);
     }
     finally {
-      TenantThreadLocal.setTenant(currentTenant);
+      setTenant(currentTenant);
     }
   }
 }

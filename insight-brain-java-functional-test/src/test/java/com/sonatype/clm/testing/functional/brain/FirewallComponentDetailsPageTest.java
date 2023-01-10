@@ -2007,12 +2007,7 @@ public class FirewallComponentDetailsPageTest
     manageLabels.appliedLabels().shouldHaveSize(0);
   }
 
-  @Test
-  public void testLabelsTab_displayAppliedLabels() {
-    RepositoryComponent component = setupAllTestData();    
-    ArrayList<Label> labelsList = generateApplicableLabels();
-    setLabelsAsApplied(component, labelsList);
-    refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
+  private void testLabelsTab_displayAppliedLabels() {
     ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
     manageLabels.shouldBe(visible);
     manageLabels.applicableLabels().shouldHaveSize(0);
@@ -2024,12 +2019,26 @@ public class FirewallComponentDetailsPageTest
     manageLabels.appliedLabelText(2).shouldHave(text(expectedLabelsTexts[0]));
     assertThat(manageLabels.appliedLabels().get(2).getAttribute("className")).contains("nx-selectable-color--blue");
   }
-    
+
   @Test
-  public void testLabelsTab_addLabels() {
+  public void testLabelsTab_displayAppliedLabels_fromFirewall() {
     RepositoryComponent component = setupAllTestData();    
-    generateApplicableLabels();
+    ArrayList<Label> labelsList = generateApplicableLabels();
+    setLabelsAsApplied(component, labelsList);
     refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
+    testLabelsTab_displayAppliedLabels();
+  }
+
+  @Test
+  public void testLabelsTab_displayAppliedLabels_fromRepositoryResultsView() {
+    RepositoryComponent component = setupAllTestData();    
+    ArrayList<Label> labelsList = generateApplicableLabels();
+    setLabelsAsApplied(component, labelsList);
+    refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTabFromRepositoryResultsView(component));
+    testLabelsTab_displayAppliedLabels();
+  }
+  
+  private void testLabelsTab_addLabels() {
     ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
     
     manageLabels.applicableLabelText(0).shouldHave(text(expectedLabelsTexts[0]));
@@ -2049,6 +2058,26 @@ public class FirewallComponentDetailsPageTest
 
     manageLabels.applicableLabels().shouldHaveSize(0);
     manageLabels.appliedLabels().shouldHaveSize(3);
+
+    manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
+    manageLabels.appliedLabelText(1).shouldHave(text(expectedLabelsTexts[1]));
+    manageLabels.appliedLabelText(2).shouldHave(text(expectedLabelsTexts[0]));
+  }
+
+  @Test
+  public void testLabelsTab_addLabels_fromFirewall() {
+    RepositoryComponent component = setupAllTestData();    
+    generateApplicableLabels();
+    refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
+    testLabelsTab_addLabels();
+  }
+
+  @Test
+  public void testLabelsTab_addLabels_fromRepositoryResultsView() {
+    RepositoryComponent component = setupAllTestData();    
+    generateApplicableLabels();
+    refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTabFromRepositoryResultsView(component));
+    testLabelsTab_addLabels();
   }
 
   private void removeAppliedLabel(ManageLabelsContentTab manageLabels, int labelIndex) {
@@ -2058,12 +2087,7 @@ public class FirewallComponentDetailsPageTest
     NxSubmitMask.seeAndWaitForDismissal(); 
   }
 
-  @Test
-  public void testLabelsTab_removeLabels() {
-    RepositoryComponent component = setupAllTestData();    
-    ArrayList<Label> labelsList = generateApplicableLabels();
-    setLabelsAsApplied(component, labelsList);
-    refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
+  private void testLabelsTab_removeLabels() {
     ManageLabelsContentTab manageLabels = firewallComponentDetailsPage.labelsContent();
     
     manageLabels.appliedLabelText(0).shouldHave(text(expectedLabelsTexts[2]));
@@ -2092,6 +2116,24 @@ public class FirewallComponentDetailsPageTest
 
     manageLabels.applicableLabels().shouldHaveSize(3);
     manageLabels.appliedLabels().shouldHaveSize(0);
+  }
+
+  @Test
+  public void testLabelsTab_removeLabels_fromFirewall() {
+    RepositoryComponent component = setupAllTestData();    
+    ArrayList<Label> labelsList = generateApplicableLabels();
+    setLabelsAsApplied(component, labelsList);
+    refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTab(component));
+    testLabelsTab_removeLabels();
+  }
+
+  @Test
+  public void testLabelsTab_removeLabels_fromRepositoryResultsView() {
+    RepositoryComponent component = setupAllTestData();    
+    ArrayList<Label> labelsList = generateApplicableLabels();
+    setLabelsAsApplied(component, labelsList);
+    refreshOrOpen(FirewallComponentDetailsPage.urlLabelsTabFromRepositoryResultsView(component));
+    testLabelsTab_removeLabels();
   }
 
   @Test

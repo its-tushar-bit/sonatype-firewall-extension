@@ -94,6 +94,10 @@ public class FirewallComponentDetailsPage
     return getBaseUrl(component, LABELS_TAB_ID, true);
   }
 
+  public static String urlLabelsTabFromRepositoryResultsView(RepositoryComponent component) {
+    return getBaseUrl(component, LABELS_TAB_ID, false);
+  }
+
   public SelenideElement title() {
     return child(FIREWALL_COMPONENT_DETAILS_PAGE_TITLE);
   }

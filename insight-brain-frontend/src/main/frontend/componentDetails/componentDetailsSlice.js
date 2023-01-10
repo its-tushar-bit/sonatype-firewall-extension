@@ -23,7 +23,7 @@ import { selectComponentDetailsRequestData } from './overview/overviewSelectors'
 import { Messages } from '../utilAngular/CommonServices';
 import { toggleBooleanProp } from '../util/reduxUtil';
 import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';
-import { selectRouterCurrentParams, selectIsFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRouterCurrentParams, selectIsFirewallOrRepository } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 import {
   selectComponentDetails,
@@ -338,7 +338,7 @@ const loadApplicableLabelScopes = createAsyncThunk(
     const { componentDetails, router } = currentState;
     const { id: labelId } = componentDetails.selectedLabelDetails;
     const { publicId, repositoryId } = router.currentParams;
-    if (selectIsFirewall(currentState)) {
+    if (selectIsFirewallOrRepository(currentState)) {
       return axios.get(getApplicableLabelScopesUrl('repository', repositoryId, labelId)).catch(rejectWithValue);
     } else {
       return axios.get(getApplicableLabelScopesUrl('application', publicId, labelId)).catch(rejectWithValue);
@@ -384,7 +384,7 @@ const saveApplyLabelScope = createAsyncThunk(
           dispatch(actions.cancelApplyLabelModal());
           dispatch(actions.resetApplyLabelMaskState(null));
           dispatch(actions.resetLabelModalMaskState(null));
-          if (selectIsFirewall(getState())) {
+          if (selectIsFirewallOrRepository(getState())) {
             dispatch(actions.loadFirewallComponentDetailsLabels());
           } else {
             dispatch(actions.loadComponentDetails());
@@ -434,7 +434,7 @@ const removeAppliedLabel = createAsyncThunk(
       .then(() => {
         setTimeout(() => {
           dispatch(actions.toggleShowRemoveLabelModal());
-          if (selectIsFirewall(getState())) {
+          if (selectIsFirewallOrRepository(getState())) {
             dispatch(loadFirewallComponentDetailsLabels());
           } else {
             dispatch(loadComponentDetails());

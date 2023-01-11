@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.repository.autorelease;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 import javax.inject.Inject;
@@ -66,17 +65,18 @@ public class AutomaticQuarantineReleaseSchedulerTest
   @Test
   public void testStartServer_Licensed() {
     enableLicenseForFirewall(true);
-    String beforeSchedulingTime =
-        LocalDateTime.now().plusMinutes(configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes()).toString();
+    Date beforeSchedulingTime = new Date(
+        System.currentTimeMillis() + configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes() * 60000);
     automaticQuarantineReleaseScheduler.start();
+    Date afterSchedulingTime = new Date(
+        System.currentTimeMillis() + configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes() * 60000);
 
     ArgumentCaptor<Date> startTimeCaptor = ArgumentCaptor.forClass(Date.class);
     ArgumentCaptor<Duration> timeIntervalCaptor = ArgumentCaptor.forClass(Duration.class);
     verify(taskSchedulerMock).schedulePeriodicTask(eq(AutomaticQuarantineReleaseTask.class),
         eq(AutomaticQuarantineReleaseTask.NAME),
         timeIntervalCaptor.capture(), startTimeCaptor.capture());
-    assertThat(startTimeCaptor.getValue()).isBetween(beforeSchedulingTime,
-        LocalDateTime.now().plusMinutes(configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes()).toString());
+    assertThat(startTimeCaptor.getValue()).isBetween(beforeSchedulingTime, afterSchedulingTime, true, true);
     assertThat(timeIntervalCaptor.getValue()).isEqualTo(
         Duration.ofMinutes(configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes()));
   }
@@ -84,17 +84,18 @@ public class AutomaticQuarantineReleaseSchedulerTest
   @Test
   public void testProductLicenseChanged_AutomaticQuarantineReleaseWasAdded() {
     enableLicenseForFirewall(true);
-    String beforeSchedulingTime =
-        LocalDateTime.now().plusMinutes(configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes()).toString();
+    Date beforeSchedulingTime = new Date(
+        System.currentTimeMillis() + configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes() * 60000);
     automaticQuarantineReleaseScheduler.productLicenseChanged();
+    Date afterSchedulingTime = new Date(
+        System.currentTimeMillis() + configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes() * 60000);
 
     ArgumentCaptor<Date> startTimeCaptor = ArgumentCaptor.forClass(Date.class);
     ArgumentCaptor<Duration> timeIntervalCaptor = ArgumentCaptor.forClass(Duration.class);
     verify(taskSchedulerMock).schedulePeriodicTask(eq(AutomaticQuarantineReleaseTask.class),
         eq(AutomaticQuarantineReleaseTask.NAME),
         timeIntervalCaptor.capture(), startTimeCaptor.capture());
-    assertThat(startTimeCaptor.getValue()).isBetween(beforeSchedulingTime,
-        LocalDateTime.now().plusMinutes(configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes()).toString());
+    assertThat(startTimeCaptor.getValue()).isBetween(beforeSchedulingTime, afterSchedulingTime, true, true);
     assertThat(timeIntervalCaptor.getValue()).isEqualTo(
         Duration.ofMinutes(configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes()));
   }

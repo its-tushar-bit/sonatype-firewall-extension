@@ -11,6 +11,7 @@ import ViolationDetailsTile, { violationDetailsPropTypes } from './ViolationDeta
 import PolicyViolationConstraintInfoTile, { constraintViolationsPropType } from './PolicyViolationConstraintInfoTile';
 import SecurityVulnerabilityDetailsTile from './SecurityVulnerabilityDetailsTile';
 import { capitalizeFirstLetter } from '../util/jsUtil';
+import { getComponentName } from 'MainRoot/util/componentNameUtils';
 
 export default function ViolationPage(props) {
   const {
@@ -111,6 +112,7 @@ export default function ViolationPage(props) {
             error={vulnerabilityDetailsError}
             loading={vulnerabilityDetailsLoading}
             retryLoad={loadVulnerabilityDetails}
+            componentName={violationDetails ? getComponentName(violationDetails) : null}
           />
         )}
       </LoadWrapper>

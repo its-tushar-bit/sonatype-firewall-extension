@@ -228,7 +228,7 @@ describe('ViolationPage', function () {
   });
 
   it('calls loadFirewallPolicyVulnerabilityDetails', function () {
-    const component = getMountedComponent();
+    const component = getMountedComponent({ violationDetails: {} });
 
     expect(loadFirewallPolicyVulnerabilityDetailsSpy).not.toHaveBeenCalledWith('CVE-2012-2098');
 
@@ -319,14 +319,57 @@ describe('ViolationPage', function () {
   });
 
   it('calls loadFirewallViolationDetails with params', function () {
-    const component = getMountedComponent();
+    const component = getMountedComponent({ violationDetails: {} });
     component.setProps({ isFirewallContext: true });
     expect(loadFirewallViolationDetailsSpy).toHaveBeenCalledWith('02a6107559a94c39b04d4ec8374b9508');
   });
 
   it('calls loadApplicableWaivers with params', function () {
-    const component = getMountedComponent();
+    const component = getMountedComponent({});
     component.setProps({ isFirewallContext: true });
     expect(loadApplicableWaiversSpy).toHaveBeenCalledWith('02a6107559a94c39b04d4ec8374b9508');
+  });
+
+  it('renders component name below the vulnerability identifier', function () {
+    const violationDetails = {
+      policyThreatCategory: 'security',
+      filename: 'test',
+      displayName: {
+        name: 'testFile',
+        parts: [
+          {
+            field: 'Group',
+            value: 'a',
+          },
+          {
+            value: ' : ',
+          },
+          {
+            field: 'Artifact',
+            value: 'b',
+          },
+          {
+            value: ' : ',
+          },
+          {
+            field: 'Version',
+            value: 'c',
+          },
+        ],
+      },
+    };
+    const vulnerabilityDetails = { foo: 'bar' };
+    let tile = getShallowComponent({
+      vulnerabilityDetails,
+      violationDetails,
+      vulnerabilityDetailsLoading: true,
+    })
+      .find(LoadWrapper)
+      .find(SecurityVulnerabilityDetailsTile);
+
+    expect(tile).toExist();
+    expect(tile.prop('vulnerabilityDetails')).toBe(vulnerabilityDetails);
+    expect(tile.prop('loading')).toBe(true);
+    expect(tile.prop('componentName')).toBe('a : b : c');
   });
 });

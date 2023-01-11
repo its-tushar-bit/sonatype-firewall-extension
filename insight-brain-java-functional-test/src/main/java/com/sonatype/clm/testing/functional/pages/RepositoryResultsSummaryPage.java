@@ -27,4 +27,12 @@ public class RepositoryResultsSummaryPage
   public static AccessTile accessTile() {
     return new AccessTile("#repositories-pill-access");
   }
+
+  public static AccessTile configurationTile() {
+    return new AccessTile("#repositories-pill-configuration");
+  }
+
+  public static AccessTile componentsTableRepositoryNameHeaderSortBtn() {
+    return new AccessTile("#repositories-pill-configuration .nx-cell__sort-btn");
+  }
 }

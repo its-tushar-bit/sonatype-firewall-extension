@@ -33,6 +33,12 @@ logging:
     - type: console
       logFormat: "%d{'yyyy-MM-dd HH:mm:ss,SSSZ'} %level [%thread] %X{username} %logger - %msg%n"
 
+# System IP Address Filter Allowlist
+# Supports single IP address and IP address range in CIDR notation
+#systemAllowlist:
+#  - ipAddress: 192.168.33.33
+#    description: Only allow access from 192.168.33.33
+
 # This is made explicit in order to make it overridable on the command line.  When doing frontend dev work,
 # webpack-dev-server runs on port 8070 and the dropwizard app should be moved to port 8072 by specifying
 # the -Ddw.server.applicationConnectors[0].port=8072 system property (or modifying this file)

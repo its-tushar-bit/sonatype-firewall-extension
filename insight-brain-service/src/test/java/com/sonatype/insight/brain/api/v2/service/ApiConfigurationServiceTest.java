@@ -8,20 +8,24 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.AllowedIp;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
@@ -68,6 +72,9 @@ public class ApiConfigurationServiceTest
 
   @Inject
   private InsightConfig insightConfig;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   @Override
   public void configure(Binder binder) {
@@ -499,6 +506,14 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testGetConfiguration_AccessAllowlist_ReturnsDefault() {
+    assertThat(
+        service.getConfigurationNoAuthz(
+            SetUtils.hashSet(SystemConfigurationProperty.ACCESS_ALLOWLIST)))
+        .containsEntry(SystemConfigurationProperty.ACCESS_ALLOWLIST, null);
+  }
+
+  @Test
   public void testGetConfiguration_SchemaMigrationEnabled_NullDb_NullEnv() {
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED))).containsEntry(
@@ -817,6 +832,53 @@ public class ApiConfigurationServiceTest
     assertThat(
         service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.CSP_ENABLED))).containsEntry(
         SystemConfigurationProperty.CSP_ENABLED, false);
+  }
+
+  @Test
+  public void testSetConfiguration_AccessAllowlist_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.ACCESS_ALLOWLIST, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.ACCESS_ALLOWLIST)).isNull();
+    assertThat(
+        service.getConfigurationNoAuthz(SetUtils.hashSet(SystemConfigurationProperty.ACCESS_ALLOWLIST))).containsEntry(
+        SystemConfigurationProperty.ACCESS_ALLOWLIST, null);
+  }
+
+  @Test
+  public void testSetConfiguration_AccessAllowlist() {
+    Map<String, String> values  = new HashMap<>();
+    values.put("ipAddress", "192.168.33.10");
+    values.put("description", "Test IPv4 address");
+    List<Map<String, String>> allowlist = Collections.singletonList(values);
+
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.ACCESS_ALLOWLIST, allowlist));
+
+    assertThat(dao.get(SystemConfigurationProperty.ACCESS_ALLOWLIST))
+        .isEqualTo("[{\"ipAddress\":\"192.168.33.10\",\"description\":\"Test IPv4 address\"}]");
+
+    List<AllowedIp> allowlistIPs = (List<AllowedIp>) service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.ACCESS_ALLOWLIST))
+        .get(SystemConfigurationProperty.ACCESS_ALLOWLIST);
+
+    assertThat(allowlistIPs).extracting(AllowedIp::getIpAddress)
+        .containsExactlyInAnyOrder("192.168.33.10");
+    assertThat(allowlistIPs).extracting(AllowedIp::getDescription)
+        .containsExactlyInAnyOrder("Test IPv4 address");
+  }
+
+  @Test
+  public void testSetConfiguration_AccessAllowlistIsNotAllowedWithoutLicence() {
+    Map<String, String> values  = new HashMap<>();
+    values.put("ipAddress", "192.168.33.10");
+    values.put("description", "Test IPv4 address");
+    List<Map<String, String>> allowlist = Collections.singletonList(values);
+
+    // Remove the PRODUCT_LIFECYCLE_CLOUD feature flag LicensedFeature.IP_ALLOWLIST
+    testProductLicense.setFeatures(LicensedFeature.DASHBOARD);
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
+            service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.ACCESS_ALLOWLIST, allowlist)))
+        .withMessageContaining(InvalidLicenseException.INVALID_LICENSE_MSG);
   }
 
   @Test

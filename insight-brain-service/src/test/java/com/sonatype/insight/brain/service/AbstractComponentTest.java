@@ -127,6 +127,7 @@ public class AbstractComponentTest
     stopManagedComponents();
     tearDownSecurity();
     resetBaseUrl();
+    resetAccessAllowlist();
   }
 
   public String getBaseUrl() {
@@ -150,6 +151,13 @@ public class AbstractComponentTest
     ApiConfigurationService service = lookup(ApiConfigurationService.class);
     Set<String> propertyNames =
         ImmutableSet.of(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
+    service.deleteConfigurationNoAuthz(propertyNames);
+    service.applyConfigurationToClients(propertyNames);
+  }
+
+  public void resetAccessAllowlist() {
+    ApiConfigurationService service = lookup(ApiConfigurationService.class);
+    Set<String> propertyNames = ImmutableSet.of(SystemConfigurationProperty.ACCESS_ALLOWLIST);
     service.deleteConfigurationNoAuthz(propertyNames);
     service.applyConfigurationToClients(propertyNames);
   }

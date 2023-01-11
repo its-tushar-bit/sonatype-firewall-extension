@@ -18,13 +18,17 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.ClassUtils;
@@ -73,17 +77,21 @@ public class ApiConfigurationService
 
   private final TaskScheduler taskScheduler;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public ApiConfigurationService(
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       List<ConfigurationListener> configurationListeners,
       InsightConfig insightConfig,
-      TaskScheduler taskScheduler)
+      TaskScheduler taskScheduler,
+      ProductLicense productLicense)
   {
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.configurationListeners = configurationListeners;
     this.insightConfig = insightConfig;
     this.taskScheduler = taskScheduler;
+    this.productLicense = productLicense;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -135,6 +143,10 @@ public class ApiConfigurationService
   public void setConfigurationNoAuthz(TransactionContext tx, Map<String, Object> properties) {
     if (CollectionUtils.isEmpty(properties)) {
       throw new BadRequestException(NO_PROPERTIES_ERROR_MSG);
+    }
+    if (properties.containsKey(SystemConfigurationProperty.ACCESS_ALLOWLIST) && !productLicense.hasFeature(
+        LicensedFeature.IP_ALLOWLIST)) {
+      throw new InvalidLicenseException();
     }
     for (Entry<String, Object> property : properties.entrySet()) {
       validatePropertyName(property.getKey());

@@ -5,16 +5,22 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.security.AllowedIp;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.test.LogOutput;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,6 +38,9 @@ public class ConfigurationUtilsTest
 
   @Rule
   public ExpectedException expectedEx = ExpectedException.none();
+
+  private static final ObjectMapper JSON =
+      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @Test
   public void testUrlValueToString_Null() {
@@ -158,6 +167,106 @@ public class ConfigurationUtilsTest
     result.add("first");
     result.add("second");
     return result;
+  }
+
+  @Test
+  public void testStringToAccessAllowlist() {
+    List<AllowedIp> allowlistIPs = ConfigurationUtils.stringToAccessAllowlist(
+        "[{\"ipAddress\":\"192.168.33.10\",\"description\":\"Test IPv4 address\"}," +
+            "{\"ipAddress\":\"8ed5:9e96:1da1:f53b:587e:9f4d:a7f9:817e\",\"description\":\"Test IPv6 address\"}," +
+            "{\"ipAddress\":\"15.177.0.0/18\",\"description\":\"Test IPv4 CIDR\"}," +
+            "{\"ipAddress\":\"2600:1f18:3fff:f800::/56\",\"description\":\"Test IPv6 CIDR\"}]");
+
+    assertThat(allowlistIPs).extracting(allowlistIp -> allowlistIp.getIpAddress())
+        .containsExactlyInAnyOrder("192.168.33.10", "8ed5:9e96:1da1:f53b:587e:9f4d:a7f9:817e",
+            "15.177.0.0/18", "2600:1f18:3fff:f800::/56");
+    assertThat(allowlistIPs).extracting(allowlistIp -> allowlistIp.getDescription())
+        .containsExactlyInAnyOrder("Test IPv4 address", "Test IPv6 address", "Test IPv4 CIDR",
+            "Test IPv6 CIDR");
+  }
+
+  @Test
+  public void testStringToAccessAllowlist_ReturnNullIfConfigurationIsEmpty() {
+    assertNull(ConfigurationUtils.stringToAccessAllowlist(null));
+  }
+
+  @Test
+  public void testStringToAccessAllowlist_ThrowsException() {
+    assertThatExceptionOfType(UncheckedIOException.class).isThrownBy(
+        () -> ConfigurationUtils.stringToAccessAllowlist("invalid_value"))
+        .withMessageContaining("Invalid json: invalid_value");
+  }
+
+  @Test
+  public void testAccessAllowlistToString() {
+    String listToString = ConfigurationUtils.accessAllowlistToString(getAllowlistMap(getAccessAllowlist()));
+    assertEquals("[{\"ipAddress\":\"192.168.33.10\",\"description\":\"Test IPv4 address\"}," +
+        "{\"ipAddress\":\"8ed5:9e96:1da1:f53b:587e:9f4d:a7f9:817e\",\"description\":\"Test IPv6 address\"}," +
+        "{\"ipAddress\":\"15.177.0.0/18\",\"description\":\"Test IPv4 CIDR\"}," +
+        "{\"ipAddress\":\"2600:1f18:3fff:f800::/56\",\"description\":\"Test IPv6 CIDR\"}]",
+        listToString);
+  }
+
+  @Test
+  public void testAccessAllowlistToString_ReturnsNullIfListIsEmpty() {
+    assertNull(ConfigurationUtils.accessAllowlistToString(Collections.emptyList()));
+  }
+
+  @Test
+  public void testAccessAllowlistToString_ReturnNullIfListIsNull() {
+    assertNull(ConfigurationUtils.accessAllowlistToString(null));
+  }
+
+  @Test
+  public void testAccessAllowlistToString_ThrowBadRequestForNullValues() {
+    List<Map<String, String>> allowlist = getAllowlistMap(getAccessAllowlist());
+    allowlist.add(null);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> ConfigurationUtils.accessAllowlistToString(allowlist))
+        .withMessageContaining("Invalid IP addresses: [null]");
+  }
+
+  @Test
+  public void testAccessAllowlistToString_ThrowBadRequestForInvalidIPs() {
+    List<AllowedIp> allowlist = getAccessAllowlist();
+    allowlist.add(new AllowedIp("192.168.33.999", "Invalid IPv4 address"));
+    allowlist.add(new AllowedIp("192.168.33.1/31", "Invalid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.160.1.0/12", "Invalid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.128.1.0/10", "Invalid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.1.0.0/8", "Invalid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("2600:1f18:3fff:f800/56", "Invalid IPv6 address"));
+    allowlist.add(new AllowedIp("2600:1f18:3fff:f800::0001/56", "Invalid IPv6 CIDR"));
+    allowlist.add(new AllowedIp(null, "Null IP address"));
+    allowlist.add(new AllowedIp("", "Empty String"));
+    allowlist.add(null);
+
+    allowlist.add(new AllowedIp("192.168.33.1/32", "Valid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.168.33.0/31", "Valid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.168.0.0/18", "Valid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.128.0.0/9", "Valid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("192.0.0.0/8", "Valid IPv4 CIDR"));
+    allowlist.add(new AllowedIp("2600:1f18:3fff:f800::/56", "Valid IPv6 CIDR"));
+
+    List<Map<String, String>> allowlistMap = getAllowlistMap(allowlist);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> ConfigurationUtils.accessAllowlistToString(allowlistMap))
+        .withMessageContaining("Invalid IP addresses: [192.168.33.999, 192.168.33.1/31, 192.160.1.0/12, " +
+            "192.128.1.0/10, 192.1.0.0/8, 2600:1f18:3fff:f800/56, 2600:1f18:3fff:f800::0001/56, null, , null]");
+  }
+
+  private List<AllowedIp> getAccessAllowlist() {
+    List<AllowedIp> result = new ArrayList<>();
+    result.add(new AllowedIp("192.168.33.10", "Test IPv4 address"));
+    result.add(new AllowedIp("8ed5:9e96:1da1:f53b:587e:9f4d:a7f9:817e", "Test IPv6 address"));
+    result.add(new AllowedIp("15.177.0.0/18", "Test IPv4 CIDR"));
+    result.add(new AllowedIp("2600:1f18:3fff:f800::/56", "Test IPv6 CIDR"));
+    return result;
+  }
+
+  private List<Map<String, String>> getAllowlistMap(List<AllowedIp> allowlist) {
+    return JSON.convertValue(allowlist, new TypeReference<List<Map<String, String>>>() { });
   }
 
   @Test

@@ -265,6 +265,7 @@ public abstract class AbstractBrainServiceTest
       InsightConfig insightConfig = getCLMServer().getConfiguration();
       if (insightConfig != null) {
         getCLMServer().getConfiguration().setFeatures(Collections.emptyMap());
+        getCLMServer().getConfiguration().setSystemAllowlist(Collections.emptyList());
       }
       resetProperties(SystemConfigurationProperty.BASE_URL,
           SystemConfigurationProperty.FORCE_BASE_URL,
@@ -283,6 +284,7 @@ public abstract class AbstractBrainServiceTest
           SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
           SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
           SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
+          SystemConfigurationProperty.ACCESS_ALLOWLIST,
           SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED);
     }
     releaseScmPerpetualLock();
@@ -583,10 +585,22 @@ public abstract class AbstractBrainServiceTest
   }
 
   public void setBaseUrl(String baseUrl, boolean forceBaseUrl) {
-    ApiConfigurationService service = getCLMServer().getInstance(ApiConfigurationService.class);
     Map<String, Object> properties = new HashMap<>();
     properties.put(SystemConfigurationProperty.BASE_URL, baseUrl);
     properties.put(SystemConfigurationProperty.FORCE_BASE_URL, forceBaseUrl);
+
+    setProperties(properties);
+  }
+
+  public void setAccessAllowlist(List<Map<String, String>> allowList) {
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(SystemConfigurationProperty.ACCESS_ALLOWLIST, allowList);
+
+    setProperties(properties);
+  }
+
+  private void setProperties(Map<String, Object> properties) {
+    ApiConfigurationService service = getCLMServer().getInstance(ApiConfigurationService.class);
     service.setConfigurationNoAuthz(properties);
     service.applyConfigurationToClients(properties.keySet());
   }

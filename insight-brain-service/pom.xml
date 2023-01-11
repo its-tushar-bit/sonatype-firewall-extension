@@ -627,6 +627,11 @@
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.github.seancfoley</groupId>
+      <artifactId>ipaddress</artifactId>
+      <version>5.3.4</version>
+    </dependency>
     <!-- Needed by the Crowd support tests -->
     <dependency>
       <groupId>org.glassfish.jaxb</groupId>

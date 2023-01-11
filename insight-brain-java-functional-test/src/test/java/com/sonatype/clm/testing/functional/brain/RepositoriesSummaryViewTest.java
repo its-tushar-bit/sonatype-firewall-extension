@@ -20,6 +20,7 @@ import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
@@ -32,6 +33,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -42,6 +44,7 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.attribute;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -244,5 +247,49 @@ public class RepositoriesSummaryViewTest
     writeOnly.role().shouldBe(visible).shouldHave(text("Write Only"));
     writeOnly.userIcon().shouldBe(visible);
     writeOnly.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
+  }
+
+  @Test
+  public void testRepositoryConfigurationTable_Sorting() {
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    List<Repository> repositories = new ArrayList<>();
+    RepositoryManager repositoryA = tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
+    repositories.add(tempEntity.newRepository(repositoryA, "maven-central", false));
+    RepositoryManager repositoryB = tempEntity.newRepositoryManager("P39Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6Y");
+    repositories.add(tempEntity.newRepository(repositoryB, "Repository-central", true));
+    RepositoryManager repositoryC = tempEntity.newRepositoryManager("3AHOOK7Y-P39Q1VFX-WLMW6J4J-0L0XMIQA-9KIPBV6Y");
+    repositories.add(tempEntity.newRepository(repositoryC, "sonatype-private", true));
+
+    refreshOrOpen(RepositoryResultsSummaryPage.url());
+
+    RepositoryResultsSummaryPage.configurationTile().shouldBe(visible).shouldHave(text("Configuration"));
+    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().shouldBe(visible);
+
+    configurationTile.componentsTableConfigurationCountCols().get(0).shouldHave(Condition.text("maven-central"));
+    configurationTile.componentsTableConfigurationCountCols().get(1).shouldHave(Condition.text("Repository-central"));
+    configurationTile.componentsTableConfigurationCountCols().get(2).shouldHave(Condition.text("sonatype-private"));
+    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Repository ascending"));
+    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().click();
+
+    configurationTile.componentsTableConfigurationCountCols().get(0).shouldHave(Condition.text("sonatype-private"));
+    configurationTile.componentsTableConfigurationCountCols().get(1).shouldHave(Condition.text("Repository-central"));
+    configurationTile.componentsTableConfigurationCountCols().get(2).shouldHave(Condition.text("maven-central"));
+    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Repository descending"));
+    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().click();
+
+    configurationTile.componentsTableConfigurationCountCols().get(0).shouldHave(Condition.text("maven-central"));
+    configurationTile.componentsTableConfigurationCountCols().get(1).shouldHave(Condition.text("Repository-central"));
+    configurationTile.componentsTableConfigurationCountCols().get(2).shouldHave(Condition.text("sonatype-private"));
+    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Repository unsorted"));
+    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().click();
+
+    configurationTile.componentsTableConfigurationCountCols().get(0).shouldHave(Condition.text("maven-central"));
+    configurationTile.componentsTableConfigurationCountCols().get(1).shouldHave(Condition.text("Repository-central"));
+    configurationTile.componentsTableConfigurationCountCols().get(2).shouldHave(Condition.text("sonatype-private"));
+    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Repository ascending"));
   }
 }

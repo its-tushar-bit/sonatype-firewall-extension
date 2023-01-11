@@ -204,6 +204,7 @@ public class InsightConfigTest
             "sonatypeWork",
             "sourceControl",
             "support",
+            "systemAllowlist",
             "userAgentSuffix",
             "web",
             "web.content-type-options",

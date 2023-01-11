@@ -6,6 +6,11 @@
 
 ARG SONATYPE_PRIVATE_REGISTRY
 
+# Get the Datadog Agent for APM
+FROM $SONATYPE_PRIVATE_REGISTRY/alpine/curl as builder
+RUN curl -L -o /dd-java-agent.jar https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
+
+
 FROM $SONATYPE_PRIVATE_REGISTRY/ubi8/openjdk-8:1.3
 
 # Build parameters
@@ -49,8 +54,11 @@ RUN mkdir -m 0755 ${TEMP}/iq-work \
 && cd ${IQ_HOME} \
 && rm -rf ${TEMP}
 
+# Copy Datadog jar
+COPY --from=builder /dd-java-agent.jar /opt/datadog/dd-java-agent.jar
+
 # Create start script
-RUN echo "/usr/bin/java \${JAVA_OPTS} -jar nexus-mtiq-server-${IQ_SERVER_VERSION}.jar server ${CONFIG_HOME}/config.yml 2> ${LOGS_HOME}/stderr.log" > ${IQ_HOME}/start.sh \
+RUN echo "/usr/bin/java \${JAVA_OPTS} -javaagent:/opt/datadog/dd-java-agent.jar -jar nexus-mtiq-server-${IQ_SERVER_VERSION}.jar server ${CONFIG_HOME}/config.yml 2> ${LOGS_HOME}/stderr.log" > ${IQ_HOME}/start.sh \
 && chmod 0755 ${IQ_HOME}/start.sh
 
 # Add group and user

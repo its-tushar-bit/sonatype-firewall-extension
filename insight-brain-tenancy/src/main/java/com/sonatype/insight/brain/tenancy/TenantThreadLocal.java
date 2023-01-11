@@ -132,8 +132,21 @@ public class TenantThreadLocal
   }
 
   static void setTenantWithoutValidation(Tenant tenant) {
-    MDC.put("tenant", tenant.tenantSlug);
+    updateLoggingContext(tenant);
     tenantThreadLocal.set(new TenantState(tenant));
+  }
+
+  private static void updateLoggingContext(final Tenant tenant) {
+    if (SINGLE_TENANT.equals(tenant)) {
+      clearLoggingContext();
+    }
+    else {
+      MDC.put("tenant", tenant.tenantSlug);
+    }
+  }
+
+  private static void clearLoggingContext() {
+    MDC.remove("tenant");
   }
 
   /**
@@ -179,6 +192,7 @@ public class TenantThreadLocal
     }
 
     getTenantWithoutValidation().invalidate();
+    clearLoggingContext();
   }
 
   private static class TenantState

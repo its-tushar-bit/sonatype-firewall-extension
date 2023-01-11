@@ -15,8 +15,10 @@ import java.util.function.Supplier;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.slf4j.MDC;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
+import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
@@ -186,5 +188,25 @@ public class TenantThreadLocalTest
     lock.await(200, TimeUnit.MILLISECONDS);
 
     assertThat(tenant1.isInvalid()).isTrue();
+  }
+
+  @Test
+  public void shouldSetLoggingContext_set() {
+    TenantThreadLocal.setTenant(new Tenant("testtenant"));
+    assertThat(MDC.get("tenant")).isEqualTo("testtenant");
+  }
+
+  @Test
+  public void shouldSetLoggingContext_remove() {
+    TenantThreadLocal.setTenant(SINGLE_TENANT);
+    assertThat(MDC.get("tenant")).isNull();
+  }
+
+  @Test
+  public void shouldSetLoggingContext_cleanup() {
+    TenantThreadLocal.setTenant(new Tenant("testtenant"));
+    assertThat(MDC.get("tenant")).isEqualTo("testtenant");
+    TenantThreadLocal.invalidateTenant();
+    assertThat(MDC.get("tenant")).isNull();
   }
 }

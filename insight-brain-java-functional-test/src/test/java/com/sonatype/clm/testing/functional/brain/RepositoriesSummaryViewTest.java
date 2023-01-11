@@ -39,12 +39,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.attribute;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -69,13 +69,13 @@ public class RepositoriesSummaryViewTest
   }
 
   @Test
-  public void repositorySummaryViewTest() {
+  public void testRepositorySummaryView() {
     RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
     summaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
-    repositorySummaryViewTest_configurationTile();
+    testRepositorySummaryView_configurationTile();
   }
 
-  private void repositorySummaryViewTest_configurationTile() {
+  private void testRepositorySummaryView_configurationTile() {
     RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
     ConfigurationTable configurationTable = configurationTile.configurationTable();
 
@@ -120,11 +120,12 @@ public class RepositoriesSummaryViewTest
       Selenide.switchTo().window(0);
     }
 
-    repositorySummaryViewTest_configurationTile_deleteRepository(configurationTable.row(2), repositories.get(1));
-    repositorySummaryViewTest_configurationTile_deleteRepository(configurationTable.row(1), repositories.get(0));
+    testRepositorySummaryView_configurationTile_deleteRepository(configurationTable.row(2), repositories.get(1));
+    testRepositorySummaryView_configurationTile_deleteRepository(configurationTable.row(1), repositories.get(0));
   }
 
-  private void repositorySummaryViewTest_configurationTile_deleteRepository(ConfigurationTableRow repositoryRow,
+  private void testRepositorySummaryView_configurationTile_deleteRepository(
+      ConfigurationTableRow repositoryRow,
       Repository repositoryToDelete)
   {
     repositoryRow.deleteButton().shouldBe(visible, enabled).click();

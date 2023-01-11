@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.product.license.FirewallReleaseIntegrityLicenseListener;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.report.ReportPurger;
+import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
 import com.sonatype.insight.brain.scan.PersistedScanTicketCleaner;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
@@ -348,6 +349,7 @@ public class TestInsightBrainService
     getInstance(DefaultBranchMonitor.class).disableForTesting = true;
     getInstance(SourceControlEventOrchestrator.class).disableForTesting = true;
     getInstance(PullRequestCommentPurger.class).disableForTesting = true;
+    getInstance(AutomaticQuarantineReleaseScheduler.class).disableForTesting = true;
   }
 
   @Override

@@ -1413,4 +1413,39 @@ public class ApiConfigurationServiceTest
     assertThat(dao.get(name)).isEqualTo(Integer.toString(max));
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(name))).containsEntry(name, max);
   }
+
+  @Test
+  public void testSetConfiguration_AutomaticQuarantineReleaseTimeIntervalInMinutes() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 35));
+
+    assertThat(dao.get(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES)).isEqualTo(
+        "35");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(
+            SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES))).containsEntry(
+        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 35);
+    assertMinAndMax(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 30,
+        Integer.MAX_VALUE);
+  }
+
+  @Test
+  public void testSetConfiguration_AutomaticQuarantineReleaseTimeIntervalInMinutes_Null() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(
+            SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES))).containsEntry(
+        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 60);
+  }
+
+  @Test
+  public void testGetConfiguration_AutomaticQuarantineReleaseTimeIntervalInMinutesNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(
+            SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES))).containsEntry(
+        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES, 60);
+  }
 }

@@ -146,6 +146,12 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.PURGE_SCAN_FILES, String.class,
           (p, s) -> s,
           (p, o) -> (String) ConfigurationUtils.purgeScanFiles((String) o)),
+      new ConfigurationProperty(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
+          Integer.class,
+          (p, s) -> NumberUtils.toInt(s, 60),
+          (p, o) -> ConfigurationUtils.integerValueToString(o,
+              SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
+              30, Integer.MAX_VALUE)),
   };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

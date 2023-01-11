@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
+import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.AllowedIp;
 
@@ -89,6 +90,8 @@ public class Configuration
   
   private final Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider;
 
+  private final Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider;
+
   @Inject
   public Configuration(
       ProxyServerConfigurationDAO proxyServerConfigurationDAO,
@@ -102,7 +105,8 @@ public class Configuration
       Provider<DefaultBranchMonitor> defaultBranchMonitorProvider,
       Provider<PullRequestMonitor> pullRequestMonitorProvider,
       Provider<ReleaseGraphCacheProvider> releaseGraphCacheProviderProvider,
-      Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider)
+      Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider,
+      Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider)
   {
     this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
     this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
@@ -116,6 +120,7 @@ public class Configuration
     this.pullRequestMonitorProvider = pullRequestMonitorProvider;
     this.releaseGraphCacheProviderProvider = releaseGraphCacheProviderProvider;
     this.policyMonitorSchedulerProvider = policyMonitorSchedulerProvider;
+    this.automaticQuarantineReleaseSchedulerProvider = automaticQuarantineReleaseSchedulerProvider;
     initializeValues();
   }
 
@@ -154,7 +159,8 @@ public class Configuration
         SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
         SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX,
         SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT,
-        SystemConfigurationProperty.BFS_REPOSITORIES)
+        SystemConfigurationProperty.BFS_REPOSITORIES,
+        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES)
     );
     putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION, reverseProxyAuthenticationConfigurationDAO.get());
@@ -199,6 +205,8 @@ public class Configuration
       propertyNamesCopy.add(SystemConfigurationProperty.FORCE_BASE_URL);
     }
     Integer currentPolicyMonitoringHour = getPolicyMonitoringHour();
+    Integer currentAutomaticQuarantineReleaseTimeIntervalInMinutes =
+        getAutomaticQuarantineReleaseTimeIntervalInMinutes();
     updateValueByPropertyNames(propertyNamesCopy);
     if (propertyNamesCopy.contains(SystemConfigurationProperty.HDS_URL) ||
         propertyNamesCopy.contains(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS) ||
@@ -217,6 +225,15 @@ public class Configuration
         return;
       }
       policyMonitorSchedulerProvider.get().schedulePolicyMonitoring();
+    }
+
+    if (propertyNamesCopy.contains(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES) &&
+        !Objects.equals(currentAutomaticQuarantineReleaseTimeIntervalInMinutes,
+            getAutomaticQuarantineReleaseTimeIntervalInMinutes())) {
+      if (!taskScheduler.isSchedulerInitialized()) {
+        return;
+      }
+      automaticQuarantineReleaseSchedulerProvider.get().scheduleAutomaticQuarantineRelease();
     }
   }
 
@@ -474,5 +491,10 @@ public class Configuration
       matcherConfiguration.put(split[1], entry.getValue().toString());
     }
     return matcherConfiguration;
+  }
+
+  public Integer getAutomaticQuarantineReleaseTimeIntervalInMinutes() {
+    return (Integer) valueByPropertyName.get(
+        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES);
   }
 }

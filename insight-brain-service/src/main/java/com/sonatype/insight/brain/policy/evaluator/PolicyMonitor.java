@@ -8,54 +8,34 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
-import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
-import com.sonatype.clm.dto.model.policy.ConditionFact;
-import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
-import com.sonatype.insight.brain.api.v2.ApiFirewallService;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
-import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
-import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.Report;
-import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
-import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanService;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
@@ -83,9 +63,6 @@ public class PolicyMonitor
 
   private final ForkJoinPool applicationMonitorForkJoinPool;
 
-  // derived from https://docs.sonatype.com/display/ADP/Firewall+Auto+Release+Quarantine+Policy+Condition+Types
-  static final int MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED = 14;
-
   private final InsightWork work;
 
   private final ScanUploader uploader;
@@ -100,10 +77,6 @@ public class PolicyMonitor
 
   private final ThirdPartyScanService thirdPartyScanService;
 
-  private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
-
-  private final ApiFirewallService apiFirewallService;
-
   @Inject
   public PolicyMonitor(
       InsightWork work,
@@ -112,9 +85,7 @@ public class PolicyMonitor
       PolicyAlertNotifier policyAlertNotifier,
       ProductLicense productLicense,
       AuditRecorder auditRecorder,
-      ThirdPartyScanService thirdPartyScanService,
-      RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      ApiFirewallService apiFirewallService)
+      ThirdPartyScanService thirdPartyScanService)
   {
     this.work = work;
     this.uploader = uploader;
@@ -123,8 +94,6 @@ public class PolicyMonitor
     this.productLicense = productLicense;
     this.auditRecorder = auditRecorder;
     this.thirdPartyScanService = thirdPartyScanService;
-    this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
-    this.apiFirewallService = apiFirewallService;
     this.applicationMonitorForkJoinPool = initThreadPool();
   }
 
@@ -157,8 +126,6 @@ public class PolicyMonitor
     }
 
     evaluateApplications(policyMonitoringsByOwnerId);
-
-    evaluateApplicableQuarantinedRepositoryComponents(policyMonitoringsByOwnerId);
 
     log.info("Policy monitoring evaluated in {} ms", System.currentTimeMillis() - start);
   }
@@ -212,185 +179,6 @@ public class PolicyMonitor
     futures.forEach(CompletableFuture::join);
 
     log.info("Finished policy monitoring applications in {} ms", System.currentTimeMillis() - start);
-  }
-
-  private void evaluateApplicableQuarantinedRepositoryComponents(
-      final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId)
-  {
-    if (!isLicensedForFirewall(productLicense)) {
-      log.debug("Not licensed for Firewall Policy Monitoring.");
-      return;
-    }
-    log.debug("Licensed for Firewall Policy Monitoring.");
-
-    final Set<String> autoUnquarantineEnabledConditionTypes =
-        apiFirewallService.getAutoUnquarantineEnabledPolicyConditionTypesIds();
-
-    if (autoUnquarantineEnabledConditionTypes.isEmpty()) {
-      log.debug("Skipping Firewall Policy Monitoring.  Auto un-quarantine condition types are not enabled.");
-      return;
-    }
-
-    long start = System.currentTimeMillis();
-    log.info("Starting policy monitoring of repositories");
-
-    OwnerDAO ownerDAO = new OwnerDAO();
-
-    List<Repository> repositories = new RepositoryDAO().getAll();
-    for (Repository repository : repositories) {
-      try (ClusterLock clusterLock = ClusterLock.createForRepositoryReevaluation(repository)) {
-        if (clusterLock.tryLock()) {
-          log.debug("Starting re-evaluation for repository {}:{} ({})", repository.getRepositoryManagerId(),
-              repository.getPublicId(), repository.getId());
-          reevaluateRepository(policyMonitoringsByOwnerId, autoUnquarantineEnabledConditionTypes, ownerDAO, repository);
-        }
-        else {
-          log.debug("Skipping, re-evaluation for repository {}:{} ({}) is already in progress",
-              repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
-          clusterLock.unlock();
-        }
-      }
-      catch (Exception e) {
-        log.error("An error occurred while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
-            repository.getPublicId(), repository.getId(), e);
-        AuditData.get().setException(e);
-      }
-    }
-    log.info("Finished policy monitoring repositories in {} ms", System.currentTimeMillis() - start);
-  }
-
-  private void reevaluateRepository(
-      final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId,
-      final Set<String> autoUnquarantineEnabledConditionTypes,
-      final OwnerDAO ownerDAO,
-      final Repository repository)
-  {
-    PolicyMonitoring policyMonitoring = null;
-    for (Owner owner : ownerDAO.walkHierarchy(repository)) {
-      policyMonitoring = policyMonitoringsByOwnerId.get(owner.getId());
-      if (policyMonitoring != null) {
-        break;
-      }
-    }
-
-    if (policyMonitoring == null || !policyMonitoring.getStageTypeId().equals(ProxyStageType.ID)) {
-      return;
-    }
-
-    log.debug("Getting quarantined components supporting auto un-quarantine of repository {}", repository.getName());
-    List<RepositoryComponent> applicableQuarantinedComponents =
-        getApplicableQuarantinedComponents(repository, autoUnquarantineEnabledConditionTypes);
-    if (applicableQuarantinedComponents.isEmpty()) {
-      return;
-    }
-
-    log.debug("Starting re-evaluation for {} repository components", applicableQuarantinedComponents.size());
-    Iterator<RepositoryComponent> componentIterator = applicableQuarantinedComponents.iterator();
-    int totalUnquarantineCount = 0;
-    while (componentIterator.hasNext()) {
-      try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_REPOSITORY)) {
-        totalUnquarantineCount += autoUnquarantineComponents(repository, componentIterator);
-      }
-    }
-    log.info("Auto un-quarantined {} components of repository {}:{} ({})", totalUnquarantineCount,
-        repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
-  }
-
-  private int autoUnquarantineComponents(
-      final Repository repository,
-      final Iterator<RepositoryComponent> componentIterator)
-  {
-    RepositoryComponentEvaluationDataRequestList evaluationRequestList =
-        getRepositoryEvaluationRequest(repository, componentIterator);
-    try {
-      auditRepositoryComponentEvaluationList(repository, evaluationRequestList);
-      // Part of the policy evaluation, the component is unquarantined if it doesn't have any policy violations that
-      // require quarantine.
-      RepositoryComponentEvaluationDataList evaluationResults =
-          repositoryPolicyEvaluator.evaluateForMonitoring(repository, evaluationRequestList);
-
-      int unquarantinedComponentsCount = (int) evaluationResults.componentEvalResults.stream()
-          .filter(componentEvaluationData -> !componentEvaluationData.quarantine).count();
-      log.debug("Auto un-quarantined {} of {} components for repository {}", unquarantinedComponentsCount,
-          evaluationResults.componentEvalResults.size(), repository.getName());
-      return unquarantinedComponentsCount;
-    }
-    catch (RuntimeException e) {
-      AuditData.get().setException(e);
-      log.error("Failed policy monitoring for {} components of repository '{}': {}",
-          evaluationRequestList.components.size(), repository.getName(), e.getMessage());
-    }
-
-    return 0;
-  }
-
-  private void auditRepositoryComponentEvaluationList(
-      Repository repository,
-      RepositoryComponentEvaluationDataRequestList repoComponentEvalList)
-  {
-    AuditData.get().setRepository(repository).setData("componentCount", repoComponentEvalList.components.size())
-        .setData("evaluationCause", RepositoryComponentEvaluationDataRequestList.REEVALUATION);
-
-    AuditData.get().setData("componentCount", repoComponentEvalList.components.size());
-    if (repoComponentEvalList.cause != null) {
-      AuditData.get().setData("evaluationCause", repoComponentEvalList.cause.replace('_', '-'));
-    }
-  }
-
-  private List<RepositoryComponent> getApplicableQuarantinedComponents(
-      final Repository repository, Set<String> autoUnquarantineEnabledConditionTypes)
-  {
-    Date minQuarantineDate = Date.from(Instant.now().minus(Duration.ofDays(MAX_REEVALUATION_DAYS_FOR_AUTO_RELEASED)));
-
-    List<RepositoryComponent> quarantinedComponents =
-        new RepositoryComponentDAO().getQuarantinedByRepositoryIdAndDate(repository.getId(), minQuarantineDate);
-
-    List<RepositoryComponent> applicableQuarantinedComponents = new ArrayList<>();
-
-    for (RepositoryComponent component : quarantinedComponents) {
-      if (shouldCheckForUpdatedConditionTypes(component, autoUnquarantineEnabledConditionTypes)) {
-        applicableQuarantinedComponents.add(component);
-      }
-    }
-    return applicableQuarantinedComponents;
-  }
-
-  private RepositoryComponentEvaluationDataRequestList getRepositoryEvaluationRequest(
-      Repository repository,
-      Iterator<RepositoryComponent> componentIterator)
-  {
-    RepositoryComponentEvaluationDataRequestList evaluationDataRequests =
-        new RepositoryComponentEvaluationDataRequestList(RepositoryComponentEvaluationDataRequestList.REEVALUATION);
-    int componentCount = 0;
-    while (componentIterator.hasNext() && componentCount < RepositoryService.MAX_REPOSITORY_EVALUATION_REQUEST_SIZE) {
-      RepositoryComponent component = componentIterator.next();
-      RepositoryComponentEvaluationDataRequest evaluationDataRequest =
-          new RepositoryComponentEvaluationDataRequest(repository.getFormat(), component.getPathname(),
-              component.getHash());
-      evaluationDataRequests.components.add(evaluationDataRequest);
-      componentCount++;
-    }
-
-    return evaluationDataRequests;
-  }
-
-  private boolean shouldCheckForUpdatedConditionTypes(
-      final RepositoryComponent quarantinedComponent,
-      final Set<String> supportedConditionTypes)
-  {
-    List<RepositoryPolicyViolation> violations = new RepositoryPolicyViolationDAO()
-        .getByRepositoryIdAndPathname(quarantinedComponent.getRepositoryId(), quarantinedComponent.getPathname());
-
-    for (RepositoryPolicyViolation violation : violations) {
-      for (ConstraintFact constraintFact : violation.getConstraintFacts()) {
-        for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
-          if (supportedConditionTypes.contains(conditionFact.getConditionTypeId())) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
   }
 
   @VisibleForTesting
@@ -504,13 +292,7 @@ public class PolicyMonitor
     return productLicense.hasFeature(LicensedFeature.POLICY_MONITORING);
   }
 
-  private static boolean isLicensedForFirewall(ProductLicense productLicense) {
-    // not checking for FIREWALL_FOR_ARTIFACTORY at this time
-    return productLicense.hasFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE)
-        && productLicense.hasFeature(LicensedFeature.RELEASE_INTEGRITY);
-  }
-
   static boolean isLicensed(ProductLicense productLicense) {
-    return isLicensedForApplications(productLicense) || isLicensedForFirewall(productLicense);
+    return isLicensedForApplications(productLicense);
   }
 }

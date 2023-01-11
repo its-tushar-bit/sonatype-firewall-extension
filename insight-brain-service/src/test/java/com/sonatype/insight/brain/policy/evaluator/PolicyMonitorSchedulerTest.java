@@ -54,15 +54,9 @@ public class PolicyMonitorSchedulerTest
     lenient().when(productLicenseMock.hasFeature(LicensedFeature.POLICY_MONITORING)).thenReturn(enable);
   }
 
-  private void enableLicenseForFirewall(boolean enable) {
-    lenient().when(productLicenseMock.hasFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE)).thenReturn(enable);
-    lenient().when(productLicenseMock.hasFeature(LicensedFeature.RELEASE_INTEGRITY)).thenReturn(enable);
-  }
-
   @Test
   public void testStartServer_PolicyMonitoringUnlicensed() {
     enableLicenseForApplications(false);
-    enableLicenseForFirewall(false);
 
     policyMonitorScheduler.start();
 
@@ -72,15 +66,6 @@ public class PolicyMonitorSchedulerTest
   @Test
   public void testStartServer_PolicyMonitoringLicensedForApplications() {
     enableLicenseForApplications(true);
-    enableLicenseForFirewall(false);
-
-    testStartServer_PolicyMonitoringLicensed();
-  }
-
-  @Test
-  public void testStartServer_PolicyMonitoringLicensedForFirewall() {
-    enableLicenseForApplications(false);
-    enableLicenseForFirewall(true);
 
     testStartServer_PolicyMonitoringLicensed();
   }
@@ -98,13 +83,6 @@ public class PolicyMonitorSchedulerTest
   @Test
   public void testProductLicenseChanged_MonitoringWasAddedForApplications() {
     enableLicenseForApplications(true);
-
-    testProductLicenseChanged_MonitoringWasAdded();
-  }
-
-  @Test
-  public void testProductLicenseChanged_MonitoringWasAddedForFirewall() {
-    enableLicenseForFirewall(true);
 
     testProductLicenseChanged_MonitoringWasAdded();
   }

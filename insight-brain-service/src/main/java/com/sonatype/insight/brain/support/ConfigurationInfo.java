@@ -82,6 +82,8 @@ public class ConfigurationInfo
     else {
       entries.put(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST, null);
     }
+    entries.put(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES,
+        configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes());
 
     return JsonUtils.format(entries);
   }

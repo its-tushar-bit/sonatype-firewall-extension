@@ -151,6 +151,9 @@ public class SystemConfigurationProperty
 
   public static final String SCAN_NPM_DEV_AND_OPT_DEPENDENCIES = "scanNpmDevAndOptDependencies";
 
+  public static final String AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES =
+      "automaticQuarantineReleaseTimeIntervalInMinutes";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

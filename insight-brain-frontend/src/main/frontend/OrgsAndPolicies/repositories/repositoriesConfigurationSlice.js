@@ -24,14 +24,15 @@ export const initialState = {
     id: null,
     publicId: null,
   },
-  sortConfiguration: null,
+  sortConfiguration: { dir: 'asc', column: 'publicId' },
   unsortedRepositories: [],
 };
 
 const comparators = {
-  publicId: (repositoryA, repositoryB) => (repositoryA.repository.publicId > repositoryB.repository.publicId ? 1 : -1),
+  publicId: (repositoryA, repositoryB) =>
+    repositoryA.repository.publicId.toLowerCase() > repositoryB.repository.publicId.toLowerCase() ? 1 : -1,
   managerInstanceId: (repositoryA, repositoryB) =>
-    repositoryA.managerInstanceId > repositoryB.managerInstanceId ? 1 : -1,
+    repositoryA.managerInstanceId.toLowerCase() > repositoryB.managerInstanceId.toLowerCase() ? 1 : -1,
   enabled: (repositoryA, repositoryB) => (repositoryA.repository.enabled > repositoryB.repository.enabled ? 1 : -1),
 };
 

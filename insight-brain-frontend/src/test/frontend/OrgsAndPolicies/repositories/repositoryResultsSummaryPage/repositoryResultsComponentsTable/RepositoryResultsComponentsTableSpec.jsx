@@ -83,7 +83,7 @@ describe('RepositoryResultsComponentsTable', () => {
       searchFilters: [],
     },
     hasMoreResults: true,
-    sortConfiguration: null,
+    sortConfiguration: { dir: 'asc', column: 'publicId' },
     unsortedComponents: [],
   };
 

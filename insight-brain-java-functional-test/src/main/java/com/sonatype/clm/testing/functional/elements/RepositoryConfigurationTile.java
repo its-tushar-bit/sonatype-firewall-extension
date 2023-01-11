@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.ElementsCollection;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
@@ -33,6 +34,10 @@ public class RepositoryConfigurationTile
 
   public SelenideElement emptyDescriptor() {
     return child(".nx-cell--meta-info");
+  }
+
+  public ElementsCollection componentsTableConfigurationCountCols() {
+    return children(".iq-repositories-configuration-table-repository");
   }
 
   public static class ConfigurationTable

@@ -179,12 +179,6 @@ public class TenantThreadLocal
     }
 
     getTenantWithoutValidation().invalidate();
-
-    Tenant previousTenant = tenantThreadLocal.get().previous;
-
-    if (previousTenant != null) {
-      previousTenant.invalidate();
-    }
   }
 
   private static class TenantState

@@ -22,6 +22,7 @@ import { SecurityModule } from './security/SecurityModule';
 import RoleModule from './security/RoleModule';
 import labsModule from './labs/module';
 import vulnerabilitySearchModule from './vulnerabilitySearch/module';
+import vulnerabilityCustomizeModule from './vulnerabilityCustomize/module';
 import violationPageModule from './violation/module';
 import AdvancedSearchContainer from './advancedSearch/AdvancedSearchContainer';
 import waiversModule from './waivers/module';
@@ -49,6 +50,7 @@ export default angular
     changeDefaultAdminPasswordModule.name,
     applicationReportModule.name,
     vulnerabilitySearchModule.name,
+    vulnerabilityCustomizeModule.name,
     violationPageModule.name,
     waiversModule.name,
     firewallModule.name,

@@ -57,6 +57,7 @@
 @use '../security/users/user-list';
 @use '../owner.manager/retention/retentionEditor';
 @use '../vulnerabilitySearch/vulnerabilitySearch';
+@use '../vulnerabilityCustomize/vulnerabilityCustomize';
 @use '../configuration/saml/samlConfiguration';
 @use '../configuration/systemConfiguration';
 @use '../advancedSearch/advancedSearch';

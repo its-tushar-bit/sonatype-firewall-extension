@@ -127,12 +127,17 @@ const clearFilters = (state) => {
   state.componentsRequestBody.violationStateFilters = Array.from(state.selectedViolationStateFilters);
 };
 
+const CancelToken = axios.CancelToken;
+let source = CancelToken.source();
+
 const getRepositoryComponents = createAsyncThunk(
   `${REDUCER_NAME}/getRepositoryComponents`,
   (repoId, { getState, rejectWithValue }) => {
+    source.cancel();
+    source = CancelToken.source();
     const componentsRequestBody = selectComponentsRequestBody(getState());
     return axios
-      .post(getRepositoryComponentsUrl(repoId), componentsRequestBody)
+      .post(getRepositoryComponentsUrl(repoId), componentsRequestBody, { cancelToken: source.token })
       .then(prop('data'))
       .catch(rejectWithValue);
   }
@@ -170,8 +175,10 @@ const getRepositoryComponentsFulfilled = (state, { payload }) => {
 };
 
 const getRepositoryComponentsRejected = (state, { payload }) => {
-  state.loadingRepositoryComponents = false;
-  state.errorComponentsTable = Messages.getHttpErrorMessage(payload);
+  if (!axios.isCancel(payload)) {
+    state.loadingRepositoryComponents = false;
+    state.errorComponentsTable = Messages.getHttpErrorMessage(payload);
+  }
 };
 
 const getRepositoryInformationFulfilled = (state, action) => {

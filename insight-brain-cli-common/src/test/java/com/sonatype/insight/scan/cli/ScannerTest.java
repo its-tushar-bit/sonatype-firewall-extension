@@ -81,7 +81,7 @@ public class ScannerTest
   @Test
   public void testScan_ReturnResult_withScanningErrors() throws Exception {
     List<File> targets =
-        Collections.singletonList(new File("container://https://registry.hub.docker.com/account/image"));
+        Collections.singletonList(new File("container:https://registry.hub.docker.com/account/image"));
 
     // a file scanner with a scanning error
     FileScanner mockFileScanner = mock(FileScanner.class);

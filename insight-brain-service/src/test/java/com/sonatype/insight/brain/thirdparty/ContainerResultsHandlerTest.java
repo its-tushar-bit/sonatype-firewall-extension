@@ -48,7 +48,7 @@ public class ContainerResultsHandlerTest
     String json = loadResource("alpine-3.6.json");
 
     ThirdPartyScanContent content =
-        new ThirdPartyScanContent("container://alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
+        new ThirdPartyScanContent("container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     ContainerResultHandler containerResultHandler = new ContainerResultHandler();
@@ -69,7 +69,7 @@ public class ContainerResultsHandlerTest
     String json = loadResource("webgoat.json");
 
     ThirdPartyScanContent content =
-        new ThirdPartyScanContent("container://webgoat", ItemContentType.CONTAINER_URI, null, null, json);
+        new ThirdPartyScanContent("container:webgoat", ItemContentType.CONTAINER_URI, null, null, json);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     ContainerResultHandler containerResultHandler = new ContainerResultHandler();
@@ -84,7 +84,7 @@ public class ContainerResultsHandlerTest
     String json = loadResource("alpine-3.6.json");
 
     ThirdPartyScanContent content =
-        new ThirdPartyScanContent("container://alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
+        new ThirdPartyScanContent("container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     ContainerResultHandler containerResultHandler = new ContainerResultHandler();
@@ -150,7 +150,7 @@ public class ContainerResultsHandlerTest
     String json = loadResource("alpine-3.6-missing-cve.json");
 
     ThirdPartyScanContent content =
-        new ThirdPartyScanContent("container://alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
+        new ThirdPartyScanContent("container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     ContainerResultHandler containerResultHandler = new ContainerResultHandler();

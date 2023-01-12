@@ -141,6 +141,33 @@ when finished. They cannot be reused, by design.
 Work that needs to run on a schedule will need its own context. The best way to handle this is to make use of Quartz
 which handles getting and setting the tenant. Custom scheduling outside of Quartz is not currently supported.
 
+#### Telemetry
+Telemetry has essentially 2 operating modes. The first is a mode that is predominantly sending cluster information such
+as environment variables and common data from the database, as such a periodic quartz job is scheduled for each 
+registered tenant resulting in a single node picking up the task for each tenant.
+
+The second mode (`MultiTenantTelemetryScheduler`) in a multi tenant setup also makes use of a periodic quartz job with 
+the addition of immediately triggering a second job (`MultiTenantTelemetryTask`) across all the other nodes to also send
+Telemetry without re-triggering. This is currently a different mechanism to on-prem which uses an ExecutorService approach.
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Quartz
+    participant Node1
+    participant Node2
+    participant Node3
+    User->>+Node1: A tenant is registered
+    Node1->>+Quartz: Periodic job added to Quartz
+    Quartz->>-Node3: Any node picks up the job
+    Node3->>+Node3: Sends Node3 telemetry
+    Node3->>+Quartz: Schedules the job across all other nodes
+    Quartz->>+Node1: Picks up the telemetry job
+    Node1->>+Node1: Sends Node1 telemetry
+    Quartz->>-Node2: Picks up the telemetry job
+    Node2->>+Node2: Sends Node2 telemetry
+```
+
 ### Configuration
 
 Configuration is per-tenant unless no value is found and then the system will fall back to the configuration table in 

@@ -27,7 +27,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TelemetrySchedulerTest
+public class DefaultTelemetrySchedulerTest
     extends AbstractComponentTest
 {
   @Spy
@@ -41,18 +41,19 @@ public class TelemetrySchedulerTest
 
   @Mock
   private ScheduledExecutorService scheduledExecutorService;
-  
-  private TelemetryScheduler telemetryScheduler;
+
+  private DefaultTelemetryScheduler defaultTelemetryScheduler;
 
   @Before
   public void before() {
-    telemetryScheduler = new TelemetryScheduler(Arrays.asList(telemetryCollector1, telemetryCollector2),
+    defaultTelemetryScheduler = new DefaultTelemetryScheduler(Arrays.asList(telemetryCollector1, telemetryCollector2),
         telemetrySender, scheduledExecutorService);
   }
 
   @Test
   public void testGetScheduledThreadPoolExecutor_ReturnsCorrectExecutor() {
-    ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = TelemetryScheduler.getScheduledThreadPoolExecutor();
+    ScheduledThreadPoolExecutor scheduledThreadPoolExecutor =
+        DefaultTelemetryScheduler.getScheduledThreadPoolExecutor();
     ThreadFactory threadFactory = scheduledThreadPoolExecutor.getThreadFactory();
     Thread thread = threadFactory.newThread(() -> {
     });
@@ -62,11 +63,11 @@ public class TelemetrySchedulerTest
 
   @Test
   public void testStart_Schedule() {
-    TelemetryScheduler telemetrySchedulerSpy = spy(telemetryScheduler);
+    DefaultTelemetryScheduler defaultTelemetrySchedulerSpy = spy(defaultTelemetryScheduler);
     Runnable telemetryRunnable = mock(Runnable.class);
-    when(telemetrySchedulerSpy.getTelemetryRunnable()).thenReturn(telemetryRunnable);
+    when(defaultTelemetrySchedulerSpy.getTelemetryRunnable()).thenReturn(telemetryRunnable);
 
-    telemetrySchedulerSpy.start();
+    defaultTelemetrySchedulerSpy.start();
 
     verify(scheduledExecutorService).scheduleAtFixedRate(eq(telemetryRunnable), eq(0L), eq(1L), eq(TimeUnit.DAYS));
   }
@@ -79,7 +80,7 @@ public class TelemetrySchedulerTest
     TelemetryData telemetryData2 = mock(TelemetryData.class);
     when(telemetryCollector2.collectData()).thenReturn(telemetryData2);
 
-    telemetryScheduler.getTelemetryRunnable().run();
+    defaultTelemetryScheduler.getTelemetryRunnable().run();
 
     verify(telemetryCollector1).collectAllData();
     verify(telemetryCollector2).collectAllData();
@@ -94,7 +95,7 @@ public class TelemetrySchedulerTest
     TelemetryData telemetryData2 = mock(TelemetryData.class);
     when(telemetryCollector2.collectData()).thenReturn(telemetryData2);
 
-    telemetryScheduler.getTelemetryRunnable().run();
+    defaultTelemetryScheduler.getTelemetryRunnable().run();
 
     verify(telemetryCollector1).collectAllData();
     verify(telemetryCollector2).collectAllData();
@@ -103,8 +104,8 @@ public class TelemetrySchedulerTest
 
   @Test
   public void testStop_ShutdownExecutor() {
-    telemetryScheduler.stop();
-    
+    defaultTelemetryScheduler.stop();
+
     verify(scheduledExecutorService).shutdown();
   }
 }

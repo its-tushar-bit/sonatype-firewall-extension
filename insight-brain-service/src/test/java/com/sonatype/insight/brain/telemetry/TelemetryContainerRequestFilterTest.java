@@ -37,7 +37,7 @@ public class TelemetryContainerRequestFilterTest
   @Before
   @After
   public void clearRestEndpointInvocations() {
-    TelemetryContainerRequestFilter.REST_ENDPOINT_INVOCATIONS.clear();
+    TelemetryContainerRequestFilter.REST_ENDPOINT_INVOCATIONS.get().clear();
   }
 
   @Test

@@ -484,7 +484,7 @@ public class ApiApplicationResourceV2Test
 
   @Test
   public void testCloneApplication() throws Exception {
-    TelemetryContainerRequestFilter.REST_ENDPOINT_INVOCATIONS.clear();
+    TelemetryContainerRequestFilter.REST_ENDPOINT_INVOCATIONS.get().clear();
 
     String clonedAppName = "Cloned App Name";
     String clonedAppPublicId = "ClonedAppPublicId";

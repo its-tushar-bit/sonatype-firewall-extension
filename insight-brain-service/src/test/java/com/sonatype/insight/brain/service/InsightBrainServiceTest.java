@@ -45,7 +45,7 @@ import com.sonatype.insight.brain.telemetry.RestEndpointTelemetry;
 import com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.SourceControlRateLimitTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetryContainerRequestFilter;
-import com.sonatype.insight.brain.telemetry.TelemetryScheduler;
+import com.sonatype.insight.brain.telemetry.DefaultTelemetryScheduler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.version.VersionService;
@@ -275,9 +275,9 @@ public class InsightBrainServiceTest
         .parameter("organization", "orgId", "roleId", "user", "sensitiveUsername")
         .put());
 
-    TelemetryScheduler telemetryScheduler = getCLMServer().getInstance(TelemetryScheduler.class);
+    DefaultTelemetryScheduler defaultTelemetryScheduler = getCLMServer().getInstance(DefaultTelemetryScheduler.class);
     responses.clear();
-    telemetryScheduler.getTelemetryRunnable().run();
+    defaultTelemetryScheduler.getTelemetryRunnable().run();
     temporarilyEnableQuartzTelemetry();
     await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(12));
     Date expectedMaxCreateTime = new Date();

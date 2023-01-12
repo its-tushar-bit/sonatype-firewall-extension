@@ -92,7 +92,7 @@ public class RepositoryQueryServiceTest
 
   @Test
   public void testGetAllVersions_Maven() throws Exception {
-    RepositoryQueryService.REPOSITORY_QUERY_COUNT_PER_FORMAT.clear();
+    RepositoryQueryService.REPOSITORY_QUERY_COUNT_PER_FORMAT.get().clear();
 
     //given
     Application app = getApplicationWithConnectionsEnabled();
@@ -129,7 +129,7 @@ public class RepositoryQueryServiceTest
 
   @Test
   public void testGetAllVersions_Telemetry() throws Exception {
-    RepositoryQueryService.REPOSITORY_QUERY_COUNT_PER_FORMAT.clear();
+    RepositoryQueryService.REPOSITORY_QUERY_COUNT_PER_FORMAT.get().clear();
     //given
     Application app = getApplicationWithConnectionsEnabled();
     tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.GENERIC, "user", "pass".toCharArray());

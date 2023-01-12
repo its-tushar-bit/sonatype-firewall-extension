@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
+import com.sonatype.insight.brain.telemetry.DefaultTelemetryScheduler;
 import com.sonatype.insight.brain.tenancy.MultiTenantExecutorThreadPools;
 import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
 import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
@@ -53,11 +54,14 @@ public class MultiTenantInsightBrainService
   /**
    * SisuApplication#addManaged loads Managed beans outside the normal flow but does not respect the @Priority
    * annotation however it does call SisuApplication#acceptComponent to check whether the component should be loaded or
-   * not. We make use of that functionality here to prevent Default* (i.e. on-prem implmentations) being loaded in MTIQ
+   * not. We make use of that functionality here to prevent Default* (i.e. on-prem implementations) being loaded in MTIQ
    * and causing conflicting behaviour.
    */
   private static final List<Class> BANNED_IMPLEMENTATIONS =
-      Arrays.asList(new Class[]{DefaultTenantManagedInitializer.class});
+      Arrays.asList(new Class[]{
+          DefaultTenantManagedInitializer.class,
+          DefaultTelemetryScheduler.class
+      });
 
   public static void main(final String[] args) {
     new TenantUtil().setGlobalTenant();

@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.telemetry.TelemetryCollector;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -46,7 +47,8 @@ public class RepositoryQueryService
   private static final Logger log = LoggerFactory.getLogger(RepositoryQueryService.class);
 
   //visible for testing
-  public static final Map<String, LongAdder> REPOSITORY_QUERY_COUNT_PER_FORMAT = new ConcurrentHashMap<>();
+  public static final TenantReference<Map<String, LongAdder>> REPOSITORY_QUERY_COUNT_PER_FORMAT =
+          new TenantReference<>(ConcurrentHashMap::new);
 
   public static final String INNERSOURCE_REPOSITORY_FORMAT_KEY = "innersource_repository_format";
 
@@ -193,7 +195,7 @@ public class RepositoryQueryService
   private Map<String, String> getQueryCriteriaForNexus3(ComponentIdentifier componentIdentifier) {
     Map<String, String> queryCriteria = new HashMap<>();
     String format = componentIdentifier.getFormat();
-    REPOSITORY_QUERY_COUNT_PER_FORMAT.computeIfAbsent(format, key -> new LongAdder()).increment();
+    REPOSITORY_QUERY_COUNT_PER_FORMAT.get().computeIfAbsent(format, key -> new LongAdder()).increment();
     switch (format) {
       case ComponentIdentifier.FORMAT_MAVEN:
         buildMavenQueryCriteria(componentIdentifier, queryCriteria);
@@ -242,10 +244,10 @@ public class RepositoryQueryService
 
   @Override
   public List<TelemetryData> collectAllData() {
-    List<TelemetryData> telemetryData = REPOSITORY_QUERY_COUNT_PER_FORMAT.entrySet().stream()
+    List<TelemetryData> telemetryData = REPOSITORY_QUERY_COUNT_PER_FORMAT.get().entrySet().stream()
         .map(this::createTelemetryData)
         .collect(Collectors.toList());
-    REPOSITORY_QUERY_COUNT_PER_FORMAT.clear();
+    REPOSITORY_QUERY_COUNT_PER_FORMAT.get().clear();
     return telemetryData;
   }
 

@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.inject.Named;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -21,6 +20,7 @@ import javax.ws.rs.ext.Provider;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -42,7 +42,8 @@ public class TelemetryContainerRequestFilter
       Pattern.compile("^(" + PublicApiPaths.BASE_PATH + "|" + UserInterfaceLinksHelper.RESOURCE_PATH + ")/.*$");
 
   @VisibleForTesting
-  public static final Map<String, LongAdder> REST_ENDPOINT_INVOCATIONS = new ConcurrentHashMap<>();
+  public static final TenantReference<Map<String, LongAdder>> REST_ENDPOINT_INVOCATIONS =
+      new TenantReference<>(ConcurrentHashMap::new);
 
   public static final String REST_ENDPOINT_TELEMETRY = "rest_endpoint_telemetry";
 
@@ -57,16 +58,16 @@ public class TelemetryContainerRequestFilter
           .reduce((t1, t2) -> t2.concat(t1))
           .orElse(null);
       String methodAndAnonymisedPath = method + " " + anonymisedPath;
-      REST_ENDPOINT_INVOCATIONS.computeIfAbsent(methodAndAnonymisedPath, key -> new LongAdder()).increment();
+      REST_ENDPOINT_INVOCATIONS.get().computeIfAbsent(methodAndAnonymisedPath, key -> new LongAdder()).increment();
     }
   }
 
   @Override
   public List<TelemetryData> collectAllData() {
     List<TelemetryData> telemetryData =
-        REST_ENDPOINT_INVOCATIONS.entrySet().stream().map(this::createTelemetryData)
+        REST_ENDPOINT_INVOCATIONS.get().entrySet().stream().map(this::createTelemetryData)
             .collect(Collectors.toList());
-    REST_ENDPOINT_INVOCATIONS.clear();
+    REST_ENDPOINT_INVOCATIONS.get().clear();
     return telemetryData;
   }
 

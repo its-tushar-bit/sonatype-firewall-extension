@@ -7,6 +7,7 @@ import React from 'react';
 import { NxPageMain, NxPageTitle, NxH1 } from '@sonatype/react-shared-components';
 import RepositoriesConfigurationTile from './RepositoriesConfigurationTile';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
+import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
 
 export default function RepositoriesSummaryView() {
   return (
@@ -16,6 +17,7 @@ export default function RepositoriesSummaryView() {
       </NxPageTitle>
       {/*Configuration / Access tabs to go here*/}
       <RepositoriesConfigurationTile />
+      <PoliciesTile />
       <AccessTile />
     </NxPageMain>
   );

@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.elements.AccessTile;
+import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -25,6 +26,10 @@ public class RepositoriesSummaryPage
   }
 
   public static AccessTile accessTile() {
-    return new AccessTile("repositories-summary-view");
+    return new AccessTile("#repositories-pill-access");
+  }
+
+  public static PolicyTile policyTile() {
+    return new PolicyTile();
   }
 }

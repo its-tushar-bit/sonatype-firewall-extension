@@ -8,12 +8,16 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.AccessTileList;
 import com.sonatype.clm.testing.functional.elements.AccessTileList.AccessTileListElement;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
+import com.sonatype.clm.testing.functional.elements.PolicyTile;
+import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
@@ -21,10 +25,13 @@ import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
-import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -46,6 +53,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoriesSummaryViewTest
@@ -155,7 +163,7 @@ public class RepositoriesSummaryViewTest
   public void testRepositoryTile_default() {
     AccessTile accessTile = RepositoriesSummaryPage.accessTile();
     accessTile.nxSubHeader().shouldBe(visible).shouldHave(AccessTile.subHeaderText("All Repositories"));
-    accessTile.newButton().shouldBe(visible, enabled);
+    accessTile.addRoleButton().shouldBe(enabled, visible);
     accessTile.accessLists().shouldHaveSize(1);
 
     AccessTileList localList = accessTile.accessList(0);
@@ -292,5 +300,63 @@ public class RepositoriesSummaryViewTest
     configurationTile.componentsTableConfigurationCountCols().get(2).shouldHave(Condition.text("sonatype-private"));
     RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().shouldHave(
         attribute("aria-label", "Repository ascending"));
+  }
+
+  @Test
+  public void testPolicyTile_NoPolicies() {
+    // Sanity Check
+    RepositoriesSummaryTile summaryTile = RepositoriesSummaryPage.summaryTile();
+    summaryTile.name().shouldBe(visible).shouldHave(text("Repositories"));
+
+    PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
+    policyTile.shouldBe(visible);
+    policyTile.subHeader().shouldBe(visible).shouldHave(PolicyTile.subHeaderText("All Repositories"));
+    policyTile.newButton().shouldNotBe(visible);
+
+    PolicyTileList policyList = policyTile.policyList(0);
+    policyList.ownerName().shouldBe(visible).shouldHave(text("Local"));
+    policyList.localEmptyDescriptor().shouldBe(visible);
+  }
+
+  @Test
+  public void testPolicyTile_InheritedPolicies() {
+    Owner parentOwner = new OrganizationDAO().getByIdNotNull(ROOT_ORGANIZATION_ID);
+
+    List<Policy> inheritedPolicies = new ArrayList<>();
+
+    inheritedPolicies.add(tempEntity.newPolicy(parentOwner.getId(), "Policy 1 " + parentOwner.getName(), 10,
+        Action.ID_FAIL, Stage.ID_BUILD, null));
+    inheritedPolicies.add(tempEntity.newPolicy(parentOwner.getId(), "Policy 2 " + parentOwner.getName(), 5,
+        Action.ID_WARN, Stage.ID_BUILD, null));
+
+    refreshOrOpen(RepositoriesSummaryPage.url());
+
+    PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
+    PolicyTileList policyTileList = policyTile.policyList(1);
+
+    // The plus one is added because the rows method selects the table header
+    policyTileList.rows().shouldHaveSize(inheritedPolicies.size() + 1);
+
+    // Verifying Policy 1
+    policyTileList.row(1).threatLegend().shouldHave(text("10"));
+    policyTileList.row(1).name().shouldHave(text("Policy 1 Root Organization"));
+    policyTileList.row(1).proxy().shouldHave(PolicyTile.noActionText());
+    policyTileList.row(1).develop().shouldHave(PolicyTile.noActionText());
+    policyTileList.row(1).source().shouldHave(PolicyTile.noActionText());
+    policyTileList.row(1).build().shouldHave(text("Fail"));
+    policyTileList.row(1).stageRelease().shouldHave(PolicyTile.noActionText());
+    policyTileList.row(1).release().shouldHave(PolicyTile.noActionText());
+    policyTileList.row(1).operate().shouldHave(PolicyTile.noActionText());
+
+    // Verifying Policy 2
+    policyTileList.row(2).threatLegend().shouldHave(text("5"));
+    policyTileList.row(2).name().shouldHave(text("Policy 2 Root Organization"));
+    policyTileList.row(2).proxy().shouldHave(PolicyTile.noActionText());
+    policyTileList.row(2).develop().shouldHave(PolicyTile.noActionText());
+    policyTileList.row(2).source().shouldHave(PolicyTile.noActionText());
+    policyTileList.row(2).build().shouldHave(text("Warn"));
+    policyTileList.row(2).stageRelease().shouldHave(PolicyTile.noActionText());
+    policyTileList.row(2).release().shouldHave(PolicyTile.noActionText());
+    policyTileList.row(2).operate().shouldHave(PolicyTile.noActionText());
   }
 }

@@ -9,6 +9,8 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
+
 public class RepositoriesSummaryTile
     extends BasicElement<RepositoriesSummaryTile>
 {
@@ -18,6 +20,10 @@ public class RepositoriesSummaryTile
 
   public SelenideElement name() {
     return child("h1");
+  }
+
+  public SelenideElement title() {
+    return $(".nx-tile-header__subtitle");
   }
 
   public PillButton configButton() {

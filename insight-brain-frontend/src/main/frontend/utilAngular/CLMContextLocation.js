@@ -66,6 +66,10 @@ locationModule.factory('CLMContextLocations', [
       return includesNamePart('repositories', $state.current.name);
     }
 
+    function isRepositoryContainer() {
+      return includesNamePart('management.view.repositories', $state.current.name);
+    }
+
     function isRootOrg() {
       return isOrganization() && $state.params.organizationId === 'ROOT_ORGANIZATION_ID';
     }
@@ -283,6 +287,7 @@ locationModule.factory('CLMContextLocations', [
       isOrganization: isOrganization,
       isRootOrg: isRootOrg,
       isRepositories: isRepositories,
+      isRepositoryContainer: isRepositoryContainer,
       isGlobal: function () {
         return !isApplication() && !isOrganization();
       },

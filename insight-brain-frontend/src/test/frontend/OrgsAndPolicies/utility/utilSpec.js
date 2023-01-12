@@ -70,6 +70,22 @@ describe('OrgsAndPolicies util', () => {
       expect(actual.to).toEqual('management.edit.organization');
       expect(actual.params).toEqual(router.currentParams);
     });
+
+    it('derives edit route for Repository Container', () => {
+      router = {
+        currentState: {
+          name: 'management.view.repositories',
+        },
+        currentParams: {
+          repositoryContainerId: 'REPOSITORY_CONTAINER_ID',
+        },
+      };
+
+      const actual = deriveViewRoute(router);
+
+      expect(actual.to).toEqual('management.view.repository_container');
+      expect(actual.params).toEqual({ repositoryContainerId: 'REPOSITORY_CONTAINER_ID' });
+    });
   });
 
   describe('getOwnerName', () => {

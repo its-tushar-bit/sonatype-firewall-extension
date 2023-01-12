@@ -19,10 +19,11 @@ export default function PoliciesTable({
   isFirewallSupported,
   isEnforcementSupported,
   sorting,
+  isRepositories,
 }) {
   const dispatch = useDispatch();
 
-  const goToEditPolicy = (policyId) => dispatch(actions.goToEditPolicy(policyId));
+  const goToEditPolicy = (policyId) => !isRepositories && dispatch(actions.goToEditPolicy(policyId));
   const changeSortField = (sorting) => dispatch(actions.changeSortField(sorting));
 
   const getSortDir = (ownerName, fieldName) => {
@@ -150,5 +151,6 @@ PoliciesTable.propTypes = {
   stages: PropTypes.arrayOf(PropTypes.object),
   isFirewallSupported: PropTypes.bool,
   isEnforcementSupported: PropTypes.bool,
+  isRepositories: PropTypes.bool,
   sorting: PropTypes.object,
 };

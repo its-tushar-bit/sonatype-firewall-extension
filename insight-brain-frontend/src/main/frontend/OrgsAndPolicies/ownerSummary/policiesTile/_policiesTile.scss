@@ -3,7 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-policies-tile {
+@use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+@use '../../../scss/variables' as *;
+
+#owner-pill-policy {
   $stagesMaxWidth: 105px;
 
   .nx-tile-header {

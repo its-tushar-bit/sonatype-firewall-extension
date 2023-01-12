@@ -31,12 +31,23 @@ function deriveRouteFromStateParams(ownerState, routerState, to, params = {}) {
   const { currentState, currentParams } = routerState;
   const isApp = includes('application', currentState.name);
   const isRepositories = includes('repositories', currentState.name);
+  const isRepositoryContainer = includes('management.view.repositories', currentState.name);
 
-  const type = isApp ? 'application' : isRepositories ? 'repositories' : 'organization';
-  const ownerId = isApp ? 'applicationPublicId' : 'organizationId';
+  const type = isRepositoryContainer
+    ? 'repository_container'
+    : isApp
+    ? 'application'
+    : isRepositories
+    ? 'repositories'
+    : 'organization';
+  const ownerId = isRepositoryContainer ? 'REPOSITORY_CONTAINER_ID' : isApp ? 'applicationPublicId' : 'organizationId';
 
-  if (currentParams[ownerId]) {
-    params[ownerId] = currentParams[ownerId];
+  if (isRepositoryContainer) {
+    params['repositoryContainerId'] = 'REPOSITORY_CONTAINER_ID';
+  } else {
+    if (currentParams[ownerId]) {
+      params[ownerId] = currentParams[ownerId];
+    }
   }
 
   return {

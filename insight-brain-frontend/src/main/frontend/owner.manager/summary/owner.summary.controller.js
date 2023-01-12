@@ -40,12 +40,21 @@ export default function OwnerSummaryController(
   vm.isApp = CLMContextLocations.isApplication();
   vm.isOrg = CLMContextLocations.isOrganization();
   vm.isRootOrg = CLMContextLocations.isRootOrg();
+  vm.isRepositoryContainer = CLMContextLocations.isRepositoryContainer();
   vm.stages = undefined;
   vm.doLoad = doLoad;
 
   var siblings,
-    stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
-    type = vm.isApp ? ownerConstant.APPLICATION_TYPE : ownerConstant.ORGANIZATION_TYPE,
+    stateIdField = vm.isRepositoryContainer
+      ? 'repositoryContainerId'
+      : vm.isApp
+      ? 'applicationPublicId'
+      : 'organizationId',
+    type = vm.isRepositoryContainer
+      ? ownerConstant.REPOSITORY_CONTAINER_TYPE
+      : vm.isApp
+      ? ownerConstant.APPLICATION_TYPE
+      : ownerConstant.ORGANIZATION_TYPE,
     id = $state.params[stateIdField];
 
   vm.unsubscribe = $ngRedux.connect(mapStateToThis, {

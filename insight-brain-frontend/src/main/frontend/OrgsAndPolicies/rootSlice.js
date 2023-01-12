@@ -10,6 +10,7 @@ import { path } from 'ramda';
 import { propSet } from 'MainRoot/util/reduxToolkitUtil';
 import { getApplicablePolicies } from '../util/CLMLocation';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
+import { selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const REDUCER_NAME = 'orgsAndPolicies';
 
@@ -39,7 +40,16 @@ const selectedOwnerParentOrganizationUpdated = (state, { payload: { organization
 const loadApplicablePoliciesByOwner = createAsyncThunk(
   `${REDUCER_NAME}/loadApplicablePoliciesByOwner`,
   (_, { getState, rejectWithValue }) => {
-    const { ownerType, ownerId } = selectOwnerProperties(getState());
+    let ownerType, ownerId;
+    const currentRouteName = selectCurrentRouteName(getState());
+    if (currentRouteName === 'management.view.repositories') {
+      ownerType = 'repository_container';
+      ownerId = 'REPOSITORY_CONTAINER_ID';
+    } else {
+      const ownerProperties = selectOwnerProperties(getState());
+      ownerType = ownerProperties.ownerType;
+      ownerId = ownerProperties.ownerId;
+    }
     return axios
       .get(getApplicablePolicies(ownerType, ownerId))
       .then(path(['data', 'policiesByOwner']))

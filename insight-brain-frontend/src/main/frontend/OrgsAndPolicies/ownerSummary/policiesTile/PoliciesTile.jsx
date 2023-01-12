@@ -30,6 +30,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectActionStageTypes } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import PoliciesTable from './PoliciesTable';
+import { selectIsRepositories } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function PoliciesTile() {
   const dispatch = useDispatch();
@@ -43,6 +44,7 @@ export default function PoliciesTile() {
   const loadError = useSelector(selectPolicyTileLoadError);
   const selectedOwner = useSelector(selectSelectedOwner);
   const sorting = useSelector(selectPolicyTileSorting);
+  const isRepositories = useSelector(selectIsRepositories);
 
   const doLoad = () => dispatch(actions.loadPolicyTile());
 
@@ -66,12 +68,14 @@ export default function PoliciesTile() {
             </NxTile.HeaderTitle>
             <NxTile.HeaderSubtitle>applying to {ownerName}</NxTile.HeaderSubtitle>
           </NxTile.Headings>
-          <NxTile.HeaderActions>
-            <NxButton variant="tertiary" id="add-policy-button" onClick={goToCreatePolicy}>
-              <NxFontAwesomeIcon icon={faPlus} />
-              <span>Add a Policy</span>
-            </NxButton>
-          </NxTile.HeaderActions>
+          {!isRepositories && (
+            <NxTile.HeaderActions>
+              <NxButton variant="tertiary" id="add-policy-button" onClick={goToCreatePolicy}>
+                <NxFontAwesomeIcon icon={faPlus} />
+                <span>Add a Policy</span>
+              </NxButton>
+            </NxTile.HeaderActions>
+          )}
         </NxTile.Header>
         <NxTile.Content className={stagesNumber}>
           <NxTile.Subsection>
@@ -106,6 +110,7 @@ export default function PoliciesTile() {
                     isFirewallSupported={isFirewallSupported}
                     isEnforcementSupported={isEnforcementSupported}
                     sorting={sorting}
+                    isRepositories={isRepositories}
                   />
                 </NxTile.Subsection>
               );

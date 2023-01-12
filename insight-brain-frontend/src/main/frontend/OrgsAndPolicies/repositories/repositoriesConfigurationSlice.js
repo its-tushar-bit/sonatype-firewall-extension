@@ -64,7 +64,7 @@ const loadRepositoriesRequested = (state) => {
 const loadRepositoriesFulfilled = (state, { payload }) => {
   state.loading = false;
   state.loadError = null;
-  state.repositories = payload || [];
+  state.repositories = payload.slice().sort(comparators['publicId']) || [];
   state.unsortedRepositories = payload || [];
 };
 

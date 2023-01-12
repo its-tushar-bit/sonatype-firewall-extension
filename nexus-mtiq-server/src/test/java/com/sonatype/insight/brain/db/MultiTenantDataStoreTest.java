@@ -5,14 +5,23 @@
  */
 package com.sonatype.insight.brain.db;
 
+import java.util.Collection;
+import java.util.Collections;
+import javax.inject.Provider;
+
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.service.TenantLifecycle;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
+import com.sonatype.insight.brain.tenancy.TenantManager;
+import com.sonatype.insight.brain.tenancy.TenantManagerTestHelper;
 import com.sonatype.insight.brain.test.MultiTenantDatabaseTestRule;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,7 +54,20 @@ public class MultiTenantDataStoreTest
 
   @Test
   public void testTenantSchema() {
-    // TODO CLM-23397 Once tenant lifecycle/boot is working this should get a tenant schema test
+    Collection<TenantManaged> tenantManagedBeans = Collections.emptyList();
+    Provider<TenantLifecycle> tenantLifecycleProvider = () -> Mockito.mock(TenantLifecycle.class);
+
+    TenantManager tenantManager =
+        new TenantManager(tenantManagedBeans, multiTenantDatabaseTestRule.insightConfig, tenantLifecycleProvider,
+            multiTenantDatabaseTestRule.databaseProvisionUtils, multiTenantDatabaseTestRule.databaseConfigProvider);
+
+    TenantManagerTestHelper.setTestTenant(tenantManager, "test-tenant");
+
+    assertThat(multiTenantDatabaseTestRule.operationalDataStore.getDatabaseSchema()).isEqualTo("t_test_tenant");
+    assertThat(multiTenantDatabaseTestRule.aggregationDataStore.getDatabaseSchema()).isEqualTo("t_test_tenant");
+    assertThat(multiTenantDatabaseTestRule.thirdPartyScansDataStore.getDatabaseSchema()).isEqualTo("t_test_tenant");
+    // datamart is ALWAYS global
+    assertThat(multiTenantDatabaseTestRule.dataMartDataStore.getDatabaseSchema()).isEqualTo("global");
   }
 
   @Test

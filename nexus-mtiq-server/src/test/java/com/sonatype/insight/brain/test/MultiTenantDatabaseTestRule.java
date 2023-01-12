@@ -52,6 +52,8 @@ public class MultiTenantDatabaseTestRule
 
   public MultiTenantInsightConfig insightConfig;
 
+  public DatabaseConfigProvider databaseConfigProvider;
+
   public PostgresServer postgresServer;
 
   private boolean initializeDatabase = true;
@@ -88,6 +90,8 @@ public class MultiTenantDatabaseTestRule
     insightConfig.setMainDatabase(postgresServer.getDatabaseConfig());
     insightConfig.setLocksDatabase(postgresServer.getDatabaseConfig()); // for testing use the same config for locks
 
+    databaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
+
     multiTenantDataSourceFactory.setInsightConfig(insightConfig);
 
     if (initializeDatabase) {
@@ -105,7 +109,6 @@ public class MultiTenantDatabaseTestRule
   }
 
   public void initializeDatabase() {
-    DatabaseConfigProvider databaseConfigProvider = new MultiTenantDatabaseConfigProvider(insightConfig);
     databaseProvisionUtils.initializeDatabases(insightConfig, databaseConfigProvider);
   }
 

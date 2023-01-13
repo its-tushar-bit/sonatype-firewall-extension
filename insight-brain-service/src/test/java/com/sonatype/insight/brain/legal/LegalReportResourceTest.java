@@ -8,9 +8,6 @@ package com.sonatype.insight.brain.legal;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import com.sonatype.insight.brain.*;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
@@ -86,16 +83,16 @@ public class LegalReportResourceTest extends AbstractResourceTest
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
     hdsRespondWith(EMPTY_JSON_ARRAY).atUri(ApiLicenseLegalHdsService.SOURCE_LINK_URL);
-    List<String> appsText = Arrays.asList(application.getId(), application2.getId());
-    Collections.sort(appsText);
-    String applicationsText = String.join(", ", appsText) + " ";
+
     HttpResponse response = restRequest()
         .path(LegalReportResource.REPORT)
         .part("title", "Default Report Title")
         .post();
-    assertResponseStatus(404, response);
+
+    assertResponseStatus(200, response);
     assertThat(response.getBodyText())
-        .isEqualTo("Report for applications " + applicationsText + "not found.");
+        .contains("<table id=\"table-of-contents\">")
+        .doesNotContain("<div class=\"componentBox\">");
   }
 
   @Test

@@ -199,9 +199,10 @@ public class ApiLegalReportResourceV2Test
         .part("applications", application.getPublicId() + "," + application2.getPublicId())
         .part("stages", BuildStageType.ID + "," + BuildStageType.ID).post();
 
-    assertResponseStatus(404, response);
-    assertThat(response.getBodyText()).contains(application.getPublicId());
-    assertThat(response.getBodyText()).contains(application2.getPublicId());
+    assertResponseStatus(200, response);
+    assertThat(response.getBodyText())
+        .contains("<table id=\"table-of-contents\">")
+        .doesNotContain("<div class=\"componentBox\">");
   }
 
   @Test

@@ -49,7 +49,6 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -132,8 +131,7 @@ public class ApplicationAttributionReportBuilder
         .getLicenseLegalMultiApplicationReport(applications, stageIds, reportParameters.isIncludeInnerSource(),
             reportParameters.isIncludeSonatypeSpecialLicenses());
 
-    ApiLicenseLegalApplicationReportDTO applicationReportDTO =
-        mergeApplicationReports(applicationReportDTOSet, applicationPublicIds);
+    ApiLicenseLegalApplicationReportDTO applicationReportDTO = mergeApplicationReports(applicationReportDTOSet);
     Map<String, Object> contextMap = buildContextMap(null, applicationReportDTO, reportParameters);
     return templateEngine.process(APPLICATION_ATTRIBUTION_REPORT, new Context(Locale.getDefault(), contextMap));
   }
@@ -189,8 +187,7 @@ public class ApplicationAttributionReportBuilder
           .getLicenseLegalMultiApplicationReport(applications, stageIds, reportParameters.isIncludeInnerSource(),
               reportParameters.isIncludeSonatypeSpecialLicenses());
 
-      ApiLicenseLegalApplicationReportDTO applicationReportDTO =
-          mergeApplicationReports(applicationReportDTOSet, applicationIds);
+      ApiLicenseLegalApplicationReportDTO applicationReportDTO = mergeApplicationReports(applicationReportDTOSet);
       Map<String, Object> contextMap = buildContextMap(null, applicationReportDTO, reportParameters);
       return templateEngine.process(APPLICATION_ATTRIBUTION_REPORT, new Context(Locale.getDefault(), contextMap));
     }
@@ -208,8 +205,7 @@ public class ApplicationAttributionReportBuilder
   }
 
   private ApiLicenseLegalApplicationReportDTO mergeApplicationReports(
-      Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOS,
-      Set<String> applicationPublicIds)
+      Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOS)
   {
     List<ApiLicenseLegalComponentDTO> components = new ArrayList<>();
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = new HashSet<>();
@@ -220,15 +216,6 @@ public class ApplicationAttributionReportBuilder
         licenseLegalMetadata.addAll(apiLicenseLegalApplicationReportDTO.get().licenseLegalMetadata.stream()
             .filter(Objects::nonNull).collect(Collectors.toSet()));
       }
-    }
-    if (components.isEmpty() && licenseLegalMetadata.isEmpty()) {
-      String applicationsText = "";
-      if (!applicationPublicIds.isEmpty()) {
-        List<String> appPublicIdSort = new ArrayList<>(applicationPublicIds);
-        Collections.sort(appPublicIdSort);
-        applicationsText = String.join(", ", appPublicIdSort) + " ";
-      }
-      throw new NotFoundException("Report for applications " + applicationsText + "not found.");
     }
     return new ApiLicenseLegalApplicationReportDTO(components, licenseLegalMetadata);
   }

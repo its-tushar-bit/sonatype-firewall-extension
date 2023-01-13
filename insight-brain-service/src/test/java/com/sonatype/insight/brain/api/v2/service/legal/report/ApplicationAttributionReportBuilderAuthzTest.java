@@ -5,28 +5,51 @@
  */
 package com.sonatype.insight.brain.api.v2.service.legal.report;
 
+import java.util.Collections;
+import java.util.List;
+
+import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
+import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;
 import com.sonatype.insight.brain.filter.AdvancedLegalPackDashboardFilter;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.google.inject.Binder;
 import com.google.inject.Inject;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
 import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 public class ApplicationAttributionReportBuilderAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
   private ApplicationAttributionReportBuilder applicationAttributionReportBuilder;
+
+  @Mock
+  private ApiLicenseLegalService apiLicenseLegalServiceMock;
+
+  @Captor
+  private ArgumentCaptor<List<Owner>> ownerCaptor;
+
+  @Override
+  public void configure(final Binder binder) {
+    binder.bind(ApiLicenseLegalService.class).toInstance(apiLicenseLegalServiceMock);
+    super.configure(binder);
+  }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGenerateLegalAttributionApplicationReport_Unauthenticated() {
@@ -45,16 +68,24 @@ public class ApplicationAttributionReportBuilderAuthzTest
         LegalCustomReportParameters.builder().buildWithDefaults("app"));
   }
 
-  @Test(expected = NotFoundException.class)
+  @Test
   public void testGenerateLegalAttributionApplicationReport_Authorized() {
     grantLegalReviewerPermission(app.getId());
-    applicationAttributionReportBuilder.generateCustomLegalApplicationAttributionReport(
-        app,
-        BuildStageType.ID,
-        LegalCustomReportParameters.builder().buildWithDefaults("app"));
+    LegalCustomReportParameters params = LegalCustomReportParameters.builder().buildWithDefaults("app");
+
+    when(apiLicenseLegalServiceMock.getLicenseLegalApplicationReport( //
+        app, //
+        BuildStageType.ID, //
+        params.isIncludeInnerSource(), //
+        params.isIncludeSonatypeSpecialLicenses())) //
+            .thenReturn(new ApiLicenseLegalApplicationReportDTO());
+
+    String result = applicationAttributionReportBuilder.generateCustomLegalApplicationAttributionReport(app,
+        BuildStageType.ID, params);
+    assertThat(result).isNotBlank();
   }
 
-  @Test(expected = NotFoundException.class)
+  @Test
   public void testGenerateLegalAttributionApplicationReportFormActiveFilter_Authorized() {
     grantLegalReviewerPermission(app.getId());
     String filterName = "test filter";
@@ -63,8 +94,20 @@ public class ApplicationAttributionReportBuilderAuthzTest
     advancedLegalPackDashboardFilter.getStageTypeFilters().add(BuildStageType.ID);
     tempEntity.newUserFilter(getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD,
         JsonUtils.format(advancedLegalPackDashboardFilter), filterName);
-    applicationAttributionReportBuilder.generateLegalMultiApplicationAttributionReportFromActiveUserFilter(
-        LegalCustomReportParameters.builder().buildWithDefaults("app"));
+
+    LegalCustomReportParameters params = LegalCustomReportParameters.builder().buildWithDefaults("app");
+
+    when(apiLicenseLegalServiceMock.getLicenseLegalMultiApplicationReport( //
+        ownerCaptor.capture(), //
+        eq(Collections.singletonList(BuildStageType.ID)), //
+        eq(params.isIncludeInnerSource()), //
+        eq(params.isIncludeSonatypeSpecialLicenses()))) //
+            .thenReturn(Collections.emptySet());
+
+    String result =
+        applicationAttributionReportBuilder.generateLegalMultiApplicationAttributionReportFromActiveUserFilter(params);
+    assertThat(result).isNotBlank();
+    assertThat(ownerCaptor.getValue()).extracting(Owner::getId).containsExactly(app.getId());
   }
 
   @Test
@@ -78,10 +121,21 @@ public class ApplicationAttributionReportBuilderAuthzTest
     advancedLegalPackDashboardFilter.getStageTypeFilters().add(BuildStageType.ID);
     tempEntity.newUserFilter(getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD,
         JsonUtils.format(advancedLegalPackDashboardFilter), filterName);
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
-        () -> applicationAttributionReportBuilder.generateLegalMultiApplicationAttributionReportFromActiveUserFilter(
-            LegalCustomReportParameters.builder().buildWithDefaults("app")))
-        .withMessageContaining("Report for applications " + app.getId() + " not found");
+
+    LegalCustomReportParameters params = LegalCustomReportParameters.builder().buildWithDefaults("app");
+
+    when(apiLicenseLegalServiceMock.getLicenseLegalMultiApplicationReport( //
+        ownerCaptor.capture(), //
+        eq(Collections.singletonList(BuildStageType.ID)), //
+        eq(params.isIncludeInnerSource()), //
+        eq(params.isIncludeSonatypeSpecialLicenses()))) //
+            .thenReturn(Collections.emptySet());
+
+    String result =
+        applicationAttributionReportBuilder.generateLegalMultiApplicationAttributionReportFromActiveUserFilter(params);
+
+    assertThat(result).isNotBlank();
+    assertThat(ownerCaptor.getValue()).extracting(Owner::getId).containsExactly(app.getId());
   }
 
   @Test(expected = UnauthorizedException.class)

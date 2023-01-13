@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -26,6 +25,7 @@ import com.sonatype.insight.brain.repository.client.RepositoryClientFactory;
 import com.sonatype.insight.brain.repository.client.RepositoryClientFactory.RepositoryClientBuilder;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
@@ -38,6 +38,7 @@ import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.repository.RepositoryQueryService.INNERSOURCE_REPOSITORY_FORMAT_KEY;
 import static com.sonatype.insight.brain.repository.RepositoryQueryService.INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -224,7 +225,7 @@ public class RepositoryQueryServiceTest
 
     assertThat(results.getLeft().getComponents()).isEmpty();
   }
-  
+
   @Test
   public void testGetAllVersions_Inherited_Org_Disabled_Override() throws Exception {
     Organization org = tempEntity.newOrganization();
@@ -434,7 +435,7 @@ public class RepositoryQueryServiceTest
     assertThat(results.getRight().sourceMessage).isEqualTo(
         "Could not retrieve data from InnerSource repository. Check your repository configuration.");
   }
-  
+
   @Test
   public void testGetAllVersions_NoResults() throws Exception {
     //given
@@ -504,6 +505,55 @@ public class RepositoryQueryServiceTest
   {
     testGetAllVersions_BadRequestException(ComponentIdentifier.createNpmCoordinates("p", "v"),
         missingCoordinate, expectBadRequestException);
+  }
+
+  @Test
+  public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() throws Exception {
+    Tenant tenant1 = new Tenant("tenant1");
+    Tenant tenant2 = new Tenant("tenant2");
+
+    RepositoryQueryService.REPOSITORY_QUERY_COUNT_PER_FORMAT.get().clear();
+    //given
+    Application app = getApplicationWithConnectionsEnabled();
+    tempEntity.newRepositoryConnection(app.getId(), "baseUrl", RepositoryFormat.GENERIC, "user", "pass".toCharArray());
+    ComponentIdentifier maven = ComponentIdentifier.createMavenCoordinates("g1", "n1", "1.2.0", "", "jar");
+    ComponentIdentifier npm1 = ComponentIdentifier.createNpmCoordinates("p1", "1.2.0");
+    ComponentIdentifier npm2 = ComponentIdentifier.createNpmCoordinates("p2", "2.2.0");
+    when(clientFactory.create()).thenReturn(mockBuilder);
+    when(mockBuilder.forNexus3(eq("baseUrl"), eq("user"), any())).thenReturn(mockClient);
+    doReturn(new RepositoryAllVersionsResponse(Collections.emptyList())).when(mockClient).getAllVersions(anyMap());
+
+    testAs(tenant1, t1 -> {
+      //when
+      repositoryQueryService.getAllVersions(maven, app);
+      repositoryQueryService.getAllVersions(npm1, app);
+    });
+
+    testAs(tenant2, t2 -> {
+      repositoryQueryService.getAllVersions(npm1, app);
+      repositoryQueryService.getAllVersions(npm2, app);
+    });
+
+    testAs(tenant1, t1 -> {
+      //then
+      List<TelemetryData> telemetryData = repositoryQueryService.collectAllData();
+      assertThat(telemetryData).hasSize(2);
+      assertThat(telemetryData.get(0).getAttributes()).hasSize(2)
+          .containsEntry(INNERSOURCE_REPOSITORY_FORMAT_KEY, "maven")
+          .containsEntry(INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY, 1);
+      assertThat(telemetryData.get(1).getAttributes()).hasSize(2)
+          .containsEntry(INNERSOURCE_REPOSITORY_FORMAT_KEY, "npm")
+          .containsEntry(INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY, 1);
+    });
+
+    testAs(tenant2, t2 -> {
+      //then
+      List<TelemetryData> telemetryData = repositoryQueryService.collectAllData();
+      assertThat(telemetryData).hasSize(1);
+      assertThat(telemetryData.get(0).getAttributes()).hasSize(2)
+          .containsEntry(INNERSOURCE_REPOSITORY_FORMAT_KEY, "npm")
+          .containsEntry(INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY, 2);
+    });
   }
 
   private void testGetAllVersions_BadRequestException_Maven(

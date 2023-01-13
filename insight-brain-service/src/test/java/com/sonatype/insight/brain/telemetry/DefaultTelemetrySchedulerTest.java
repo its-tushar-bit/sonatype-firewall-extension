@@ -46,7 +46,8 @@ public class DefaultTelemetrySchedulerTest
 
   @Before
   public void before() {
-    defaultTelemetryScheduler = new DefaultTelemetryScheduler(Arrays.asList(telemetryCollector1, telemetryCollector2),
+    defaultTelemetryScheduler = new DefaultTelemetryScheduler(
+        new DefaultTelemetryCollectorsProvider(Arrays.asList(telemetryCollector1, telemetryCollector2)),
         telemetrySender, scheduledExecutorService);
   }
 

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -29,17 +28,20 @@ public class DefaultTelemetryScheduler
   private final ScheduledExecutorService scheduledExecutorService;
 
   @Inject
-  public DefaultTelemetryScheduler(List<TelemetryCollector> telemetryCollectors, TelemetrySender telemetrySender) {
-    this(telemetryCollectors, telemetrySender, getScheduledThreadPoolExecutor());
+  public DefaultTelemetryScheduler(
+      TelemetryCollectorsProvider telemetryCollectorsProvider,
+      TelemetrySender telemetrySender)
+  {
+    this(telemetryCollectorsProvider, telemetrySender, getScheduledThreadPoolExecutor());
   }
 
   @VisibleForTesting
   DefaultTelemetryScheduler(
-      List<TelemetryCollector> telemetryCollectors,
+      TelemetryCollectorsProvider telemetryCollectorsProvider,
       TelemetrySender telemetrySender,
       ScheduledExecutorService scheduledExecutorService)
   {
-    super(telemetryCollectors, telemetrySender);
+    super(telemetryCollectorsProvider, telemetrySender);
     this.scheduledExecutorService = scheduledExecutorService;
   }
 

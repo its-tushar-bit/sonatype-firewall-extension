@@ -7,13 +7,13 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Collection;
 import java.util.Collections;
-
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -113,6 +114,40 @@ public class TelemetryContainerRequestFilterTest
   @Test
   public void testIsClusterTelemetry() {
     assertThat(telemetryContainerRequestFilter.isClusterTelemetry()).isFalse();
+  }
+
+  @Test
+  public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() {
+    Tenant tenant1 = new Tenant("tenant1");
+    Tenant tenant2 = new Tenant("tenant2");
+
+    testAs(tenant1, t1 -> {
+      telemetryContainerRequestFilter
+          .filter(mockContainerRequestContext("GET", PublicApiPaths.BASE_PATH + "/something"));
+      telemetryContainerRequestFilter
+          .filter(mockContainerRequestContext("GET", UserInterfaceLinksHelper.RESOURCE_PATH + "/something"));
+    });
+
+    testAs(tenant2, t2 -> {
+      telemetryContainerRequestFilter
+          .filter(mockContainerRequestContext("GET", PublicApiPaths.BASE_PATH + "/something"));
+      telemetryContainerRequestFilter
+          .filter(mockContainerRequestContext("GET", UserInterfaceLinksHelper.RESOURCE_PATH + "/something"));
+      telemetryContainerRequestFilter
+          .filter(mockContainerRequestContext("GET", PublicApiPaths.BASE_PATH + "/something"));
+    });
+
+    testAs(tenant1, t1 -> {
+      assertRestEndpointTelemetry(telemetryContainerRequestFilter.collectAllData(),
+          new RestEndpointTelemetry("GET", PublicApiPaths.BASE_PATH + "/something", 1),
+          new RestEndpointTelemetry("GET", UserInterfaceLinksHelper.RESOURCE_PATH + "/something", 1));
+    });
+
+    testAs(tenant2, t2 -> {
+      assertRestEndpointTelemetry(telemetryContainerRequestFilter.collectAllData(),
+          new RestEndpointTelemetry("GET", PublicApiPaths.BASE_PATH + "/something", 2),
+          new RestEndpointTelemetry("GET", UserInterfaceLinksHelper.RESOURCE_PATH + "/something", 1));
+    });
   }
 
   private String createMatchingPath(String... pathSegments) {

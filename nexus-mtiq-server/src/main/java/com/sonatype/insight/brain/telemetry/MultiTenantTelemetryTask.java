@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -22,10 +21,10 @@ public class MultiTenantTelemetryTask
 {
   @Inject
   public MultiTenantTelemetryTask(
-      List<TelemetryCollector> telemetryCollectors,
+      TelemetryCollectorsProvider telemetryCollectorsProvider,
       TelemetrySender telemetrySender)
   {
-    super(telemetryCollectors, telemetrySender);
+    super(telemetryCollectorsProvider, telemetrySender);
   }
 
   @Override

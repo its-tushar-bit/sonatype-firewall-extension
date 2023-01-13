@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
@@ -34,13 +33,13 @@ public class MultiTenantTelemetryTaskTest
   @Mock
   private TelemetrySender telemetrySender;
 
-  private List<TelemetryCollector> collectors;
+  private MultiTenantTelemetryCollectorsProvider collectors;
 
   private MultiTenantTelemetryTask multiTenantTelemetryTask;
 
   @Before
   public void before() {
-    collectors = Arrays.asList(telemetryCollector1, telemetryCollector2);
+    collectors = new MultiTenantTelemetryCollectorsProvider(Arrays.asList(telemetryCollector1, telemetryCollector2));
     multiTenantTelemetryTask = new MultiTenantTelemetryTask(collectors, telemetrySender);
   }
 

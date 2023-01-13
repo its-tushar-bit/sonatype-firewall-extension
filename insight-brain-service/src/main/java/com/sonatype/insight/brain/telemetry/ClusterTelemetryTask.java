@@ -44,11 +44,11 @@ public class ClusterTelemetryTask
 
   @Inject
   public ClusterTelemetryTask(
-      List<TelemetryCollector> telemetryCollectors,
+      TelemetryCollectorsProvider telemetryCollectorsProvider,
       TaskScheduler taskScheduler,
       TelemetrySender telemetrySender)
   {
-    this.clusterTelemetryCollectors = telemetryCollectors.stream()
+    this.clusterTelemetryCollectors = telemetryCollectorsProvider.getTelemetryCollectors().stream()
         .filter(TelemetryCollector::isClusterTelemetry).collect(Collectors.toList());
     this.taskScheduler = taskScheduler;
     this.telemetrySender = telemetrySender;

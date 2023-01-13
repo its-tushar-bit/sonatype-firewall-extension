@@ -20,10 +20,10 @@ public abstract class TelemetryScheduler
   final TelemetrySender telemetrySender;
 
   protected TelemetryScheduler(
-      List<TelemetryCollector> telemetryCollectors,
+      TelemetryCollectorsProvider telemetryCollectorsProvider,
       TelemetrySender telemetrySender)
   {
-    this.telemetryCollectors = telemetryCollectors.stream()
+    this.telemetryCollectors = telemetryCollectorsProvider.getTelemetryCollectors().stream()
         .filter(telemetryCollector -> !telemetryCollector.isClusterTelemetry()).collect(Collectors.toList());
     this.telemetrySender = telemetrySender;
   }

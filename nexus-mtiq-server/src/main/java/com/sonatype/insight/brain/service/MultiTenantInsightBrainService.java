@@ -34,6 +34,8 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.telemetry.DefaultTelemetryScheduler;
+import com.sonatype.insight.brain.telemetry.MultiTenantTelemetryCollectorsProvider;
+import com.sonatype.insight.brain.telemetry.TelemetryCollectorsProvider;
 import com.sonatype.insight.brain.tenancy.MultiTenantExecutorThreadPools;
 import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
 import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
@@ -188,6 +190,7 @@ public class MultiTenantInsightBrainService
         bind(TaskScheduler.class).to(MultiTenantTaskScheduler.class);
 
         bind(TelemetryId.class).to(MultiTenantTelemetryId.class);
+        bind(TelemetryCollectorsProvider.class).to(MultiTenantTelemetryCollectorsProvider.class);
       }
     };
   }

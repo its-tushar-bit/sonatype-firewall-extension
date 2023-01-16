@@ -17,6 +17,10 @@ public class TenantManagerTestHelper
   }
 
   public static void setTestTenant(final TenantManager tenantManager, final Tenant tenant) {
+    // First set the tenant so that validation is skipped during testing, then use the tenant manager so registration
+    // is performed.
+    TenantThreadLocal.setTenantWithoutValidation(tenant);
+
     tenantManager.setTenant(tenant);
   }
 }

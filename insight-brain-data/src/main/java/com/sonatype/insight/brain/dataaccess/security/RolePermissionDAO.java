@@ -12,11 +12,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.RolePermission;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -31,7 +33,8 @@ public class RolePermissionDAO
 {
   private static final Logger log = LoggerFactory.getLogger(RolePermissionDAO.class);
 
-  private static volatile Map<Permission, Set<String>> roleIdsByPermission;
+  private static final TenantReference<Map<Permission, Set<String>>> roleIdsByPermission
+      = new TenantReference<>(ConcurrentHashMap::new);
 
   private static Runnable clearRolePermissionCacheForAllOtherNodes =
       () -> log.warn("Clear role permission cache for all other nodes not set.");
@@ -45,7 +48,7 @@ public class RolePermissionDAO
   }
 
   public static void clearRolePermissionCache() {
-    roleIdsByPermission = null;
+    roleIdsByPermission.remove();
   }
 
   List<RolePermission> getByRoleId(String roleId) {
@@ -127,8 +130,8 @@ public class RolePermissionDAO
    * Gets the ids of all roles that grant the given permission.
    */
   public Set<String> getRoleIdsByPermission(Permission permission) {
-    Map<Permission, Set<String>> map = roleIdsByPermission;
-    if (map == null) {
+    Map<Permission, Set<String>> map = roleIdsByPermission.get();
+    if (map == null || map.isEmpty()) {
       map = new EnumMap<>(Permission.class);
       for (Permission perm : Permission.values()) {
         map.put(perm, new HashSet<String>());
@@ -139,7 +142,7 @@ public class RolePermissionDAO
       for (Map.Entry<Permission, Set<String>> entry : map.entrySet()) {
         entry.setValue(Collections.unmodifiableSet(entry.getValue()));
       }
-      roleIdsByPermission = map;
+      roleIdsByPermission.set(map);
     }
     return map.get(permission);
   }

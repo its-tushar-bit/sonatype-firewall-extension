@@ -25,7 +25,7 @@ public class KeycloakServer
 
   public static final String IMAGE_NAME = "keycloak/keycloak";
 
-  public static final String IMAGE_VERSION = "20.0.2-1";
+  public static final String IMAGE_VERSION = "20.0.3-0";
 
   public static final String IMAGE = IMAGE_NAME + ":" + IMAGE_VERSION;
 

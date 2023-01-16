@@ -35,6 +35,7 @@ public class GitClientFactoryProxyTest
     extends AbstractHttpClientTest
 {
   private static final TestConsumer createApiClient = (client, provider, url, urlSuffix, username) -> {
+    client.clearUrlCaches();
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo(url + urlSuffix, null, username, "token", provider, "master", false, false,
             false, false, false, null);
@@ -42,6 +43,7 @@ public class GitClientFactoryProxyTest
   };
 
   private static final TestConsumer createPullRequestInfoClient = (client, provider, url, urlSuffix, username) -> {
+    client.clearUrlCaches();
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo(url + urlSuffix, null, username, "token", provider, "master", false, false,
             false, false, false, null);

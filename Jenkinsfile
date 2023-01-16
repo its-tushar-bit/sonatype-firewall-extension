@@ -33,7 +33,8 @@ make(
         'nexus-iq-server/target/*.zip*',
         'nexus-iq-server/target/*.tar.gz*',
         'nexus-iq-cli/target/*.jar*',
-        'nexus-iq-diagnostics/target/*.jar*'
+        'nexus-iq-diagnostics/target/*.jar*',
+        'nexus-mtiq-server/target/*.tar.gz*'
       ],
       excludes: [
         '**/*-sources.jar*',

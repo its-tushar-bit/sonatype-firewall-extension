@@ -26,7 +26,7 @@ public class RepositoryReportResourceAuditTest
   }
 
   @Test
-  public void testGetSummary() throws Exception {
+  public void testGetRepositorySummary() throws Exception {
     repositoryResourceRequest().path(RepositoryReportResource.SUMMARY).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_REPOSITORY_RESULTS, null);
@@ -34,7 +34,7 @@ public class RepositoryReportResourceAuditTest
   }
 
   @Test
-  public void testGetSummary_Unauthorized() throws Exception {
+  public void testGetRepositorySummary_Unauthorized() throws Exception {
     repositoryResourceRequest().path(RepositoryReportResource.SUMMARY).with(unauthorizedUser()).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_REPOSITORY_RESULTS, "unauthorized");

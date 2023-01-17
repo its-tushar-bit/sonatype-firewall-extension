@@ -56,7 +56,6 @@ import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTO;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogDTOAssert;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
-import com.sonatype.insight.brain.repository.RepositoryReportResource.RepositoryReportSummary;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -470,7 +469,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
   }
 
   @Test
-  public void testGetReportSummary() {
+  public void testGetRepositorySummary() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     Repository repo = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
     RepositoryComponent component1 = tempEntity.newRepositoryComponent(repo.getId(), "1");
@@ -486,7 +485,7 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
     tempEntity.newRepositoryComponent(repo.getId(), "/quarantined", new Date(), null);
 
-    RepositoryReportSummary summary = repositoryService.getReportSummary(repo.getId());
+    RepositorySummary summary = repositoryService.getRepositorySummary(repo.getId());
 
     assertThat(summary.knownComponentCount).isEqualTo(5);
     assertThat(summary.totalComponentCount).isEqualTo(6);

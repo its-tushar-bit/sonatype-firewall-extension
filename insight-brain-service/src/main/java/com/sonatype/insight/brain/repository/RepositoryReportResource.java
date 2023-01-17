@@ -48,25 +48,8 @@ public class RepositoryReportResource
   @Path(SUMMARY)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_REPOSITORY_RESULTS)
-  public RepositoryReportSummary getSummary(@PathParam("repositoryId") String repositoryId) {
-    return repositoryService.getReportSummary(repositoryId);
-  }
-
-  public static class RepositoryReportSummary
-  {
-    public int knownComponentCount;
-
-    public int totalComponentCount;
-
-    public int criticalComponentCount;
-
-    public int severeComponentCount;
-
-    public int moderateComponentCount;
-
-    public int affectedComponentCount;
-
-    public int quarantinedComponentCount;
+  public RepositorySummary getRepositorySummary(@PathParam("repositoryId") String repositoryId) {
+    return repositoryService.getRepositorySummary(repositoryId);
   }
 
   /**

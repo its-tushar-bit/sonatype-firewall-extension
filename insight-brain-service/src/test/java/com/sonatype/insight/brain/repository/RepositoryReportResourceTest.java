@@ -10,7 +10,6 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.repository.RepositoryReportResource.RepositoryReportSummary;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Before;
@@ -53,18 +52,18 @@ public class RepositoryReportResourceTest
   }
 
   @Test
-  public void testGetSummary() throws Exception {
+  public void testGetRepositorySummary() throws Exception {
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true);
 
     HttpResponse response = restRequestSummary().parameter(repository.getId()).get();
 
     assertResponseStatus(200, response);
-    RepositoryReportSummary policyEvaluationSummary = response.getBody(RepositoryReportSummary.class);
-    assertThat(policyEvaluationSummary).isNotNull();
+    RepositorySummary repositorySummary = response.getBody(RepositorySummary.class);
+    assertThat(repositorySummary).isNotNull();
   }
 
   @Test
-  public void testGetSummary_NoRepository() throws Exception {
+  public void testGetRepositorySummary_NoRepository() throws Exception {
     String repositoryId = "NonExistentRepositoryId";
 
     HttpResponse response = restRequestSummary().parameter(repositoryId).get();
@@ -74,14 +73,14 @@ public class RepositoryReportResourceTest
   }
 
   @Test
-  public void testGetSummary_RepositoryDisabled() throws Exception {
+  public void testGetRepositorySummary_RepositoryDisabled() throws Exception {
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, false);
 
     HttpResponse response = restRequestSummary().parameter(repository.getId()).get();
 
     assertResponseStatus(200, response);
-    RepositoryReportSummary policyEvaluationSummary = response.getBody(RepositoryReportSummary.class);
-    assertThat(policyEvaluationSummary).isNotNull();
+    RepositorySummary repositorySummary = response.getBody(RepositorySummary.class);
+    assertThat(repositorySummary).isNotNull();
   }
 
   /**

@@ -52,6 +52,7 @@ public class PolicyWaiverTelemetryCreatorTest
 
   @Override
   public void configure(Binder binder) {
+    super.configure(binder);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
   }
 

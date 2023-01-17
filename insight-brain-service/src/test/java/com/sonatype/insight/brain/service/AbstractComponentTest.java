@@ -237,6 +237,8 @@ public class AbstractComponentTest
     binder.bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
     binder.bind(TaskScheduler.class).to(TestTaskScheduler.class);
     binder.bind(TelemetryId.class).toInstance(mock(TelemetryId.class));
+
+    super.configure(binder);
   }
 
   protected void customizeConfig(@SuppressWarnings("unused") InsightConfig config) {

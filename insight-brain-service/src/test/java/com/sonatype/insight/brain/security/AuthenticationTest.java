@@ -47,6 +47,7 @@ public class AuthenticationTest
 
   @Override
   public void configure(Binder binder) {
+    super.configure(binder);
     InsightConfig config = new InsightConfig();
     config.setExitOnFatalError(false);
     binder.bind(InsightConfig.class).toInstance(config);

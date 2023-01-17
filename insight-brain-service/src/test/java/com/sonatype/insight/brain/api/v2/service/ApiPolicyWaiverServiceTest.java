@@ -129,6 +129,7 @@ public class ApiPolicyWaiverServiceTest
 
   @Override
   public void configure(Binder binder) {
+    super.configure(binder);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
     binder.bind(ApiPolicyViolationServiceV2.class).toInstance(apiPolicyViolationServiceV2Mock);
     binder.bind(PolicyWaiverTelemetryCreator.class).toInstance(policyWaiverTelemetryCreator);

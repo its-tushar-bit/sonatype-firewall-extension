@@ -3,9 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.testing; // note: this class is in this package only because SetUpModule is package-private
-
-import java.util.Properties;
+package com.sonatype.insight.brain.testing;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.db.DataSourceFactory;
@@ -20,11 +18,8 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 
 import com.google.inject.Binder;
-import com.google.inject.Guice;
 import com.google.inject.Module;
 import org.eclipse.sisu.launch.InjectedTest;
-import org.eclipse.sisu.wire.ParameterKeys;
-import org.eclipse.sisu.wire.WireModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ExternalResource;
@@ -35,8 +30,11 @@ import org.junit.runners.model.Statement;
  * Handles creation of the four data store classes for tests. The {@link DataStoreRule} is a junit rule to create the
  * instances and inject them into the legacy *Provider classes. The {@link DataStoreTestModule} binds those instances so
  * Guice can inject as needed. Ultimately any test that accesses a datastore needs to extend this base class.
+ *
+ * <B>IMPORTANT</B> - If you override {@link #configure(Binder)}, make sure to call `super.configure(binder)` to get
+ * database support
  */
-public class BrainInjectedTest
+public abstract class BrainInjectedTest
     extends InjectedTest
 {
   /**
@@ -56,7 +54,15 @@ public class BrainInjectedTest
     if (sisuUrlCaches == null) {
       System.setProperty("sisu.url.caches", "true");
     }
-    Guice.createInjector(new WireModule(new DataStoreTestModule(), new SetUpModule(), spaceModule()));
+    super.setUp();
+  }
+
+  /**
+   * Important: If you override this method be sure to call `super.configure` if you need database support
+   */
+  @Override
+  public void configure(final Binder binder) {
+    binder.install(new DataStoreTestModule());
   }
 
   private class DataStoreTestModule
@@ -89,28 +95,6 @@ public class BrainInjectedTest
       dataMartDataStore = new DefaultDataMartDataStore(new DataSourceFactory(), new DatabaseMigrator());
       thirdPartyScansDataStore = new DefaultThirdPartyScansDataStore(new DataSourceFactory(), new DatabaseMigrator());
       return super.apply(base, description);
-    }
-  }
-
-  /**
-   * Duplicated from {@link InjectedTest}. The inner class there is unfortunately marked package-private. So we either
-   * put this class in the `org.eclipse.sisu.launch` package, or duplicate the SetUpModule inner class.
-   * <a href="https://github.com/eclipse/sisu.inject/issues/70">Created sisu.inject issue #70</a>
-   */
-  final class SetUpModule
-      implements Module
-  {
-    @Override
-    public void configure(final Binder binder) {
-      binder.install(BrainInjectedTest.this);
-
-      final Properties properties = new Properties();
-      properties.put("basedir", getBasedir());
-      BrainInjectedTest.this.configure(properties);
-
-      binder.bind(ParameterKeys.PROPERTIES).toInstance(properties);
-
-      binder.requestInjection(BrainInjectedTest.this);
     }
   }
 }

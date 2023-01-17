@@ -43,6 +43,7 @@ public class ClusterTelemetryCollectorTest
   @Override
   public void configure(Binder binder) {
     binder.bind(ProductLicense.class).toInstance(productLicense);
+    super.configure(binder);
   }
 
   @Before

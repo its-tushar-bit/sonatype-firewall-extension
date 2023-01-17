@@ -24,6 +24,7 @@ public class SecurityModuleTest
 
   @Override
   public void configure(Binder binder) {
+    super.configure(binder);
     binder.install(new SecurityModule());
   }
 

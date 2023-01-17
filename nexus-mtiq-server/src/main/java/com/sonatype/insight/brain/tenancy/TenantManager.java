@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.tenancy;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
@@ -20,6 +21,9 @@ import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Exposes setTenant methods to be called by tenant "entry-points" so that a tenant can be correctly provisioned.
@@ -113,7 +117,11 @@ public class TenantManager
   }
 
   private void setupTenantJobs() {
-    for (TenantManaged tenantManaged : tenantManagedBeans) {
+    List<TenantManaged> prioritizedBeans = tenantManagedBeans.stream()
+        .sorted(comparingInt(TenantManaged::registrationPriority))
+        .collect(toList());
+
+    for (TenantManaged tenantManaged : prioritizedBeans) {
       if (tenantManaged instanceof GlobalTenantJob) {
         // Global lifecycles are not set here. See QuartzJobInitializer for that.
         continue;

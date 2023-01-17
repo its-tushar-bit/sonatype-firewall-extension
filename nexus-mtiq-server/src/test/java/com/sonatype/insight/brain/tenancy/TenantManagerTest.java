@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -27,10 +28,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TenantManagerTest
@@ -137,6 +140,29 @@ public class TenantManagerTest
     setTenantAndAssertRegistration();
 
     verify(mockGlobalTenantJob, never()).register();
+  }
+
+  @Test
+  public void shouldCallRegisterInOrderOfPriority() throws Exception {
+    int priority = 10;
+
+    when(job.registrationPriority()).thenReturn(priority + 1);
+
+    TenantManaged tenantManaged1 = mock(TenantManaged.class);
+    when(tenantManaged1.registrationPriority()).thenReturn(priority);
+    tenantManagedBeans.add(tenantManaged1);
+
+    TenantManaged tenantManaged2 = mock(TenantManaged.class);
+    when(tenantManaged1.registrationPriority()).thenReturn(priority - 1);
+    tenantManagedBeans.add(tenantManaged2);
+
+    setTenantAndAssertRegistration();
+
+    InOrder order = inOrder(job, tenantManaged1, tenantManaged2);
+    order.verify(tenantManaged2).register();
+    order.verify(tenantManaged1).register();
+    order.verify(job).register();
+    order.verifyNoMoreInteractions();
   }
 
   private void setTenantAndAssertRegistration() throws Exception {

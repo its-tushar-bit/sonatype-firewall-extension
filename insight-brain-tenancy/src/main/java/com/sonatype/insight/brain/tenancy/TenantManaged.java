@@ -40,4 +40,12 @@ public interface TenantManaged
   default String stop() throws Exception {
     return "Method not allowed";
   }
+
+  /**
+   * Determines the order that TenantManaged beans are called in. The lower the integer the higher the priority (e.g.
+   * priority 1 will be registered before priority 20)
+   */
+  default int registrationPriority() {
+    return 99;
+  }
 }

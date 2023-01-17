@@ -1,0 +1,128 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.service;
+
+import java.util.List;
+import java.util.Set;
+import javax.inject.Provider;
+
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
+import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.git.DefaultBranchMonitor;
+import com.sonatype.insight.brain.git.PullRequestMonitor;
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
+import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
+import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.tenancy.MultiTenantTest;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
+
+import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
+public class MultiTenantConfigurationTest
+    extends MultiTenantTest
+{
+  @Mock
+  ProxyServerConfigurationDAO proxyServerConfigurationDAO;
+
+  @Mock
+  ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
+
+  @Mock
+  JiraConfigurationDAO jiraConfigurationDAO;
+
+  @Mock
+  SourceControlConfigurationDAO sourceControlConfigurationDAO;
+
+  @Mock
+  ApiConfigurationService configurationService;
+
+  @Mock
+  Provider<List<HdsClient>> hdsClientsProvider;
+
+  @Mock
+  Provider<AsyncEventBus> asyncEventBusProvider;
+
+  @Mock
+  TaskScheduler taskScheduler;
+
+  @Mock
+  Provider<DefaultBranchMonitor> defaultBranchMonitorProvider;
+
+  @Mock
+  Provider<PullRequestMonitor> pullRequestMonitorProvider;
+
+  @Mock
+  Provider<ReleaseGraphCacheProvider> releaseGraphCacheProviderProvider;
+
+  @Mock
+  Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider;
+
+  @Mock
+  Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider;
+
+  private Configuration underTest;
+
+  @Override
+  @Before
+  public void setup() {
+    super.setup();
+
+    when(configurationService.getConfigurationNoAuthz(any(Set.class))).thenAnswer(
+        i -> ImmutableMap.of(SystemConfigurationProperty.HDS_URL, TenantThreadLocal.getTenant().tenantSlug));
+
+    underTest = new Configuration(proxyServerConfigurationDAO, reverseProxyAuthenticationConfigurationDAO,
+        jiraConfigurationDAO, sourceControlConfigurationDAO, configurationService, hdsClientsProvider,
+        asyncEventBusProvider, taskScheduler, defaultBranchMonitorProvider, pullRequestMonitorProvider,
+        releaseGraphCacheProviderProvider, policyMonitorSchedulerProvider, automaticQuarantineReleaseSchedulerProvider);
+  }
+
+  @Test
+  public void testConfigurationIsRegistered_forEachTenant() {
+    Tenant tenant1 = new Tenant("tenant1");
+    Tenant tenant2 = new Tenant("tenant2");
+
+    testAs(GLOBAL_TENANT, t -> assertThat(underTest.getHdsUrl()).isEqualTo(GLOBAL_TENANT.tenantSlug));
+
+    testAs(tenant1, t -> {
+      underTest.register();
+
+      assertThat(underTest.getHdsUrl()).isEqualTo(tenant1.tenantSlug);
+    });
+
+    testAs(tenant2, t -> {
+      underTest.register();
+
+      assertThat(underTest.getHdsUrl()).isEqualTo(tenant2.tenantSlug);
+    });
+
+    testAs(tenant1, t -> assertThat(underTest.getHdsUrl()).isEqualTo(tenant1.tenantSlug));
+  }
+
+  @Test
+  public void testRegistrationPriority() {
+    assertThat(underTest.registrationPriority()).isEqualTo(1);
+  }
+}

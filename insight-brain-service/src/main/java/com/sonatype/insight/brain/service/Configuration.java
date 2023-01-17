@@ -44,7 +44,10 @@ import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.AllowedIp;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.util.CollectionUtils;
 
@@ -52,7 +55,7 @@ import org.apache.shiro.util.CollectionUtils;
 @Singleton
 public class Configuration
     implements ConfigurationListener, ReverseProxyAuthenticationConfigurationListener, JiraConfigurationListener,
-               SourceControlConfigurationListener, ProxyServerConfigurationListener
+               SourceControlConfigurationListener, ProxyServerConfigurationListener, TenantManaged
 {
   private static final String BASE_URL_CONFIGURATION = "baseUrlConfiguration";
 
@@ -84,10 +87,10 @@ public class Configuration
 
   private final Provider<PullRequestMonitor> pullRequestMonitorProvider;
 
-  private final Map<String, Object> valueByPropertyName = new ConcurrentHashMap<>();
+  private final ConfigurationMap configCache = new ConfigurationMap();
 
   private final Provider<ReleaseGraphCacheProvider> releaseGraphCacheProviderProvider;
-  
+
   private final Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider;
 
   private final Provider<AutomaticQuarantineReleaseScheduler> automaticQuarantineReleaseSchedulerProvider;
@@ -121,6 +124,11 @@ public class Configuration
     this.releaseGraphCacheProviderProvider = releaseGraphCacheProviderProvider;
     this.policyMonitorSchedulerProvider = policyMonitorSchedulerProvider;
     this.automaticQuarantineReleaseSchedulerProvider = automaticQuarantineReleaseSchedulerProvider;
+    initializeValues();
+  }
+
+  @Override
+  public void register() {
     initializeValues();
   }
 
@@ -162,26 +170,18 @@ public class Configuration
         SystemConfigurationProperty.BFS_REPOSITORIES,
         SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES)
     );
-    putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
-    putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION, reverseProxyAuthenticationConfigurationDAO.get());
-    putOrRemoveIfNull(JIRA_CONFIGURATION, jiraConfigurationDAO.get());
-    putOrRemoveIfNull(SOURCE_CONTROL_CONFIGURATION, sourceControlConfigurationDAO.get());
-  }
-
-  private void putOrRemoveIfNull(String key, Object value) {
-    if (value == null) {
-      valueByPropertyName.remove(key);
-    }
-    else {
-      valueByPropertyName.put(key, value);
-    }
+    configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
+    configCache.putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION,
+        reverseProxyAuthenticationConfigurationDAO.get());
+    configCache.putOrRemoveIfNull(JIRA_CONFIGURATION, jiraConfigurationDAO.get());
+    configCache.putOrRemoveIfNull(SOURCE_CONTROL_CONFIGURATION, sourceControlConfigurationDAO.get());
   }
 
   private void updateValueByPropertyNames(Set<String> propertyNames) {
     Map<String, Object> result = configurationService.getConfigurationNoAuthz(propertyNames);
     updateBaseUrlConfigurationIfNeeded(result);
     for (Entry<String, Object> entry : result.entrySet()) {
-      putOrRemoveIfNull(entry.getKey(), entry.getValue());
+      configCache.putOrRemoveIfNull(entry.getKey(), entry.getValue());
     }
   }
 
@@ -191,7 +191,7 @@ public class Configuration
       BaseUrlConfiguration baseUrlConfiguration =
           new BaseUrlConfiguration((String) result.remove(SystemConfigurationProperty.BASE_URL),
               (boolean) result.remove(SystemConfigurationProperty.FORCE_BASE_URL));
-      valueByPropertyName.put(BASE_URL_CONFIGURATION, baseUrlConfiguration);
+      configCache.put(BASE_URL_CONFIGURATION, baseUrlConfiguration);
     }
   }
 
@@ -239,25 +239,26 @@ public class Configuration
 
   @Override
   public void proxyServerConfigurationChanged() {
-    putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
+    configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
     hdsClientsProvider.get().forEach(HdsClient::serverConfigurationChanged);
   }
 
   @Override
   public void reverseProxyAuthenticationConfigurationChanged() {
-    putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION, reverseProxyAuthenticationConfigurationDAO.get());
+    configCache.putOrRemoveIfNull(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION,
+        reverseProxyAuthenticationConfigurationDAO.get());
   }
 
   @Override
   public void jiraConfigurationChanged() {
-    putOrRemoveIfNull(JIRA_CONFIGURATION, jiraConfigurationDAO.get());
+    configCache.putOrRemoveIfNull(JIRA_CONFIGURATION, jiraConfigurationDAO.get());
   }
 
   @Override
   public void sourceControlConfigurationChanged() {
     SourceControlConfiguration currentSourceControlConfiguration = getSourceControlConfigurationOrDefault();
     SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
-    putOrRemoveIfNull(SOURCE_CONTROL_CONFIGURATION, sourceControlConfiguration);
+    configCache.putOrRemoveIfNull(SOURCE_CONTROL_CONFIGURATION, sourceControlConfiguration);
     if (sourceControlConfiguration == null) {
       sourceControlConfiguration = new SourceControlConfiguration();
     }
@@ -266,7 +267,7 @@ public class Configuration
   }
 
   public String getPurgeScanFiles() {
-    return (String) valueByPropertyName.get(SystemConfigurationProperty.PURGE_SCAN_FILES);
+    return configCache.get(SystemConfigurationProperty.PURGE_SCAN_FILES);
   }
 
   private void updateDefaultBranchMonitoringIfNeeded(
@@ -300,31 +301,31 @@ public class Configuration
   }
 
   public BaseUrlConfiguration getBaseUrlConfiguration() {
-    return (BaseUrlConfiguration) valueByPropertyName.get(BASE_URL_CONFIGURATION);
+    return configCache.get(BASE_URL_CONFIGURATION);
   }
 
   public String getHdsUrl() {
-    return (String) valueByPropertyName.get(SystemConfigurationProperty.HDS_URL);
+    return configCache.get(SystemConfigurationProperty.HDS_URL);
   }
 
   public String getCdnUrl() {
-    return (String) valueByPropertyName.get(SystemConfigurationProperty.CDN_URL);
+    return configCache.get(SystemConfigurationProperty.CDN_URL);
   }
 
   public long getSupportReadLimitBytes() {
-    return (long) valueByPropertyName.get(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES);
+    return configCache.get(SystemConfigurationProperty.SUPPORT_READ_LIMIT_BYTES);
   }
 
   public String getSupportClusterLogFileRegex() {
-    return (String) valueByPropertyName.get(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX);
+    return configCache.get(SystemConfigurationProperty.SUPPORT_CLUSTER_LOG_FILE_REGEX);
   }
 
   public int getEventBusMaxThreadPoolSize() {
-    return (int) valueByPropertyName.get(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE);
+    return configCache.get(SystemConfigurationProperty.EVENT_BUS_MAX_THREAD_POOL_SIZE);
   }
 
   public boolean isAntiCsrfEnabled() {
-    return (boolean) valueByPropertyName.get(SystemConfigurationProperty.CSRF_PROTECTION);
+    return configCache.get(SystemConfigurationProperty.CSRF_PROTECTION);
   }
 
   public void setAntiCsrfEnabled(boolean antiCsrfEnabled) {
@@ -334,15 +335,15 @@ public class Configuration
   }
 
   public String getUserAgentSuffix() {
-    return (String) valueByPropertyName.get(SystemConfigurationProperty.USER_AGENT_SUFFIX);
+    return configCache.get(SystemConfigurationProperty.USER_AGENT_SUFFIX);
   }
 
   public boolean isCspEnabled() {
-    return (boolean) valueByPropertyName.get(SystemConfigurationProperty.CSP_ENABLED);
+    return configCache.get(SystemConfigurationProperty.CSP_ENABLED);
   }
 
   public boolean isBlockSemicolon() {
-    return (boolean) valueByPropertyName.get(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH);
+    return configCache.get(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH);
   }
 
   public void setBlockSemicolon(boolean blockSemicolon) {
@@ -352,7 +353,7 @@ public class Configuration
   }
 
   public boolean isBlockBackslash() {
-    return (boolean) valueByPropertyName.get(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH);
+    return configCache.get(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH);
   }
 
   public void setBlockBackslash(boolean blockBackslash) {
@@ -362,7 +363,7 @@ public class Configuration
   }
 
   public boolean isBlockNonAscii() {
-    return (boolean) valueByPropertyName.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH);
+    return configCache.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH);
   }
 
   public void setBlockNonAscii(boolean blockNonAscii) {
@@ -372,20 +373,19 @@ public class Configuration
   }
 
   public ProxyServerConfiguration getProxyServerConfiguration() {
-    return (ProxyServerConfiguration) valueByPropertyName.get(PROXY_SERVER_CONFIGURATION);
+    return configCache.get(PROXY_SERVER_CONFIGURATION);
   }
 
   public ReverseProxyAuthenticationConfiguration getReverseProxyAuthenticationConfiguration() {
-    return (ReverseProxyAuthenticationConfiguration) valueByPropertyName.get(
-        REVERSE_PROXY_AUTHENTICATION_CONFIGURATION);
+    return configCache.get(REVERSE_PROXY_AUTHENTICATION_CONFIGURATION);
   }
 
   public JiraConfiguration getJiraConfiguration() {
-    return (JiraConfiguration) valueByPropertyName.get(JIRA_CONFIGURATION);
+    return configCache.get(JIRA_CONFIGURATION);
   }
 
   public SourceControlConfiguration getSourceControlConfiguration() {
-    return (SourceControlConfiguration) valueByPropertyName.get(SOURCE_CONTROL_CONFIGURATION);
+    return configCache.get(SOURCE_CONTROL_CONFIGURATION);
   }
 
   public SourceControlConfiguration getSourceControlConfigurationOrDefault() {
@@ -397,90 +397,89 @@ public class Configuration
   }
 
   public int getReleaseGraphCacheSize() {
-    return (int) valueByPropertyName.get(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE);
+    return configCache.get(SystemConfigurationProperty.RELEASE_GRAPH_CACHE_SIZE);
   }
 
   public int getLicenseLegalHdsRequestLimit() {
-    return (int) valueByPropertyName.get(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT);
+    return configCache.get(SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT);
   }
 
   public int getMaxApplicationsToQueryOnDashboard() {
-    return (int) valueByPropertyName.get(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD);
+    return configCache.get(SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD);
   }
 
   public int getMaxAdvancedSearchClauseCount() {
-    return (int) valueByPropertyName.get(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
+    return configCache.get(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
   }
 
   public String getAdvancedSearchCSVExportDelimiter() {
-    return (String) valueByPropertyName.get(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
+    return configCache.get(SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
   }
 
   public int getConnectTimeoutInSeconds() {
-    return (int) valueByPropertyName.get(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
+    return configCache.get(SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS);
   }
 
   public int getSocketTimeoutInSeconds() {
-    return (int) valueByPropertyName.get(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS);
+    return configCache.get(SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS);
   }
 
   public int getReportTimeoutInSeconds() {
-    return (int) valueByPropertyName.get(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS);
+    return configCache.get(SystemConfigurationProperty.REPORT_TIMEOUT_IN_SECONDS);
   }
 
   public boolean isNeedsAcknowledgementOfInitialDashboardFilter() {
-    return (boolean) valueByPropertyName.get(
-        SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER);
+    return configCache.get(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER);
   }
 
   public boolean isEnableDefaultPasswordWarning() {
-    return (boolean) valueByPropertyName.get(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
+    return configCache.get(SystemConfigurationProperty.ENABLE_DEFAULT_PASSWORD_WARNING);
   }
 
   public Integer getPolicyMonitoringHour() {
-    return (Integer) valueByPropertyName.get(SystemConfigurationProperty.POLICY_MONITORING_HOUR);
+    return configCache.get(SystemConfigurationProperty.POLICY_MONITORING_HOUR);
   }
 
   public String getDbBackupDir() {
-    return (String) valueByPropertyName.get(SystemConfigurationProperty.DB_BACKUP_DIR);
+    return configCache.get(SystemConfigurationProperty.DB_BACKUP_DIR);
   }
 
   public String getWebhookSecretPassphrase() {
-    return (String) valueByPropertyName.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE);
+    return configCache.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE);
   }
 
   public boolean isExternalHyperlinksAllowed() {
-    return (boolean) valueByPropertyName.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED);
+    return configCache.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED);
   }
 
   public List<String> getFrameAncestorsAllowList() {
-    return (List<String>) valueByPropertyName.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST);
+    return configCache.get(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST);
   }
 
   public List<AllowedIp> getAccessAllowlist() {
-    List<AllowedIp> allowlist = (List<AllowedIp>)valueByPropertyName.get(SystemConfigurationProperty.ACCESS_ALLOWLIST);
+    List<AllowedIp> allowlist = configCache.get(SystemConfigurationProperty.ACCESS_ALLOWLIST);
     return allowlist == null ? new ArrayList<>() : allowlist;
   }
 
   public String getBfsArtifactoryExpiredTokenRegex() {
-    return (String) valueByPropertyName.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX);
+    return configCache.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX);
   }
 
   public String getBfsArtifactoryExpiredTokenEmail() {
-    return (String) valueByPropertyName.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL);
+    return configCache.get(SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_EMAIL);
   }
 
   public Integer getBfsComponentLimit() {
-    return (Integer) valueByPropertyName.get(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT);
+    return configCache.get(SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT);
   }
 
   public String getBfsQueryRepositoriesList() {
-    return (String) valueByPropertyName.get(SystemConfigurationProperty.BFS_REPOSITORIES);
+    return configCache.get(SystemConfigurationProperty.BFS_REPOSITORIES);
   }
 
   public Map<String, String> getMatcherConfiguration() {
     Map<String, String> matcherConfiguration = new HashMap<>();
-    for (Entry<String, Object> entry : valueByPropertyName.entrySet()) {
+    for (Entry<String, Object> entry : configCache.get().entrySet()) {
       if (!entry.getKey().startsWith("matcherConfiguration")) {
         continue;
       }
@@ -494,7 +493,49 @@ public class Configuration
   }
 
   public Integer getAutomaticQuarantineReleaseTimeIntervalInMinutes() {
-    return (Integer) valueByPropertyName.get(
-        SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES);
+    return configCache.get(SystemConfigurationProperty.AUTOMATIC_QUARANTINE_RELEASE_TIME_INTERVAL_IN_MINUTES);
+  }
+
+  /**
+   * Configuration map is encapsulated so that access can be controlled. As we can guarantee that config requests must
+   * come through this implementation we only need to implement the tenant awareness inside ConfigurationMap rather than
+   * each getter and setter with Configuration.
+   * <p>
+   * Note: SystemConfigurationPropertyDAO handles the mix of Global/Tenant-specific config. Meaning if a configuration
+   * item does not exist for a specific tenant then the configuration from the Global tenant will be used instead.
+   */
+  private static class ConfigurationMap
+  {
+    private final TenantReference<Map<String, Object>> valueByPropertyName =
+        new TenantReference<>(ConcurrentHashMap::new);
+
+    public Map<String, Object> get() {
+      return ImmutableMap.copyOf(valueByPropertyName.get());
+    }
+
+    public <T> T get(String property) {
+      return (T) valueByPropertyName.get().get(property);
+    }
+
+    public void putOrRemoveIfNull(String key, Object value) {
+      if (value == null) {
+        valueByPropertyName.get().remove(key);
+      }
+      else {
+        put(key, value);
+      }
+    }
+
+    public void put(String key, Object value) {
+      valueByPropertyName.get().put(key, value);
+    }
+  }
+
+  /**
+   * Configuration should be initialized for a tenant before any other job is initialized
+   */
+  @Override
+  public int registrationPriority() {
+    return 1;
   }
 }

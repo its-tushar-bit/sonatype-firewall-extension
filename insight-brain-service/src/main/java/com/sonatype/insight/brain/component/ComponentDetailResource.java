@@ -16,6 +16,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 
@@ -51,5 +52,14 @@ public class ComponentDetailResource
   @Produces(MediaType.APPLICATION_JSON)
   public ComponentDisplayName getComponentNameByHash(@QueryParam("hash") String hash) {
     return componentDetailService.getComponentNameByHash(hash);
+  }
+
+  @GET
+  @Path("nameByIdentifier")
+  @Produces(MediaType.APPLICATION_JSON)
+  public ComponentDisplayName getComponentNameByComponentIdentifier(
+      @QueryParam("componentIdentifier") ComponentIdentifier componentIdentifier)
+  {
+    return ComponentDisplayNameUtil.fromIdentifier(componentIdentifier);
   }
 }

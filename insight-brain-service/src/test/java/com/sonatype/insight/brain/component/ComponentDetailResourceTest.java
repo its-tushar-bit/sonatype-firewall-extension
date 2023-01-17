@@ -56,4 +56,16 @@ public class ComponentDetailResourceTest
     ComponentDisplayName name = response.getBody(ComponentDisplayName.class);
     DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV(name.parts, "groupId", "artifactId", "version");
   }
+
+  @Test
+  public void testGetComponentNameByComponentIdentifier() throws Exception {
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version");
+    HttpRequest request = restRequest().path("nameByIdentifier").query("componentIdentifier", componentIdentifier);
+
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    ComponentDisplayName name = response.getBody(ComponentDisplayName.class);
+    DisplayFieldValueAssertionUtil.assertDisplayFieldValuesForGAV(name.parts, "groupId", "artifactId", "version");
+  }
 }

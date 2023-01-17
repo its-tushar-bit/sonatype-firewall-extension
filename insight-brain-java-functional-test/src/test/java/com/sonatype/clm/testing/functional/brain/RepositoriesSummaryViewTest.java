@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
+import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
@@ -358,5 +359,28 @@ public class RepositoriesSummaryViewTest
     policyTileList.row(2).stageRelease().shouldHave(PolicyTile.noActionText());
     policyTileList.row(2).release().shouldHave(PolicyTile.noActionText());
     policyTileList.row(2).operate().shouldHave(PolicyTile.noActionText());
+  }
+
+  @Test
+  public void testPolicyTileIsReadOnly() {
+    Owner parentOwner = new OrganizationDAO().getByIdNotNull(ROOT_ORGANIZATION_ID);
+
+    tempEntity.newPolicy(parentOwner.getId(), "Policy 1 " + parentOwner.getName(), 10,
+        Action.ID_FAIL, Stage.ID_BUILD, null);
+    tempEntity.newPolicy(parentOwner.getId(), "Policy 2 " + parentOwner.getName(), 5,
+        Action.ID_WARN, Stage.ID_BUILD, null);
+
+    refreshOrOpen(RepositoriesSummaryPage.url());
+
+    PolicyTile policyTile = RepositoriesSummaryPage.policyTile();
+    PolicyTileList policyTileList = policyTile.policyList(1);
+
+    for (int i = 0; i < policyTileList.rows().size(); i++) {
+      verifyTableRowIsReadOnly(policyTileList.row(i));
+    }
+  }
+
+  public void verifyTableRowIsReadOnly(PolicyTileListElement row) {
+    row.chevron().shouldBe(hidden);
   }
 }

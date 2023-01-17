@@ -92,7 +92,7 @@ export default function PoliciesTable({
     return (
       <NxTable.Row
         key={policy.id}
-        isClickable
+        isClickable={!isRepositories}
         onClick={() => goToEditPolicy(policy.id)}
         clickAccessibleLabel={accessibleLabel}
       >
@@ -125,7 +125,7 @@ export default function PoliciesTable({
             )}
           </NxTable.Cell>
         ))}
-        <NxTable.Cell chevron />
+        <NxTable.Cell chevron={!isRepositories} />
       </NxTable.Row>
     );
   }

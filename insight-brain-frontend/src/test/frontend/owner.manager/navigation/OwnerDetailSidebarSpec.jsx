@@ -6,6 +6,8 @@
 import React from 'react';
 import OwnerDetailSidebar from 'MainRoot/owner.manager/navigation/OwnerDetailSidebar';
 import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter } from 'TestRoot/SpecUtil';
+import { getOwnerDetailsUrl } from 'MainRoot/util/CLMLocation';
 
 const APPS = [
   {
@@ -50,68 +52,65 @@ const defaultPreloadedState = {
       isGrandfatheringSupported: false,
       isMonitoringSupported: true,
     },
-    ownerDetailTree: {
-      loading: false,
-      loadError: null,
-      ownerDetails: {
-        tags: [
-          {
-            id: 'a14b4fe0c71a40ad9e09ca03c5df3c4b',
-            organizationId: 'ROOT_ORGANIZATION_ID',
-            name: 'categoryTest',
-            color: 'yellow',
-          },
-        ],
-        policies: [
-          {
-            id: '2dcd81057072496ca08545c8ef96bb2a',
-            name: 'policyTest',
-            ownerId: 'ROOT_ORGANIZATION_ID',
-            threatLevel: 1,
-          },
-        ],
-        labels: [
-          {
-            id: '2db308c46db84fbeb0ecc43e98e5b85d',
-            ownerId: 'ROOT_ORGANIZATION_ID',
-            label: 'labelTest',
-            color: 'orange',
-          },
-        ],
-        licenseThreatGroups: [
-          {
-            id: 'f67e3b5c58204e91ae8ca8b0c0a15683',
-            ownerId: 'ROOT_ORGANIZATION_ID',
-            name: 'licenseThreatGroupsTest',
-            threatLevel: 10,
-          },
-        ],
-        roles: {
-          membersByRole: [
-            {
-              roleId: '2cb71b3468d649789163ea2e212b541e',
-              roleName: 'Application Evaluator',
-              membersByOwner: [
-                {
-                  ownerId: 'ROOT_ORGANIZATION_ID',
-                  ownerName: 'Root Organization',
-                  ownerType: 'organization',
-                  members: [
-                    {
-                      type: 'User',
-                      internalName: 'admin',
-                      displayName: 'Admin',
-                      email: 'admin@localhost',
-                      realm: 'IQ Server',
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      },
+  },
+};
+
+const ownerDetailMockData = {
+  tags: [
+    {
+      id: 'a14b4fe0c71a40ad9e09ca03c5df3c4b',
+      organizationId: 'ROOT_ORGANIZATION_ID',
+      name: 'categoryTest',
+      color: 'yellow',
     },
+  ],
+  policies: [
+    {
+      id: '2dcd81057072496ca08545c8ef96bb2a',
+      name: 'policyTest',
+      ownerId: 'ROOT_ORGANIZATION_ID',
+      threatLevel: 1,
+    },
+  ],
+  labels: [
+    {
+      id: '2db308c46db84fbeb0ecc43e98e5b85d',
+      ownerId: 'ROOT_ORGANIZATION_ID',
+      label: 'labelTest',
+      color: 'orange',
+    },
+  ],
+  licenseThreatGroups: [
+    {
+      id: 'f67e3b5c58204e91ae8ca8b0c0a15683',
+      ownerId: 'ROOT_ORGANIZATION_ID',
+      name: 'licenseThreatGroupsTest',
+      threatLevel: 10,
+    },
+  ],
+  roles: {
+    membersByRole: [
+      {
+        roleId: '2cb71b3468d649789163ea2e212b541e',
+        roleName: 'Application Evaluator',
+        membersByOwner: [
+          {
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            ownerName: 'Root Organization',
+            ownerType: 'organization',
+            members: [
+              {
+                type: 'User',
+                internalName: 'admin',
+                displayName: 'Admin',
+                email: 'admin@localhost',
+                realm: 'IQ Server',
+              },
+            ],
+          },
+        ],
+      },
+    ],
   },
 };
 
@@ -142,23 +141,29 @@ const appsLevelState = {
 };
 
 describe('OwnerDetailSidebar', () => {
-  let renderComponent;
+  let renderComponent, mock;
+
+  beforeAll(() => {
+    mock = axiosMockAdapter();
+  });
 
   beforeEach(() => {
     renderComponent = (preloadedState) =>
       render(<OwnerDetailSidebar />, { preloadedState: preloadedState || defaultPreloadedState });
   });
 
-  it('renders correct sidebar with correct list open at Organization level', () => {
+  it('renders correct sidebar with correct list open at Organization levels', async () => {
+    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
     renderComponent();
 
-    expect(screen.getByText('categoryTest')).toBeVisible();
-    expect(screen.getByText('policyTest')).toBeVisible();
-    expect(screen.getByText('labelTest')).toBeVisible();
-    expect(screen.getByText('licenseThreatGroupsTest')).toBeVisible();
-    expect(screen.getByText('Application Evaluator')).toBeVisible();
-    expect(screen.getByText('Continuous Monitoring')).toBeVisible();
-    expect(screen.getByText('Grandfathering')).toBeVisible();
+    expect(await screen.findByText('categoryTest')).toBeVisible();
+    expect(await screen.findByText('policyTest')).toBeVisible();
+    expect(await screen.findByText('labelTest')).toBeVisible();
+    expect(await screen.findByText('licenseThreatGroupsTest')).toBeVisible();
+    expect(await screen.findByText('Application Evaluator')).toBeVisible();
+    expect(await screen.findByText('Continuous Monitoring')).toBeVisible();
+    expect(await screen.findByText('Grandfathering')).toBeVisible();
     expect(screen.getByText('Grandfathering').parentElement).toHaveClassName('disabled');
   });
 

@@ -37,16 +37,19 @@ const loadOwnerDetails = createAsyncThunk(`${REDUCER_NAME}/loadOwnerDetails`, (_
 const loadOwnerDetailsRequested = (state) => {
   state.loading = true;
   state.loadError = null;
+  state.ownerDetails = {};
 };
 
 const loadOwnerDetailsFulfilled = (state, { payload }) => {
   state.loading = false;
+  state.loadError = null;
   state.ownerDetails = payload;
 };
 
 const loadOwnerDetailsFailed = (state, { payload }) => {
   state.loading = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
+  state.ownerDetails = {};
 };
 
 const loadSidebar = createAsyncThunk(`${REDUCER_NAME}/loadRetention`, (_, { getState, rejectWithValue, dispatch }) => {
@@ -88,6 +91,7 @@ const loadSideBarRequested = (state) => {
 
 const loadSideBarFulFilled = (state) => {
   state.loading = false;
+  state.loadError = null;
 };
 
 const loadSidebarFailed = (state, { payload }) => {

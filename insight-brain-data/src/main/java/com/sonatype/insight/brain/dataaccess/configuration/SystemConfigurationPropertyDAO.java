@@ -123,7 +123,11 @@ public class SystemConfigurationPropertyDAO
       return result;
     }
     else {
-      return runAsGlobal(() -> super.get(tx, sQuery, null, parameters));
+      return runAsGlobal(() -> {
+        try (TransactionContext globalTx = createTransactionContext()) {
+          return super.get(globalTx, sQuery, null, parameters);
+        }
+      });
     }
   }
 }

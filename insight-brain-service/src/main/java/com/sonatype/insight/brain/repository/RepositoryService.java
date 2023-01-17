@@ -193,17 +193,13 @@ public class RepositoryService
     return new DeprecatedRepositoryPolicyThreatDTO(activeRepositoryViolationDTOs);
   }
 
-  public RepositoryReportSummary getReportSummary(String repositoryId) {
-    Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
+  @Authorize(permission = Permission.READ)
+  RepositoryReportSummary getReportSummary(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
+    Repository repository = repositoryDAO.getById(repositoryId);
 
     log.debug("Get report summary for repository {}:{} ({})", repository.getRepositoryManagerId(),
         repository.getPublicId(), repositoryId);
 
-    return getReportSummary(repository);
-  }
-
-  @Authorize(permission = Permission.READ)
-  RepositoryReportSummary getReportSummary(@AuthzContext(Key.REPOSITORY) Repository repository) {
     RepositoryReportSummary summary = new RepositoryReportSummary();
     summary.knownComponentCount = repositoryComponentDAO.getKnownComponentCountByRepositoryId(repository.getId());
     summary.totalComponentCount = repositoryComponentDAO.getComponentCountByRepositoryId(repository.getId());

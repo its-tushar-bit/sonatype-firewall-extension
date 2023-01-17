@@ -203,7 +203,7 @@ public class RepositoryServiceAuthzTest
 
   @Test(expected = UnauthorizedException.class)
   public void testGetReportSummary_Unauthorized() {
-    grantWritePermission();
+    login();
     Repository repo = createRepository();
 
     repositoryService.getReportSummary(repo.getId());

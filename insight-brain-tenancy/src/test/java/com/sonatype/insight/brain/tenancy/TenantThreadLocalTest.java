@@ -34,7 +34,7 @@ public class TenantThreadLocalTest
   @Test
   public void shouldPreventWrongTenantUsed_whenThreadReused() throws Exception {
     Tenant tenant1 = new Tenant("tenant1");
-    TenantThreadLocal.setTenant(tenant1);
+    TenantTestHelper.setTenant(tenant1);
 
     // Create a thread pool with only one thread so that it gets reused on subsequent calls
     ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -61,7 +61,7 @@ public class TenantThreadLocalTest
   @Test
   public void shouldAlwaysAllowRunAsGlobalTenant() {
     Tenant tenant1 = new Tenant("tenant1");
-    TenantThreadLocal.setTenant(tenant1);
+    TenantTestHelper.setTenant(tenant1);
 
     Tenant tenant = TenantThreadLocal.runAs(GLOBAL_TENANT, TenantThreadLocal::getTenantWithoutValidation);
     assertThat(tenant).isEqualTo(GLOBAL_TENANT);
@@ -93,7 +93,7 @@ public class TenantThreadLocalTest
   @Test
   public void shouldRunAsGlobal() {
     Tenant tenant = new Tenant("testtenant");
-    TenantThreadLocal.setTenant(tenant);
+    TenantTestHelper.setTenant(tenant);
 
     Supplier mockSupplier = Mockito.mock(Supplier.class);
     Mockito.when(mockSupplier.get()).thenAnswer(invocationOnMock -> {
@@ -110,7 +110,7 @@ public class TenantThreadLocalTest
 
   @Test
   public void shouldSetGlobal() {
-    TenantThreadLocal.setTenant(new Tenant("testtenant"));
+    TenantTestHelper.setTenant(new Tenant("testtenant"));
     assertThat(TenantThreadLocal.getTenantWithoutValidation()).isNotEqualTo(GLOBAL_TENANT);
 
     TenantThreadLocal.setGlobalTenant();
@@ -120,7 +120,7 @@ public class TenantThreadLocalTest
   @Test
   public void shouldAllow_whenTransitioningFromInvalidTenantToValidTenant() {
     Tenant tenant1 = new Tenant("tenant1");
-    TenantThreadLocal.setTenant(tenant1);
+    TenantTestHelper.setTenant(tenant1);
     tenant1.invalidate();
 
     Tenant tenant2 = new Tenant("tenant2");
@@ -131,7 +131,7 @@ public class TenantThreadLocalTest
   @Test
   public void shouldAllow_whenTransitioningFromValidTenantToGlobalAndBack() {
     Tenant tenant1 = new Tenant("tenant1");
-    TenantThreadLocal.setTenant(tenant1);
+    TenantTestHelper.setTenant(tenant1);
 
     TenantThreadLocal.setGlobalTenant();
 
@@ -142,7 +142,7 @@ public class TenantThreadLocalTest
 
   @Test
   public void shouldThrowException_whenTransitioningFromOneValidTenantToAnother() {
-    TenantThreadLocal.setTenant(new Tenant("tenant1"));
+    TenantTestHelper.setTenant(new Tenant("tenant1"));
 
     assertThatThrownBy(() -> TenantThreadLocal.setTenant(new Tenant("tenant2"))).hasMessage(
         "Cannot transition from one valid tenant to another. This is to prevent data leakage");
@@ -150,7 +150,7 @@ public class TenantThreadLocalTest
 
   @Test
   public void shouldThrowException_whenTransitioningFromOneValidTenantToAnInvalidTenant() {
-    TenantThreadLocal.setTenant(new Tenant("tenant1"));
+    TenantTestHelper.setTenant(new Tenant("tenant1"));
 
     Tenant tenant2 = new Tenant("tenant2");
     tenant2.invalidate();
@@ -161,7 +161,7 @@ public class TenantThreadLocalTest
 
   @Test
   public void shouldThrowException_whenTransitioningFromOneValidTenantToAnother_viaGlobal() {
-    TenantThreadLocal.setTenant(new Tenant("tenant1"));
+    TenantTestHelper.setTenant(new Tenant("tenant1"));
 
     TenantThreadLocal.setGlobalTenant();
 
@@ -174,7 +174,7 @@ public class TenantThreadLocalTest
     CountDownLatch lock = new CountDownLatch(1);
 
     Tenant tenant1 = new Tenant("tenant1");
-    TenantThreadLocal.setTenant(tenant1);
+    TenantTestHelper.setTenant(tenant1);
 
     new Thread(() -> {
       assertThat(TenantThreadLocal.getTenantWithoutValidation()).isEqualTo(tenant1);
@@ -204,7 +204,7 @@ public class TenantThreadLocalTest
 
   @Test
   public void shouldSetLoggingContext_cleanup() {
-    TenantThreadLocal.setTenant(new Tenant("testtenant"));
+    TenantTestHelper.setTenant(new Tenant("testtenant"));
     assertThat(MDC.get("tenant")).isEqualTo("testtenant");
     TenantThreadLocal.invalidateTenant();
     assertThat(MDC.get("tenant")).isNull();

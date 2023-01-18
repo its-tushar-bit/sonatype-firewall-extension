@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -571,7 +572,7 @@ public class IndexService
       Application application)
   {
     return StageTypes.getAll().parallelStream()
-        .map(new TenantAwareFunction<>(
+        .map(new TenantAwareFunction<StageType, List<Document>>(
             stageType -> buildApplicationStageSVDocs(indexingContext, application, stageType)))
         .flatMap(Collection::stream).collect(toList());
   }
@@ -604,7 +605,8 @@ public class IndexService
       return new ComponentDAO(application).getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf,
               dependenciesReportEntry.buf)
           .parallelStream()
-          .map(new TenantAwareFunction<>(component -> buildApplicationComponentVulnerabilityDocuments(
+          .map(new TenantAwareFunction<Component, List<Document>>(
+              component -> buildApplicationComponentVulnerabilityDocuments(
               indexingContext,
               application,
               stageType,
@@ -626,7 +628,8 @@ public class IndexService
   {
     if (CollectionUtils.isNotEmpty(component.getSecurityVulnerabilities())) {
       return component.getSecurityVulnerabilities().parallelStream()
-          .map(new TenantAwareFunction<>(vulnerability ->
+          .map(new TenantAwareFunction<SecurityVulnerability, Document>(
+              vulnerability ->
               buildDocument(indexingContext, application, stageType, reportId, component, vulnerability)))
           .collect(toList());
     }

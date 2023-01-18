@@ -5,21 +5,18 @@
  */
 package com.sonatype.insight.brain.filter;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class UserFilterServiceAuthzTest
@@ -69,25 +66,18 @@ public class UserFilterServiceAuthzTest
   }
 
   private UserFilterDTO createNamedFilterDTO(final String filterName, final String... applicationIds) {
-    UserFilterDTO userFilterDTO = new UserFilterDTO();
-    userFilterDTO.name = filterName;
-    userFilterDTO.type = UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
-
     AdvancedLegalPackDashboardFilter advancedLegalPackDashboardFilter = new AdvancedLegalPackDashboardFilter();
     advancedLegalPackDashboardFilter.getApplicationFilters().addAll(Arrays.asList(applicationIds));
-
-    try {
-      userFilterDTO.filter = JsonUtils.parse(JsonUtils.format(advancedLegalPackDashboardFilter), Map.class);
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    UserFilterDTO userFilterDTO =
+        new UserFilterDTO(filterName, null, ADVANCED_LEGAL_PACK_DASHBOARD, advancedLegalPackDashboardFilter);
     return userFilterDTO;
   }
 
   private void assertAdvancedLegalApplicationFilters(
       final UserFilterDTO userFilterDTO, final String... applicationIds)
   {
-    assertThat((List<String>) userFilterDTO.filter.get("applicationFilters")).containsExactlyInAnyOrder(applicationIds);
+    AdvancedLegalPackDashboardFilter userALPDashboardFilter =
+        (AdvancedLegalPackDashboardFilter) userFilterDTO.getFilter();
+    assertThat(userALPDashboardFilter.getApplicationFilters()).containsExactlyInAnyOrder(applicationIds);
   }
 }

@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.filter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -19,6 +18,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Test;
@@ -59,7 +59,7 @@ public class UserFilterResourceTest
     assertThat(result).usingRecursiveComparison().isEqualTo(userFilterDTO);
 
     UserFilter userFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(getUsername(), InternalRealm.ID,
-        userFilterDTO.name, userFilterDTO.type);
+        userFilterDTO.getName(), userFilterDTO.getType());
     assertFilter(userFilter, userFilterDTO);
   }
 
@@ -77,7 +77,7 @@ public class UserFilterResourceTest
     assertThat(result).usingRecursiveComparison().isEqualTo(userFilterDTO);
 
     UserFilter userFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(getUsername(), InternalRealm.ID,
-        userFilterDTO.name, userFilterDTO.type);
+        userFilterDTO.getName(), userFilterDTO.getType());
     assertFilter(userFilter, result);
   }
 
@@ -93,7 +93,7 @@ public class UserFilterResourceTest
     assertThat(result).usingRecursiveComparison().isEqualTo(userFilterDTO);
 
     UserFilter userFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(getUsername(), InternalRealm.ID,
-        userFilterDTO.name, userFilterDTO.type);
+        userFilterDTO.getName(), userFilterDTO.getType());
     assertFilter(userFilter, userFilterDTO);
   }
 
@@ -112,7 +112,7 @@ public class UserFilterResourceTest
     assertThat(result).usingRecursiveComparison().isEqualTo(userFilterDTO);
 
     UserFilter userFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(getUsername(), InternalRealm.ID,
-        userFilterDTO.name, userFilterDTO.type);
+        userFilterDTO.getName(), userFilterDTO.getType());
     assertFilter(userFilter, result);
   }
 
@@ -162,28 +162,27 @@ public class UserFilterResourceTest
   }
 
   private UserFilterDTO newUserFilterDTO(String filterName) {
-    UserFilterDTO userFilterDTO = new UserFilterDTO();
-    userFilterDTO.name = filterName;
-    userFilterDTO.type = ADVANCED_LEGAL_PACK_DASHBOARD;
-    userFilterDTO.filter = ImmutableMap.of("key1", "value 1", "key2", true, "key3", ImmutableMap.of("subKey1", 1));
+    JsonNode node =
+        JsonUtils.asTree(ImmutableMap.of("key1", "value 1", "key2", true, "key3", ImmutableMap.of("subKey1", 1)));
+    UserFilterDTO userFilterDTO = new UserFilterDTO(filterName, null, ADVANCED_LEGAL_PACK_DASHBOARD, node);
     return userFilterDTO;
   }
 
   private void assertFilter(UserFilter actualFilter, UserFilterDTO expectedFilter) {
     assertThat(actualFilter).isNotNull();
     assertThat(actualFilter.getRealmId()).isEqualTo(InternalRealm.ID);
-    assertThat(actualFilter.getType()).isEqualTo(expectedFilter.type);
+    assertThat(actualFilter.getType()).isEqualTo(expectedFilter.getType());
     assertThat(actualFilter.getUsername()).isEqualTo(getUsername());
-    assertThat(actualFilter.getFilter()).isEqualTo(JsonUtils.format(expectedFilter.filter));
-    assertThat(actualFilter.getName()).isEqualTo(expectedFilter.name);
+    assertThat(actualFilter.getFilter()).isEqualTo(JsonUtils.format(expectedFilter.getFilter()));
+    assertThat(actualFilter.getName()).isEqualTo(expectedFilter.getName());
     assertThat(actualFilter.getBasedOnFilterName()).isNull();
   }
 
   private void assertFilter(UserFilterDTO actualFilter, UserFilter expectedFilter) throws IOException {
     assertThat(actualFilter).isNotNull();
-    assertThat(actualFilter.type).isEqualTo(expectedFilter.getType());
-    assertThat(actualFilter.filter).isEqualTo(JsonUtils.parse(expectedFilter.getFilter(), Map.class));
-    assertThat(actualFilter.name).isEqualTo(expectedFilter.getName());
-    assertThat(actualFilter.basedOnFilterName).isEqualTo(expectedFilter.getBasedOnFilterName());
+    assertThat(actualFilter.getType()).isEqualTo(expectedFilter.getType());
+    assertThat(actualFilter.getFilter()).isEqualTo(new UserFilterDTO(expectedFilter).getFilter());
+    assertThat(actualFilter.getName()).isEqualTo(expectedFilter.getName());
+    assertThat(actualFilter.getBasedOnFilterName()).isEqualTo(expectedFilter.getBasedOnFilterName());
   }
 }

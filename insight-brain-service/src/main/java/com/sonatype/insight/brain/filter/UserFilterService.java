@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.filter;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -22,8 +20,6 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import org.apache.commons.lang3.StringUtils;
-
 import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
 
 @Named
@@ -33,32 +29,29 @@ public class UserFilterService
 
   private final UserFilterDAO userFilterDAO;
 
-  private final UserFilterPrunerVisitor userFilterPrunerVisitor;
+  private final UserFilterPruner userFilterPruner;
 
   @Inject
-  public UserFilterService(
-      CurrentUser currentUser, UserFilterDAO userFilterDAO,
-      final UserFilterPrunerVisitor userFilterPrunerVisitor)
-  {
+  public UserFilterService(CurrentUser currentUser, UserFilterDAO userFilterDAO, UserFilterPruner userFilterPruner) {
     this.currentUser = currentUser;
     this.userFilterDAO = userFilterDAO;
-    this.userFilterPrunerVisitor = userFilterPrunerVisitor;
+    this.userFilterPruner = userFilterPruner;
   }
 
   public UserFilterDTO createOrUpdateUserFilterForCurrentUser(UserFilterDTO userFilterDTO) {
     String username = currentUser.getUsername();
     String realmId = currentUser.getRealmId();
 
-    if (!ACTIVE_FILTER_NAME.equals(userFilterDTO.name)) {
+    if (!ACTIVE_FILTER_NAME.equals(userFilterDTO.getName())) {
       UserFilter userFilter = new UserFilter();
       userFilter.setUsername(username);
       userFilter.setRealmId(realmId);
-      userFilter.setFilter(JsonUtils.format(userFilterDTO.filter));
-      userFilter.setName(userFilterDTO.name);
-      userFilter.setType(userFilterDTO.type);
+      userFilter.setFilter(JsonUtils.format(userFilterDTO.getFilter()));
+      userFilter.setName(userFilterDTO.getName());
+      userFilter.setType(userFilterDTO.getType());
 
       UserFilter existingUserFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(username, realmId,
-          userFilterDTO.name, userFilterDTO.type);
+          userFilterDTO.getName(), userFilterDTO.getType());
       if (existingUserFilter == null) {
         userFilterDAO.insert(userFilter);
       }
@@ -74,7 +67,7 @@ public class UserFilterService
     return userFilterDTO;
   }
 
-  public UserFilterDTO getActiveUserFilterForCurrentUser(UserFilterType type) throws IOException {
+  public UserFilterDTO getActiveUserFilterForCurrentUser(UserFilterType type) {
     String username = currentUser.getUsername();
     String realmId = currentUser.getRealmId();
 
@@ -84,13 +77,14 @@ public class UserFilterService
     if (activeFilter == null) {
       activeFilter = new UserFilter(username, realmId, ACTIVE_FILTER_NAME, type);
     }
-    activeFilter.setFilter(
-        userFilterPrunerVisitor.process(type, activeFilter.getFilter()));
 
-    return newUserFilterDTO(activeFilter);
+    UserFilterDTO dto = new UserFilterDTO(activeFilter);
+    userFilterPruner.process(dto);
+
+    return dto;
   }
 
-  public List<UserFilterDTO> getNamedFiltersForCurrentUser(UserFilterType type) throws IOException {
+  public List<UserFilterDTO> getNamedFiltersForCurrentUser(UserFilterType type) {
     String username = currentUser.getUsername();
     String realmId = currentUser.getRealmId();
 
@@ -98,9 +92,9 @@ public class UserFilterService
     List<UserFilterDTO> result = new ArrayList<>();
 
     for (UserFilter userFilter : filters) {
-      userFilter.setFilter(
-          userFilterPrunerVisitor.process(type, userFilter.getFilter()));
-      result.add(newUserFilterDTO(userFilter));
+      UserFilterDTO dto = new UserFilterDTO(userFilter);
+      userFilterPruner.process(dto);
+      result.add(dto);
     }
 
     return result;
@@ -136,19 +130,19 @@ public class UserFilterService
     UserFilter newActiveFilter = new UserFilter();
     newActiveFilter.setUsername(username);
     newActiveFilter.setRealmId(realmId);
-    newActiveFilter.setFilter(JsonUtils.format(userFilterDTO.filter));
+    newActiveFilter.setFilter(JsonUtils.format(userFilterDTO.getFilter()));
     newActiveFilter.setName(ACTIVE_FILTER_NAME);
-    newActiveFilter.setType(userFilterDTO.type);
+    newActiveFilter.setType(userFilterDTO.getType());
 
-    if (userFilterDTO.basedOnFilterName != null) {
-      newActiveFilter.setBasedOnFilterName(userFilterDTO.basedOnFilterName);
+    if (userFilterDTO.getBasedOnFilterName() != null) {
+      newActiveFilter.setBasedOnFilterName(userFilterDTO.getBasedOnFilterName());
     }
-    else if (!userFilterDTO.name.equals(ACTIVE_FILTER_NAME)) {
-      newActiveFilter.setBasedOnFilterName(userFilterDTO.name);
+    else if (!userFilterDTO.getName().equals(ACTIVE_FILTER_NAME)) {
+      newActiveFilter.setBasedOnFilterName(userFilterDTO.getName());
     }
 
-    UserFilter existingActiveFilter =
-        userFilterDAO.getByUsernameAndRealmIdAndNameAndType(username, realmId, ACTIVE_FILTER_NAME, userFilterDTO.type);
+    UserFilter existingActiveFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(username, realmId,
+        ACTIVE_FILTER_NAME, userFilterDTO.getType());
     if (existingActiveFilter != null) {
       newActiveFilter.setId(existingActiveFilter.getId());
       userFilterDAO.update(newActiveFilter);
@@ -156,21 +150,9 @@ public class UserFilterService
     else {
       userFilterDAO.insert(newActiveFilter);
     }
-    if (ACTIVE_FILTER_NAME.equals(userFilterDTO.name)) {
+    if (ACTIVE_FILTER_NAME.equals(userFilterDTO.getName())) {
       auditUserFilter(newActiveFilter);
     }
-  }
-
-  @SuppressWarnings("unchecked")
-  private UserFilterDTO newUserFilterDTO(UserFilter userFilter) throws IOException {
-    UserFilterDTO userFilterDTO = new UserFilterDTO();
-    userFilterDTO.basedOnFilterName = userFilter.getBasedOnFilterName();
-    if (StringUtils.isNotBlank(userFilter.getFilter())) {
-      userFilterDTO.filter = JsonUtils.parse(userFilter.getFilter(), Map.class);
-    }
-    userFilterDTO.name = userFilter.getName();
-    userFilterDTO.type = userFilter.getType();
-    return userFilterDTO;
   }
 
   private void auditUserFilter(UserFilter userFilter) {

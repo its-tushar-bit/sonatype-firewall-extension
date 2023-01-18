@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service.legal.report;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,7 +47,6 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
-import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -147,53 +144,47 @@ public class ApplicationAttributionReportBuilder
     Set<AttributionReportApplicationDTO> applicationsAndStages;
     Set<String> applicationIds = new LinkedHashSet<>();
 
-    try {
-      filterDto = userFilterService.getActiveUserFilterForCurrentUser(UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD);
-      if (filterDto.filter != null) {
-        String filterString = JsonUtils.format(filterDto.filter);
-        AdvancedLegalPackDashboardFilter filter = JsonUtils.parse(filterString, AdvancedLegalPackDashboardFilter.class);
-        applicationIds = new HashSet<>(filter.getApplicationFilters());
-        stagesFilter = new HashSet<>(filter.getStageTypeFilters());
-      }
-      if (stagesFilter.isEmpty()) {
-        stagesFilter = StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet());
-      }
-
-      applicationsAuthz = getApplicationsByIds(applicationIds);
-
-      if (applicationsAuthz.isEmpty()) {
-        String applicationsText = "";
-        if (!applicationIds.isEmpty()) {
-          List<String> applicationIdsSort = new ArrayList<>(applicationIds);
-          Collections.sort(applicationIdsSort);
-          applicationsText = String.join(", ", applicationIdsSort) + " ";
-        }
-        throw new UnauthorizedException("Not authorized to generate report for " + applicationsText + "applications.");
-      }
-
-      applicationIds = applicationsAuthz.stream().map(Application::getId).collect(Collectors.toSet());
-      applicationsAndStages = resourceDTOFromSet(applicationIds, stagesFilter);
-
-      Map<String, Application> applicationMap =
-          applicationsAuthz.stream().collect(Collectors.toMap(Application::getId, Function.identity()));
-
-      List<Owner> applications = new ArrayList<>();
-      List<String> stageIds = new ArrayList<>();
-      for (AttributionReportApplicationDTO report : applicationsAndStages) {
-        applications.add(applicationMap.get(report.applicationId));
-        stageIds.add(report.stageTypeName);
-      }
-      Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOSet = apiLicenseLegalService
-          .getLicenseLegalMultiApplicationReport(applications, stageIds, reportParameters.isIncludeInnerSource(),
-              reportParameters.isIncludeSonatypeSpecialLicenses());
-
-      ApiLicenseLegalApplicationReportDTO applicationReportDTO = mergeApplicationReports(applicationReportDTOSet);
-      Map<String, Object> contextMap = buildContextMap(null, applicationReportDTO, reportParameters);
-      return templateEngine.process(APPLICATION_ATTRIBUTION_REPORT, new Context(Locale.getDefault(), contextMap));
+    filterDto = userFilterService.getActiveUserFilterForCurrentUser(UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD);
+    if (filterDto.getFilter() != null) {
+      AdvancedLegalPackDashboardFilter filter = (AdvancedLegalPackDashboardFilter) filterDto.getFilter();
+      applicationIds = new HashSet<>(filter.getApplicationFilters());
+      stagesFilter = new HashSet<>(filter.getStageTypeFilters());
     }
-    catch (IOException e) {
-      throw new UncheckedIOException(e.getMessage(), e);
+    if (stagesFilter.isEmpty()) {
+      stagesFilter = StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet());
     }
+
+    applicationsAuthz = getApplicationsByIds(applicationIds);
+
+    if (applicationsAuthz.isEmpty()) {
+      String applicationsText = "";
+      if (!applicationIds.isEmpty()) {
+        List<String> applicationIdsSort = new ArrayList<>(applicationIds);
+        Collections.sort(applicationIdsSort);
+        applicationsText = String.join(", ", applicationIdsSort) + " ";
+      }
+      throw new UnauthorizedException("Not authorized to generate report for " + applicationsText + "applications.");
+    }
+
+    applicationIds = applicationsAuthz.stream().map(Application::getId).collect(Collectors.toSet());
+    applicationsAndStages = resourceDTOFromSet(applicationIds, stagesFilter);
+
+    Map<String, Application> applicationMap =
+        applicationsAuthz.stream().collect(Collectors.toMap(Application::getId, Function.identity()));
+
+    List<Owner> applications = new ArrayList<>();
+    List<String> stageIds = new ArrayList<>();
+    for (AttributionReportApplicationDTO report : applicationsAndStages) {
+      applications.add(applicationMap.get(report.applicationId));
+      stageIds.add(report.stageTypeName);
+    }
+    Set<Optional<ApiLicenseLegalApplicationReportDTO>> applicationReportDTOSet =
+        apiLicenseLegalService.getLicenseLegalMultiApplicationReport(applications, stageIds,
+            reportParameters.isIncludeInnerSource(), reportParameters.isIncludeSonatypeSpecialLicenses());
+    
+    ApiLicenseLegalApplicationReportDTO applicationReportDTO = mergeApplicationReports(applicationReportDTOSet);
+    Map<String, Object> contextMap = buildContextMap(null, applicationReportDTO, reportParameters);
+    return templateEngine.process(APPLICATION_ATTRIBUTION_REPORT, new Context(Locale.getDefault(), contextMap));
   }
 
   private Set<AttributionReportApplicationDTO> resourceDTOFromSet(Set<String> applicationIds, Set<String> stageIds) {

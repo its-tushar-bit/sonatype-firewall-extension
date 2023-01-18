@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Test;
@@ -50,7 +51,7 @@ public class UserFilterResourceAuditTest
     UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
 
     restRequest().path(UserFilterResource.ACTIVE_FILTERS_PATH).body(userFilterDTO).put();
-    assertUserFilterAudit(filterName, userFilterDTO.type);
+    assertUserFilterAudit(filterName, userFilterDTO.getType());
   }
 
   @Test
@@ -61,7 +62,7 @@ public class UserFilterResourceAuditTest
     UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
 
     restRequest().path(UserFilterResource.ACTIVE_FILTERS_PATH).body(userFilterDTO).put();
-    assertUserFilterAudit(filterName, userFilterDTO.type);
+    assertUserFilterAudit(filterName, userFilterDTO.getType());
   }
 
   @Test
@@ -70,7 +71,7 @@ public class UserFilterResourceAuditTest
     UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
 
     restRequest().path(UserFilterResource.NAMED_FILTERS_PATH).body(userFilterDTO).put();
-    assertUserFilterAudit(filterName, userFilterDTO.type);
+    assertUserFilterAudit(filterName, userFilterDTO.getType());
   }
 
   @Test
@@ -81,7 +82,7 @@ public class UserFilterResourceAuditTest
     UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
 
     restRequest().path(UserFilterResource.NAMED_FILTERS_PATH).body(userFilterDTO).put();
-    assertUserFilterAudit(filterName, userFilterDTO.type);
+    assertUserFilterAudit(filterName, userFilterDTO.getType());
   }
 
   @Test
@@ -97,10 +98,8 @@ public class UserFilterResourceAuditTest
   }
 
   private UserFilterDTO newUserFilterDTO(String filterName) {
-    UserFilterDTO userFilterDTO = new UserFilterDTO();
-    userFilterDTO.name = filterName;
-    userFilterDTO.type = ADVANCED_LEGAL_PACK_DASHBOARD;
-    userFilterDTO.filter = ImmutableMap.of("key1", "value 1");
+    JsonNode node = JsonUtils.asTree(ImmutableMap.of("key1", "value 1"));
+    UserFilterDTO userFilterDTO = new UserFilterDTO(filterName, null, ADVANCED_LEGAL_PACK_DASHBOARD, node);
     return userFilterDTO;
   }
 

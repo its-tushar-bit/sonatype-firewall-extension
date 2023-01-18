@@ -52,7 +52,7 @@ public class UserFilterResource
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.SAVE_USER_FILTER)
   public UserFilterDTO createOrUpdateActiveUserFilterForCurrentUser(UserFilterDTO userFilterDTO) {
-    userFilterDTO.name = ACTIVE_FILTER_NAME;
+    userFilterDTO.setName(ACTIVE_FILTER_NAME);
     return userFilterService.createOrUpdateUserFilterForCurrentUser(userFilterDTO);
   }
 

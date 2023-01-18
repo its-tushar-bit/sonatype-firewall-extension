@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class AdvancedLegalPackDashboardFilter
+    implements UserFilterData
 {
   private List<String> organizationFilters = new ArrayList<>();
 

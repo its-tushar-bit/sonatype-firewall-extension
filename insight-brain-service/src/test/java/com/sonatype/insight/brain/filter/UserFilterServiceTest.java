@@ -6,9 +6,7 @@
 package com.sonatype.insight.brain.filter;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -47,7 +45,7 @@ public class UserFilterServiceTest
 
       // Get named filter
       namedFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(USERNAME, InternalRealm.ID,
-          userFilterDTO.name, ADVANCED_LEGAL_PACK_DASHBOARD);
+          userFilterDTO.getName(), ADVANCED_LEGAL_PACK_DASHBOARD);
       assertFilter(namedFilter, userFilterDTO, false);
 
       // Get active filter
@@ -81,7 +79,7 @@ public class UserFilterServiceTest
     userFilterService.createOrUpdateUserFilterForCurrentUser(userFilterDTO);
 
     UserFilter namedFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(USERNAME, InternalRealm.ID,
-        userFilterDTO.name, ADVANCED_LEGAL_PACK_DASHBOARD);
+        userFilterDTO.getName(), ADVANCED_LEGAL_PACK_DASHBOARD);
     assertFilter(namedFilter, userFilterDTO, false);
 
     UserFilter activeFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(USERNAME, InternalRealm.ID,
@@ -95,12 +93,12 @@ public class UserFilterServiceTest
     tempEntity.newUserFilter(USERNAME, InternalRealm.ID, baseFilterName, ADVANCED_LEGAL_PACK_DASHBOARD, "");
     tempEntity.newUserFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD, "");
     UserFilterDTO userFilterDTO = newALPDashboardUserFilter(ACTIVE_FILTER_NAME);
-    userFilterDTO.basedOnFilterName = baseFilterName;
+    userFilterDTO.setBasedOnFilterName(baseFilterName);
 
     userFilterService.createOrUpdateUserFilterForCurrentUser(userFilterDTO);
 
     UserFilter userFilter = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(USERNAME, InternalRealm.ID,
-        userFilterDTO.name, ADVANCED_LEGAL_PACK_DASHBOARD);
+        userFilterDTO.getName(), ADVANCED_LEGAL_PACK_DASHBOARD);
     assertFilter(userFilter, userFilterDTO, false);
   }
 
@@ -178,58 +176,52 @@ public class UserFilterServiceTest
 
     assertThat(result).hasSize(1);
     UserFilterDTO userFilterDTO = result.get(0);
-    assertThat((List) userFilterDTO.filter.get("applicationFilters")).hasSize(1);
-    assertThat(((List) userFilterDTO.filter.get("applicationFilters")).get(0)).isEqualTo("appId1");
-    assertThat(((List) userFilterDTO.filter.get("organizationFilters")).get(0)).isEqualTo("orgId");
+    AdvancedLegalPackDashboardFilter userFilterResult = (AdvancedLegalPackDashboardFilter) userFilterDTO.getFilter();
+    assertThat(userFilterResult.getApplicationFilters()).hasSize(1);
+    assertThat(userFilterResult.getApplicationFilters().get(0)).isEqualTo("appId1");
+    assertThat(userFilterResult.getOrganizationFilters().get(0)).isEqualTo("orgId");
   }
 
   private UserFilterDTO newALPDashboardUserFilter(String filterName) {
-    UserFilterDTO userFilterDTO = new UserFilterDTO();
-    userFilterDTO.name = filterName;
-    userFilterDTO.type = ADVANCED_LEGAL_PACK_DASHBOARD;
-
     AdvancedLegalPackDashboardFilter filter = new AdvancedLegalPackDashboardFilter();
     filter.getApplicationFilters().addAll(Lists.newArrayList("app1", "app2"));
     filter.getOrganizationFilters().add("org1");
     filter.getCategoryFilters().add("cat1");
     filter.getCategoryFilters().add("build");
     filter.getProgressOptionsFilters().add("complete");
-
-    try {
-      userFilterDTO.filter = JsonUtils.parse(JsonUtils.format(filter), Map.class);
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    UserFilter userFilter = new UserFilter(null, null, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
+    userFilter.setFilter(JsonUtils.format(filter));
+    UserFilterDTO userFilterDTO = new UserFilterDTO(userFilter);
     return userFilterDTO;
   }
 
   private void assertFilter(UserFilter actualFilter, UserFilterDTO expectedFilter, boolean isActiveFilter) {
     assertThat(actualFilter).isNotNull();
     assertThat(actualFilter.getRealmId()).isEqualTo(InternalRealm.ID);
-    assertThat(actualFilter.getType()).isEqualTo(expectedFilter.type);
+    // AdvancedLegalPackDashboardFilter expectedALPDashboardFilter =
+    assertThat(actualFilter.getType()).isEqualTo(expectedFilter.getType());
     assertThat(actualFilter.getUsername()).isEqualTo(USERNAME);
-    assertThat(actualFilter.getFilter()).isEqualTo(JsonUtils.format(expectedFilter.filter));
+    assertThat(actualFilter.getFilter()).isEqualTo(JsonUtils.format(expectedFilter.getFilter()));
     if (isActiveFilter) {
       assertThat(actualFilter.getName()).isEqualTo(ACTIVE_FILTER_NAME);
-      assertThat(actualFilter.getBasedOnFilterName()).isEqualTo(expectedFilter.name);
+      assertThat(actualFilter.getBasedOnFilterName()).isEqualTo(expectedFilter.getName());
     }
     else {
-      assertThat(actualFilter.getName()).isEqualTo(expectedFilter.name);
-      assertThat(actualFilter.getBasedOnFilterName()).isEqualTo(expectedFilter.basedOnFilterName);
+      assertThat(actualFilter.getName()).isEqualTo(expectedFilter.getName());
+      assertThat(actualFilter.getBasedOnFilterName()).isEqualTo(expectedFilter.getBasedOnFilterName());
     }
   }
 
   private void assertFilter(UserFilterDTO actualFilter, UserFilter expectedFilter) throws IOException {
     assertThat(actualFilter).isNotNull();
-    assertThat(actualFilter.type).isEqualTo(expectedFilter.getType());
+    assertThat(actualFilter.getType()).isEqualTo(expectedFilter.getType());
     if (expectedFilter.getFilter() == null) {
-      assertThat(actualFilter.filter).isNull();
+      assertThat(actualFilter.getFilter()).isNull();
     }
     else {
-      assertThat(actualFilter.filter).isEqualTo(JsonUtils.parse(expectedFilter.getFilter(), Map.class));
+      assertThat(actualFilter.getFilter()).isEqualTo(new UserFilterDTO(expectedFilter).getFilter());
     }
-    assertThat(actualFilter.name).isEqualTo(expectedFilter.getName());
-    assertThat(actualFilter.basedOnFilterName).isEqualTo(expectedFilter.getBasedOnFilterName());
+    assertThat(actualFilter.getName()).isEqualTo(expectedFilter.getName());
+    assertThat(actualFilter.getBasedOnFilterName()).isEqualTo(expectedFilter.getBasedOnFilterName());
   }
 }

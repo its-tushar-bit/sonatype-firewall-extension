@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -48,9 +49,10 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Lists;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -701,15 +703,10 @@ public class ApplicationAttributionReportBuilderTest
     assertThat(reportDTO.components).hasSize(2);
   }
 
-  @SuppressWarnings("unchecked")
   private UserFilterDTO newUserFilterDTO(UserFilter userFilter) throws IOException {
-    UserFilterDTO userFilterDTO = new UserFilterDTO();
-    userFilterDTO.basedOnFilterName = userFilter.getBasedOnFilterName();
-    if (StringUtils.isNotBlank(userFilter.getFilter())) {
-      userFilterDTO.filter = JsonUtils.parse(userFilter.getFilter(), Map.class);
-    }
-    userFilterDTO.name = userFilter.getName();
-    userFilterDTO.type = userFilter.getType();
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode node = mapper.valueToTree(JsonUtils.parse(userFilter.getFilter(), Map.class));
+    UserFilterDTO userFilterDTO = new UserFilterDTO(userFilter.getName(), null, userFilter.getType(), node);
     return userFilterDTO;
   }
 }

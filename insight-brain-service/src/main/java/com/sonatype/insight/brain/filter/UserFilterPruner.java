@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.filter;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -15,46 +13,35 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.filter.UserFilterType;
-import com.sonatype.insight.brain.model.filter.UserFilterType.UserFilterVisitor;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.AuthzFilter;
-import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.commons.collections.CollectionUtils;
 
+import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
+
 /**
- * This visitor allow for pruning of unauthorized or undesired values of the {@link
+ * Allow for pruning of unauthorized or undesired values of the {@link
  * com.sonatype.insight.brain.model.filter.UserFilter}'s filter value.
  */
 @Named
-public class UserFilterPrunerVisitor
-    implements UserFilterVisitor
+public class UserFilterPruner
 {
   private ApplicationDAO applicationDAO;
 
   @Inject
-  public UserFilterPrunerVisitor(ApplicationDAO applicationDAO) {
+  public UserFilterPruner(ApplicationDAO applicationDAO) {
     this.applicationDAO = applicationDAO;
   }
 
-  public String process(UserFilterType type, final String json) {
-    return type.accept(this, json);
+  public void process(UserFilterDTO userFilterDTO) {
+    if (userFilterDTO.getType().equals(ADVANCED_LEGAL_PACK_DASHBOARD)) {
+      filterAdvancedLegalPack(userFilterDTO);
+    }
   }
 
-  @Override
-  public String filterAdvancedLegalPack(final String json) {
-    if (json == null) {
-      return null;
-    }
-    try {
-      AdvancedLegalPackDashboardFilter filter = JsonUtils.parse(json, AdvancedLegalPackDashboardFilter.class);
-      pruneUnauthorizedApplicationIds(filter);
-      return JsonUtils.format(filter);
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+  public void filterAdvancedLegalPack(UserFilterDTO userFilterDTO) {
+    pruneUnauthorizedApplicationIds((AdvancedLegalPackDashboardFilter) userFilterDTO.getFilter());
   }
 
   private void pruneUnauthorizedApplicationIds(AdvancedLegalPackDashboardFilter filter) {

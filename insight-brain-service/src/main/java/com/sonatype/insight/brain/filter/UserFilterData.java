@@ -3,12 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.model.filter;
+package com.sonatype.insight.brain.filter;
 
-/**
- * @since 1.105
- */
-public enum UserFilterType
+public interface UserFilterData
 {
-  ADVANCED_LEGAL_PACK_DASHBOARD;
 }

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfiguratio
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 
 import org.keycloak.adapters.saml.DefaultSamlDeployment;
 import org.keycloak.adapters.saml.DefaultSamlDeployment.DefaultIDP;
@@ -72,7 +73,7 @@ public class SamlDeploymentManager
 
   private final TaskScheduler taskScheduler;
 
-  private volatile SamlDeployment samlDeployment;
+  private final TenantReference<SamlDeployment> samlDeployment = new TenantReference<>();
 
   @Inject
   public SamlDeploymentManager(
@@ -91,27 +92,35 @@ public class SamlDeploymentManager
       updateFromConfiguration();
     }
     catch (RuntimeException e) {
-      // if we failed the entire server startup, fixing the configuration gets complicated...
+      // if we failed the tenant registration, fixing the configuration gets complicated...
       log.error("The SAML configuration is invalid and needs to be fixed by a system administrator", e);
     }
   }
 
   @Override
   public void deregister() {
-    // noop
+    samlDeployment.remove();
   }
 
   /**
-   * Gets the current SAML deployment or {@code null} if not configured.
+   * Gets the current SAML deployment for the current tenant or {@code null} if not configured.
    */
   public SamlDeployment get() {
-    return samlDeployment;
+    return samlDeployment.get();
   }
 
   // Visible for testing
   public void updateFromConfiguration() {
-    samlDeployment = parse(samlConfigurationDAO.get());
-    log.info("SAML integration {}", samlDeployment != null ? "enabled" : "disabled");
+    SamlDeployment saml = parse(samlConfigurationDAO.get());
+
+    if (saml != null) {
+      samlDeployment.set(saml);
+    }
+    else {
+      samlDeployment.remove();
+    }
+
+    log.info("SAML integration {}", samlDeployment.get() != null ? "enabled" : "disabled");
   }
 
   public void updateAllClusterNodesFromConfiguration() {

@@ -22,7 +22,7 @@ import {
 import { TEXT_BASED_OBLIGATIONS, SUPPORTED_COMPONENTS_ECOSYSTEM } from './advancedLegalConstants';
 import LicenseObligationsTileContainer from './obligation/LicenseObligationsTileContainer';
 import NoticeTextsTile from './files/notices/NoticeTextsTile';
-import { createSubtitle } from './legalUtility';
+import { createSubtitle, formatLicenseMeta } from './legalUtility';
 import LicenseFilesTile from './files/licenses/LicenseFilesTile';
 import OriginalSourcesTile from 'MainRoot/legal/originalSources/OriginalSourcesTile';
 
@@ -62,6 +62,7 @@ export default function ComponentLegalOverviewPage(props) {
     setShowLicensesModal,
     setDisplayOriginalSourcesOverrideModal,
   } = props;
+  const effectiveLicenses = formatLicenseMeta('effectiveLicenses', component, licenseLegalMetadata);
 
   function load() {
     if (hash) {
@@ -133,6 +134,7 @@ export default function ComponentLegalOverviewPage(props) {
               hash={hash}
               stageTypeId={stageTypeId}
               $state={$state}
+              effectiveLicenses={effectiveLicenses}
             />
             <section id="attribution-summary-tile" className="nx-tile">
               <header className="nx-tile-header">

@@ -18,6 +18,7 @@ describe('LicenseObligationsTile component', function () {
     licenseObligations,
     availableScopes,
     licenseLegalMetadata,
+    effectiveLicenses,
     $state;
 
   beforeEach(function () {
@@ -90,6 +91,18 @@ describe('LicenseObligationsTile component', function () {
         obligations: [{ name: 'obligation 4', obligationTexts: ['text9'] }],
       },
     ];
+    effectiveLicenses = [
+      {
+        licenseId: 'license1',
+      },
+      {
+        licenseId: 'license2',
+      },
+      {
+        licenseId: 'license3',
+      },
+    ];
+
     const ownerType = 'app';
     const ownerId = 'appId';
     const hash = 'hash';
@@ -105,6 +118,7 @@ describe('LicenseObligationsTile component', function () {
       ownerType,
       ownerId,
       hash,
+      effectiveLicenses,
       $state,
     };
     getShallowComponent = enzymeUtils.getShallowComponent(LicenseObligationsTile, minimalProps);
@@ -134,6 +148,7 @@ describe('LicenseObligationsTile component', function () {
 
   it('renders the license obligation names and license counts`', function () {
     const wrapper = getShallowComponent();
+
     const licenseObligationSections = wrapper.find(NxStatefulAccordion);
     const expectedObligationNamesAndCounts = ['obligation 1', 'obligation 2 (2)', 'obligation 3', 'obligation 4'];
     licenseObligationSections.find('h3').forEach((node, index) => {
@@ -264,8 +279,49 @@ describe('LicenseObligationsTile component', function () {
     const wrapper = enzymeUtils.getShallowComponent(LicenseObligationsTile, {
       ...minimalProps,
       licenseObligations: [],
+      effectiveLicenses: [],
     })();
     const content = wrapper.find('.nx-tile-content');
     expect(content).toHaveText('None found');
+  });
+
+  it('renders only license1 by effectiveLicense override', function () {
+    const ownerType = 'app';
+    const ownerId = 'appId';
+    const hash = 'hash';
+    const minProps = {
+      effectiveLicenses: [{ licenseId: 'license1' }],
+      licenseObligations: licenseObligations.slice(0, 2),
+      licenseLegalMetadata,
+      setShowAllObligationsModal: () => null,
+      setObligationStatus,
+      setObligationComment,
+      setObligationScope,
+      saveObligation,
+      setShowObligationModal,
+      availableScopes,
+      ownerType,
+      ownerId,
+      hash,
+      $state,
+    };
+
+    const wrapper = enzymeUtils.getShallowComponent(LicenseObligationsTile, minProps)();
+    const licenseObligationSections = wrapper.find(NxStatefulAccordion);
+    const expectedObligationNamesAndCounts = ['obligation 1', 'obligation 2'];
+    licenseObligationSections.find('h3').forEach((node, index) => {
+      expect(node.text()).toBe(expectedObligationNamesAndCounts[index]);
+    });
+
+    const expectedObligationLicenseTexts = [
+      ['text1', 'text2'],
+      ['text3', 'text4'],
+    ];
+
+    licenseObligationSections.forEach((node1, index1) => {
+      node1.find('blockquote').forEach((node2, index2) => {
+        expect(node2).toHaveText(expectedObligationLicenseTexts[index1][index2]);
+      });
+    });
   });
 });

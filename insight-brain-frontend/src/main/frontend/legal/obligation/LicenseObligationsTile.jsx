@@ -36,8 +36,10 @@ export default function LicenseObligationsTile(props) {
     hash,
     stageTypeId,
     $state,
+    effectiveLicenses,
   } = props;
 
+  const flatEffectiveLicenses = effectiveLicenses.map((e) => e.licenseId);
   const isObligationPresent = () => licenseObligations.length > 0;
 
   const licenseDetailsTargetState = () =>
@@ -58,6 +60,7 @@ export default function LicenseObligationsTile(props) {
     return licenseLegalMetadata.filter(
       (element) =>
         element.obligations !== null &&
+        flatEffectiveLicenses.includes(element.licenseId) &&
         element.obligations.some((obligation) => obligation.name === licenseObligation.name)
     );
   };
@@ -238,4 +241,5 @@ LicenseObligationsTile.propTypes = {
   hash: PropTypes.string,
   stageTypeId: PropTypes.string,
   $state: PropTypes.object.isRequired,
+  effectiveLicenses: PropTypes.arrayOf(PropTypes.object),
 };

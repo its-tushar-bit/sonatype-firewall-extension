@@ -57,6 +57,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.tenancy.TenantAwareFunction;
 import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -246,7 +247,7 @@ public class IndexService
     long start = System.currentTimeMillis();
 
     try (Directory directory = luceneComponents.openSearchIndex(false);
-        IndexWriter indexWriter = newIndexWriter(directory, OpenMode.CREATE)) {
+         IndexWriter indexWriter = newIndexWriter(directory, OpenMode.CREATE)) {
       log.info("begin indexing");
 
       List<Organization> organizations = organizationDAO.getAll();
@@ -330,7 +331,7 @@ public class IndexService
     }
     log.debug("Updating search index with {} changes", changes.size());
     try (Directory directory = luceneComponents.openSearchIndex(false);
-        IndexWriter indexWriter = newIndexWriter(directory, OpenMode.CREATE_OR_APPEND)) {
+         IndexWriter indexWriter = newIndexWriter(directory, OpenMode.CREATE_OR_APPEND)) {
       IndexingContext indexingContext = new IndexingContext(indexWriter);
       Set<String> alreadyApplied = new HashSet<>();
       for (SearchIndexChange change : changes) {
@@ -570,7 +571,8 @@ public class IndexService
       Application application)
   {
     return StageTypes.getAll().parallelStream()
-        .map(stageType -> buildApplicationStageSVDocs(indexingContext, application, stageType))
+        .map(new TenantAwareFunction<>(
+            stageType -> buildApplicationStageSVDocs(indexingContext, application, stageType)))
         .flatMap(Collection::stream).collect(toList());
   }
 
@@ -600,13 +602,14 @@ public class IndexService
       }
 
       return new ComponentDAO(application).getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf,
-          dependenciesReportEntry.buf)
-          .parallelStream().map(component -> buildApplicationComponentVulnerabilityDocuments(
+              dependenciesReportEntry.buf)
+          .parallelStream()
+          .map(new TenantAwareFunction<>(component -> buildApplicationComponentVulnerabilityDocuments(
               indexingContext,
               application,
               stageType,
               scanId,
-              component)).flatMap(Collection::stream).collect(toList());
+              component))).flatMap(Collection::stream).collect(toList());
     }
     catch (IOException e) {
       log.error(e.getMessage(), e);
@@ -622,8 +625,10 @@ public class IndexService
       Component component)
   {
     if (CollectionUtils.isNotEmpty(component.getSecurityVulnerabilities())) {
-      return component.getSecurityVulnerabilities().parallelStream().map(vulnerability ->
-          buildDocument(indexingContext, application, stageType, reportId, component, vulnerability)).collect(toList());
+      return component.getSecurityVulnerabilities().parallelStream()
+          .map(new TenantAwareFunction<>(vulnerability ->
+              buildDocument(indexingContext, application, stageType, reportId, component, vulnerability)))
+          .collect(toList());
     }
     else if (component.getComponentIdentifier() != null) {
       return Collections.singletonList(buildDocument(application, stageType, reportId, component));

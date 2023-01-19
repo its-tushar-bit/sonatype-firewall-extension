@@ -57,6 +57,8 @@ class RepositoryResultsService
       @AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
       final RepositoryResultsDetailsRequestDto detailsRequest)
   {
+    long start = System.currentTimeMillis();
+
     final Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
 
     log.info("Getting repository results for {}:{} ({})", repository.getRepositoryManagerId(), repository.getPublicId(),
@@ -77,6 +79,8 @@ class RepositoryResultsService
       detailsResponseDtoList.add(new RepositoryResultsDetailsResponseDto(details));
     }
 
+    log.info("Got repository results for {}:{} ({}) in {} ms", repository.getRepositoryManagerId(),
+        repository.getPublicId(), repository.getId(), System.currentTimeMillis() - start);
     return detailsResponseDtoList;
   }
 

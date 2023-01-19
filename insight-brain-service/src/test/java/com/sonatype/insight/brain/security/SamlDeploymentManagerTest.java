@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 
 import com.google.common.io.Resources;
 import com.google.inject.Binder;
@@ -33,7 +34,6 @@ import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
 
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.doAnswer;
@@ -358,30 +358,30 @@ public class SamlDeploymentManagerTest
     String tenant1EntityId = "sp-entity-id";
     String tenant2EntityId = "sp-entity-id2";
 
-    setTenant(tenant1);
+    TenantTestHelper.testAs(tenant1, t -> {
+      SamlConfiguration tenant1SamlConfiguration = new SamlConfiguration();
+      tenant1SamlConfiguration.setIdentityProviderMetadataXml(getSamlMetadata("no-request-signing.xml"));
+      tenant1SamlConfiguration.setEntityId(tenant1EntityId);
+      when(samlConfigurationDAO.get()).thenReturn(tenant1SamlConfiguration);
 
-    SamlConfiguration tenant1SamlConfiguration = new SamlConfiguration();
-    tenant1SamlConfiguration.setIdentityProviderMetadataXml(getSamlMetadata("no-request-signing.xml"));
-    tenant1SamlConfiguration.setEntityId(tenant1EntityId);
-    when(samlConfigurationDAO.get()).thenReturn(tenant1SamlConfiguration);
+      saml.register();
 
-    saml.register();
+      SamlDeployment tenant1SamlDeployment = saml.get();
 
-    SamlDeployment tenant1SamlDeployment = saml.get();
+      assertThat(tenant1SamlDeployment.getEntityID()).isEqualTo(tenant1EntityId);
+    });
 
-    assertThat(tenant1SamlDeployment.getEntityID()).isEqualTo(tenant1EntityId);
+    TenantTestHelper.testAs(tenant2, t -> {
+      SamlConfiguration tenant2SamlConfiguration = new SamlConfiguration();
+      tenant2SamlConfiguration.setIdentityProviderMetadataXml(getSamlMetadata("encryption-vs-signing-keys.xml"));
+      tenant2SamlConfiguration.setEntityId(tenant2EntityId);
+      when(samlConfigurationDAO.get()).thenReturn(tenant2SamlConfiguration);
 
-    setTenant(tenant2);
+      saml.register();
 
-    SamlConfiguration tenant2SamlConfiguration = new SamlConfiguration();
-    tenant2SamlConfiguration.setIdentityProviderMetadataXml(getSamlMetadata("encryption-vs-signing-keys.xml"));
-    tenant2SamlConfiguration.setEntityId(tenant2EntityId);
-    when(samlConfigurationDAO.get()).thenReturn(tenant2SamlConfiguration);
+      SamlDeployment tenant2SamlDeployment = saml.get();
 
-    saml.register();
-
-    SamlDeployment tenant2SamlDeployment = saml.get();
-
-    assertThat(tenant2SamlDeployment.getEntityID()).isEqualTo(tenant2EntityId);
+      assertThat(tenant2SamlDeployment.getEntityID()).isEqualTo(tenant2EntityId);
+    });
   }
 }

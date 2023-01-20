@@ -18,6 +18,7 @@ import {
   selectRepositoryInformation,
 } from './repositoryResultsSummaryPageSelectors';
 import { debounce } from 'debounce';
+import { verifyFiltersAreValid } from 'MainRoot/util/validationUtil';
 
 const REDUCER_NAME = 'repositoryResultsSummaryPage';
 const PAGE_SIZE = 12;
@@ -270,14 +271,17 @@ const setFilter = (state, { payload: { filterName, filterValue } }) => {
   state.componentsRequestBody.page = 1;
 };
 
-const filterComponentsDebounce = debounce((dispatch, repositoryId) => {
-  dispatch(actions.getRepositoryComponents(repositoryId));
+const filterComponentsDebounce = debounce((dispatch, getState, repositoryId) => {
+  const componentsRequestBody = selectComponentsRequestBody(getState());
+  if (verifyFiltersAreValid(componentsRequestBody)) {
+    dispatch(actions.getRepositoryComponents(repositoryId));
+  }
 }, FILTER_DEBOUNCE_TIME);
 
 const searchComponents = (searchData) => (dispatch, getState) => {
   const repository = selectRepositoryInformation(getState());
   dispatch(actions.setFilter(searchData));
-  filterComponentsDebounce(dispatch, repository?.id);
+  filterComponentsDebounce(dispatch, getState, repository?.id);
 };
 
 export const repositoryResultsSummaryPageSlice = createSlice({

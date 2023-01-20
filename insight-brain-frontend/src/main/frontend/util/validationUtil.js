@@ -107,3 +107,21 @@ export const validateForm = (inputs) => {
     ? GLOBAL_FORM_VALIDATION_ERROR
     : null;
 };
+
+export const verifyFiltersAreValid = (componentsRequestBody) => {
+  const policyNameFilter = componentsRequestBody.searchFilters
+    .filter((searchFilter) => searchFilter.filterableField === 'POLICY_NAME')
+    .shift();
+  const componentNameFilter = componentsRequestBody.searchFilters
+    .filter((searchFilter) => searchFilter.filterableField === 'COMPONENT_COORDINATES')
+    .shift();
+
+  const policyNameFilterIsValid = !policyNameFilter ? true : verifyFilterIsValid(policyNameFilter);
+  const componentNameFilterIsValid = !componentNameFilter ? true : verifyFilterIsValid(componentNameFilter);
+
+  return policyNameFilterIsValid && componentNameFilterIsValid;
+};
+
+const verifyFilterIsValid = (filter) => {
+  return filter.value.length === 0 || filter.value.length >= 2;
+};

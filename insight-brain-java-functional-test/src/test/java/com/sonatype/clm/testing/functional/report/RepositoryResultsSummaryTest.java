@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxSmallThreatCounter;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTable;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTableRow;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -262,6 +263,26 @@ public class RepositoryResultsSummaryTest
     firewallComponentDetailsPage.getComponentCoordinatesPopOverData(1).shouldHave(text("g"));
     firewallComponentDetailsPage.getComponentCoordinatesPopOverData(2).shouldHave(text("a"));
     firewallComponentDetailsPage.getComponentCoordinatesPopOverData(3).shouldHave(text("v"));
+  }
+
+  @Test
+  public void testFiltersRepositoryResultsSummaryPage() {
+    refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
+
+    // Sanity Check
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+    RepositoryResultTable repositoryResultsTable = new RepositoryResultTable();
+
+    // Filter by Policy Name
+    // Doesn't filter. Filter invalid
+    repositoryResultsTable.policyName().input().sendKeys("T");
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
+    repositoryResultsTable.policyNameClearFilterButton().click();
+
+    // Filter results by policy name
+    repositoryResultsTable.policyName().input().sendKeys("Test");
+    RepositoryResultDetailPage.table().rows().shouldHaveSize(9);
+    repositoryResultsTable.policyNameClearFilterButton().click();
   }
 
   private void testRow(RepositoryResultTableRow row,

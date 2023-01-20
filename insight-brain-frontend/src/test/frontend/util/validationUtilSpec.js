@@ -13,6 +13,7 @@ import {
   validateNameCharacters,
   validateMinMax,
   validateDuplicatedValue,
+  verifyFiltersAreValid,
 } from '../../../main/frontend/util/validationUtil';
 
 describe('validationUtil', function () {
@@ -198,6 +199,136 @@ describe('validationUtil', function () {
 
     it('returns null for current value', () => {
       expect(validateDuplicatedValue(dupsArray, 'name 5', 'name 5')).toBeNull();
+    });
+  });
+
+  describe('verifyFiltersAreValid', () => {
+    let componentRequestBody = {
+      searchFilters: [
+        {
+          filterableField: 'POLICY_NAME',
+          value: 'security',
+        },
+        {
+          filterableField: 'COMPONENT_COORDINATES',
+          value: 'ant',
+        },
+      ],
+    };
+
+    it('Both filters are present and valid', () => {
+      const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
+      expect(filtersAreValid).toBe(true);
+    });
+
+    it('Both filters are present but not valid', () => {
+      componentRequestBody = {
+        searchFilters: [
+          {
+            filterableField: 'POLICY_NAME',
+            value: 's',
+          },
+          {
+            filterableField: 'COMPONENT_COORDINATES',
+            value: 'a',
+          },
+        ],
+      };
+
+      const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
+      expect(filtersAreValid).toBe(false);
+    });
+
+    it('Policy name filter is valid and present and component filter is not present', () => {
+      componentRequestBody = {
+        searchFilters: [
+          {
+            filterableField: 'POLICY_NAME',
+            value: 'security',
+          },
+        ],
+      };
+
+      const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
+      expect(filtersAreValid).toBe(true);
+    });
+
+    it('Policy name filter is invalid and component filter is not present', () => {
+      componentRequestBody = {
+        searchFilters: [
+          {
+            filterableField: 'POLICY_NAME',
+            value: 's',
+          },
+        ],
+      };
+
+      const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
+      expect(filtersAreValid).toBe(false);
+    });
+
+    it('Policy name filter is valid and component filter is invalid', () => {
+      componentRequestBody = {
+        searchFilters: [
+          {
+            filterableField: 'POLICY_NAME',
+            value: 'security',
+          },
+          {
+            filterableField: 'COMPONENT_COORDINATES',
+            value: 'a',
+          },
+        ],
+      };
+
+      const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
+      expect(filtersAreValid).toBe(false);
+    });
+
+    it('component filter is valid and present and policy name filter is not present', () => {
+      componentRequestBody = {
+        searchFilters: [
+          {
+            filterableField: 'COMPONENT_COORDINATES',
+            value: 'ant',
+          },
+        ],
+      };
+
+      const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
+      expect(filtersAreValid).toBe(true);
+    });
+
+    it('component filter is invalid and policy name filter is not present', () => {
+      componentRequestBody = {
+        searchFilters: [
+          {
+            filterableField: 'COMPONENT_COORDINATES',
+            value: 'a',
+          },
+        ],
+      };
+
+      const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
+      expect(filtersAreValid).toBe(false);
+    });
+
+    it('component filter is valid and policy name filter is invalid', () => {
+      componentRequestBody = {
+        searchFilters: [
+          {
+            filterableField: 'POLICY_NAME',
+            value: 's',
+          },
+          {
+            filterableField: 'COMPONENT_COORDINATES',
+            value: 'ant',
+          },
+        ],
+      };
+
+      const filtersAreValid = verifyFiltersAreValid(componentRequestBody);
+      expect(filtersAreValid).toBe(false);
     });
   });
 });

@@ -64,4 +64,10 @@
   .iq-repository-component-cell--text {
     @include nx-text-helpers.truncate-ellipsis;
   }
+
+  .iq-repository-filter--component {
+    .nx-filter-input {
+      width: 100%;
+    }
+  }
 }

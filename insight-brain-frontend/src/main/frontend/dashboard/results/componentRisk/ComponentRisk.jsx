@@ -28,7 +28,9 @@ export default function ComponentRiskDetails() {
   const loadDetailsAndComponents = () => dispatch(actions.loadDetailsAndComponents(hash));
 
   useEffect(() => {
-    loadDetailsAndComponents();
+    if (!loading) {
+      loadDetailsAndComponents();
+    }
   }, []);
 
   const listItems = applicationComponents.map((element) => (

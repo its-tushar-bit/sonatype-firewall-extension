@@ -7,13 +7,14 @@ import React from 'react';
 import { render, screen } from 'TestRoot/SpecUtil';
 import moment from 'moment';
 import ComponentRisk from 'MainRoot/dashboard/results/componentRisk/ComponentRisk';
+import { actions } from 'MainRoot/dashboard/results/componentRisk/componentRiskSlice';
 import * as componentRiskSelectors from 'MainRoot/dashboard/results/componentRisk/componentRiskSelectors';
 
 describe('ComponentRisk', () => {
-  let renderComponent;
+  let renderComponent, loadDetailsAndComponentsSpy, componentRiskProps, componentRiskSelectorsSpy;
 
   beforeEach(() => {
-    const componentRiskProps = {
+    componentRiskProps = {
       loading: false,
       loadError: null,
       componentName: 'Test component name',
@@ -57,7 +58,10 @@ describe('ComponentRisk', () => {
       ],
     };
 
-    spyOn(componentRiskSelectors, 'selectComponentRisk').and.returnValue(componentRiskProps);
+    componentRiskSelectorsSpy = spyOn(componentRiskSelectors, 'selectComponentRisk').and.returnValue(
+      componentRiskProps
+    );
+    loadDetailsAndComponentsSpy = spyOn(actions, 'loadDetailsAndComponents').and.callThrough();
 
     renderComponent = (additionalProps = {}) => render(<ComponentRisk {...additionalProps} />);
   });
@@ -72,5 +76,17 @@ describe('ComponentRisk', () => {
     expect(screen.getByRole('heading', { name: 'Total risk: 50' })).toBeVisible();
     expect(screen.getByText('Risk score by application')).toBeVisible();
     expect(listItems.length).toEqual(1);
+  });
+
+  it('calls loadDetailsAndComponents once', () => {
+    renderComponent();
+
+    expect(loadDetailsAndComponentsSpy).toHaveBeenCalledTimes(1);
+
+    componentRiskProps.loading = true;
+    componentRiskSelectorsSpy.and.returnValue(componentRiskProps);
+    renderComponent();
+
+    expect(loadDetailsAndComponentsSpy).toHaveBeenCalledTimes(1);
   });
 });

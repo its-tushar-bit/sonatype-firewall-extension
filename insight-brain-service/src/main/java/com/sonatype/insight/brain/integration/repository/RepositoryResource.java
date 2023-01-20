@@ -27,6 +27,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -70,15 +71,16 @@ public class RepositoryResource
    */
   @POST
   @Path(ENABLE_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
   @Timed
-  public void setEnabled(
+  public ApiRepositoryDTO setEnabled(
       @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") String repositoryPublicId,
       @PathParam("enabled") boolean enabled,
       @Context final HttpServletRequest request)
   {
     AuditData.get().setEvent(enabled ? AuditEvent.CONNECT_REPOSITORY : AuditEvent.DISCONNECT_REPOSITORY);
-    repositoryService.setEnabled(repositoryManagerInstanceId, repositoryPublicId, enabled,
+    return repositoryService.setEnabled(repositoryManagerInstanceId, repositoryPublicId, enabled,
         DefaultHdsClient.getClientUserAgent(request));
   }
 

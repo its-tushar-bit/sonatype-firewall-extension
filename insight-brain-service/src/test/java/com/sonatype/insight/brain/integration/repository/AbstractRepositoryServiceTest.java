@@ -34,6 +34,7 @@ import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
@@ -185,7 +186,7 @@ public abstract class AbstractRepositoryServiceTest
     FirewallIgnorePatterns hdsResult = new FirewallIgnorePatterns();
     hdsResult.regexpsByRepositoryFormat = new HashMap<>();
     lenient().when(
-        hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
+            hdsClient.get(eq(FirewallIgnorePatterns.class), eq(FirewallIgnorePatternUpdater.HDS_IGNORE_PATTERNS_PATH)))
         .thenReturn(hdsResult);
     setBaseUrl("http://localhost");
 
@@ -206,7 +207,7 @@ public abstract class AbstractRepositoryServiceTest
 
   @Test
   public void testSetEnabled_NoRepositoryManager() {
-    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true,null);
+    getRepositoryService().setEnabled(MANUAL_REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
 
     RepositoryManager repositoryManager = repositoryManagerDAO.getByInstanceId(MANUAL_REPO_MAN_INSTANCE_ID);
 
@@ -237,7 +238,11 @@ public abstract class AbstractRepositoryServiceTest
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
     tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID, false);
 
-    getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
+    ApiRepositoryDTO repositoryDTO =
+        getRepositoryService().setEnabled(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, true, null);
+    assertThat(repositoryDTO).isNotNull();
+    assertThat(repositoryDTO.publicId).isEqualTo(REPO_PUBLIC_ID);
+    assertThat(repositoryDTO.repositoryId).isNotBlank();
 
     List<Repository> repositories = repositoryDAO.getByRepositoryManagerId(repositoryManager.getId());
 
@@ -429,7 +434,7 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> getRepositoryService()
-        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null))
+            .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null))
         .withMessage("The pathname cannot be null or empty.");
   }
 
@@ -448,7 +453,7 @@ public abstract class AbstractRepositoryServiceTest
 
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> getRepositoryService()
-        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null))
+            .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null))
         .withMessage("The hash cannot be null or empty.");
   }
 
@@ -1544,7 +1549,7 @@ public abstract class AbstractRepositoryServiceTest
         .add(new RepositoryComponentEvaluationDataRequest("maven2", " ", "hash"));
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> getRepositoryService()
-        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null))
+            .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null))
         .withMessage("The pathname cannot be null or empty.");
   }
 
@@ -1652,14 +1657,15 @@ public abstract class AbstractRepositoryServiceTest
         eq(AbstractRepositoryService.HDS_COMPONENT_METADATA_PATH), isNull(), anyMap());
   }
 
-  protected ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier,
-                                                                String hash,
-                                                                MatchState matchState,
-                                                                int index,
-                                                                Set<License> declaredLicenses,
-                                                                Set<License> observedLicenses,
-                                                                List<SecurityVulnerability> securityVulnerabilities,
-                                                                Integer relativePopularity)
+  protected ComponentEvaluationData createComponentEvaluationData(
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      MatchState matchState,
+      int index,
+      Set<License> declaredLicenses,
+      Set<License> observedLicenses,
+      List<SecurityVulnerability> securityVulnerabilities,
+      Integer relativePopularity)
   {
     ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
     componentEvaluationData.requestIndex = index;
@@ -1704,18 +1710,19 @@ public abstract class AbstractRepositoryServiceTest
     return securityVulnerabilities;
   }
 
-  private void assertRepositoryComponent(String repositoryId,
-                                         String pathname,
-                                         Date beforeCreate,
-                                         Date afterCreate,
-                                         String hash,
-                                         ComponentIdentifier componentIdentifier,
-                                         String matchStateId,
-                                         String identificationSourceId,
-                                         Date beforeLastEvaluation,
-                                         Date afterLastEvaluation,
-                                         Date afterQuarantineTime,
-                                         RepositoryComponent actual)
+  private void assertRepositoryComponent(
+      String repositoryId,
+      String pathname,
+      Date beforeCreate,
+      Date afterCreate,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String matchStateId,
+      String identificationSourceId,
+      Date beforeLastEvaluation,
+      Date afterLastEvaluation,
+      Date afterQuarantineTime,
+      RepositoryComponent actual)
   {
     assertThat(actual.getRepositoryId()).isEqualTo(repositoryId);
     assertThat(actual.getPathname()).isEqualTo(pathname);
@@ -1734,31 +1741,33 @@ public abstract class AbstractRepositoryServiceTest
     }
   }
 
-  private void assertRepositoryComponent(String repositoryId,
-                                         String pathname,
-                                         Date beforeCreate,
-                                         Date afterCreate,
-                                         String hash,
-                                         ComponentIdentifier componentIdentifier,
-                                         String matchStateId,
-                                         String identificationSourceId,
-                                         RepositoryComponent actual)
+  private void assertRepositoryComponent(
+      String repositoryId,
+      String pathname,
+      Date beforeCreate,
+      Date afterCreate,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String matchStateId,
+      String identificationSourceId,
+      RepositoryComponent actual)
   {
     assertRepositoryComponent(repositoryId, pathname, beforeCreate, afterCreate, hash, componentIdentifier,
         matchStateId, identificationSourceId, beforeCreate, afterCreate, null, actual);
   }
 
-  private void assertPolicyViolation(String repositoryId,
-                                     String pathname,
-                                     String policyId,
-                                     String policyName,
-                                     int threatLevel,
-                                     PolicyThreatCategory threatCategory,
-                                     String hash,
-                                     ComponentIdentifier componentIdentifier,
-                                     Date before,
-                                     Date after,
-                                     RepositoryPolicyViolation actual)
+  private void assertPolicyViolation(
+      String repositoryId,
+      String pathname,
+      String policyId,
+      String policyName,
+      int threatLevel,
+      PolicyThreatCategory threatCategory,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      Date before,
+      Date after,
+      RepositoryPolicyViolation actual)
   {
     assertThat(actual.getRepositoryId()).isEqualTo(repositoryId);
     assertThat(actual.getPathname()).isEqualTo(pathname);

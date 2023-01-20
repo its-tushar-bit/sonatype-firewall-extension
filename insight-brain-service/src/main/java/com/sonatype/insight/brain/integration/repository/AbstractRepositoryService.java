@@ -26,6 +26,8 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiRepositoryAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -169,7 +171,7 @@ public abstract class AbstractRepositoryService
     return getPolicyEvaluationSummaryInternal(repository);
   }
 
-  void setEnabled(
+  ApiRepositoryDTO setEnabled(
       String repositoryManagerInstanceId,
       String repositoryPublicId,
       boolean enable,
@@ -196,6 +198,8 @@ public abstract class AbstractRepositoryService
 
     log.info("{} audit for repository {}:{} ({})", enable ? "Enabled" : "Disabled", repositoryManagerInstanceId,
         repositoryPublicId, repository.getId());
+
+    return ApiRepositoryAdapter.convert(repository);
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)

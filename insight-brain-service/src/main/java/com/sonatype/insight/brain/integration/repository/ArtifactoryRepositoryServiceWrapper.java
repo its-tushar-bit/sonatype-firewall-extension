@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -66,13 +67,13 @@ class ArtifactoryRepositoryServiceWrapper
     return Hashing.sha256().hashString(repositoryId, StandardCharsets.UTF_8).toString().substring(0, 50);
   }
 
-  void setEnabled(
+  ApiRepositoryDTO setEnabled(
       final String repositoryManagerInstanceId,
       final String repositoryPublicId,
       final boolean enabled,
       final String clientUserAgent)
   {
-    repositoryService.setEnabled(getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId),
+    return repositoryService.setEnabled(getRepositoryManagerInstanceId(repositoryManagerInstanceId, repositoryPublicId),
         repositoryPublicId, enabled, clientUserAgent);
   }
 

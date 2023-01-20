@@ -240,7 +240,7 @@ public class ApiComponentsWithWaiversReportingService
           .collect(Collectors.groupingBy(RepositoryPolicyViolation::getRepositoryId))
           .forEach((repositoryId, policyViolations) -> {
             ApiRepositoryDTO repositoryDTO =
-                buildRepositoryDTO(idToRepositoryMap.get(repositoryId));
+                ApiRepositoryAdapter.convert(idToRepositoryMap.get(repositoryId));
             List<ApiComponentPolicyViolationDTO> componentPolicyViolationDTOs = new ArrayList<>();
 
             // Filter and group policy violations by non-null component identifier
@@ -336,15 +336,6 @@ public class ApiComponentsWithWaiversReportingService
     componentDTOV2.proprietary = null;
 
     return componentDTOV2;
-  }
-
-  private ApiRepositoryDTO buildRepositoryDTO(Repository repository) {
-    ApiRepositoryDTO repositoryDTO = new ApiRepositoryDTO();
-    repositoryDTO.repositoryId = repository.getId();
-    repositoryDTO.publicId = repository.getPublicId();
-    repositoryDTO.format = repository.getFormat();
-
-    return repositoryDTO;
   }
 
   private ApiWaivedPolicyViolationDTO buildWaivedPolicyViolationDTO(

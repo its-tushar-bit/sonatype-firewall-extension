@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
@@ -78,7 +79,12 @@ public abstract class AbstractRepositoryResourceTest
 
     HttpResponse response = enableRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true)
         .post();
-    assertResponseStatus(204, response);
+    assertResponseStatus(200, response);
+
+    ApiRepositoryDTO repositoryDTO = response.getBody(ApiRepositoryDTO.class);
+    assertThat(repositoryDTO).isNotNull();
+    assertThat(repositoryDTO.publicId).isEqualTo(REPO_PUBLIC_ID);
+    assertThat(repositoryDTO.repositoryId).isNotBlank();
 
     repository = repositoryDAO.getById(repository.getId());
     RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
@@ -97,7 +103,7 @@ public abstract class AbstractRepositoryResourceTest
     HttpResponse response = enableRequest().parameter(repositoryManager.getInstanceId(), repository.getPublicId(), true)
         .header(HttpHeaders.USER_AGENT, userAgent)
         .post();
-    assertResponseStatus(204, response);
+    assertResponseStatus(200, response);
 
     RepositoryManager foundRepositoryManager = new RepositoryManagerDAO().getById(repositoryManager.getId());
 

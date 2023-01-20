@@ -464,4 +464,21 @@ public class RepositoryServiceAuthzTest
     login();
     repositoryService.getProprietaryComponentNamePatterns(null);
   }
+
+  @Test
+  public void testCheckReadPermissionRepositoryContainer_Unauthenticated() {
+    assertThat(repositoryService.checkReadPermissionRepositoryContainer()).isFalse();
+  }
+
+  @Test
+  public void testCheckReadPermissionRepositoryContainer_Unauthorized() {
+    login();
+    assertThat(repositoryService.checkReadPermissionRepositoryContainer()).isFalse();
+  }
+
+  @Test
+  public void testCheckReadPermissionRepositoryContainer_Authorized() {
+    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(repositoryService.checkReadPermissionRepositoryContainer()).isTrue();
+  }
 }

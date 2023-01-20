@@ -248,37 +248,22 @@ public class DashboardPolicyWaiverServiceTest
 
   @Test
   public void testGetDashboardPolicyWaivers_returnAllWaivers() {
-    Repository repository = tempEntity.newRepository();
-
     Policy policy = tempEntity.newPolicy(
         new TestPolicyBuilder()
             .withSampleTestValues()
             .withOwnerId(org.getId())
             .build());
 
-    PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
-        .withHash(RandomStringUtils.randomAlphabetic(5))
-        .withPolicyId(policy.getId())
-        .withOwnerId(repository.getId())
-        .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
-        .build();
-
-    tempEntity.newWaiver(policyWaiver);
-
-    RepositoryComponent
-        component = tempEntity.newRepositoryComponent(repository.getId());
-
-    PolicyViolationTestHelper.createPolicyViolationWaived(policy, component, tempEntity);
-
+    // add app 1 waiver
     PolicyWaiver policyWaiver1 = new TestPolicyWaiverBuilder()
         .withHash(RandomStringUtils.randomAlphabetic(5))
         .withPolicyId(policy.getId())
         .withOwnerId(app1.getId())
         .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
         .build();
-
     tempEntity.newWaiver(policyWaiver1);
 
+    // add app 3 waiver
     Organization org2 = tempEntity.newOrganization("Org3");
     Application application3 = tempEntity.newApplication("Application-3", " Applicatin-3", org2.getId());
     PolicyWaiver policyWaiverOrg2 = new TestPolicyWaiverBuilder()
@@ -287,14 +272,54 @@ public class DashboardPolicyWaiverServiceTest
         .withOwnerId(application3.getId())
         .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
         .build();
-
     tempEntity.newWaiver(policyWaiverOrg2);
+
+    // add waiver for empty org
+    Organization org3 = tempEntity.newOrganization("Org4");
+    PolicyWaiver policyWaiverOrg3 = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy.getId())
+        .withOwnerId(org3.getId())
+        .withExpiryTime(Date.from(Instant.now().plus(5, ChronoUnit.DAYS)))
+        .build();
+    tempEntity.newWaiver(policyWaiverOrg3);
+
+    // add waiver for repo container
+    PolicyWaiver policyWaiverRepoContainer = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy.getId())
+        .withOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
+        .withExpiryTime(Date.from(Instant.now().plus(10, ChronoUnit.DAYS)))
+        .build();
+    tempEntity.newWaiver(policyWaiverRepoContainer);
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.withMaxResults(10).build());
 
-    assertThat(dashboardPolicyWaivers.numResults)
-        .isEqualTo(3);
+    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(4);
+
+    // added afterwards to make sure that repo container still shows even with no repo waivers
+
+    Repository repository = tempEntity.newRepository();
+
+    // add repo waiver
+    PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
+        .withHash(RandomStringUtils.randomAlphabetic(5))
+        .withPolicyId(policy.getId())
+        .withOwnerId(repository.getId())
+        .withExpiryTime(Date.from(Instant.now().plus(11, ChronoUnit.DAYS)))
+        .build();
+    tempEntity.newWaiver(policyWaiver);
+
+    RepositoryComponent
+        component = tempEntity.newRepositoryComponent(repository.getId());
+
+    PolicyViolationTestHelper.createPolicyViolationWaived(policy, component, tempEntity);
+
+    dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.withMaxResults(10).build());
+
+    assertThat(dashboardPolicyWaivers.numResults).isEqualTo(5);
   }
 
   @Test

@@ -162,10 +162,21 @@ public class DashboardPolicyWaiverService
           && CollectionUtils.isEmpty(applicationIds)
           && CollectionUtils.isEmpty(tagIds)
           && CollectionUtils.isEmpty(repositoryIds);
+    Predicate<Set<Repository>> reposAreNotEmptyOrIsOnlyRepoContainer = repos ->
+        !repos.isEmpty()
+          || (CollectionUtils.isNotEmpty(repositoryIds)
+          && repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    BooleanSupplier filtersAreEmptyAndRepoContainerReadPermission = () ->
+        isOwnerFilterSpecified.getAsBoolean()
+            && repositoryService.checkReadPermissionRepositoryContainer();
+    Predicate<Set<Repository>> shouldAddRepoContainer = repos ->
+        reposAreNotEmptyOrIsOnlyRepoContainer.test(repos)
+          || filtersAreEmptyAndRepoContainerReadPermission.getAsBoolean();
     Collector<Owner, ?, Map<String, Owner>> ownerCollector =
         Collectors.toMap(Owner::getId, Function.identity(), (existing, replacement) -> existing);
 
     List<Application> applications = Collections.emptyList();
+    List<Organization> allOrgs = Collections.emptyList();
     Set<Organization> parentOrganizationsOfApplications = Collections.emptySet();
     List<Organization> selectedOrganizations = Collections.emptyList();
     Set<Repository> repositories = Collections.emptySet();
@@ -173,7 +184,7 @@ public class DashboardPolicyWaiverService
     if (isOwnerFilterSpecified.getAsBoolean()) {
       // no filters specified, add everything by default
       applications = applicationService.getOwnerApplicationsByIdsOrTagIds(applicationIds, tagIds);
-      parentOrganizationsOfApplications = applicationService.getParentOrganizationsForApplicationsNoAuthz(applications);
+      allOrgs = organizationService.getAll();
       repositories = repositoryService.getRepositoriesByIds(repositoryIds);
     }
     else {
@@ -199,13 +210,12 @@ public class DashboardPolicyWaiverService
 
     owners.putAll(applications.stream().collect(ownerCollector));
     owners.putAll(parentOrganizationsOfApplications.stream().collect(ownerCollector));
+    owners.putAll(allOrgs.stream().collect(ownerCollector));
     owners.putAll(selectedOrganizations.stream().collect(ownerCollector));
     owners.putAll(repositories.stream().collect(ownerCollector));
 
-    // add repo container if there is at least one repo
-    if (!repositories.isEmpty() ||
-        (CollectionUtils.isNotEmpty(repositoryIds) &&
-        repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID))) {
+    // add repo container if there is at least one repo or there is no filter specified
+    if (shouldAddRepoContainer.test(repositories)) {
       owners.put(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON);
     }
 

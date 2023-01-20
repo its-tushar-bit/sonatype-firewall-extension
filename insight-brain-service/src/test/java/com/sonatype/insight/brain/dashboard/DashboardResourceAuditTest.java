@@ -266,7 +266,7 @@ public class DashboardResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_DASHBOARD_WAIVER_LIST, null);
     assertCustomData(auditDTO, "resultRecordCount", 4);
-    assertCustomData(auditDTO, "filteredOwnersCount", 5);
+    assertCustomData(auditDTO, "filteredOwnersCount", 6);
   }
 
   private void createDashboardWaivers() {
@@ -340,7 +340,7 @@ public class DashboardResourceAuditTest
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.EXPORT_DASHBOARD_WAIVER_LIST, null);
     assertCustomData(auditDTO, "resultRecordCount", 4);
-    assertCustomData(auditDTO, "filteredOwnersCount", 5);
+    assertCustomData(auditDTO, "filteredOwnersCount", 6);
   }
 
   private void dashboardRequest(String restPath, RisksFilterDTO risksFilterDTO) throws Exception {

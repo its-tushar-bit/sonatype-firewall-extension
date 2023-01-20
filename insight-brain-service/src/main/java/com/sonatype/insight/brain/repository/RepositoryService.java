@@ -19,7 +19,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -64,6 +63,8 @@ import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -561,6 +562,16 @@ public class RepositoryService
 
   @Authorize(permission = Permission.READ)
   void checkReadPermission(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner) {
+  }
+
+  public boolean checkReadPermissionRepositoryContainer() {
+    try {
+      checkReadPermission(RepositoryContainer.SINGLETON);
+      return true;
+    }
+    catch (UnauthenticatedException | UnauthorizedException error) {
+      return false;
+    }
   }
 
   ProprietaryComponentNamePatternFilter validateAndInitializeFilter(

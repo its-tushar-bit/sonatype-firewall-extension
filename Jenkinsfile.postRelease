@@ -58,6 +58,16 @@ pipeline {
         )
       }
     }
+    stage('Prepare IQ Server HA Helm Chart') {
+      steps {
+        build(
+          job: 'insight/insight-brain/HA/Main Release Build',
+          parameters: [
+            string(name: 'appVersion', value: env.shortVersion)
+          ]
+        )
+      }
+    }
     stage('Publish IQ Server Helm Chart') {
       steps {
         build(

@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.hds.MultiTenantTelemetryId;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
+import com.sonatype.insight.brain.repository.InactiveRepositoryViolationCleaner;
 import com.sonatype.insight.brain.scheduler.MultiTenantQuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
@@ -59,13 +60,15 @@ public class MultiTenantInsightBrainService
    * SisuApplication#addManaged loads Managed beans outside the normal flow but does not respect the @Priority
    * annotation however it does call SisuApplication#acceptComponent to check whether the component should be loaded or
    * not. We make use of that functionality here to prevent Default* (i.e. on-prem implementations) being loaded in MTIQ
-   * and causing conflicting behaviour.
+   * and causing conflicting behaviour. InactiveRepositoryViolationCleaner is no longer needed as mtiq was created after
+   * version 1.90. See comments on the original ticket for context CLM-14555
    */
   private static final List<Class> BANNED_IMPLEMENTATIONS =
       Arrays.asList(new Class[]{
           DefaultTenantManagedInitializer.class,
-          DefaultTelemetryScheduler.class
-      });
+          DefaultTelemetryScheduler.class,
+          InactiveRepositoryViolationCleaner.class,
+          });
 
   public static void main(final String[] args) {
     new TenantUtil().setGlobalTenant();

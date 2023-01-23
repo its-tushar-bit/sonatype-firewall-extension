@@ -12,10 +12,12 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.tenancy.MultiTenantTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.dataaccess.AbstractDAO.Query;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -137,6 +139,35 @@ public class SystemConfigurationPropertyDAOMultiTenantTest
     assertThat(underTest.usedTenants.get(1)).isEqualTo(GLOBAL_TENANT);
   }
 
+  @Test
+  public void shouldNotFallBackToGlobal_whenSetTenantConfig() {
+    when(query.get(any())).thenReturn(null);
+
+    TenantTestHelper.testAs(TENANT, t -> {
+      underTest.set(mock(TransactionContext.class), "key", PROPERTY_VALUE);
+
+      assertThat(underTest.usedTenants.size()).isEqualTo(1);
+      assertThat(underTest.usedTenants.get(0)).isEqualTo(TENANT);
+    });
+  }
+
+  @Test
+  public void shouldNotFallBackToGlobal_whenUpdateTenantConfig() {
+    when(query.get(any())).thenReturn(null);
+
+    TenantTestHelper.testAs(TENANT, t -> {
+      try {
+        underTest.update(mock(TransactionContext.class), new SystemConfigurationProperty("key", PROPERTY_VALUE));
+      }
+      catch (NotFoundException e) {
+        // no-op. Don't care that no config exists for the tenant, we care that global is NOT used
+      }
+
+      assertThat(underTest.usedTenants.size()).isEqualTo(1);
+      assertThat(underTest.usedTenants.get(0)).isEqualTo(TENANT);
+    });
+  }
+
   private class MockSystemConfigurationPropertyDAO
       extends SystemConfigurationPropertyDAO
   {
@@ -148,7 +179,9 @@ public class SystemConfigurationPropertyDAOMultiTenantTest
         String sQuery,
         Object... parameters)
     {
-      this.usedTenants.add(TenantThreadLocal.getTenant());
+      if (!usedTenants.contains(TenantThreadLocal.getTenant())) {
+        this.usedTenants.add(TenantThreadLocal.getTenant());
+      }
 
       return query;
     }

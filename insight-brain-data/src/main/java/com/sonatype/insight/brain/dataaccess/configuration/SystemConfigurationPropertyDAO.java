@@ -39,12 +39,20 @@ public class SystemConfigurationPropertyDAO
   }
 
   public SystemConfigurationProperty getByName(TransactionContext tx, String name) {
+    return getByName(tx, name, false);
+  }
+
+  private SystemConfigurationProperty getByName(TransactionContext tx, String name, boolean fetchForUpdate) {
     String sQuery = "SELECT entity FROM SystemConfigurationProperty entity WHERE entity.name=?1";
-    return get(tx, sQuery, name);
+    return getWithGlobalFallback(tx, sQuery, fetchForUpdate, name);
   }
 
   public SystemConfigurationProperty getByNameNotNull(TransactionContext tx, String name) {
-    SystemConfigurationProperty property = getByName(tx, name);
+    return getByNameNotNull(tx, name, false);
+  }
+
+  private SystemConfigurationProperty getByNameNotNull(TransactionContext tx, String name, boolean fetchForUpdate) {
+    SystemConfigurationProperty property = getByName(tx, name, fetchForUpdate);
     if (property == null) {
       throw new NotFoundException("A system configuration property '" + name + "' does not exist.");
     }
@@ -57,7 +65,7 @@ public class SystemConfigurationPropertyDAO
 
   @Override
   public void update(TransactionContext tx, SystemConfigurationProperty property) {
-    SystemConfigurationProperty existingProperty = getByNameNotNull(tx, property.getName());
+    SystemConfigurationProperty existingProperty = getByNameNotNull(tx, property.getName(), true);
     property.setId(existingProperty.getId());
     super.update(tx, property);
   }
@@ -85,7 +93,7 @@ public class SystemConfigurationPropertyDAO
   }
 
   public void set(TransactionContext tx, String name, String value) {
-    SystemConfigurationProperty property = getByName(tx, name);
+    SystemConfigurationProperty property = getByName(tx, name, true);
     if (value == null) {
       if (property != null) {
         delete(tx, property);
@@ -103,6 +111,15 @@ public class SystemConfigurationPropertyDAO
     }
   }
 
+  @Override
+  protected SystemConfigurationProperty get(
+      TransactionContext tx,
+      String sQuery,
+      Object... parameters)
+  {
+    return getWithGlobalFallback(tx, sQuery, false, parameters);
+  }
+
   /**
    * MTIQ: First attempt to get the configuration from the current tenant. If the configuration does not exist in the
    * per-tenant schema then fall back and get the config from the global tenant. This allows us to provide configuration
@@ -113,13 +130,18 @@ public class SystemConfigurationPropertyDAO
    * @param tx
    * @param sQuery
    * @param parameters
+   * @param fetchForUpdate - If fetching config to then update the config, should NOT fall back and use global
    * @return
    */
-  @Override
-  protected SystemConfigurationProperty get(TransactionContext tx, String sQuery, Object... parameters) {
+  private SystemConfigurationProperty getWithGlobalFallback(
+      TransactionContext tx,
+      String sQuery,
+      boolean fetchForUpdate,
+      Object... parameters)
+  {
     SystemConfigurationProperty result = super.get(tx, sQuery, null, parameters);
 
-    if (result != null || new TenantUtil().isSingleTenant() || new TenantUtil().isGlobalTenant()) {
+    if (fetchForUpdate || result != null || new TenantUtil().isSingleTenant() || new TenantUtil().isGlobalTenant()) {
       return result;
     }
     else {

@@ -133,7 +133,7 @@ void pushDockerImageIfDeployBranch() {
         imageName = 'mtiq/snapshot'
         fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
 
-        sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --build-arg IQ_SERVER_VERSION=${iqVersion} --tag ${imageName}:${imageVersion} ."
+        sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --tag ${imageName}:${imageVersion} ."
         String latest = "${sonatypeDockerRegistryId()}/${imageName}:latest"
         runSafely "docker tag ${imageName}:${imageVersion} ${fullImage}"
         runSafely "docker push ${fullImage}"

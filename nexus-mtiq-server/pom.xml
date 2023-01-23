@@ -89,20 +89,9 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <!--
-               The MTIQ shade configuration excludes the 'Original' data store implementations completely and sets our
-                custom main class. This is not a distributed jar, so we don't need to do any of the other transforms.
-               -->
+              <finalName>nexus-mtiq-server</finalName> <!-- Note: version number is not included in the filename -->
               <shadedArtifactAttached>true</shadedArtifactAttached>
               <shadedClassifierName>mtiq</shadedClassifierName>
-              <filters>
-                <filter>
-                  <artifact>com.sonatype.insight.brain:insight-brain-service</artifact>
-                  <excludes>
-                    <exclude>com/sonatype/insight/brain/db/datastore/Original**</exclude>
-                  </excludes>
-                </filter>
-              </filters>
               <artifactSet>
                 <includes>
                   <include>com.sonatype.insight.brain:insight-brain-service</include>

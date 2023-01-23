@@ -21,7 +21,7 @@
   </fileSets>
   <files>
     <file>
-      <source>${project.build.directory}/nexus-mtiq-server-${project.version}-mtiq.jar</source>
+      <source>${project.build.directory}/nexus-mtiq-server.jar</source>
       <outputDirectory>.</outputDirectory>
       <destName>${clm.server.jar}</destName>
     </file>

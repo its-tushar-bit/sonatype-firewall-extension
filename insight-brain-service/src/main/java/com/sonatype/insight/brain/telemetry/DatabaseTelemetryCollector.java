@@ -10,18 +10,16 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.db.H2DatabaseUtil;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -76,11 +74,12 @@ public class DatabaseTelemetryCollector
   }
 
   private String getOdsSizeBytes_ExternalDatabase() {
-    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection(); //
-        Statement statement = connection.createStatement()) {
-      ResultSet resultSet = statement.executeQuery(
-          "SELECT SUM(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(tablename)))::BIGINT " //
-              + "FROM pg_tables WHERE schemaname = '" + OperationalDataStore.ID + "'");
+    try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
+         PreparedStatement statement = connection.prepareStatement(
+             "SELECT SUM(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(tablename)))::BIGINT "
+                 + "FROM pg_tables WHERE schemaname = ?")) {
+      statement.setString(1, OperationalDataStoreProvider.getDatabaseSchema());
+      ResultSet resultSet = statement.executeQuery();
       resultSet.next();
       return String.valueOf(resultSet.getLong(1));
     }

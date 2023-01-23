@@ -14,7 +14,6 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -25,7 +24,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class ClusterTelemetryTask
-    implements InsightJob, GlobalTenantJob
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(ClusterTelemetryTask.class);
 

@@ -1,0 +1,95 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.telemetry;
+
+import java.util.List;
+
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import static com.sonatype.insight.brain.tenancy.TenantManagerTestHelper.setTestTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
+public class MultiTenantRepositoryConfigurationCollectorTest
+    extends MultiTenantTelemetryCollectorTest
+{
+  private static final String USER_AGENT = "Nexus/3.9.0-01 (PRO; Mac OS X; 10.16; x86_64; 1.8.0_292)";
+
+  @Mock
+  public ProductLicense productLicense;
+
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  private RepositoryDAO repositoryDAO;
+
+  private RepositoryConfigurationCollector telemetryCollector;
+
+  @Before
+  public void setup() {
+    repositoryManagerDAO = new RepositoryManagerDAO();
+    repositoryDAO = new RepositoryDAO();
+    telemetryCollector =
+        new RepositoryConfigurationCollector(productLicense, repositoryDAO, repositoryManagerDAO);
+  }
+
+  @Test
+  public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() {
+    Tenant tenant1 = new Tenant("tenant1");
+    Tenant tenant2 = new Tenant("tenant2");
+
+    when(productLicense.hasFeature(any())).thenReturn(true);
+
+    testAs(tenant1, t1 -> {
+      setTestTenant(tenantManager, tenant1);
+
+      RepositoryManager repositoryManager = new RepositoryManager("1");
+      repositoryManager.setUserAgent(USER_AGENT);
+      repositoryManagerDAO.insert(repositoryManager);
+      Repository repository = new Repository(repositoryManager.getId(), "repo");
+      repositoryDAO.insert(repository);
+    });
+
+    testAs(tenant2, t2 -> {
+      setTestTenant(tenantManager, tenant2);
+    });
+
+    testAs(tenant1, t1 -> {
+      TelemetryData telemetryData = telemetryCollector.collectData();
+
+      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_CONFIGURATION);
+      assertThat(telemetryData.getAttributes()).containsOnlyKeys(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY,
+          RepositoryConfigurationCollector.IS_QUARANTINE_ENABLED);
+      assertThat((List) telemetryData.getAttributes().get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY))
+          .hasSize(1);
+    });
+
+    testAs(tenant2, t2 -> {
+      TelemetryData telemetryData = telemetryCollector.collectData();
+
+      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_CONFIGURATION);
+      assertThat(telemetryData.getAttributes()).containsOnlyKeys(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY,
+          RepositoryConfigurationCollector.IS_QUARANTINE_ENABLED);
+      assertThat((List) telemetryData.getAttributes().get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY))
+          .hasSize(0);
+    });
+  }
+}

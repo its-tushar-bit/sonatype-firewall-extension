@@ -33,7 +33,7 @@ public class RepositoryIdentifiedComponentCache
 
   private final RepositoryIdentifiedComponentCacheLoader repositoryIdentifiedComponentCacheLoader;
 
-  private final RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO;
+  protected final RepositoryIdentifiedComponentDAO repositoryIdentifiedComponentDAO;
 
   private final LoadingCache<String, ComponentIdentifier> loadingCache;
 
@@ -76,6 +76,10 @@ public class RepositoryIdentifiedComponentCache
     RepositoryIdentifiedComponent repositoryIdentifiedComponent =
         new RepositoryIdentifiedComponent(hash, componentIdentifier, date, date);
     repositoryIdentifiedComponentDAO.update(repositoryIdentifiedComponent);
+    addToCache(hash, componentIdentifier);
+  }
+
+  protected void addToCache(String hash, ComponentIdentifier componentIdentifier) {
     loadingCache.put(hash, componentIdentifier);
   }
 

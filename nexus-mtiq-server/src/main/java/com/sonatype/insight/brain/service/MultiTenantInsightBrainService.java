@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.service;
 import java.util.Arrays;
 import java.util.List;
 
+import com.sonatype.insight.brain.component.MultiTenantRepositoryIdentifiedComponentCache;
+import com.sonatype.insight.brain.component.RepositoryIdentifiedComponentCache;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
@@ -191,6 +193,8 @@ public class MultiTenantInsightBrainService
 
         bind(TelemetryId.class).to(MultiTenantTelemetryId.class);
         bind(TelemetryCollectorsProvider.class).to(MultiTenantTelemetryCollectorsProvider.class);
+
+        bind(RepositoryIdentifiedComponentCache.class).to(MultiTenantRepositoryIdentifiedComponentCache.class);
       }
     };
   }

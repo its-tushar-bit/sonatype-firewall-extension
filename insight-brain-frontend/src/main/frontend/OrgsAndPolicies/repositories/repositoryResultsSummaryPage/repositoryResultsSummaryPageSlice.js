@@ -28,11 +28,11 @@ const DEFAULT_SORTED_FIELD = 'POLICY_THREAT_LEVEL';
 const initialState = {
   repositoryInfo: null,
   affectedComponentCount: null,
-  criticalComponentCount: null,
+  criticalViolationCount: null,
   knownComponentCount: null,
-  moderateComponentCount: null,
+  moderateViolationCount: null,
   quarantinedComponentCount: null,
-  severeComponentCount: null,
+  severeViolationCount: null,
   totalComponentCount: null,
   loadingSummaryTile: false,
   loadingRepositoryInformation: false,
@@ -206,11 +206,11 @@ const getRepositoryInformationPending = (state) => {
 const getRepositorySummaryFulfilled = (state, action) => {
   const summary = action.payload;
   state.affectedComponentCount = summary.affectedComponentCount;
-  state.criticalComponentCount = summary.criticalComponentCount;
+  state.criticalViolationCount = summary.criticalViolationCount;
   state.knownComponentCount = summary.knownComponentCount;
-  state.moderateComponentCount = summary.moderateComponentCount;
+  state.moderateViolationCount = summary.moderateViolationCount;
   state.quarantinedComponentCount = summary.quarantinedComponentCount;
-  state.severeComponentCount = summary.severeComponentCount;
+  state.severeViolationCount = summary.severeViolationCount;
   state.totalComponentCount = summary.totalComponentCount;
   state.loadingSummaryTile = false;
   state.errorSummaryTile = null;
@@ -218,11 +218,11 @@ const getRepositorySummaryFulfilled = (state, action) => {
 
 const getRepositorySummaryRejected = (state, action) => {
   state.affectedComponentCount = initialState.affectedComponentCount;
-  state.criticalComponentCount = initialState.criticalComponentCount;
+  state.criticalViolationCount = initialState.criticalViolationCount;
   state.knownComponentCount = initialState.knownComponentCount;
-  state.moderateComponentCount = initialState.moderateComponentCount;
+  state.moderateViolationCount = initialState.moderateViolationCount;
   state.quarantinedComponentCount = initialState.quarantinedComponentCount;
-  state.severeComponentCount = initialState.severeComponentCount;
+  state.severeViolationCount = initialState.severeViolationCount;
   state.totalComponentCount = initialState.totalComponentCount;
   state.loadingSummaryTile = false;
   state.errorSummaryTile = Messages.getHttpErrorMessage(action.payload);

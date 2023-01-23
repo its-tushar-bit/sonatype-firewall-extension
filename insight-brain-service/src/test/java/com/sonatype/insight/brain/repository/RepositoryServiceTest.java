@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -470,28 +471,53 @@ public class RepositoryServiceTest extends AbstractComponentTest
 
   @Test
   public void testGetRepositorySummary() {
-    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
-    Repository repo = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
+    Repository repo = tempEntity.newRepository();
+
+    // Component without violations
+    tempEntity.newRepositoryComponent(repo.getId(), "no policy violations");
+    // Components with active violations
     RepositoryComponent component1 = tempEntity.newRepositoryComponent(repo.getId(), "1");
     RepositoryComponent component2 = tempEntity.newRepositoryComponent(repo.getId(), "2");
     RepositoryComponent component3 = tempEntity.newRepositoryComponent(repo.getId(), "3");
     RepositoryComponent component4 = tempEntity.newRepositoryComponent(repo.getId(), "4");
+    // Component with waived violation
+    RepositoryComponent component5 = tempEntity.newRepositoryComponent(repo.getId(), "5");
+    // Unknown component
     tempEntity.newRepositoryComponent(repo.getId(), MatchState.UNKNOWN, null);
-
-    tempEntity.newRepositoryPolicyViolation(repo.getId(), 1, component1.getPathname(), null);
-    tempEntity.newRepositoryPolicyViolation(repo.getId(), 5, component2.getPathname(), null);
-    tempEntity.newRepositoryPolicyViolation(repo.getId(), 6, component3.getPathname(), null);
-    tempEntity.newRepositoryPolicyViolation(repo.getId(), 9, component4.getPathname(), null);
-
+    // Quarantined component
     tempEntity.newRepositoryComponent(repo.getId(), "/quarantined", new Date(), null);
+
+    // Threat level < 2 is not counted
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 1, component1.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 1, component2.getPathname(), null);
+    // Moderate threat level
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 2, component2.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 3, component2.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 3, component3.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 3, component3.getPathname(), null);
+    // Severe threat level
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 4, component3.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 5, component3.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 6, component3.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 6, component4.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 6, component4.getPathname(), null);
+    // Critical threat level
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 8, component4.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 9, component4.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 9, component4.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 9, component4.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 9, component4.getPathname(), null);
+    tempEntity.newRepositoryPolicyViolation(repo.getId(), 10, component4.getPathname(), null);
+    // Waived
+    tempEntity.newRepositoryPolicyViolation(component5, 9, true /* waived */, "testPolicyName", FailActionType.ID);
 
     RepositorySummary summary = repositoryService.getRepositorySummary(repo.getId());
 
-    assertThat(summary.knownComponentCount).isEqualTo(5);
-    assertThat(summary.totalComponentCount).isEqualTo(6);
-    assertThat(summary.criticalComponentCount).isEqualTo(1);
-    assertThat(summary.severeComponentCount).isEqualTo(2);
-    assertThat(summary.moderateComponentCount).isEqualTo(0);
+    assertThat(summary.knownComponentCount).isEqualTo(7);
+    assertThat(summary.totalComponentCount).isEqualTo(8);
+    assertThat(summary.criticalViolationCount).isEqualTo(6);
+    assertThat(summary.severeViolationCount).isEqualTo(5);
+    assertThat(summary.moderateViolationCount).isEqualTo(4);
     assertThat(summary.affectedComponentCount).isEqualTo(3);
     assertThat(summary.quarantinedComponentCount).isEqualTo(1);
   }

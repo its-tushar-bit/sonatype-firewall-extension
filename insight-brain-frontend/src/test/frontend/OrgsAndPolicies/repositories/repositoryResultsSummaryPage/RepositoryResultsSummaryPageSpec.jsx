@@ -20,11 +20,11 @@ describe('RepositoryResultsSummaryPage', () => {
   const repositorySummaryInfo = {
     repositoryInfo,
     affectedComponentCount: 1,
-    criticalComponentCount: 1,
+    criticalViolationCount: 1,
     knownComponentCount: 1,
-    moderateComponentCount: 1,
+    moderateViolationCount: 1,
     quarantinedComponentCount: 1,
-    severeComponentCount: 1,
+    severeViolationCount: 1,
     totalComponentCount: 6,
     loadingSummaryTile: false,
     loadingRepositoryInformation: false,
@@ -55,9 +55,9 @@ describe('RepositoryResultsSummaryPage', () => {
     it('shows proper values for threat counters', () => {
       spyTileSummary.and.returnValue({
         ...repositorySummaryInfo,
-        severeComponentCount: 998,
-        moderateComponentCount: 997,
-        criticalComponentCount: 996,
+        severeViolationCount: 998,
+        moderateViolationCount: 997,
+        criticalViolationCount: 996,
       });
 
       renderComponent();

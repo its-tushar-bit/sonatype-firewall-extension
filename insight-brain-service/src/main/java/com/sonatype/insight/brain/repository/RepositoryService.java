@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -193,8 +192,9 @@ public class RepositoryService
 
   @Authorize(permission = Permission.READ)
   RepositorySummary getRepositorySummary(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
-    Repository repository = repositoryDAO.getById(repositoryId);
+    long start = System.currentTimeMillis();
 
+    Repository repository = repositoryDAO.getById(repositoryId);
     log.debug("Get summary for repository {}:{} ({})", repository.getRepositoryManagerId(),
         repository.getPublicId(), repositoryId);
 
@@ -202,38 +202,28 @@ public class RepositoryService
     summary.knownComponentCount = repositoryComponentDAO.getKnownComponentCountByRepositoryId(repository.getId());
     summary.totalComponentCount = repositoryComponentDAO.getComponentCountByRepositoryId(repository.getId());
 
-    List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndNotWaived(repository.getId());
-
-    final Map<String, Integer> componentThreatLevels = new HashMap<>();
-    for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-      String pathname = repositoryPolicyViolation.getPathname();
-      Integer threatLevel = componentThreatLevels.get(pathname);
-      if (threatLevel == null || threatLevel < repositoryPolicyViolation.getThreatLevel()) {
-        componentThreatLevels.put(pathname, repositoryPolicyViolation.getThreatLevel());
+    Map<Integer, Integer> policyViolationCountsByThreatLevel =
+        repositoryPolicyViolationDAO.getCountsByPolicyThreatLevel(repositoryId);
+    for (int policyThreatLevel : policyViolationCountsByThreatLevel.keySet()) {
+      int policyViolationCount = policyViolationCountsByThreatLevel.get(policyThreatLevel);
+      if (policyThreatLevel >= 8) {
+        summary.criticalViolationCount += policyViolationCount;
       }
-    }
-    int criticalCount = 0;
-    int severeCount = 0;
-    int moderateCount = 0;
-    for (final int level : componentThreatLevels.values()) {
-      if (level >= 8) {
-        criticalCount++;
+      else if (policyThreatLevel >= 4) {
+        summary.severeViolationCount += policyViolationCount;
       }
-      else if (level >= 4) {
-        severeCount++;
-      }
-      else if (level >= 2) {
-        moderateCount++;
+      else if (policyThreatLevel >= 2) {
+        summary.moderateViolationCount += policyViolationCount;
       }
     }
 
-    summary.criticalComponentCount = criticalCount;
-    summary.severeComponentCount = severeCount;
-    summary.moderateComponentCount = moderateCount;
-    summary.affectedComponentCount = criticalCount + severeCount + moderateCount;
+    summary.affectedComponentCount =
+        repositoryComponentDAO.getCountWithPolicyViolationInPolicyThreatLevelRange(repositoryId, 2, 10);
     summary.quarantinedComponentCount =
-        repositoryComponentDAO.getQuarantinedComponentCountByRepositoryId(repository.getId());
+        repositoryComponentDAO.getQuarantinedComponentCountByRepositoryId(repositoryId);
+
+    log.debug("Got summary for repository {}:{} ({}) in {} ms", repository.getRepositoryManagerId(),
+        repository.getPublicId(), repositoryId, System.currentTimeMillis() - start);
 
     return summary;
   }

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -200,6 +201,35 @@ public class RepositoryComponentDAO
     }
 
     return getSingle(Long.class, sQuery, parameters.toArray());
+  }
+
+  public int getCountWithPolicyViolationInPolicyThreatLevelRange(
+      String repositoryId,
+      int minPolicyThreatLevel,
+      int maxPolicyThreatLevel)
+  {
+    // Jan 19, 2023:
+    // I tried this JPA query:
+    // String sQuery = "SELECT COUNT(DISTINCT policyViolation.pathname)" + //
+    // " FROM RepositoryPolicyViolation policyViolation" + //
+    // " WHERE policyViolation.repositoryId=?1" + //
+    // " AND policyViolation.active = true AND policyViolation.isWaived = false" + //
+    // " AND policyViolation.threatLevel >= ?2 AND policyViolation.threatLevel <= ?3";
+    // The native query below is about 2 times faster than the JPA query.
+    try (TransactionContext tx = createTransactionContext()) {
+      String sQuery = "SELECT COUNT(*) AS component_count FROM " + //
+          "(SELECT DISTINCT pathname" + //
+          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_policy_violation" + //
+          " WHERE repository_id = ?1 AND active = true AND waived = false" + //
+          " AND threat_level >= ?2 AND threat_level <= ?3) inner_select_alias";
+
+      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      query.setParameter(1, repositoryId);
+      query.setParameter(2, minPolicyThreatLevel);
+      query.setParameter(3, maxPolicyThreatLevel);
+
+      return ((Long) query.getResultList().get(0)).intValue();
+    }
   }
 
   private static String getBaseFirewallComponentsQueryAndViolations(

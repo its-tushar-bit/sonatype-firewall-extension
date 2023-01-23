@@ -32,6 +32,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import static java.util.stream.Collectors.toMap;
+
 /**
  * @since 1.17
  */
@@ -259,6 +261,21 @@ public class RepositoryPolicyViolationDAO
     }
   }
 
+  public Map<Integer, Integer> getCountsByPolicyThreatLevel(String repositoryId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      String sQuery = "SELECT threat_level, COUNT(*) AS number_of_policy_violations" + //
+          " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".repository_policy_violation violation" + //
+          " WHERE repository_id = ?1 AND active = true AND waived = false" + //
+          " GROUP BY threat_level";
+
+      javax.persistence.Query query = tx.createNativeQuery(sQuery);
+      query.setParameter(1, repositoryId);
+
+      return ((Stream<Object[]>) query.getResultStream()) //
+          .collect(toMap(row -> getInteger(row[0]), row -> getInteger(row[1])));
+    }
+  }
+
   private boolean hasNonViolatingFilter(final Set<String> violationStateFilters) {
     return violationStateFilters.stream()
         .anyMatch(filter -> filter.equals("VIOLATION_STATE_ALL") || filter.equals("VIOLATION_STATE_NOT_VIOLATING"));
@@ -361,6 +378,9 @@ public class RepositoryPolicyViolationDAO
     }
     if (value instanceof Integer) {
       return (Integer) value;
+    }
+    if (value instanceof Long) {
+      return ((Long) value).intValue();
     }
 
     return null;

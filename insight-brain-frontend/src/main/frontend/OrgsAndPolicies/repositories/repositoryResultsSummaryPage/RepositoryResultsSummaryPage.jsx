@@ -129,17 +129,17 @@ export default function RepositoryResultsSummaryPage() {
             )}
           </NxPageTitle>
           <ReportStatusBar
-            criticalViolationCount={repositorySummary.criticalComponentCount}
-            severeViolationCount={repositorySummary.severeComponentCount}
-            moderateViolationCount={repositorySummary.moderateComponentCount}
+            criticalViolationCount={repositorySummary.criticalViolationCount}
+            severeViolationCount={repositorySummary.severeViolationCount}
+            moderateViolationCount={repositorySummary.moderateViolationCount}
             knownArtifactCount={repositorySummary.knownComponentCount}
             totalArtifactCount={repositorySummary.totalComponentCount}
             quarantinedComponentCount={repositorySummary.quarantinedComponentCount}
             policyComponentCount={repositorySummary.affectedComponentCount}
             nonLowViolationCount={
-              repositorySummary.criticalComponentCount +
-              repositorySummary.severeComponentCount +
-              repositorySummary.moderateComponentCount
+              repositorySummary.criticalViolationCount +
+              repositorySummary.severeViolationCount +
+              repositorySummary.moderateViolationCount
             }
             showQuarantinedSection={true}
             showGrandfatheredSection={false}

@@ -106,18 +106,18 @@ public class RepositoryResultsSummaryTest
 
   @Test
   public void testRepositoryResultHeader() {
-
     refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
 
     RepositoryResultDetailPage.header().shouldBe(visible).shouldHave(text("Repository Results for Central"));
 
     RepositoryResultDetailPage.indicatorRow().shouldBe(visible);
     NxSmallThreatCounter counts = RepositoryResultDetailPage.indicatorRow().counts();
-    counts.all().shouldHaveSize(2);
     counts.critical().category().shouldHave(Condition.text("Critical"));
-    counts.critical().count().shouldHave(Condition.text("1"));
+    counts.critical().count().shouldHave(Condition.text("21"));
     counts.severe().category().shouldHave(Condition.text("Severe"));
-    counts.severe().count().shouldHave(Condition.text("1"));
+    counts.severe().count().shouldHave(Condition.text("5"));
+    counts.moderate().category().shouldHave(Condition.text("Moderate"));
+    counts.moderate().count().shouldHave(Condition.text("2"));
 
     RepositoryResultDetailPage.indicatorRow().coverageCaptionText().shouldHave(text("2 COMPONENTS"));
     RepositoryResultDetailPage.indicatorRow().coverageCaptionSubtext()

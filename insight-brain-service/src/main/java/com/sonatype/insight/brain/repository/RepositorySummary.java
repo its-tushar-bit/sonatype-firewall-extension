@@ -11,11 +11,11 @@ public class RepositorySummary
 
   public int totalComponentCount;
 
-  public int criticalComponentCount;
+  public int criticalViolationCount;
 
-  public int severeComponentCount;
+  public int severeViolationCount;
 
-  public int moderateComponentCount;
+  public int moderateViolationCount;
 
   public int affectedComponentCount;
 

@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyViolationGrandfatheringEditorPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -120,9 +121,9 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
       PolicyViolationGrandfatheringEditorPage.overridesCheckbox().click();
     }
 
-    PolicyViolationGrandfatheringEditorPage.updateButton().shouldNotBe(DISABLED).click();
+    PolicyViolationGrandfatheringEditorPage.updateButton().click();
     FormMask.seeAndWaitForDismissal();
-    PolicyViolationGrandfatheringEditorPage.updateButton().shouldBe(DISABLED);
+    PolicyViolationGrandfatheringEditorPage.updateButton().shouldBe(visible);
 
     policyViolationGrandfatheringDTO = policyViolationGrandfatheringService.getGrandfathering(currentOwner.getType(),
         currentOwner.getPublicId());
@@ -174,7 +175,9 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
       }
     }
 
-    PolicyViolationGrandfatheringEditorPage.updateButton().shouldBe(DISABLED);
+    PolicyViolationGrandfatheringEditorPage.updateButton().click();
+    FormUtils.getAlertElement(PolicyViolationGrandfatheringEditorPage.form()).shouldBe(visible)
+        .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save"));
   }
 
   @Test

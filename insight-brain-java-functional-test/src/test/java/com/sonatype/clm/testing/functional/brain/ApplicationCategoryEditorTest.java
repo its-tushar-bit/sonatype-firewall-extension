@@ -87,7 +87,6 @@ public class ApplicationCategoryEditorTest
     ApplicationCategoryEditorPage.associationEditor().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(2);
     ApplicationCategoryEditorPage.associationEditor().shouldNotBe(MULTI_COLUMN);
-    ApplicationCategoryEditorPage.updateButton().shouldHave(DISABLED);
 
     IqAssociationEditor.AssociationEditorElement category1Item =
             ApplicationCategoryEditorPage.associationEditor().item(0);
@@ -148,7 +147,6 @@ public class ApplicationCategoryEditorTest
     ApplicationCategoryEditorPage.associationEditor().shouldBe(visible);
     ApplicationCategoryEditorPage.associationEditor().rows().shouldHaveSize(10);
     ApplicationCategoryEditorPage.associationEditor().shouldBe(MULTI_COLUMN);
-    ApplicationCategoryEditorPage.updateButton().shouldHave(DISABLED);
 
     for (int i = 0; i < 10; i++) {
       IqAssociationEditor.AssociationEditorElement item = ApplicationCategoryEditorPage.associationEditor().item(i);

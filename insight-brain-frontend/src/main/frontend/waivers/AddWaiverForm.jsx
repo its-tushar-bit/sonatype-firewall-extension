@@ -9,19 +9,18 @@ import { find, propEq } from 'ramda';
 import classnames from 'classnames';
 import moment from 'moment';
 import {
-  NxButton,
   NxFieldset,
   NxTextInput,
   NxRadio,
   NxDateInput,
   NxFormSelect,
   NxTooltip,
+  NxStatefulForm,
 } from '@sonatype/react-shared-components';
 
 import ViolationExclamation from '../react/ViolationExclamation';
 import ArtifactNameDisplay from '../react/ArtifactNameDisplay';
 import VulnerabilityDetailsModalContainer from '../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
-import LoadError from '../react/LoadError';
 import { waiverExpirations, waiverMatcherStrategy } from '../util/waiverUtils';
 import ownerConstant from 'MainRoot/utility/services/owner.constant';
 
@@ -81,9 +80,7 @@ export default function AddWaiverForm(props) {
     return parseInt(expiryTime, 10);
   };
 
-  const onSubmit = (evt) => {
-    evt.preventDefault();
-
+  const onSubmit = () => {
     if (isCustomExpiryTimeSelected && !isCustomExpiryTimeValid(customExpiryTime.value)) {
       return;
     }
@@ -173,7 +170,14 @@ export default function AddWaiverForm(props) {
   };
 
   return (
-    <form className="nx-form iq-add-waiver-form" onSubmit={onSubmit}>
+    <NxStatefulForm
+      className="iq-add-waiver-form"
+      onCancel={cancelAction}
+      submitError={submitError?.response?.data || submitError?.message}
+      showValidationErrors={!!submitError}
+      submitBtnClasses="add-waiver-submit"
+      onSubmit={onSubmit}
+    >
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">Waiver Configuration</h2>
@@ -274,15 +278,15 @@ export default function AddWaiverForm(props) {
                 ))}
               </NxFormSelect>
               <div className="iq-add-waiver-form__expiration-days-diff visual-testing-ignore">{daysDiff()}</div>
+              {isCustomExpiryTimeSelected && (
+                <NxDateInput
+                  className="iq-add-waiver-form__date-input"
+                  {...customExpiryTime}
+                  onChange={setCustomExpiryTime}
+                  validatable={true}
+                />
+              )}
             </div>
-            {isCustomExpiryTimeSelected && (
-              <NxDateInput
-                className="iq-add-waiver-form__date-input"
-                {...customExpiryTime}
-                onChange={setCustomExpiryTime}
-                validatable={true}
-              />
-            )}
           </div>
         </NxFieldset>
 
@@ -297,26 +301,7 @@ export default function AddWaiverForm(props) {
           <div className="nx-read-only__data">{currentUser}</div>
         </div>
       </div>
-
-      {/* Actions */}
-      <footer className="nx-footer">
-        {submitError && <LoadError error={submitError} titleMessage="An error occurred saving the waiver." />}
-        <div className="nx-btn-bar">
-          <NxButton type="button" id="add-waiver-cancel" onClick={cancelAction}>
-            Cancel
-          </NxButton>
-
-          <NxButton
-            disabled={isCustomExpiryTimeSelected && !isCustomExpiryTimeValid(customExpiryTime.value)}
-            type="submit"
-            id="add-waiver-submit"
-            variant="primary"
-          >
-            Submit
-          </NxButton>
-        </div>
-      </footer>
-    </form>
+    </NxStatefulForm>
   );
 }
 

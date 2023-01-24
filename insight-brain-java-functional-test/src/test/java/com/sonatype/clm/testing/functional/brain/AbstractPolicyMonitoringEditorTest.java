@@ -123,6 +123,6 @@ public abstract class AbstractPolicyMonitoringEditorTest
     waitUntilUrl(MonitoredStageEditorPage.url(currentOwner));
     MonitoredStageEditorPage.title().shouldHave(text(MonitoredStageEditorPage.HEADER_TEXT));
     MonitoredStageEditorPage.selectedStage().shouldHave(text(selectedStageText));
-    MonitoredStageEditorPage.updateButton().shouldHave(DISABLED);
+    MonitoredStageEditorPage.updateButton().shouldBe(visible);
   }
 }

@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  NxForm,
+  NxStatefulForm,
   NxButton,
   NxFontAwesomeIcon,
   NxTextInput,
@@ -99,7 +99,7 @@ export default function AtlassianCrowdConfiguration() {
       variant="narrow"
       aria-labelledby="crowd-delete-label-modal"
     >
-      <NxForm
+      <NxStatefulForm
         onSubmit={() => deleteConf()}
         onCancel={modalCloseHandler}
         submitBtnText="OK"
@@ -116,7 +116,7 @@ export default function AtlassianCrowdConfiguration() {
         <div className="nx-modal-content">
           <NxWarningAlert>This will remove the configured Crowd server data.</NxWarningAlert>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 
@@ -126,7 +126,7 @@ export default function AtlassianCrowdConfiguration() {
         <h1 className="nx-h1">Atlassian Crowd</h1>
       </NxPageTitle>
       <NxTile id="crowd-config-form">
-        <NxForm
+        <NxStatefulForm
           submitBtnClasses="iq-crowd-configuration-save-button"
           loading={loading}
           doLoad={loadConf}
@@ -204,7 +204,7 @@ export default function AtlassianCrowdConfiguration() {
               />
             )}
           </NxTile.Content>
-        </NxForm>
+        </NxStatefulForm>
       </NxTile>
       {showModal && deleteModal}
     </NxPageMain>

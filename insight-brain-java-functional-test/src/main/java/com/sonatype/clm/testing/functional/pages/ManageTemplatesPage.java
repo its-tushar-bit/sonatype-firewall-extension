@@ -49,7 +49,7 @@ public final class ManageTemplatesPage
   }
 
   public static SelenideElement templateNameErrorPrompt() {
-    return templateNameInput().parent().parent().$(".nx-text-input__invalid-message");
+    return templateNameInput().parent().parent().$(".nx-field-validation-message");
   }
 
   public static SelenideElement reportTitleInput() {
@@ -57,7 +57,7 @@ public final class ManageTemplatesPage
   }
 
   public static SelenideElement reportTitleErrorPrompt() {
-    return reportTitleInput().parent().parent().$(".nx-text-input__invalid-message");
+    return reportTitleInput().parent().parent().$(".nx-field-validation-message");
   }
 
   public static SelenideElement documentHeaderInput() {

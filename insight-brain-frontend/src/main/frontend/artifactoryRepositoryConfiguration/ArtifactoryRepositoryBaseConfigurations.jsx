@@ -5,13 +5,12 @@
  */
 
 import React, { useEffect } from 'react';
-import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import {
   NxButton,
   NxCheckbox,
   NxFieldset,
   NxFontAwesomeIcon,
-  NxForm,
+  NxStatefulForm,
   NxH2,
   NxH3,
   NxInfoAlert,
@@ -57,7 +56,6 @@ import ArtifactoryRepositoryConfigurationModal from './ArtifactoryRepositoryConf
 
 export default function ArtifactoryRepositoryBaseConfigurations() {
   const dispatch = useDispatch();
-  const uiRouterState = useRouterState();
 
   const { loading, loadError, saveError, submitMaskState, submitMaskMessage } = useSelector(
     selectArtifactoryRepositoryBaseConfigurationsSlice
@@ -126,7 +124,7 @@ export default function ArtifactoryRepositoryBaseConfigurations() {
         <ArtifactoryRepositoryConfigurationModal />
         <ArtifactoryRepositoryDeleteConfigurationModal />
 
-        <NxForm
+        <NxStatefulForm
           id="artifactory-repository-base-configurations-form"
           loading={loading}
           doLoad={load}
@@ -259,7 +257,7 @@ export default function ArtifactoryRepositoryBaseConfigurations() {
               </>
             )}
           </NxTile.Content>
-        </NxForm>
+        </NxStatefulForm>
       </NxTile>
     </NxPageMain>
   );

@@ -153,7 +153,7 @@ public class MoveApplicationTest
     ActionDropDown.actionButton().shouldBe(visible).click();
     ActionDropDown.moveApplication().shouldBe(visible).click();
     modal.shouldBe(visible);
-    modal.moveButton().shouldBe(DISABLED);
+    modal.moveButton().shouldBe(visible);
     modal.body().shouldBe(visible);
 
     NxFormSelect destinationDropdown = modal.destinationDropdown();

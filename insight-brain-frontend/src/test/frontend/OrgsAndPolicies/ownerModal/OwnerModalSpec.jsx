@@ -13,8 +13,6 @@ import { validateNonEmpty } from 'MainRoot/util/validationUtil';
 const { initialState: rscInitialState } = nxTextInputStateHelpers;
 const { initialState: rscInitialFileUploadState } = nxFileUploadStateHelpers;
 
-const disabledButtonText = 'Submit disabled: Unable to save: fields with invalid or missing data';
-
 const APPS = [
   {
     id: 'applicationOneID',
@@ -246,9 +244,7 @@ describe('OwnerModal', () => {
       expect(screen.getByText(`Get a robot`)).toBeVisible();
 
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
-
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
-      expect(submitButton).toHaveTextContent('Create');
+      expect(screen.getByRole('button', { name: 'Create' })).toBeVisible();
     });
 
     it('triggers createNewOwner', () => {
@@ -280,9 +276,7 @@ describe('OwnerModal', () => {
       const ownerNameInput = screen.getByRole('textbox');
       fireEvent.change(ownerNameInput, { target: { value: 'some%text' } });
 
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
-      expect(submitButton).toHaveTextContent('Create');
-      expect(submitButton).toHaveClassName('disabled');
+      const submitButton = screen.getByRole('button', { name: 'Create' });
       fireEvent.click(submitButton);
       expect(mock.history.post.length).toBe(0);
       expect(mock.history.put.length).toBe(0);
@@ -296,9 +290,8 @@ describe('OwnerModal', () => {
       const ownerNameInput = screen.getByRole('textbox');
       fireEvent.change(ownerNameInput, { target: { value: ORGS[0].name } });
 
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      const submitButton = screen.getByRole('button', { name: 'Create' });
       expect(ownerNameInput.value).toBe(ORGS[0].name);
-      expect(submitButton).toHaveClassName('disabled');
       fireEvent.click(submitButton);
       expect(mock.history.post.length).toBe(0);
       expect(mock.history.put.length).toBe(0);
@@ -311,10 +304,8 @@ describe('OwnerModal', () => {
 
       const ownerNameInput = screen.getByRole('textbox');
       fireEvent.change(ownerNameInput, { target: { value: 'a'.repeat(201) } });
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      const submitButton = screen.getByRole('button', { name: 'Create' });
 
-      expect(submitButton).toHaveTextContent('Create');
-      expect(submitButton).toHaveClassName('disabled');
       fireEvent.click(submitButton);
       expect(mock.history.post.length).toBe(0);
       expect(mock.history.put.length).toBe(0);
@@ -329,9 +320,8 @@ describe('OwnerModal', () => {
       fireEvent.change(ownerNameInput, { target: { value: 'someText' } });
       fireEvent.change(ownerNameInput, { target: { value: '' } });
 
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      const submitButton = screen.getByRole('button', { name: 'Create' });
       expect(ownerNameInput.value).toBe('');
-      expect(submitButton).toHaveClassName('disabled');
       fireEvent.click(submitButton);
       expect(mock.history.post.length).toBe(0);
       expect(mock.history.put.length).toBe(0);
@@ -346,17 +336,12 @@ describe('OwnerModal', () => {
       const ownerNameInput = screen.getByRole('textbox');
       fireEvent.change(ownerNameInput, { target: { value: newNameValue } });
 
-      const submitButton = screen.getByRole('button', { name: 'Create' });
-      expect(submitButton).not.toHaveClassName('disabled');
-
       const ownerIconRadio = screen.getByRole('radio', { name: 'Upload a custom icon' });
       fireEvent.click(ownerIconRadio);
-
-      const reselectSubmitButton = screen.getByRole('button', { name: disabledButtonText });
       expect(ownerIconRadio).toBeChecked();
-      expect(reselectSubmitButton).toHaveClassName('disabled');
 
-      fireEvent.click(reselectSubmitButton);
+      const submitButton = screen.getByRole('button', { name: 'Create' });
+      fireEvent.click(submitButton);
       expect(mock.history.post.length).toBe(0);
       expect(mock.history.put.length).toBe(0);
       const errorText = screen.getByText('No file selected');
@@ -380,9 +365,7 @@ describe('OwnerModal', () => {
       expect(screen.getByText(`Get a robot`)).toBeVisible();
 
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
-
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
-      expect(submitButton).toHaveTextContent('Create');
+      expect(screen.getByRole('button', { name: 'Create' })).toBeVisible();
     });
 
     it('triggers createNewOwner', () => {
@@ -422,9 +405,7 @@ describe('OwnerModal', () => {
       const ownerIdInput = screen.getAllByRole('textbox')[1];
       fireEvent.change(ownerIdInput, { target: { value: 'some text' } });
 
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
-      expect(submitButton).toHaveTextContent('Create');
-      expect(submitButton).toHaveClassName('disabled');
+      const submitButton = screen.getByRole('button', { name: 'Create' });
       fireEvent.click(submitButton);
       expect(mock.history.post.length).toBe(0);
       expect(mock.history.put.length).toBe(0);
@@ -438,10 +419,9 @@ describe('OwnerModal', () => {
       const ownerIdInput = screen.getAllByRole('textbox')[1];
       fireEvent.change(ownerIdInput, { target: { value: APPS[0].publicId } });
 
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      const submitButton = screen.getByRole('button', { name: 'Create' });
 
       expect(ownerIdInput.value).toBe(APPS[0].publicId);
-      expect(submitButton).toHaveClassName('disabled');
       fireEvent.click(submitButton);
       expect(mock.history.post.length).toBe(0);
       expect(mock.history.put.length).toBe(0);
@@ -455,10 +435,8 @@ describe('OwnerModal', () => {
 
       const ownerIdInput = screen.getAllByRole('textbox')[1];
       fireEvent.change(ownerIdInput, { target: { value: 'a'.repeat(201) } });
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      const submitButton = screen.getByRole('button', { name: 'Create' });
 
-      expect(submitButton).toHaveTextContent('Create');
-      expect(submitButton).toHaveClassName('disabled');
       fireEvent.click(submitButton);
       expect(mock.history.post.length).toBe(0);
       expect(mock.history.put.length).toBe(0);
@@ -469,18 +447,20 @@ describe('OwnerModal', () => {
     it('can not trigger createNewOwner when id input is empty', () => {
       renderComponent(createAppState);
 
+      const errorText = 'Must be non-empty';
       const ownerIdInput = screen.getAllByRole('textbox')[1];
       fireEvent.change(ownerIdInput, { target: { value: 'someText' } });
       fireEvent.change(ownerIdInput, { target: { value: '' } });
+      expect(screen.getByText(errorText)).toBeVisible();
 
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      const submitButton = screen.getByRole('button', { name: 'Create' });
       expect(ownerIdInput.value).toBe('');
-      expect(submitButton).toHaveClassName('disabled');
+
       fireEvent.click(submitButton);
+
       expect(mock.history.post.length).toBe(0);
       expect(mock.history.put.length).toBe(0);
-      const errorText = screen.getByText('Must be non-empty');
-      expect(errorText).toBeVisible();
+      expect(screen.getAllByText(errorText).length).toBe(2);
     });
   });
 
@@ -553,9 +533,8 @@ describe('OwnerModal', () => {
       const ownerNameInput = screen.getByRole('textbox');
       fireEvent.change(ownerNameInput, { target: { value: ORGS[1].name } });
 
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      const submitButton = screen.getByRole('button', { name: 'Update' });
       expect(ownerNameInput.value).toBe(ORGS[1].name);
-      expect(submitButton).toHaveClassName('disabled');
       fireEvent.click(submitButton);
       expect(mock.history.post.length).toBe(0);
       expect(mock.history.put.length).toBe(0);
@@ -569,9 +548,9 @@ describe('OwnerModal', () => {
       const ownerNameInput = screen.getByRole('textbox');
       fireEvent.change(ownerNameInput, { target: { value: '' } });
 
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
       expect(ownerNameInput.value).toBe('');
-      expect(submitButton).toHaveClassName('disabled');
+
+      const submitButton = screen.getByRole('button', { name: 'Update' });
       fireEvent.click(submitButton);
       expect(mock.history.post.length).toBe(0);
       expect(mock.history.put.length).toBe(0);
@@ -585,10 +564,11 @@ describe('OwnerModal', () => {
       const ownerIconRadio = screen.getByRole('radio', { name: 'Upload a custom icon' });
       fireEvent.click(ownerIconRadio);
 
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      const submitButton = screen.getByRole('button', { name: 'Update' });
       expect(ownerIconRadio).toBeChecked();
-      expect(submitButton).toHaveClassName('disabled');
+
       fireEvent.click(submitButton);
+
       expect(mock.history.post.length).toBe(0);
       expect(mock.history.put.length).toBe(0);
       const errorText = screen.getByText('No file selected');
@@ -634,8 +614,7 @@ describe('OwnerModal', () => {
       expect(ownerNameInput.value).toBe(newOwnerNameValue);
 
       const submitButton = screen.getByRole('button', { name: 'Update' });
-      expect(submitButton).toHaveTextContent('Update');
-      expect(submitButton).not.toHaveClassName('disabled');
+
       fireEvent.click(submitButton);
       await waitFor(() => expect(mock.history.put.length).toBe(1));
       expect(mock.history.post.length).toBe(1);
@@ -654,8 +633,6 @@ describe('OwnerModal', () => {
       expect(ownerNameInput.value).toBe(oldOwnerNameValue);
 
       const submitButton = screen.getByRole('button', { name: 'Update' });
-      expect(submitButton).toHaveTextContent('Update');
-      expect(submitButton).not.toHaveClassName('disabled');
       fireEvent.click(submitButton);
       expect(mock.history.put.length).toBe(0);
       expect(mock.history.post.length).toBe(1);
@@ -667,10 +644,9 @@ describe('OwnerModal', () => {
       const ownerNameInput = screen.getByRole('textbox');
       fireEvent.change(ownerNameInput, { target: { value: APPS[1].name } });
 
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      const submitButton = screen.getByRole('button', { name: 'Update' });
 
       expect(ownerNameInput.value).toBe(APPS[1].name);
-      expect(submitButton).toHaveClassName('disabled');
       fireEvent.click(submitButton);
       expect(mock.history.post.length).toBe(0);
       expect(mock.history.put.length).toBe(0);

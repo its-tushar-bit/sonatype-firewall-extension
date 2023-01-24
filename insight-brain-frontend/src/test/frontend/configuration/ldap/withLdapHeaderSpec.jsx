@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxForm } from '@sonatype/react-shared-components';
+import { NxStatefulForm } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../../frontend/enzymeUtils';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
@@ -112,14 +112,14 @@ describe('withLdapHeader', () => {
           isDirty: true,
           validationError: null,
         });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', null);
       });
 
       it('has "There are no changes to save" error if form was not changed', () => {
         const component = getShallowComponent({ isDirty: false });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', 'There are no changes to save');
       });
@@ -129,7 +129,7 @@ describe('withLdapHeader', () => {
           isDirty: true,
           validationError: 'Unable to save: fields with invalid or missing data',
         });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', 'Unable to save: fields with invalid or missing data');
       });
@@ -139,7 +139,7 @@ describe('withLdapHeader', () => {
           isDirty: true,
           mustReenterPassword: true,
         });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         expect(form).toHaveProp(
           'validationErrors',
@@ -155,7 +155,7 @@ describe('withLdapHeader', () => {
           validationError: null,
           mustReenterPassword: false,
         });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         form.simulate('submit');
 
@@ -170,7 +170,7 @@ describe('withLdapHeader', () => {
           validationError: null,
         });
 
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         form.simulate('cancel');
 

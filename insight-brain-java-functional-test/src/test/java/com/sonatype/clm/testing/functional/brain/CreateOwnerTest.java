@@ -25,6 +25,7 @@ import com.sonatype.clm.testing.functional.elements.OwnerTreeView.RootOrganizati
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.IconDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -48,6 +49,7 @@ import org.openqa.selenium.WebElement;
 
 import static com.codeborne.selenide.Condition.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class CreateOwnerTest
     extends AbstractFunctionalTest
@@ -114,7 +116,7 @@ public class CreateOwnerTest
     OwnerEditorDialog.name().shouldBe(visible, empty);
     OwnerEditorDialog.publicIdDiv().shouldBe(visible).shouldHave(cssClass("pristine"));
     OwnerEditorDialog.publicId().shouldBe(visible, empty);
-    OwnerEditorDialog.saveButton().shouldHave(cssClass("disabled"));
+    OwnerEditorDialog.saveButton().shouldBe(visible);
 
     // check invalid name
     OwnerEditorDialog.name().val("$$$");
@@ -123,7 +125,9 @@ public class CreateOwnerTest
 
     // should not be able to proceed w/ name error
     OwnerEditorDialog.publicId().val(APP_PUBLIC_ID);
-    OwnerEditorDialog.saveButton().shouldHave(cssClass("disabled"));
+    OwnerEditorDialog.saveButton().click();
+    FormUtils.getAlertElement().shouldBe(visible)
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Unable to save: fields with invalid or missing data"));
 
     // take focus off the input to prevent blinking cursor
     OwnerEditorDialog.title().click();
@@ -136,7 +140,6 @@ public class CreateOwnerTest
 
     // invalid id
     OwnerEditorDialog.publicId().val("a c d $$");
-    OwnerEditorDialog.saveButton().shouldHave(cssClass("disabled"));
     OwnerEditorDialog.publicIdInvalidMessage()
             .shouldBe(visible).shouldHave(text(OwnerEditorDialog.INVALID_PUBLICID_MESSAGE));
 
@@ -474,14 +477,11 @@ public class CreateOwnerTest
     OwnerEditorDialog.nameDiv().shouldBe(visible).shouldHave(cssClass("pristine"));
     OwnerEditorDialog.name().shouldBe(visible, empty);
     OwnerEditorDialog.publicIdDiv().shouldNot(exist);
-    OwnerEditorDialog.saveButton().shouldHave(cssClass("disabled"));
+    OwnerEditorDialog.saveButton().shouldBe(visible);
 
     // check invalid name
     OwnerEditorDialog.name().val("$$$");
     OwnerEditorDialog.nameInvalidMessage().shouldBe(visible).shouldHave(text(OwnerEditorDialog.INVALID_NAME_MESSAGE));
-
-    // should not be able to proceed w/ name error
-    OwnerEditorDialog.saveButton().shouldHave(cssClass("disabled"));
 
     // Error should get removed
     OwnerEditorDialog.name().val(NAME);

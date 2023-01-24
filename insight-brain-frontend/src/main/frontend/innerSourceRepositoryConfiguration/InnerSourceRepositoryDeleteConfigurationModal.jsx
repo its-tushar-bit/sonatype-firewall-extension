@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 
 import { actions } from './innerSourceRepositoryDeleteConfigurationModalSlice';
 
@@ -26,7 +26,7 @@ export default function InnerSourceRepositoryDeleteConfigurationModal() {
     <>
       {showModal && (
         <NxModal id="innersource-repository-configuration-delete-modal" onCancel={() => hideModal()}>
-          <NxForm
+          <NxStatefulForm
             onSubmit={deleteConfiguration}
             onCancel={() => hideModal()}
             submitError={deleteConfigurationError}
@@ -41,7 +41,7 @@ export default function InnerSourceRepositoryDeleteConfigurationModal() {
             <div className="nx-modal-content">
               <NxWarningAlert>This will disable querying your configured repository.</NxWarningAlert>
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </NxModal>
       )}
     </>

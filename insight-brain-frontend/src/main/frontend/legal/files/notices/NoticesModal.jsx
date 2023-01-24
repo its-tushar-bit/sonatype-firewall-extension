@@ -8,11 +8,12 @@ import React from 'react';
 import {
   NxButton,
   NxFontAwesomeIcon,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxModal,
   NxTextInput,
   NxToggle,
+  NxFormSelect,
 } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { availableScopesPropType, legalFilesPropType, licenseObligationPropType } from '../../advancedLegalPropTypes';
@@ -180,7 +181,7 @@ export default function NoticesModal(props) {
       }}
       variant="wide"
     >
-      <NxForm
+      <NxStatefulForm
         onCancel={() => {
           resetExistingObligation();
           cancelNoticesModal();
@@ -228,9 +229,9 @@ export default function NoticesModal(props) {
             sublabel="Apply changes to"
             isRequired
           >
-            <select
+            <NxFormSelect
               id="edit-notice-scope-selection"
-              className="nx-form-select nx-form-select--long"
+              className="nx-form-select--long"
               value={scope}
               onChange={(payload) => {
                 setNoticesScope(payload.currentTarget.value);
@@ -238,10 +239,10 @@ export default function NoticesModal(props) {
               }}
             >
               {availableScopes.values.map(createScopeOption)}
-            </select>
+            </NxFormSelect>
           </NxFormGroup>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

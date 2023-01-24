@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+import { NxStatefulForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../enzymeUtils';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import UserEdit from 'MainRoot/security/users/userConfiguration/UserEdit';
@@ -86,14 +86,14 @@ describe('UserEdit', () => {
           isDirty: true,
           validationError: null,
         });
-        const form = shallowComponent.find(NxForm);
+        const form = shallowComponent.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', null);
       });
 
       it('has "There are no changes to update" error if form was not changed', function () {
         const shallowComponent = getShallowComponent({ isDirty: false });
-        const form = shallowComponent.find(NxForm);
+        const form = shallowComponent.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', 'There are no changes to update');
       });
@@ -103,7 +103,7 @@ describe('UserEdit', () => {
           isDirty: true,
           validationError: 'Unable to save: fields with invalid or missing data',
         });
-        const form = shallowComponent.find(NxForm);
+        const form = shallowComponent.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', 'Unable to save: fields with invalid or missing data');
       });
@@ -158,7 +158,7 @@ describe('UserEdit', () => {
         isDirty: true,
         validationError: null,
       });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
 
       form.simulate('submit');
 
@@ -173,7 +173,7 @@ describe('UserEdit', () => {
         validationError: null,
       });
 
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
 
       form.simulate('cancel');
 

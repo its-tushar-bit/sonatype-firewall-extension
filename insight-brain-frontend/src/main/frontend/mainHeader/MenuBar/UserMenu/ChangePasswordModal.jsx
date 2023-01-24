@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   NxModal,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxTextInput,
   NxErrorAlert,
@@ -45,7 +45,7 @@ export const ChangePasswordModal = ({ onClose, onChangePassword, changePasswordE
 
   return (
     <NxModal id="change-password-modal" onClose={onClose}>
-      <NxForm
+      <NxStatefulForm
         className="nx-form"
         onSubmit={handleSubmit}
         onCancel={onClose}
@@ -93,7 +93,7 @@ export const ChangePasswordModal = ({ onClose, onChangePassword, changePasswordE
           </NxFormGroup>
           {changePasswordError && <NxErrorAlert id="change-password-error">{changePasswordError}</NxErrorAlert>}
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 };

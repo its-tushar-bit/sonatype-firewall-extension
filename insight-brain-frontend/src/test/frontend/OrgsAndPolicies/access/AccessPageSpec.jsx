@@ -244,9 +244,8 @@ describe('AccessPage Component', () => {
       fetchUsers: {},
     });
     renderComponent();
-    const createButton = screen.getByRole('button', { name: 'Submit disabled: There are no changes to save' });
+    const createButton = screen.getByRole('button', { name: 'Create' });
     expect(createButton).toBeVisible();
-    expect(createButton).toHaveClassName('disabled');
     fireEvent.click(createButton);
     expect(createOrUpdateRoleSpy).not.toHaveBeenCalled();
     expect(saveMaskTimerDoneSpy).not.toHaveBeenCalled();
@@ -280,9 +279,8 @@ describe('AccessPage Component', () => {
       fetchUsers: {},
     });
     renderComponent();
-    const createButton = screen.getByRole('button', { name: 'Submit disabled: There are no changes to save' });
+    const createButton = screen.getByRole('button', { name: 'Create' });
     expect(createButton).toBeVisible();
-    expect(createButton).toHaveClassName('disabled');
     fireEvent.click(createButton);
     expect(createOrUpdateRoleSpy).not.toHaveBeenCalled();
     expect(saveMaskTimerDoneSpy).not.toHaveBeenCalled();
@@ -398,7 +396,6 @@ describe('AccessPage Component', () => {
     expect(labels[0].closest('label')).toHaveTextContent('Admin BuiltIn');
     expect(labels[1].closest('label')).toHaveTextContent('new group (Group)');
     const createButton = screen.getByRole('button', { name: 'Update' });
-    expect(createButton).not.toHaveClassName('disabled');
     fireEvent.click(createButton);
     expect(createOrUpdateRoleSpy).toHaveBeenCalledTimes(1);
   });
@@ -414,8 +411,6 @@ describe('AccessPage Component', () => {
     fireEvent.change(select, { target: { value: '1da70fae1fd54d6cb7999871ebdb9a36' } });
     selectRoleSpy('1da70fae1fd54d6cb7999871ebdb9a36');
     expect(selectRoleSpy).toHaveBeenCalled();
-    const createButton = screen.getByRole('button', { name: 'Submit disabled: There are no changes to save' });
-    expect(createButton).toHaveClassName('disabled');
   });
 
   it('add new user from search + select role (create role success)', (done) => {
@@ -439,7 +434,6 @@ describe('AccessPage Component', () => {
       const select = screen.getByRole('combobox');
       fireEvent.change(select, { target: { value: '2cb71b3468d649789163ea2e212b541e' } });
       const createButton = screen.getByRole('button', { name: 'Create' });
-      expect(createButton).not.toHaveClassName('disabled');
       fireEvent.click(createButton);
       expect(createOrUpdateRoleSpy).toHaveBeenCalledTimes(1);
       done();
@@ -466,9 +460,8 @@ describe('AccessPage Component', () => {
 
   it('initial disabled Update button', () => {
     renderComponent();
-    const updateButton = screen.getByRole('button', { name: 'Submit disabled: There are no changes to save' });
+    const updateButton = screen.getByRole('button', { name: 'Update' });
     expect(updateButton).toBeVisible();
-    expect(updateButton).toHaveClassName('disabled');
     fireEvent.click(updateButton);
     expect(createOrUpdateRoleSpy).not.toHaveBeenCalled();
     expect(saveMaskTimerDoneSpy).not.toHaveBeenCalled();

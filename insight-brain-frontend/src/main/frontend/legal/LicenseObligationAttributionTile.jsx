@@ -7,13 +7,14 @@ import React, { useState } from 'react';
 import {
   NxButton,
   NxFontAwesomeIcon,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxModal,
   NxTextInput,
   nxTextInputStateHelpers,
   NxAccordion,
   useToggle,
+  NxFormSelect,
 } from '@sonatype/react-shared-components';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import * as PropTypes from 'prop-types';
@@ -137,7 +138,7 @@ export default function LicenseObligationAttributionTile(props) {
           cancelAttributionModal({ name });
         }}
       >
-        <NxForm
+        <NxStatefulForm
           onCancel={() => {
             resetExistingObligation();
             cancelAttributionModal({ name });
@@ -177,7 +178,7 @@ export default function LicenseObligationAttributionTile(props) {
               <ObligationStatusComponent existingObligation={existingObligation} onChange={onObligationChange} />
             )}
             <NxFormGroup label="Scope" sublabel="Apply changes to" isRequired>
-              <select
+              <NxFormSelect
                 id="edit-attribution-scope-selection"
                 className="nx-form-select nx-form-select--long"
                 value={scope}
@@ -190,10 +191,10 @@ export default function LicenseObligationAttributionTile(props) {
                 }}
               >
                 {availableScopes.values.map(createScopeOption)}
-              </select>
+              </NxFormSelect>
             </NxFormGroup>
           </div>
-        </NxForm>
+        </NxStatefulForm>
       </NxModal>
     );
   };

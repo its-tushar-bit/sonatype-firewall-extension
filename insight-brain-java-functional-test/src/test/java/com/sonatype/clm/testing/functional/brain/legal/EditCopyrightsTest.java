@@ -139,7 +139,6 @@ public class EditCopyrightsTest
 
     EditCopyrightsModal modal = new EditCopyrightsModal();
     modal.should(Condition.appear);
-    modal.save().shouldHave(Condition.cssClass("disabled"));
 
     modal.copyrightInputAt(1).setValue("UPDATED COPYRIGHT");
 
@@ -178,7 +177,6 @@ public class EditCopyrightsTest
 
     EditCopyrightsModal modal = new EditCopyrightsModal();
     modal.should(Condition.appear);
-    modal.save().shouldHave(Condition.cssClass("disabled"));
 
     modal.copyrightStatusCheckboxAt(0).shouldBe(Condition.checked);
     modal.copyrightStatusToggleAt(0).click();
@@ -216,15 +214,12 @@ public class EditCopyrightsTest
 
     EditCopyrightsModal modal = new EditCopyrightsModal();
     modal.should(Condition.appear);
-    modal.save().shouldHave(Condition.cssClass("disabled"));
 
     modal.copyrightInputs().shouldHave(CollectionCondition.size(3));
 
     modal.addCopyrightButton().click();
 
     modal.copyrightInputs().shouldHave(CollectionCondition.size(4));
-
-    modal.save().shouldHave(Condition.cssClass("disabled"));
 
     modal.copyrightInputAt(3).shouldHave(Condition.value("")).setValue("NEW COPYRIGHT");
     modal.save().shouldNotHave(Condition.cssClass("disabled")).click();
@@ -260,7 +255,6 @@ public class EditCopyrightsTest
 
     EditCopyrightsModal modal = new EditCopyrightsModal();
     modal.should(Condition.appear);
-    modal.save().shouldHave(Condition.cssClass("disabled"));
 
     modal.copyrightInputs().shouldHave(CollectionCondition.size(3));
     modal.copyrightInputAt(1).setValue("UPDATED COPYRIGHT");
@@ -303,7 +297,6 @@ public class EditCopyrightsTest
 
     EditCopyrightsModal modal = new EditCopyrightsModal();
     modal.should(Condition.appear);
-    modal.save().shouldHave(Condition.cssClass("disabled"));
 
     modal.statusDropdown().shouldBe(Condition.visible);
     modal.statusDropdown().shouldBe(enabled);

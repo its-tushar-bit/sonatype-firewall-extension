@@ -10,7 +10,7 @@ import { faDownload, faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import {
   NxButton,
   NxFontAwesomeIcon,
-  NxForm,
+  NxStatefulForm,
   NxModal,
   NxWarningAlert,
   useToggle,
@@ -57,7 +57,7 @@ function WithLicenseFooter({ fileChangeHandler, uninstallError, uninstallMaskSta
       </NxButton>
       {showConfirmationModal && (
         <NxModal variant="narrow" id="license-uninstall-modal">
-          <NxForm
+          <NxStatefulForm
             submitMaskMessage="Uninstalling"
             submitMaskState={uninstallMaskState}
             onSubmit={uninstallLicenseHandler}
@@ -74,7 +74,7 @@ function WithLicenseFooter({ fileChangeHandler, uninstallError, uninstallMaskSta
                 want to continue?
               </NxWarningAlert>
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </NxModal>
       )}
     </div>

@@ -50,6 +50,7 @@ export default function ThreatDropdownSelector({ threatLevel, onSelectThreatLeve
               onSelectThreatLevel(level);
               toggleIsThreatDropdownOpen();
             }}
+            type="button"
             className="nx-dropdown-button"
             key={`${level}-dropdown-option`}
           >

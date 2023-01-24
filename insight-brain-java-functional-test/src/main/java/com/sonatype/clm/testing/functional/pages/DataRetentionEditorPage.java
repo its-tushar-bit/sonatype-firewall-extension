@@ -60,14 +60,13 @@ public class DataRetentionEditorPage
     public SelenideElement customRow() {
       return child( ".custom-purge-row");
     }
-    //nx-text-input__invalid-message
 
     public SelenideElement ageErrorMessage() {
-      return child(".custom-purge-row .nx-form-group:nth-child(2) .nx-text-input__invalid-message");
+      return child(".custom-purge-row .nx-form-group:nth-child(2) .nx-field-validation-message");
     }
 
     public SelenideElement countErrorMessage() {
-      return child(".custom-purge-row .nx-form-group:nth-child(5) .nx-text-input__invalid-message");
+      return child(".custom-purge-row .nx-form-group:nth-child(5) .nx-field-validation-message");
     }
 
     public SelenideElement maxAgeInput() {

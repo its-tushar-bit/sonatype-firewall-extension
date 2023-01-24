@@ -35,16 +35,14 @@ const initState = {
   savedFilterListError: null,
   saveFilterError: null,
   saveFilterWarning: null,
-  saveFilterSaving: false,
-  saveFilterSuccess: false,
+  saveFilterMaskState: null,
   appliedFilter: null,
   appliedFilterName: null,
   existingDuplicateFilterName: null,
   showDirtyAsterisk: false,
   filterToDelete: null,
   deleteFilterError: null,
-  deleteFilterSaving: false,
-  deleteFilterSuccess: false,
+  deleteFilterMaskState: null,
 };
 
 export const WARNING_NAME_IN_USE = 'nameInUseWarning';
@@ -66,17 +64,13 @@ const reducerActionMap = {
   [LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED]: updateAppliedFilterName,
   [LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED]: fetchSavedFiltersFulfilled,
   [LEGAL_DASHBOARD_FETCH_SAVED_FILTERS_FAILED]: propSet('savedFilterListError'),
-  [LEGAL_DASHBOARD_SAVE_FILTER_REQUESTED]: propSetConst('saveFilterSaving', true),
+  [LEGAL_DASHBOARD_SAVE_FILTER_REQUESTED]: propSetConst('saveFilterMaskState', false),
   [LEGAL_DASHBOARD_SAVE_FILTER_FULFILLED]: saveFilterFulfilled,
   [LEGAL_DASHBOARD_SAVE_FILTER_FAILED]: saveFilterFailed,
-  [LEGAL_DASHBOARD_DELETE_FILTER_REQUESTED]: propSetConst('deleteFilterSaving', true),
+  [LEGAL_DASHBOARD_DELETE_FILTER_REQUESTED]: propSetConst('deleteFilterMaskState', false),
   [LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED]: deleteFilterFulfilled,
   [LEGAL_DASHBOARD_DELETE_FILTER_FAILED]: deleteFilterFailed,
-  [LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL]: resetProps([
-    'saveFilterSaving',
-    'saveFilterError',
-    'saveFilterSuccess',
-  ]),
+  [LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL]: resetProps(['saveFilterMaskState', 'saveFilterError']),
   [LEGAL_DASHBOARD_SELECT_FILTER_TO_DELETE]: selectFilterToDelete,
   [LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL]: resetProps(['filterToDelete']),
   [LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED]: saveFilterOverwriteRequested,
@@ -103,7 +97,7 @@ function saveFilterFulfilled(payload, state) {
     savedFilters: append(payload, state.savedFilters),
     appliedFilterName: payload.name,
     existingDuplicateFilterName: null,
-    saveFilterSuccess: true,
+    saveFilterMaskState: true,
     showDirtyAsterisk: false,
     saveFilterWarning: null,
   };
@@ -113,8 +107,7 @@ function saveFilterFailed(payload, state) {
   return {
     ...state,
     saveFilterError: payload,
-    saveFilterSaving: false,
-    saveFilterSuccess: false,
+    saveFilterMaskState: null,
   };
 }
 
@@ -147,7 +140,7 @@ function saveConfirmCancelled(payload, state) {
 
 function selectFilterToDelete(payload, state) {
   return compose(
-    resetProps(['deleteFilterSaving', 'deleteFilterError', 'deleteFilterSuccess'], null),
+    resetProps(['deleteFilterError', 'deleteFilterMaskState'], null),
     propSet('filterToDelete', payload)
   )(state);
 }
@@ -157,17 +150,17 @@ function selectFilterToDelete(payload, state) {
  */
 function deleteFilterFulfilled(payload, state) {
   const activeFilterWasDeleted = state.appliedFilterName === payload,
-    stateWithDeleteFilterSuccess = { ...state, deleteFilterSuccess: true };
+    stateWithDeleteFilterMaskState = { ...state, deleteFilterMaskState: true };
 
   if (activeFilterWasDeleted) {
-    return compose(setShowDirtyAsterisk(), resetProps(['appliedFilterName'], null))(stateWithDeleteFilterSuccess);
+    return compose(setShowDirtyAsterisk(), resetProps(['appliedFilterName'], null))(stateWithDeleteFilterMaskState);
   }
 
-  return stateWithDeleteFilterSuccess;
+  return stateWithDeleteFilterMaskState;
 }
 
 function deleteFilterFailed(payload, state) {
-  return resetProps(['deleteFilterSaving', 'deleteFilterSuccess'], payload, {
+  return resetProps(['deleteFilterMaskState'], payload, {
     ...state,
     deleteFilterError: payload,
   });

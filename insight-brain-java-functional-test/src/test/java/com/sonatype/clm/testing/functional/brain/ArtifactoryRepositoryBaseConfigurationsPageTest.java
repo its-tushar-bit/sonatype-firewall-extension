@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryBaseConfigurationsPage;
 import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryBaseConfigurationsPage.ArtifactoryConnectionRow;
@@ -30,7 +31,6 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.checked;
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
@@ -255,7 +255,7 @@ public class ArtifactoryRepositoryBaseConfigurationsPageTest
       }
     }
     page.save().click();
-    page.save().shouldHave(cssClass("disabled"));
+    NxSubmitMask.seeAndWaitForDismissal();
     checkArtifactoryBaseConfiguration(owner, enabled, allowOverride);
   }
 

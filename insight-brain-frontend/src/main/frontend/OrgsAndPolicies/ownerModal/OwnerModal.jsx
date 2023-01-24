@@ -22,7 +22,7 @@ import { selectOrganizations } from 'MainRoot/OrgsAndPolicies/organizationsSelec
 import {
   NxModal,
   NxH2,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxTextInput,
   NxFieldset,
@@ -99,7 +99,7 @@ export default function OwnerModal() {
     <>
       {isModalOpen ? (
         <NxModal id="owner-editor" onCancel={closeModalWithCheck}>
-          <NxForm
+          <NxStatefulForm
             onSubmit={isEditMode ? editCurrentOwner : createNewOwner}
             onCancel={closeModalWithCheck}
             submitMaskState={submitMaskState}
@@ -176,7 +176,7 @@ export default function OwnerModal() {
                 />
               )}
             </NxModal.Content>
-          </NxForm>
+          </NxStatefulForm>
         </NxModal>
       ) : null}
 

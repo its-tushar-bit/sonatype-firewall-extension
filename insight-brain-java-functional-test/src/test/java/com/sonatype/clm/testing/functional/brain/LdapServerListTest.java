@@ -8,9 +8,9 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage.ListRow;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 
@@ -23,9 +23,9 @@ import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static com.codeborne.selenide.Condition.disabled;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class LdapServerListTest
     extends AbstractFunctionalTest
@@ -87,8 +87,9 @@ public class LdapServerListTest
     ldapServerListPage.reorderButton().shouldBe(visible).click();
     ldapServerListPage.addButton().shouldBe(disabled);
     ldapServerListPage.reorderButton().shouldBe(disabled);
-    ldapServerListPage.saveButton().shouldBe(DISABLED).hover();
-    Tooltip.get().shouldHave(text("There are no changes to save"));
+    ldapServerListPage.saveButton().shouldBe(visible).click();
+    FormUtils.getAlertElement()
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save"));
 
     ldapServerListPage.listElements().shouldHave(texts("Fourth Server",
         "Third Server", "Second Server", "First Server"));
@@ -110,7 +111,7 @@ public class LdapServerListTest
     ldapServerListPage.listElements().shouldHave(texts("Third Server",
         "Fourth Server", "First Server", "Second Server"));
 
-    ldapServerListPage.saveButton().shouldNotBe(DISABLED).click();
+    ldapServerListPage.saveButton().shouldBe(visible).click();
     ldapServerListPage.listElements().shouldHave(texts("Third Server",
         "Fourth Server", "First Server", "Second Server"));
 

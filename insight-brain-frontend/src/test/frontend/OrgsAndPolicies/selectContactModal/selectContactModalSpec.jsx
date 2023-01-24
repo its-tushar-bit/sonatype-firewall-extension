@@ -131,7 +131,7 @@ describe('SelectContactModal', () => {
     fireEvent.change(combobox, { target: { value: '1' } });
     setTimeout(() => {
       const alert = screen.getAllByRole('alert');
-      const message = within(alert[1]).getByText('No Results Found');
+      const message = within(alert[0]).getByText('No Results Found');
       expect(message).toBeVisible();
       done();
     }, NX_STANDARD_DEBOUNCE_TIME);
@@ -198,14 +198,11 @@ describe('SelectContactModal', () => {
 
   it('shows Submit and Cancel buttons', async () => {
     renderComponent();
-    const submitButton = await screen.findByRole('button', {
-      name: 'Submit disabled: There are no changes to save',
-    });
-    const cancelButton = await screen.findByRole('button', { name: 'Cancel' });
+    const submitButton = await screen.findByRole('button', { name: 'Save' }),
+      cancelButton = await screen.findByRole('button', { name: 'Cancel' });
+
     expect(submitButton).toBeVisible();
     expect(cancelButton).toBeVisible();
-    expect(submitButton).toHaveClassName('disabled');
-    expect(cancelButton).not.toHaveClassName('disabled');
   });
 
   it('saveContact successfully', (done) => {
@@ -670,8 +667,8 @@ describe('SelectContactModal', () => {
     fireEvent.change(combobox, { target: { value: '1' } });
     setTimeout(() => {
       expect(axiosMock.history.get.length).toBe(1);
-      const alert = screen.getAllByRole('alert')[2];
-      const message = within(alert).getByText('An error occurred loading data. Error Messages');
+      const alerts = screen.getAllByRole('alert');
+      const message = within(alerts[0]).getByText('An error occurred loading data. Error Messages');
       expect(message).toBeVisible();
       done();
     }, NX_STANDARD_DEBOUNCE_TIME);

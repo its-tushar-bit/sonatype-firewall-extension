@@ -13,7 +13,7 @@ import {
   NxTextInput,
   NxFormSelect,
   NxFontAwesomeIcon,
-  NxForm,
+  NxStatefulForm,
   NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faTrash, faDownload } from '@fortawesome/pro-solid-svg-icons';
@@ -105,7 +105,7 @@ export default function SAMLConfigurationForm({
 
   return (
     <>
-      <NxForm
+      <NxStatefulForm
         className="nx-form"
         submitBtnClasses={classNames('iq-saml-configuration-save-button', {
           disabled: isSubmitButtonDisabled,
@@ -250,7 +250,7 @@ export default function SAMLConfigurationForm({
             </NxTooltip>
           </div>
         </div>
-      </NxForm>
+      </NxStatefulForm>
       {isDeleteModalShown && (
         <SAMLConfigurationDeleteModal deleteConfiguration={deleteConfiguration} toggleDeleteModal={toggleDeleteModal} />
       )}

@@ -8,7 +8,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import { useSelector } from 'react-redux';
-import { NxForm, NxH2, NxModal, NxFontAwesomeIcon, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxH2, NxModal, NxFontAwesomeIcon, NxWarningAlert } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { isEmpty } from 'ramda';
 
@@ -30,7 +30,7 @@ export default function DeleteAccessModal({ removeRole, closeDeleteModal }) {
 
   return (
     <NxModal id="role-config-delete-modal" aria-labelledby="role-config-delete-modal-header" onClose={closeDeleteModal}>
-      <NxForm
+      <NxStatefulForm
         onSubmit={removeRole}
         submitMaskState={deleteMaskState}
         onCancel={closeDeleteModal}
@@ -47,7 +47,7 @@ export default function DeleteAccessModal({ removeRole, closeDeleteModal }) {
         <NxModal.Content>
           <NxWarningAlert>{isEmpty(addedUsers) ? deleteRoleFromUpdateModalText : deleteRoleModalText}</NxWarningAlert>
         </NxModal.Content>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

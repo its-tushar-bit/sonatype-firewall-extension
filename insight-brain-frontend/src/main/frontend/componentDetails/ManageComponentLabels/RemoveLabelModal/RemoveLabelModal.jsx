@@ -6,7 +6,7 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
-import { NxModal, NxFontAwesomeIcon, NxForm, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxModal, NxFontAwesomeIcon, NxStatefulForm, NxWarningAlert } from '@sonatype/react-shared-components';
 
 const REMOVE_LABEL_ERR = 'An error occurred removing label.';
 
@@ -25,7 +25,7 @@ export default function RemoveLabelModal({
   return (
     showRemoveLabelModal && (
       <NxModal variant="narrow" onCancel={toggleShowRemoveLabelModal} aria-labelledby="iq-remove-label">
-        <NxForm
+        <NxStatefulForm
           onSubmit={removeHandler}
           submitMaskState={removeLabelMaskState}
           submitMaskMessage="Removing label…"
@@ -43,7 +43,7 @@ export default function RemoveLabelModal({
           <div className="nx-modal-content">
             <NxWarningAlert>Are you sure you want to remove this label?</NxWarningAlert>
           </div>
-        </NxForm>
+        </NxStatefulForm>
       </NxModal>
     )
   );

@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm, NxCodeSnippet, NxModal } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxCodeSnippet, NxModal } from '@sonatype/react-shared-components';
 import { MODAL_MODES } from './modalModes';
 
 export default function CopyToClipboard({ username, newPassword, resetInitialNewPasswordValue, setMode }) {
@@ -16,7 +16,7 @@ export default function CopyToClipboard({ username, newPassword, resetInitialNew
 
   return (
     <NxModal onClose={onClose} variant="narrow" className="iq-copy-password-modal" id="copy-password-modal">
-      <NxForm className="nx-form" onSubmit={onClose} submitBtnText="Close">
+      <NxStatefulForm className="nx-form" onSubmit={onClose} submitBtnText="Close">
         <header className="nx-modal-header">
           <h2 className="nx-h2">Reset Password</h2>
         </header>
@@ -28,7 +28,7 @@ export default function CopyToClipboard({ username, newPassword, resetInitialNew
             inputProps={{ readOnly: true }}
           />
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

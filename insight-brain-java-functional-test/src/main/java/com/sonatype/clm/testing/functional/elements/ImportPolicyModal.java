@@ -26,7 +26,7 @@ public class ImportPolicyModal
   }
 
   public static SelenideElement fileInputRequiredFieldError() {
-    return $(ROOT_SELECTOR + " .nx-file-upload__validation-error");
+    return $(ROOT_SELECTOR + " .nx-field-validation-message");
   }
 
   public static SelenideElement importButton() {

@@ -6,7 +6,7 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  NxForm,
+  NxStatefulForm,
   NxPageTitle,
   NxH1,
   NxTile,
@@ -66,7 +66,7 @@ export default function ContinuousMonitoringEditor() {
       {isMonitoringSupported ? (
         <NxTile>
           <NxTile.Content>
-            <NxForm
+            <NxStatefulForm
               submitBtnText="Update"
               submitMaskState={submitMaskState}
               submitMaskMessage="Saving…"
@@ -91,7 +91,7 @@ export default function ContinuousMonitoringEditor() {
                   );
                 })}
               </NxFieldset>
-            </NxForm>
+            </NxStatefulForm>
           </NxTile.Content>
         </NxTile>
       ) : (

@@ -56,7 +56,7 @@ public class ProprietaryConfigEditorPage
   }
 
   public static SelenideElement matcherInvalidMessage() {
-    return $(".nx-text-input > .nx-text-input__invalid-message");
+    return $(".nx-text-input > .nx-field-validation-message");
   }
 
   public static ProprietaryComponentMatcher localMatcher(MatcherType type, String name) {

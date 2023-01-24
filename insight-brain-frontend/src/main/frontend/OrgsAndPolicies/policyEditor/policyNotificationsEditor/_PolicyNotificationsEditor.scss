@@ -59,11 +59,25 @@
       margin-right: auto;
     }
   }
+
+  // This media query is to avoid the trash can for deleting notifications to hide at lower supported resolutions
+  @media (max-width: 1416px) {
+    .nx-cell {
+      padding: var(--nx-spacing-3x) var(--nx-spacing-2x);
+    }
+  }
 }
 
 #policy-edit-notifications {
   .nx-cell:last-child > * {
     margin-right: 0;
+  }
+
+  // This media query is to avoid the trash can for deleting notifications to hide at lower supported resolutions
+  @media (max-width: 1416px) {
+    .nx-cell {
+      padding: var(--nx-spacing-3x) var(--nx-spacing-2x);
+    }
   }
 }
 
@@ -71,4 +85,8 @@
   & > *:first-child {
     width: 150px;
   }
+}
+
+#iq-policy-editor__add-notification.nx-form-row {
+  flex-wrap: wrap;
 }

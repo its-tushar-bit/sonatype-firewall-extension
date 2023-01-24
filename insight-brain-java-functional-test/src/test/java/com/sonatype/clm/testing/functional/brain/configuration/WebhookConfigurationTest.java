@@ -13,8 +13,8 @@ import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage.WebhookListElement;
-import com.sonatype.clm.testing.functional.utils.InputUtils;
 import com.sonatype.clm.testing.functional.pages.WebhookEditPage;
+import com.sonatype.clm.testing.functional.utils.InputUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
@@ -38,7 +38,6 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 
 public class WebhookConfigurationTest
     extends AbstractFunctionalTest
@@ -279,8 +278,6 @@ public class WebhookConfigurationTest
 
     webhookEditPage.applicationEvaluation().shouldBe(visible, disabled).shouldNotBe(selected).click();
     webhookEditPage.applicationEvaluation().shouldNotBe(selected);
-
-    webhookEditPage.save().shouldHave(text("Update"), DISABLED);
   }
 
   private void insertWebhooks() {

@@ -113,7 +113,6 @@ public class EditAttributionsTest
     assertOption(options.get(1), org);
     assertOption(options.get(2), rootOrg);
     assertButton(editAttributionModal.cancel(), true, null);
-    assertButton(editAttributionModal.save(), false, "Must add attribution text.");
 
     eyesWatcher.eyesCheck("Component legal edit additional attribution modal");
   }
@@ -128,7 +127,6 @@ public class EditAttributionsTest
     EditAttributionModal editAttributionModal = new EditAttributionModal();
     editAttributionModal.shouldBe(Condition.visible);
     assertButton(editAttributionModal.cancel(), true, null);
-    assertButton(editAttributionModal.save(), false, "Must add attribution text.");
     editAttributionModal.attributionText().setValue("test");
     assertButton(editAttributionModal.cancel(), true, null);
     assertButton(editAttributionModal.save(), true, null);
@@ -159,7 +157,6 @@ public class EditAttributionsTest
     assertOption(options.get(1), org);
     assertOption(options.get(2), rootOrg);
     assertButton(editAttributionModal.cancel(), true, null);
-    assertButton(editAttributionModal.save(), false, "Must change attribution text or scope.");
     editAttributionModal.attributionText().setValue("changed");
     assertButton(editAttributionModal.cancel(), true, null);
     assertButton(editAttributionModal.save(), true, null);
@@ -191,7 +188,6 @@ public class EditAttributionsTest
     assertOption(options.get(1), org);
     assertOption(options.get(2), rootOrg);
     assertButton(editAttributionModal.cancel(), true, null);
-    assertButton(editAttributionModal.save(), false, "Must change attribution text or scope.");
     editAttributionModal.scopeDropdown().selectOption(getOptionText(org));
     assertButton(editAttributionModal.cancel(), true, null);
     assertButton(editAttributionModal.save(), true, null);

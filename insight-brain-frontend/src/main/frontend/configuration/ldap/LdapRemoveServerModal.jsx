@@ -5,13 +5,13 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm, NxFontAwesomeIcon, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxFontAwesomeIcon, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 
 export default function LdapRemoveServerModal({ ldapId, removeMaskState, removeError, closeModal, removeServer }) {
   return (
     <NxModal onClose={closeModal} variant="narrow" id="delete-user-modal">
-      <NxForm
+      <NxStatefulForm
         onSubmit={() => removeServer(ldapId)}
         submitMaskState={removeMaskState}
         onCancel={closeModal}
@@ -31,7 +31,7 @@ export default function LdapRemoveServerModal({ ldapId, removeMaskState, removeE
             you want to delete this server?
           </NxWarningAlert>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

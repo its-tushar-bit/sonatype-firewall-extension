@@ -5,7 +5,7 @@
  */
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm, NxFormGroup, NxTextInput, NxButton, NxDateInput } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxFormGroup, NxTextInput, NxButton, NxDateInput } from '@sonatype/react-shared-components';
 
 import RevokeClaimModal, { revokeClaimModalPropTypes } from './RevokeClaimModal';
 
@@ -69,7 +69,7 @@ export default function Claim({
           </div>
         </header>
         <div className="nx-tile-content">
-          <NxForm
+          <NxStatefulForm
             id="component-details-claim"
             autoComplete="off"
             onSubmit={claim}
@@ -144,7 +144,7 @@ export default function Claim({
                 id="comment"
               />
             </NxFormGroup>
-          </NxForm>
+          </NxStatefulForm>
         </div>
       </section>
       {showRevokeModal && (

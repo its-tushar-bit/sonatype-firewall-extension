@@ -6,7 +6,7 @@
 
 import CopyrightOverrideForm from '../../../../main/frontend/legal/copyright/CopyrightOverrideForm';
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxForm, NxModal, NxToggle, NxTextInput } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxModal, NxToggle, NxTextInput } from '@sonatype/react-shared-components';
 import { pathSet } from '../../../../main/frontend/util/jsUtil';
 import ObligationStatusComponent from '../../../../main/frontend/legal/shared/ObligationStatusComponent';
 
@@ -82,11 +82,11 @@ describe('CopyrightOverrideForm component', function () {
 
   it('returns an NxSubmitMask component if saveCopyrightSaving is true', function () {
     let wrapper = getShallowComponent();
-    expect(wrapper.find(NxForm)).toHaveProp('submitMaskState', undefined);
+    expect(wrapper.find(NxStatefulForm)).toHaveProp('submitMaskState', undefined);
     wrapper = getShallowComponent({
       submitMaskState: true,
     });
-    expect(wrapper.find(NxForm)).toHaveProp('submitMaskState', true);
+    expect(wrapper.find(NxStatefulForm)).toHaveProp('submitMaskState', true);
   });
 
   it('checks that copyrights are visible', function () {
@@ -153,14 +153,14 @@ describe('CopyrightOverrideForm component', function () {
   it('modify copyright value', function () {
     let wrapper = getShallowComponent();
     let copyrightTextInputs = wrapper.find(NxTextInput);
-    let form = wrapper.find(NxForm);
+    let form = wrapper.find(NxStatefulForm);
     expect(form).toExist();
 
     expect(form).toHaveProp('validationErrors', 'No modifications');
 
     copyrightTextInputs.at(0).simulate('change', 'Newly updated Copyright 3000');
 
-    form = wrapper.find(NxForm);
+    form = wrapper.find(NxStatefulForm);
     expect(form).toHaveProp('validationErrors', null);
 
     copyrightTextInputs = wrapper.find(NxTextInput);
@@ -171,7 +171,7 @@ describe('CopyrightOverrideForm component', function () {
   it('modify scope value', function () {
     let wrapper = getShallowComponent();
     let scopeSelect = wrapper.find('#edit-copyright-scope-selection');
-    let form = wrapper.find(NxForm);
+    let form = wrapper.find(NxStatefulForm);
     expect(form).toExist();
     expect(scopeSelect).toExist();
     expect(scopeSelect).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
@@ -182,7 +182,7 @@ describe('CopyrightOverrideForm component', function () {
       target: { value: 'some-application-id' },
     });
 
-    form = wrapper.find(NxForm);
+    form = wrapper.find(NxStatefulForm);
     expect(form).toHaveProp('validationErrors', null);
   });
 
@@ -191,7 +191,7 @@ describe('CopyrightOverrideForm component', function () {
     props = pathSet(['component', 'licenseLegalData', 'componentCopyrightId'], 'ccId', props);
     let wrapper = getShallowComponent(props);
     let scopeSelect = wrapper.find('#edit-copyright-scope-selection');
-    let form = wrapper.find(NxForm);
+    let form = wrapper.find(NxStatefulForm);
     expect(form).toExist();
     expect(scopeSelect).toExist();
     expect(scopeSelect).toHaveProp('value', 'someOrg');
@@ -202,7 +202,7 @@ describe('CopyrightOverrideForm component', function () {
       target: { value: 'some-application-id' },
     });
 
-    form = wrapper.find(NxForm);
+    form = wrapper.find(NxStatefulForm);
     expect(form).toHaveProp('validationErrors', null);
   });
 });

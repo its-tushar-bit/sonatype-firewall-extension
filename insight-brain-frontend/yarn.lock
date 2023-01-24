@@ -1226,6 +1226,13 @@
     "@react-hook/latest" "^1.0.2"
     "@react-hook/passive-layout-effect" "^1.2.0"
 
+"@react-hook/throttle@^2.2.0":
+  version "2.2.0"
+  resolved "https://repo.sonatype.com/repository/npm-all/@react-hook/throttle/-/throttle-2.2.0.tgz#d0402714a06e1ba0bc1da1fdf5c3c5cd0e08d45a"
+  integrity sha512-LJ5eg+yMV8lXtqK3lR+OtOZ2WH/EfWvuiEEu0M3bhR7dZRfTyEJKxH1oK9uyBxiXPtWXiQggWbZirMCXam51tg==
+  dependencies:
+    "@react-hook/latest" "^1.0.2"
+
 "@reduxjs/toolkit@^1.5.1":
   version "1.5.1"
   resolved "https://repo.sonatype.com/repository/npm-all/@reduxjs/toolkit/-/toolkit-1.5.1.tgz"
@@ -1261,10 +1268,10 @@
     in-publish "^2.0.0"
     prop-types "^15.5.10"
 
-"@sonatype/react-shared-components@^11.8.1":
-  version "11.8.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/react-shared-components/-/react-shared-components-11.8.1.tgz#b1674fbe70a555f4c01ea2fc96c1b9a70b5d562b"
-  integrity sha512-fopc7oLhUkpKTV8kiEVUrIeV+F2vKptiiJyZRMH9U3kxsYNTNCKGJrrPKx5efaYxZtFApdVTBDTY9C6bjc13zQ==
+"@sonatype/react-shared-components@^12.5.13":
+  version "12.5.13"
+  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/react-shared-components/-/react-shared-components-12.5.13.tgz#779e01dbf5780f1ce86de322bfa456384d496581"
+  integrity sha512-Z77LeGuzeCPK9SbJYdSeBI2iYH9P8jpz/YzDkwx7pfYC3H2h07sVR+KIJvW+amTjRUm4lcwMclvuepoEBQyTEw==
   dependencies:
     "@fortawesome/fontawesome-svg-core" "^1.2.32"
     "@fortawesome/free-regular-svg-icons" "^5.15.4"
@@ -1273,6 +1280,7 @@
     "@material-ui/core" "^4.11.2"
     "@react-hook/merged-ref" "^1.3.0"
     "@react-hook/resize-observer" "^1.2.5"
+    "@react-hook/throttle" "^2.2.0"
     "@rooks/use-mutation-observer" "^4.11.0"
     "@sonatype/react-commonmark" "^3.0.1"
     "@types/classnames" "^2.2.11"

@@ -7,7 +7,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { isEmpty } from 'ramda';
 import {
-  NxForm,
+  NxStatefulForm,
   NxH1,
   NxH3,
   NxTile,
@@ -112,7 +112,7 @@ export default function ProprietaryComponentConfiguration() {
               </NxList.Item>
             ))}
           </NxList>
-          <NxForm
+          <NxStatefulForm
             onSubmit={saveProprietaryConfig}
             submitBtnText="Update"
             submitMaskMessage="Saving…"
@@ -152,7 +152,7 @@ export default function ProprietaryComponentConfiguration() {
               proprietaryOtherConfigs.map((innerEl) => (
                 <ProprietaryOtherConfigsComponent key={innerEl.ownerId} innerEl={innerEl} />
               ))}
-          </NxForm>
+          </NxStatefulForm>
         </NxTile.Content>
       </NxTile>
     </>

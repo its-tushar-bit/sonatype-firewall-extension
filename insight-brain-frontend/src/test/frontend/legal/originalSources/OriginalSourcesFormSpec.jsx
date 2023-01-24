@@ -5,7 +5,7 @@
  */
 
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxForm, NxModal, NxToggle, NxTextInput } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxModal, NxToggle, NxTextInput } from '@sonatype/react-shared-components';
 import { pathSet } from '../../../../main/frontend/util/jsUtil';
 import ObligationStatusComponent from '../../../../main/frontend/legal/shared/ObligationStatusComponent';
 import OriginalSourcesForm from 'MainRoot/legal/originalSources/OriginalSourcesForm';
@@ -145,14 +145,14 @@ describe('OriginalSourcesForm component', function () {
   it('modify source value', function () {
     let wrapper = getShallowComponent();
     let sourceLinkTextInputs = wrapper.find(NxTextInput);
-    let form = wrapper.find(NxForm);
+    let form = wrapper.find(NxStatefulForm);
     expect(form).toExist();
 
     expect(form).toHaveProp('validationErrors', 'No modifications');
 
     sourceLinkTextInputs.at(0).simulate('change', 'Newly updated source1');
 
-    form = wrapper.find(NxForm);
+    form = wrapper.find(NxStatefulForm);
     expect(form).toHaveProp('validationErrors', null);
 
     sourceLinkTextInputs = wrapper.find(NxTextInput);
@@ -163,7 +163,7 @@ describe('OriginalSourcesForm component', function () {
   it('modify scope value', function () {
     let wrapper = getShallowComponent();
     let scopeSelect = wrapper.find('#edit-original-sources-scope-selection');
-    let form = wrapper.find(NxForm);
+    let form = wrapper.find(NxStatefulForm);
     expect(form).toExist();
     expect(scopeSelect).toExist();
     expect(scopeSelect).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
@@ -174,7 +174,7 @@ describe('OriginalSourcesForm component', function () {
       target: { value: 'some-application-id' },
     });
 
-    form = wrapper.find(NxForm);
+    form = wrapper.find(NxStatefulForm);
     expect(form).toHaveProp('validationErrors', null);
   });
 
@@ -183,7 +183,7 @@ describe('OriginalSourcesForm component', function () {
     props = pathSet(['component', 'licenseLegalData', 'componentCopyrightId'], 'ccId', props);
     let wrapper = getShallowComponent(props);
     let scopeSelect = wrapper.find('#edit-original-sources-scope-selection');
-    let form = wrapper.find(NxForm);
+    let form = wrapper.find(NxStatefulForm);
     expect(form).toExist();
     expect(scopeSelect).toExist();
     expect(scopeSelect).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
@@ -194,7 +194,7 @@ describe('OriginalSourcesForm component', function () {
       target: { value: 'some-application-id' },
     });
 
-    form = wrapper.find(NxForm);
+    form = wrapper.find(NxStatefulForm);
     expect(form).toHaveProp('validationErrors', null);
   });
 });

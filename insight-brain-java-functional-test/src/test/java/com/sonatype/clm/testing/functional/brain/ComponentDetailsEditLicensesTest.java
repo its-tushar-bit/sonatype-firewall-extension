@@ -13,9 +13,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Button;
-import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.elements.NxRadio;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
@@ -23,6 +23,7 @@ import com.sonatype.clm.testing.functional.elements.NxTransferList;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
+import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -33,9 +34,8 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -43,7 +43,6 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import com.codeborne.selenide.Condition;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.enabled;
@@ -128,7 +127,6 @@ public class ComponentDetailsEditLicensesTest
         texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
     statusSelect.getSelectedOption().shouldHave(value("Open"));
     editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(0);
-    saveButton.shouldBe(CLM.DISABLED);
 
     // Update to 'Acknowledged' status for ApplicationReportTest Organization
     secondScope.click();
@@ -302,7 +300,6 @@ public class ComponentDetailsEditLicensesTest
     NxRadio firstScope = editLicensesPopover.scope(0);
     NxRadio secondScope = editLicensesPopover.scope(1);
     SelenideElement statusSelect = editLicensesPopover.status();
-    Button saveButton = editLicensesPopover.saveButton();
 
     // Default states
     editLicensesPopover.availableScopes()
@@ -313,7 +310,6 @@ public class ComponentDetailsEditLicensesTest
         texts("Open", "Acknowledged", "Overridden", "Selected", "Confirmed", "Inherit Status (Open)"));
     statusSelect.getSelectedOption().shouldHave(value("Open"));
     editLicensesPopover.selectedLicensesCheckBoxElements().shouldHaveSize(0);
-    saveButton.shouldBe(CLM.DISABLED);
 
     // Update to 'Acknowledged' status for ApplicationReportTest Organization
     secondScope.click();

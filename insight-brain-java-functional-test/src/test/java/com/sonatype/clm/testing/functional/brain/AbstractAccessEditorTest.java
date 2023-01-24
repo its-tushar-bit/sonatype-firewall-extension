@@ -8,7 +8,12 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.*;
+import com.sonatype.clm.testing.functional.elements.CLM;
+import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
+import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.AccessEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
@@ -27,8 +32,12 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.pages.AccessEditorPage.DISABLED_GROUP_SEARCH_WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -108,7 +117,6 @@ public abstract class AbstractAccessEditorTest
     String roleName = roleDropdown.listItem(2).text();
     assertThat(getMembershipMappings(currentOwner.getId(), roleName)).isEmpty();
     roleDropdown.listItem(2).click();
-    addMembersForm.saveButton().shouldHave(cssClass("disabled"));
     addMembersForm.searchBox().setValue("*").click();
 
     addMembersForm.searchResults().shouldHaveSize(4);
@@ -301,7 +309,6 @@ public abstract class AbstractAccessEditorTest
   private void assertCommonInitialStateIsCorrect(AccessEditorPage accessEditorPage) {
     accessEditorPage.addMembersForm().searchBox().shouldHave(value(""));
     accessEditorPage.addMembersForm().searchResults().shouldHaveSize(0);
-    accessEditorPage.addMembersForm().saveButton().shouldHave(DISABLED);
   }
 
   protected List<MembershipMapping> getMembershipMappings(final String ownerId, final String roleName) {

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxForm, NxModal } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxModal } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../../enzymeUtils';
 import CopyToClipboard from '../../../../../../main/frontend/security/users/userConfiguration/modals/CopyToClipboard';
 
@@ -37,7 +37,7 @@ describe('User CopyToClipboard', () => {
   });
 
   it('calls setMode with DEFAULT mode when submitted', () => {
-    const modal = getShallowComponent().find(NxForm);
+    const modal = getShallowComponent().find(NxStatefulForm);
 
     modal.simulate('submit');
 
@@ -46,7 +46,7 @@ describe('User CopyToClipboard', () => {
   });
 
   it('calls reset new password and setMode with DEFAULT mode when canceled', () => {
-    const modal = getShallowComponent().find(NxForm);
+    const modal = getShallowComponent().find(NxStatefulForm);
     modal.simulate('cancel');
 
     expect(resetInitialNewPasswordValueMock).toHaveBeenCalled();

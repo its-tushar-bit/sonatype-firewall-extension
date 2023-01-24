@@ -3,12 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxForm } from '@sonatype/react-shared-components';
+import { NxStatefulForm } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../frontend/enzymeUtils';
 import ProxyConfig from '../../../../main/frontend/configuration/proxy/ProxyConfig';
 
 describe('ProxyConfig', () => {
-  let getShallowComponent;
+  let getShallowComponent, getMountedComponent;
 
   const loadMock = jasmine.createSpy('load');
   const loadLicencedMock = jasmine.createSpy('loadLicenced');
@@ -35,6 +35,7 @@ describe('ProxyConfig', () => {
 
   beforeEach(() => {
     getShallowComponent = enzymeUtils.getShallowComponent(ProxyConfig, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(ProxyConfig, minimalProps);
   });
 
   describe('on initial load', () => {
@@ -52,7 +53,7 @@ describe('ProxyConfig', () => {
     describe('validationErrors', () => {
       it('is "There are no changes to update" if form was not changed', () => {
         const component = getShallowComponent({ isDirty: false });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', 'There are no changes to update');
       });
@@ -64,7 +65,7 @@ describe('ProxyConfig', () => {
           isValid: true,
           mustReenterPassword: false,
         });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', null);
       });
@@ -75,7 +76,7 @@ describe('ProxyConfig', () => {
           hasAllRequiredData: false,
           isValid: true,
         });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', 'Hostname and Port are required details.');
       });
@@ -86,7 +87,7 @@ describe('ProxyConfig', () => {
           hasAllRequiredData: true,
           isValid: false,
         });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', 'Hostname and Port are required details.');
       });
@@ -98,7 +99,7 @@ describe('ProxyConfig', () => {
           isValid: true,
           mustReenterPassword: true,
         });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', 'Password must be provided when updating Hostname or Port.');
       });
@@ -144,11 +145,11 @@ describe('ProxyConfig', () => {
       });
 
       it('shows label if there is a need to re-enter password', () => {
-        const component = getShallowComponent({
+        const component = getMountedComponent({
           hasAllRequiredData: true,
           mustReenterPassword: true,
         });
-        const subLabel = component.find('.iq-password-sub-label');
+        const subLabel = component.find('.nx-sub-label').at(0);
         expect(subLabel.text()).toBe('Must be re-entered when Hostname or Port is modified.');
       });
     });

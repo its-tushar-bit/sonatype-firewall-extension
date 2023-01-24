@@ -12,16 +12,16 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
-import com.sonatype.clm.testing.functional.elements.UnsavedModal;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.NxTextInput;
 import com.sonatype.clm.testing.functional.elements.ResetPasswordModal;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage;
-import com.sonatype.clm.testing.functional.pages.UserManagementPage.NewUserForm;
-import com.sonatype.clm.testing.functional.pages.UserManagementPage.EditUserForm;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage.CopyToClipboardModal;
+import com.sonatype.clm.testing.functional.pages.UserManagementPage.EditUserForm;
+import com.sonatype.clm.testing.functional.pages.UserManagementPage.NewUserForm;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
 
@@ -33,11 +33,10 @@ import org.junit.Test;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
-import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
-import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
@@ -94,7 +93,7 @@ public class UserManagementTest
   public void testCreateUser_formOpen() {
     NewUserForm newUserForm = goToCreateUserForm(new UserManagementPage());
     newUserForm.shouldBe(visible);
-    newUserForm.saveButton().shouldBe(CLM.DISABLED);
+    newUserForm.saveButton().shouldBe(visible);
 
     List<SelenideElement> formInputs = Arrays.asList(newUserForm.firstNameInput(), newUserForm.lastNameInput(),
         newUserForm.emailInput(), newUserForm.usernameInput(), newUserForm.passwordInput(),
@@ -167,7 +166,6 @@ public class UserManagementTest
     newUserForm.passwordInput().val("123abc");
     newUserForm.passwordValidateInput().val("123abc");
 
-    newUserForm.saveButton().shouldBe(enabled);
     popoverViolationsList(newUserForm.getElement()).shouldHaveSize(0);
 
     newUserForm.saveButton().click();
@@ -220,7 +218,7 @@ public class UserManagementTest
 
     EditUserForm editUserForm = goToEditUserForm(userManagementPage, userRow);
     editUserForm.shouldBe(visible);
-    editUserForm.saveButton().shouldBe(CLM.DISABLED);
+    editUserForm.saveButton().shouldBe(visible);
 
     editUserForm.firstNameInput().shouldHave(value(user.getFirstName()));
     editUserForm.lastNameInput().shouldHave(value(user.getLastName()));
@@ -231,7 +229,7 @@ public class UserManagementTest
     editUserForm.emailInput().val("emailLastName@email.com");
     eyesWatcher.eyesCheck();
 
-    editUserForm.saveButton().shouldBe(enabled).click();
+    editUserForm.saveButton().click();
     editUserForm.should(disappear);
 
     userManagementPage.userItems().get(userRow).shouldHave(text(user.getUsername() +

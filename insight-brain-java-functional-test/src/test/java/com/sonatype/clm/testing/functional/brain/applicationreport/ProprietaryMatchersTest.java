@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.pages.AddProprietaryComponentMatchers
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -32,10 +33,12 @@ import org.junit.Test;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.CLM.NX_RADIO_SELECTED;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProprietaryMatchersTest
@@ -136,13 +139,14 @@ public class ProprietaryMatchersTest
     assertThat(config.getRegexes()).containsExactly("\\QHelloWorldApp.jar/HelloWorld.jar\\E", "\\QHelloWorld.jar\\E",
         "foo");
 
-    // nothing selected
+    // nothing selected will show validation errors
     componentDetailsPage.addProprietarypComponentMatchersBtn().shouldBe(visible).click();
     proprietaryComponentMatchersPopover.shouldBe(visible);
     proprietaryComponentMatchersPopover.matchers().first().click();
-    proprietaryComponentMatchersPopover.addBtn().shouldNotBe(DISABLED);
     proprietaryComponentMatchersPopover.matchers().last().click();
-    proprietaryComponentMatchersPopover.addBtn().shouldBe(DISABLED);
+    proprietaryComponentMatchersPopover.addBtn().click();
+    FormUtils.getAlertElement(proprietaryComponentMatchersPopover)
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Unable to add: Fields with invalid or missing data."));
 
     // submit invalid regex
     proprietaryComponentMatchersPopover.regexInput().val("(foo");

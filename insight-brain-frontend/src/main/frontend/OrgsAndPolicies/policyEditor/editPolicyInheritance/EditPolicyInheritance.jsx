@@ -74,12 +74,11 @@ export default function EditPolicyInheritance() {
             disabled={isInherited}
             onChange={onCategoryToggled}
             fieldType={FieldType.CheckBox}
-            isRequired
           />
         )}
       </NxFieldset>
 
-      <NxFieldset id="editor-policy-actions-override-fieldset" isRequired={true} label="Policy Actions Override">
+      <NxFieldset id="editor-policy-actions-override-fieldset" label="Policy Actions Override">
         <NxCheckbox
           id="editor-policy-actions-override"
           isChecked={!!currentPolicy.policyActionsOverrideAllowed}

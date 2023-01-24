@@ -97,11 +97,10 @@ describe('InnerSourceRepositoryBaseConfigurations', () => {
 
       const updateButton = await screen.findByText('Update');
       expect(updateButton).toBeVisible();
-      expect(updateButton).toHaveClassName('disabled');
 
-      fireEvent.mouseOver(updateButton);
-      const tooltip = await screen.findByRole('tooltip');
-      expect(within(tooltip).getByText('No changes have been made.')).toBeInTheDocument();
+      fireEvent.click(updateButton);
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent('There were validation errors. No changes have been made.');
     });
 
     it('renders an alert with retry button if something goes wrong on save', async () => {
@@ -170,10 +169,9 @@ describe('InnerSourceRepositoryBaseConfigurations', () => {
 
         let updateButton = await screen.findByText('Update');
         expect(updateButton).toBeVisible();
-        expect(updateButton).toHaveClassName('disabled');
-        fireEvent.mouseOver(updateButton);
-        const tooltip = await screen.findByRole('tooltip');
-        expect(within(tooltip).getByText('No changes have been made.')).toBeInTheDocument();
+        fireEvent.click(updateButton);
+        const alert = await screen.findByRole('alert');
+        expect(alert).toHaveTextContent('There were validation errors. No changes have been made.');
 
         const allowOverride = await screen.findByLabelText('Allow Override');
         fireEvent.click(allowOverride);

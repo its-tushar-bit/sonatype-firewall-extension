@@ -10,7 +10,7 @@ import * as enzymeUtils from '../../../../enzymeUtils';
 import UserTokenDisplay from '../../../../../../main/frontend/mainHeader/MenuBar/UserMenu/UserToken/UserTokenDisplay';
 
 describe('UserTokenDisplay', function () {
-  let minimalProps, getShallowComponent;
+  let minimalProps, getShallowComponent, getMountedComponent;
 
   beforeEach(function () {
     minimalProps = {
@@ -21,6 +21,7 @@ describe('UserTokenDisplay', function () {
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(UserTokenDisplay, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(UserTokenDisplay, minimalProps);
   });
 
   it('renders a form with 2 inputs for the user token information', function () {
@@ -39,7 +40,7 @@ describe('UserTokenDisplay', function () {
   });
 
   it('renders an NxInput with label User Code with the value of userCode from the userToken prop', function () {
-    const component = getShallowComponent(),
+    const component = getMountedComponent(),
       userCodeInputContainer = component.find('.nx-form-group').at(0);
 
     const inputTitle = userCodeInputContainer.find('span');
@@ -52,7 +53,7 @@ describe('UserTokenDisplay', function () {
 
   describe('Copy User Code to clipboard button', function () {
     it('renders a button to copy the userCode input content into the clipboard', function () {
-      const component = getShallowComponent(),
+      const component = getMountedComponent(),
         userCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(0);
 
       const buttonTooltip = userCodeInputCopyButtonContainer.find(NxTooltip);
@@ -68,7 +69,7 @@ describe('UserTokenDisplay', function () {
     it('calls copyToClipboard function on click with the value of the userCode from userToken', function () {
       const copyToClipboardSpy = jasmine.createSpy('copyToClipboard');
       navigator.clipboard.writeText = copyToClipboardSpy;
-      const component = getShallowComponent(),
+      const component = getMountedComponent(),
         userCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(0),
         button = userCodeInputCopyButtonContainer.find(NxButton);
 
@@ -78,7 +79,7 @@ describe('UserTokenDisplay', function () {
   });
 
   it('renders an NxInput with label Passcode with the value of passCode from the userToken prop', function () {
-    const component = getShallowComponent(),
+    const component = getMountedComponent(),
       passCodeInputContainer = component.find('.nx-form-group').at(1);
 
     const inputTitle = passCodeInputContainer.find('span');
@@ -91,7 +92,7 @@ describe('UserTokenDisplay', function () {
 
   describe('Copy Passcode to clipboard button', function () {
     it('renders a button to copy the passCode input content into the clipboard', function () {
-      const component = getShallowComponent(),
+      const component = getMountedComponent(),
         passCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(1);
 
       const buttonTooltip = passCodeInputCopyButtonContainer.find(NxTooltip);
@@ -107,7 +108,7 @@ describe('UserTokenDisplay', function () {
     it('calls copyToClipboard function on click with the value of the passCode from userToken', function () {
       const copyToClipboardSpy = jasmine.createSpy('copyToClipboard');
       navigator.clipboard.writeText = copyToClipboardSpy;
-      const component = getShallowComponent(),
+      const component = getMountedComponent(),
         passCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(1),
         button = passCodeInputCopyButtonContainer.find(NxButton);
 

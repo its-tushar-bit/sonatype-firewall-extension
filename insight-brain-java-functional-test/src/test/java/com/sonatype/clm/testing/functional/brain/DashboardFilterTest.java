@@ -37,6 +37,7 @@ import com.sonatype.clm.testing.functional.elements.NxPolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -88,6 +89,7 @@ import static com.sonatype.clm.testing.functional.pages.DashboardPage.applicatio
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.componentsTab;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.violationsTab;
 import static com.sonatype.clm.testing.functional.pages.DashboardPage.waiversTab;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DashboardFilterTest
@@ -820,7 +822,10 @@ public class DashboardFilterTest
     SaveFilterDialog saveDialog = DashboardFilters.saveFilterDialog();
     saveDialog.shouldBe(visible).saveAsRadio().click();
     saveDialog.nameInput().val("Default");
-    saveDialog.saveButton().shouldBe(disabled);
+    saveDialog.saveButton().click();
+    FormUtils.getAlertElement(saveDialog)
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Can not overwrite Default filter"));
+    saveDialog.nameInput().val("Foo");
     saveDialog.cancelButton().click();
     saveDialog.shouldNotBe(visible);
   }
@@ -1532,7 +1537,7 @@ public class DashboardFilterTest
       saveDialog.overwriteRadio().shouldBe(disabled);
     }
 
-    saveDialog.saveButton().shouldBe(disabled).shouldHave(text("Save"));
+    saveDialog.saveButton().shouldHave(text("Save"));
     saveDialog.overwriteRadio().shouldNotBe(selected);
     saveDialog.saveAsRadio().shouldBe(selected);
     saveDialog.nameInput().shouldBe(Condition.empty).shouldBe(visible);

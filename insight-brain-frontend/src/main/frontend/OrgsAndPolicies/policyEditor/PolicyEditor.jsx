@@ -24,7 +24,7 @@ import { selectLoading as selectOwnerDetailTreeLoading } from 'MainRoot/OrgsAndP
 
 import {
   NxButton,
-  NxForm,
+  NxStatefulForm,
   NxH1,
   NxModal,
   NxPageTitle,
@@ -97,7 +97,7 @@ export default function PolicyEditor() {
       </NxPageTitle>
 
       <NxTile>
-        <NxForm
+        <NxStatefulForm
           onSubmit={onSave}
           submitBtnText={dirtyPolicy?.id ? 'Update' : 'Create'}
           submitMaskMessage="Saving…"
@@ -128,12 +128,12 @@ export default function PolicyEditor() {
             <PolicyActionsEditor></PolicyActionsEditor>
             <PolicyNotificationsEditor></PolicyNotificationsEditor>
           </NxTile.Content>
-        </NxForm>
+        </NxStatefulForm>
       </NxTile>
 
       {isDeleteModalOpen && (
         <NxModal id="policy-delete-modal" aria-labelledby="policy-delete-modal-header" onClose={closeDeleteModal}>
-          <NxForm
+          <NxStatefulForm
             submitMaskState={submitMaskState}
             submitError={deleteError}
             onCancel={closeDeleteModal}
@@ -151,7 +151,7 @@ export default function PolicyEditor() {
                 You are about to permanently remove {dirtyPolicy?.name.value}. This action cannot be undone.
               </NxWarningAlert>
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </NxModal>
       )}
     </div>

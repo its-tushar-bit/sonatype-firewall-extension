@@ -3,17 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxSubmitMask } from '@sonatype/react-shared-components';
+import { nxDateInputStateHelpers, NxSubmitMask } from '@sonatype/react-shared-components';
 
-import * as enzymeUtils from '../../enzymeUtils';
-import { nxDateInputStateHelpers } from '@sonatype/react-shared-components';
-import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
-import AddWaiverForm from '../../../../main/frontend/waivers/AddWaiverForm';
-import AddWaiverPopover from '../../../../main/frontend/waivers/addWaiverPopover/AddWaiverPopover';
-import IqPopover from '../../../../main/frontend/react/IqPopover/IqPopover';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import LoadWrapper from 'MainRoot/react/LoadWrapper';
+import AddWaiverForm from 'MainRoot/waivers/AddWaiverForm';
+import AddWaiverPopover from 'MainRoot/waivers/addWaiverPopover/AddWaiverPopover';
+import IqPopover from 'MainRoot/react/IqPopover/IqPopover';
 
 describe('AddWaiverPopover', function () {
-  let minimalProps, openVulnerabilityDetailsModalMock, loadAddWaiverDataSpy, getShallowComponent, getMountedComponent;
+  let minimalProps,
+    openVulnerabilityDetailsModalMock,
+    loadAddWaiverDataSpy,
+    getShallowComponent,
+    getMountedComponentWithAutoClean,
+    mountedComponent;
 
   beforeEach(function () {
     loadAddWaiverDataSpy = jasmine.createSpy('loadAddWaiverDataSpy');
@@ -42,7 +46,16 @@ describe('AddWaiverPopover', function () {
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(AddWaiverPopover, minimalProps);
-    getMountedComponent = enzymeUtils.getMountedComponent(AddWaiverPopover, minimalProps);
+    const getMountedComponent = enzymeUtils.getMountedComponent(AddWaiverPopover, minimalProps);
+    getMountedComponentWithAutoClean = (additionalProps) => {
+      mountedComponent = getMountedComponent(additionalProps);
+      return mountedComponent;
+    };
+  });
+
+  afterEach(() => {
+    mountedComponent?.unmount();
+    mountedComponent = null;
   });
 
   it('renders a component', function () {
@@ -176,12 +189,12 @@ describe('AddWaiverPopover', function () {
   });
 
   it('calls `loadAddWaiverData` with the violationId', function () {
-    getMountedComponent();
+    getMountedComponentWithAutoClean();
     expect(loadAddWaiverDataSpy).toHaveBeenCalledWith('violationId');
   });
 
   it('calls `loadAddWaiverData` if the violationId changes', function () {
-    const component = getMountedComponent();
+    const component = getMountedComponentWithAutoClean();
 
     expect(loadAddWaiverDataSpy).toHaveBeenCalledTimes(1);
     expect(loadAddWaiverDataSpy).toHaveBeenCalledWith('violationId');

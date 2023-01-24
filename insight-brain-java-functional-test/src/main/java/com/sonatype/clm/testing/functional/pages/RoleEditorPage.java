@@ -42,7 +42,7 @@ public class RoleEditorPage extends BasicElement<RoleEditorPage>
   }
 
   public SelenideElement nameAlert() {
-    return child(".nx-text-input__invalid-message");
+    return child(".nx-field-validation-message");
   }
 
   public SelenideElement descriptionEditor() {

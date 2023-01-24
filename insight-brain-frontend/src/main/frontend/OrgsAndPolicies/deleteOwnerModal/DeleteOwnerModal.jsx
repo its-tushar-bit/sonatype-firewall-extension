@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { selectDeleteOwnerSlice } from './deleteOwnerSelectors';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedOwnerName } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { NxModal, NxWarningAlert, NxH2, NxFontAwesomeIcon, NxForm } from '@sonatype/react-shared-components';
+import { NxModal, NxWarningAlert, NxH2, NxFontAwesomeIcon, NxStatefulForm } from '@sonatype/react-shared-components';
 import { actions } from './deleteOwnerSlice';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
@@ -28,7 +28,7 @@ export default function DeleteOwnerModal() {
 
   return isModalOpen ? (
     <NxModal id="owner-delete-modal" onCancel={closeModal}>
-      <NxForm
+      <NxStatefulForm
         onSubmit={deleteOwner}
         onCancel={closeModal}
         submitMaskState={submitMaskState}
@@ -46,7 +46,7 @@ export default function DeleteOwnerModal() {
             You are about to permanently remove {ownerName}. This action cannot be undone.
           </NxWarningAlert>
         </NxModal.Content>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   ) : null;
 }

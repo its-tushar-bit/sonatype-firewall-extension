@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { NxForm, NxButton, NxToggle } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxButton, NxToggle } from '@sonatype/react-shared-components';
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { displayName } from '../scmOnboarding/utils/providers';
@@ -41,7 +41,7 @@ export default function AutomaticSourceControlConfiguration({
         <h1 className="nx-h1">Automatic Source Control</h1>
       </div>
       <section className="nx-tile" id="automatic-source-control-configuration">
-        <NxForm
+        <NxStatefulForm
           onSubmit={update}
           submitBtnText="Update"
           loading={loading}
@@ -78,7 +78,7 @@ export default function AutomaticSourceControlConfiguration({
               </p>
             )}
           </div>
-        </NxForm>
+        </NxStatefulForm>
       </section>
     </main>
   );

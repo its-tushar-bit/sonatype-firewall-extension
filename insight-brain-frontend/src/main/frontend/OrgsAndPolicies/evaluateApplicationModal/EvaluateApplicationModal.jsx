@@ -9,7 +9,7 @@ import {
   NxFieldset,
   NxFileUpload,
   NxFooter,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxFormSelect,
   NxH2,
@@ -69,7 +69,7 @@ const EvaluateApplicationModal = () => {
           <NxModal.Header>
             <NxH2>Evaluate a File</NxH2>
           </NxModal.Header>
-          <NxForm
+          <NxStatefulForm
             doLoad={doLoad}
             loading={loading}
             loadError={loadError}
@@ -111,7 +111,7 @@ const EvaluateApplicationModal = () => {
                 </NxFieldset>
               )}
             </NxModal.Content>
-          </NxForm>
+          </NxStatefulForm>
           {!!loadError && (
             <NxFooter>
               <NxButtonBar>

@@ -7,7 +7,14 @@ import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectImportPoliciesSlice } from './importPoliciesSelectors';
 import { GLOBAL_FORM_VALIDATION_ERROR } from 'MainRoot/util/validationUtil';
-import { NxModal, NxWarningAlert, NxH2, NxForm, NxFileUpload, NxFormGroup } from '@sonatype/react-shared-components';
+import {
+  NxModal,
+  NxWarningAlert,
+  NxH2,
+  NxStatefulForm,
+  NxFileUpload,
+  NxFormGroup,
+} from '@sonatype/react-shared-components';
 import { actions } from './importPoliciesSlice';
 
 export default function ImportPoliciesModal() {
@@ -25,7 +32,7 @@ export default function ImportPoliciesModal() {
 
   return isModalOpen ? (
     <NxModal id="import-policy-modal" onCancel={closeModal}>
-      <NxForm
+      <NxStatefulForm
         onSubmit={importPolicies}
         onCancel={closeModal}
         submitMaskState={submitMaskState}
@@ -46,7 +53,7 @@ export default function ImportPoliciesModal() {
             <NxFileUpload onChange={selectFile} accept=".json" isRequired {...ownerFile} />
           </NxFormGroup>
         </NxModal.Content>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   ) : null;
 }

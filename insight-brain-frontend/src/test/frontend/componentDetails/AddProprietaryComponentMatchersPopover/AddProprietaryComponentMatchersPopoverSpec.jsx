@@ -6,7 +6,7 @@
 import {
   NxAlert,
   NxCheckbox,
-  NxForm,
+  NxStatefulForm,
   NxInfoAlert,
   NxSubmitMask,
   NxTextInput,
@@ -129,23 +129,27 @@ describe('AddProprietaryComponentMatchersPopover', () => {
     });
   });
 
-  it('makes sure that the add button disables when there are none matchers selected and no regex', () => {
+  it('makes sure that the form has showValidationErrors class when there are none matchers selected and no regex', () => {
     mountedComponent = getMountedComponent();
+    const showValidationErrorsClass = 'nx-form--show-validation-errors';
 
-    let submitBtn = mountedComponent.find('.nx-form__submit-btn').at(0).find('button');
-    expect(submitBtn.props()['aria-disabled']).toBeFalsy();
+    let formEl = mountedComponent.find(NxStatefulForm);
+    expect(formEl.getDOMNode().classList.contains(showValidationErrorsClass)).toBe(false);
 
     mountedComponent.unmount();
     mountedComponent = getMountedComponent({ data: { paths: [], regex: 'some regex' } });
 
-    submitBtn = mountedComponent.find('.nx-form__submit-btn').at(0).find('button');
-    expect(submitBtn.props()['aria-disabled']).toBeFalsy();
+    formEl = mountedComponent.find(NxStatefulForm);
+    expect(formEl.getDOMNode().classList.contains(showValidationErrorsClass)).toBe(false);
 
     mountedComponent.unmount();
     mountedComponent = getMountedComponent({ data: { paths: [], regex: '' } });
 
-    submitBtn = mountedComponent.find('.nx-form__submit-btn').at(0).find('button');
-    expect(submitBtn.props()['aria-disabled']).toBeTruthy();
+    formEl = mountedComponent.find(NxStatefulForm);
+    formEl.simulate('submit');
+
+    mountedComponent.update();
+    expect(formEl.getDOMNode().classList.contains(showValidationErrorsClass)).toBe(true);
   });
 
   it('sends the right information on submit', () => {
@@ -153,7 +157,7 @@ describe('AddProprietaryComponentMatchersPopover', () => {
     const regexInput = mountedComponent.find(NxTextInput);
 
     expect(regexInput).toHaveProp('value', 'some regex');
-    const form = mountedComponent.find(NxForm);
+    const form = mountedComponent.find(NxStatefulForm);
     form.invoke('onSubmit')();
     mountedComponent.update();
     expect(addProprietaryMatchersSpy).toHaveBeenCalledTimes(1);

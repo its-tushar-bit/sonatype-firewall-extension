@@ -10,13 +10,13 @@ import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsConfigurationPage;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ApplicationCountsTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.Header;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsConfigurationPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsReportScopeDTO;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -31,6 +31,8 @@ import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class SuccessMetricsConfigurationTest
     extends AbstractFunctionalTest
@@ -80,10 +82,9 @@ public class SuccessMetricsConfigurationTest
     eyesWatcher.eyesCheck();
 
     // check the tooltip on the update button
-    metricsConfigPage.update().shouldBe(CLM.DISABLED).hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("There are no changes to update"));
-    metricsConfigPage.cancel().shouldBe(disabled).hover();
-    Tooltip.get().shouldNot(exist);
+    metricsConfigPage.update().click();
+    FormUtils.getAlertElement(metricsConfigPage)
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to update"));
 
     // check the toggle works
     metricsConfigPage.toggle().click();
@@ -93,10 +94,8 @@ public class SuccessMetricsConfigurationTest
     metricsConfigPage.cancel().shouldNotBe(disabled).click();
     metricsConfigPage.toggle().input().shouldBe(checked);
 
-    // disable success metrics
     metricsConfigPage.toggle().click();
-    metricsConfigPage.update().shouldNotBe(CLM.DISABLED).click();
-    metricsConfigPage.update().shouldBe(CLM.DISABLED);
+    metricsConfigPage.update().shouldBe(enabled).click();
 
     // check that it worked on the header
     SidebarNavigation.labsNavigationButton().shouldNot(exist);

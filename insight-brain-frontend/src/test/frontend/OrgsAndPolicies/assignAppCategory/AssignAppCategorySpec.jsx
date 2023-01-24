@@ -88,7 +88,6 @@ describe('Assign Application Categories Component', () => {
     renderComponent();
     const updateButton = screen.getByRole('button', 'Update');
     expect(updateButton).toBeVisible();
-    expect(updateButton).toHaveClassName('disabled');
     fireEvent.click(updateButton);
     expect(assignAppCategoriesSaveSpy).not.toHaveBeenCalled();
     expect(saveMaskTimerDoneSpy).not.toHaveBeenCalled();

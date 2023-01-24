@@ -44,9 +44,7 @@ describe('ImportPoliciesModal', () => {
     const textToFind = /Note: Importing policies is destructive, all existing policies, waivers, and license threat groups belonging to this organization and any of its descendants will be permanently deleted before importing./i;
     expect(screen.getByRole('dialog')).toHaveTextContent(textToFind);
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
-    expect(
-      screen.getByRole('button', { name: 'Submit disabled: Unable to save: fields with invalid or missing data' })
-    ).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Import' })).toBeVisible();
   });
 
   it('renders error on submitError', () => {

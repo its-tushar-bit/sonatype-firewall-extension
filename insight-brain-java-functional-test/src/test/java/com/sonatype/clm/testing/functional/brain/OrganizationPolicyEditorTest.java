@@ -25,7 +25,6 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.IqAssociationEditor.MULTI_COLUMN;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.ALL_TEXT_ROOT_ORG;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.allRadioText;
 import static com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection.specifiedRadioText;
@@ -86,7 +85,6 @@ public class OrganizationPolicyEditorTest
     inheritance.allChildrenInheritRadio().shouldNotBe(selected);
     inheritance.specifiedChildrenInheritRadio().shouldBe(selected);
     inheritance.associationEditor().shouldBe(visible);
-    PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     refresh();
 

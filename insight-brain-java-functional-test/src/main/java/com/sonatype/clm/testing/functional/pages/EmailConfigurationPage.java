@@ -26,11 +26,11 @@ public class EmailConfigurationPage
     }
 
     public SelenideElement ok() {
-      return child("#mail-config-delete-ok");
+      return child(".nx-form__submit-btn");
     }
 
     public SelenideElement cancel() {
-      return child("#mail-config-delete-cancel");
+      return child(".nx-form__cancel-btn");
     }
   }
 
@@ -87,7 +87,7 @@ public class EmailConfigurationPage
   }
 
   public SelenideElement save() {
-    return child("#email-config-save");
+    return child(".nx-form__submit-btn");
   }
 
   public SelenideElement cancel() {

@@ -71,7 +71,7 @@ public class AccessEditorPage
     }
 
     public NxFormSelect roleSelect() {
-      return new NxFormSelect(childSelector("select.nx-form-select"));
+      return new NxFormSelect(childSelector("select.nx-form-select__select"));
     }
 
     public SelenideElement addGroupBox() {

@@ -23,7 +23,7 @@ public class InnerSourceRepositoryConfigurationModal
   }
 
   public NxFormSelect format() {
-    return new NxFormSelect(this.selector, ".nx-form-select");
+    return new NxFormSelect(this.selector, ".nx-form-select", ".nx-form-select__select");
   }
 
   public Option generic() {

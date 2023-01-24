@@ -35,7 +35,7 @@ public class ChangeApplicationIdDialog
   }
 
   public SelenideElement newIdInvalidMessage() {
-    return child("#editor-new-id > .nx-text-input > .nx-text-input__invalid-message");
+    return child("#editor-new-id > .nx-text-input > .nx-field-validation-message");
   }
 
   public SelenideElement changeButton() {

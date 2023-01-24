@@ -52,7 +52,7 @@ export default function EditPolicySummary() {
           <NxTextInput
             {...name}
             onChange={setPolicyName}
-            validatable={true}
+            validatable={!name.isPristine || !name.value}
             disabled={readOnly}
             id="editor-policy-name"
             name="policy"
@@ -72,7 +72,7 @@ export default function EditPolicySummary() {
           Policy Violation Grandfathering is not supported by your license
         </NxStatefulInfoAlert>
       )}
-      <NxFieldset label="Policy Violation Grandfathering" isRequired={true}>
+      <NxFieldset label="Policy Violation Grandfathering">
         <NxCheckbox
           id="editor-policy-violation-grandfathering"
           onChange={togglePolicyViolationGrandfatheringAllowed}

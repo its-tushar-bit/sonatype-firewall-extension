@@ -15,7 +15,7 @@ const mapDispatchToProps = {
 };
 
 const mapStateToProps = ({ manageLegalFilters }) =>
-  pick(['filterToDelete', 'deleteFilterError', 'deleteFilterSaving', 'deleteFilterSuccess'], manageLegalFilters);
+  pick(['filterToDelete', 'deleteFilterError', 'deleteFilterMaskState'], manageLegalFilters);
 
 const DeleteLegalFilterModalContainer = connect(mapStateToProps, mapDispatchToProps)(DeleteFilterModal);
 export default DeleteLegalFilterModalContainer;

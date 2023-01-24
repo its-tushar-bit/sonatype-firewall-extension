@@ -6,9 +6,9 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.LdapConnectionForm;
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -88,6 +88,6 @@ public class LdapConfigurationPage
   }
 
   public static SelenideElement getInputValidationElement(SelenideElement element) {
-    return element.closest(".nx-form-group").find(".nx-text-input__invalid-message");
+    return element.closest(".nx-form-group").find(".nx-field-validation-message");
   }
 }

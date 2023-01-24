@@ -5,7 +5,7 @@
  */
 
 import * as enzymeUtils from '../../../enzymeUtils';
-import { NxErrorAlert, NxForm, NxInfoAlert, NxModal, NxTextInput } from '@sonatype/react-shared-components';
+import { NxErrorAlert, NxStatefulForm, NxInfoAlert, NxModal, NxTextInput } from '@sonatype/react-shared-components';
 import GitHostModal from '../../../../../main/frontend/configuration/scmOnboarding/components/GitHostModal';
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { createOrg } from './utils';
@@ -26,7 +26,7 @@ describe('GitHostModal', function () {
       const setShowHostDialogSpy = jasmine.createSpy('setShowHostDialog');
       const component = getShallowComponent({ setShowHostDialog: setShowHostDialogSpy }),
         modal = component.find(NxModal),
-        form = modal.find(NxForm);
+        form = modal.find(NxStatefulForm);
       expect(form).toExist();
 
       // when cancel is invoked
@@ -49,7 +49,7 @@ describe('GitHostModal', function () {
           currentHostUrlState: textInputStateHelpers.initialState('value'),
         }),
         modal = component.find(NxModal),
-        form = modal.find(NxForm);
+        form = modal.find(NxStatefulForm);
       expect(form).toExist();
 
       // when cancel is invoked

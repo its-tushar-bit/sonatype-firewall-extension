@@ -10,8 +10,8 @@ import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.RoleEditorPage;
 import com.sonatype.clm.testing.functional.pages.RoleManagementPage;
-import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.NxToggle;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -29,7 +29,6 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.checked;
 
 public class RoleManagementTest
@@ -157,8 +156,7 @@ public class RoleManagementTest
     // on new role editor
     RoleEditorPage roleEditorPage = new RoleEditorPage();
     roleEditorPage.pageTitle().shouldBe(visible).shouldHave(text("Create a Role"));
-
-    roleEditorPage.save().shouldBe(CLM.DISABLED);
+    roleEditorPage.save().shouldBe(visible);
     roleEditorPage.deleteRole().shouldNotBe(visible);
 
     // setting permission
@@ -174,15 +172,18 @@ public class RoleManagementTest
     String newRoleName = "new-role";
     String newRoleDescription = "new-role description";
     roleEditorPage.nameEditor().val(newRoleName);
-    // save button is still disabled
-    roleEditorPage.save().shouldBe(CLM.DISABLED);
+
+    roleEditorPage.save().scrollIntoView(true).shouldBe(visible).click();
+    FormUtils.getAlertElement(roleEditorPage).shouldBe(visible)
+        .shouldHave(
+          text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " Unable to submit: fields with invalid or missing data."));
+
     // enter the role description
     roleEditorPage.descriptionEditor().val(newRoleDescription);
-    // save button is enabled
-    roleEditorPage.save().scrollIntoView(true).shouldBe(enabled);
 
-    // clicking save, should save the role
-    roleEditorPage.save().click();
+    roleEditorPage.save().scrollIntoView(true).click();
+    roleEditorPage.save().shouldBe(visible);
+
     roleManagementPage.customRoles().shouldHaveSize(1);
     roleManagementPage.customRole(0).name().shouldHave(text(newRoleName));
     roleManagementPage.customRole(0).description().shouldHave(text(newRoleDescription));
@@ -192,10 +193,9 @@ public class RoleManagementTest
     String updateSuffix = "-update";
     roleManagementPage.customRole(0).click();
     roleEditorPage.pageTitle().shouldHave(text("Edit a Role"));
-    roleEditorPage.save().shouldBe(CLM.DISABLED);
+    roleEditorPage.save().shouldBe(visible);
 
     roleEditorPage.nameEditor().val(newRoleName + updateSuffix);
-    roleEditorPage.save().scrollIntoView(true).shouldBe(enabled);
     roleEditorPage.descriptionEditor().scrollIntoView(true).val(newRoleDescription + updateSuffix);
     roleEditorPage.save().scrollIntoView(true).click();
 
@@ -232,7 +232,7 @@ public class RoleManagementTest
     roleManagementPage.customRole(0).click();
     RoleEditorPage roleEditorPage = new RoleEditorPage();
     roleEditorPage.pageTitle().shouldHave(text("Edit a Role"));
-    roleEditorPage.save().shouldBe(CLM.DISABLED);
+    roleEditorPage.save().shouldBe(visible);
     roleEditorPage.nameEditor().shouldBe(disabled);
     roleEditorPage.deleteRole().shouldHave(attribute("disabled"));
 

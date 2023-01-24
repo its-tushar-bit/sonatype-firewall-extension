@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTil
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.clm.testing.functional.utils.NxColor;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -50,6 +51,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.back;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -155,8 +157,9 @@ public class OrganizationSummaryViewTest
     ActionDropDown.importPoliciesButton().shouldBe(visible).click();
 
     ImportPolicyModal.root().shouldBe(visible);
-    ImportPolicyModal.importButton().shouldBe(visible).shouldHave(cssClass("disabled")).hover();
-    Tooltip.get().shouldHave(text("Unable to save: fields with invalid or missing data"));
+    ImportPolicyModal.importButton().shouldBe(visible).click();
+    FormUtils.getAlertElement()
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Unable to save: fields with invalid or missing data"));
 
     // ANY file enables the "Import" button
     ImportPolicyModal.fileInput().shouldBe(visible).sendKeys(filePath);

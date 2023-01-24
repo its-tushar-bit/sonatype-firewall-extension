@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm, NxTextInput, NxFormGroup } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxTextInput, NxFormGroup } from '@sonatype/react-shared-components';
 import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 
 const getValidationMessage = ({ isDirty, validationError }) => {
@@ -54,7 +54,7 @@ export default function UserAdd({
         </h1>
       </div>
       <section className="nx-tile">
-        <NxForm
+        <NxStatefulForm
           id="user-form"
           autoComplete="off"
           onSubmit={save}
@@ -149,7 +149,7 @@ export default function UserAdd({
               </NxFormGroup>
             </div>
           </div>
-        </NxForm>
+        </NxStatefulForm>
       </section>
     </main>
   );

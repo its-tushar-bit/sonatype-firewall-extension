@@ -36,7 +36,7 @@ public class OwnerEditorDialog
   }
 
   public static SelenideElement nameInvalidMessage() {
-    return root().find("#editor-owner-name > .nx-text-input > .nx-text-input__invalid-message");
+    return root().find("#editor-owner-name").find(".nx-field-validation-message");
   }
 
   public static SelenideElement publicIdDiv() {
@@ -48,7 +48,7 @@ public class OwnerEditorDialog
   }
 
   public static SelenideElement publicIdInvalidMessage() {
-    return root().find("#editor-new-id > .nx-text-input > .nx-text-input__invalid-message");
+    return root().find("#editor-new-id").find(".nx-field-validation-message");
   }
 
   public static SelenideElement saveButton() {

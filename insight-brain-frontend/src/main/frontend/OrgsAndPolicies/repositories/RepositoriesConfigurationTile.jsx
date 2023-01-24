@@ -7,7 +7,7 @@ import React, { useEffect } from 'react';
 import {
   NxButton,
   NxFontAwesomeIcon,
-  NxForm,
+  NxStatefulForm,
   NxH2,
   NxModal,
   NxTable,
@@ -62,7 +62,7 @@ const RepositoriesConfigurationTile = () => {
       variant="narrow"
       aria-labelledby="repositories-delete-label-modal"
     >
-      <NxForm
+      <NxStatefulForm
         onSubmit={deleteRepository}
         onCancel={() => setShowDeleteModal(false)}
         submitBtnText="Continue"
@@ -81,7 +81,7 @@ const RepositoriesConfigurationTile = () => {
             is not reversible.
           </NxWarningAlert>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 

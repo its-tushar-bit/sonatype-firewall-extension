@@ -13,20 +13,19 @@ import java.util.Map;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage.ApplicationReportRetentionEditor;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage.RetentionEditor;
 import com.sonatype.clm.testing.functional.pages.DataRetentionEditorPage.SuccessMetricsRetentionEditor;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,6 +33,7 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class DataRetentionEditorTest
     extends AbstractFunctionalTest
@@ -147,60 +147,23 @@ public class DataRetentionEditorTest
   }
 
   @Test
-  public void testDataRetentionEditor_Dirty() {
+  public void testDataRetentionEditor_FormValidation() {
     refreshOrOpen(DataRetentionEditorPage.url(organization.getId()));
     EDITORS.get(Stage.ID_BUILD).shouldBe(visible);
 
-    // Initially inherit
-    checkUpdateDisabled();
-    setDisabled(Stage.ID_BUILD);
-    checkUpdateEnabled();
+    // No changes to save
     setInherit(Stage.ID_BUILD);
-    checkUpdateDisabled();
-    setCustom(Stage.ID_BUILD, "1", "Years", "");
-    checkUpdateEnabled();
-    setInherit(Stage.ID_BUILD);
-    checkUpdateDisabled();
-
-    // Initially disabled
-    setDisabled(Stage.ID_BUILD);
     updateDataRetention();
-    checkUpdateDisabled();
-    setInherit(Stage.ID_BUILD);
-    checkUpdateEnabled();
-    setDisabled(Stage.ID_BUILD);
-    checkUpdateDisabled();
-    setCustom(Stage.ID_BUILD, "1", "Years", "");
-    checkUpdateEnabled();
-    setDisabled(Stage.ID_BUILD);
-    checkUpdateDisabled();
+    FormUtils.getAlertElement(PAGE)
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save"));
 
-    // Initially custom
-    setCustom(Stage.ID_BUILD, "1", "Years", "2");
+    refreshOrOpen(DataRetentionEditorPage.url(organization.getId()));
+
+    // When there are field validation errors
+    validateCustom(Stage.ID_BUILD, "0", "Days", "", "Minimum allowed value is 1", null);
     updateDataRetention();
-    checkUpdateDisabled();
-    setInherit(Stage.ID_BUILD);
-    checkUpdateEnabled();
-    setCustom(Stage.ID_BUILD, "1", "Years", "2");
-    checkUpdateDisabled();
-    setDisabled(Stage.ID_BUILD);
-    checkUpdateEnabled();
-    setCustom(Stage.ID_BUILD, "1", "Years", "2");
-    checkUpdateDisabled();
-
-    // Change custom max values
-    setCustom(Stage.ID_BUILD, "2", "Years", "2");
-    checkUpdateEnabled();
-    setCustom(Stage.ID_BUILD, "1", "Years", "2");
-    checkUpdateDisabled();
-    setCustom(Stage.ID_BUILD, "1", "Months", "2");
-    checkUpdateEnabled();
-    setCustom(Stage.ID_BUILD, "1", "Years", "2");
-    checkUpdateDisabled();
-    setCustom(Stage.ID_BUILD, "1", "Years", "3");
-    checkUpdateEnabled();
-    setCustom(Stage.ID_BUILD, "1", "Years", "2");
-    checkUpdateDisabled();
+    FormUtils.getAlertElement(PAGE)
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Unable to save: fields with invalid or missing data"));
   }
 
   @Test
@@ -248,14 +211,6 @@ public class DataRetentionEditorTest
     }
 
     eyesWatcher.eyesCheck();
-  }
-
-  private void checkUpdateEnabled() {
-    PAGE.updateButton().should(exist).scrollIntoView(true).shouldBe(visible).shouldNotBe(CLM.DISABLED);
-  }
-
-  private void checkUpdateDisabled() {
-    PAGE.updateButton().should(exist).scrollIntoView(true).shouldBe(visible, CLM.DISABLED);
   }
 
   private void checkInherit(String contextId, String inheritText) {
@@ -340,13 +295,6 @@ public class DataRetentionEditorTest
     else {
       editor.countErrorMessage().shouldHave(text(maxCountExpectedError));
     }
-    SelenideElement updateButton = PAGE.updateButton().scrollIntoView(true).shouldBe(visible);
-    if (maxAgeExpectedError == null && maxCountExpectedError == null) {
-      updateButton.shouldNotBe(CLM.DISABLED);
-    }
-    else {
-      updateButton.shouldBe(CLM.DISABLED);
-    }
   }
 
   private void validateCustom(String contextId, String maxAgeValue, String maxAgeExpectedError) {
@@ -354,11 +302,9 @@ public class DataRetentionEditorTest
     setCustom(contextId, maxAgeValue);
     if (maxAgeExpectedError == null) {
       editor.ageErrorMessage().shouldNotBe(visible);
-      PAGE.updateButton().scrollIntoView(true).shouldBe(visible).shouldNotBe(CLM.DISABLED);
     }
     else {
       editor.ageErrorMessage().shouldHave(text(maxAgeExpectedError));
-      PAGE.updateButton().scrollIntoView(true).shouldBe(visible, CLM.DISABLED);
     }
   }
 
@@ -397,7 +343,6 @@ public class DataRetentionEditorTest
   }
 
   private void updateDataRetention() {
-    checkUpdateEnabled();
     PAGE.updateButton().click();
     FormMask.seeAndWaitForDismissal();
   }

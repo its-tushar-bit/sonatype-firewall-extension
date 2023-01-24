@@ -5,14 +5,14 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm, NxFontAwesomeIcon, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxFontAwesomeIcon, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import { MODAL_MODES } from './modalModes';
 
 export default function DeleteModal({ userId, username, deleteUser, deleteError, deleteMaskState, setMode }) {
   return (
     <NxModal onClose={() => setMode(MODAL_MODES.DEFAULT)} variant="narrow" id="delete-user-modal">
-      <NxForm
+      <NxStatefulForm
         className="nx-form"
         onSubmit={() => deleteUser(userId)}
         submitMaskState={deleteMaskState}
@@ -29,7 +29,7 @@ export default function DeleteModal({ userId, username, deleteUser, deleteError,
         <div className="nx-modal-content">
           <NxWarningAlert>You are about to permanently remove {username}. This action cannot be undone.</NxWarningAlert>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

@@ -49,8 +49,7 @@ describe('SaveFilterModalContainer', function () {
     state = {
       manageFilters: {
         appliedFilterName: 'appliedFilterName',
-        saveFilterSaving: true,
-        saveFilterSuccess: false,
+        saveFilterMaskState: true,
         saveFilterError: mockSaveFilterError,
         saveFilterWarning: mockSaveFilterWarning,
       },
@@ -72,8 +71,7 @@ describe('SaveFilterModalContainer', function () {
     const wrapper = mount(vdom);
     const modalContent = wrapper.find(MockSaveFilterModalContent).props();
     expect(modalContent.appliedFilterName).toEqual('appliedFilterName');
-    expect(modalContent.saveFilterSaving).toEqual(true);
-    expect(modalContent.saveFilterSuccess).toEqual(false);
+    expect(modalContent.saveFilterMaskState).toEqual(true);
     expect(modalContent.saveFilter).toEqual(jasmine.any(Function));
     expect(modalContent.saveError).toEqual(mockErrorMessage);
     expect(modalContent.saveFilterWarning).toEqual(mockSaveFilterWarning);

@@ -33,7 +33,7 @@ public class ChangePasswordModal
   }
 
   public ElementsCollection formValidationErrors() {
-    return $$(".nx-text-input__invalid-message");
+    return $$(".nx-field-validation-message");
   }
 
   public SelenideElement invalidCredentialsError() {

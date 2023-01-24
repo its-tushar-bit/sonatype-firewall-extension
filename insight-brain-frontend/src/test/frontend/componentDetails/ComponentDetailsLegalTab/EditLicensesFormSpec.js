@@ -6,12 +6,13 @@
 
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import {
-  NxFieldset,
-  NxForm,
+  NxStatefulForm,
   NxLoadingSpinner,
   NxRadio,
   NxTextInput,
   NxThreatIndicator,
+  NxFormSelect,
+  NxFormGroup,
 } from '@sonatype/react-shared-components';
 import EditLicensesForm from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/EditLicensesForm';
 import * as OverriddenField from 'MainRoot/componentDetails/ComponentDetailsLegalTab/EditLicensesPopover/OverriddenField';
@@ -143,9 +144,9 @@ describe('EditLicensesForm', () => {
     }
   });
 
-  it('renders a NxForm', () => {
+  it('renders a NxStatefulForm', () => {
     const component = getShallowComponent(),
-      form = component.find(NxForm);
+      form = component.find(NxStatefulForm);
 
     expect(form).toExist();
   });
@@ -252,7 +253,7 @@ describe('EditLicensesForm', () => {
 
   it('calls onClose and resetFormFields when the cancel button is clicked', () => {
     const component = getShallowComponent(),
-      form = component.find(NxForm);
+      form = component.find(NxStatefulForm);
 
     form.simulate('cancel');
 
@@ -267,7 +268,7 @@ describe('EditLicensesForm', () => {
     };
 
     const component = enzymeUtils.getShallowComponent(EditLicensesForm, customMinimalProps)(),
-      form = component.find(NxForm);
+      form = component.find(NxStatefulForm);
 
     form.simulate('cancel');
 
@@ -281,7 +282,7 @@ describe('EditLicensesForm', () => {
       commentsSection = component.find('.iq-edit-licenses-form__comment'),
       textArea = commentsSection.find(NxTextInput);
 
-    expect(commentsSection).toHaveClassName('.nx-form-group');
+    expect(commentsSection).toMatchSelector(NxFormGroup);
     expect(textArea).toHaveProp('type', 'textarea');
     expect(textArea).toHaveProp('value', 'license comment');
     expect(textArea).toHaveProp('isPristine', true);
@@ -411,10 +412,10 @@ describe('EditLicensesForm', () => {
   it('renders default status options with inherited option', () => {
     const component = getShallowComponent(),
       statusSection = component.find('.iq-edit-licenses-form__status'),
-      selectComponent = statusSection.find('select'),
+      selectComponent = statusSection.find(NxFormSelect).at(0),
       options = selectComponent.find('option');
 
-    expect(statusSection.find(NxFieldset)).toExist();
+    expect(statusSection.find(NxFormGroup)).toExist();
     expect(statusSection).toHaveProp('label', 'Status');
     expect(selectComponent).toExist();
     expect(options.length).toBe(5);
@@ -440,7 +441,7 @@ describe('EditLicensesForm', () => {
         scope: { ownerId: 'ROOT_ORGANIZATION_ID', ownerName: 'Root Organization', ownerType: 'organization' },
       }),
       statusSection = component.find('.iq-edit-licenses-form__status'),
-      selectComponent = statusSection.find('select'),
+      selectComponent = statusSection.find(NxFormSelect).at(0),
       options = selectComponent.find('option');
 
     expect(options.length).toBe(4);
@@ -451,7 +452,7 @@ describe('EditLicensesForm', () => {
     const component = getShallowComponent({
         scope: {},
       }),
-      selectComponent = component.find('select'),
+      selectComponent = component.find(NxFormSelect).at(0),
       mockEvent = { currentTarget: { value: 'ACKNOWLEDGED' } };
 
     selectComponent.simulate('change', mockEvent);
@@ -479,7 +480,7 @@ describe('EditLicensesForm', () => {
         status: 'SELECTED',
       }),
       statusSection = component.find('.iq-edit-licenses-form__status'),
-      selectComponent = statusSection.find('select'),
+      selectComponent = statusSection.find(NxFormSelect).at(0),
       options = selectComponent.find('option');
 
     expect(options.at(1)).toHaveText('Acknowledged');
@@ -558,7 +559,7 @@ describe('EditLicensesForm', () => {
 
   it('calls saveForm ', () => {
     const component = getShallowComponent(),
-      form = component.find(NxForm);
+      form = component.find(NxStatefulForm);
 
     form.simulate('submit');
 
@@ -567,7 +568,7 @@ describe('EditLicensesForm', () => {
 
   it('calls deleteLicenseOverride when the status is "DELETE"', () => {
     const component = getShallowComponent({ status: 'DELETE' }),
-      form = component.find(NxForm);
+      form = component.find(NxStatefulForm);
 
     form.simulate('submit');
 

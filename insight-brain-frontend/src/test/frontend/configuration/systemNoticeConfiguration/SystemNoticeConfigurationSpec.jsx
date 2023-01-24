@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxForm, NxButton } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxButton } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 
 import SystemNoticeConfiguration from '../../../../main/frontend/configuration/systemNoticeConfiguration/SystemNoticeConfiguration';
@@ -56,7 +56,7 @@ describe('SystemNoticeConfiguration', function () {
   describe('additionalFooterBtns prop', function () {
     it('contains non disabled cancel button with proper click handler if form is dirty', function () {
       const shallowComponent = getShallowComponent({ isDirty: true });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
 
       expect(form).toHaveProp(
         'additionalFooterBtns',
@@ -68,7 +68,7 @@ describe('SystemNoticeConfiguration', function () {
 
     it('contains disabled cancel button if form is not dirty', function () {
       const shallowComponent = getShallowComponent({ isDirty: false });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
 
       expect(form).toHaveProp(
         'additionalFooterBtns',
@@ -90,7 +90,7 @@ describe('SystemNoticeConfiguration', function () {
         },
         enabled: true,
       });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
 
       expect(form).toHaveProp('validationErrors', null);
     });
@@ -105,14 +105,14 @@ describe('SystemNoticeConfiguration', function () {
         },
         enabled: false,
       });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
 
       expect(form).toHaveProp('validationErrors', null);
     });
 
     it('should contain tooltip validation message if form was not changed', function () {
       const shallowComponent = getShallowComponent({ isDirty: false });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
 
       expect(form).toHaveProp('validationErrors', 'There are no changes to update');
     });
@@ -127,7 +127,7 @@ describe('SystemNoticeConfiguration', function () {
         },
         enabled: true,
       });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
 
       expect(form).toHaveProp('validationErrors', 'Notice Text cannot be blank');
     });
@@ -136,7 +136,7 @@ describe('SystemNoticeConfiguration', function () {
   describe('doLoad', function () {
     it('should have proper handler', function () {
       const shallowComponent = getShallowComponent();
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
 
       expect(form).toHaveProp('doLoad', mockLoad);
     });
@@ -145,7 +145,7 @@ describe('SystemNoticeConfiguration', function () {
   describe('on form submit', function () {
     it('calls update when the form is submitted if it"s dirty', function () {
       const shallowComponent = getShallowComponent({ isDirty: true });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
 
       form.simulate('submit');
 

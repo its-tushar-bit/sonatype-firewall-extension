@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxTextInput,
   NxRadio,
@@ -56,7 +56,7 @@ function AddSuccessMetricsReport({
 
   return (
     <NxModal onClose={dismiss} variant="narrow">
-      <NxForm
+      <NxStatefulForm
         id="add-success-metrics-report"
         onCancel={dismiss}
         loading={loading}
@@ -135,7 +135,7 @@ function AddSuccessMetricsReport({
             )}
           </NxFieldset>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

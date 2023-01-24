@@ -7,7 +7,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  NxForm,
+  NxStatefulForm,
   NxH2,
   NxCombobox,
   NxStatefulErrorAlert,
@@ -79,7 +79,7 @@ const SelectContactModal = () => {
         <NxModal.Header>
           <NxH2 id="select-contact-modal-title">Select Contact</NxH2>
         </NxModal.Header>
-        <NxForm
+        <NxStatefulForm
           ref={formRef}
           onSubmit={saveContact}
           onCancel={onCancel}
@@ -108,7 +108,7 @@ const SelectContactModal = () => {
               />
             </NxFormGroup>
           </NxModal.Content>
-        </NxForm>
+        </NxStatefulForm>
       </NxModal>
       {showUnsavedChangesModal && (
         <UnsavedChangesModal

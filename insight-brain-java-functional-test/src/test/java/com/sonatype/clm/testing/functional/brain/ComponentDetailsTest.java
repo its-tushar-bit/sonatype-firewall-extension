@@ -53,6 +53,7 @@ import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -91,7 +92,7 @@ import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class ComponentDetailsTest
     extends AbstractFunctionalTest
@@ -289,11 +290,13 @@ public class ComponentDetailsTest
         .shouldHave(text("The following matchers will be added to the ApplicationReportTest Configuration (duplicates"
         + " will be ignored). The new matchers will be in effect for the next application analysis."));
     addProprietaryComponentMatchersPopover.matchers().shouldHaveSize(1);
-    addProprietaryComponentMatchersPopover.addBtn().shouldNotHave(DISABLED);
+    FormUtils.getAlertElement(addProprietaryComponentMatchersPopover).shouldNotBe(visible);
     addProprietaryComponentMatchersPopover.matchers().get(0)
         .shouldHave(text("full.jar/WebGoat-6.0.1/WEB-INF/classes/org/owasp/webgoat/lessons/instr"));
     addProprietaryComponentMatchersPopover.matchers().get(0).click();
-    addProprietaryComponentMatchersPopover.addBtn().shouldHave(DISABLED);
+    addProprietaryComponentMatchersPopover.addBtn().click();
+    FormUtils.getAlertElement(addProprietaryComponentMatchersPopover)
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Unable to add: Fields with invalid or missing data."));
     addProprietaryComponentMatchersPopover.matchers().get(0).click();
     addProprietaryComponentMatchersPopover.addBtn().click();
     addProprietaryComponentMatchersPopover.shouldNotBe(visible);
@@ -337,7 +340,6 @@ public class ComponentDetailsTest
     claimTabContent.title().shouldHave(text("Claim Component"));
 
     claimTabContent.cancel().scrollIntoView(true).shouldBe(disabled);
-    claimTabContent.claim().shouldHave(text("Claim")).shouldBe(CLM.DISABLED);
     claimTabContent.revoke().shouldBe(hidden);
 
     testRequiredFormFields(claimTabContent);

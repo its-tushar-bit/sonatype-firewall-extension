@@ -121,15 +121,6 @@ describe('LicenseThreatGroup', () => {
     expect(setLicenseThreatGroupThreatLevelSpy).toHaveBeenCalledWith(10);
   });
 
-  it('create button is disabled initially', () => {
-    renderComponent();
-
-    const create = screen.queryByText('Create');
-
-    expect(create).toBeVisible();
-    expect(create).toHaveClassName('disabled');
-  });
-
   it('calls saveLicenseThreatGroup on save button click', () => {
     spyOn(ltgSelectors, 'selectLicenseThreatGroupIsDirty').and.returnValue(true);
     selectLicenseThreatGroupIsEditModeSpy.and.returnValue(true);

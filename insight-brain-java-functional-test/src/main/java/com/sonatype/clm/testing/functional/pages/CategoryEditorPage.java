@@ -41,7 +41,7 @@ public class CategoryEditorPage
   }
 
   public static SelenideElement categoryInvalidMessage() {
-    return $("#editor-category-name > .nx-text-input > .nx-text-input__invalid-message");
+    return $("#editor-category-name > .nx-text-input > .nx-field-validation-message");
   }
 
   public static SelenideElement descriptionDiv() {
@@ -53,7 +53,7 @@ public class CategoryEditorPage
   }
 
   public static SelenideElement descriptionInvalidMessage() {
-    return $("#editor-category-description > .nx-text-input > .nx-text-input__invalid-message");
+    return $("#editor-category-description > .nx-text-input > .nx-field-validation-message");
   }
 
   public static NxColorPicker nxColorPicker() {

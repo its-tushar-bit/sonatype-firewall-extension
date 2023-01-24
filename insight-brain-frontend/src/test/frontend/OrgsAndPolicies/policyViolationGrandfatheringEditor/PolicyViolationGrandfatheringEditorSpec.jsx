@@ -108,9 +108,8 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
       inheritedFromOrganizationName: null,
     });
     renderComponent();
-    const updateButton = await screen.findByRole('button');
+    const updateButton = await screen.findByRole('button', { name: 'Update' });
     expect(updateButton).toBeVisible();
-    expect(updateButton).toHaveClassName('disabled');
     fireEvent.click(updateButton);
     expect(mock.history.put.length).toBe(0);
   });
@@ -141,8 +140,7 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
         renderComponent();
         const radio = await screen.findByRole('radio', { name: grandfathering });
         fireEvent.click(radio);
-        const updateButton = screen.getByRole('button');
-        expect(updateButton).not.toHaveClassName('disabled');
+        const updateButton = screen.getByRole('button', { name: 'Update' });
         fireEvent.click(updateButton);
         expect(mock.history.put.length).toBe(1);
         expect(mock.history.put[0].url).toBe(getGrandfatheringUrl('organization', 'ROOT_ORGANIZATION_ID'));
@@ -161,8 +159,7 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
         renderComponent(orgLevelState);
         const radio = await screen.findByRole('radio', { name: grandfathering });
         fireEvent.click(radio);
-        const updateButton = screen.getByRole('button');
-        expect(updateButton).not.toHaveClassName('disabled');
+        const updateButton = screen.getByRole('button', { name: 'Update' });
         fireEvent.click(updateButton);
         expect(mock.history.put.length).toBe(1);
         expect(mock.history.put[0].url).toBe(getGrandfatheringUrl('organization', 'myOrg'));
@@ -181,8 +178,7 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
         renderComponent(applicationLevelState);
         const radio = await screen.findByRole('radio', { name: grandfathering });
         fireEvent.click(radio);
-        const updateButton = screen.getByRole('button');
-        expect(updateButton).not.toHaveClassName('disabled');
+        const updateButton = screen.getByRole('button', { name: 'Update' });
         fireEvent.click(updateButton);
         expect(mock.history.put.length).toBe(1);
         expect(mock.history.put[0].url).toBe(getGrandfatheringUrl('application', '1'));
@@ -201,8 +197,7 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
     renderComponent();
     const checkbox = await screen.findByRole('checkbox');
     fireEvent.click(checkbox);
-    const updateButton = screen.getByRole('button');
-    expect(updateButton).not.toHaveClassName('disabled');
+    const updateButton = screen.getByRole('button', { name: 'Update' });
     fireEvent.click(updateButton);
     expect(mock.history.put.length).toBe(1);
     expect(mock.history.put[0].url).toBe(getGrandfatheringUrl('organization', 'ROOT_ORGANIZATION_ID'));
@@ -220,8 +215,7 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
 
     const radio = await screen.findByRole('radio', { name: /inherit/i });
     fireEvent.click(radio);
-    const updateButton = screen.getByRole('button');
-    expect(updateButton).not.toHaveClassName('disabled');
+    const updateButton = screen.getByRole('button', { name: 'Update' });
     fireEvent.click(updateButton);
     expect(mock.history.put.length).toBe(1);
     expect(mock.history.put[0].url).toBe(getGrandfatheringUrl('organization', 'myOrg'));
@@ -238,8 +232,7 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
     renderComponent(orgLevelState);
 
     expect(await screen.findByText('The parent selection cannot be overridden.')).toBeVisible();
-    const updateButton = await screen.findByRole('button');
-    expect(updateButton).toHaveClassName('disabled');
+    expect(await screen.findByRole('button', { name: 'Update' })).toBeVisible();
   });
 
   describe('Grandfathering status message', () => {
@@ -256,7 +249,7 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
       let radio = await screen.findByRole('radio', { name: /inherit/i });
       fireEvent.click(radio);
 
-      const updateButton = screen.getByRole('button');
+      const updateButton = screen.getByRole('button', { name: 'Update' });
       fireEvent.click(updateButton);
 
       expect(await screen.findByRole('definition')).toHaveTextContent(
@@ -277,7 +270,7 @@ describe('PolicyViolationGrandfatheringEditor Component', () => {
       let radio = await screen.findByRole('radio', { name: /inherit/i });
       fireEvent.click(radio);
 
-      const updateButton = screen.getByRole('button');
+      const updateButton = screen.getByRole('button', { name: 'Update' });
       fireEvent.click(updateButton);
 
       expect(await screen.findByRole('definition')).toHaveTextContent(

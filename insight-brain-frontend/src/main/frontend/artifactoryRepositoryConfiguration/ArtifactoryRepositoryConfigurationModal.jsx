@@ -11,7 +11,7 @@ import classnames from 'classnames';
 import {
   NxButton,
   NxFieldset,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxModal,
   NxRadio,
@@ -73,7 +73,7 @@ export default function ArtifactoryRepositoryConfigurationModal() {
             {isUpdate ? 'Edit' : 'Add'} Artifactory Repository Configuration
           </h2>
         </header>
-        <NxForm
+        <NxStatefulForm
           id="artifactory-repository-configuration-modal-form"
           loading={loading}
           doLoad={loadConfiguration}
@@ -160,7 +160,7 @@ export default function ArtifactoryRepositoryConfigurationModal() {
               />
             )}
           </div>
-        </NxForm>
+        </NxStatefulForm>
       </NxModal>
     )
   );

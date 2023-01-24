@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 import LicenseObligationAttributionTile from '../../../main/frontend/legal/LicenseObligationAttributionTile';
-import { NxAccordion, NxTextInput } from '@sonatype/react-shared-components';
+import { NxAccordion, NxTextInput, NxFormSelect } from '@sonatype/react-shared-components';
 
 describe('LicenseObligationAttributionTile component', function () {
   let getShallowComponent,
@@ -105,7 +105,7 @@ describe('LicenseObligationAttributionTile component', function () {
     const wrapper = getShallowComponent({ showAttributionModal: true });
     expect(wrapper.find('.nx-modal-header')).toHaveText('Add Attribution for Stating Changes');
     expect(wrapper.find(NxTextInput)).toHaveProp('value', '');
-    let select = wrapper.find('select');
+    let select = wrapper.find(NxFormSelect);
     expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
     let options = wrapper.find('option');
     expect(options.length).toBe(1);
@@ -130,7 +130,7 @@ describe('LicenseObligationAttributionTile component', function () {
     const wrapper = getShallowComponent(orgData);
     expect(wrapper.find('.nx-modal-header')).toHaveText('Add Attribution for Stating Changes');
     expect(wrapper.find(NxTextInput)).toHaveProp('value', 'Some obligation attribution text.');
-    let select = wrapper.find('select');
+    let select = wrapper.find(NxFormSelect);
     expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
     let options = wrapper.find('option');
     expect(options.length).toBe(2);
@@ -157,7 +157,7 @@ describe('LicenseObligationAttributionTile component', function () {
     const wrapper = getShallowComponent(appData);
     expect(wrapper.find('.nx-modal-header')).toHaveText('Add Attribution for Stating Changes');
     expect(wrapper.find(NxTextInput)).toHaveProp('value', 'Some obligation attribution text.');
-    let select = wrapper.find('select');
+    let select = wrapper.find(NxFormSelect);
     expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
     let options = wrapper.find('option');
     expect(options.length).toBe(3);

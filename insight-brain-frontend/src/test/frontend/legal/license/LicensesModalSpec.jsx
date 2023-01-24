@@ -5,7 +5,7 @@
  */
 import LicensesModal from '../../../../main/frontend/legal/license/LicensesModal';
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxForm, NxFormGroup, NxModal, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxFormGroup, NxModal, NxThreatIndicator } from '@sonatype/react-shared-components';
 
 describe('LicensesModal', function () {
   let getShallowComponent,
@@ -189,12 +189,12 @@ describe('LicensesModal', function () {
       });
       const formGroups = wrapper.find(NxFormGroup);
       const statusGroup = formGroups.at(0);
-      expect(statusGroup.find('select')).toHaveProp('value', 'Acknowledged');
+      expect(statusGroup.find('#edit-licenses-status-selection').at(0)).toHaveProp('value', 'Acknowledged');
       expect(statusGroup.find('option').length).toEqual(6);
       const licenseDiv = wrapper.find('.nx-scrollable--edit-license-modal-licenses');
       expect(licenseDiv).not.toExist();
       const scopeGroup = formGroups.at(2);
-      let scopeSelect = scopeGroup.find('#edit-licenses-scope-selection');
+      let scopeSelect = scopeGroup.find('#edit-licenses-scope-selection').at(0);
       expect(scopeSelect).toHaveProp('value', 'appId');
       expect(scopeSelect.find('option').length).toEqual(3);
     });
@@ -229,7 +229,7 @@ describe('LicensesModal', function () {
       });
       const formGroups = wrapper.find(NxFormGroup);
       const statusGroup = formGroups.at(0);
-      expect(statusGroup.find('select')).toHaveProp('value', 'Selected');
+      expect(statusGroup.find('#edit-licenses-status-selection').at(0)).toHaveProp('value', 'Selected');
       expect(statusGroup.find('option').length).toEqual(6);
       expect(statusGroup.find('option').at(0).prop('value')).toEqual('Open');
       expect(statusGroup.find('option').at(1).prop('value')).toEqual('Acknowledged');
@@ -245,7 +245,7 @@ describe('LicensesModal', function () {
       expect(licenseDiv.childAt(1).prop('id')).toEqual('License-2.0');
       expect(licenseDiv.childAt(2).prop('id')).toEqual('License-3.0');
       const scopeGroup = formGroups.at(2);
-      let scopeSelect = scopeGroup.find('#edit-licenses-scope-selection');
+      let scopeSelect = scopeGroup.find('#edit-licenses-scope-selection').at(0);
       expect(scopeSelect).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
       expect(scopeSelect.find('option').length).toEqual(3);
     });
@@ -272,12 +272,12 @@ describe('LicensesModal', function () {
       });
       const formGroups = wrapper.find(NxFormGroup);
       const statusGroup = formGroups.at(0);
-      expect(statusGroup.find('select')).toHaveProp('value', 'Overridden');
+      expect(statusGroup.find('#edit-licenses-status-selection').at(0)).toHaveProp('value', 'Overridden');
       expect(statusGroup.find('option').length).toEqual(6);
       const licenseDiv = wrapper.find('.nx-scrollable--edit-license-modal-licenses');
       expect(licenseDiv).toExist();
       const scopeGroup = formGroups.at(2);
-      let scopeSelect = scopeGroup.find('#edit-licenses-scope-selection');
+      let scopeSelect = scopeGroup.find('#edit-licenses-scope-selection').at(0);
       expect(scopeSelect).toHaveProp('value', 'orgId');
       expect(scopeSelect.find('option').length).toEqual(3);
     });
@@ -305,12 +305,12 @@ describe('LicensesModal', function () {
       });
       const formGroups = wrapper.find(NxFormGroup);
       const statusGroup = formGroups.at(0);
-      expect(statusGroup.find('select')).toHaveProp('value', 'Acknowledged');
+      expect(statusGroup.find('#edit-licenses-status-selection').at(0)).toHaveProp('value', 'Acknowledged');
       expect(statusGroup.find('option').length).toEqual(6);
       const licenseDiv = wrapper.find('.nx-scrollable--edit-license-modal-licenses');
       expect(licenseDiv).not.toExist();
       const scopeGroup = formGroups.at(2);
-      let scopeSelect = scopeGroup.find('#edit-licenses-scope-selection');
+      let scopeSelect = scopeGroup.find('#edit-licenses-scope-selection').at(0);
       expect(scopeSelect).toHaveProp('value', 'appId');
       expect(scopeSelect.find('option').length).toEqual(3);
     });
@@ -337,10 +337,10 @@ describe('LicensesModal', function () {
       componentIdentifier: JSON.stringify(componentIdentifier),
     };
     const wrapper = getMountedComponent();
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find('form').at(0);
     const formGroups = wrapper.find(NxFormGroup);
     const statusGroup = formGroups.at(0);
-    const statusSelect = statusGroup.find('select');
+    const statusSelect = statusGroup.find('#edit-licenses-status-selection').at(1);
     statusSelect.simulate('change', { target: { value: 'Acknowledged' } });
     form.simulate('submit');
     expect(saveLicensesSpy).toHaveBeenCalledWith(expectedPostBody);
@@ -401,11 +401,11 @@ describe('LicensesModal', function () {
         },
       },
     });
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find(NxStatefulForm);
     const formGroups = wrapper.find(NxFormGroup);
     const statusGroup = formGroups.at(0);
     expect(statusGroup.find('option').at(5).childAt(0).text()).toEqual('Inherit Status (Selected)');
-    const statusSelect = statusGroup.find('select');
+    const statusSelect = statusGroup.find('#edit-licenses-status-selection').at(1);
     statusSelect.simulate('change', { target: { value: 'Inherit' } });
     form.simulate('submit');
     expect(saveLicensesSpy).toHaveBeenCalledWith(expectedPostBody);

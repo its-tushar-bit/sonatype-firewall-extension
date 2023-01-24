@@ -6,11 +6,12 @@
 import React, { Fragment, useState } from 'react';
 import {
   NxDropdown,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxModal,
   NxTextInput,
   nxTextInputStateHelpers,
+  NxFormSelect,
 } from '@sonatype/react-shared-components';
 import {
   OBLIGATION_STATUS_FULFILLED,
@@ -71,7 +72,7 @@ export default function AllLicenseObligationsModal(props) {
 
   return (
     <NxModal id="all-obligations-modal" onClose={() => cancelAllObligationsModal()}>
-      <NxForm
+      <NxStatefulForm
         onCancel={() => cancelAllObligationsModal()}
         submitBtnText="Submit"
         submitMaskState={submitMask}
@@ -102,17 +103,17 @@ export default function AllLicenseObligationsModal(props) {
             />
           </NxFormGroup>
           <NxFormGroup label="Scope" sublabel="Apply changes to" isRequired>
-            <select
-              className="nx-form-select nx-form-select--long"
+            <NxFormSelect
+              className="nx-form-select--long"
               id="all-obligations-scope-selection"
               value={ownerId}
               onChange={(payload) => setOwnerId(payload.currentTarget.value)}
             >
               {availableScopes.values.map(createScopeOption)}
-            </select>
+            </NxFormSelect>
           </NxFormGroup>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

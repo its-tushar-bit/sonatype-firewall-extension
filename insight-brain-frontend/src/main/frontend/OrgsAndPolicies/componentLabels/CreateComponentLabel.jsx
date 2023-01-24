@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  NxForm,
+  NxStatefulForm,
   NxPageTitle,
   NxH1,
   NxTile,
@@ -81,7 +81,7 @@ export default function CreateComponentLabel() {
         <NxH1>{labelId ? 'Edit' : 'New'} Component Label</NxH1>
       </NxPageTitle>
       <NxTile>
-        <NxForm
+        <NxStatefulForm
           onSubmit={saveLabel}
           submitBtnText={labelId ? 'Update' : 'Create'}
           submitMaskMessage="Saving…"
@@ -122,7 +122,7 @@ export default function CreateComponentLabel() {
               isRequired
             />
           </NxTile.Content>
-        </NxForm>
+        </NxStatefulForm>
       </NxTile>
       {isDeleteModalOpen && (
         <NxModal
@@ -130,7 +130,7 @@ export default function CreateComponentLabel() {
           aria-labelledby="label-config-delete-modal-header"
           onClose={closeDeleteModal}
         >
-          <NxForm
+          <NxStatefulForm
             onSubmit={removeLabel}
             submitMaskState={deleteMaskState}
             onCancel={closeDeleteModal}
@@ -149,7 +149,7 @@ export default function CreateComponentLabel() {
                 <span>You are about to permanently remove {label.value}. This action cannot be undone.</span>
               </NxWarningAlert>
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </NxModal>
       )}
     </>

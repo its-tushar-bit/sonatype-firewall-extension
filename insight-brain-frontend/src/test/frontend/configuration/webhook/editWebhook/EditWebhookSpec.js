@@ -5,7 +5,7 @@
  */
 import {
   NxCheckbox,
-  NxForm,
+  NxStatefulForm,
   NxInfoAlert,
   nxTextInputStateHelpers,
   NxWarningAlert,
@@ -56,7 +56,7 @@ describe('EditWebhook', () => {
     });
 
     it('renders info alert in the form', () => {
-      const form = component.find(NxForm);
+      const form = component.find(NxStatefulForm);
       expect(form).toExist();
       expect(form.find(NxInfoAlert)).toExist();
     });
@@ -77,7 +77,7 @@ describe('EditWebhook', () => {
       });
     });
     it('does not render info alert in the form', () => {
-      const form = component.find(NxForm);
+      const form = component.find(NxStatefulForm);
       expect(form).toExist();
       expect(form.find(NxInfoAlert)).not.toExist();
     });
@@ -208,10 +208,10 @@ describe('EditWebhook', () => {
     });
   });
 
-  describe('NxForm', () => {
+  describe('NxStatefulForm', () => {
     it('is rendered with validationErrors if webhook url is empty', () => {
       const component = getShallow();
-      expect(component.find(NxForm)).toHaveProp('validationErrors', 'Webhook URL is a required field');
+      expect(component.find(NxStatefulForm)).toHaveProp('validationErrors', 'Webhook URL is a required field');
     });
 
     it('is rendered with validationErrors if webhook url is invalid', () => {
@@ -222,7 +222,7 @@ describe('EditWebhook', () => {
           secretKey: initialState(''),
         },
       });
-      expect(component.find(NxForm)).toHaveProp('validationErrors', 'webhook is invalid');
+      expect(component.find(NxStatefulForm)).toHaveProp('validationErrors', 'webhook is invalid');
     });
 
     it('is rendered with validationErrors if in edit mode and no changes applied', () => {
@@ -231,7 +231,7 @@ describe('EditWebhook', () => {
           currentParams: { webhookId: '200' },
         },
       });
-      const form = component.find(NxForm);
+      const form = component.find(NxStatefulForm);
 
       expect(form).toHaveProp('validationErrors', 'There are no changes to update');
     });
@@ -242,7 +242,7 @@ describe('EditWebhook', () => {
         const component = getShallow({
           stateGo: stateGoSpy,
         });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
         form.simulate('cancel');
         expect(stateGoSpy).toHaveBeenCalledWith('listWebhooks');
       });
@@ -308,7 +308,7 @@ describe('EditWebhook', () => {
         );
       });
       it('calls deleteWebhook when submitted', () => {
-        const form = modal.find(NxForm);
+        const form = modal.find(NxStatefulForm);
         form.simulate('submit');
         expect(deleteWebhook).toHaveBeenCalledWith(webhookId);
       });

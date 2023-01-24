@@ -10,7 +10,7 @@ import {
   NxCheckbox,
   NxFieldset,
   NxFontAwesomeIcon,
-  NxForm,
+  NxStatefulForm,
   NxH2,
   NxH3,
   NxInfoAlert,
@@ -126,7 +126,7 @@ export default function InnerSourceRepositoryBaseConfigurations() {
         <InnerSourceRepositoryConfigurationModal />
         <InnerSourceRepositoryDeleteConfigurationModal />
 
-        <NxForm
+        <NxStatefulForm
           id="innersource-repository-base-configurations-form"
           loading={loading}
           doLoad={load}
@@ -280,7 +280,7 @@ export default function InnerSourceRepositoryBaseConfigurations() {
               </>
             )}
           </NxTile.Content>
-        </NxForm>
+        </NxStatefulForm>
       </NxTile>
     </NxPageMain>
   );

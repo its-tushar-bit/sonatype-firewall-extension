@@ -74,7 +74,7 @@ describe('AtlassianCrowdConfiguration', () => {
       expect(screen.getByRole('button', { name: 'Test Configuration' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'Delete Configuration' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
-      expect(screen.getByRole('button', { name: 'Submit disabled: There are no changes to update' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Save Configuration' })).toBeVisible();
     });
 
     it('inputs filled when serverData', function () {
@@ -108,26 +108,24 @@ describe('AtlassianCrowdConfiguration', () => {
       expect(axios.put.calls.count()).toBe(1);
     });
 
-    it('disable save button when no data provided', async () => {
+    it('shows correct form alert when no data provided', async () => {
       spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').and.callFake(() => cleanformState);
       spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').and.callFake(() => false);
       renderComponent();
       await waitFor(() => screen.getByText('Save Configuration'));
-      expect(screen.getByRole('button', { name: 'Submit disabled: There are no changes to update' })).toHaveClassName(
-        'disabled'
-      );
+      fireEvent.click(screen.getByText('Save Configuration'));
+      expect(screen.getByRole('alert')).toHaveTextContent('There are no changes to update');
     });
 
-    it('disable save button when data partially provided', async () => {
+    it('shows correct form alert when data partially provided', async () => {
       spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').and.callFake(() => partFilledFormState);
       spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').and.callFake(() => true);
       renderComponent();
       await waitFor(() => screen.getByText('Save Configuration'));
-      expect(
-        screen.getByRole('button', {
-          name: 'Submit disabled: Server URL, Application Name and Application Password are required data.',
-        })
-      ).toHaveClassName('disabled');
+      fireEvent.click(screen.getByText('Save Configuration'));
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Server URL, Application Name and Application Password are required data.'
+      );
     });
   });
 

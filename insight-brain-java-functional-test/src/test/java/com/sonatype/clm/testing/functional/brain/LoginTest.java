@@ -110,15 +110,13 @@ public class LoginTest
 
     loginModal.shouldBe(visible);
     loginModal.ssoButton().shouldBe(visible, focused);
-    loginModal.loginButton().shouldHave(attribute("aria-disabled", "true"));
+    loginModal.loginButton().shouldBe(visible);
     eyesWatcher.eyesCheck();
 
     loginModal.username().setValue("u");
-    loginModal.loginButton().shouldHave(attribute("aria-disabled", "true"));
     loginModal.password().setValue("p");
     loginModal.loginButton().shouldNotHave(attribute("aria-disabled"));
     clearInput(loginModal.username());
-    loginModal.loginButton().shouldHave(attribute("aria-disabled", "true"));
   }
 
   @Test

@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 import LicenseObligationModal from '../../../main/frontend/legal/obligation/LicenseObligationModal';
-import { NxDropdown, NxForm, NxTextInput } from '@sonatype/react-shared-components';
+import { NxDropdown, NxFormSelect, NxStatefulForm, NxTextInput } from '@sonatype/react-shared-components';
 
 describe('LicenseObligationModal', function () {
   let getShallowComponent,
@@ -146,7 +146,7 @@ describe('LicenseObligationModal', function () {
 
   it('renders the modal with the correct scope', function () {
     const wrapper = getShallowComponent();
-    const select = wrapper.find('select');
+    const select = wrapper.find(NxFormSelect);
     expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
     const options = wrapper.find('option');
     expect(options.length).toBe(3);
@@ -157,7 +157,7 @@ describe('LicenseObligationModal', function () {
 
   it('disables the submit button if nothing is dirty', function () {
     const wrapper = getShallowComponent();
-    const result = wrapper.find(NxForm);
+    const result = wrapper.find(NxStatefulForm);
     expect(result).toHaveProp('validationErrors', 'Must change obligation status, or comments, or scope.');
   });
 
@@ -169,7 +169,7 @@ describe('LicenseObligationModal', function () {
         status: 'IGNORED',
       },
     });
-    const result = wrapper.find(NxForm);
+    const result = wrapper.find(NxStatefulForm);
     expect(result).toHaveProp('validationErrors', undefined);
   });
 
@@ -181,7 +181,7 @@ describe('LicenseObligationModal', function () {
         comment: 'other',
       },
     });
-    const result = wrapper.find(NxForm);
+    const result = wrapper.find(NxStatefulForm);
     expect(result).toHaveProp('validationErrors', undefined);
   });
 
@@ -193,7 +193,7 @@ describe('LicenseObligationModal', function () {
         ownerId: 'other',
       },
     });
-    const result = wrapper.find(NxForm);
+    const result = wrapper.find(NxStatefulForm);
     expect(result).toHaveProp('validationErrors', undefined);
   });
 });

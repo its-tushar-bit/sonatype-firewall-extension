@@ -7,13 +7,15 @@ import React, { Fragment, useEffect, useState } from 'react';
 import * as PropTypes from 'prop-types';
 import { find, propEq, compose, toLower, findIndex, __ } from 'ramda';
 import {
-  NxForm,
+  NxStatefulForm,
   NxFieldset,
   NxList,
   NxTextInput,
   NxRadio,
   NxCheckbox,
   NxLoadingSpinner,
+  NxFormSelect,
+  NxFormGroup,
 } from '@sonatype/react-shared-components';
 
 import { capitalize, isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -149,16 +151,16 @@ export default function EditLicensesForm({
 
   const licenseStatuses = getLicenseStatuses(!!selectableLicenses?.length);
   const statusField = (
-    <NxFieldset className="iq-edit-licenses-form__status" label="Status" isRequired>
-      <select id="status-select" className="nx-form-select" onChange={onStatusChange} value={status || ''}>
+    <NxFormGroup className="iq-edit-licenses-form__status" label="Status" isRequired>
+      <NxFormSelect id="status-select" onChange={onStatusChange} value={status || ''}>
         {licenseStatuses.map(({ name, value }) => (
           <option key={name} value={value}>
             {name}
           </option>
         ))}
         {inheritStatusOption()}
-      </select>
-    </NxFieldset>
+      </NxFormSelect>
+    </NxFormGroup>
   );
 
   const selectedLicensesField = (
@@ -206,18 +208,15 @@ export default function EditLicensesForm({
   );
 
   const commentField = (
-    <div className="nx-form-group iq-edit-licenses-form__comment">
-      <label className="nx-label">
-        <span className="nx-label__text">Comment</span>
-        <NxTextInput
-          type="textarea"
-          maxLength={1000}
-          {...comment}
-          className="nx-text-input--long"
-          onChange={setLicenseComment}
-        />
-      </label>
-    </div>
+    <NxFormGroup className="iq-edit-licenses-form__comment" label="Comment">
+      <NxTextInput
+        type="textarea"
+        maxLength={1000}
+        {...comment}
+        className="nx-text-input--long"
+        onChange={setLicenseComment}
+      />
+    </NxFormGroup>
   );
 
   const formatOwnerType = (ownerType) => (ownerType === 'repository_container' ? '' : capitalize(ownerType) + ' - ');
@@ -257,7 +256,7 @@ export default function EditLicensesForm({
   );
 
   return (
-    <NxForm
+    <NxStatefulForm
       id="iq-edit-licenses-form"
       onSubmit={handleOnSubmit}
       submitBtnText="Save"
@@ -273,7 +272,7 @@ export default function EditLicensesForm({
       {status === 'SELECTED' && <div>{selectedLicensesField}</div>}
       {status === 'OVERRIDDEN' && <div>{overriddenFormField}</div>}
       <div>{commentField}</div>
-    </NxForm>
+    </NxStatefulForm>
   );
 }
 

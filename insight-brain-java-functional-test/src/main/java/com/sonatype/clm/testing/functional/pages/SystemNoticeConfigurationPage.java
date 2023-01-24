@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.NxToggle;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -70,7 +69,6 @@ public class SystemNoticeConfigurationPage
 
   private void save() {
     update().click();
-    update().shouldBe(CLM.DISABLED); // wait until REST request completed (no form mask used...)
   }
 
   public String getText() {

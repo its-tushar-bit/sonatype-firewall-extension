@@ -15,7 +15,7 @@ import {
 import { actions } from 'MainRoot/OrgsAndPolicies/retentionSlice';
 import DataRetentionEditorItem from './DataRetentionEditorItem';
 
-import { NxPageTitle, NxH1, NxH2, NxTile, NxForm, NxDivider } from '@sonatype/react-shared-components';
+import { NxPageTitle, NxH1, NxH2, NxTile, NxStatefulForm, NxDivider } from '@sonatype/react-shared-components';
 
 const getValidationMessage = (isDirty, validationErrors) => {
   if (!isDirty) {
@@ -59,7 +59,7 @@ export default function PolicyViolationsGrandfatheringEditor() {
         <NxH1>Data Retention</NxH1>
       </NxPageTitle>
       <NxTile id="retention-editor">
-        <NxForm
+        <NxStatefulForm
           submitBtnText="Update"
           submitMaskMessage="Saving…"
           onSubmit={handleSubmit}
@@ -87,7 +87,7 @@ export default function PolicyViolationsGrandfatheringEditor() {
               />
             )}
           </NxTile.Content>
-        </NxForm>
+        </NxStatefulForm>
       </NxTile>
     </>
   );

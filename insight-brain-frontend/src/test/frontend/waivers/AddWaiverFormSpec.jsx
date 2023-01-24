@@ -7,25 +7,27 @@ import React from 'react';
 import moment from 'moment';
 import {
   NxButton,
-  NxFieldset,
-  NxRadio,
-  NxTextInput,
   nxDateInputStateHelpers,
+  NxFieldset,
   NxFormSelect,
+  NxRadio,
+  NxStatefulForm,
+  NxTextInput,
   NxTooltip,
 } from '@sonatype/react-shared-components';
 
-import * as enzymeUtils from '../enzymeUtils';
-import AddWaiverForm from '../../../main/frontend/waivers/AddWaiverForm';
-import ArtifactNameDisplay from '../../../main/frontend/react/ArtifactNameDisplay';
-import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
-import * as VulnerabilityDetailsModalContainer from '../../../main/frontend/vulnerabilityDetails/VulnerabilityDetailsModalContainer';
-import LoadError from '../../../main/frontend/react/LoadError';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import AddWaiverForm from 'MainRoot/waivers/AddWaiverForm';
+import ArtifactNameDisplay from 'MainRoot/react/ArtifactNameDisplay';
+import ViolationExclamation from 'MainRoot/react/ViolationExclamation';
+import * as VulnerabilityDetailsModalContainer from 'MainRoot/vulnerabilityDetails/VulnerabilityDetailsModalContainer';
 
 describe('AddWaiverForm', function () {
   let minimalProps,
     getShallowComponent,
     getMountedComponent,
+    getMountedComponentWithAutoClean,
+    mountedComponent,
     saveWaiverSpy,
     setWaiverCommentSpy,
     setWaiverScopeSpy,
@@ -107,11 +109,20 @@ describe('AddWaiverForm', function () {
 
     getShallowComponent = enzymeUtils.getShallowComponent(AddWaiverForm, minimalProps);
     getMountedComponent = enzymeUtils.getMountedComponent(AddWaiverForm, minimalProps);
+    getMountedComponentWithAutoClean = (additionalProps) => {
+      mountedComponent = getMountedComponent(additionalProps);
+      return mountedComponent;
+    };
+  });
+
+  afterEach(() => {
+    mountedComponent?.unmount();
+    mountedComponent = null;
   });
 
   it('renders a form with the appropriate classes', function () {
     const component = getShallowComponent();
-    expect(component).toMatchSelector('form.nx-form.iq-add-waiver-form');
+    expect(component).toHaveClassName('iq-add-waiver-form');
   });
 
   it('calls closeVulnerabilityDetailsModal when unmounting', function () {
@@ -119,6 +130,7 @@ describe('AddWaiverForm', function () {
       <div>Vulnerability Details Modal Container</div>
     );
 
+    // manual unmounting needed for this case
     const component = getMountedComponent();
     component.unmount();
 
@@ -202,7 +214,7 @@ describe('AddWaiverForm', function () {
       waiverTargetsSection = component.find('.iq-add-waiver-form__scope'),
       targetRadios = waiverTargetsSection.find(NxRadio);
 
-    expect(waiverTargetsSection.find(NxFieldset)).toExist();
+    expect(waiverTargetsSection).toExist();
     expect(waiverTargetsSection).toHaveProp('label', 'Scope');
 
     expect(targetRadios.length).toBe(3);
@@ -310,7 +322,7 @@ describe('AddWaiverForm', function () {
       selectComponent = expiryTimeSection.find(NxFormSelect),
       options = selectComponent.find('option');
 
-    expect(expiryTimeSection.find(NxFieldset)).toExist();
+    expect(expiryTimeSection).toExist();
     expect(expiryTimeSection).toHaveProp('label', 'Waiver Expiration');
     expect(selectComponent).toExist();
     expect(options.length).toBe(8);
@@ -388,7 +400,8 @@ describe('AddWaiverForm', function () {
       customExpiryTime: nxDateInputStateHelpers.initialState(dayAfterToday),
     });
     const customExpiryTimeSection = component.find('.iq-add-waiver-form__date-input');
-    const form = component.find('.nx-form');
+    const form = component.find(NxStatefulForm);
+
     expect(customExpiryTimeSection).toExist();
     form.simulate('submit', { preventDefault: preventDefaultSpy });
     expect(saveWaiverSpy).toHaveBeenCalledWith(
@@ -408,7 +421,7 @@ describe('AddWaiverForm', function () {
       customExpiryTime: nxDateInputStateHelpers.initialState(dayBeforeToday),
     });
     const customExpiryTimeSection = component.find('.iq-add-waiver-form__date-input');
-    const form = component.find('.nx-form');
+    const form = component.find(NxStatefulForm);
     expect(customExpiryTimeSection).toExist();
     form.simulate('submit', {
       preventDefault: () => {},
@@ -447,18 +460,21 @@ describe('AddWaiverForm', function () {
   });
 
   it('renders a btn bar with action buttons in the footer', function () {
-    const component = getShallowComponent(),
+    spyOn(VulnerabilityDetailsModalContainer, 'default').and.returnValue(
+      <div>Vulnerability Details Modal Container</div>
+    );
+
+    const component = getMountedComponentWithAutoClean(),
       buttonBar = component.find('.nx-footer .nx-btn-bar'),
       buttons = buttonBar.find(NxButton);
 
     expect(buttons.length).toBe(2);
 
-    expect(buttons.at(0)).toHaveProp('id', 'add-waiver-cancel');
+    expect(buttons.at(0)).toHaveProp('className', 'nx-form__cancel-btn');
     expect(buttons.at(0)).toHaveProp('onClick', jasmine.any(Function));
     expect(buttons.at(0)).toHaveText('Cancel');
 
-    expect(buttons.at(1)).toHaveProp('id', 'add-waiver-submit');
-    expect(buttons.at(1)).toHaveProp('type', 'submit');
+    expect(buttons.at(1)).toHaveProp('className', 'nx-form__submit-btn add-waiver-submit');
     expect(buttons.at(1)).toHaveProp('variant', 'primary');
     expect(buttons.at(1)).toHaveText('Submit');
   });
@@ -468,7 +484,7 @@ describe('AddWaiverForm', function () {
 
     it('passes null as expiryTime if never is chosen as expiry time', function () {
       const component = getShallowComponent({ expiryTime: 'never' }),
-        form = component.find('.nx-form');
+        form = component.find(NxStatefulForm);
 
       form.simulate('submit', { preventDefault: preventDefaultSpy });
       expect(saveWaiverSpy).toHaveBeenCalledWith(
@@ -483,7 +499,7 @@ describe('AddWaiverForm', function () {
 
     it('passes the number of days chosen for the expiry time', function () {
       let component = getShallowComponent(),
-        form = component.find('.nx-form');
+        form = component.find(NxStatefulForm);
 
       form.simulate('submit', { preventDefault: preventDefaultSpy });
       expect(saveWaiverSpy).toHaveBeenCalledWith(
@@ -504,7 +520,7 @@ describe('AddWaiverForm', function () {
         },
         expiryTime: '30',
       });
-      form = component.find('.nx-form');
+      form = component.find(NxStatefulForm);
       form.simulate('submit', { preventDefault: preventDefaultSpy });
       expect(saveWaiverSpy).toHaveBeenCalledWith(
         'violationId',
@@ -518,19 +534,30 @@ describe('AddWaiverForm', function () {
   });
 
   it('calls `cancelAction` when cancel button is clicked', function () {
+    spyOn(VulnerabilityDetailsModalContainer, 'default').and.returnValue(
+      <div>Vulnerability Details Modal Container</div>
+    );
+
     const preventDefaultSpy = jasmine.createSpy('preventDefault');
-    const component = getShallowComponent();
-    const cancelButton = component.find('#add-waiver-cancel');
+    const component = getMountedComponentWithAutoClean();
+
+    const cancelButton = component.findWhere((node) => {
+      return node.type() === 'button' && node.text() === 'Cancel';
+    });
 
     cancelButton.simulate('click', { preventDefault: preventDefaultSpy });
     expect(cancelActionSpy).toHaveBeenCalled();
   });
 
   it('renders an LoadError when submitError is present', function () {
-    const submitErrorObject = new Error('an error');
-    const component = getShallowComponent({ submitError: submitErrorObject }),
-      loadError = component.find(LoadError);
+    spyOn(VulnerabilityDetailsModalContainer, 'default').and.returnValue(
+      <div>Vulnerability Details Modal Container</div>
+    );
 
-    expect(loadError).toHaveProp('error', submitErrorObject);
+    const submitErrorObject = new Error('an error');
+    const component = getMountedComponentWithAutoClean({ submitError: submitErrorObject }),
+      NxAlert = component.find('.nx-alert');
+
+    expect(NxAlert).toHaveText(`An error occurred saving data. ${submitErrorObject.message}Retry`);
   });
 });

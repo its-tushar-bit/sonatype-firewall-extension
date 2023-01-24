@@ -10,10 +10,10 @@ import java.util.stream.IntStream;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxSubmitMask;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.FirewallConfigurationModal;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineStatus;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
@@ -31,6 +31,7 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class FirewallConfigurationModalTest
     extends AbstractFunctionalTest
@@ -95,11 +96,10 @@ public class FirewallConfigurationModalTest
       firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldNotBe(checked);
     });
     firewallConfigurationModal.cancelButton().shouldBe(visible);
-    firewallConfigurationModal.saveButton().shouldBe(visible).shouldHave(Condition.cssClass("disabled")).hover();
-    Tooltip.get().shouldBe(visible).shouldHave(Condition.text("There are no changes to save."));
+    firewallConfigurationModal.saveButton().shouldBe(visible).click();
+    FormUtils.getAlertElement(firewallConfigurationModal)
+        .shouldHave(Condition.text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
 
-    //verify clicking disabled save button does nothing
-    firewallConfigurationModal.saveButton().click();
     firewallConfigurationModal.shouldBe(visible);
     firewallConfigurationModal.autoUnquarantineToggleIntegrityRating().shouldBe(visible);
     firewallConfigurationModal.autoUnquarantineCheckBoxIntegrityRating().shouldNotBe(checked);
@@ -108,8 +108,6 @@ public class FirewallConfigurationModalTest
       firewallConfigurationModal.autoUnquarantineCheckBoxWithIndex(index).input().shouldNotBe(checked);
     });
     firewallConfigurationModal.cancelButton().shouldBe(visible);
-    firewallConfigurationModal.saveButton().shouldBe(visible).shouldHave(Condition.cssClass("disabled")).hover();
-    Tooltip.get().shouldBe(visible).shouldHave(Condition.text("There are no changes to save."));
   }
 
   @Test
@@ -276,7 +274,6 @@ public class FirewallConfigurationModalTest
     firewallConfigurationModal.autoUnquarantineToggleIntegrityRating().shouldBe(visible);
     firewallConfigurationModal.autoUnquarantineCheckBoxIntegrityRating().input().shouldNotBe(checked);
     firewallConfigurationModal.cancelButton().shouldBe(visible);
-    firewallConfigurationModal.saveButton().shouldBe(visible).shouldHave(Condition.cssClass("disabled"));
 
     //toggle
     firewallPage.firewallConfigurationModal().autoUnquarantineToggleIntegrityRating().click();

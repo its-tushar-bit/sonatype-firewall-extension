@@ -18,6 +18,7 @@ import {
   NxTableRow,
   NxTextLink,
   NxThreatIndicator,
+  NxFormSelect,
 } from '@sonatype/react-shared-components';
 
 import { faSync } from '@fortawesome/pro-solid-svg-icons';
@@ -134,8 +135,8 @@ export default function FirewallQuarantineTable(props) {
             <NxTableRow isFilterHeader>
               <NxTableCell />
               <NxTableCell>
-                <select
-                  className="nx-form-select"
+                <NxFormSelect
+                  id="firewall-quarantine-table--select-policy"
                   onChange={(event) => setQuarantineGridPolicyFilter(event.currentTarget.value)}
                   value={filterPolicy}
                 >
@@ -148,7 +149,7 @@ export default function FirewallQuarantineTable(props) {
                         {policy.name}
                       </option>
                     ))}
-                </select>
+                </NxFormSelect>
               </NxTableCell>
               <NxTableCell />
               <NxTableCell />

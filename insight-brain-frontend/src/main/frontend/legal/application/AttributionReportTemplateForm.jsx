@@ -11,7 +11,7 @@ import {
   NxButton,
   NxCheckbox,
   NxFieldset,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxLoadError,
   NxLoadingSpinner,
@@ -56,8 +56,8 @@ export default function AttributionReportTemplateForm(props) {
     saveError: null,
     loadError: null,
     deleteError: null,
-    errorTitle: '',
-    errorMessage: '',
+    errorTitle: null,
+    errorMessage: null,
   };
   let isTemplatePristine = React.useRef(true);
 
@@ -352,7 +352,7 @@ export default function AttributionReportTemplateForm(props) {
               </ul>
             </div>
             <section className="nx-tile" aria-label="Attribution Report Settings">
-              <NxForm
+              <NxStatefulForm
                 additionalFooterBtns={deleteTemplateButton}
                 submitBtnText="Save Template"
                 onSubmit={submitHandler}
@@ -416,7 +416,7 @@ export default function AttributionReportTemplateForm(props) {
                       />
                     </NxFormGroup>
                   </div>
-                  <NxFieldset label="Table of contents" isRequired>
+                  <NxFieldset label="Table of contents">
                     <NxCheckbox
                       onChange={toggle('includeTableOfContents')}
                       isChecked={formState.includeTableOfContents}
@@ -425,7 +425,7 @@ export default function AttributionReportTemplateForm(props) {
                       Include Table of Contents at the beginning of the report.
                     </NxCheckbox>
                   </NxFieldset>
-                  <NxFieldset label="Include Standard License Texts" isRequired>
+                  <NxFieldset label="Include Standard License Texts">
                     <NxCheckbox
                       onChange={toggle(INCLUDE_STANDARD_LICENSE_TEXTS_PROP_NAME)}
                       isChecked={formState.includeStandardLicenseTexts}
@@ -436,7 +436,6 @@ export default function AttributionReportTemplateForm(props) {
                   </NxFieldset>
                   <NxFieldset
                     label="Appendix"
-                    isRequired
                     sublabel={
                       'Displays all Standard License Texts at the end of the report and inserts ' +
                       'hyperlinks where relevant.'
@@ -454,7 +453,6 @@ export default function AttributionReportTemplateForm(props) {
                   <NxFieldset
                     label="Sonatype Special Licenses"
                     sublabel="(No Sources, Unassigned, Commercial, Not Supported, etc)."
-                    isRequired
                   >
                     <NxCheckbox
                       onChange={toggle('includeSonatypeSpecialLicenses')}
@@ -466,7 +464,6 @@ export default function AttributionReportTemplateForm(props) {
                   </NxFieldset>
                   <NxFieldset
                     label="InnerSource Components"
-                    isRequired
                     sublabel={
                       'InnerSource components are internally ' +
                       'developed components that are shared with other internal projects.'
@@ -519,7 +516,7 @@ export default function AttributionReportTemplateForm(props) {
                     />
                   )}
                 </div>
-              </NxForm>
+              </NxStatefulForm>
             </section>
           </div>
         </Fragment>

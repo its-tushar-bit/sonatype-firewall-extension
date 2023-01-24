@@ -7,7 +7,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  NxForm,
+  NxStatefulForm,
   NxPageTitle,
   NxH1,
   NxTile,
@@ -181,7 +181,7 @@ export default function AccessPage() {
 
       <NxLoadWrapper loading={loading} error={loadError || noRolesAvailableError} retryHandler={doLoad}>
         <NxTile>
-          <NxForm
+          <NxStatefulForm
             onSubmit={addedUsers.length ? createOrUpdateRole : openDeleteModal}
             doLoad={doLoad}
             submitBtnText={isNew ? 'Create' : 'Update'}
@@ -276,7 +276,7 @@ export default function AccessPage() {
                 footerContent={addedMembersCount()}
               />
             </NxTile.Content>
-          </NxForm>
+          </NxStatefulForm>
         </NxTile>
       </NxLoadWrapper>
 

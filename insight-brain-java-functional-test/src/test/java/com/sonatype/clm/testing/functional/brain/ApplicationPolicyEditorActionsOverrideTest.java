@@ -143,7 +143,6 @@ public class ApplicationPolicyEditorActionsOverrideTest
 
     // Save and verify changes via backend
     PolicyEditorPage.savePolicy();
-    PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     ScrollUtil.scrollIntoView(actionsTable.title());
 
@@ -243,7 +242,6 @@ public class ApplicationPolicyEditorActionsOverrideTest
     policyActionsOverride.shouldBe(visible).shouldNotBe(selected);
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
     PolicyEditorPage.savePolicy();
-    PolicyEditorPage.saveButton().shouldHave(DISABLED);
 
     // Save and verify changes via backend
     Policy updatedPolicy = policyDAO.getById(policy.getId());

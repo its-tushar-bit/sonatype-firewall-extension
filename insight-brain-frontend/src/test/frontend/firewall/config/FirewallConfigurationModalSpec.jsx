@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxForm, NxLoadError, NxModal, NxSubmitMask, NxToggle } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxLoadError, NxModal, NxSubmitMask, NxToggle } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 import FirewallConfigurationModal from '../../../../main/frontend/firewall/config/FirewallConfigurationModal';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from '../../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
@@ -77,7 +77,7 @@ describe('FirewallConfigurationModal', function () {
     expect(modal).toHaveProp('id', 'firewall-configuration-modal');
     expect(modal).toHaveProp('onClose');
 
-    const form = modal.find(NxForm);
+    const form = modal.find(NxStatefulForm);
     expect(form).toHaveProp('onSubmit', saveConfigurationSpy);
     expect(form).toHaveProp('loadError', null);
     expect(form).toHaveProp('loading', false);
@@ -113,7 +113,7 @@ describe('FirewallConfigurationModal', function () {
 
   it('calls closeConfigurationModal when form is cancelled', function () {
     const component = getShallowComponent(),
-      form = component.find(NxForm);
+      form = component.find(NxStatefulForm);
 
     form.simulate('cancel');
     expect(closeConfigurationModalSpy).toHaveBeenCalled();
@@ -121,7 +121,7 @@ describe('FirewallConfigurationModal', function () {
 
   it('calls saveConfiguration when form is submitted', function () {
     const component = getShallowComponent(),
-      form = component.find(NxForm);
+      form = component.find(NxStatefulForm);
 
     const releaseIntegrityToggle = component.find('#auto-unquarantine-toggle-integrity-rating');
     releaseIntegrityToggle.simulate('change');

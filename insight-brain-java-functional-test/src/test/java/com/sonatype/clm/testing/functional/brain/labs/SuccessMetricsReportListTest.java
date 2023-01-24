@@ -10,8 +10,8 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage.SuccessMetricsListItem;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -27,13 +27,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.SUBMIT_BUTTON_DISABLED_CLASS;
 
 public class SuccessMetricsReportListTest
     extends AbstractFunctionalTest
@@ -235,67 +233,5 @@ public class SuccessMetricsReportListTest
     FormMask.seeAndWaitForDismissal();
     deleteModal.alertContent().shouldBe(hidden);
     page.reports().shouldHaveSize(2);
-  }
-
-  @Test
-  public void testAddSuccessMetrics_Validation() {
-    SuccessMetricsReportListPage page = new SuccessMetricsReportListPage();
-    page.addSuccessMetricsBtn().click();
-
-    AddSuccessMetricsModal modal = new AddSuccessMetricsModal();
-
-    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-
-    modal.name().setValue("test");
-    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS)).click();
-    modal.shouldBe(hidden);
-
-    page.addSuccessMetricsBtn().click();
-
-    // duplicate checking
-    modal.name().setValue("test");
-    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-
-    // case-insensitive duplicate checking
-    modal.name().setValue("Test");
-    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-
-    modal.name().setValue("Test 1");
-    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-
-    // doubled space checking
-    modal.name().setValue("Test  1");
-    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-
-    // tab checking
-    modal.name().setValue("Test\t1");
-    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-
-    // empty Custom selection checking
-    modal.name().setValue("Test 1");
-    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-    modal.customRadioBtn().click();
-    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-    modal.orgPickerTrigger().click();
-    modal.nthOrg(2).label().click();
-    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-    modal.nthOrg(2).label().click();
-    modal.orgPickerTrigger().click();
-    modal.appPickerTrigger().click();
-    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-    modal.nthApp(2).label().click();
-    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-    modal.nthApp(2).label().click();
-    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-
-    // whitespace-insensitive dup checking - only implemented on the server
-    modal.allApplicationsRadioBtn().click();
-    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-    modal.name().setValue("Tes t");
-    modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-    modal.createBtn().click();
-    modal.cancelBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
-
-    modal.cancelBtn().click();
   }
 }

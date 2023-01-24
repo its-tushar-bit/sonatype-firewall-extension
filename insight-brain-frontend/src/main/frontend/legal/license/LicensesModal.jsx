@@ -8,7 +8,8 @@ import { compose, filter, mergeAll, path, union } from 'ramda';
 import {
   NxCheckbox,
   NxFieldset,
-  NxForm,
+  NxStatefulForm,
+  NxFormSelect,
   NxFormGroup,
   NxModal,
   NxTextInput,
@@ -256,7 +257,7 @@ export default function LicensesModal(props) {
       }}
       variant="wide"
     >
-      <NxForm
+      <NxStatefulForm
         onCancel={() => {
           setShowLicensesModal(false);
         }}
@@ -278,14 +279,13 @@ export default function LicensesModal(props) {
             </div>
             <div className="nx-grid-col">
               <NxFormGroup label="Status" isRequired>
-                <select
+                <NxFormSelect
                   id="edit-licenses-status-selection"
-                  className="nx-form-select"
                   value={statusVal}
                   onChange={(event) => onStatusChange(event.target.value)}
                 >
                   {getStatusOptions().map(createOptionFromValue)}
-                </select>
+                </NxFormSelect>
               </NxFormGroup>
               {showLicenseDiv && (
                 <NxFieldset label="Licenses" isRequired>
@@ -303,19 +303,19 @@ export default function LicensesModal(props) {
                 />
               </NxFormGroup>
               <NxFormGroup label="Scope" sublabel="Apply changes to" isRequired>
-                <select
+                <NxFormSelect
                   id="edit-licenses-scope-selection"
-                  className="nx-form-select nx-form-select--long"
+                  className="nx-form-select--long"
                   value={scopeVal}
                   onChange={(event) => updateScopeOption(event.currentTarget.value)}
                 >
                   {availableScopes.values.map(createScopeOption)}
-                </select>
+                </NxFormSelect>
               </NxFormGroup>
             </div>
           </div>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

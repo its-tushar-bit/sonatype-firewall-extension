@@ -156,7 +156,6 @@ public class EditNoticesTest
       assertOption(options.get(1), org);
       assertOption(options.get(2), rootOrg);
     }
-    assertButton(editNoticesModal.save(), false, "Must add a new notice or change the content or status of a notice.");
     assertButton(editNoticesModal.cancel(), true, null);
   }
 
@@ -179,7 +178,6 @@ public class EditNoticesTest
     editNoticesModal.addNoticeButton().click();
     editNoticesModal.allNotices().shouldHaveSize(3);
     assertNotice(editNoticesModal.noticeAt(2), "", true);
-    assertButton(editNoticesModal.save(), false, "A custom notice must have text.");
     assertButton(editNoticesModal.cancel(), true, null);
     editNoticesModal.noticeAt(2).textInput().setValue("custom");
     assertButton(editNoticesModal.save(), true, null);
@@ -209,7 +207,6 @@ public class EditNoticesTest
     assertNotice(ComponentLegalOverviewPage.notices().at(0), "META-INF/NOTICE", originalValue);
     assertButton(editNoticesModal.save(), true, null);
     notice.textInput().setValue(originalValue);
-    assertButton(editNoticesModal.save(), false, "Must add a new notice or change the content or status of a notice.");
     notice.textInput().setValue("changed");
     assertButton(editNoticesModal.save(), true, null);
     editNoticesModal.save().click();
@@ -242,7 +239,6 @@ public class EditNoticesTest
     notice.statusToggle().click();
     notice.statusCheckbox().shouldBe(Condition.selected);
     notice.textInput().shouldBe(Condition.enabled);
-    assertButton(editNoticesModal.save(), false, "Must add a new notice or change the content or status of a notice.");
     notice.statusToggle().click();
     notice.statusCheckbox().shouldNotBe(Condition.selected);
     notice.textInput().shouldBe(Condition.disabled);

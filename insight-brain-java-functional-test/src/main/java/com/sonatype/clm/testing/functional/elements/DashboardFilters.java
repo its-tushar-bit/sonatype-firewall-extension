@@ -201,7 +201,7 @@ public class DashboardFilters
     }
 
     public SelenideElement cancelButton() {
-      return child("#save-filter-modal-cancel-button");
+      return child(".nx-form__cancel-btn");
     }
 
     public SelenideElement nameInput() {
@@ -229,11 +229,11 @@ public class DashboardFilters
     }
 
     public SelenideElement continueButton() {
-      return child("#delete-filter-modal-continue-button");
+      return child(".nx-form__submit-btn");
     }
 
     public SelenideElement cancelButton() {
-      return child("#delete-filter-modal-cancel-button");
+      return child(".nx-form__cancel-btn");
     }
 
     public SelenideElement confirmation() {

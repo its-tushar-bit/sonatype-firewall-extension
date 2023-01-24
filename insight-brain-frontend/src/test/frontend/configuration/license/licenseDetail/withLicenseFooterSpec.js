@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { NxForm, NxModal } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxModal } from '@sonatype/react-shared-components';
 import WithLicenseFooter from '../../../../../main/frontend/configuration/license/footers/WithLicenseFooter';
 import * as enzymeUtils from '../../../enzymeUtils';
 
@@ -42,7 +42,7 @@ describe('WithLicenseFooter', () => {
       const uninstallLicenseBtn = shallowComponent.find('#uninstall-license');
       uninstallLicenseBtn.simulate('click');
       modal = shallowComponent.find(NxModal);
-      form = shallowComponent.find(NxForm);
+      form = shallowComponent.find(NxStatefulForm);
     });
 
     it('opens the confirmation modal', () => {
@@ -59,7 +59,7 @@ describe('WithLicenseFooter', () => {
       const uninstallLicenseBtn = shallowComponent.find('#uninstall-license');
       uninstallLicenseBtn.simulate('click');
       modal = shallowComponent.find(NxModal);
-      form = shallowComponent.find(NxForm);
+      form = shallowComponent.find(NxStatefulForm);
       expect(form).toHaveProp('submitMaskState', false);
     });
 
@@ -69,7 +69,7 @@ describe('WithLicenseFooter', () => {
       const uninstallLicenseBtn = shallowComponent.find('#uninstall-license');
       uninstallLicenseBtn.simulate('click');
       modal = shallowComponent.find(NxModal);
-      form = shallowComponent.find(NxForm);
+      form = shallowComponent.find(NxStatefulForm);
       expect(form).toHaveProp('submitError', uninstallError);
     });
   });

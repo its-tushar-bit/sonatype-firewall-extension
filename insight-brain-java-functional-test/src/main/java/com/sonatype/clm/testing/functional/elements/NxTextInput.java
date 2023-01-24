@@ -26,7 +26,7 @@ public class NxTextInput
   }
 
   public SelenideElement errorMessage() {
-    return this.inputWrapper().find(".nx-text-input__invalid-message");
+    return this.inputWrapper().find(".nx-field-validation-message");
   }
 }
 

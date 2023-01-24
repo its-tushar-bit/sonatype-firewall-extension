@@ -6,7 +6,7 @@
 import {
   NxCheckbox,
   NxFieldset,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxInfoAlert,
   NxTextInput,
@@ -90,7 +90,7 @@ export default function AddProprietaryComponentMatchersPopover({
           </NxTextLink>{' '}
           (duplicates will be ignored). The new matchers will be in effect for the next application analysis.
         </NxInfoAlert>
-        <NxForm
+        <NxStatefulForm
           onSubmit={submitForm}
           submitError={submitError}
           submitMaskState={submitMaskState}
@@ -123,7 +123,7 @@ export default function AddProprietaryComponentMatchersPopover({
               }}
             />
           </NxFormGroup>
-        </NxForm>
+        </NxStatefulForm>
       </IqPopover>
     )
   );

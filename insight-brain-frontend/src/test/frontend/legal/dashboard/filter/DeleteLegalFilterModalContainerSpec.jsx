@@ -26,8 +26,7 @@ describe('DeleteLegalFilterModalContainer', function () {
       manageLegalFilters: {
         filterToDelete: 'filter1',
         deleteFilterError: 'error123',
-        deleteFilterSaving: true,
-        deleteFilterSuccess: true,
+        deleteFilterMaskState: true,
       },
     };
     store = configureStore()(() => state);
@@ -44,8 +43,7 @@ describe('DeleteLegalFilterModalContainer', function () {
       jasmine.objectContaining({
         filterToDelete: 'filter1',
         deleteFilterError: 'error123',
-        deleteFilterSaving: true,
-        deleteFilterSuccess: true,
+        deleteFilterMaskState: true,
         deleteFilter: jasmine.any(Function),
         hideDeleteFilterModal: jasmine.any(Function),
       })

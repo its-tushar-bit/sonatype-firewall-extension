@@ -3,25 +3,52 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import { NxErrorAlert, NxSubmitMask, NxLoadError, NxModal } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxErrorAlert,
+  NxLoadError,
+  NxModal,
+  NxStatefulForm,
+  NxSubmitMask,
+} from '@sonatype/react-shared-components';
 
-import * as enzymeUtils from '../../../enzymeUtils';
-import DeleteFilterModal from '../../../../../main/frontend/dashboard/filter/deleteFilterModal/DeleteFilterModal';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import DeleteFilterModal from 'MainRoot/dashboard/filter/deleteFilterModal/DeleteFilterModal';
 
 describe('DeleteFilterModal', function () {
-  let getShallowComponent, hideDeleteFilterModal, deleteFilter;
+  let getShallowComponent, mountPoint, getMountedComponentWithAutoClean, mountedComponent;
 
-  beforeEach(function () {
-    hideDeleteFilterModal = jasmine.createSpy('hideDeleteFilterModal');
+  const hideDeleteFilterModal = jasmine.createSpy('hideDeleteFilterModal'),
     deleteFilter = jasmine.createSpy('deleteFilter');
 
-    getShallowComponent = enzymeUtils.getShallowComponent(DeleteFilterModal, {
-      filterToDelete: 'filter1',
-      deleteFilterError: null,
-      hideDeleteFilterModal,
-      deleteFilter,
+  const minimalProps = {
+    filterToDelete: 'filter1',
+    deleteFilterError: null,
+    hideDeleteFilterModal,
+    deleteFilter,
+  };
+
+  beforeEach(function () {
+    mountPoint = document.createElement('div');
+    document.body.appendChild(mountPoint);
+    getShallowComponent = enzymeUtils.getShallowComponent(DeleteFilterModal, minimalProps);
+
+    const getMountedComponent = enzymeUtils.getMountedComponent(DeleteFilterModal, minimalProps, {
+      attachTo: mountPoint,
     });
+    getMountedComponentWithAutoClean = (additionalProps) => {
+      mountedComponent = getMountedComponent(additionalProps);
+      return mountedComponent;
+    };
+  });
+
+  afterEach(() => {
+    if (mountPoint) {
+      document.body.removeChild(mountPoint);
+      mountPoint = null;
+    }
+    mountedComponent?.unmount();
+    mountedComponent = null;
   });
 
   it('renders NxModal when filterToDelete is not null', function () {
@@ -33,12 +60,14 @@ describe('DeleteFilterModal', function () {
     const shallowRender = getShallowComponent({
       filterToDelete: null,
     });
+
     expect(shallowRender).toBeEmptyRender();
   });
 
   describe('when deleteFilterError is null', function () {
     it('renders warning message with the filter name as modal content', function () {
       const modalContent = getShallowComponent().find('.nx-modal-content');
+
       expect(modalContent.find('ForwardRef(NxWarningAlert)')).toHaveText(
         'You are about to delete "filter1" filter. This action can not be undone.'
       );
@@ -46,16 +75,20 @@ describe('DeleteFilterModal', function () {
 
     it('renders footer without .nx-error class', function () {
       const footer = getShallowComponent().find('footer');
+
       expect(footer).not.toHaveClassName('nx-error');
     });
 
     it('renders footer with no NxErrorAlert', function () {
       const footer = getShallowComponent().find('footer');
+
       expect(footer.find(NxErrorAlert)).not.toExist();
     });
 
     it('renders submit button as primary with "Continue" text', function () {
-      const submitButton = getShallowComponent().find('#delete-filter-modal-continue-button');
+      const component = getMountedComponentWithAutoClean(),
+        submitButton = component.find(NxButton).last();
+
       expect(submitButton).toHaveProp('variant', 'primary');
       expect(submitButton).toHaveText('Continue');
     });
@@ -65,20 +98,18 @@ describe('DeleteFilterModal', function () {
     let component;
 
     beforeEach(function () {
-      component = getShallowComponent({
+      component = getMountedComponentWithAutoClean({
         deleteFilterError: 'error123',
       });
     });
 
-    it('renders a NxLoadError in the footer which can retry the delete', function () {
-      const loadError = component.find('.nx-footer').find(NxLoadError);
+    it('renders a NxLoadError in the footer with retry button', function () {
+      const loadError = component.find('.nx-footer').find(NxLoadError),
+        retryBtn = loadError.find(NxButton).first();
 
       expect(loadError).toExist();
       expect(loadError).toHaveProp('error', 'error123');
-
-      expect(deleteFilter).not.toHaveBeenCalled();
-      loadError.prop('retryHandler')();
-      expect(deleteFilter).toHaveBeenCalled();
+      expect(retryBtn).toExist();
     });
 
     it('does not render the Continue button', function () {
@@ -87,40 +118,35 @@ describe('DeleteFilterModal', function () {
   });
 
   describe('NxSubmitMask', function () {
-    it('is rendered when deleteFilterSaving is true', function () {
-      const component = getShallowComponent({
-        deleteFilterSaving: true,
-        deleteFilterSuccess: false,
-      });
+    it('shows submitting mask when deleteFilterMaskState is false', function () {
+      const component = getMountedComponentWithAutoClean({ deleteFilterMaskState: false }),
+        mask = component.find(NxSubmitMask);
 
-      expect(component.find('form').childAt(0)).toContainReact(<NxSubmitMask message="Removing…" success={false} />);
+      expect(mask).toHaveText('Removing…');
     });
 
-    it('is rendered when deleteFilterSuccess is true', function () {
-      const component = getShallowComponent({
-        deleteFilterSaving: false,
-        deleteFilterSuccess: true,
-      });
+    it('shows success mask when deleteFilterMaskState is true', function () {
+      const component = getMountedComponentWithAutoClean({ deleteFilterMaskState: true }),
+        mask = component.find(NxSubmitMask);
 
-      expect(component.find('form').childAt(0)).toContainReact(<NxSubmitMask message="Removing…" success={true} />);
+      expect(mask).toHaveText('Success!');
     });
 
-    it('is not rendered when both deleteFilterSaving and deleteFilterSuccess are false', function () {
-      const component = getShallowComponent({
-        deleteFilterSaving: false,
-        deleteFilterSuccess: false,
-      });
+    it('is not rendered when deleteFilterMaskState is null', function () {
+      const component = getMountedComponentWithAutoClean({ deleteFilterMaskState: null }),
+        mask = component.find(NxSubmitMask);
 
-      expect(component.find(NxSubmitMask)).not.toExist();
+      expect(mask).not.toExist();
     });
   });
 
   describe('onSubmit handler', function () {
     it('fires deleteFilter action with filterToDelete and calls preventDefault on the event', function () {
       const preventDefault = jasmine.createSpy('preventDefault');
-      getShallowComponent().find('form').simulate('submit', {
+      getShallowComponent().find(NxStatefulForm).simulate('submit', {
         preventDefault,
       });
+
       expect(preventDefault).toHaveBeenCalled();
       expect(deleteFilter).toHaveBeenCalledWith('filter1');
     });
@@ -128,8 +154,9 @@ describe('DeleteFilterModal', function () {
 
   describe('cancel button click handler', function () {
     it('fires hideDeleteFilterModal action', function () {
-      const cancelButton = getShallowComponent().find('#delete-filter-modal-cancel-button');
+      const cancelButton = getMountedComponentWithAutoClean().find(NxButton).first();
       cancelButton.simulate('click');
+
       expect(hideDeleteFilterModal).toHaveBeenCalled();
     });
   });

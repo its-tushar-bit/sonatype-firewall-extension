@@ -19,7 +19,7 @@ import {
   NxH1,
   NxTile,
   NxErrorAlert,
-  NxForm,
+  NxStatefulForm,
   NxFieldset,
   NxRadio,
   NxCheckbox,
@@ -73,7 +73,7 @@ export default function PolicyViolationsGrandfatheringEditor() {
       <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
         {isGrandfatheringSupported ? (
           <NxTile>
-            <NxForm
+            <NxStatefulForm
               submitBtnText="Update"
               submitMaskState={submitMaskState}
               submitMaskMessage="Saving…"
@@ -136,7 +136,7 @@ export default function PolicyViolationsGrandfatheringEditor() {
                   </NxFieldset>
                 )}
               </NxTile.Content>
-            </NxForm>
+            </NxStatefulForm>
           </NxTile>
         ) : (
           <NxErrorAlert>Policy Violation Grandfathering is not supported by your license.</NxErrorAlert>

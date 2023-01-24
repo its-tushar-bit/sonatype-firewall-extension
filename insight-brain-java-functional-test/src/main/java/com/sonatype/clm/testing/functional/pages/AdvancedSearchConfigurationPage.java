@@ -33,7 +33,7 @@ public class AdvancedSearchConfigurationPage
   }
 
   public SelenideElement saveButton() {
-    return child("#advanced-search-config-save");
+    return child(".nx-form__submit-btn");
   }
 
   public SelenideElement cancelButton() {

@@ -7,8 +7,8 @@ import React, { useEffect } from 'react';
 import {
   NxModal,
   NxH2,
-  NxForm,
-  NxFieldset,
+  NxStatefulForm,
+  NxFormGroup,
   NxFormSelect,
   NxButton,
   NxFooter,
@@ -83,7 +83,7 @@ const MoveApplicationModal = () => {
           </NxModal.Header>
           {!isShowNoAvailableOrgsWarning ? (
             <>
-              <NxForm
+              <NxStatefulForm
                 onSubmit={moveApplication}
                 onCancel={closeModal}
                 doLoad={doLoad}
@@ -95,7 +95,7 @@ const MoveApplicationModal = () => {
                 {...getErrorProps(submitError)}
               >
                 <NxModal.Content>
-                  <NxFieldset label="New Parent Organization" isRequired>
+                  <NxFormGroup label="New Parent Organization" isRequired>
                     <NxFormSelect onChange={onChange}>
                       {organizations.map(({ organizationId, organizationName }) => (
                         <option key={organizationId} value={organizationId}>
@@ -103,9 +103,9 @@ const MoveApplicationModal = () => {
                         </option>
                       ))}
                     </NxFormSelect>
-                  </NxFieldset>
+                  </NxFormGroup>
                 </NxModal.Content>
-              </NxForm>
+              </NxStatefulForm>
               {!!loadError && (
                 <NxFooter>
                   <NxButtonBar>

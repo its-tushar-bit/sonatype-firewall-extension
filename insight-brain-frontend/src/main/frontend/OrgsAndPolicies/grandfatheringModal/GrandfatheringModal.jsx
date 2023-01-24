@@ -6,7 +6,7 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { grandfatheringSlice } from './grandfatheringSelectors';
-import { NxModal, NxWarningAlert, NxH2, NxForm } from '@sonatype/react-shared-components';
+import { NxModal, NxWarningAlert, NxH2, NxStatefulForm } from '@sonatype/react-shared-components';
 import { actions } from './grandfatheringSlice';
 
 export default function GrandfatheringModal() {
@@ -23,7 +23,7 @@ export default function GrandfatheringModal() {
 
   return isModalOpen ? (
     <NxModal id="grandfathering-modal" onCancel={closeModal}>
-      <NxForm
+      <NxStatefulForm
         onSubmit={grandfathering}
         onCancel={closeModal}
         submitMaskState={submitMaskState}
@@ -38,7 +38,7 @@ export default function GrandfatheringModal() {
             Policy violations for the application will be grandfathered without performing an evaluation.
           </NxWarningAlert>
         </NxModal.Content>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   ) : null;
 }

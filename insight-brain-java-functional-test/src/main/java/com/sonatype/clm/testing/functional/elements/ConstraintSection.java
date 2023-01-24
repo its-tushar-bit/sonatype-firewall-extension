@@ -48,7 +48,7 @@ public class ConstraintSection
   }
 
   public SelenideElement getInputValidationElement(SelenideElement element) {
-    return element.closest(".nx-text-input").find(".nx-text-input__invalid-message");
+    return element.closest(".nx-text-input").find(".nx-field-validation-message");
   }
 
   public static class ConstraintSummary
@@ -180,11 +180,11 @@ public class ConstraintSection
       }
 
       public NxFormSelect type() {
-        return new NxFormSelect(childSelector(".constraint-editor__condition-type"));
+        return new NxFormSelect(childSelector(".constraint-editor__condition-type .nx-form-select__select"));
       }
 
       public NxFormSelect operator() {
-        return new NxFormSelect(childSelector(".constraint-editor__condition-operator"));
+        return new NxFormSelect(childSelector(".constraint-editor__condition-operator .nx-form-select__select"));
       }
 
       public SelenideElement deleteConditionButton() {
@@ -200,7 +200,7 @@ public class ConstraintSection
       }
 
       public NxFormSelect value() {
-        return new NxFormSelect(childSelector(".constraint-editor__values"));
+        return new NxFormSelect(childSelector(".constraint-editor__values .nx-form-select__select"));
       }
     }
 

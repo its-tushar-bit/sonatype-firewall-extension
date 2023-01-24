@@ -37,12 +37,12 @@ x-data-retention-editor {
     font-size: var(--nx-font-size-s);
   }
 
-  .nx-text-input__invalid-message {
+  .nx-field-validation-message {
     width: 250px;
   }
 
   .hide-error {
-    .nx-text-input__invalid-message {
+    .nx-field-validation-message {
       display: none;
     }
   }

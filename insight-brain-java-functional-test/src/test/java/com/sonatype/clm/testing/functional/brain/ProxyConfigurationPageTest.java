@@ -7,8 +7,8 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ProxyConfigurationPage;
@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurat
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -27,9 +28,9 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.openqa.selenium.Keys.BACK_SPACE;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class ProxyConfigurationPageTest
     extends AbstractFunctionalTest
@@ -153,8 +154,9 @@ public class ProxyConfigurationPageTest
   public void testPortIsRequired() {
     refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.hostName().setValue("a.hostname");
-    proxyConfigurationPage.save().shouldBe(DISABLED).hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("Hostname and Port are required details."));
+    proxyConfigurationPage.save().click();
+    FormUtils.getAlertElement(proxyConfigurationPage).shouldBe(visible)
+        .shouldBe(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Hostname and Port are required details."));
     cancel();
   }
 
@@ -162,8 +164,9 @@ public class ProxyConfigurationPageTest
   public void testHostnameIsRequired() {
     refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.port().setValue("8080");
-    proxyConfigurationPage.save().shouldBe(DISABLED).hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("Hostname and Port are required details."));
+    proxyConfigurationPage.save().click();
+    FormUtils.getAlertElement(proxyConfigurationPage).shouldBe(visible)
+        .shouldBe(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Hostname and Port are required details."));
     cancel();
   }
 
@@ -172,8 +175,10 @@ public class ProxyConfigurationPageTest
     tempEntity.setProxyServerConfiguration("host", 8080);
     refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.hostName().setValue("new-host");
-    proxyConfigurationPage.save().shouldBe(DISABLED).hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("Password must be provided when updating Hostname or Port."));
+    proxyConfigurationPage.save().click();
+    FormUtils.getAlertElement(proxyConfigurationPage).shouldBe(visible)
+        .shouldBe(text(DEFAULT_VALIDATION_ERRORS_PREFIX + 
+        " Password must be provided when updating Hostname or Port."));
     cancel();
   }
 
@@ -182,8 +187,10 @@ public class ProxyConfigurationPageTest
     tempEntity.setProxyServerConfiguration("host", 8080);
     refreshOrOpen(ProxyConfigurationPage.url());
     proxyConfigurationPage.port().setValue("9090");
-    proxyConfigurationPage.save().shouldBe(DISABLED).hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("Password must be provided when updating Hostname or Port."));
+    proxyConfigurationPage.save().click();
+    FormUtils.getAlertElement(proxyConfigurationPage).shouldBe(visible)
+        .shouldBe(text(DEFAULT_VALIDATION_ERRORS_PREFIX + 
+        " Password must be provided when updating Hostname or Port."));
     cancel();
   }
 
@@ -331,8 +338,9 @@ public class ProxyConfigurationPageTest
     proxyConfigurationPage.hostName().setValue("proxy.server");
     proxyConfigurationPage.port().setValue("nineteen-eighty-four");
 
-    proxyConfigurationPage.save().hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("Hostname and Port are required details."));
+    proxyConfigurationPage.save().click();
+    FormUtils.getAlertElement(proxyConfigurationPage).shouldBe(visible)
+        .shouldBe(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Hostname and Port are required details."));
     cancel();
   }
 
@@ -342,9 +350,7 @@ public class ProxyConfigurationPageTest
     proxyConfigurationPage.username().shouldBe(empty);
     proxyConfigurationPage.password().shouldBe(empty);
     proxyConfigurationPage.excludeHosts().shouldBe(empty);
-    proxyConfigurationPage.save().shouldBe(DISABLED);
     proxyConfigurationPage.delete().shouldBe(disabled);
-    proxyConfigurationPage.cancel().shouldBe(disabled);
 
     assertThat(dao.get()).isNull();
   }

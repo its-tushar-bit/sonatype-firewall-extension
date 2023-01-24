@@ -136,7 +136,6 @@ public class EditOriginalSourcesTest
 
     EditOriginalSourcesModal modal = new EditOriginalSourcesModal();
     modal.should(Condition.appear);
-    modal.save().shouldHave(Condition.cssClass("disabled"));
 
     modal.originalSourceInputAt(1).setValue("UPDATED ORIGINAL SOURCE");
 
@@ -176,7 +175,6 @@ public class EditOriginalSourcesTest
 
     EditOriginalSourcesModal modal = new EditOriginalSourcesModal();
     modal.should(Condition.appear);
-    modal.save().shouldHave(Condition.cssClass("disabled"));
 
     modal.originalSourceStatusCheckboxAt(0).shouldBe(Condition.checked);
     modal.originalSourceStatusToggleAt(0).click();
@@ -212,15 +210,12 @@ public class EditOriginalSourcesTest
 
     EditOriginalSourcesModal modal = new EditOriginalSourcesModal();
     modal.should(Condition.appear);
-    modal.save().shouldHave(Condition.cssClass("disabled"));
 
     modal.originalSourceInputs().shouldHave(CollectionCondition.size(3));
 
     modal.addSourceButton().click();
 
     modal.originalSourceInputs().shouldHave(CollectionCondition.size(4));
-
-    modal.save().shouldHave(Condition.cssClass("disabled"));
 
     modal.originalSourceInputAt(3).shouldHave(Condition.value("")).setValue("NEW SOURCE");
     modal.save().shouldNotHave(Condition.cssClass("disabled")).click();
@@ -256,7 +251,6 @@ public class EditOriginalSourcesTest
 
     EditOriginalSourcesModal modal = new EditOriginalSourcesModal();
     modal.should(Condition.appear);
-    modal.save().shouldHave(Condition.cssClass("disabled"));
 
     modal.originalSourceInputs().shouldHave(CollectionCondition.size(3));
     modal.originalSourceInputAt(1).setValue("UPDATED SOURCE");
@@ -301,7 +295,6 @@ public class EditOriginalSourcesTest
 
     EditOriginalSourcesModal modal = new EditOriginalSourcesModal();
     modal.should(Condition.appear);
-    modal.save().shouldHave(Condition.cssClass("disabled"));
 
     modal.statusDropdown().shouldBe(Condition.visible);
     modal.statusDropdown().shouldBe(enabled);

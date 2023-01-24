@@ -11,7 +11,7 @@ import {
   NxButton,
   NxDivider,
   NxFieldset,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxH1,
   NxH2,
@@ -166,7 +166,10 @@ const AdministratorsEdit = () => {
             <RoleDetails name={roleToEdit?.roleName} description={roleToEdit?.roleDescription} />
             <NxDivider />
             <NxH2>Add Members</NxH2>
-            <NxForm {...{ onSubmit, onCancel, submitError, submitMaskState }} id="administrators-add-members-form">
+            <NxStatefulForm
+              {...{ onSubmit, onCancel, submitError, submitMaskState }}
+              id="administrators-add-members-form"
+            >
               <NxFieldset
                 label="Search Users"
                 sublabel="use ‘*’ as wildcard (ex. ‘Isa*’ matches ‘Isaac Asimov’)"
@@ -228,7 +231,7 @@ const AdministratorsEdit = () => {
                 isSelected
                 footerContent={getMembersCount()}
               />
-            </NxForm>
+            </NxStatefulForm>
           </NxTile.Content>
         </NxLoadWrapper>
       </NxTile>

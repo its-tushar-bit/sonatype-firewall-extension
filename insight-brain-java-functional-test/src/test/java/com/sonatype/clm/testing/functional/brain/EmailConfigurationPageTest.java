@@ -22,6 +22,7 @@ import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.EmailConfigurationPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.security.User;
@@ -76,7 +77,6 @@ public class EmailConfigurationPageTest
     emailConfigurationPage.hostName().setValue("smtp.myserver.com");
     emailConfigurationPage.port().setValue("465");
     emailConfigurationPage.systemEmail().setValue("no-reply@iqserver.com");
-    assertConfigurationCanBeSaved();
     saveConfiguration();
 
     // ## -- READ -- ##
@@ -106,7 +106,6 @@ public class EmailConfigurationPageTest
     emailConfigurationPage.password().setValue("p");
     emailConfigurationPage.sslEnabled().click();
     emailConfigurationPage.startTlsEnabled().click();
-    assertConfigurationCanBeSaved();
     saveConfiguration();
 
     // Immediate state of page
@@ -166,29 +165,40 @@ public class EmailConfigurationPageTest
 
     // Test Hostname requires Password
     emailConfigurationPage.hostName().setValue("123");
-    assertSaveDisabledWithPasswordRequired();
+    assertSavingProducesValidationErrorWithPasswordRequired();
 
     emailConfigurationPage.password().setValue("a-new-password");
-    assertConfigurationCanBeSaved();
 
     emailConfigurationPage.password().clear();
-    assertConfigurationCanBeSaved();
 
     // Reset
     emailConfigurationPage.cancel().shouldBe(enabled).click();
 
     // Password required when port is modified
     emailConfigurationPage.port().setValue("123");
-    assertSaveDisabledWithPasswordRequired();
+    assertSavingProducesValidationErrorWithPasswordRequired();
 
     // Save is enabled when password provided
     emailConfigurationPage.password().setValue("a-new-password");
-    assertConfigurationCanBeSaved();
 
     // Save is enabled with empty password
     emailConfigurationPage.password().clear();
-    assertConfigurationCanBeSaved();
     resetForm();
+  }
+
+  @Test
+  public void testRequiredValidationErrors() {
+    refreshOrOpen(EmailConfigurationPage.url());
+    saveConfiguration();
+
+    FormUtils.getAlertElement(emailConfigurationPage).shouldBe(visible)
+           .shouldBe(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + 
+        " Hostname, Port and System Email are required details."));
+    emailConfigurationPage.hostName().setValue("smtp.myserver.com");
+    emailConfigurationPage.port().setValue("465");
+    emailConfigurationPage.systemEmail().setValue("no-reply@iqserver.com");
+    saveConfiguration();
+    emailConfigurationPage.save().shouldBe(visible);
   }
 
   // I must be able to update fields I am allowed to without providing my password
@@ -206,8 +216,8 @@ public class EmailConfigurationPageTest
     emailConfigurationPage.sslEnabled().click();
     emailConfigurationPage.startTlsEnabled().click();
 
-    assertConfigurationCanBeSaved();
     saveConfiguration();
+    emailConfigurationPage.save().shouldBe(visible);
 
     MailConfiguration updated = mailConfigurationDAO.get();
     // I did not provide a password in the form.
@@ -233,7 +243,6 @@ public class EmailConfigurationPageTest
     refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.password().setValue("new-password");
-    assertConfigurationCanBeSaved();
     saveConfiguration();
 
     // Verify UI state
@@ -270,7 +279,6 @@ public class EmailConfigurationPageTest
     emailConfigurationPage.password().click();
     emailConfigurationPage.password().sendKeys(BACK_SPACE);
 
-    assertConfigurationCanBeSaved();
     saveConfiguration();
 
     // Verify UI State
@@ -293,20 +301,11 @@ public class EmailConfigurationPageTest
     assertThat(mailConfiguration.isStartTlsEnabled()).isEqualTo(existing.isStartTlsEnabled());
   }
 
-  private void assertSaveDisabledWithRequiredFields() {
-    emailConfigurationPage.save().shouldBe(DISABLED).hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("Hostname, Port and System Email are required details."));
-  }
-
-  private void assertSaveDisabledWithPasswordRequired() {
-    emailConfigurationPage.save().shouldBe(DISABLED).hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("Password must be provided when updating Hostname or Port."));
-  }
-
-  private void assertConfigurationCanBeSaved() {
-    // When save is enabled, tooltip must not be visible
-    emailConfigurationPage.save().shouldNotBe(DISABLED).hover();
-    Tooltip.get().shouldNotBe(visible);
+  private void assertSavingProducesValidationErrorWithPasswordRequired() {
+    saveConfiguration();
+    FormUtils.getAlertElement(emailConfigurationPage).shouldBe(visible)
+           .shouldBe(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + 
+        " Password must be provided when updating Hostname or Port."));
   }
 
   private void saveConfiguration() {
@@ -580,13 +579,11 @@ public class EmailConfigurationPageTest
   }
 
   private void assertButtonsAndTooltipMessageAndClickCancel() {
-    assertSaveDisabledWithRequiredFields();
     emailConfigurationPage.delete().shouldBe(disabled);
     emailConfigurationPage.cancel().shouldBe(enabled);
 
     emailConfigurationPage.cancel().click();
 
-    emailConfigurationPage.save().shouldBe(DISABLED);
     emailConfigurationPage.delete().shouldBe(disabled);
     emailConfigurationPage.cancel().shouldBe(disabled);
   }
@@ -603,7 +600,6 @@ public class EmailConfigurationPageTest
     emailConfigurationPage.sslEnabled().shouldNotBe(checked);
     emailConfigurationPage.startTlsEnabled().shouldNotBe(checked);
 
-    emailConfigurationPage.save().shouldBe(DISABLED);
     emailConfigurationPage.delete().shouldBe(disabled);
     emailConfigurationPage.cancel().shouldBe(disabled);
 

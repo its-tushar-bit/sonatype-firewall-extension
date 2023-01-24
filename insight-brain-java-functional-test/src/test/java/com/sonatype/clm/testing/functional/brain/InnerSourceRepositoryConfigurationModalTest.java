@@ -83,7 +83,7 @@ public class InnerSourceRepositoryConfigurationModalTest
     modal.baseUrl().input().shouldBe(Condition.empty);
     modal.allowAnonymousAccess().shouldBe(Condition.selected);
     modal.test().shouldHave(Condition.cssClass("disabled"));
-    modal.save().shouldHave(Condition.cssClass("disabled"));
+    modal.save().shouldBe(Condition.visible);
     modal.authentication().shouldNotBe(Condition.visible);
   }
 
@@ -102,7 +102,7 @@ public class InnerSourceRepositoryConfigurationModalTest
     modal.baseUrl().input().shouldHave(Condition.value(repositoryConnection.getBaseUrl()));
     modal.allowAnonymousAccess().shouldBe(Condition.selected);
     modal.test().shouldNotHave(Condition.cssClass("disabled"));
-    modal.save().shouldHave(Condition.cssClass("disabled"));
+    modal.save().shouldBe(Condition.visible);
     modal.authentication().shouldNotBe(Condition.visible);
   }
 
@@ -126,7 +126,7 @@ public class InnerSourceRepositoryConfigurationModalTest
     modal.baseUrl().input().shouldHave(Condition.value(repositoryConnection.getBaseUrl()));
     modal.enterUsernameAndPassword().shouldBe(Condition.selected);
     modal.test().shouldNotHave(Condition.cssClass("disabled"));
-    modal.save().shouldHave(Condition.cssClass("disabled"));
+    modal.save().shouldBe(Condition.visible);
     modal.authentication().shouldBe(Condition.visible);
     modal.username().input().shouldHave(Condition.value(repositoryConnection.getUsername()));
     modal.password().input().shouldNotBe(Condition.empty);

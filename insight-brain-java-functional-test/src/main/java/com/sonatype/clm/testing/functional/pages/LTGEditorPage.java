@@ -60,6 +60,6 @@ public class LTGEditorPage
   }
 
   public static SelenideElement getInputValidationElement(SelenideElement element) {
-    return element.closest(".nx-form-group").find(".nx-text-input__invalid-message");
+    return element.closest(".nx-form-group").find(".nx-field-validation-message");
   }
 }

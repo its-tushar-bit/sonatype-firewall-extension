@@ -123,21 +123,20 @@ describe('MoveApplicationModal', () => {
     });
     it('shows Submit and Cancel buttons', async () => {
       renderComponent();
-      const submitButton = await screen.findByRole('button', { name: 'Submit disabled: There are no changes to save' });
+      const submitButton = await screen.findByRole('button', { name: 'Move' });
       const cancelButton = await screen.findByRole('button', { name: 'Cancel' });
       expect(submitButton).toBeVisible();
       expect(cancelButton).toBeVisible();
     });
 
-    it('shows current organization in the selector and disables Submit button, when open modal', async () => {
+    it('shows current organization in the selector when open modal', async () => {
       renderComponent();
-      const submitButton = await screen.findByRole('button', { name: 'Submit disabled: There are no changes to save' });
+      const submitButton = await screen.findByRole('button', { name: 'Move' });
       const options = await screen.findAllByRole('option');
       expect(options.length).toBe(2);
       expect(options[0].selected).toBeTruthy();
       expect(options[0].value).toBe('d2612d914cfc41b7b0ee9be7539e4889');
       expect(submitButton).toBeVisible();
-      expect(submitButton).toHaveClassName('disabled');
       fireEvent.click(submitButton);
       expect(axiosMock.history.post.length).toBe(0);
     });
@@ -155,15 +154,12 @@ describe('MoveApplicationModal', () => {
         .onPost(getMoveApplicationUrl('b96799515b294417859c5d6e400dd0b8', '457800f1bd624699a224150aead48cf3'))
         .reply(200);
       renderComponent();
-      const submitButton = await screen.findByRole('button', { name: 'Submit disabled: There are no changes to save' });
+      const submitButton = await screen.findByRole('button', { name: 'Move' });
       const select = await screen.findByRole('combobox');
       const options = await screen.findAllByRole('option');
-      expect(submitButton).toHaveClassName('disabled');
       fireEvent.change(select, { target: { value: '457800f1bd624699a224150aead48cf3' } });
       expect(options[1].selected).toBeTruthy();
-      const enabledSubmitButton = await screen.findByRole('button', { name: 'Move' });
-      expect(enabledSubmitButton).not.toHaveClassName('disabled');
-      fireEvent.click(enabledSubmitButton);
+      fireEvent.click(submitButton);
       expect(axiosMock.history.post.length).toBe(1);
       expect(axiosMock.history.post[0].url).toBe(
         getMoveApplicationUrl('b96799515b294417859c5d6e400dd0b8', '457800f1bd624699a224150aead48cf3')

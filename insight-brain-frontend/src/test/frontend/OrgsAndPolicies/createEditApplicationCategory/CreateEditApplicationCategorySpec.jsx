@@ -45,10 +45,9 @@ describe('CreateEditApplicationCategory create', () => {
   it('doesn"t allow to create category after initialization', () => {
     renderComponent();
 
-    const createButton = screen.getByRole('button', { name: 'Submit disabled: There are no changes to save' });
+    const createButton = screen.getByRole('button', { name: 'Create' });
 
     expect(createButton).toBeVisible();
-    expect(createButton).toHaveClassName('disabled');
 
     fireEvent.click(createButton);
     expect(saveApplicationCategorySpy).not.toHaveBeenCalled();
@@ -67,10 +66,9 @@ describe('CreateEditApplicationCategory create', () => {
     expect(screen.getByDisplayValue(categoryNameInputValue)).toBeVisible();
 
     const createButton = screen.getByRole('button', {
-      name: 'Submit disabled: Unable to save: fields with invalid or missing data',
+      name: 'Create',
     });
     expect(createButton).toBeVisible();
-    expect(createButton).toHaveClassName('disabled');
 
     fireEvent.click(createButton);
     expect(saveApplicationCategorySpy).not.toHaveBeenCalled();
@@ -150,12 +148,11 @@ describe('CreateEditApplicationCategory edit', () => {
 
   it('doesn"t allow to update category without any changes', () => {
     renderComponent();
-    const updateButton = screen.getByRole('button', { name: 'Submit disabled: There are no changes to save' });
+    const updateButton = screen.getByRole('button', { name: 'Update' });
     const deleteButton = screen.getByRole('button', { name: 'Delete' });
 
     expect(updateButton).toBeVisible();
     expect(deleteButton).toBeVisible();
-    expect(updateButton).toHaveClassName('disabled');
 
     fireEvent.click(updateButton);
     expect(saveApplicationCategorySpy).not.toHaveBeenCalled();
@@ -198,9 +195,8 @@ describe('CreateEditApplicationCategory edit', () => {
     fireEvent.change(categoryNameInput, { target: { value: 'initialCategory' } });
 
     const updateButtonReinitialize = screen.getByRole('button', {
-      name: 'Submit disabled: There are no changes to save',
+      name: 'Update',
     });
-    expect(updateButtonReinitialize).toHaveClassName('disabled');
     fireEvent.click(updateButtonReinitialize);
     expect(saveApplicationCategorySpy).not.toHaveBeenCalled();
   });

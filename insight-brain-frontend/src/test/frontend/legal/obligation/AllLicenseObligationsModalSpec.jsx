@@ -5,7 +5,7 @@
  */
 
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxDropdown, NxTextInput } from '@sonatype/react-shared-components';
+import { NxDropdown, NxTextInput, NxFormSelect } from '@sonatype/react-shared-components';
 import AllLicenseObligationsModal from '../../../../main/frontend/legal/obligation/AllLicenseObligationsModal';
 
 describe('AllLicenseObligationsModal', function () {
@@ -74,7 +74,7 @@ describe('AllLicenseObligationsModal', function () {
 
   it('renders the modal with the correct scope', function () {
     const wrapper = getShallowComponent();
-    const select = wrapper.find('select');
+    const select = wrapper.find(NxFormSelect);
     expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
     const options = wrapper.find('option');
     expect(options.length).toBe(3);

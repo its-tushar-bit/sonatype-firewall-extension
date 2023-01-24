@@ -37,7 +37,7 @@ public class EvaluateApplicationModal
   }
 
   public NxFormSelect stageSelect() {
-    return new NxFormSelect(ROOT, ".nx-form-select");
+    return new NxFormSelect(ROOT, ".nx-form-select__select");
   }
 
   public NotifyRadioButtons notifyRadioButtons() {

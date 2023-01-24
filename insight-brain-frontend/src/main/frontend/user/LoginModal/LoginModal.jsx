@@ -13,7 +13,7 @@ import { not, includes } from 'ramda';
 
 import {
   NxButton,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxInfoAlert,
   NxModal,
@@ -84,7 +84,7 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
     <>
       {showLoginModal && (
         <NxModal id="iq-login-modal" onCancel={isShowCancel ? onCancelHandler : null}>
-          <NxForm
+          <NxStatefulForm
             onSubmit={() => {
               onSubmit({ loginUsername: username.value, loginPassword: password.value });
             }}
@@ -136,7 +136,7 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
                 </p>
               )}
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </NxModal>
       )}
     </>

@@ -21,7 +21,7 @@ import {
   NxButton,
   NxButtonBar,
   NxFontAwesomeIcon,
-  NxForm,
+  NxStatefulForm,
   NxLoadWrapper,
   NxModal,
   NxWarningAlert,
@@ -158,7 +158,7 @@ const SuccessMetricsReport = ({
       </div>
       {showModal && (
         <NxModal onClose={toggleShowModal} variant="narrow" id="delete-modal">
-          <NxForm
+          <NxStatefulForm
             className="nx-form"
             onSubmit={() => deleteReport(successMetricsReportId)}
             submitMaskState={deleteMaskState}
@@ -175,7 +175,7 @@ const SuccessMetricsReport = ({
             <div className="nx-modal-content">
               <NxWarningAlert>You are about to delete {reportName}. This action cannot be undone.</NxWarningAlert>
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </NxModal>
       )}
     </Fragment>

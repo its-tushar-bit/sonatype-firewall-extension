@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
-import { NxForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+import { NxStatefulForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import Claim from 'MainRoot/componentDetails/claim/Claim';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
@@ -94,7 +94,7 @@ describe('Claim', () => {
 
     it('calls resetForm when the form is canceled if it is dirty', () => {
       component = getMounted({ isDirty: true, validationError: null });
-      const button = component.find(NxForm).find('#component-details-claim-cancel.nx-btn');
+      const button = component.find(NxStatefulForm).find('#component-details-claim-cancel.nx-btn');
 
       button.simulate('click');
 
@@ -103,7 +103,7 @@ describe('Claim', () => {
 
     it('calls toggleShowRevokeModal when revoke button is clicked', () => {
       component = getMounted({ isDirty: true, validationError: null });
-      const button = component.find(NxForm).find('#component-details-claim-revoke.nx-btn');
+      const button = component.find(NxStatefulForm).find('#component-details-claim-revoke.nx-btn');
 
       button.simulate('click');
 
@@ -114,7 +114,7 @@ describe('Claim', () => {
   describe('on load error', () => {
     it('form has doLoad prop', () => {
       const component = getShallow({ loadError: 'error' });
-      const form = component.find(NxForm);
+      const form = component.find(NxStatefulForm);
 
       expect(form).toExist();
       expect(form).toHaveProp('doLoad', loadComponentIdentifiedMock);
@@ -125,14 +125,14 @@ describe('Claim', () => {
     describe('validationErrors', () => {
       it('is null if form was changed and changes are valid', () => {
         const component = getShallow({ isDirty: true, validationError: null });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', null);
       });
 
       it('has "There are no changes to save" error if form was not changed', () => {
         const component = getShallow({ isDirty: false });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', 'There are no changes to save');
       });
@@ -142,7 +142,7 @@ describe('Claim', () => {
           isDirty: true,
           validationError: 'Unable to save: fields with invalid or missing data',
         });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', 'Unable to save: fields with invalid or missing data');
       });
@@ -151,7 +151,7 @@ describe('Claim', () => {
     describe('on form submit', () => {
       it('calls claim when the form is submitted if it is dirty', () => {
         const component = getShallow({ isDirty: true, validationError: null });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         form.simulate('submit');
 

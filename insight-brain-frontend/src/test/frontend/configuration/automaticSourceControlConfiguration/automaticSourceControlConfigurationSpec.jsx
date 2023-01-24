@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { NxButton, NxForm } from '@sonatype/react-shared-components';
+import { NxButton, NxStatefulForm } from '@sonatype/react-shared-components';
 import AutomaticSourceControlConfiguration from '../../../../main/frontend/configuration/automaticSourceControlConfiguration/AutomaticSourceControlConfiguration';
 import * as enzymeUtils from '../../enzymeUtils';
 
@@ -45,7 +45,7 @@ describe('AutomaticSourceControlConfiguration', function () {
     it('shows error if loadError occurred', function () {
       const loadError = 'some error happend';
       const shallowComponent = getShallowComponent({ loadError });
-      const nxForm = shallowComponent.find(NxForm);
+      const nxForm = shallowComponent.find(NxStatefulForm);
 
       expect(nxForm).toHaveProp('loadError', loadError);
     });
@@ -59,7 +59,7 @@ describe('AutomaticSourceControlConfiguration', function () {
           Cancel
         </NxButton>
       );
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       expect(form).toHaveProp('additionalFooterBtns', cancelButton);
     });
 
@@ -70,7 +70,7 @@ describe('AutomaticSourceControlConfiguration', function () {
           Cancel
         </NxButton>
       );
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       expect(form).toHaveProp('additionalFooterBtns', cancelButton);
     });
   });
@@ -78,20 +78,20 @@ describe('AutomaticSourceControlConfiguration', function () {
   describe('on form submit', function () {
     it('calls update when the form is submitted if it is dirty', function () {
       const shallowComponent = getShallowComponent({ isDirty: true });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       form.simulate('submit');
       expect(mockUpdate).toHaveBeenCalledTimes(1);
     });
 
     it('has validation error when the form is dirty', function () {
       const shallowComponent = getShallowComponent({ isDirty: true });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       expect(form).toHaveProp('validationErrors', null);
     });
 
     it('has not validation error when the form is not dirty', function () {
       const shallowComponent = getShallowComponent({ isDirty: false });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       expect(form).toHaveProp('validationErrors', 'There are no changes to update');
     });
   });
@@ -99,7 +99,7 @@ describe('AutomaticSourceControlConfiguration', function () {
   describe('doLoad', function () {
     it('has proper handler', function () {
       const shallowComponent = getShallowComponent();
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
 
       expect(form).toHaveProp('doLoad', mockLoad);
     });
@@ -125,7 +125,7 @@ describe('AutomaticSourceControlConfiguration', function () {
     it('sets default authErrorMessage value if loadError is not provided', function () {
       const loadError = 'Some load error happend';
       const shallowComponent = getShallowComponent({ loadError });
-      const nxForm = shallowComponent.find(NxForm);
+      const nxForm = shallowComponent.find(NxStatefulForm);
       expect(nxForm).toHaveProp('loadError', loadError);
     });
   });

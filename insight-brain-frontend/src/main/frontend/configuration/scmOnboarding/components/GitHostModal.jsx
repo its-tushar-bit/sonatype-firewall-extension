@@ -5,7 +5,7 @@
  */
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxModal, NxForm, NxTextInput, NxErrorAlert, NxInfoAlert } from '@sonatype/react-shared-components';
+import { NxModal, NxStatefulForm, NxTextInput, NxErrorAlert, NxInfoAlert } from '@sonatype/react-shared-components';
 import { organizationPropType, textInputPropType } from '../scmPropTypes';
 import { hasValidationErrors } from '../../../util/validationUtil';
 import { validateHostUrl } from '../utils/validators';
@@ -90,7 +90,7 @@ export default function GitHostModal(props) {
           </header>
           <div className="nx-modal-content">
             {errorMessage()}
-            <NxForm
+            <NxStatefulForm
               onSubmit={onContinueClicked}
               onCancel={onCancelClicked}
               submitBtnText="Continue"
@@ -106,7 +106,7 @@ export default function GitHostModal(props) {
                   placeholder={defaultHostUrl}
                 />
               </label>
-            </NxForm>
+            </NxStatefulForm>
           </div>
         </NxModal>
       )}

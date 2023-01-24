@@ -190,10 +190,9 @@ describe('ArtifactoryRepositoryBaseConfigurations', function () {
       renderComponent();
       const updateButton = screen.getByText('Update');
       expect(updateButton).toBeVisible();
-      expect(updateButton).toHaveClassName('disabled');
-      fireEvent.mouseOver(updateButton);
-      const tooltip = await screen.findByRole('tooltip');
-      expect(within(tooltip).getByText('someValidationError')).toBeInTheDocument();
+      fireEvent.click(updateButton);
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent('There were validation errors. someValidationError');
     });
 
     it('enables the update button if there is no validation error', function () {
@@ -380,7 +379,6 @@ describe('ArtifactoryRepositoryBaseConfigurations', function () {
         .getAllByRole('button')
         .find((b) => b.getAttribute('class').includes('nx-btn--icon-only'));
       expect(editButton).toBeVisible();
-      expect(editButton).toHaveClassName('disabled');
       fireEvent.mouseOver(editButton);
       const tooltip = await screen.findByRole('tooltip');
       expect(within(tooltip).getByText(PARENT_ORGANIZATIONS_MUST_ALLOW_OVERRIDE)).toBeInTheDocument();
@@ -394,10 +392,9 @@ describe('ArtifactoryRepositoryBaseConfigurations', function () {
       renderComponent();
       const updateButton = screen.getByText('Update');
       expect(updateButton).toBeVisible();
-      expect(updateButton).toHaveClassName('disabled');
-      fireEvent.mouseOver(updateButton);
-      const tooltip = await screen.findByRole('tooltip');
-      expect(within(tooltip).getByText('No changes have been made.')).toBeInTheDocument();
+      fireEvent.click(updateButton);
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent('There were validation errors. No changes have been made.');
     });
 
     it('shows a save error', function () {

@@ -5,7 +5,7 @@
  */
 import {
   NxErrorAlert,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxModal,
   NxSuccessAlert,
@@ -39,7 +39,7 @@ export default function CheckLogin({
 
   return (
     <NxModal onClose={closeModal} variant="narrow" onCancel={closeModal} autoComplete="off" id="ldap-check-login-modal">
-      <NxForm
+      <NxStatefulForm
         onCancel={closeModal}
         submitBtnText="Check Login"
         onSubmit={() => checkLogin(ldapId)}
@@ -69,7 +69,7 @@ export default function CheckLogin({
           {checkLoginError && <NxErrorAlert onClose={clearCheckLoginAlerts}>{checkLoginError}</NxErrorAlert>}
           {checkLoginSuccess && <NxSuccessAlert onClose={clearCheckLoginAlerts}>Success!</NxSuccessAlert>}
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

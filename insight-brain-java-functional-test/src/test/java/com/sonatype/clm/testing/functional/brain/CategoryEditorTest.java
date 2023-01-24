@@ -63,27 +63,24 @@ public class CategoryEditorTest
     // invalid characters scenario
     CategoryEditorPage.categoryName().val("$$$");
     CategoryEditorPage.categoryInvalidMessage().shouldBe(visible).shouldHave(text("Use valid characters"));
-    CategoryEditorPage.saveButton().shouldHave(cssClass("disabled"));
 
     // name is valid, but description and color are mandatory as well
     CategoryEditorPage.categoryName().val(CATEGORY_NAME);
-    CategoryEditorPage.categoryInvalidMessage().shouldHave(text(""));
-    CategoryEditorPage.saveButton().shouldHave(cssClass("disabled"));
+    CategoryEditorPage.categoryInvalidMessage().shouldNotBe(visible);
 
     // when invalid description - too long
     CategoryEditorPage.description().val(StringUtils.repeat("a", 256));
     // then error on description and disabled save
     CategoryEditorPage.descriptionInvalidMessage().shouldBe(visible)
             .shouldHave(text("Please enter less than 255 characters"));
-    CategoryEditorPage.saveButton().shouldHave(cssClass("disabled"));
 
     // take focus off the input to prevent blinking cursor
     SidebarNavigation.productVersion().click();
     eyesWatcher.eyesCheck();
-    CategoryEditorPage.saveButton().shouldHave(cssClass("disabled"));
 
     CategoryEditorPage.description().val("Description");
-    CategoryEditorPage.descriptionInvalidMessage().shouldHave(text(""));
+    CategoryEditorPage.descriptionInvalidMessage().shouldNotBe(visible);
+
     // cause color was picked during initialization
     CategoryEditorPage.saveButton().shouldBe(enabled).shouldNotHave(cssClass("disabled"));
 
@@ -109,7 +106,6 @@ public class CategoryEditorTest
     CategoryEditorPage.descriptionDiv().shouldHave(cssClass("pristine"));
     CategoryEditorPage.description().shouldBe(visible).shouldHave(value("original description"));
     CategoryEditorPage.nxColorPicker().shouldBe(visible).color("kiwi").shouldHave(cssClass("selected"));
-    CategoryEditorPage.saveButton().shouldHave(cssClass("disabled"));
     // when
     CategoryEditorPage.categoryName().val("updated name");
     CategoryEditorPage.description().val("updated description");
@@ -120,7 +116,6 @@ public class CategoryEditorTest
     CategoryEditorPage.categoryName().shouldBe(visible).shouldHave(value("updated name"));
     CategoryEditorPage.description().shouldBe(visible).shouldHave(value("updated description"));
     CategoryEditorPage.nxColorPicker().shouldBe(visible).color("red").shouldHave(cssClass("selected"));
-    CategoryEditorPage.saveButton().shouldHave(cssClass("disabled"));
 
     category = getCategoryByName(org.getId(), "updated name");
     assertThat(category).isNotNull();
@@ -211,7 +206,6 @@ public class CategoryEditorTest
     CategoryEditorPage.categoryNameDiv().shouldBe(visible, empty).shouldHave(cssClass("pristine"));
     CategoryEditorPage.descriptionDiv().shouldBe(visible, empty).shouldHave(cssClass("pristine"));
     CategoryEditorPage.nxColorPicker().shouldBe(visible).selectedColor().shouldNot(exist);
-    CategoryEditorPage.saveButton().shouldHave(cssClass("disabled"));
   }
 
   private Tag getCategoryByName(String organizationId, String categoryName) {

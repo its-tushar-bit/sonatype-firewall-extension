@@ -13,7 +13,7 @@ import {
   NxModal,
   NxWarningAlert,
   NxH2,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxTextInput,
   NxReadOnly,
@@ -39,7 +39,7 @@ export default function ChangeApplicationIdModal() {
 
   return isModalOpen ? (
     <NxModal id="change-application-id-modal" onCancel={closeModal}>
-      <NxForm
+      <NxStatefulForm
         onSubmit={changeApplicationId}
         onCancel={closeModal}
         submitMaskState={submitMaskState}
@@ -64,7 +64,7 @@ export default function ChangeApplicationIdModal() {
             <NxTextInput onChange={onChangeAppId} {...newPublicId} validatable={true} />
           </NxFormGroup>
         </NxModal.Content>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   ) : null;
 }

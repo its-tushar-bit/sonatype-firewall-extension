@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+import { NxStatefulForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../../frontend/enzymeUtils';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import UserFormAdd from 'MainRoot/security/users/userConfiguration/UserAdd';
@@ -83,7 +83,7 @@ describe('UserAdd', () => {
     describe('on load error', () => {
       it('form has doLoad prop', () => {
         const component = getShallowComponent({ loadError: 'error' });
-        const form = component.find(NxForm);
+        const form = component.find(NxStatefulForm);
 
         expect(form).toExist();
         expect(form).toHaveProp('doLoad', loadCreateUserPageMock);
@@ -98,14 +98,14 @@ describe('UserAdd', () => {
           isDirty: true,
           validationError: null,
         });
-        const form = shallowComponent.find(NxForm);
+        const form = shallowComponent.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', null);
       });
 
       it('has "There are no changes to save" error if form was not changed', function () {
         const shallowComponent = getShallowComponent({ isDirty: false });
-        const form = shallowComponent.find(NxForm);
+        const form = shallowComponent.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', 'There are no changes to save');
       });
@@ -115,7 +115,7 @@ describe('UserAdd', () => {
           isDirty: true,
           validationError: 'Unable to save: fields with invalid or missing data',
         });
-        const form = shallowComponent.find(NxForm);
+        const form = shallowComponent.find(NxStatefulForm);
 
         expect(form).toHaveProp('validationErrors', 'Unable to save: fields with invalid or missing data');
       });
@@ -187,7 +187,7 @@ describe('UserAdd', () => {
           isDirty: true,
           validationError: null,
         });
-        const form = shallowComponent.find(NxForm);
+        const form = shallowComponent.find(NxStatefulForm);
 
         form.simulate('submit');
 
@@ -202,7 +202,7 @@ describe('UserAdd', () => {
           validationError: null,
         });
 
-        const form = shallowComponent.find(NxForm);
+        const form = shallowComponent.find(NxStatefulForm);
 
         form.simulate('cancel');
 

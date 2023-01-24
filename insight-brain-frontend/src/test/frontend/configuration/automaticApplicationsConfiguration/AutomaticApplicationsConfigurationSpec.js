@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxErrorAlert, NxForm } from '@sonatype/react-shared-components';
+import { NxErrorAlert, NxStatefulForm } from '@sonatype/react-shared-components';
 import AutomaticApplicationsConfiguration from '../../../../main/frontend/configuration/automaticApplicationsConfiguration/AutomaticApplicationsConfiguration';
 
 import * as enzymeUtils from '../../enzymeUtils';
@@ -34,13 +34,13 @@ describe('AutomaticApplicationConfiguration', function () {
   describe('component load', function () {
     it('passes error when a load error exist', function () {
       const errorMsg = 'Error on page load';
-      const autoApplicationConfig = getShallow({ loadError: errorMsg, $state: mock$state }).find(NxForm);
+      const autoApplicationConfig = getShallow({ loadError: errorMsg, $state: mock$state }).find(NxStatefulForm);
       expect(autoApplicationConfig).toHaveProp('loadError', errorMsg);
     });
 
     it('renders form when page load successfully', function () {
       const autoApplicationConfig = getShallow();
-      expect(autoApplicationConfig.find(NxForm)).toExist();
+      expect(autoApplicationConfig.find(NxStatefulForm)).toExist();
     });
   });
 
@@ -168,17 +168,17 @@ describe('AutomaticApplicationConfiguration', function () {
     });
   });
 
-  describe('NxForm', function () {
+  describe('NxStatefulForm', function () {
     it('is rendered with validationErrors if does not have any change', function () {
       const autoApplicationConfig = getShallow();
-      const form = autoApplicationConfig.find(NxForm);
+      const form = autoApplicationConfig.find(NxStatefulForm);
 
       expect(form).toHaveProp('validationErrors', 'There are no changes to update');
     });
 
     it('is rendered with validationErrors if parent organization is not set', function () {
       const autoApplicationConfig = getShallow({ isDirty: true });
-      const form = autoApplicationConfig.find(NxForm);
+      const form = autoApplicationConfig.find(NxStatefulForm);
 
       expect(form).toHaveProp('validationErrors', 'Unable to update: fields with invalid or missing data.');
     });
@@ -188,7 +188,7 @@ describe('AutomaticApplicationConfiguration', function () {
     it('calls update when the form is submitted', function () {
       const update = jasmine.createSpy('update');
       const autoApplicationConfig = getShallow({ update });
-      const form = autoApplicationConfig.find(NxForm);
+      const form = autoApplicationConfig.find(NxStatefulForm);
       form.simulate('submit');
 
       expect(update).toHaveBeenCalled();

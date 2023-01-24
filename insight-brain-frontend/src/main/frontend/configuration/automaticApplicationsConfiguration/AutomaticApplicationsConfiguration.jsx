@@ -5,7 +5,14 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm, NxToggle, NxFormGroup, NxButton, NxErrorAlert } from '@sonatype/react-shared-components';
+import {
+  NxStatefulForm,
+  NxFormSelect,
+  NxToggle,
+  NxFormGroup,
+  NxButton,
+  NxErrorAlert,
+} from '@sonatype/react-shared-components';
 import { displayName } from '../scmOnboarding/utils/providers';
 
 const notDirtyErrorMessage = 'There are no changes to update';
@@ -40,7 +47,7 @@ export default function AutomaticApplicationsConfiguration(props) {
         <h1 className="nx-h1">Automatic Applications</h1>
       </div>
       <section id="auto-app-config-configuration" className="nx-tile">
-        <NxForm
+        <NxStatefulForm
           loading={loading}
           doLoad={load}
           loadError={loadError}
@@ -94,8 +101,7 @@ export default function AutomaticApplicationsConfiguration(props) {
             </NxToggle>
             <NxFormGroup label="Parent Organization" isRequired>
               {organizations && organizations.length ? (
-                <select
-                  className="nx-form-select"
+                <NxFormSelect
                   id="parent-organization-selector"
                   value={parentOrganizationId}
                   onChange={handleParentOrganizationChange}
@@ -107,13 +113,13 @@ export default function AutomaticApplicationsConfiguration(props) {
                       {organization.name}
                     </option>
                   ))}
-                </select>
+                </NxFormSelect>
               ) : (
                 <NxErrorAlert>No parent organizations found</NxErrorAlert>
               )}
             </NxFormGroup>
           </div>
-        </NxForm>
+        </NxStatefulForm>
       </section>
     </main>
   );

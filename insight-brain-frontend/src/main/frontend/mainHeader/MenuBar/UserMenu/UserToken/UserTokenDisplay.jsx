@@ -6,7 +6,14 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { faCopy } from '@fortawesome/free-solid-svg-icons';
-import { NxButton, NxFontAwesomeIcon, NxTextInput, NxTooltip } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxFontAwesomeIcon,
+  NxTextInput,
+  NxTooltip,
+  NxButtonBar,
+  NxFormGroup,
+} from '@sonatype/react-shared-components';
 
 export default function UserTokenDisplay({ userToken }) {
   const { userCode, passCode } = userToken;
@@ -20,44 +27,38 @@ export default function UserTokenDisplay({ userToken }) {
   return (
     <form onSubmit={onSubmit}>
       <div className="nx-form-row">
-        <div className="nx-form-group">
-          <label className="nx-label">
-            <span className="nx-label__text">User Code</span>
-            <NxTextInput
-              id="user-token-usercode"
-              isPristine={true}
-              value={userCode}
-              className="user-token-modal__input visual-testing-ignore"
-            />
-          </label>
-        </div>
-        <div className="nx-btn-bar">
+        <NxFormGroup label="User Code" isRequired>
+          <NxTextInput
+            id="user-token-usercode"
+            isPristine={true}
+            value={userCode}
+            className="user-token-modal__input visual-testing-ignore"
+          />
+        </NxFormGroup>
+        <NxButtonBar>
           <NxTooltip title="Copy to clipboard">
             <NxButton id="user-token-copy-usercode" variant="tertiary" onClick={() => copyToClipboard(userCode)}>
               <NxFontAwesomeIcon icon={faCopy} />
             </NxButton>
           </NxTooltip>
-        </div>
+        </NxButtonBar>
       </div>
       <div className="nx-form-row">
-        <div className="nx-form-group">
-          <label className="nx-label">
-            <span className="nx-label__text">Passcode</span>
-            <NxTextInput
-              id="user-token-passcode"
-              isPristine={true}
-              value={passCode}
-              className="user-token-modal__input visual-testing-ignore"
-            />
-          </label>
-        </div>
-        <div className="nx-btn-bar">
+        <NxFormGroup label="Passcode" isRequired>
+          <NxTextInput
+            id="user-token-passcode"
+            isPristine={true}
+            value={passCode}
+            className="user-token-modal__input visual-testing-ignore"
+          />
+        </NxFormGroup>
+        <NxButtonBar>
           <NxTooltip title="Copy to clipboard">
             <NxButton id="user-token-copy-passcode" variant="tertiary" onClick={() => copyToClipboard(passCode)}>
               <NxFontAwesomeIcon icon={faCopy} />
             </NxButton>
           </NxTooltip>
-        </div>
+        </NxButtonBar>
       </div>
     </form>
   );

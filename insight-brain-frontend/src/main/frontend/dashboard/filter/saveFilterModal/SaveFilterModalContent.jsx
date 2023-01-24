@@ -6,13 +6,11 @@
 import React, { useState } from 'react';
 
 import {
-  NxButton,
   NxFieldset,
   NxFontAwesomeIcon,
-  NxLoadError,
   NxModal,
+  NxStatefulForm,
   NxRadio,
-  NxSubmitMask,
   NxTextInput,
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
@@ -34,8 +32,7 @@ export default function SaveFilterModalContent(props) {
     existingDuplicateFilterName,
     saveError,
     saveFilter,
-    saveFilterSaving,
-    saveFilterSuccess,
+    saveFilterMaskState,
     saveFilterWarning,
     cancelSaveFilter,
   } = props;
@@ -45,7 +42,8 @@ export default function SaveFilterModalContent(props) {
   useEscapeKeyStack(true, cancelSaveFilter);
 
   const trySave = (e) => {
-    e.preventDefault();
+    e?.preventDefault();
+
     saveFilter({
       name: getFilterNameToSave(),
       isOverwriting: saveMode === SAVE_MODE_OVERWRITE,
@@ -62,10 +60,6 @@ export default function SaveFilterModalContent(props) {
   const getFilterNameToSave = () => {
     return saveMode === SAVE_MODE_OVERWRITE ? appliedFilterName : filterName.trimmedValue;
   };
-
-  // Save is enabled if we are overwriting the existing filter or if the text box is valid
-  const isSaveEnabled = () =>
-    saveMode === SAVE_MODE_OVERWRITE || (!filterName.isPristine && !hasValidationErrors(filterName.validationErrors));
 
   const headerLabel =
     saveFilterWarning == null
@@ -126,8 +120,16 @@ export default function SaveFilterModalContent(props) {
 
   return (
     <NxModal id="save-filter-modal">
-      <form className="nx-form" onSubmit={trySave} noValidate>
-        {(saveFilterSaving || saveFilterSuccess) && <NxSubmitMask message="Saving…" success={saveFilterSuccess} />}
+      <NxStatefulForm
+        onSubmit={trySave}
+        onCancel={cancelSaveFilter}
+        submitBtnText={saveFilterWarning ? 'Continue' : 'Save'}
+        validationErrors={filterName.validationErrors}
+        submitError={saveError}
+        submitErrorTitleMessage="An error occurred saving data."
+        submitMaskState={saveFilterMaskState}
+        submitMaskMessage="Saving…"
+      >
         <header className="nx-modal-header">
           <h2 className="nx-h2">
             <NxFontAwesomeIcon icon={faSave} />
@@ -135,27 +137,7 @@ export default function SaveFilterModalContent(props) {
           </h2>
         </header>
         <div className="nx-modal-content">{saveFilterWarning ? warningContent : formContent}</div>
-        <footer className="nx-footer">
-          {saveError && (
-            <NxLoadError error={saveError} retryHandler={trySave} titleMessage="An error occurred saving data." />
-          )}
-          <div className="nx-btn-bar">
-            <NxButton id="save-filter-modal-cancel-button" type="button" onClick={cancelSaveFilter}>
-              Cancel
-            </NxButton>
-            {!saveError && (
-              <NxButton
-                variant="primary"
-                id="save-filter-modal-continue-button"
-                disabled={!isSaveEnabled()}
-                type="submit"
-              >
-                {saveFilterWarning ? 'Continue' : 'Save'}
-              </NxButton>
-            )}
-          </div>
-        </footer>
-      </form>
+      </NxStatefulForm>
     </NxModal>
   );
 }
@@ -165,8 +147,7 @@ SaveFilterModalContent.propTypes = {
   existingDuplicateFilterName: PropTypes.string,
   saveError: PropTypes.string,
   saveFilter: PropTypes.func,
-  saveFilterSaving: PropTypes.bool,
-  saveFilterSuccess: PropTypes.bool,
+  saveFilterMaskState: PropTypes.bool,
   saveFilterWarning: PropTypes.string,
   cancelSaveFilter: PropTypes.func,
 };

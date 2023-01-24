@@ -6,7 +6,7 @@
 
 import * as enzymeUtils from '../../../enzymeUtils';
 import NoticesModal from '../../../../../main/frontend/legal/files/notices/NoticesModal';
-import { NxButton, NxForm, NxTextInput, NxToggle } from '@sonatype/react-shared-components';
+import { NxButton, NxStatefulForm, NxTextInput, NxToggle, NxFormSelect } from '@sonatype/react-shared-components';
 
 describe('NoticesModal', function () {
   let getShallowComponent,
@@ -140,7 +140,7 @@ describe('NoticesModal', function () {
 
   it('selects the given notices scope', function () {
     const wrapper = getShallowComponent();
-    const noticesScope = wrapper.find('select');
+    const noticesScope = wrapper.find(NxFormSelect);
     expect(noticesScope.length).toBe(1);
     expect(noticesScope.at(0).prop('value')).toEqual('ROOT_ORGANIZATION_ID');
   });
@@ -159,7 +159,7 @@ describe('NoticesModal', function () {
 
   it('sets the notices scope to the selected value when changed', function () {
     const wrapper = getShallowComponent();
-    const noticesScope = wrapper.find('select');
+    const noticesScope = wrapper.find(NxFormSelect);
     noticesScope.simulate('change', { currentTarget: { value: 'appId' } });
     expect(setNoticesScopeSpy).toHaveBeenCalledWith('appId');
   });
@@ -178,7 +178,7 @@ describe('NoticesModal', function () {
         },
       ],
     });
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find(NxStatefulForm);
     expect(form.prop('validationErrors')).toBe('A custom notice must have text.');
   });
 
@@ -197,13 +197,13 @@ describe('NoticesModal', function () {
         },
       ],
     });
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find(NxStatefulForm);
     expect(form.prop('validationErrors')).toBe('Must add a new notice or change the content or status of a notice.');
   });
 
   it('has no validation error if the scope has changed', function () {
     const wrapper = getShallowComponent({ scope: 'appId' });
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find(NxStatefulForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 
@@ -220,7 +220,7 @@ describe('NoticesModal', function () {
         },
       ],
     });
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find(NxStatefulForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 
@@ -238,7 +238,7 @@ describe('NoticesModal', function () {
         },
       ],
     });
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find(NxStatefulForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 
@@ -256,7 +256,7 @@ describe('NoticesModal', function () {
         },
       ],
     });
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find(NxStatefulForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 });

@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.EditLicensesModal;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -31,6 +32,7 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_NO_CHANGES_TO_SAVE;
 
 public class EditLicensesTest
     extends AbstractFunctionalTest
@@ -112,9 +114,9 @@ public class EditLicensesTest
     assertThat(licensesModal.commentTextInput().getText()).isEmpty();
     assertOption(licensesModal.scopeDropdown().getSelectedOption(), owner);
 
-    licensesModal.save().hover();
-    Tooltip.get().shouldBe(Condition.visible).shouldBe(Condition.exactText("There are no changes to save."));
-    licensesModal.save().shouldHave(Condition.cssClass("disabled"));
+    licensesModal.save().click();
+    FormUtils.getAlertElement(licensesModal)
+        .shouldHave(Condition.text(DEFAULT_NO_CHANGES_TO_SAVE));
     licensesModal.statusDropdown().click();
 
     licensesModal.statusOpenOption().shouldBe(Condition.visible);

@@ -94,7 +94,6 @@ public class ArtifactoryRepositoryConfigurationModalTest
     modal.baseUrl().input().shouldBe(Condition.empty);
     modal.allowAnonymousAccess().shouldBe(Condition.selected);
     modal.test().shouldHave(Condition.cssClass("disabled"));
-    modal.save().shouldHave(Condition.cssClass("disabled"));
     modal.authentication().shouldNotBe(Condition.visible);
   }
 
@@ -112,7 +111,6 @@ public class ArtifactoryRepositoryConfigurationModalTest
     modal.baseUrl().input().shouldHave(Condition.value(artifactoryConnection.getBaseUrl()));
     modal.allowAnonymousAccess().shouldBe(Condition.selected);
     modal.test().shouldNotHave(Condition.cssClass("disabled"));
-    modal.save().shouldHave(Condition.cssClass("disabled"));
     modal.authentication().shouldNotBe(Condition.visible);
   }
 
@@ -135,7 +133,6 @@ public class ArtifactoryRepositoryConfigurationModalTest
     modal.baseUrl().input().shouldHave(Condition.value(artifactoryConnection.getBaseUrl()));
     modal.enterUsernameAndPassword().shouldBe(Condition.selected);
     modal.test().shouldNotHave(Condition.cssClass("disabled"));
-    modal.save().shouldHave(Condition.cssClass("disabled"));
     modal.authentication().shouldBe(Condition.visible);
     modal.username().input().shouldHave(Condition.value(artifactoryConnection.getUsername()));
     modal.password().input().shouldNotBe(Condition.empty);

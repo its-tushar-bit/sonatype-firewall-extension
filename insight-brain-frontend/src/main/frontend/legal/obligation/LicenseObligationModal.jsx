@@ -6,11 +6,12 @@
 import React, { Fragment, useState } from 'react';
 import {
   NxDropdown,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxModal,
   NxTextInput,
   nxTextInputStateHelpers,
+  NxFormSelect,
 } from '@sonatype/react-shared-components';
 import { OBLIGATION_STATUS_TO_DISPLAY, OBLIGATION_STATUSES } from '../advancedLegalConstants';
 import * as PropTypes from 'prop-types';
@@ -79,7 +80,7 @@ export default function LicenseObligationModal(props) {
 
   return (
     <NxModal key={licenseObligation.name} onClose={() => cancelObligationModal({ name: licenseObligation.name })}>
-      <NxForm
+      <NxStatefulForm
         onCancel={() => cancelObligationModal({ name: licenseObligation.name })}
         submitBtnText="Submit"
         onSubmit={() => saveObligation(licenseObligation.name)}
@@ -115,8 +116,8 @@ export default function LicenseObligationModal(props) {
             />
           </NxFormGroup>
           <NxFormGroup label="Scope" sublabel="Apply changes to" isRequired>
-            <select
-              className="nx-form-select nx-form-select--long"
+            <NxFormSelect
+              className="nx-form-select--long"
               value={licenseObligation.ownerId}
               onChange={(payload) =>
                 setObligationScope({
@@ -126,10 +127,10 @@ export default function LicenseObligationModal(props) {
               }
             >
               {availableScopes.values.map(createScopeOption)}
-            </select>
+            </NxFormSelect>
           </NxFormGroup>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

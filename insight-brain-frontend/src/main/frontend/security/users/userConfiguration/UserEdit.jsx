@@ -5,7 +5,13 @@
  */
 import React, { Fragment, useEffect, useState } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm, NxTextInput, NxFormGroup, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import {
+  NxStatefulForm,
+  NxTextInput,
+  NxFormGroup,
+  NxButton,
+  NxFontAwesomeIcon,
+} from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 import { MODAL_MODES } from './modals/modalModes';
@@ -93,7 +99,7 @@ export default function UserEdit({
           </div>
         </div>
         <section className="nx-tile">
-          <NxForm
+          <NxStatefulForm
             id="user-edit"
             autoComplete="off"
             onSubmit={update}
@@ -155,7 +161,7 @@ export default function UserEdit({
                 />
               </NxFormGroup>
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </section>
       </main>
       {getModal()}

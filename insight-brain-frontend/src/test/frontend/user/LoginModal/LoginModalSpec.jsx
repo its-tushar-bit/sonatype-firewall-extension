@@ -71,13 +71,14 @@ describe('LoginModal', () => {
     renderComponent = (additionalProps = {}) => render(<LoginModal {...minimalProps} {...additionalProps} />);
   });
 
-  it('renders login modal with disabled "sign in" button', () => {
+  it('renders login modal with correct content', () => {
     renderComponent();
+
+    expect(screen.getByRole('dialog')).toBeVisible();
     expect(screen.getByRole('heading', { name: 'Sign in' })).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Submit disabled: Username and password are required' })).toHaveAttribute(
-      'aria-disabled',
-      'true'
-    );
+    expect(screen.getByRole('textbox', { name: 'Username' })).toBeVisible();
+    expect(screen.getByLabelText('Password')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Sign in' })).toBeVisible();
   });
 
   it('does NOT render Vulnerability Lookup link but does render a cancel button if license exists and user is on a page that does not require authentication', () => {

@@ -7,11 +7,11 @@ import React, { cloneElement } from 'react';
 import { mount } from 'enzyme';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import * as enzymeUtils from '../../../enzymeUtils';
-import UserMenu from '../../../../../main/frontend/mainHeader/MenuBar/UserMenu/UserMenu';
-import UserTokenModal from '../../../../../main/frontend/mainHeader/MenuBar/UserMenu/UserToken/UserTokenModal';
-import UserDetailsModal from '../../../../../main/frontend/mainHeader/MenuBar/UserMenu/UserDetailsModal';
-import ChangePasswordModal from '../../../../../main/frontend/mainHeader/MenuBar/UserMenu/ChangePasswordModal';
+import * as enzymeUtils from 'TestRoot/enzymeUtils';
+import UserMenu from 'MainRoot/mainHeader/MenuBar/UserMenu/UserMenu';
+import UserTokenModal from 'MainRoot/mainHeader/MenuBar/UserMenu/UserToken/UserTokenModal';
+import UserDetailsModal from 'MainRoot/mainHeader/MenuBar/UserMenu/UserDetailsModal';
+import ChangePasswordModal from 'MainRoot/mainHeader/MenuBar/UserMenu/ChangePasswordModal';
 
 describe('UserMenu', function () {
   let minProps;
@@ -180,7 +180,7 @@ describe('UserMenu', function () {
     });
 
     it('resets the user change password state when opening and closing the change password modal', () => {
-      const resetPasswordStatus = jasmine.createSpy();
+      const resetPasswordStatus = jasmine.createSpy('resetPasswordStatus');
       const component = getMountedComponent({ canChangePassword: true, resetPasswordStatus }),
         menuTrigger = component.find('button');
       expect(resetPasswordStatus).toHaveBeenCalledTimes(1); // component mount
@@ -194,6 +194,8 @@ describe('UserMenu', function () {
       expect(changePasswordModal).toExist();
 
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      document.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape' }));
+
       component.update();
 
       changePasswordModal = component.find(ChangePasswordModal);

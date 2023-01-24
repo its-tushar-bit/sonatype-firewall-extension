@@ -135,11 +135,11 @@ public class FirewallPageComponents
     }
 
     public SelenideElement policyNameSelect() {
-      return child(".nx-table-row--filter-header .nx-form-select");
+      return child("#firewall-quarantine-table--select-policy");
     }
 
     public ElementsCollection policyNameOptions() {
-      return children(".nx-table-row--filter-header .nx-form-select option");
+      return children("#firewall-quarantine-table--select-policy option");
     }
   }
 

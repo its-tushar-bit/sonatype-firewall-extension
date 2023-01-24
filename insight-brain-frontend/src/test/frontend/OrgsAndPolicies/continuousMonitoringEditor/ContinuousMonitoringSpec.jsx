@@ -20,7 +20,6 @@ describe('Continuous Monitoring Component', () => {
     savePolicyMonitoringSpy,
     setMonitoredStageSpy,
     removePolicyMonitoringSpy,
-    saveMaskTimerDoneSpy,
     loadApplicablePolicyMonitoringSpy,
     selectSelectedMonitoredStageSpy;
 
@@ -70,7 +69,6 @@ describe('Continuous Monitoring Component', () => {
     savePolicyMonitoringSpy = spyOn(actions, 'savePolicyMonitoring').and.callThrough();
     setMonitoredStageSpy = spyOn(actions, 'setMonitoredStage').and.callThrough();
     removePolicyMonitoringSpy = spyOn(actions, 'removePolicyMonitoring').and.callThrough();
-    saveMaskTimerDoneSpy = spyOn(actions, 'saveMaskTimerDone').and.callThrough();
     loadApplicablePolicyMonitoringSpy = spyOn(actions, 'loadApplicablePolicyMonitoring').and.returnValue({
       type: 'policyMonitoring/loadApplicablePolicyMonitoring/fulfilled',
       payload: {
@@ -109,17 +107,6 @@ describe('Continuous Monitoring Component', () => {
     selectMonitoringLoadErrorSpy.and.returnValue(true);
     renderComponent();
     expect(screen.getByText('An error occurred loading data.')).toBeVisible();
-  });
-
-  it('initial disabled Update button', () => {
-    renderComponent();
-    const updateButton = screen.getByText('Update');
-    expect(updateButton).toBeVisible();
-    expect(updateButton).toHaveClassName('disabled');
-    fireEvent.click(updateButton);
-    expect(savePolicyMonitoringSpy).not.toHaveBeenCalled();
-    expect(removePolicyMonitoringSpy).not.toHaveBeenCalled();
-    expect(saveMaskTimerDoneSpy).not.toHaveBeenCalled();
   });
 
   it('Update button is active', () => {

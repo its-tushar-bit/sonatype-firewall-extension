@@ -156,8 +156,6 @@ public class EditLicenseFilesTest
       assertOption(options.get(1), org);
       assertOption(options.get(2), rootOrg);
     }
-    assertButton(editLicenseFilesModal.save(), false,
-        "Must add a new license or change the content or status of a license.");
     assertButton(editLicenseFilesModal.cancel(), true, null);
   }
 
@@ -179,7 +177,6 @@ public class EditLicenseFilesTest
     editLicenseFilesModal.addLicenseButton().click();
     editLicenseFilesModal.allLicenses().shouldHaveSize(3);
     assertLicense(editLicenseFilesModal.licenseAt(2), "", true);
-    assertButton(editLicenseFilesModal.save(), false, "A custom license must have text.");
     assertButton(editLicenseFilesModal.cancel(), true, null);
     editLicenseFilesModal.licenseAt(2).textInput().setValue(content);
     assertButton(editLicenseFilesModal.save(), true, null);
@@ -211,8 +208,6 @@ public class EditLicenseFilesTest
     assertLicense(ComponentLegalOverviewPage.licenseFiles().at(index), "META-INF/LICENSE", originalValue);
     assertButton(editLicenseFilesModal.save(), true, null);
     license.textInput().setValue(originalValue);
-    assertButton(editLicenseFilesModal.save(), false,
-        "Must add a new license or change the content or status of a license.");
     license.textInput().setValue(content);
     assertButton(editLicenseFilesModal.save(), true, null);
     editLicenseFilesModal.save().click();
@@ -247,8 +242,6 @@ public class EditLicenseFilesTest
     license.statusToggle().click();
     license.statusCheckbox().shouldBe(Condition.selected);
     license.textInput().shouldBe(Condition.enabled);
-    assertButton(editLicenseFilesModal.save(), false,
-        "Must add a new license or change the content or status of a license.");
     license.statusToggle().click();
     license.statusCheckbox().shouldNotBe(Condition.selected);
     license.textInput().shouldBe(Condition.disabled);

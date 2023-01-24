@@ -10,9 +10,27 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.clm.testing.functional.elements.*;
+import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.CLM;
+import com.sonatype.clm.testing.functional.elements.CategoryTile;
+import com.sonatype.clm.testing.functional.elements.ChangeApplicationIdDialog;
+import com.sonatype.clm.testing.functional.elements.EvaluateApplicationModal;
+import com.sonatype.clm.testing.functional.elements.EvaluationStatusModal;
+import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.LabelTile;
+import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.ApplicableLicenseThreatGroupSection;
+import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
+import com.sonatype.clm.testing.functional.elements.NxList;
+import com.sonatype.clm.testing.functional.elements.NxToast;
+import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
+import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
+import com.sonatype.clm.testing.functional.elements.SelectContactModal;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
+import com.sonatype.clm.testing.functional.elements.SourceControlTile;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.utils.InputUtils;
@@ -44,7 +62,15 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.focused;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.textCaseSensitive;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -95,9 +121,8 @@ public class ApplicationSummaryViewTest
     SelectContactModal.searchBox().val(tempUser.getFirstName() + "*");
     SelectContactModal.users().shouldHaveSize(1).shouldHave(texts(tempUser.calculateDisplayName()));
     // update contact
-    SelectContactModal.updateButton().shouldHave(DISABLED);
     SelectContactModal.userContact(tempUser.calculateDisplayName()).click();
-    SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
+    SelectContactModal.updateButton().click();
     SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
     // updated contact is retained upon page refresh
@@ -110,7 +135,7 @@ public class ApplicationSummaryViewTest
     SelectContactModal.searchBox().click();
     SelectContactModal.searchBox().shouldBe(focused);
     InputUtils.clearInput(SelectContactModal.searchBox());
-    SelectContactModal.updateButton().shouldBe(enabled).click();
+    SelectContactModal.updateButton().click();
     FormMask.seeAndWaitForDismissal();
     SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldNotHave(text(tempUser.calculateDisplayName()));
@@ -129,7 +154,7 @@ public class ApplicationSummaryViewTest
     SelectContactModal.users().shouldHaveSize(1).shouldHave(texts(tempUser.calculateDisplayName()));
     // update contact
     SelectContactModal.userContact(tempUser.calculateDisplayName()).click();
-    SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
+    SelectContactModal.updateButton().click();
     SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
 
@@ -346,7 +371,6 @@ public class ApplicationSummaryViewTest
     changeApplicationIdDialog.currentId().shouldHave(text(application.getPublicId()));
     changeApplicationIdDialog.newIdDiv().shouldHave(cssClass("pristine"));
     changeApplicationIdDialog.newId().shouldBe(Condition.empty);
-    changeApplicationIdDialog.changeButton().shouldHave(cssClass("disabled"));
 
     eyesWatcher.eyesCheck("Change application dialog");
 

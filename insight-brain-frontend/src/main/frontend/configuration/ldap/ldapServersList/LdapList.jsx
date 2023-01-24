@@ -12,7 +12,7 @@ import {
   NxButton,
   NxFontAwesomeIcon,
   NxLoadWrapper,
-  NxForm,
+  NxStatefulForm,
 } from '@sonatype/react-shared-components';
 import { faPlus, faAngleRight, faPen } from '@fortawesome/pro-solid-svg-icons';
 import { faArrowDown, faArrowUp } from '@fortawesome/pro-regular-svg-icons';
@@ -128,7 +128,7 @@ export default function LdapList({
       <NxLoadWrapper loading={loading} retryHandler={loadServers} error={loadError}>
         <NxTile>
           {isReordering ? (
-            <NxForm
+            <NxStatefulForm
               id="reorder-ldap-servers-form"
               onSubmit={saveOrder}
               onCancel={exitReorderMode}
@@ -138,7 +138,7 @@ export default function LdapList({
               validationErrors={isDirty ? undefined : 'There are no changes to save'}
             >
               {tileContent}
-            </NxForm>
+            </NxStatefulForm>
           ) : (
             tileContent
           )}

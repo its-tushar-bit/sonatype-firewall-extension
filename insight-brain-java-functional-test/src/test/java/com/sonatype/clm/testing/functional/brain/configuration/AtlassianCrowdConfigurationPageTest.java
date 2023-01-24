@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.functional.brain.configuration;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.AtlassianCrowdConfigurationDeleteModal;
 import com.sonatype.clm.testing.functional.pages.AtlassianCrowdConfigurationPage;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
@@ -19,7 +18,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.appear;
-import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
@@ -27,7 +25,6 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 
 public class AtlassianCrowdConfigurationPageTest extends AbstractFunctionalTest
 {
@@ -57,10 +54,7 @@ public class AtlassianCrowdConfigurationPageTest extends AbstractFunctionalTest
   @Test
   public void testCRUD() {
     AtlassianCrowdConfigurationPage atlassianCrowdConfigurationPage = new AtlassianCrowdConfigurationPage();
-    atlassianCrowdConfigurationPage.saveButton().shouldBe(DISABLED);
     atlassianCrowdConfigurationPage = fillFormData();
-    atlassianCrowdConfigurationPage.saveButton().shouldNotBe(DISABLED)
-        .shouldHave(cssClass("iq-crowd-configuration-save-button"));
     atlassianCrowdConfigurationPage.saveButton().click();
 
     logout();
@@ -72,11 +66,9 @@ public class AtlassianCrowdConfigurationPageTest extends AbstractFunctionalTest
     atlassianCrowdConfigurationPage.applicationNameAttribute().shouldHave(value("Sonatype"));
     atlassianCrowdConfigurationPage.applicationPasswordAttribute().shouldHave(value("\u0000\u0000\u0000\u0000\u0000"));
     atlassianCrowdConfigurationPage.deleteButton().shouldBe(enabled);
-    atlassianCrowdConfigurationPage.saveButton().shouldBe(DISABLED);
+    atlassianCrowdConfigurationPage.saveButton().shouldBe(enabled);
     atlassianCrowdConfigurationPage.cancelButton().shouldBe(enabled);
     atlassianCrowdConfigurationPage.testButton().shouldBe(enabled);
-    atlassianCrowdConfigurationPage.saveButton().hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("There are no changes to update"));
 
     //If a crowd config is loaded, then it can be deleted
     atlassianCrowdConfigurationPage.deleteButton().shouldBe(enabled);
@@ -95,9 +87,7 @@ public class AtlassianCrowdConfigurationPageTest extends AbstractFunctionalTest
   @Test
   public void testCancel() {
     AtlassianCrowdConfigurationPage atlassianCrowdConfigurationPage = new AtlassianCrowdConfigurationPage();
-    atlassianCrowdConfigurationPage.saveButton().shouldBe(DISABLED);
     atlassianCrowdConfigurationPage = fillFormData();
-    atlassianCrowdConfigurationPage.saveButton().shouldNotBe(DISABLED);
 
     //If the form is dirty, the cancel button should be enabled
     atlassianCrowdConfigurationPage.cancelButton().shouldBe(enabled);
@@ -121,12 +111,10 @@ public class AtlassianCrowdConfigurationPageTest extends AbstractFunctionalTest
     atlassianCrowdConfigurationPage.serverUrlAttribute().shouldBe(empty);
     atlassianCrowdConfigurationPage.applicationNameAttribute().shouldBe(empty);
     atlassianCrowdConfigurationPage.applicationPasswordAttribute().shouldBe(empty);
-    atlassianCrowdConfigurationPage.saveButton().shouldBe(DISABLED);
+    atlassianCrowdConfigurationPage.saveButton().shouldBe(enabled);
     atlassianCrowdConfigurationPage.cancelButton().shouldBe(enabled);
     atlassianCrowdConfigurationPage.deleteButton().shouldBe(disabled);
     atlassianCrowdConfigurationPage.testButton().shouldBe(disabled);
-    atlassianCrowdConfigurationPage.saveButton().hover();
-    Tooltip.get().shouldBe(visible).shouldBe(text("There are no changes to update"));
   }
 
   private AtlassianCrowdConfigurationPage fillFormData() {

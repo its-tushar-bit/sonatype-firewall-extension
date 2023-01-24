@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../../enzymeUtils';
 import ResetPasswordModal from '../../../../../../main/frontend/security/users/userConfiguration/modals/ResetPasswordModal';
 
@@ -38,7 +38,7 @@ describe('User ResetPasswordModal', () => {
   });
 
   it('calls resetPassword when submitted', () => {
-    const modal = getShallowComponent().find(NxForm);
+    const modal = getShallowComponent().find(NxStatefulForm);
 
     modal.simulate('submit');
 
@@ -46,7 +46,7 @@ describe('User ResetPasswordModal', () => {
   });
 
   it('calls setMode with DEFAULT mode when canceled', () => {
-    const modal = getShallowComponent().find(NxForm);
+    const modal = getShallowComponent().find(NxStatefulForm);
     modal.simulate('cancel');
 
     expect(setModeMock).toHaveBeenCalledWith('');
@@ -62,7 +62,7 @@ describe('User ResetPasswordModal', () => {
   });
 
   it('renders error alert on unsuccessful submit', () => {
-    const modal = getShallowComponent({ resetError: 'error' }).find(NxForm);
+    const modal = getShallowComponent({ resetError: 'error' }).find(NxStatefulForm);
 
     expect(modal).toHaveProp('submitError', 'error');
   });

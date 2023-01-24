@@ -93,8 +93,11 @@ describe('PolicyEditorSpec', () => {
           const policyTitle = screen.getByText('Edit Policy');
           expect(policyTitle).toBeVisible();
           expect(updateButton).toBeVisible();
-          expect(updateButton).toHaveClassName('disabled');
-          expect(updateButton).toHaveAttribute('aria-label', 'Submit disabled: There are no changes to save');
+          fireEvent.click(updateButton);
+
+          const alert = screen.getByText('There were validation errors. There are no changes to save');
+          expect(alert).toBeVisible();
+
           expect(deleteButton).toBeVisible();
           expect(deleteButton).not.toHaveClassName('disabled');
         });
@@ -103,16 +106,13 @@ describe('PolicyEditorSpec', () => {
           let updateButton = await screen.findByText('Update');
           const policyNameInput = await screen.findByLabelText('Policy Name');
           expect(updateButton).toBeVisible();
-          expect(updateButton).toHaveClassName('disabled');
           fireEvent.change(policyNameInput, { target: { value: 'New Value' } });
           updateButton = screen.getByText('Update');
-          expect(updateButton).not.toHaveClassName('disabled');
         });
 
         it('enables the Update button when removing a constraint', async () => {
           let updateButton = await screen.findByText('Update');
           expect(updateButton).toBeVisible();
-          expect(updateButton).toHaveClassName('disabled');
           const deleteConstraintBtn = await screen.findAllByLabelText('Delete constraint');
           fireEvent.click(deleteConstraintBtn[0]);
           updateButton = screen.getByText('Update');
@@ -123,76 +123,81 @@ describe('PolicyEditorSpec', () => {
           let updateButton = await screen.findByText('Update');
           const policyNameInput = await screen.findByLabelText('Policy Name');
           expect(updateButton).toBeVisible();
-          expect(updateButton).toHaveClassName('disabled');
           fireEvent.change(policyNameInput, { target: { value: 'Security-Critical' } });
           updateButton = screen.getByText('Update');
-          expect(updateButton).toHaveClassName('disabled');
-          expect(updateButton).toHaveAttribute(
-            'aria-label',
-            'Submit disabled: Unable to save: fields with invalid or missing data'
+          expect(updateButton).toBeVisible();
+          fireEvent.click(updateButton);
+
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
           );
+          expect(alert).toBeVisible();
         });
 
         it('disables the Update button for policy name empty', async () => {
           let updateButton = await screen.findByText('Update');
           const policyNameInput = await screen.findByLabelText('Policy Name');
           expect(updateButton).toBeVisible();
-          expect(updateButton).toHaveClassName('disabled');
           fireEvent.change(policyNameInput, { target: { value: '' } });
           updateButton = screen.getByText('Update');
-          expect(updateButton).toHaveClassName('disabled');
-          expect(updateButton).toHaveAttribute(
-            'aria-label',
-            'Submit disabled: Unable to save: fields with invalid or missing data'
+          expect(updateButton).toBeVisible();
+          fireEvent.click(updateButton);
+
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
           );
+          expect(alert).toBeVisible();
         });
 
         it('disables the Update button for policy name invalid chars', async () => {
           let updateButton = await screen.findByText('Update');
           const policyNameInput = await screen.findByLabelText('Policy Name');
           expect(updateButton).toBeVisible();
-          expect(updateButton).toHaveClassName('disabled');
           fireEvent.change(policyNameInput, { target: { value: 'License-Ba!' } });
           updateButton = screen.getByText('Update');
-          expect(updateButton).toHaveClassName('disabled');
-          expect(updateButton).toHaveAttribute(
-            'aria-label',
-            'Submit disabled: Unable to save: fields with invalid or missing data'
+          expect(updateButton).toBeVisible();
+          fireEvent.click(updateButton);
+
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
           );
+          expect(alert).toBeVisible();
         });
 
         it('disables the Update button for policy name too long', async () => {
           let updateButton = await screen.findByText('Update');
           const policyNameInput = await screen.findByLabelText('Policy Name');
           expect(updateButton).toBeVisible();
-          expect(updateButton).toHaveClassName('disabled');
           fireEvent.change(policyNameInput, {
             target: { value: 'License-Banned too long too long too long too long too long too long' },
           });
           updateButton = screen.getByText('Update');
-          expect(updateButton).toHaveClassName('disabled');
-          expect(updateButton).toHaveAttribute(
-            'aria-label',
-            'Submit disabled: Unable to save: fields with invalid or missing data'
+          expect(updateButton).toBeVisible();
+          fireEvent.click(updateButton);
+
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
           );
+          expect(alert).toBeVisible();
         });
 
         it('disables the Update button for invalid constraint', async () => {
           let updateButton = await screen.findByText('Update');
           const policyNameInput = await screen.findByLabelText('Policy Name');
           expect(updateButton).toBeVisible();
-          expect(updateButton).toHaveClassName('disabled');
           fireEvent.change(policyNameInput, { target: { value: 'New Value' } });
           updateButton = screen.getByText('Update');
           expect(updateButton).not.toHaveClassName('disabled');
           const addConstraintButton = screen.getByText('Add Constraint');
           fireEvent.click(addConstraintButton);
           updateButton = screen.getByText('Update');
-          expect(updateButton).toHaveClassName('disabled');
-          expect(updateButton).toHaveAttribute(
-            'aria-label',
-            'Submit disabled: Unable to save: fields with invalid or missing data'
+          expect(updateButton).toBeVisible();
+          fireEvent.click(updateButton);
+
+          const alert = screen.getByText(
+            'There were validation errors. Unable to save: fields with invalid or missing data'
           );
+          expect(alert).toBeVisible();
         });
       });
       describe('Saving changes', () => {
@@ -227,8 +232,9 @@ describe('PolicyEditorSpec', () => {
           fireEvent.click(updateButton);
           const savingMask = screen.getByText('Saving…');
           expect(savingMask).toBeVisible();
-          const error = await screen.findByRole('alert');
-          expect(error).toHaveTextContent('An error occurred loading data. Error');
+
+          const error = await screen.findByText('An error occurred loading data. Error 404');
+          expect(error).toBeVisible();
         });
 
         it('deletes a policy successfully, shows the delete mask with the success message', async () => {
@@ -265,8 +271,9 @@ describe('PolicyEditorSpec', () => {
           fireEvent.click(continueButton);
           const savingMask = screen.getByText('Deleting…');
           expect(savingMask).toBeVisible();
-          const error = await screen.findAllByRole('alert');
-          expect(error[1]).toHaveTextContent('An error occurred loading data. Error 404');
+
+          const error = await screen.findByText('An error occurred loading data. Error 404');
+          expect(error).toBeVisible();
         });
       });
     });
@@ -280,8 +287,10 @@ describe('PolicyEditorSpec', () => {
         const policyTitle = screen.getByText('New Policy');
         expect(policyTitle).toBeVisible();
         expect(updateButton).toBeVisible();
-        expect(updateButton).toHaveClassName('disabled');
-        expect(updateButton).toHaveAttribute('aria-label', 'Submit disabled: There are no changes to save');
+        fireEvent.click(updateButton);
+
+        const alert = screen.getByText('There were validation errors. There are no changes to save');
+        expect(alert).toBeVisible();
         expect(deleteButton).toBeNull();
       });
 
@@ -293,18 +302,18 @@ describe('PolicyEditorSpec', () => {
 
         expect(policyTitle).toBeVisible();
         expect(updateButton).toBeVisible();
-        expect(updateButton).toHaveClassName('disabled');
-        expect(updateButton).toHaveAttribute('aria-label', 'Submit disabled: There are no changes to save');
+        fireEvent.click(updateButton);
+
+        const alert = screen.getByText('There were validation errors. There are no changes to save');
+        expect(alert).toBeVisible();
 
         const policyNameInput = await screen.findByLabelText('Policy Name');
         fireEvent.change(policyNameInput, { target: { value: 'New Value' } });
         updateButton = screen.getByText('Create');
-        expect(updateButton).toHaveClassName('disabled');
 
         const constraintNameInput = screen.getByLabelText('Constraint Name');
         fireEvent.change(constraintNameInput, { target: { value: 'New Value' } });
         updateButton = screen.getByText('Create');
-        expect(updateButton).toHaveClassName('disabled');
 
         const conditionAgeInput = screen.getByPlaceholderText('Age');
         fireEvent.change(conditionAgeInput, { target: { value: '2' } });
@@ -324,7 +333,6 @@ describe('PolicyEditorSpec', () => {
       const policyTitle = screen.getByText('View Policy');
       expect(policyTitle).toBeVisible();
       expect(updateButton).toBeVisible();
-      expect(updateButton).toHaveClassName('disabled');
       expect(updateButton).not.toHaveAttribute('aria-label');
       expect(deleteButton).toBeNull();
       expect(overrideParentActionsInput).toBeDisabled();
@@ -339,7 +347,6 @@ describe('PolicyEditorSpec', () => {
       const policyTitle = screen.getByText('View Policy');
       expect(policyTitle).toBeVisible();
       expect(updateButton).toBeVisible();
-      expect(updateButton).toHaveClassName('disabled');
       expect(deleteButton).toBeNull();
       expect(overrideParentActionsInput).not.toBeDisabled();
       fireEvent.click(overrideParentActionsInput);

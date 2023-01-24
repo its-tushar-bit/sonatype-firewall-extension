@@ -14,6 +14,7 @@ import {
   NxTextLink,
   NxStatefulTextInput,
   NxSubmitMask,
+  NxFormSelect,
 } from '@sonatype/react-shared-components';
 import { availableScopesPropType, componentTransitivePolicyViolationsPropType } from './transitiveViolationsPropTypes';
 import { capitalize } from '../util/jsUtil';
@@ -103,9 +104,8 @@ export default function WaiveTransitiveViolationsPopover(props) {
         </NxTextLink>
       </NxInfoAlert>
       <NxFormGroup label="Waiver Expiration" isRequired>
-        <select
+        <NxFormSelect
           id="waive-transitive-violations-expirations"
-          className="nx-form-select"
           onChange={(e) => setExpiration(e.currentTarget.value)}
           value={expiration}
         >
@@ -114,7 +114,7 @@ export default function WaiveTransitiveViolationsPopover(props) {
               {name}
             </option>
           ))}
-        </select>
+        </NxFormSelect>
       </NxFormGroup>
       <NxFormGroup label="Comments" isRequired>
         <NxStatefulTextInput

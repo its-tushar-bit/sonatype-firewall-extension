@@ -53,8 +53,8 @@ public class AdvancedSearchConfigurationPageTest
     // Verify page is in expected state
     page.isEnabledCheckbox().shouldNotBe(selected).shouldBe(enabled);
     page.reIndexButton().shouldBe(disabled);
-    page.saveButton().shouldBe(disabled);
     page.cancelButton().shouldBe(disabled);
+    page.saveButton().shouldBe(visible);
 
     // Opt-In
     page.isEnabledCheckbox().click();
@@ -64,7 +64,6 @@ public class AdvancedSearchConfigurationPageTest
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(visible);
     page.isEnabledCheckbox().shouldBe(selected).shouldBe(enabled);
     page.reIndexButton().shouldBe(enabled);
-    page.saveButton().shouldBe(disabled);
     page.cancelButton().shouldBe(disabled);
 
     // Verify state in backend
@@ -79,7 +78,6 @@ public class AdvancedSearchConfigurationPageTest
     // Verify page is in expected state
     page.isEnabledCheckbox().shouldBe(selected).shouldBe(enabled);
     page.reIndexButton().shouldBe(enabled);
-    page.saveButton().shouldBe(disabled);
     page.cancelButton().shouldBe(disabled);
 
     // Opt-Out
@@ -90,7 +88,6 @@ public class AdvancedSearchConfigurationPageTest
     SidebarNavigation.advancedSearchNavigationButton().shouldBe(hidden);
     page.isEnabledCheckbox().shouldNotBe(selected).shouldBe(enabled);
     page.reIndexButton().shouldBe(disabled);
-    page.saveButton().shouldBe(disabled);
     page.cancelButton().shouldBe(disabled);
 
     // Verify state in backend
@@ -201,7 +198,7 @@ public class AdvancedSearchConfigurationPageTest
   }
 
   private void saveForm() {
-    page.saveButton().shouldBe(enabled).click();
+    page.saveButton().click();
     FormMask.seeAndWaitForDismissal();
   }
 

@@ -14,7 +14,6 @@ import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 
 const { initialState: rscInitialState } = nxTextInputStateHelpers;
-const disabledButtonText = 'Submit disabled: Unable to save: fields with invalid or missing data';
 
 describe('ChangeApplicationIdModal', () => {
   let renderComponent, changeApplicationIdStateSpy, closeModalSpy, changeApplicationIdSpy, newPublicIdSpy;
@@ -74,9 +73,7 @@ describe('ChangeApplicationIdModal', () => {
     expect(screen.getByText(`New Application ID`)).toBeVisible();
 
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
-
-    const submitButton = screen.getByRole('button', { name: disabledButtonText });
-    expect(submitButton).toHaveTextContent('Change');
+    expect(screen.getByRole('button', { name: 'Change' })).toBeVisible();
   });
 
   it('renders error on submitError', () => {
@@ -88,8 +85,8 @@ describe('ChangeApplicationIdModal', () => {
 
     const errors = screen.getAllByRole('alert');
 
-    // main alert + input hint alert
-    expect(errors.length).toBe(2);
+    // main alert
+    expect(errors.length).toBe(1);
     expect(screen.getByText('An error occurred saving data. Error 404')).toBeVisible();
   });
 
@@ -129,9 +126,8 @@ describe('ChangeApplicationIdModal', () => {
       const idInput = screen.getByRole('textbox');
       fireEvent.change(idInput, { target: { value: 'some text' } });
 
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      const submitButton = screen.getByRole('button', { name: 'Change' });
       expect(submitButton).toHaveTextContent('Change');
-      expect(submitButton).toHaveClassName('disabled');
       fireEvent.click(submitButton);
       expect(changeApplicationIdSpy).not.toHaveBeenCalled();
       const errorText = screen.getByText('Use valid characters: alphanumeric, "_", "." or "-"');
@@ -144,10 +140,9 @@ describe('ChangeApplicationIdModal', () => {
       const idInput = screen.getByRole('textbox');
       fireEvent.change(idInput, { target: { value: OWNER_APP_ID } });
 
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      const submitButton = screen.getByRole('button', { name: 'Change' });
       expect(newPublicIdSpy).toHaveBeenCalled();
       expect(newPublicIdSpy).toHaveBeenCalledWith({ value: OWNER_APP_ID, appsList: [APP] });
-      expect(submitButton).toHaveClassName('disabled');
       fireEvent.click(submitButton);
       expect(changeApplicationIdSpy).not.toHaveBeenCalled();
       const errorText = screen.getByText('Name is already in use');
@@ -159,10 +154,9 @@ describe('ChangeApplicationIdModal', () => {
 
       const idInput = screen.getByRole('textbox');
       fireEvent.change(idInput, { target: { value: 'a'.repeat(201) } });
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      const submitButton = screen.getByRole('button', { name: 'Change' });
 
       expect(submitButton).toHaveTextContent('Change');
-      expect(submitButton).toHaveClassName('disabled');
       fireEvent.click(submitButton);
       expect(changeApplicationIdSpy).not.toHaveBeenCalled();
       const errorText = screen.getByText('Please enter less than 200 characters');
@@ -176,9 +170,8 @@ describe('ChangeApplicationIdModal', () => {
       fireEvent.change(idInput, { target: { value: 'some text' } });
       fireEvent.change(idInput, { target: { value: '' } });
 
-      const submitButton = screen.getByRole('button', { name: disabledButtonText });
+      const submitButton = screen.getByRole('button', { name: 'Change' });
       expect(newPublicIdSpy).toHaveBeenCalled();
-      expect(submitButton).toHaveClassName('disabled');
       fireEvent.click(submitButton);
       expect(changeApplicationIdSpy).not.toHaveBeenCalled();
       const errorText = screen.getByText('Must be non-empty');

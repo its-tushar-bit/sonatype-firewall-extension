@@ -43,8 +43,6 @@ public class OrganizationLTGEditorTest
     LTGEditorPage.ltgName().val("$$$"); // invalid characters
     LTGEditorPage.getInputValidationElement(LTGEditorPage.ltgName()).shouldHave(text("Use valid characters"));
 
-    LTGEditorPage.saveButton().shouldHave(DISABLED);
-
     InputUtils.clearInput(LTGEditorPage.ltgName());
 
     LTGEditorPage.ltgName().val(ltgName);
@@ -68,6 +66,5 @@ public class OrganizationLTGEditorTest
     LTGEditorPage.ltgName().shouldBe(visible, Condition.empty);
 
     LTGEditorPage.picker().availableItems().shouldHaveSize(licenseDAO.getAll().size());
-    LTGEditorPage.saveButton().shouldHave(DISABLED);
   }
 }

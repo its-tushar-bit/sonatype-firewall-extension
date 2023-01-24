@@ -72,6 +72,10 @@ public class PolicyViolationGrandfatheringEditorPage
     return $(".nx-radio-checkbox.nx-checkbox");
   }
 
+  public static SelenideElement form() {
+    return $(".nx-form");
+  }
+
   public static SelenideElement updateButton() {
     return $(".nx-form__submit-btn");
   }

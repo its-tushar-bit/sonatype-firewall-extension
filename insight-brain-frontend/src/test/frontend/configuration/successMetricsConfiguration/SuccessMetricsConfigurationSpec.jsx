@@ -94,24 +94,18 @@ describe('SuccessMetricsConfigurationSpec', () => {
 
     expect(toggle).not.toBeChecked();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
-    // uses aria-label as name if provided
-    expect(screen.getByRole('button', { name: 'Submit disabled: There are no changes to update' })).toHaveClassName(
-      'disabled'
-    );
-
+    expect(screen.getByRole('alert')).toHaveTextContent('There were validation errors. There are no changes to update');
     fireEvent.click(toggle);
 
     expect(toggle).toBeChecked();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Update' })).not.toHaveClassName('disabled');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(toggle).not.toBeChecked();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Submit disabled: There are no changes to update' })).toHaveClassName(
-      'disabled'
-    );
+    expect(screen.getByRole('alert')).toHaveTextContent('There were validation errors. There are no changes to update');
   });
 
   it('submits updated setting', async () => {
@@ -131,16 +125,14 @@ describe('SuccessMetricsConfigurationSpec', () => {
     await waitFor(() => screen.getByRole('heading', { name: /configure success metrics/i }));
     fireEvent.click(screen.getByLabelText('Enable Success Metrics'));
 
-    expect(screen.getByRole('button', { name: 'Update' })).not.toHaveClassName('disabled');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Update' }));
 
-    await waitFor(() => screen.getByRole('button', { name: 'Submit disabled: There are no changes to update' }));
+    await waitFor(() => screen.getByRole('alert'));
 
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Submit disabled: There are no changes to update' })).toHaveClassName(
-      'disabled'
-    );
+    expect(screen.getByRole('alert')).toHaveTextContent('There were validation errors. There are no changes to update');
     expect(screen.getByLabelText('Enable Success Metrics')).toBeChecked();
   });
 

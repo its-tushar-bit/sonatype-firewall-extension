@@ -6,9 +6,9 @@
 package com.sonatype.clm.testing.functional.brain.configuration;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.SystemNotice;
 import com.sonatype.clm.testing.functional.pages.SystemNoticeConfigurationPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 
 import com.codeborne.selenide.Condition;
@@ -22,6 +22,7 @@ import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
 public class SystemNoticeConfigurationTest
@@ -58,9 +59,6 @@ public class SystemNoticeConfigurationTest
     cannotUpdateWithoutChanges();
     cannotCancelWithoutChanges();
 
-    noChangesToUpdateTooltipShowsWithoutChanges();
-    noticeTextEmptyMessageTooltipShows();
-
     clickCancel_RevertsText();
     clickCancel_RevertsDisplay();
     clickCancel_RevertsTextAndDisplay();
@@ -86,10 +84,9 @@ public class SystemNoticeConfigurationTest
 
   private void cannotUpdateWithoutChanges() {
     init();
-    systemNoticeConfigurationPage.update().shouldHave(CLM.DISABLED);
-    elementDisabled_WhenTextReverted(systemNoticeConfigurationPage.update(), CLM.DISABLED);
-    elementDisabled_WhenDisplayReverted(systemNoticeConfigurationPage.update(), CLM.DISABLED);
-    elementDisabled_WhenTextAndDisplayReverted(systemNoticeConfigurationPage.update(), CLM.DISABLED);
+    systemNoticeConfigurationPage.update().shouldBe(visible).click();
+    FormUtils.getAlertElement(systemNoticeConfigurationPage).shouldBe(visible)
+      .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to update"));
   }
 
   private void cannotCancelWithoutChanges() {
@@ -98,38 +95,6 @@ public class SystemNoticeConfigurationTest
     elementDisabled_WhenTextReverted(systemNoticeConfigurationPage.cancel(), attribute("disabled"));
     elementDisabled_WhenDisplayReverted(systemNoticeConfigurationPage.cancel(), attribute("disabled"));
     elementDisabled_WhenTextAndDisplayReverted(systemNoticeConfigurationPage.cancel(), attribute("disabled"));
-  }
-
-  private void noChangesToUpdateTooltipShowsWithoutChanges() {
-    init();
-    systemNoticeConfigurationPage.update().hover();
-    systemNoticeConfigurationPage.tooltipShowing(SystemNoticeConfigurationPage.NOT_DIRTY_FORM);
-
-    systemNoticeConfigurationPage.toggle().hover();
-    systemNoticeConfigurationPage.toggleDisplay();
-    systemNoticeConfigurationPage.update().hover();
-    systemNoticeConfigurationPage.tooltipNotShowing();
-
-    systemNoticeConfigurationPage.toggle().hover();
-    systemNoticeConfigurationPage.toggleDisplay();
-    systemNoticeConfigurationPage.update().hover();
-    systemNoticeConfigurationPage.tooltipShowing(SystemNoticeConfigurationPage.NOT_DIRTY_FORM);
-  }
-
-  private void noticeTextEmptyMessageTooltipShows() {
-    init();
-    systemNoticeConfigurationPage.setDisplay(true);
-    systemNoticeConfigurationPage.setText(" ");
-
-    systemNoticeConfigurationPage.update().hover();
-    systemNoticeConfigurationPage.tooltipShowing(SystemNoticeConfigurationPage.EMPTY_NOTICE_MESSAGE);
-
-    systemNoticeConfigurationPage.toggle().hover();
-    systemNoticeConfigurationPage.toggleDisplay();
-
-    systemNoticeConfigurationPage.update().hover();
-    systemNoticeConfigurationPage.tooltipNotShowing();
-    systemNoticeConfigurationPage.cancel().click();
   }
 
   private void clickCancel_RevertsText() {

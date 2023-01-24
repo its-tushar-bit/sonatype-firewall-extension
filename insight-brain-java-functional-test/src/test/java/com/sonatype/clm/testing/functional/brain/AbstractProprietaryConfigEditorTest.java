@@ -83,8 +83,6 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     ProprietaryConfigEditorPage.matcherValue().shouldBe(empty);
     ProprietaryConfigEditorPage.addButton().shouldHave(attribute("disabled"));
 
-    ProprietaryConfigEditorPage.updateButton().shouldHave(DISABLED);
-
     //take focus off of the select to prevent the select options displayed
     SidebarNavigation.productVersion().click();
     
@@ -145,8 +143,6 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     ProprietaryConfig config = proprietaryConfigDAO.getByOwnerId(currentOwner.getId());
     assertThat(config.getPackages()).containsExactly("com.local");
     assertThat(config.getRegexes()).containsExactly("com.sonatype.*");
-
-    ProprietaryConfigEditorPage.updateButton().shouldHave(DISABLED);
 
     // check validation for regex
     typeDropDown.chooseOption(new Option(REGEX.ordinal(), REGEX.name));

@@ -9,8 +9,8 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.AutomaticApplicationsConfigurationPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticApplicationsConfigurationDAO;
 import com.sonatype.insight.brain.model.Organization;
 
@@ -21,9 +21,9 @@ import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,14 +53,12 @@ public class AutomaticApplicationsConfigurationTest
     automaticApplicationsConfigurationPage.toggle().shouldBe(visible, enabled).shouldNotBe(checked);
 
     // check user cannot update when organizations are not present
-    automaticApplicationsConfigurationPage.update().shouldBe(CLM.DISABLED);
     automaticApplicationsConfigurationPage.cancel().shouldBe(disabled);
     automaticApplicationsConfigurationPage.toggle().click();
     automaticApplicationsConfigurationPage.toggle().input().shouldBe(checked);
-    automaticApplicationsConfigurationPage.update().shouldBe(CLM.DISABLED).hover();
-    Tooltip.get().shouldBe(visible).shouldHave(text("Unable to update: fields with invalid or missing data."));
-    automaticApplicationsConfigurationPage.cancel().shouldNotBe(disabled).hover();
-    Tooltip.get().shouldBe(hidden);
+    automaticApplicationsConfigurationPage.update().click();
+    FormUtils.getAlertElement(automaticApplicationsConfigurationPage)
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Unable to update: fields with invalid or missing data."));
 
     // check that configuration settings can be saved
     Organization org1 = tempEntity.newOrganization("Test Organization 1");
@@ -73,7 +71,6 @@ public class AutomaticApplicationsConfigurationTest
     automaticApplicationsConfigurationPage.organization().chooseOption(new Option(1, org1.getName()));
     automaticApplicationsConfigurationPage.update().shouldNotBe(CLM.DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    automaticApplicationsConfigurationPage.update().shouldBe(CLM.DISABLED);
     verifyConfiguration(true, org1);
 
     // check that the updated configuration is displayed on refresh
@@ -89,8 +86,6 @@ public class AutomaticApplicationsConfigurationTest
     automaticApplicationsConfigurationPage.toggle().input().shouldNotBe(checked);
     automaticApplicationsConfigurationPage.cancel().shouldNotBe(disabled).click();
     automaticApplicationsConfigurationPage.organization().shouldHave(text(org1.getName()));
-    automaticApplicationsConfigurationPage.update().shouldBe(CLM.DISABLED);
-    automaticApplicationsConfigurationPage.cancel().shouldBe(disabled);
     automaticApplicationsConfigurationPage.toggle().input().shouldBe(checked);
 
     // check that subsequent changes to the configuration are also persisted
@@ -99,7 +94,6 @@ public class AutomaticApplicationsConfigurationTest
     automaticApplicationsConfigurationPage.organization().shouldBe(disabled);
     automaticApplicationsConfigurationPage.update().shouldNotBe(CLM.DISABLED).click();
     FormMask.seeAndWaitForDismissal();
-    automaticApplicationsConfigurationPage.update().shouldBe(CLM.DISABLED);
     verifyConfiguration(false, org1);
   }
 

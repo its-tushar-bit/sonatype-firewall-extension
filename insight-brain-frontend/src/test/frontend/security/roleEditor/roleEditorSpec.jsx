@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { NxForm, NxModal } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxModal } from '@sonatype/react-shared-components';
 import RoleEditor from 'MainRoot/security/roleEditor/RoleEditor';
 import * as enzymeUtils from '../../enzymeUtils';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
@@ -111,7 +111,7 @@ describe('RoleEditor', () => {
   describe('cancel button', () => {
     it('redirect to roles list', () => {
       const shallowComponent = getShallowComponent({ isDirty: true });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       form.simulate('cancel');
       expect(stateGoSpy).toHaveBeenCalledWith('rolesList');
     });
@@ -120,7 +120,7 @@ describe('RoleEditor', () => {
   describe('on form submit', () => {
     it('calls update when form is submitted and it is dirty', () => {
       const shallowComponent = getShallowComponent({ isDirty: true });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       form.simulate('submit');
       expect(mockSubmit).toHaveBeenCalledTimes(1);
     });
@@ -130,7 +130,7 @@ describe('RoleEditor', () => {
         isDirty: false,
       };
       const shallowComponent = getShallowComponent(props);
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       expect(form).toHaveProp('validationErrors', 'There are no changes to update');
     });
 
@@ -144,7 +144,7 @@ describe('RoleEditor', () => {
           permissionCategories: [],
         },
       });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       expect(form).toHaveProp('validationErrors', 'Unable to submit: fields with invalid or missing data.');
     });
 
@@ -157,7 +157,7 @@ describe('RoleEditor', () => {
           permissionCategories: [],
         },
       });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       expect(form).toHaveProp('validationErrors', 'Unable to submit: fields with invalid or missing data.');
     });
 
@@ -170,7 +170,7 @@ describe('RoleEditor', () => {
           permissionCategories: [],
         },
       });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       expect(form).toHaveProp('validationErrors', 'Unable to submit: fields with invalid or missing data.');
     });
 
@@ -183,7 +183,7 @@ describe('RoleEditor', () => {
           permissionCategories: [],
         },
       });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       expect(form).toHaveProp('validationErrors', null);
     });
 
@@ -192,7 +192,7 @@ describe('RoleEditor', () => {
         readonly: true,
         builtIn: false,
       });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       expect(form).toHaveProp('validationErrors', 'You have insufficient permissions to edit this role.');
     });
 
@@ -201,7 +201,7 @@ describe('RoleEditor', () => {
         readonly: true,
         builtIn: true,
       });
-      const form = shallowComponent.find(NxForm);
+      const form = shallowComponent.find(NxStatefulForm);
       expect(form).toHaveProp('validationErrors', 'This role cannot be edited.');
     });
   });
@@ -234,13 +234,13 @@ describe('RoleEditor', () => {
       const deleteBtn = shallowComponent.find('#delete-role');
       deleteBtn.simulate('click');
       const dialog = shallowComponent.find(NxModal);
-      const formInDialog = dialog.find(NxForm);
+      const formInDialog = dialog.find(NxStatefulForm);
       expect(formInDialog).toHaveProp('submitError', deleteError);
     });
 
     it('calls delete on form submit', () => {
       const modal = shallowComponent.find(NxModal);
-      const form = modal.find(NxForm);
+      const form = modal.find(NxStatefulForm);
       form.simulate('submit');
       expect(mockDelete).toHaveBeenCalledTimes(1);
     });
@@ -250,7 +250,7 @@ describe('RoleEditor', () => {
       const deleteBtn = shallowComponent.find('#delete-role');
       deleteBtn.simulate('click');
       const modal = shallowComponent.find(NxModal);
-      const form = modal.find(NxForm);
+      const form = modal.find(NxStatefulForm);
       expect(form).toHaveProp('submitMaskState', true);
     });
 
@@ -259,7 +259,7 @@ describe('RoleEditor', () => {
       const deleteBtn = shallowComponent.find('#delete-role');
       deleteBtn.simulate('click');
       const modal = shallowComponent.find(NxModal);
-      const form = modal.find(NxForm);
+      const form = modal.find(NxStatefulForm);
       expect(form).toHaveProp('submitMaskState', false);
     });
   });

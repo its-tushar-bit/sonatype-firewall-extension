@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../frontend/enzymeUtils';
 import LdapRemoveServerModal from '../../../../main/frontend/configuration/ldap/LdapRemoveServerModal';
 
@@ -38,7 +38,7 @@ describe('LdapRemoveServerModal', () => {
   });
 
   it('calls removeServer when submitted', () => {
-    const modal = getShallowComponent().find(NxForm);
+    const modal = getShallowComponent().find(NxStatefulForm);
 
     modal.simulate('submit');
 
@@ -46,7 +46,7 @@ describe('LdapRemoveServerModal', () => {
   });
 
   it('calls closeModal on cancel', () => {
-    const modal = getShallowComponent().find(NxForm);
+    const modal = getShallowComponent().find(NxStatefulForm);
     modal.simulate('cancel');
 
     expect(closeModalMock).toHaveBeenCalled();
@@ -62,7 +62,7 @@ describe('LdapRemoveServerModal', () => {
   });
 
   it('renders error alert on unsuccessful submit', () => {
-    const modal = getShallowComponent({ removeError: 'error' }).find(NxForm);
+    const modal = getShallowComponent({ removeError: 'error' }).find(NxStatefulForm);
 
     expect(modal).toHaveProp('submitError', 'error');
   });

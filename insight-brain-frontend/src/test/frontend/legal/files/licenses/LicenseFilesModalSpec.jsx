@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from '../../../enzymeUtils';
 import LicenseFilesModal from '../../../../../main/frontend/legal/files/licenses/LicenseFilesModal';
-import { NxButton, NxForm, NxTextInput, NxToggle } from '@sonatype/react-shared-components';
+import { NxButton, NxStatefulForm, NxTextInput, NxToggle, NxFormSelect } from '@sonatype/react-shared-components';
 
 describe('LicenseFilesModal', function () {
   let getShallowComponent,
@@ -139,7 +139,7 @@ describe('LicenseFilesModal', function () {
 
   it('selects the given licenses scope', function () {
     const wrapper = getShallowComponent();
-    const licensesScope = wrapper.find('select');
+    const licensesScope = wrapper.find(NxFormSelect);
     expect(licensesScope.length).toBe(1);
     expect(licensesScope.at(0).prop('value')).toEqual('ROOT_ORGANIZATION_ID');
   });
@@ -158,7 +158,7 @@ describe('LicenseFilesModal', function () {
 
   it('sets the licenses scope to the selected value when changed', function () {
     const wrapper = getShallowComponent();
-    const licensesScope = wrapper.find('select');
+    const licensesScope = wrapper.find(NxFormSelect);
     licensesScope.simulate('change', { currentTarget: { value: 'appId' } });
     expect(setLicenseFilesScopeSpy).toHaveBeenCalledWith('appId');
   });
@@ -177,7 +177,7 @@ describe('LicenseFilesModal', function () {
         },
       ],
     });
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find(NxStatefulForm);
     expect(form.prop('validationErrors')).toBe('A custom license must have text.');
   });
 
@@ -196,13 +196,13 @@ describe('LicenseFilesModal', function () {
         },
       ],
     });
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find(NxStatefulForm);
     expect(form.prop('validationErrors')).toBe('Must add a new license or change the content or status of a license.');
   });
 
   it('has no validation error if the scope has changed', function () {
     const wrapper = getShallowComponent({ scope: 'appId' });
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find(NxStatefulForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 
@@ -219,7 +219,7 @@ describe('LicenseFilesModal', function () {
         },
       ],
     });
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find(NxStatefulForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 
@@ -237,7 +237,7 @@ describe('LicenseFilesModal', function () {
         },
       ],
     });
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find(NxStatefulForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 
@@ -255,7 +255,7 @@ describe('LicenseFilesModal', function () {
         },
       ],
     });
-    const form = wrapper.find(NxForm);
+    const form = wrapper.find(NxStatefulForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 });

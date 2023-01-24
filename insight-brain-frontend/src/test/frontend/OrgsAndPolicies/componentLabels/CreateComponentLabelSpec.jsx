@@ -41,7 +41,6 @@ describe('CreateComponentLabel create', () => {
 
     const createButton = screen.getByText('Create');
     expect(createButton).toBeVisible();
-    expect(createButton).toHaveClassName('disabled');
 
     fireEvent.click(createButton);
     expect(saveLabelSpy).not.toHaveBeenCalled();
@@ -120,7 +119,6 @@ describe('CreateComponentLabel edit', () => {
 
     expect(updateButton).toBeVisible();
     expect(deleteButton).toBeVisible();
-    expect(updateButton).toHaveClassName('disabled');
 
     fireEvent.click(updateButton);
     expect(saveLabelSpy).not.toHaveBeenCalled();
@@ -163,7 +161,6 @@ describe('CreateComponentLabel edit', () => {
     fireEvent.change(labelInput, { target: { value: 'initialLabel' } });
 
     const updateButtonReinitialize = screen.getByText('Update');
-    expect(updateButtonReinitialize).toHaveClassName('disabled');
 
     fireEvent.click(updateButtonReinitialize);
     expect(saveLabelSpy).not.toHaveBeenCalled();

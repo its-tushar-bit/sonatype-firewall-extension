@@ -9,7 +9,7 @@ import {
   CONFIRMATION_MISMATCH_ERROR_MESSAGE,
   MISSING_FIELDS_ERROR_MESSAGE,
 } from '../../../../../main/frontend/mainHeader/MenuBar/UserMenu/ChangePasswordModal';
-import { NxForm, NxTextInput } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxTextInput } from '@sonatype/react-shared-components';
 
 describe('ChangePasswordModal', function () {
   let minProps;
@@ -42,7 +42,7 @@ describe('ChangePasswordModal', function () {
     typeInInput(component, 'new-password', 'myNewPassword');
     typeInInput(component, 'confirm-password', 'myNewPassword');
 
-    component.find(NxForm).invoke('onSubmit')();
+    component.find(NxStatefulForm).invoke('onSubmit')();
     expect(onChangePassword).toHaveBeenCalledWith({
       oldPassword: 'myOldPassword',
       newPassword: 'myNewPassword',
@@ -101,27 +101,27 @@ describe('ChangePasswordModal', function () {
 
   it('does not allow the form to be submitted if there are any fields empty', () => {
     const component = getShallowComponent();
-    expect(component.find(NxForm).prop('validationErrors')).toEqual([MISSING_FIELDS_ERROR_MESSAGE]);
+    expect(component.find(NxStatefulForm).prop('validationErrors')).toEqual([MISSING_FIELDS_ERROR_MESSAGE]);
 
     typeInInput(component, 'original-password', 'mypassword');
     typeInInput(component, 'new-password', 'match');
     typeInInput(component, 'confirm-password', 'match');
 
-    expect(component.find(NxForm).prop('validationErrors')).toEqual([]);
+    expect(component.find(NxStatefulForm).prop('validationErrors')).toEqual([]);
 
     typeInInput(component, 'original-password', '');
-    expect(component.find(NxForm).prop('validationErrors')).toEqual([MISSING_FIELDS_ERROR_MESSAGE]);
+    expect(component.find(NxStatefulForm).prop('validationErrors')).toEqual([MISSING_FIELDS_ERROR_MESSAGE]);
   });
 
   it('does not allow the form to be submitted if the new password and confirmation do not match (while pris', () => {
     const component = getShallowComponent();
-    expect(component.find(NxForm).prop('validationErrors')).toEqual([MISSING_FIELDS_ERROR_MESSAGE]);
+    expect(component.find(NxStatefulForm).prop('validationErrors')).toEqual([MISSING_FIELDS_ERROR_MESSAGE]);
 
     typeInInput(component, 'original-password', 'mypassword');
     typeInInput(component, 'new-password', 'match');
     typeInInput(component, 'confirm-password', 'no-match');
 
-    expect(component.find(NxForm).prop('validationErrors')[0]).toEqual(CONFIRMATION_MISMATCH_ERROR_MESSAGE);
+    expect(component.find(NxStatefulForm).prop('validationErrors')[0]).toEqual(CONFIRMATION_MISMATCH_ERROR_MESSAGE);
   });
 
   it('displays a non-empty error message for current password if you enter something and then delete it', () => {

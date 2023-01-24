@@ -5,13 +5,13 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import { MODAL_MODES } from './modalModes';
 
 export default function ResetPasswordModal({ userId, username, resetPassword, resetError, resetMaskState, setMode }) {
   return (
     <NxModal onClose={() => setMode(MODAL_MODES.DEFAULT)} variant="narrow" id="reset-password-modal">
-      <NxForm
+      <NxStatefulForm
         className="nx-form"
         onSubmit={() => resetPassword(userId, username)}
         submitMaskState={resetMaskState}
@@ -27,7 +27,7 @@ export default function ResetPasswordModal({ userId, username, resetPassword, re
             Are you sure you want to reset the password for {username}? This action cannot be undone.
           </NxWarningAlert>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

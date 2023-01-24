@@ -39,7 +39,6 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class AbstractLTGEditorTest
@@ -87,8 +86,6 @@ public abstract class AbstractLTGEditorTest
     picker.shouldBe(visible);
     picker.availableItems().shouldHaveSize(licenseDAO.getAll().size());
 
-    LTGEditorPage.saveButton().shouldHave(DISABLED);
-
     LTGEditorPage.ltgName().val("updated name");
 
     changeThreatLevel(6);
@@ -96,16 +93,15 @@ public abstract class AbstractLTGEditorTest
     filterLicenses(picker);
     pickFirstThreeLicenses(picker);
 
-    LTGEditorPage.saveButton().shouldBe(enabled).click();
+    LTGEditorPage.saveButton().click();
 
     LTGEditorPage.title().shouldHave(text("Edit"));
     LTGEditorPage.ltgName().shouldBe(visible).shouldHave(value("updated name"));
     NxThreatLevelDropdown.selectedThreatLevel().shouldBe(text("6"));
     picker.transferredItems().shouldHaveSize(3);
-    LTGEditorPage.saveButton().shouldHave(DISABLED);
 
+    refresh();
     List<LicenseThreatGroupLicense> includedLicenses = ltgLicenseDAO.getByLicenseThreatGroupId(ltg.getId());
-
     ltg = ltgDAO.getById(ltg.getId());
     assertThat(ltg).isNotNull();
     assertThat(ltg.getName()).isEqualTo("updated name");

@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm, NxToggle, NxButton, NxTextInput, NxFormGroup } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxToggle, NxButton, NxTextInput, NxFormGroup } from '@sonatype/react-shared-components';
 
 const notDirtyErrorMessage = 'There are no changes to update';
 const notValidErrorMessage = 'Notice Text cannot be blank';
@@ -36,7 +36,7 @@ export default function SystemNoticeConfiguration(props) {
         <h1 className="nx-h1">System Notice</h1>
       </div>
       <section id="system-notice-configuration" className="nx-tile">
-        <NxForm
+        <NxStatefulForm
           onSubmit={update}
           loadError={loadError}
           loading={loading}
@@ -85,7 +85,7 @@ export default function SystemNoticeConfiguration(props) {
               Enable Notice Display
             </NxToggle>
           </div>
-        </NxForm>
+        </NxStatefulForm>
       </section>
     </main>
   );

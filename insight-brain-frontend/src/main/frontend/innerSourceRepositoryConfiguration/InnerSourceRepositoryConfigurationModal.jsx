@@ -11,7 +11,7 @@ import classnames from 'classnames';
 import {
   NxButton,
   NxFieldset,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxFormSelect,
   NxModal,
@@ -71,7 +71,7 @@ export default function InnerSourceRepositoryConfigurationModal() {
           <header className="nx-modal-header">
             <h2 className="nx-h2">{isUpdate ? 'Edit' : 'Add'} InnerSource Repository Configuration</h2>
           </header>
-          <NxForm
+          <NxStatefulForm
             id="innersource-repository-configuration-modal-form"
             loading={loading}
             doLoad={loadConfiguration}
@@ -171,7 +171,7 @@ export default function InnerSourceRepositoryConfigurationModal() {
                 />
               )}
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </NxModal>
       )}
     </>

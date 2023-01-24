@@ -5,13 +5,13 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm, NxFontAwesomeIcon, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxFontAwesomeIcon, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 
 export default function RevokeClaimModal({ revokeMaskState, revokeError, closeModal, revoke }) {
   return (
     <NxModal onClose={closeModal} variant="narrow" id="component-details-revoke-claim-modal">
-      <NxForm
+      <NxStatefulForm
         onSubmit={revoke}
         submitMaskState={revokeMaskState}
         onCancel={closeModal}
@@ -31,7 +31,7 @@ export default function RevokeClaimModal({ revokeMaskState, revokeError, closeMo
             policy evaluation is triggered.
           </NxWarningAlert>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

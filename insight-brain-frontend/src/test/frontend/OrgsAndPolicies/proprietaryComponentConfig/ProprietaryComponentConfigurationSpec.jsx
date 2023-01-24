@@ -87,9 +87,8 @@ describe('ProprietaryComponentConfiguration', () => {
   it('can not trigger save proprietary on initialize', () => {
     renderComponent();
 
-    const updateButton = screen.getByText('Update');
+    const updateButton = screen.getByRole('button', { name: 'Update' });
     expect(updateButton).toBeVisible();
-    expect(updateButton).toHaveClassName('disabled');
 
     fireEvent.click(updateButton);
     expect(saveProprietaryConfigSpy).not.toHaveBeenCalled();
@@ -105,8 +104,7 @@ describe('ProprietaryComponentConfiguration', () => {
     fireEvent.change(labelInput, { target: { value: 'initialPackage' } });
     expect(setMatcherValueSpy).toHaveBeenCalled();
 
-    const addButton = screen.getByText('Add').parentElement;
-    expect(addButton).toHaveAttribute('disabled');
+    const addButton = screen.getByRole('button', { name: 'Add' });
     fireEvent.click(addButton);
     expect(addMatcherSpy).not.toHaveBeenCalled();
 
@@ -124,7 +122,7 @@ describe('ProprietaryComponentConfiguration', () => {
     fireEvent.change(labelInput, { target: { value: 'initial Package' } });
     expect(setMatcherValueSpy).toHaveBeenCalled();
 
-    const addButton = screen.getByText('Add').parentElement;
+    const addButton = screen.getByRole('button', { name: 'Add' });
     expect(addButton).toHaveAttribute('disabled');
     fireEvent.click(addButton);
     expect(addMatcherSpy).not.toHaveBeenCalled();
@@ -167,7 +165,7 @@ describe('ProprietaryComponentConfiguration', () => {
     fireEvent.change(labelInput, { target: { value: '.initialPackage' } });
     expect(setMatcherValueSpy).toHaveBeenCalled();
 
-    const addButton = screen.getByText('Add').parentElement;
+    const addButton = screen.getByRole('button', { name: 'Add' });
     expect(addButton).toHaveAttribute('disabled');
     fireEvent.click(addButton);
     expect(addMatcherSpy).not.toHaveBeenCalled();
@@ -196,24 +194,18 @@ describe('ProprietaryComponentConfiguration', () => {
     expect(setMatcherValueSpy).toHaveBeenCalledWith(labelInputValue);
     expect(screen.getByDisplayValue(labelInputValue)).toBeVisible();
 
-    const addButton = screen.getByText('Add').parentElement;
-    const updateButton = screen.getByText('Update');
+    const addButton = screen.getByRole('button', { name: 'Add' });
+    const updateButton = screen.getByRole('button', { name: 'Update' });
 
     expect(addButton).toBeVisible();
     expect(updateButton).toBeVisible();
-
-    expect(addButton).not.toHaveAttribute('disabled');
-    expect(updateButton).toHaveClassName('disabled');
 
     fireEvent.click(addButton);
     expect(addMatcherSpy).toHaveBeenCalled();
 
     expect(addButton).toHaveAttribute('disabled');
 
-    const updateButtonReinitialize = screen.getByText('Update');
-    expect(updateButtonReinitialize).not.toHaveClassName('disabled');
-
-    fireEvent.click(updateButtonReinitialize);
+    fireEvent.click(updateButton);
     expect(saveProprietaryConfigSpy).toHaveBeenCalled();
   });
 
@@ -222,13 +214,10 @@ describe('ProprietaryComponentConfiguration', () => {
 
     renderComponent();
 
-    const updateButton = screen.getByText('Update');
-    expect(updateButton).toHaveClassName('disabled');
-
     const initialRegex = screen.queryAllByText('initialRegex');
     expect(initialRegex.length).toBe(1);
 
-    const deleteButton = (await screen.findAllByTitle('Delete'))[1];
+    const deleteButton = (await screen.findAllByRole('button', { name: 'Delete' }))[1];
     expect(deleteButton).toBeVisible();
 
     fireEvent.click(deleteButton);
@@ -237,10 +226,9 @@ describe('ProprietaryComponentConfiguration', () => {
     const initialRegexReinitialize = screen.queryAllByText('initialRegex');
     expect(initialRegexReinitialize.length).toBe(0);
 
-    const updateButtonReinitialize = screen.getByText('Update');
-    expect(updateButtonReinitialize).not.toHaveClassName('disabled');
+    const updateButton = screen.getByRole('button', { name: 'Update' });
 
-    fireEvent.click(updateButtonReinitialize);
+    fireEvent.click(updateButton);
     expect(saveProprietaryConfigSpy).toHaveBeenCalled();
   });
 
@@ -258,7 +246,7 @@ describe('ProprietaryComponentConfiguration', () => {
     const inputValue = screen.getAllByDisplayValue(labelInputValue);
     expect(inputValue.length).toBe(1);
 
-    const addButton = screen.getByText('Add').parentElement;
+    const addButton = screen.getByRole('button', { name: 'Add' });
     fireEvent.click(addButton);
 
     const localList = screen.getByRole('list', { name: 'Local' });

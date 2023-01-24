@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm, NxToggle, NxButton } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxToggle, NxButton } from '@sonatype/react-shared-components';
 
 export default function SuccessMetricsConfiguration(props) {
   const { load, update, toggleIsEnabled, resetForm } = props;
@@ -22,7 +22,7 @@ export default function SuccessMetricsConfiguration(props) {
         <h1 className="nx-h1">Success Metrics</h1>
       </div>
       <section id="success-metrics-configuration" className="nx-tile">
-        <NxForm
+        <NxStatefulForm
           onSubmit={update}
           loadError={loadError}
           loading={loading}
@@ -53,7 +53,7 @@ export default function SuccessMetricsConfiguration(props) {
               Enable Success Metrics
             </NxToggle>
           </div>
-        </NxForm>
+        </NxStatefulForm>
       </section>
     </main>
   );

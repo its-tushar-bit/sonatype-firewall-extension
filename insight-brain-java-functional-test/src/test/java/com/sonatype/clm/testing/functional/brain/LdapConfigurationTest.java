@@ -6,20 +6,20 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.ILdapForm;
 import com.sonatype.clm.testing.functional.elements.LdapConnectionForm;
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm;
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm.CheckUserMappingModal;
 import com.sonatype.clm.testing.functional.elements.LdapUserAndGroupSettingsForm.TestLoginModal;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.LdapConfigurationPage;
-import com.sonatype.clm.testing.functional.pages.LdapServerListPage.ListRow;
 import com.sonatype.clm.testing.functional.pages.LdapConfigurationPage.CreateServer;
 import com.sonatype.clm.testing.functional.pages.LdapServerListPage;
+import com.sonatype.clm.testing.functional.pages.LdapServerListPage.ListRow;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
@@ -43,6 +43,7 @@ import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class LdapConfigurationTest
     extends AbstractFunctionalTest
@@ -96,10 +97,13 @@ public class LdapConfigurationTest
     CreateServer createPage = LdapConfigurationPage.ldapNameEditor();
     SelenideElement serverNameInput = createPage.serverNameInput();
 
-    createPage.save().shouldBe(CLM.DISABLED);
     createPage.cancel().shouldBe(enabled);
+    createPage.save().shouldBe(enabled).click();
+    FormUtils.getAlertElement(createPage)
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save"));
 
     serverNameInput.shouldBe(visible).setValue("Another Ldap Server");
+    createPage.cancel().shouldBe(enabled);
     createPage.save().shouldBe(enabled).click();
 
     createPage.save().shouldBe(hidden);
@@ -361,7 +365,6 @@ public class LdapConfigurationTest
 
     // Connection saved
     connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
-    connectionForm.saveButton().shouldBe(CLM.DISABLED);
 
     // Ensure persisted Connection matches
     LdapConnection persistedLdapConnection = new LdapConnectionDAO().getByServerId(ldapServer.getId());
@@ -384,7 +387,6 @@ public class LdapConfigurationTest
     connectionForm.authenticationMethod().chooseOption(new Option(0, "NONE"));
     connectionForm.saveButton().scrollIntoView(false).shouldBe(enabled).click();
     connectionForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
-    connectionForm.saveButton().shouldBe(CLM.DISABLED);
   }
 
   private void testUserMapping() {
@@ -396,7 +398,6 @@ public class LdapConfigurationTest
 
     userAndGroupSettingsForm.checkUserLoginButton().scrollIntoView(false).shouldBe(visible, disabled);
     userAndGroupSettingsForm.checkUserMappingButton().shouldBe(visible, disabled);
-    userAndGroupSettingsForm.saveButton().shouldBe(visible, CLM.DISABLED);
 
     // Fill out form
     userAndGroupSettingsForm.userObjectClass().scrollIntoView(false).shouldBe(empty).setValue("person");
@@ -452,7 +453,6 @@ public class LdapConfigurationTest
     // Save and ensure persistence of the user mapping
     userAndGroupSettingsForm.saveButton().scrollIntoView(false).shouldBe(enabled).click();
     userAndGroupSettingsForm.successAlertBox().shouldBe(visible).shouldHave(text("Configuration saved."));
-    userAndGroupSettingsForm.saveButton().shouldBe(CLM.DISABLED);
 
     LdapUserMapping persistedLdapUserMapping = new LdapUserMappingDAO().getByServerId(ldapServer.getId());
 

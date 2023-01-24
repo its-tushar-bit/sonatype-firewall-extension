@@ -1478,9 +1478,8 @@ public class ScmOnboardingTest
 
     // when creating a new organization
     scmOnboardingPage.newOrgButton().click();
-    scmOnboardingPage.createOrgButton().shouldHave(cssClass("disabled"));
+    scmOnboardingPage.createOrgButton().shouldBe(visible);
     scmOnboardingPage.newOrgName().setValue("Foo Organization");
-    scmOnboardingPage.createOrgButton().shouldNotHave(cssClass("disabled"));
 
     eyesWatcher.eyesCheck("ScmOnboarding new organization modal");
 
@@ -1530,9 +1529,8 @@ public class ScmOnboardingTest
 
     // when creating a new organization with whitespace in its name
     scmOnboardingPage.newOrgButton().click();
-    scmOnboardingPage.createOrgButton().shouldHave(cssClass("disabled"));
+    scmOnboardingPage.createOrgButton().shouldBe(visible);
     scmOnboardingPage.newOrgName().setValue("  Foo Organization  ");
-    scmOnboardingPage.createOrgButton().shouldNotHave(cssClass("disabled"));
     scmOnboardingPage.createOrgButton().click();
     scmOnboardingPage.newOrgModal().shouldBe(hidden);
 
@@ -1625,9 +1623,8 @@ public class ScmOnboardingTest
 
     // when creating a new organization
     scmOnboardingPage.newOrgButton().click();
-    scmOnboardingPage.createOrgButton().shouldHave(cssClass("disabled"));
+    scmOnboardingPage.createOrgButton().shouldBe(visible);
     scmOnboardingPage.newOrgName().setValue("Foo Organization");
-    scmOnboardingPage.createOrgButton().shouldNotHave(cssClass("disabled"));
     scmOnboardingPage.createOrgButton().click();
     scmOnboardingPage.newOrgModal().shouldBe(hidden);
 

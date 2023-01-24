@@ -9,7 +9,7 @@ import * as PropTypes from 'prop-types';
 import {
   NxButton,
   NxFontAwesomeIcon,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxModal,
   NxTextInput,
@@ -88,7 +88,7 @@ function NewOrganizationModal({
   } else {
     return (
       <NxModal onClose={closeModal} variant="narrow" id="new-organization-modal">
-        <NxForm
+        <NxStatefulForm
           onSubmit={addOrganizationClicked}
           onCancel={closeModal}
           validationErrors={newOrganizationName.validationErrors}
@@ -114,7 +114,7 @@ function NewOrganizationModal({
               />
             </NxFormGroup>
           </div>
-        </NxForm>
+        </NxStatefulForm>
       </NxModal>
     );
   }

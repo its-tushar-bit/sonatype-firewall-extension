@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 
 import { actions } from './artifactoryRepositoryDeleteConfigurationModalSlice';
 
@@ -29,7 +29,7 @@ export default function ArtifactoryRepositoryDeleteConfigurationModal() {
         onCancel={() => hideModal()}
         aria-labelledby="artifactory-repository-configuration-delete-modal-header"
       >
-        <NxForm
+        <NxStatefulForm
           onSubmit={deleteConfiguration}
           onCancel={() => hideModal()}
           submitError={deleteConfigurationError}
@@ -46,7 +46,7 @@ export default function ArtifactoryRepositoryDeleteConfigurationModal() {
           <div className="nx-modal-content">
             <NxWarningAlert>This will disable querying your configured repository.</NxWarningAlert>
           </div>
-        </NxForm>
+        </NxStatefulForm>
       </NxModal>
     )
   );

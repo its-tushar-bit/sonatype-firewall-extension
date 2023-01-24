@@ -18,13 +18,7 @@ const mapDispatchToProps = {
 function mapStateToProps({ manageFilters }) {
   return {
     ...pick(
-      [
-        'appliedFilterName',
-        'existingDuplicateFilterName',
-        'saveFilterSaving',
-        'saveFilterSuccess',
-        'saveFilterWarning',
-      ],
+      ['appliedFilterName', 'existingDuplicateFilterName', 'saveFilterMaskState', 'saveFilterWarning'],
       manageFilters
     ),
     saveError: Messages.getHttpErrorMessage(manageFilters.saveFilterError),

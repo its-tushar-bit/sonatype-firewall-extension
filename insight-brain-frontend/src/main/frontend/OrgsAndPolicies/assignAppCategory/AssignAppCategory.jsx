@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { NxForm, NxPageTitle, NxH1, NxTile, NxLoadWrapper } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxPageTitle, NxH1, NxTile, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { actions } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSlice';
 import {
   selectLoadingApplicableCategories,
@@ -57,7 +57,7 @@ export default function AssignAppCategory() {
       </NxPageTitle>
       <NxTile>
         <NxLoadWrapper loading={loading} error={loadError} retryHandler={doLoad}>
-          <NxForm
+          <NxStatefulForm
             submitBtnText="Update"
             submitMaskState={submitMaskState}
             submitMaskMessage="Saving…"
@@ -80,7 +80,7 @@ export default function AssignAppCategory() {
                 onChange={handleCheckedChange}
               />
             </NxTile.Content>
-          </NxForm>
+          </NxStatefulForm>
         </NxLoadWrapper>
       </NxTile>
     </div>

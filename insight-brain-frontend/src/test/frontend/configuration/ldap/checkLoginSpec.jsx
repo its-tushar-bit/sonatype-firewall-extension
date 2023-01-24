@@ -5,7 +5,7 @@
  */
 import {
   NxErrorAlert,
-  NxForm,
+  NxStatefulForm,
   NxModal,
   NxSuccessAlert,
   nxTextInputStateHelpers,
@@ -56,7 +56,7 @@ describe('CheckLogin', () => {
 
   it('calls checkLogin on submit', () => {
     const shallowComponent = getShallowComponent();
-    const form = shallowComponent.find(NxForm);
+    const form = shallowComponent.find(NxStatefulForm);
     form.simulate('submit');
     expect(mockCheckLogin).toHaveBeenCalledWith('LDAP-ID');
   });

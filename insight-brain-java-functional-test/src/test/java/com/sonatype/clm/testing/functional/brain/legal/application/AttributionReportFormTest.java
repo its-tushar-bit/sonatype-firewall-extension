@@ -13,10 +13,10 @@ import java.time.Duration;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.AttributionReportFormPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
@@ -39,6 +39,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Selenide.switchTo;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class AttributionReportFormTest
     extends AbstractFunctionalTest
@@ -113,7 +114,7 @@ public class AttributionReportFormTest
     SelenideElement titleInput = attrReportFormPage.getTitleInput();
     titleInput.setValue("a");
     titleInput.sendKeys(Keys.BACK_SPACE);
-    titleInput.parent().parent().$(".nx-text-input__invalid-message")
+    titleInput.parent().parent().$(".nx-field-validation-message")
             .shouldHave(text(emptyValueValidationErrorMsg));
   }
 
@@ -127,8 +128,9 @@ public class AttributionReportFormTest
     titleInput.setValue("a");
     titleInput.sendKeys(Keys.BACK_SPACE);
 
-    submitButton.hover();
-    Tooltip.get().getElement().shouldHave(text("Report Title cannot be empty"));
+    submitButton.click();
+    FormUtils.getAlertElement(attrReportFormPage)
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " Report Title cannot be empty"));
   }
 
   private void testFilesUpload(AttributionReportFormPage attrReportFormPage, boolean testDelete) throws IOException {

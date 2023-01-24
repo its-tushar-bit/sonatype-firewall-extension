@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  NxForm,
+  NxStatefulForm,
   NxPageTitle,
   NxH1,
   NxTile,
@@ -121,7 +121,7 @@ export default function CreateEditApplicationCategory() {
       </NxPageTitle>
 
       <NxTile>
-        <NxForm
+        <NxStatefulForm
           id="create-edit-category"
           onSubmit={saveCategory}
           submitBtnText={categoryId ? 'Update' : 'Create'}
@@ -163,12 +163,12 @@ export default function CreateEditApplicationCategory() {
               isRequired
             />
           </NxTile.Content>
-        </NxForm>
+        </NxStatefulForm>
       </NxTile>
 
       {isDeleteModalOpen && (
         <NxModal id="category-delete-modal" aria-labelledby="category-delete-modal-header" onClose={closeDeleteModal}>
-          <NxForm
+          <NxStatefulForm
             submitMaskState={deleteMaskState}
             submitError={deleteError}
             {...getDeleteModalProps(isCategoryCannotBeDeleted)}
@@ -183,7 +183,7 @@ export default function CreateEditApplicationCategory() {
                 {getDeleteModalWarningMessage(isCategoryCannotBeDeleted, tagPolicyList, associatedApplicationNames)}
               </NxWarningAlert>
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </NxModal>
       )}
     </>

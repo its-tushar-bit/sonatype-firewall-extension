@@ -48,7 +48,7 @@ public class LabelEditorPage
   }
 
   public static SelenideElement labelInvalidMessage() {
-    return $("#editor-label-name > .nx-text-input > .nx-text-input__invalid-message");
+    return $("#editor-label-name > .nx-text-input > .nx-field-validation-message");
   }
 
   public static SelenideElement descriptionDiv() {
@@ -60,7 +60,7 @@ public class LabelEditorPage
   }
 
   public static SelenideElement descriptionInvalidMessage() {
-    return $("#editor-label-description > .nx-text-input > .nx-text-input__invalid-message");
+    return $("#editor-label-description > .nx-text-input > .nx-field-validation-message");
   }
 
   public static NxColorPicker nxColorPicker() {

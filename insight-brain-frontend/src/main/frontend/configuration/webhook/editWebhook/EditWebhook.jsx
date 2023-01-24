@@ -12,7 +12,7 @@ import {
   NxCheckbox,
   NxFieldset,
   NxFontAwesomeIcon,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxInfoAlert,
   NxModal,
@@ -93,7 +93,7 @@ function EditWebhook({
           <h1 className="nx-h1">{createMode ? 'Create' : 'Edit'} Webhook</h1>
         </div>
         <section className="nx-tile">
-          <NxForm
+          <NxStatefulForm
             onSubmit={saveWebhook}
             submitBtnText={createMode ? 'Create' : 'Update'}
             submitMaskState={updateMaskState}
@@ -159,12 +159,12 @@ function EditWebhook({
                 {availableEventTypes.map(renderCheckbox)}
               </NxFieldset>
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </section>
       </main>
       {showModal && (
         <NxModal onClose={toggleShowModal} variant="narrow" id="delete-modal">
-          <NxForm
+          <NxStatefulForm
             className="nx-form"
             onSubmit={() => deleteWebhook(webhookId)}
             submitMaskState={deleteMaskState}
@@ -183,7 +183,7 @@ function EditWebhook({
                 You are about to permanently remove webhook for {url.value}. This action cannot be undone.
               </NxWarningAlert>
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </NxModal>
       )}
     </Fragment>

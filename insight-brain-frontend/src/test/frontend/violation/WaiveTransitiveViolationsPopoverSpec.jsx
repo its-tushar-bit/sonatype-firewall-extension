@@ -106,6 +106,7 @@ describe('WaiveTransitiveViolationsPopover', function () {
     cancel.simulate('click');
     expect(spyCancel).toHaveBeenCalled();
     expect(spyToggleWaiveTransitiveViolations).toHaveBeenCalled();
+    wrapper.unmount();
   });
 
   it('calls save when the save button is clicked', function () {
@@ -127,6 +128,7 @@ describe('WaiveTransitiveViolationsPopover', function () {
     const retry = wrapper.find(NxLoadError).find('.nx-btn');
     retry.simulate('click');
     expect(spySave).toHaveBeenCalled();
+    wrapper.unmount();
   });
 
   it('shows the scope', function () {
@@ -137,7 +139,7 @@ describe('WaiveTransitiveViolationsPopover', function () {
 
   it('shows the waiver expiration options as a select with the correct initial value', function () {
     const wrapper = getShallowComponent();
-    const select = wrapper.find('select');
+    const select = wrapper.find('#waive-transitive-violations-expirations');
     expect(select).toHaveProp('value', 'never');
     const options = wrapper.find('option');
     expect(options.length).toBe(waiverExpirations.length);
@@ -149,7 +151,7 @@ describe('WaiveTransitiveViolationsPopover', function () {
 
   it('updates the expiration on change', function () {
     const wrapper = getShallowComponent();
-    const select = wrapper.find('select');
+    const select = wrapper.find('#waive-transitive-violations-expirations');
     select.simulate('change', { currentTarget: { value: '7' } });
     expect(spySetExpiration).toHaveBeenCalledWith('7');
   });

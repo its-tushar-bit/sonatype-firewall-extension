@@ -95,7 +95,7 @@ public class AddWaiverPage
   }
 
   public SelenideElement customExpiryTimeErrorMessage() {
-    return child(".iq-add-waiver-form__date-input .nx-text-input__invalid-message");
+    return child(".iq-add-waiver-form__date-input .nx-field-validation-message");
   }
 
   public SelenideElement expiryTimeMessage() {
@@ -107,11 +107,11 @@ public class AddWaiverPage
   }
 
   public Button saveButton() {
-    return new Button("#add-waiver-submit");
+    return new Button(".add-waiver-submit");
   }
 
   public Button cancelButton() {
-    return new Button("#add-waiver-cancel");
+    return new Button(".nx-form__cancel-btn");
   }
 
   public SelenideElement submitError() {

@@ -180,11 +180,11 @@ public class ScmOnboardingPage
   }
 
   public SelenideElement hostUrlInvalidMessage() {
-    return child(".nx-modal-content .nx-text-input__invalid-message");
+    return child(".nx-modal-content .nx-field-validation-message");
   }
 
   public SelenideElement newOrganizationInvalidMessage() {
-    return child(".nx-modal-content .nx-text-input__invalid-message");
+    return child(".nx-modal-content .nx-field-validation-message");
   }
 
   public SelenideElement modalDialog() {

@@ -6,15 +6,15 @@
 import React, { useEffect, useState, Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import { pick } from 'ramda';
-import classnames from 'classnames';
 import { faTrashAlt } from '@fortawesome/pro-regular-svg-icons';
 import {
-  NxForm,
+  NxStatefulForm,
   NxButton,
   NxModal,
   NxTextInput,
   NxWarningAlert,
   NxFontAwesomeIcon,
+  NxFormGroup,
 } from '@sonatype/react-shared-components';
 
 export default function ProxyConfig({
@@ -58,25 +58,18 @@ export default function ProxyConfig({
 
   const [showModal, setShowModal] = useState(false);
 
-  function field(fieldState, onChange, placeholder, id, label, optional = false, validatable = true) {
-    const labelClasses = classnames('nx-label', {
-      'nx-label--optional': optional,
-    });
-
+  function field(fieldState, onChange, placeholder, id, label, required = true, validatable = true) {
     // The autoComplete setting is a hack to stop chrome autofilling the user's username and password
     // https://stackoverflow.com/a/55292734
     return (
-      <div className="nx-form-group">
-        <label className={labelClasses}>
-          <span className="nx-label__text">{label}</span>
-          <NxTextInput
-            {...fieldState}
-            {...{ onChange, placeholder, id, validatable }}
-            className="nx-text-input--long"
-            autoComplete="new-password"
-          />
-        </label>
-      </div>
+      <NxFormGroup isRequired={required} label={label}>
+        <NxTextInput
+          {...fieldState}
+          {...{ onChange, placeholder, id, validatable }}
+          className="nx-text-input--long"
+          autoComplete="new-password"
+        />
+      </NxFormGroup>
     );
   }
 
@@ -86,7 +79,7 @@ export default function ProxyConfig({
 
   const deleteModal = (
     <NxModal id="proxy-config-delete-modal" onClose={modalCloseHandler} variant="narrow">
-      <NxForm
+      <NxStatefulForm
         className="nx-form"
         onSubmit={() => del(modalCloseHandler)}
         onCancel={modalCloseHandler}
@@ -104,7 +97,7 @@ export default function ProxyConfig({
         <div className="nx-modal-content">
           <NxWarningAlert>This will remove the configured proxy.</NxWarningAlert>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 
@@ -131,7 +124,7 @@ export default function ProxyConfig({
         <h1 className="nx-h1">Proxy</h1>
       </div>
       <section id="proxy-configuration" className="nx-tile">
-        <NxForm
+        <NxStatefulForm
           onSubmit={save}
           loadError={loadError}
           loading={loading}
@@ -141,6 +134,7 @@ export default function ProxyConfig({
           submitBtnText="Save"
           submitError={saveError}
           validationErrors={getValidationErrors()}
+          onCancel={resetForm}
           additionalFooterBtns={
             <Fragment>
               <NxButton
@@ -151,9 +145,6 @@ export default function ProxyConfig({
               >
                 <NxFontAwesomeIcon icon={faTrashAlt} />
                 <span>Delete Configuration</span>
-              </NxButton>
-              <NxButton type="button" id="proxy-config-cancel" onClick={resetForm} disabled={!isDirty}>
-                Cancel
               </NxButton>
             </Fragment>
           }
@@ -175,43 +166,37 @@ export default function ProxyConfig({
             )}
             {field(hostnameState, setHostname, 'proxy.server', 'proxy-config-hostname', 'Hostname')}
             {field(portState, setPort, '8080', 'proxy-config-port', 'Port')}
-            {field(usernameState, setUsername, 'admin', 'proxy-config-username', 'Username', true, false)}
-            <div className="nx-form-group">
-              <label className="nx-label nx-label--optional">
-                <span className="nx-label__text">Password</span>
-                {hasAllRequiredData && mustReenterPassword && (
-                  <span className="nx-sub-label iq-password-sub-label">
-                    Must be re-entered when Hostname or Port is modified.
-                  </span>
-                )}
-                <NxTextInput
-                  {...passwordState}
-                  id="proxy-config-password"
-                  onChange={setPassword}
-                  onFocus={(evt) => {
-                    evt.target.select();
-                  }}
-                  className="nx-text-input--long"
-                  type="password"
-                  autoComplete="new-password"
-                />
-              </label>
-            </div>
-            <div className="nx-form-group">
-              <label className="nx-label nx-label--optional">
-                <span className="nx-label__text">Exclude Hosts</span>
-                <span className="nx-sub-label">Must be comma delimited.</span>
-                <NxTextInput
-                  {...excludeHostsState}
-                  id="proxy-config-exclude-hosts"
-                  onChange={setExcludeHosts}
-                  className="nx-text-input--long"
-                  type="textarea"
-                />
-              </label>
-            </div>
+            {field(usernameState, setUsername, 'admin', 'proxy-config-username', 'Username', false, false)}
+            <NxFormGroup
+              className="nx-label"
+              label="Password"
+              sublabel={
+                hasAllRequiredData && mustReenterPassword ? 'Must be re-entered when Hostname or Port is modified.' : ''
+              }
+            >
+              <NxTextInput
+                {...passwordState}
+                id="proxy-config-password"
+                onChange={setPassword}
+                onFocus={(evt) => {
+                  evt.target.select();
+                }}
+                className="nx-text-input--long"
+                type="password"
+                autoComplete="new-password"
+              />
+            </NxFormGroup>
+            <NxFormGroup className="nx-label" label="Exclude Hosts" sublabel="Must be comma delimited.">
+              <NxTextInput
+                {...excludeHostsState}
+                id="proxy-config-exclude-hosts"
+                onChange={setExcludeHosts}
+                className="nx-text-input--long"
+                type="textarea"
+              />
+            </NxFormGroup>
           </div>
-        </NxForm>
+        </NxStatefulForm>
       </section>
       {showModal && deleteModal}
     </main>

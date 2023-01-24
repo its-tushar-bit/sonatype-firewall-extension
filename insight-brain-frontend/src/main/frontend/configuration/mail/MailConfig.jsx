@@ -9,20 +9,27 @@ import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { faTrashAlt } from '@fortawesome/pro-regular-svg-icons';
 import {
+  hasValidationErrors,
   NxButton,
+  NxButtonBar,
   NxCheckbox,
   NxFieldset,
   NxFontAwesomeIcon,
+  NxFormGroup,
+  NxFormRow,
+  NxH2,
   NxInfoAlert,
   NxModal,
-  NxSubmitMask,
+  NxP,
+  NxPageMain,
+  NxStatefulForm,
   NxTextInput,
-  NxTooltip,
+  NxTextLink,
+  NxTile,
   NxWarningAlert,
 } from '@sonatype/react-shared-components';
-import LoadWrapper from '../../react/LoadWrapper';
+import { reject, isNil } from 'ramda';
 import LoadError from '../../react/LoadError';
-import NxExternalLink from '../../react/NxExternalLink';
 
 const authErrorMessage =
   'It appears you do not have permission to access this page.  ' +
@@ -70,7 +77,6 @@ export default function MailConfig(props) {
       testEmailSent,
       isAuthorized,
     } = props,
-    isSubmitEnabled = hasAllRequiredData && isDirty && isValid && !mustReenterPassword,
     loadError = isAuthorized ? loadErrorProp : authErrorMessage;
 
   // Fetch Email Configuration when page is opened
@@ -78,33 +84,18 @@ export default function MailConfig(props) {
     load();
   }, []);
 
-  function onSubmit(evt) {
-    evt.preventDefault();
-
-    if (isSubmitEnabled) {
-      save();
-    }
-  }
-
   function field(fieldState, onChange, placeholder, id, label, optional = false, validatable = true) {
-    const labelClasses = classnames('nx-label', {
-      'nx-label--optional': optional,
-    });
-
     // The autoComplete setting is a hack to stop chrome autofilling the user's username and password
     // https://stackoverflow.com/a/55292734
     return (
-      <div className="nx-form-group">
-        <label className={labelClasses}>
-          <span className="nx-label__text">{label}</span>
-          <NxTextInput
-            {...fieldState}
-            {...{ onChange, placeholder, id, validatable }}
-            className="nx-text-input--long"
-            autoComplete="new-password"
-          />
-        </label>
-      </div>
+      <NxFormGroup label={label} isRequired={!optional}>
+        <NxTextInput
+          {...fieldState}
+          {...{ onChange, placeholder, id, validatable }}
+          className="nx-text-input--long"
+          autoComplete="new-password"
+        />
+      </NxFormGroup>
     );
   }
 
@@ -130,35 +121,38 @@ export default function MailConfig(props) {
 
   const modal = (
     <NxModal id="mail-config-delete-modal" onClose={() => setShowDeleteModal(false)}>
-      <header className="nx-modal-header">
-        <h2 className="nx-h2">Delete Email Configuration?</h2>
-      </header>
-      <div className="nx-modal-content">
-        <NxWarningAlert>
-          <span>This will disable all email notifications.</span>
-        </NxWarningAlert>
-      </div>
-      <footer className="nx-footer">
-        <div className="nx-btn-bar">
-          <NxButton
-            type="button"
-            id="mail-config-delete-cancel"
-            onClick={() => setShowDeleteModal(false)}
-            className="nx-btn"
-          >
-            Cancel
-          </NxButton>
-          <NxButton type="button" id="mail-config-delete-ok" onClick={del} className="nx-btn nx-btn--primary">
-            OK
-          </NxButton>
-        </div>
-      </footer>
+      <NxStatefulForm
+        onSubmit={del}
+        onCancel={() => setShowDeleteModal(false)}
+        submitBtnText="OK"
+        submitError={deleteError}
+      >
+        <NxModal.Header>
+          <NxH2>Delete Email Configuration?</NxH2>
+        </NxModal.Header>
+        <NxModal.Content>
+          <NxWarningAlert>
+            <span>This will disable all email notifications.</span>
+          </NxWarningAlert>
+        </NxModal.Content>
+      </NxStatefulForm>
     </NxModal>
   );
 
-  const saveButtonTooltipText = !hasAllRequiredData
-    ? 'Hostname, Port and System Email are required details.'
-    : 'Password must be provided when updating Hostname or Port.';
+  const formValidationErrors = reject(isNil, [
+    mustReenterPassword ? 'Password must be provided when updating Hostname or Port.' : null,
+    hasAllRequiredData ? null : 'Hostname, Port and System Email are required details.',
+    isDirty ? null : 'There are no changes to save',
+  ]);
+
+  /*
+   * Do not pass the submitError to the form when there are validation errors.
+   * This is a workaround for a likely bug in RSC where it prefers to show the submit error over the
+   * validation error when both are present, while it really should probably do the opposite. If the
+   * submit error is displayed when there are also validation errors, the Retry button in the submit
+   * error does nothing
+   */
+  const submitError = hasValidationErrors(formValidationErrors) ? null : saveError;
 
   // If required fields are not filled in, mention that
   // Otherwise either mention password is required (if it is), or no tooltip
@@ -179,149 +173,116 @@ export default function MailConfig(props) {
     return hasAllRequiredData && isValid && testEmailState.trimmedValue && !mustReenterPassword;
   }
 
-  const isSaveTooltipHidden = !isDirty || isSubmitEnabled;
-  const form = (
-    <Fragment>
-      {/* Input Fields */}
-      {field(hostnameState, setHostname, 'smtp.server.com', 'email-config-hostname', 'Hostname')}
-      {field(portState, setPort, '465', 'email-config-port', 'Port')}
-      {field(usernameState, setUsername, 'admin', 'email-config-username', 'Username', true, false)}
+  const passwordSublabel =
+    hasAllRequiredData && mustReenterPassword ? 'Must be re-entered when Hostname or Port is modified.' : null;
 
-      <div className="nx-form-group">
-        <label className="nx-label nx-label--optional">
-          <span className="nx-label__text">Password</span>
-          {hasAllRequiredData && mustReenterPassword && (
-            <span className="nx-sub-label">Must be re-entered when Hostname or Port is modified.</span>
-          )}
-          <NxTextInput
-            {...passwordState}
-            id="email-config-password"
-            onChange={setPassword}
-            onFocus={(evt) => {
-              evt.target.select();
-            }}
-            className="nx-text-input--long"
-            type="password"
-            autoComplete="new-password"
-          />
-        </label>
-      </div>
+  const cancelAndDeleteBtns = (
+    <>
+      <NxButton type="button" id="email-config-delete" onClick={() => setShowDeleteModal(true)} disabled={!serverData}>
+        <NxFontAwesomeIcon icon={faTrashAlt} />
+        <span>Delete Configuration</span>
+      </NxButton>
+      <NxButton type="button" id="email-config-cancel" onClick={resetForm} disabled={!isDirty}>
+        Cancel
+      </NxButton>
+    </>
+  );
+  return (
+    <NxPageMain id="mail-config-page-container">
+      <NxTile id="email-configuration">
+        <NxStatefulForm
+          loading={loading}
+          doLoad={load}
+          loadError={loadError}
+          onSubmit={save}
+          submitBtnText="Save"
+          submitError={submitError}
+          validationErrors={submitMaskMessage != 'Deleting' ? formValidationErrors : null}
+          // If an there is a validationError alert, it's cleared on "Delete Configuration"
+          submitMaskState={submitMaskState}
+          submitMaskMessage={submitMaskMessage}
+          additionalFooterBtns={cancelAndDeleteBtns}
+        >
+          <NxTile.Header>
+            <NxTile.HeaderTitle>
+              <NxH2>Email</NxH2>
+            </NxTile.HeaderTitle>
+          </NxTile.Header>
+          <NxTile.Content>
+            <NxP>
+              To receive email notifications for events enter the details of your SMTP Server here. For further details
+              see the{' '}
+              <NxTextLink external href="http://links.sonatype.com/products/nxiq/doc/email-configuration">
+                documentation
+              </NxTextLink>
+              .
+            </NxP>
+            {/* Input Fields */}
+            {field(hostnameState, setHostname, 'smtp.server.com', 'email-config-hostname', 'Hostname')}
+            {field(portState, setPort, '465', 'email-config-port', 'Port')}
+            {field(usernameState, setUsername, 'admin', 'email-config-username', 'Username', true, false)}
 
-      {field(systemEmailState, setSystemEmail, 'nexus@iqserver', 'email-config-systemEmail', 'System Email')}
-      <NxFieldset label="Security Options">
-        {sslInput}
-        {tlsInput}
-      </NxFieldset>
-
-      <section className="nx-tile-subsection">
-        <div className="nx-form-row">
-          <div className="nx-form-group">
-            <label className="nx-label">
-              <span className="nx-label__text">Test Configuration</span>
-              <span className="nx-sub-label">Send a test email to verify the configuration.</span>
+            <NxFormGroup label="Password" sublabel={passwordSublabel}>
               <NxTextInput
-                {...testEmailState}
-                id="email-config-test-email-recipient"
-                onChange={setTestEmail}
+                {...passwordState}
+                id="email-config-password"
+                onChange={setPassword}
                 onFocus={(evt) => {
                   evt.target.select();
                 }}
                 className="nx-text-input--long"
+                type="password"
                 autoComplete="new-password"
               />
-            </label>
-          </div>
-          <div className="nx-btn-bar">
-            <NxTooltip title={sendTestEmailTooltipText || ''}>
-              <NxButton
-                type="button"
-                id="email-config-test-email-send"
-                onClick={sendTestEmailOnClickHandler}
-                className={classnames({ disabled: !isSendTestEmailEnabled() })}
-              >
-                Send Test Email
-              </NxButton>
-            </NxTooltip>
-          </div>
-        </div>
+            </NxFormGroup>
 
-        {testEmailSent && <NxInfoAlert>A test email has been sent. Please check your mailbox.</NxInfoAlert>}
-        {testEmailError && (
-          <LoadError titleMessage="Unabled to send test email." error={testEmailError} retryHandler={sendTestEmail} />
-        )}
-      </section>
+            {field(systemEmailState, setSystemEmail, 'nexus@iqserver', 'email-config-systemEmail', 'System Email')}
+            <NxFieldset label="Security Options">
+              {sslInput}
+              {tlsInput}
+            </NxFieldset>
 
-      {/* Buttons */}
-      <footer className="nx-footer">
-        {saveError && (
-          <LoadError
-            titleMessage="An error occurred while saving the configuration."
-            error={saveError}
-            retryHandler={onSubmit}
-          />
-        )}
-        {deleteError && (
-          <LoadError
-            titleMessage="An error occurred while deleting the configuration."
-            error={deleteError}
-            retryHandler={del}
-          />
-        )}
-        <div className="nx-btn-bar">
-          <NxButton
-            type="button"
-            id="email-config-delete"
-            onClick={() => setShowDeleteModal(true)}
-            disabled={!serverData}
-          >
-            <NxFontAwesomeIcon icon={faTrashAlt} />
-            <span>Delete Configuration</span>
-          </NxButton>
-          <NxButton type="button" id="email-config-cancel" onClick={resetForm} disabled={!isDirty}>
-            Cancel
-          </NxButton>
-          <NxTooltip title={isSaveTooltipHidden ? '' : saveButtonTooltipText}>
-            <NxButton
-              type="submit"
-              className={classnames({ disabled: !isSubmitEnabled })}
-              id="email-config-save"
-              variant="primary"
-            >
-              Save
-            </NxButton>
-          </NxTooltip>
-        </div>
-      </footer>
-      {showDeleteModal && modal}
-    </Fragment>
-  );
+            <NxTile.Subsection>
+              <NxFormRow>
+                <NxFormGroup label="Test Configuration" sublabel="Send a test email to verify the configuration.">
+                  <NxTextInput
+                    {...testEmailState}
+                    id="email-config-test-email-recipient"
+                    onChange={setTestEmail}
+                    onFocus={(evt) => {
+                      evt.target.select();
+                    }}
+                    className="nx-text-input--long"
+                    autoComplete="new-password"
+                  />
+                </NxFormGroup>
+                <NxButtonBar>
+                  <NxButton
+                    title={sendTestEmailTooltipText || ''}
+                    type="button"
+                    id="email-config-test-email-send"
+                    onClick={sendTestEmailOnClickHandler}
+                    className={classnames({ disabled: !isSendTestEmailEnabled() })}
+                  >
+                    Send Test Email
+                  </NxButton>
+                </NxButtonBar>
+              </NxFormRow>
 
-  return (
-    <main id="mail-config-page-container" className="nx-page-main">
-      <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
-        <section id="email-configuration" className="nx-tile">
-          <form className="nx-form" onSubmit={onSubmit}>
-            <header className="nx-tile-header">
-              <div className="nx-tile-header__title">
-                <h2 className="nx-h2">Email</h2>
-              </div>
-            </header>
-            <div className="nx-tile-content">
-              <p className="nx-p">
-                To receive email notifications for events enter the details of your SMTP Server here. For further
-                details see the{' '}
-                <NxExternalLink href="http://links.sonatype.com/products/nxiq/doc/email-configuration">
-                  documentation
-                </NxExternalLink>
-                .
-              </p>
-              {submitMaskState !== null && <NxSubmitMask success={submitMaskState} message={submitMaskMessage} />}
-              {form}
-            </div>
-          </form>
-        </section>
-      </LoadWrapper>
-    </main>
+              {testEmailSent && <NxInfoAlert>A test email has been sent. Please check your mailbox.</NxInfoAlert>}
+              {testEmailError && (
+                <LoadError
+                  titleMessage="Unabled to send test email."
+                  error={testEmailError}
+                  retryHandler={sendTestEmail}
+                />
+              )}
+            </NxTile.Subsection>
+          </NxTile.Content>
+        </NxStatefulForm>
+        {showDeleteModal && modal}
+      </NxTile>
+    </NxPageMain>
   );
 }
 

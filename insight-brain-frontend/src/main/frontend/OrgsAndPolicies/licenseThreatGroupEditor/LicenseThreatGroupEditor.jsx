@@ -6,7 +6,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  NxForm,
+  NxStatefulForm,
   NxPageTitle,
   NxH1,
   NxTile,
@@ -86,7 +86,7 @@ export default function LicenseThreatGroupEditor() {
         <NxH1>{isEditMode ? 'Edit' : 'New'} License Threat Group</NxH1>
       </NxPageTitle>
       <NxTile id="license-threat-group-editor">
-        <NxForm
+        <NxStatefulForm
           onSubmit={saveLicenseThreatGroup}
           submitBtnText={isEditMode ? 'Update' : 'Create'}
           submitMaskMessage="Saving…"
@@ -120,7 +120,7 @@ export default function LicenseThreatGroupEditor() {
               setSelectedLicenses={setPickedLicenses}
             />
           </NxTile.Content>
-        </NxForm>
+        </NxStatefulForm>
       </NxTile>
       {isDeleteModalOpen && (
         <NxModal
@@ -128,7 +128,7 @@ export default function LicenseThreatGroupEditor() {
           aria-labelledby="ltg-config-delete-modal-header"
           onClose={closeDeleteModal}
         >
-          <NxForm
+          <NxStatefulForm
             onSubmit={removeLicenseThreatGroup}
             submitMaskState={deleteMaskState}
             onCancel={closeDeleteModal}
@@ -147,7 +147,7 @@ export default function LicenseThreatGroupEditor() {
                 You are about to permanently remove {dirtyLTG.name.value}. This action cannot be undone.
               </NxWarningAlert>
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </NxModal>
       )}
     </>

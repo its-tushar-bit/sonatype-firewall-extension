@@ -10,7 +10,7 @@ import {
   NxFormGroup,
   NxTextInput,
   NxButton,
-  NxForm,
+  NxStatefulForm,
   NxFontAwesomeIcon,
   NxModal,
   NxWarningAlert,
@@ -89,7 +89,7 @@ function RoleEditor({
           <h1 className="nx-h1">{creationMode ? 'Create' : 'Edit'} a Role</h1>
         </div>
         <section className="nx-tile">
-          <NxForm
+          <NxStatefulForm
             loading={loading}
             onCancel={() => stateGo('rolesList')}
             submitBtnText="Save"
@@ -162,12 +162,12 @@ function RoleEditor({
                 );
               })}
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </section>
       </main>
       {showModal && (
         <NxModal onClose={modalCloseHandler} variant="narrow">
-          <NxForm
+          <NxStatefulForm
             className="nx-form"
             onSubmit={() => deleteRole(roleId)}
             onCancel={modalCloseHandler}
@@ -187,7 +187,7 @@ function RoleEditor({
                 {roleName.trimmedValue}?
               </NxWarningAlert>
             </div>
-          </NxForm>
+          </NxStatefulForm>
         </NxModal>
       )}
     </Fragment>

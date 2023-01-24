@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import RemoveLabelModal from 'MainRoot/componentDetails/ManageComponentLabels/RemoveLabelModal/RemoveLabelModal';
-import { NxForm, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxWarningAlert } from '@sonatype/react-shared-components';
 
 describe('RemoveLabelModal', () => {
   let minimalProps, getShallow;
@@ -37,21 +37,21 @@ describe('RemoveLabelModal', () => {
   });
 
   it('calls removeLabel', () => {
-    const component = getShallow().find(NxForm);
+    const component = getShallow().find(NxStatefulForm);
     component.simulate('submit');
 
     expect(minimalProps.removeLabel).toHaveBeenCalled();
   });
 
   it('calls toggleShowRemoveLabelModal when user clicks cancel', () => {
-    const component = getShallow().find(NxForm);
+    const component = getShallow().find(NxStatefulForm);
     component.simulate('cancel');
 
     expect(minimalProps.toggleShowRemoveLabelModal).toHaveBeenCalled();
   });
 
   it('displays an error message if theres any error removing the label', () => {
-    const component = getShallow({ removeLabelError: 'some err' }).find(NxForm);
+    const component = getShallow({ removeLabelError: 'some err' }).find(NxStatefulForm);
 
     expect(component).toHaveProp('submitError', 'some err');
   });

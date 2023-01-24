@@ -99,9 +99,14 @@ describe('mailConfigSlice reducer', function () {
   });
 
   describe('mailConfig/delete/fulfilled action', function () {
-    it('sets submitMaskState to true', function () {
+    it('sets submitMaskState to true and enables input validation errors', function () {
       const state = Object.freeze({
         submitMaskState: false,
+        formState: {
+          hostname: initialState(''),
+          port: initialState(''),
+          systemEmail: initialState(''),
+        },
       });
 
       const newState = reduce(state, {
@@ -109,6 +114,9 @@ describe('mailConfigSlice reducer', function () {
       });
 
       expect(newState.submitMaskState).toBe(true);
+      expect(newState.formState.hostname.validationErrors).toBeTruthy();
+      expect(newState.formState.port.validationErrors).toBeTruthy();
+      expect(newState.formState.systemEmail.validationErrors).toBeTruthy();
     });
   });
 
@@ -203,7 +211,7 @@ describe('mailConfigSlice reducer', function () {
       });
 
       expect(newState.isDirty).toBe(false);
-      expect(newState.isValid).toBe(true);
+      expect(newState.isValid).toBe(false);
       expect(newState.hasAllRequiredData).toBe(false);
       expect(newState.loading).toBe(false);
       expect(newState.submitMaskState).toBe(null);
@@ -224,6 +232,9 @@ describe('mailConfigSlice reducer', function () {
       expect(newState.formState.startTlsEnabled).toBe(false);
       expect(newState.formState.systemEmail.value).toBe('');
       expect(newState.formState.testEmail.value).toBe('');
+      expect(newState.formState.hostname.validationErrors).toBeTruthy();
+      expect(newState.formState.port.validationErrors).toBeTruthy();
+      expect(newState.formState.systemEmail.validationErrors).toBeTruthy();
     });
 
     it('resets the formState based on the serverData', function () {
@@ -382,7 +393,7 @@ describe('mailConfigSlice reducer', function () {
         expect(newState.formState.hostname.value).toBe('asdf');
         expect(newState.formState.hostname.trimmedValue).toBe('asdf');
         expect(newState.formState.hostname.isPristine).toBe(false);
-        expect(newState.formState.hostname.validationErrors).toBeFalsy();
+        expect(newState.formState.hostname.validationErrors.length).toBe(0);
         expect(newState.other).toBe(otherObject);
       });
     });

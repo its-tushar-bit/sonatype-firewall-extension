@@ -96,7 +96,6 @@ public class LabelEditorTest
     LabelEditorPage.descriptionDiv().shouldHave(cssClass("pristine"));
     LabelEditorPage.description().shouldBe(visible).shouldHave(value("original description"));
     LabelEditorPage.nxColorPicker().shouldBe(visible).color("kiwi").shouldHave(cssClass("selected"));
-    LabelEditorPage.saveButton().shouldHave(cssClass("disabled"));
     // when
     LabelEditorPage.labelName().val("updated name");
     LabelEditorPage.description().val("updated description");
@@ -108,7 +107,6 @@ public class LabelEditorTest
     LabelEditorPage.labelName().shouldBe(visible).shouldHave(value("updated name"));
     LabelEditorPage.description().shouldBe(visible).shouldHave(value("updated description"));
     LabelEditorPage.nxColorPicker().shouldBe(visible).color("red").shouldHave(cssClass("selected"));
-    LabelEditorPage.saveButton().shouldHave(cssClass("disabled"));
 
     label = getLabelByName(app.getOrganizationId(), "updated name");
     assertThat(label).isNotNull();
@@ -163,11 +161,9 @@ public class LabelEditorTest
     LabelEditorPage.labelName().val("$$$");
     // then error on name, disabled save
     LabelEditorPage.labelInvalidMessage().shouldBe(visible).shouldHave(text("Use valid characters"));
-    LabelEditorPage.saveButton().shouldHave(cssClass("disabled"));
     // when valid name, but no color
     LabelEditorPage.labelName().val("valid name");
-    // then error on name is gone, but save still disabled. TODO check color 'field' validation error after CLM-5436
-    LabelEditorPage.labelInvalidMessage().shouldHave(text(""));
+    LabelEditorPage.descriptionInvalidMessage().shouldNotBe(visible);
     LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(cssClass("disabled"));
     // when select color
     LabelEditorPage.nxColorPicker().color("kiwi").click();
@@ -178,10 +174,9 @@ public class LabelEditorTest
     // then error on description and disabled save
     LabelEditorPage.descriptionInvalidMessage().shouldBe(visible)
             .shouldHave(text("Please enter less than 255 characters"));
-    LabelEditorPage.saveButton().shouldHave(cssClass("disabled"));
     // when valid description
     LabelEditorPage.description().val("Description");
-    LabelEditorPage.descriptionInvalidMessage().shouldHave(text(""));
+    LabelEditorPage.descriptionInvalidMessage().shouldNotBe(visible);
     LabelEditorPage.saveButton().shouldBe(enabled).shouldNotHave(cssClass("disabled"));
   }
 
@@ -190,7 +185,6 @@ public class LabelEditorTest
     LabelEditorPage.labelNameDiv().shouldBe(visible, empty).shouldHave(cssClass("pristine"));
     LabelEditorPage.descriptionDiv().shouldBe(visible, empty).shouldHave(cssClass("pristine"));
     LabelEditorPage.nxColorPicker().shouldBe(visible).selectedColor().shouldNot(exist);
-    LabelEditorPage.saveButton().shouldHave(cssClass("disabled"));
   }
 
   private Label getLabelByName(String ownerId, String labelName) {

@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { NxFieldset, NxForm, NxModal, NxToggle } from '@sonatype/react-shared-components';
+import { NxFieldset, NxStatefulForm, NxModal, NxToggle } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from './firewallConfigurationModalReducer';
 
@@ -28,7 +28,7 @@ export default function FirewallConfigurationModal(props) {
 
   return (
     <NxModal id="firewall-configuration-modal" onClose={closeConfigurationModal}>
-      <NxForm
+      <NxStatefulForm
         onSubmit={saveConfiguration}
         loadError={loadConfigurationError}
         loading={!loadedConfiguration}
@@ -81,7 +81,7 @@ export default function FirewallConfigurationModal(props) {
             </div>
           </NxFieldset>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

@@ -176,14 +176,12 @@ public abstract class AbstractOwnerDetailsEditingTest
       detailGroup.item(1).shouldBe(visible).shouldHave(text(policies[1].getName())).click();
       detailGroup.item(1).shouldBe(CLM.SELECTED);
       waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policies[1].getId()));
-      PolicyEditorPage.saveButton().shouldBe(CLM.DISABLED);
 
       back();
 
       detailGroup.item(2).shouldBe(visible).shouldHave(text(policies[0].getName())).click();
       detailGroup.item(2).shouldBe(CLM.SELECTED);
       waitUntilUrl(PolicyEditorPage.urlToEdit(currentOwner, policies[0].getId()));
-      PolicyEditorPage.saveButton().shouldBe(CLM.DISABLED);
 
       back();
     }

@@ -52,7 +52,7 @@ public class ProxyConfigurationPage
   }
 
   public SelenideElement cancel() {
-    return child("#proxy-config-cancel");
+    return child(".nx-form__cancel-btn");
   }
 
   public SelenideElement delete() {

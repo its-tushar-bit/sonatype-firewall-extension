@@ -18,6 +18,7 @@ import {
 import { pathSet } from '../../util/jsUtil';
 import { propSet, propSetConst } from '../../util/reduxToolkitUtil';
 import { getMailConfigUrl, getTestMailUrl } from '../../util/CLMLocation';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 const SUBMIT_MASK_SAVING_MESSAGE = 'Saving';
 const SUBMIT_MASK_SENDING_TEST_MAIL_MESSAGE = 'Sending Test Email';
@@ -25,21 +26,26 @@ const SUBMIT_MASK_DELETING_MESSAGE = 'Deleting';
 export const FAKE_PASSWORD = '\x00\x00\x00\x00\x00';
 
 const REDUCER_NAME = 'mailConfig';
+
+const hostnameValidator = combineValidators([validateNonEmpty, validateHostname]);
+
+const portValidator = combineValidators([validateNonEmpty, validatePatternMatch(/^\d+$/, 'Must be a number')]);
+
 const initialState = {
   // the data object as it is on the server, based on the last GET or synthesized after the last save
   serverData: null,
   formState: {
-    hostname: nxTextInputStateHelpers.initialState(''),
-    port: nxTextInputStateHelpers.initialState(''),
+    hostname: nxTextInputStateHelpers.initialState('', hostnameValidator),
+    port: nxTextInputStateHelpers.initialState('', portValidator),
     username: nxTextInputStateHelpers.initialState(''),
     password: nxTextInputStateHelpers.initialState(''),
     sslEnabled: false,
     startTlsEnabled: false,
-    systemEmail: nxTextInputStateHelpers.initialState(''),
+    systemEmail: nxTextInputStateHelpers.initialState('', validateNonEmpty),
     testEmail: nxTextInputStateHelpers.initialState(''),
   },
   isDirty: false,
-  isValid: true,
+  isValid: false,
   hasAllRequiredData: false,
   loading: false,
   submitMaskState: null, // one of null, false, or true as patterned in the NxStatefulSubmitMask examples
@@ -55,8 +61,6 @@ const initialState = {
 
 const textProps = ['hostname', 'port', 'username', 'password', 'systemEmail'],
   booleanProps = ['startTlsEnabled', 'sslEnabled'];
-
-const portValidator = combineValidators([validateNonEmpty, validatePatternMatch(/^\d+$/, 'Must be a number')]);
 
 const clearedErrors = pick(['loadError', 'saveError', 'deleteError', 'testEmailError'], initialState);
 
@@ -173,7 +177,7 @@ function loadFailed(state, { payload }) {
     ...initialState,
     loading: false,
     ...clearedErrors,
-    loadError: error,
+    loadError: Messages.getHttpErrorMessage(error),
   };
 }
 
@@ -204,7 +208,7 @@ function saveFailed(state, { payload }) {
     loading: false,
     submitMaskState: null,
     ...clearedErrors,
-    saveError: payload,
+    saveError: Messages.getHttpErrorMessage(payload),
   };
 }
 
@@ -229,7 +233,7 @@ function sendTestEmailFailed(state, { payload }) {
   return {
     ...state,
     submitMaskState: null,
-    testEmailError: payload,
+    testEmailError: Messages.getHttpErrorMessage(payload),
     testEmailSent: false,
   };
 }
@@ -239,13 +243,12 @@ function deleteRequested(state) {
     ...state,
     submitMaskState: false,
     submitMaskMessage: SUBMIT_MASK_DELETING_MESSAGE,
-    showDeleteModal: false,
     ...clearedErrors,
   };
 }
 
 function deleteFulfilled() {
-  return { ...initialState, submitMaskState: true, ...clearedErrors };
+  return { ...initialState, submitMaskState: true, showDeleteModal: false, ...clearedErrors };
 }
 
 function deleteFailed(state, { payload }) {
@@ -254,7 +257,7 @@ function deleteFailed(state, { payload }) {
     loading: false,
     submitMaskState: null,
     ...clearedErrors,
-    deleteError: payload,
+    deleteError: Messages.getHttpErrorMessage(payload),
   };
 }
 
@@ -340,7 +343,7 @@ const mailConfigSlice = createSlice({
   initialState,
   reducers: {
     resetForm: resetForm,
-    setHostname: setTextInput('hostname', validateHostname),
+    setHostname: setTextInput('hostname', hostnameValidator),
     setPort: setTextInput('port', portValidator),
     setUsername: setTextInput('username', null),
     setPassword: setTextInput('password', null),

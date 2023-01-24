@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxModal, NxForm, NxRadio, NxSubmitMask } from '@sonatype/react-shared-components';
+import { NxModal, NxStatefulForm, NxRadio, NxSubmitMask } from '@sonatype/react-shared-components';
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import ApplyLabelModal from 'MainRoot/componentDetails/ManageComponentLabels/ApplyLabelModal/ApplyLabelModal';
 
@@ -63,21 +63,21 @@ describe('ApplyLabelModal', () => {
   });
 
   it('calls loadApplicableLabelScopes on mount', () => {
-    const form = getShallow().find(NxForm);
+    const form = getShallow().find(NxStatefulForm);
     form.invoke('doLoad')();
 
     expect(loadApplicableLabelScopesMock).toHaveBeenCalledTimes(1);
   });
 
   it('calls saveApplyLabelScope when submitted', () => {
-    const form = getShallow().find(NxForm);
+    const form = getShallow().find(NxStatefulForm);
     form.simulate('submit');
 
     expect(saveApplyLabelScopeMock).toHaveBeenCalledTimes(1);
   });
 
   it('calls cancelApplyLabelModal on cancel', () => {
-    const form = getShallow().find(NxForm);
+    const form = getShallow().find(NxStatefulForm);
     form.simulate('cancel');
 
     expect(cancelApplyLabelModalMock).toHaveBeenCalled();
@@ -119,19 +119,19 @@ describe('ApplyLabelModal', () => {
   it('sets a validation error if labelScopeToSave has not been set', () => {
     const form = getShallow({
       labelScopeToSave: {},
-    }).find(NxForm);
+    }).find(NxStatefulForm);
     expect(form).toHaveProp('validationErrors', 'Select a scope to apply');
   });
 
-  it('sets the saveLabelError prop to the NxForm submitError prop', () => {
+  it('sets the saveLabelError prop to the NxStatefulForm submitError prop', () => {
     let form = getShallow({
       saveLabelError: null,
-    }).find(NxForm);
+    }).find(NxStatefulForm);
     expect(form).toHaveProp('submitError', null);
 
     form = getShallow({
       saveLabelError: 'save-err',
-    }).find(NxForm);
+    }).find(NxStatefulForm);
     expect(form).toHaveProp('submitError', 'save-err');
   });
 

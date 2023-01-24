@@ -6,7 +6,7 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import {
-  NxForm,
+  NxStatefulForm,
   NxFieldset,
   NxFormGroup,
   NxTextInput,
@@ -264,7 +264,7 @@ export default function AttributionReportForm(props) {
         </div>
       </div>
       <section className="nx-tile" aria-label="Attribution Report Settings">
-        <NxForm
+        <NxStatefulForm
           id="attribution-report-settings-form"
           submitBtnText="Generate Report"
           target="_blank"
@@ -329,7 +329,7 @@ export default function AttributionReportForm(props) {
                 />
               </NxFormGroup>
             </div>
-            <NxFieldset label="Table of contents" isRequired>
+            <NxFieldset label="Table of contents">
               <NxCheckbox
                 onChange={toggle('includeTableOfContents')}
                 isChecked={formState.includeTableOfContents}
@@ -338,7 +338,7 @@ export default function AttributionReportForm(props) {
                 Include Table of Contents at the beginning of the report.
               </NxCheckbox>
             </NxFieldset>
-            <NxFieldset label="Include Standard License Texts" isRequired>
+            <NxFieldset label="Include Standard License Texts">
               <NxCheckbox
                 onChange={toggle(INCLUDE_STANDARD_LICENSE_TEXTS_PROP_NAME)}
                 isChecked={formState.includeStandardLicenseTexts}
@@ -349,7 +349,6 @@ export default function AttributionReportForm(props) {
             </NxFieldset>
             <NxFieldset
               label="Appendix"
-              isRequired
               sublabel={
                 'Displays all Standard License Texts at the end of the report and inserts ' +
                 'hyperlinks where relevant.'
@@ -367,7 +366,6 @@ export default function AttributionReportForm(props) {
             <NxFieldset
               label="Sonatype Special Licenses"
               sublabel="(No Sources, Unassigned, Commercial, Not Supported, etc)."
-              isRequired
             >
               <NxCheckbox
                 onChange={toggle('includeSonatypeSpecialLicenses')}
@@ -383,7 +381,6 @@ export default function AttributionReportForm(props) {
             </NxFieldset>
             <NxFieldset
               label="InnerSource Components"
-              isRequired
               sublabel={
                 'InnerSource components are internally ' +
                 'developed components that are shared with other internal projects.'
@@ -424,7 +421,7 @@ export default function AttributionReportForm(props) {
             )}
             <AttributionAdditionalFiles onFilesChange={fileInputsChangeHandler} />
           </div>
-        </NxForm>
+        </NxStatefulForm>
       </section>
     </main>
   );

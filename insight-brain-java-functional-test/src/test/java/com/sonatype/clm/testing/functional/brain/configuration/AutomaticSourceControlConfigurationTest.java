@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.AutomaticSourceControlConfigurationPage;
+import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.Organization;
 
@@ -22,6 +23,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class AutomaticSourceControlConfigurationTest
     extends AbstractFunctionalTest
@@ -45,12 +47,18 @@ public class AutomaticSourceControlConfigurationTest
     // check initial state
     configurationPage.toggle().input().shouldNotBe(checked);
 
+    // check that updating with no changes shows an error
+    configurationPage.update().click();
+    configurationPage.update().shouldNotBe(visible);
+    FormUtils.getAlertElement(configurationPage)
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to update"));
+    refresh();
+
     // check that configuration settings can be saved
     configurationPage.toggle().click();
     eyesWatcher.eyesCheck();
-    configurationPage.update().shouldNotBe(CLM.DISABLED).click();
+    configurationPage.update().click();
     FormMask.seeAndWaitForDismissal();
-    configurationPage.update().shouldBe(CLM.DISABLED);
     verifyConfiguration(true);
 
     // check that the updated configuration is displayed on refresh
@@ -59,18 +67,22 @@ public class AutomaticSourceControlConfigurationTest
 
     // check that local changes to configuration settings can be cancelled
     configurationPage.toggle().click();
-    configurationPage.update().shouldNotBe(CLM.DISABLED);
+    configurationPage.update().shouldBe(visible);
+    FormUtils.getAlertElement(configurationPage).shouldNotBe(visible);
     configurationPage.cancel().shouldNotBe(disabled).click();
     configurationPage.toggle().input().shouldNotBe(CLM.DISABLED);
-    configurationPage.update().shouldBe(CLM.DISABLED);
+    configurationPage.update().shouldBe(visible);
+    FormUtils.getAlertElement(configurationPage).shouldNotBe(visible);
     configurationPage.cancel().shouldBe(disabled);
 
     // check that subsequent changes to the configuration are also persisted
     configurationPage.toggle().click();
-    configurationPage.update().shouldNotBe(CLM.DISABLED).click();
+    configurationPage.update().shouldBe(visible);
+    FormUtils.getAlertElement(configurationPage).shouldNotBe(visible);
+    configurationPage.update().click();
     FormMask.seeAndWaitForDismissal();
-    configurationPage.update().shouldBe(CLM.DISABLED);
     verifyConfiguration(false);
+
   }
 
   @Test

@@ -59,7 +59,7 @@ export default function AdvancedSearchForm(props) {
 
   return (
     <Fragment>
-      <form className="nx-form nx-form--advanced-search" id="advanced-search-form" onSubmit={formOnSubmitHandler}>
+      <form id="advanced-search-form" onSubmit={formOnSubmitHandler}>
         <div className="nx-form-row">
           <div className="nx-form-group">
             <label className="nx-label">

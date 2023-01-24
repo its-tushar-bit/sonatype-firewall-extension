@@ -5,7 +5,7 @@
  */
 import React, { Fragment, useEffect, useState } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm, NxButton, NxFontAwesomeIcon, useToggle } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxButton, NxFontAwesomeIcon, useToggle } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import LdapTabs from './LdapTabs';
@@ -144,7 +144,7 @@ export default function withLdapHeader(WrappedComponent, { formId }) {
             </h1>
           </div>
           <section className="nx-tile">
-            <NxForm
+            <NxStatefulForm
               id={formId}
               autoComplete="off"
               loadError={loadError}
@@ -174,7 +174,7 @@ export default function withLdapHeader(WrappedComponent, { formId }) {
                 <LdapTabs id={ldapId} currentTab={currentTab} stateGo={stateGo} />
                 <WrappedComponent {...props} ldapId={ldapId} />
               </div>
-            </NxForm>
+            </NxStatefulForm>
           </section>
         </main>
         {showModal && (

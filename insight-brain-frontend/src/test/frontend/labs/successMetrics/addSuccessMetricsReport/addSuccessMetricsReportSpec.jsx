@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxForm, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxStatefulForm, NxWarningAlert } from '@sonatype/react-shared-components';
 
 import AddSuccessMetricsReport from '../../../../../main/frontend/labs/successMetrics/addSuccessMetricsReport/AddSuccessMetricsReport';
 import IqOrgAppPicker from '../../../../../main/frontend/components/iqOrgAppPicker/IqOrgAppPicker';
@@ -72,47 +72,47 @@ describe('AddSuccessMetricsReport', () => {
 
   it('calls cancel function on form cancel', () => {
     const shallowComponent = getShallowComponent();
-    const form = shallowComponent.find(NxForm);
+    const form = shallowComponent.find(NxStatefulForm);
     form.simulate('cancel');
     expect(mockDismiss).toHaveBeenCalledTimes(1);
   });
 
   it('calls submit function on form submit', () => {
     const shallowComponent = getShallowComponent();
-    const form = shallowComponent.find(NxForm);
+    const form = shallowComponent.find(NxStatefulForm);
     form.simulate('submit');
     expect(mockSubmit).toHaveBeenCalledTimes(1);
   });
 
-  it('sets false to NxForm loading prop', () => {
+  it('sets false to NxStatefulForm loading prop', () => {
     const shallowComponent = getShallowComponent({ loading: false });
-    const form = shallowComponent.find(NxForm);
+    const form = shallowComponent.find(NxStatefulForm);
     expect(form).toHaveProp('loading', false);
   });
 
-  it('sets an error to NxForm loadError prop', () => {
+  it('sets an error to NxStatefulForm loadError prop', () => {
     const loadError = 'some error happened';
     const shallowComponent = getShallowComponent({ loadError });
-    const form = shallowComponent.find(NxForm);
+    const form = shallowComponent.find(NxStatefulForm);
     expect(form).toHaveProp('loadError', loadError);
   });
 
-  it('sets an error to NxForm submitError prop', () => {
+  it('sets an error to NxStatefulForm submitError prop', () => {
     const submitError = 'some error happened';
     const shallowComponent = getShallowComponent({ submitError });
-    const form = shallowComponent.find(NxForm);
+    const form = shallowComponent.find(NxStatefulForm);
     expect(form).toHaveProp('submitError', submitError);
   });
 
-  it('sets false to NxForm submitMaskState prop', () => {
+  it('sets false to NxStatefulForm submitMaskState prop', () => {
     const shallowComponent = getShallowComponent({ submitMaskState: false });
-    const form = shallowComponent.find(NxForm);
+    const form = shallowComponent.find(NxStatefulForm);
     expect(form).toHaveProp('submitMaskState', false);
   });
 
   it('has validationErrors prop due to reportName empty', () => {
     const shallowComponent = getShallowComponent({ reportName: { trimmedValue: '' } });
-    const form = shallowComponent.find(NxForm);
+    const form = shallowComponent.find(NxStatefulForm);
     expect(form).toHaveProp('validationErrors', 'Unable to submit: fields with invalid or missing data.');
   });
 
@@ -120,7 +120,7 @@ describe('AddSuccessMetricsReport', () => {
     const shallowComponent = getShallowComponent({
       selectedOrgsAndApps: { organizations: new Set([]), applications: new Set([]) },
     });
-    const form = shallowComponent.find(NxForm);
+    const form = shallowComponent.find(NxStatefulForm);
     expect(form).toHaveProp('validationErrors', 'Unable to submit: fields with invalid or missing data.');
   });
 
@@ -129,7 +129,7 @@ describe('AddSuccessMetricsReport', () => {
       selectedOrgsAndApps: { organizations: new Set([{}]), applications: new Set([{}]) },
       reportName: { trimmedValue: 'REPORT-NAME' },
     });
-    const form = shallowComponent.find(NxForm);
+    const form = shallowComponent.find(NxStatefulForm);
     expect(form).toHaveProp('validationErrors', null);
   });
 });

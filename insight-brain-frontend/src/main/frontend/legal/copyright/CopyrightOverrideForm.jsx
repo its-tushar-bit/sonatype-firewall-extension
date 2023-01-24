@@ -7,12 +7,13 @@ import React, { useState } from 'react';
 import {
   NxButton,
   NxFontAwesomeIcon,
-  NxForm,
+  NxStatefulForm,
   NxFormGroup,
   NxModal,
   NxTextInput,
   nxTextInputStateHelpers,
   NxToggle,
+  NxFormSelect,
 } from '@sonatype/react-shared-components';
 import { availableScopesPropType, componentPropType, licenseObligationPropType } from '../advancedLegalPropTypes';
 import * as PropTypes from 'prop-types';
@@ -203,7 +204,7 @@ export default function CopyrightOverrideForm(props) {
       }}
       variant="wide"
     >
-      <NxForm
+      <NxStatefulForm
         onCancel={() => {
           setDisplayCopyrightOverrideModal(false);
           resetExistingObligation();
@@ -245,8 +246,8 @@ export default function CopyrightOverrideForm(props) {
             sublabel="Apply changes to"
             isRequired
           >
-            <select
-              className="nx-form-select nx-form-select--long"
+            <NxFormSelect
+              className="nx-form-select--long"
               id="edit-copyright-scope-selection"
               value={scope}
               onChange={(event) => {
@@ -255,10 +256,10 @@ export default function CopyrightOverrideForm(props) {
               }}
             >
               {availableScopes.values.map(createScopeOption)}
-            </select>
+            </NxFormSelect>
           </NxFormGroup>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { NxModal, NxForm, NxFieldset, NxRadio } from '@sonatype/react-shared-components';
+import { NxModal, NxStatefulForm, NxFieldset, NxRadio } from '@sonatype/react-shared-components';
 
 import ComponentLabelTag from '../../../react/tag/ComponentLabelTag';
 
@@ -40,7 +40,7 @@ export default function ApplyLabelModal({
   }
   return (
     <NxModal id="iq-apply-label-modal" onClose={cancelApplyLabelModal} aria-labelledby="iq-apply-label-modal__heading">
-      <NxForm
+      <NxStatefulForm
         className="nx-form"
         onSubmit={saveApplyLabelScope}
         submitError={saveLabelError}
@@ -84,7 +84,7 @@ export default function ApplyLabelModal({
             ))}
           </NxFieldset>
         </div>
-      </NxForm>
+      </NxStatefulForm>
     </NxModal>
   );
 }

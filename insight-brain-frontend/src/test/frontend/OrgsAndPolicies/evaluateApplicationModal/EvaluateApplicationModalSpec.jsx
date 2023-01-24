@@ -8,7 +8,6 @@ import { render, screen, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import EvaluateApplicationModal from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/EvaluateApplicationModal';
 import { nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
 import { getCliStageUrl } from 'MainRoot/util/CLMLocation';
-// import { getBundleUploadUrl, getEvaluationStatusUrl } from 'MainRoot/util/CLMLocation';
 
 const { initialState: rscInitialFileUploadState } = nxFileUploadStateHelpers;
 
@@ -124,15 +123,6 @@ describe('EvaluateApplicationModal', () => {
       ]);
     });
 
-    it('disables submit button when open modal', async () => {
-      renderComponent();
-      const submitButton = await screen.findByRole('button', {
-        name: 'Submit disabled: Unable to save: fields with invalid or missing data',
-      });
-      expect(submitButton).toBeVisible();
-      expect(submitButton).toHaveClassName('disabled');
-    });
-
     it('shows all inputs and control buttons', async () => {
       renderComponent();
       const fileUpload = await screen.findByTestId('evaluate-application-upload-file');
@@ -142,9 +132,7 @@ describe('EvaluateApplicationModal', () => {
       expect(select[0].value).toBe('');
       const radios = await screen.findAllByRole('radio');
       expect(radios.length).toBe(2);
-      const submitButton = await screen.findByRole('button', {
-        name: 'Submit disabled: Unable to save: fields with invalid or missing data',
-      });
+      const submitButton = await screen.findByRole('button', { name: 'Upload' });
       const cancelButton = await screen.findByRole('button', { name: 'Cancel' });
       expect(submitButton).toBeVisible();
       expect(cancelButton).toBeVisible();

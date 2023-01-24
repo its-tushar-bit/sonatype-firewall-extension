@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
+import { NxModal, NxWarningAlert, NxStatefulForm } from '@sonatype/react-shared-components';
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import RevokeClaimModal from 'MainRoot/componentDetails/claim/RevokeClaimModal';
 
@@ -37,7 +37,7 @@ describe('RevokeClaimModal', () => {
   });
 
   it('calls revoke when submitted', () => {
-    const modal = getShallow().find(NxForm);
+    const modal = getShallow().find(NxStatefulForm);
 
     modal.simulate('submit');
 
@@ -45,7 +45,7 @@ describe('RevokeClaimModal', () => {
   });
 
   it('calls closeModal on cancel', () => {
-    const modal = getShallow().find(NxForm);
+    const modal = getShallow().find(NxStatefulForm);
     modal.simulate('cancel');
 
     expect(closeModalMock).toHaveBeenCalled();
@@ -61,7 +61,7 @@ describe('RevokeClaimModal', () => {
   });
 
   it('renders error alert on unsuccessful submit', () => {
-    const modal = getShallow({ revokeError: 'error' }).find(NxForm);
+    const modal = getShallow({ revokeError: 'error' }).find(NxStatefulForm);
 
     expect(modal).toHaveProp('submitError', 'error');
   });

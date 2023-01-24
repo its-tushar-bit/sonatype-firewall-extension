@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxForm } from '@sonatype/react-shared-components';
+import { NxStatefulForm } from '@sonatype/react-shared-components';
 import MenuBarBackButton from '../../mainHeader/MenuBar/MenuBarBackButton';
 import LdapServerNameForm from './LdapServerNameForm';
 
@@ -50,7 +50,7 @@ export default function CreateLdap({
         </h1>
       </div>
       <section className="nx-tile">
-        <NxForm
+        <NxStatefulForm
           id="ldap-create"
           autoComplete="off"
           onSubmit={saveServerName}
@@ -67,7 +67,7 @@ export default function CreateLdap({
           <div className="nx-tile-content">
             <LdapServerNameForm serverName={serverName} setServerName={setServerName} autoFocus={true} />
           </div>
-        </NxForm>
+        </NxStatefulForm>
       </section>
     </main>
   );

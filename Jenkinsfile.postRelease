@@ -17,7 +17,7 @@ pipeline {
     buildDiscarder(logRotator(numToKeepStr: '10'))
   }
   environment {
-    shortVersion = params.releaseVersion.split('-')[0]
+    shortVersion = "${params.releaseVersion.split('-')[0]}"
   }
   stages {
     stage('Update IQ Server Test Instance') {

@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomDetailDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ComponentCategory;
@@ -42,6 +43,7 @@ import com.sonatype.insight.brain.model.component.IntegrityRating;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCategory;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilityCustomDetail;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
@@ -52,6 +54,7 @@ import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityResearchType;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomDetail;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -81,6 +84,8 @@ public class ComponentDAO
   private SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO = new SecurityVulnerabilityOverrideDAO();
 
   private OwnerDAO ownerDAO = new OwnerDAO();
+
+  private VulnerabilityCustomDetailDAO vulnerabilityCustomDetailDAO = new VulnerabilityCustomDetailDAO();
 
   private final Owner owner;
 
@@ -433,17 +438,12 @@ public class ComponentDAO
       securityJson = securityJson.get("aaData");
       if (securityJson != null) {
         final ArrayNode securityJsonArray = (ArrayNode) securityJson;
+        final Map<String, VulnerabilityCustomDetail> vulnerabilityCustomDetails =
+            vulnerabilityCustomDetailDAO.getByOwnerIdWithHierarchy(owner);
         for (int i = 0; i < securityJsonArray.size(); i++) {
           final JsonNode securityVulnerabilityJson = securityJsonArray.get(i);
           final String hash = securityVulnerabilityJson.get("hash").asText();
           final String source = securityVulnerabilityJson.get("source").asText();
-          final String cwe;
-          if (securityVulnerabilityJson.get("cwe") != null) {
-            cwe = securityVulnerabilityJson.get("cwe").asText();
-          }
-          else {
-            cwe = null;
-          }
           final String reference = securityVulnerabilityJson.get("reference").asText();
           final Float severity = JsonUtils.getNullableFloat(securityVulnerabilityJson.get("score"));
           final String statusString = JsonUtils.getNullableString(securityVulnerabilityJson.get("status"));
@@ -462,10 +462,10 @@ public class ComponentDAO
               JsonUtils.getNullableString(securityVulnerabilityJson.get("cvssVectorSource"));
 
           Component component = componentsByHash.get(hash);
+
           if (component != null) {
             SecurityVulnerability securityVulnerability = new SecurityVulnerability();
             securityVulnerability.setSource(source);
-            securityVulnerability.setCwe(cwe);
             securityVulnerability.setRefId(reference);
             securityVulnerability.setSeverity(severity);
             securityVulnerability.setStatus(status);
@@ -485,6 +485,9 @@ public class ComponentDAO
                 securityVulnerability.addAlias(alias);
               }
             }
+            VulnerabilityCustomDetail detailWithRefId = vulnerabilityCustomDetails.get(reference);
+            securityVulnerability.setVulnerabilityCustomDetail(
+                SecurityVulnerabilityCustomDetail.toSecurityVulnerabilityCustomDetail(detailWithRefId));
             component.addSecurityVulnerability(securityVulnerability);
           }
         }

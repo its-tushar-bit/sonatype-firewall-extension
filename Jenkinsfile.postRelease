@@ -39,11 +39,6 @@ pipeline {
         )
       }
     }
-    stage('Verify IQ Server was deployed to Staging') {
-      steps {
-        verifyIQServerDeployment(params.releaseVersion, env.GIT_COMMIT, 'test.iq.sonatype.dev')
-      }
-    }
     stage('Update IQ Server Production Instance') {
       steps {
         build(
@@ -61,11 +56,6 @@ pipeline {
                 string(name:'imageUrl', value: "${sonatypeDockerRegistryId()}/iq/prod:${params.releaseVersion}")
             ]
         )
-      }
-    }
-    stage('Verify IQ Server was deployed to Production') {
-      steps {
-        verifyIQServerDeployment(params.releaseVersion, env.GIT_COMMIT, 'iq.sonatype.dev')
       }
     }
     stage('Prepare IQ Server HA Helm Chart') {

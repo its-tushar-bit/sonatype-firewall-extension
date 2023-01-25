@@ -85,6 +85,7 @@ import repositoryResultsSummaryPageSlice from 'MainRoot/OrgsAndPolicies/reposito
 import apiPageSlice from 'MainRoot/api/apiPageSlice';
 import waiverDetailsSlice from 'MainRoot/waivers/waiverDetails/waiverDetailsSlice';
 import toastSlice from '../toastContainer/toastSlice';
+import vulnerabilityCustomizeSlice from 'MainRoot/vulnerabilityCustomize/vulnerabilityCustomizeSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -98,6 +99,7 @@ export default combineReducers({
   userConfiguration: userConfigurationReducer,
   vulnerabilityDetailsModal: vulnerabilityDetailsModalReducer,
   vulnerabilitySearch: vulnerabilitySearchReducer,
+  vulnerabilityCustomize: vulnerabilityCustomizeSlice,
   mailConfig: mailConfigReducer,
   ldapConfig: ldapConfigReducer,
   ldapList: ldapListReducer,

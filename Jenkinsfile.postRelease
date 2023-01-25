@@ -95,4 +95,9 @@ pipeline {
       }
     }
   }
+  post {
+    failure {
+      notifyChat(currentBuild: currentBuild, env: env, room: 'iq-builds')
+    }
+  }
 }

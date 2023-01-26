@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental;
+package com.sonatype.insight.brain.api.v2;
 
 import java.util.Locale;
 
@@ -19,7 +19,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
-import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.*;
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.*;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

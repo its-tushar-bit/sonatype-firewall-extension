@@ -12,7 +12,7 @@ import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryBaseConfig
 import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryBaseConfigurationsPage.ArtifactoryConnectionRow;
 import com.sonatype.clm.testing.functional.pages.ArtifactoryRepositoryConfigurationModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
-import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.artifactory.DefaultArtifactoryClient;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryQueryLanguageUtils;
 import com.sonatype.insight.brain.artifactory.client.ChecksumType;

@@ -3,13 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.experimental;
+package com.sonatype.insight.brain.api.v2;
 
 import java.util.Arrays;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.features.FeaturesResource;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -214,9 +215,11 @@ public class ApiConfigFeaturesService
       throw new FeatureAlreadyEnabledException("Feature is already enabled.");
     }
     if (enabledWhenAbsent) {
+      AuditData.get().setData(featureName, "null");
       systemConfigurationPropertyDAO.delete(systemConfiguration);
     }
     else {
+      AuditData.get().setData(featureName, String.valueOf(featureValue));
       systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(featureName, String.valueOf(featureValue)));
     }
   }
@@ -251,9 +254,11 @@ public class ApiConfigFeaturesService
       throw new FeatureAlreadyDisabledException("Feature is already disabled.");
     }
     if (!enabledWhenAbsent) {
+      AuditData.get().setData(featureName, "null");
       systemConfigurationPropertyDAO.delete(systemConfiguration);
     }
     else {
+      AuditData.get().setData(featureName, String.valueOf(featureValue));
       systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(featureName, String.valueOf(featureValue)));
     }
   }

@@ -9,7 +9,7 @@ import java.util.Map;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiType;
 import com.sonatype.insight.brain.api.v2.service.ApiEndpointsService;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -62,8 +62,9 @@ public class DefaultApiEndpointsResourceTest
     assertResponseStatus(200, response);
     OpenAPI openAPI = Json.mapper().readValue(response.getBodyText(), OpenAPI.class);
     assertThat(openAPI).isNotNull();
-    assertEndpoint(openAPI, "/api/experimental/config/features/{feature}", "Config", HttpMethod.POST,
-        HttpMethod.DELETE);
+    assertEndpoint(openAPI,
+        "/api/experimental/signatures/vulnerability/applications/{applicationId}/reports/{reportId}",
+        "Signatures", HttpMethod.POST);
   }
 
   @Test

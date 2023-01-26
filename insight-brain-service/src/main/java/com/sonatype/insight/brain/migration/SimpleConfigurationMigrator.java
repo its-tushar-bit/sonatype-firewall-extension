@@ -19,9 +19,9 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService;
-import com.sonatype.insight.brain.api.experimental.FeatureAlreadyDisabledException;
-import com.sonatype.insight.brain.api.experimental.FeatureAlreadyEnabledException;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
+import com.sonatype.insight.brain.api.v2.FeatureAlreadyDisabledException;
+import com.sonatype.insight.brain.api.v2.FeatureAlreadyEnabledException;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;

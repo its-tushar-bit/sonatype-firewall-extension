@@ -113,7 +113,7 @@ public class PublicApiPaths
 
   public static final String APPLICATION_CATEGORY_RESOURCE_PATH = API_VERSION_PATH_V2 + "applicationCategories";
 
-  public static final String CONFIG_FEATURES_PATH = EXPERIMENTAL_PATH + "config/features";
+  public static final String CONFIG_FEATURES_PATH = API_VERSION_PATH_V2 + "config/features";
 
   public static final String LICENSE_LEGAL_RESOURCE_PATH = EXPERIMENTAL_PATH + "licenseLegalMetadata";
 

@@ -29,7 +29,7 @@ import javax.inject.Singleton;
 import javax.naming.NamingException;
 import javax.validation.constraints.NotNull;
 
-import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.configuration.ldap.LdapGroup;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.LdapUser;

@@ -18,7 +18,7 @@ import javax.inject.Named;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 
-import com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenExistsDTO;
 import com.sonatype.insight.brain.audit.AuditData;

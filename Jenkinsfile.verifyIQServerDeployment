@@ -1,0 +1,29 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+properties([
+    parameters([
+      string(name: 'version', defaultValue: '',description: 'The version number for the product to check for.'),
+      string(name: 'commitSha', defaultValue: '',description: 'The Git commit sha to check for.'),
+      choice(name: 'iqInstance', choices: ['test.iq.sonatype.dev', 'iq.sonatype.dev'], description: 'IQ Server to check deployment on.')
+    ])
+])
+
+pipeline {
+  agent { label InsightConstants.AGENT_LABEL }
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+  }
+
+  stages {
+    stage('Verify Deployment') {
+      steps {
+        verifyIQServerDeployment(params.version, params.commitSha, params.iqInstance)
+      }
+    }
+  }
+}

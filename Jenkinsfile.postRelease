@@ -79,9 +79,11 @@ pipeline {
         )
       }
     }
-    stage('Create Post IQ Release Integrations Team Jira Issues') {
+    stage('Create Post IQ Release Jira Issues') {
       steps {
-        createIntegrationIssuesAfterIQRelease(params.releaseVersion)
+        build(
+            job: 'insight/insight-brain/createJiraIssues',
+            parameters: [string(name: 'version', value: params.releaseVersion)])
       }
     }
   }

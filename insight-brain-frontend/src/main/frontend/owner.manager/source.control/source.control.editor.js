@@ -218,14 +218,10 @@ function SourceControlEditorController(
   function validateScmConfig() {
     vm.scmConfigValidationResult = undefined;
     vm.scmConfigValidationInProgress = true;
-    return SourceControlService.validateCompositeSCMConfig(vm.ownerType, vm.ownerId)
-      .then(function (result) {
-        vm.scmConfigValidationResult = result;
-        vm.scmConfigValidationInProgress = false;
-      })
-      .catch(function (e) {
-        vm.submitError = Messages.getHttpErrorMessage(e);
-      });
+    return SourceControlService.validateCompositeSCMConfig(vm.ownerType, vm.ownerId).then(function (result) {
+      vm.scmConfigValidationResult = result;
+      vm.scmConfigValidationInProgress = false;
+    });
   }
 
   function getScmValidationClass(result) {

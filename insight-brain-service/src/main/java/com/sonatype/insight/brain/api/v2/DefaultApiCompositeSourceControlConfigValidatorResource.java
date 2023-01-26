@@ -16,6 +16,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiCompositeSourceControlConfigValidatorService;
 import com.sonatype.insight.brain.git.ConfigurationValidationResult;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.Authorize;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -42,6 +44,7 @@ public class DefaultApiCompositeSourceControlConfigValidatorResource implements
   @Override
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
   public ConfigurationValidationResult validateSourceControlConfig(
       @PathParam("applicationId") String applicationId)
   {

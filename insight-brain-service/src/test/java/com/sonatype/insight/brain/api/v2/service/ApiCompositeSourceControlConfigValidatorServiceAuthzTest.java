@@ -27,7 +27,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceAuthzTest
 
   @Test
   public void testGetCompositeSourceControlByOwner_Authorized() {
-    grantReadPermission(app.getId());
+    grantManageAutomaticSourceControlPermission();
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, "TOKEN",
             SourceControlProvider.GITHUB, null, null,
             "BASE_BRANCH", null);

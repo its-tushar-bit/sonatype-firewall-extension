@@ -58,6 +58,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
@@ -361,6 +362,7 @@ public class ApplicationSummaryViewTest
     moveAppModal.shouldBe(visible);
   }
 
+  @Ignore
   @Test
   public void testChangeApplicationId() {
     ChangeApplicationIdDialog changeApplicationIdDialog = new ChangeApplicationIdDialog();

@@ -27,6 +27,18 @@ make(
           //Test files inside the maven modules are excluded from the scan
           iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
           failBuildOnNetworkError: true
+
+        if (stage == 'release') {
+          build(job: 'bnr/lifecycle-for-sonatype/generate-attribution-report',
+                parameters: [
+                  string(name: 'applicationId', value: 'insight-brain'),
+                  string(name: 'applicationName', value: 'Nexus Lifecycle'),
+                  string(name: 'applicationVersion', value: params.version)
+                ]
+          )
+          copyArtifacts filter: "*insight-brain-${params.version}*.html",
+                        projectName: 'bnr/lifecycle-for-sonatype/generate-attribution-report'
+        }
     },
     distFiles: [
       includes: [
@@ -34,7 +46,8 @@ make(
         'nexus-iq-server/target/*.tar.gz*',
         'nexus-iq-cli/target/*.jar*',
         'nexus-iq-diagnostics/target/*.jar*',
-        'nexus-mtiq-server/target/*.tar.gz*'
+        'nexus-mtiq-server/target/*.tar.gz*',
+        "*insight-brain-${params.version}*.html"
       ],
       excludes: [
         '**/*-sources.jar*',

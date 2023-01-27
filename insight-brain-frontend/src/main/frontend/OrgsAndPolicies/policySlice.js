@@ -778,7 +778,7 @@ const isDirtyConstraints = (originalConstraints, currentConstraints) => {
         return commonConditionPropDirty || isValueDirty;
       }
 
-      return commonConditionPropDirty || condition.value.trimmedValue !== originalCondition.value.trimmedValue;
+      return commonConditionPropDirty || condition.value?.trimmedValue !== originalCondition.value?.trimmedValue;
     }, constrain.conditions);
 
     return constraintHasDirtyProps || isAnyConditionDirty;

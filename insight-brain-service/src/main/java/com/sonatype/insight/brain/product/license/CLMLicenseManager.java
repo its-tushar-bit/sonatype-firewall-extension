@@ -43,6 +43,8 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
@@ -721,6 +723,11 @@ public class CLMLicenseManager
   private void notifyListeners() {
     for (ProductLicenseListener listener : listeners) {
       try {
+        if (listener instanceof TenantManaged && new TenantUtil().isGlobalTenant()) {
+          // TenantManaged listeners should not be called in the context of the Global tenant
+          continue;
+        }
+
         log.debug("Notifying listener {}", listener);
         listener.productLicenseChanged();
       }

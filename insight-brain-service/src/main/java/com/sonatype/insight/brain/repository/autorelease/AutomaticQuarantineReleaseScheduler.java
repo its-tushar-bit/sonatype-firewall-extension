@@ -18,8 +18,8 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
 
-import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class AutomaticQuarantineReleaseScheduler
-    implements Managed, ProductLicenseListener
+    implements TenantManaged, ProductLicenseListener
 {
   private static final Logger log = LoggerFactory.getLogger(AutomaticQuarantineReleaseScheduler.class);
 
@@ -97,7 +97,7 @@ public class AutomaticQuarantineReleaseScheduler
   }
 
   @Override
-  public void start() {
+  public void register() {
     if (AutomaticQuarantineRelease.isLicensedForFirewall(productLicense)) {
       log.info("Licensed for Firewall Automatic Quarantine Release.");
       startAutomaticQuarantineRelease();
@@ -108,7 +108,7 @@ public class AutomaticQuarantineReleaseScheduler
   }
 
   @Override
-  public void stop() {
+  public void deregister() {
     // noop
   }
 }

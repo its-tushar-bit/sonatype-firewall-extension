@@ -58,7 +58,7 @@ public class AutomaticQuarantineReleaseSchedulerTest
   @Test
   public void testStartServer_Unlicensed() {
     enableLicenseForFirewall(false);
-    automaticQuarantineReleaseScheduler.start();
+    automaticQuarantineReleaseScheduler.register();
     verifyNoInteractions(taskSchedulerMock);
   }
 
@@ -67,7 +67,7 @@ public class AutomaticQuarantineReleaseSchedulerTest
     enableLicenseForFirewall(true);
     Date beforeSchedulingTime = new Date(
         System.currentTimeMillis() + configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes() * 60000);
-    automaticQuarantineReleaseScheduler.start();
+    automaticQuarantineReleaseScheduler.register();
     Date afterSchedulingTime = new Date(
         System.currentTimeMillis() + configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes() * 60000);
 

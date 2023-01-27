@@ -17,8 +17,8 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
 
-import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class PolicyMonitorScheduler
-    implements Managed, ProductLicenseListener
+    implements TenantManaged, ProductLicenseListener
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyMonitorScheduler.class);
 
@@ -92,7 +92,7 @@ public class PolicyMonitorScheduler
   }
 
   @Override
-  public void start() {
+  public void register() {
     if (PolicyMonitor.isLicensed(productLicense)) {
       log.info("Policy Monitor is licensed");
       startMonitoring();
@@ -103,7 +103,7 @@ public class PolicyMonitorScheduler
   }
 
   @Override
-  public void stop() {
+  public void deregister() {
     // noop
   }
 }

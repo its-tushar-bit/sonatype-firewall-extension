@@ -58,7 +58,7 @@ public class PolicyMonitorSchedulerTest
   public void testStartServer_PolicyMonitoringUnlicensed() {
     enableLicenseForApplications(false);
 
-    policyMonitorScheduler.start();
+    policyMonitorScheduler.register();
 
     verifyNoInteractions(taskSchedulerMock);
   }
@@ -71,7 +71,7 @@ public class PolicyMonitorSchedulerTest
   }
 
   private void testStartServer_PolicyMonitoringLicensed() {
-    policyMonitorScheduler.start();
+    policyMonitorScheduler.register();
 
     ArgumentCaptor<LocalTime> startTimeCaptor = ArgumentCaptor.forClass(LocalTime.class);
     verify(taskSchedulerMock).scheduleDailyTask(eq(PolicyMonitoringTask.class), eq(PolicyMonitoringTask.NAME),

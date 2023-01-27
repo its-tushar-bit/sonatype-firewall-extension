@@ -189,3 +189,18 @@ given tenant.
 
 * **GlobalTenantJob** - These are specifically quartz jobs (therefore implement InsightJob) which should NOT run
   per-tenant. Mainly used for updating global cache data (like information from HDS)
+
+### User Sessions (Shiro)
+We use Shiro to manage user sessions which then get persisted in the database. 
+
+For MTIQ we need to make sure all sessions are managed per-tenant. The ShiroSessionDAO ensures that all database access 
+is done via the correct tenant and schema. There is a session cache in ShiroSessionDAO#SESSION_CACHE however this is not
+a problem for MTIQ for 2 reasons; Session caching is disabled when using SAML, which we are, however even if we did not
+use saml this would still work as expected because all sessions are given an ID that is unique across all tenants.
+
+Shiro sessions are expired periodically (default every 30 minutes). In the default implementation this is done 
+using a ScheduledThreadPoolExecutor which can't correctly get the current tenant and often ends up running against
+a cached (wrong) and invalidated tenant. Session expiration is a truly asynchronous process and runs outside any
+request context and is therefore a type of [Periodic Work](#periodic-work). Following those recommendations we make use
+of Quartz for session expiration by creating a custom QuartzShiroSessionValidationScheduler that can be scheduled for
+each tenant.

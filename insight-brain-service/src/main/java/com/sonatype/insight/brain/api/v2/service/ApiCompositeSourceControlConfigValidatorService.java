@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.git.PullRequestRepositoryValidator;
 import com.sonatype.insight.brain.git.SourceControlSshService;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -60,8 +61,10 @@ public class ApiCompositeSourceControlConfigValidatorService
     this.sourceControlSshService = sourceControlSshService;
   }
 
-  @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
-  public ConfigurationValidationResult validateSourceControlConfig(String applicationId) {
+  @Authorize(permission = Permission.READ)
+  public ConfigurationValidationResult validateSourceControlConfig(
+          @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId)
+  {
     ConfigurationValidationResult result = new ConfigurationValidationResult();
     GitRepositoryInfo gitInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
     if (gitInfo == null) {

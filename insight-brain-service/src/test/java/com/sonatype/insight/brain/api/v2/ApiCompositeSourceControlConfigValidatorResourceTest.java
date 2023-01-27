@@ -57,16 +57,12 @@ public class ApiCompositeSourceControlConfigValidatorResourceTest
   }
 
   @Test
-  public void testValidateSourceControlConfig_Incomplete() throws Exception {
+  public void testValidateSourceControlConfig_InvalidApplication() throws Exception {
     final HttpResponse response = restRequest()
         .parameter("1234")
         .get();
-    assertResponseStatus(200, response);
-    final ConfigurationValidationResult result = response.getBody(ConfigurationValidationResult.class);
-
-    assertThat(result).isNotNull();
-    assertThat(result.getConfigurationComplete().isValid()).isFalse();
-    assertThat(result.getConfigurationComplete().getMessage()).isEqualTo("Some required values are missing or unsaved");
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText()).contains("Could not find an application with ID 1234.");
   }
 
   @Test

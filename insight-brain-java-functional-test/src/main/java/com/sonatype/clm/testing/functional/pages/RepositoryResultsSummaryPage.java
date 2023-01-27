@@ -32,7 +32,15 @@ public class RepositoryResultsSummaryPage
     return new AccessTile("#repositories-pill-configuration");
   }
 
-  public static AccessTile componentsTableRepositoryNameHeaderSortBtn() {
-    return new AccessTile("#repositories-pill-configuration .nx-cell__sort-btn");
+  public static AccessTile repositoriesTableRepositoryNameHeaderSortBtn() {
+    return new AccessTile("#repository-column-header .nx-cell__sort-btn");
+  }
+
+  public static AccessTile repositoriesTableRepositoryManagerHeaderSortBtn() {
+    return new AccessTile("#repository-manager-column-header .nx-cell__sort-btn");
+  }
+
+  public static AccessTile repositoriesTableStatusHeaderSortBtn() {
+    return new AccessTile("#status-column-header .nx-cell__sort-btn");
   }
 }

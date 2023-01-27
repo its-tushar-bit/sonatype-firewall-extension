@@ -3,15 +3,31 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, original } from '@reduxjs/toolkit';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import axios from 'axios';
 import { getRepositoriesUrl, getRepositoryInfoUrl } from 'MainRoot/util/CLMLocation';
 import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectDeleteModalInfo } from './repositoriesConfigurationSelectors';
+import { ascend, descend, prop, path, sortWith } from 'ramda';
 
 const REDUCER_NAME = 'repositories';
+
+const initialSortConfiguration = [
+  {
+    key: 'publicId',
+    dir: 'asc',
+  },
+  {
+    key: 'managerInstanceId',
+    dir: 'asc',
+  },
+  {
+    key: 'enabled',
+    dir: 'asc',
+  },
+];
 
 export const initialState = {
   repositories: [],
@@ -24,35 +40,39 @@ export const initialState = {
     id: null,
     publicId: null,
   },
-  sortConfiguration: { dir: 'asc', column: 'publicId' },
-  unsortedRepositories: [],
-};
-
-const comparators = {
-  publicId: (repositoryA, repositoryB) =>
-    repositoryA.repository.publicId.toLowerCase() > repositoryB.repository.publicId.toLowerCase() ? 1 : -1,
-  managerInstanceId: (repositoryA, repositoryB) =>
-    repositoryA.managerInstanceId.toLowerCase() > repositoryB.managerInstanceId.toLowerCase() ? 1 : -1,
-  enabled: (repositoryA, repositoryB) => (repositoryA.repository.enabled > repositoryB.repository.enabled ? 1 : -1),
-};
-
-const setSort = (state, { payload }) => {
-  if (state.sortConfiguration?.column !== payload) {
-    state.sortConfiguration = { dir: 'asc', column: payload };
-    state.repositories = state.repositories.slice().sort(comparators[payload]);
-  } else if (state.sortConfiguration?.dir === 'asc') {
-    state.sortConfiguration = { dir: 'desc', column: payload };
-    state.repositories = state.repositories.slice().sort((a, b) => -comparators[payload](a, b));
-  } else {
-    state.sortConfiguration = null;
-    state.repositories = state.unsortedRepositories;
-  }
+  sortConfiguration: initialSortConfiguration,
 };
 
 const openDeleteModal = (state, { payload: { publicId, id } }) => {
   state.showDeleteModal = true;
   state.deleteModalInfo = { publicId, id };
   state.deleteError = null;
+};
+
+const getNextDir = (currentDir) => (currentDir === 'asc' ? 'desc' : 'asc');
+
+const setSortConfiguration = (state, column) => {
+  const sortConfiguration = [...original(state.sortConfiguration)];
+  const index = sortConfiguration.findIndex((columnObj) => columnObj.key === column);
+  if (index === 0)
+    sortConfiguration[index] = { ...sortConfiguration[index], dir: getNextDir(sortConfiguration[index].dir) };
+  else sortConfiguration.unshift(sortConfiguration.splice(index, 1)[0]);
+  state.sortConfiguration = sortConfiguration;
+};
+
+const getSortKey = (key) => (key === 'managerInstanceId' ? prop(key) : path(['repository', key]));
+
+const sortRepositoriesByConfig = (repositories, sortConfiguration) => {
+  const customSort = sortConfiguration.map((config) =>
+    config.dir === 'desc' ? descend(getSortKey(config.key)) : ascend(getSortKey(config.key))
+  );
+  const sortedRepositories = sortWith(customSort, repositories);
+  return sortedRepositories;
+};
+
+const sortRepositories = (state, { payload: column }) => {
+  setSortConfiguration(state, column);
+  state.repositories = sortRepositoriesByConfig(state.repositories, state.sortConfiguration);
 };
 
 const loadRepositoriesRequested = (state) => {
@@ -64,8 +84,7 @@ const loadRepositoriesRequested = (state) => {
 const loadRepositoriesFulfilled = (state, { payload }) => {
   state.loading = false;
   state.loadError = null;
-  state.repositories = payload || [];
-  state.unsortedRepositories = payload || [];
+  state.repositories = sortRepositoriesByConfig(payload || [], [...original(state.sortConfiguration)]);
 };
 
 const loadRepositoriesFailed = (state, { payload }) => {
@@ -120,8 +139,8 @@ const repositoriesSlice = createSlice({
   reducers: {
     setShowDeleteModal: propSet('showDeleteModal'),
     resetSubmitMaskState: propSetConst('submitMaskState', null),
-    setSort,
     openDeleteModal,
+    sortRepositories,
   },
   extraReducers: {
     [loadRepositories.pending]: loadRepositoriesRequested,

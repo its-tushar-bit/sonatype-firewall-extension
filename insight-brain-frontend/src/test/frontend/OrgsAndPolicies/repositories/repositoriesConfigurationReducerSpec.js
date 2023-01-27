@@ -42,37 +42,54 @@ describe('repositoriesConfigurationSlice', () => {
         loading: true,
         loadError: 'Loading error',
         deleteError: null,
-        unsortedRepositories: [],
+        sortConfiguration: [
+          {
+            key: 'publicId',
+            dir: 'asc',
+          },
+          {
+            key: 'managerInstanceId',
+            dir: 'asc',
+          },
+          {
+            key: 'enabled',
+            dir: 'asc',
+          },
+        ],
       });
 
       const payload = [
         {
-          managerInstanceId: 'e71926b22d414648938ca1faba2efec9',
+          managerInstanceId: '1',
           repository: {
-            id: 'fca29f962d9a47aea59d516cde1e1970',
-            publicId: 'central',
+            id: '1',
+            publicId: 'b',
             enabled: true,
           },
         },
         {
-          managerInstanceId: 'e71926b22d414648938ca1faba2efec9',
+          managerInstanceId: '2',
           repository: {
-            id: '623ed14b5c114f79bea3276b313a90e8',
-            publicId: 'releases-proxy',
+            id: '2',
+            publicId: 'a',
             enabled: true,
           },
         },
       ];
 
-      const { repositories, loading, loadError, unsortedRepositories } = reducer(state, {
+      const { repositories, loading, loadError } = reducer(state, {
         type: 'repositories/loadRepositories/fulfilled',
         payload,
       });
 
-      expect(repositories).toEqual(payload);
+      expect(repositories[0].repository.publicId).toBe('a');
+      expect(repositories[0].managerInstanceId).toEqual('2');
+      expect(repositories[0].repository.enabled).toBe(true);
+      expect(repositories[1].repository.publicId).toBe('b');
+      expect(repositories[1].managerInstanceId).toBe('1');
+      expect(repositories[1].repository.enabled).toBe(true);
       expect(loading).toBe(false);
       expect(loadError).toBeNull();
-      expect(unsortedRepositories).toEqual(payload);
     });
   });
 
@@ -169,6 +186,163 @@ describe('repositoriesConfigurationSlice', () => {
     });
   });
 
+  describe('repositories/sortRepositories action', () => {
+    const initialSortConfiguration = [
+      {
+        key: 'publicId',
+        dir: 'asc',
+      },
+      {
+        key: 'managerInstanceId',
+        dir: 'asc',
+      },
+      {
+        key: 'enabled',
+        dir: 'asc',
+      },
+    ];
+
+    it('updates direction in sort configuration based on the payload and current state', () => {
+      const state = Object.freeze({
+        repositories: [],
+        sortConfiguration: initialSortConfiguration,
+      });
+
+      const updatedSortConfiguration = [
+        {
+          key: 'publicId',
+          dir: 'desc',
+        },
+        {
+          key: 'managerInstanceId',
+          dir: 'asc',
+        },
+        {
+          key: 'enabled',
+          dir: 'asc',
+        },
+      ];
+
+      const { sortConfiguration } = reducer(state, {
+        type: 'repositories/sortRepositories',
+        payload: 'publicId',
+      });
+
+      expect(sortConfiguration).toEqual(updatedSortConfiguration);
+    });
+
+    it('updates priority of keys in sort configuration based on the payload and current state', () => {
+      const state = Object.freeze({
+        repositories: [],
+        sortConfiguration: initialSortConfiguration,
+      });
+
+      const updatedSortConfiguration = [
+        {
+          key: 'managerInstanceId',
+          dir: 'asc',
+        },
+        {
+          key: 'publicId',
+          dir: 'asc',
+        },
+        {
+          key: 'enabled',
+          dir: 'asc',
+        },
+      ];
+
+      const { sortConfiguration } = reducer(state, {
+        type: 'repositories/sortRepositories',
+        payload: 'managerInstanceId',
+      });
+
+      expect(sortConfiguration).toEqual(updatedSortConfiguration);
+    });
+
+    it('sorts repositories based on the sort configuration', () => {
+      const state = Object.freeze({
+        repositories: [
+          {
+            managerInstanceId: '1',
+            repository: {
+              id: '1',
+              publicId: 'b',
+              enabled: true,
+            },
+          },
+          {
+            managerInstanceId: '2',
+            repository: {
+              id: '2',
+              publicId: 'a',
+              enabled: true,
+            },
+          },
+          {
+            managerInstanceId: '1',
+            repository: {
+              id: '3',
+              publicId: 'd',
+              enabled: false,
+            },
+          },
+          {
+            managerInstanceId: '2',
+            repository: {
+              id: '4',
+              publicId: 'd',
+              enabled: false,
+            },
+          },
+        ],
+        sortConfiguration: initialSortConfiguration,
+      });
+
+      const sortedRepositories = [
+        {
+          managerInstanceId: '1',
+          repository: {
+            id: '3',
+            publicId: 'd',
+            enabled: false,
+          },
+        },
+        {
+          managerInstanceId: '2',
+          repository: {
+            id: '4',
+            publicId: 'd',
+            enabled: false,
+          },
+        },
+        {
+          managerInstanceId: '1',
+          repository: {
+            id: '1',
+            publicId: 'b',
+            enabled: true,
+          },
+        },
+        {
+          managerInstanceId: '2',
+          repository: {
+            id: '2',
+            publicId: 'a',
+            enabled: true,
+          },
+        },
+      ];
+
+      const { repositories } = reducer(state, {
+        type: 'repositories/sortRepositories',
+        payload: 'publicId',
+      });
+
+      expect(repositories).toEqual(sortedRepositories);
+    });
+  });
+
   describe('repositories/resetSubmitMaskState action', () => {
     it('resets the state for submitMask flag', () => {
       const state = Object.freeze({
@@ -180,74 +354,6 @@ describe('repositoriesConfigurationSlice', () => {
       });
 
       expect(submitMaskState).toBeNull();
-    });
-  });
-
-  describe('repositories/setSort action', () => {
-    it('sorts repositories in ascending order by repository name field if they were unsorted', () => {
-      const state = Object.freeze({
-        repositories: [
-          {
-            managerInstanceId: 'managerInstanceId1',
-            repository: {
-              id: '1',
-              publicId: 'repositoryNameB',
-              enabled: true,
-            },
-          },
-          {
-            managerInstanceId: 'managerInstanceId2',
-            repository: {
-              id: '2',
-              publicId: 'repositoryNameC',
-              enabled: true,
-            },
-          },
-          {
-            managerInstanceId: 'managerInstanceId3',
-            repository: {
-              id: '3',
-              publicId: 'repositoryNameA',
-              enabled: true,
-            },
-          },
-        ],
-        sortConfiguration: null,
-      });
-
-      const sortedRepositoriesByPublicId = [
-        {
-          managerInstanceId: 'managerInstanceId3',
-          repository: {
-            id: '3',
-            publicId: 'repositoryNameA',
-            enabled: true,
-          },
-        },
-        {
-          managerInstanceId: 'managerInstanceId1',
-          repository: {
-            id: '1',
-            publicId: 'repositoryNameB',
-            enabled: true,
-          },
-        },
-        {
-          managerInstanceId: 'managerInstanceId2',
-          repository: {
-            id: '2',
-            publicId: 'repositoryNameC',
-            enabled: true,
-          },
-        },
-      ];
-
-      const { repositories } = reducer(state, {
-        type: 'repositories/setSort',
-        payload: 'publicId',
-      });
-
-      expect(repositories).toEqual(sortedRepositoriesByPublicId);
     });
   });
 

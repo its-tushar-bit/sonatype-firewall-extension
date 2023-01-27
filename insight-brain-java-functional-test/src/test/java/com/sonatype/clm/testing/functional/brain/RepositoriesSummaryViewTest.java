@@ -259,48 +259,170 @@ public class RepositoriesSummaryViewTest
     writeOnly.members().shouldBe(visible).shouldHave(text(testUser.calculateDisplayName()));
   }
 
-  @Test
-  public void testRepositoryConfigurationTable_Sorting() {
-    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+  private void setupDataForSorting() {
     List<Repository> repositories = new ArrayList<>();
-    RepositoryManager repositoryA = tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AE");
-    repositories.add(tempEntity.newRepository(repositoryA, "maven-central", false));
-    RepositoryManager repositoryB = tempEntity.newRepositoryManager("P39Q1VFX-3AHOOK7Y-0L0XMIQA-WLMW6J4J-9KIPBV6Y");
-    repositories.add(tempEntity.newRepository(repositoryB, "Repository-central", true));
-    RepositoryManager repositoryC = tempEntity.newRepositoryManager("3AHOOK7Y-P39Q1VFX-WLMW6J4J-0L0XMIQA-9KIPBV6Y");
-    repositories.add(tempEntity.newRepository(repositoryC, "sonatype-private", true));
+    RepositoryManager rm2 = tempEntity.newRepositoryManager("rm2");
+    RepositoryManager rm1 = tempEntity.newRepositoryManager("rm1");
+    repositories.add(tempEntity.newRepository(rm1, "d", true));
+    repositories.add(tempEntity.newRepository(rm2, "c", true));
+    repositories.add(tempEntity.newRepository(rm1, "b", false));
+    repositories.add(tempEntity.newRepository(rm2, "d", false));
+    repositories.add(tempEntity.newRepository(rm1, "a", true));
+  }
 
+  @Test
+  public void testRepositoryConfigurationTableSorting_Default() {
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    ConfigurationTable configurationTable = configurationTile.configurationTable();
+    setupDataForSorting();
     refreshOrOpen(RepositoryResultsSummaryPage.url());
 
     RepositoryResultsSummaryPage.configurationTile().shouldBe(visible).shouldHave(text("Configuration"));
-    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().shouldBe(visible);
-
-    configurationTile.componentsTableConfigurationCountCols().get(0).shouldHave(Condition.text("maven-central"));
-    configurationTile.componentsTableConfigurationCountCols().get(1).shouldHave(Condition.text("Repository-central"));
-    configurationTile.componentsTableConfigurationCountCols().get(2).shouldHave(Condition.text("sonatype-private"));
-    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().shouldHave(
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldBe(visible);
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().shouldBe(visible);
+    RepositoryResultsSummaryPage.repositoriesTableStatusHeaderSortBtn().shouldBe(visible);
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
         attribute("aria-label", "Repository ascending"));
-    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Repository Manager unsorted"));
+    RepositoryResultsSummaryPage.repositoriesTableStatusHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Status unsorted"));
 
-    configurationTile.componentsTableConfigurationCountCols().get(0).shouldHave(Condition.text("sonatype-private"));
-    configurationTile.componentsTableConfigurationCountCols().get(1).shouldHave(Condition.text("Repository-central"));
-    configurationTile.componentsTableConfigurationCountCols().get(2).shouldHave(Condition.text("maven-central"));
-    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().shouldHave(
+    configurationTable.row(1).publicId().shouldHave(Condition.text("a"));
+    configurationTable.row(1).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(1).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(2).publicId().shouldHave(Condition.text("b"));
+    configurationTable.row(2).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(2).status().shouldHave(Condition.text("Disabled"));
+    configurationTable.row(3).publicId().shouldHave(Condition.text("c"));
+    configurationTable.row(3).managerId().shouldHave(Condition.text("rm2"));
+    configurationTable.row(3).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(4).publicId().shouldHave(Condition.text("d"));
+    configurationTable.row(4).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(4).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(5).publicId().shouldHave(Condition.text("d"));
+    configurationTable.row(5).managerId().shouldHave(Condition.text("rm2"));
+    configurationTable.row(5).status().shouldHave(Condition.text("Disabled"));
+  }
+
+  @Test
+  public void testRepositoryConfigurationTableSorting_RepositoryNameDescending() {
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    ConfigurationTable configurationTable = configurationTile.configurationTable();
+    setupDataForSorting();
+    refreshOrOpen(RepositoryResultsSummaryPage.url());
+
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
         attribute("aria-label", "Repository descending"));
-    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().click();
 
-    configurationTile.componentsTableConfigurationCountCols().get(0).shouldHave(Condition.text("maven-central"));
-    configurationTile.componentsTableConfigurationCountCols().get(1).shouldHave(Condition.text("Repository-central"));
-    configurationTile.componentsTableConfigurationCountCols().get(2).shouldHave(Condition.text("sonatype-private"));
-    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Repository unsorted"));
-    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().click();
+    configurationTable.row(1).publicId().shouldHave(Condition.text("d"));
+    configurationTable.row(1).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(1).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(2).publicId().shouldHave(Condition.text("d"));
+    configurationTable.row(2).managerId().shouldHave(Condition.text("rm2"));
+    configurationTable.row(2).status().shouldHave(Condition.text("Disabled"));
+    configurationTable.row(3).publicId().shouldHave(Condition.text("c"));
+    configurationTable.row(3).managerId().shouldHave(Condition.text("rm2"));
+    configurationTable.row(3).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(4).publicId().shouldHave(Condition.text("b"));
+    configurationTable.row(4).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(4).status().shouldHave(Condition.text("Disabled"));
+    configurationTable.row(5).publicId().shouldHave(Condition.text("a"));
+    configurationTable.row(5).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(5).status().shouldHave(Condition.text("Enabled"));
+  }
 
-    configurationTile.componentsTableConfigurationCountCols().get(0).shouldHave(Condition.text("maven-central"));
-    configurationTile.componentsTableConfigurationCountCols().get(1).shouldHave(Condition.text("Repository-central"));
-    configurationTile.componentsTableConfigurationCountCols().get(2).shouldHave(Condition.text("sonatype-private"));
-    RepositoryResultsSummaryPage.componentsTableRepositoryNameHeaderSortBtn().shouldHave(
-        attribute("aria-label", "Repository ascending"));
+  @Test
+  public void testRepositoryConfigurationTableSorting_RepositoryNameAndRepositoryManager() {
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    ConfigurationTable configurationTable = configurationTile.configurationTable();
+    setupDataForSorting();
+    refreshOrOpen(RepositoryResultsSummaryPage.url());
+
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Repository descending"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Repository Manager ascending"));
+
+    configurationTable.row(1).publicId().shouldHave(Condition.text("d"));
+    configurationTable.row(1).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(1).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(2).publicId().shouldHave(Condition.text("b"));
+    configurationTable.row(2).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(2).status().shouldHave(Condition.text("Disabled"));
+    configurationTable.row(3).publicId().shouldHave(Condition.text("a"));
+    configurationTable.row(3).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(3).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(4).publicId().shouldHave(Condition.text("d"));
+    configurationTable.row(4).managerId().shouldHave(Condition.text("rm2"));
+    configurationTable.row(4).status().shouldHave(Condition.text("Disabled"));
+    configurationTable.row(5).publicId().shouldHave(Condition.text("c"));
+    configurationTable.row(5).managerId().shouldHave(Condition.text("rm2"));
+    configurationTable.row(5).status().shouldHave(Condition.text("Enabled"));
+  }
+
+  @Test
+  public void testRepositoryConfigurationTableSorting_StatusAndRepositoryManager() {
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    ConfigurationTable configurationTable = configurationTile.configurationTable();
+    setupDataForSorting();
+    refreshOrOpen(RepositoryResultsSummaryPage.url());
+
+    RepositoryResultsSummaryPage.repositoriesTableStatusHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableStatusHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Status ascending"));
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Repository Manager ascending"));
+
+    configurationTable.row(1).publicId().shouldHave(Condition.text("b"));
+    configurationTable.row(1).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(1).status().shouldHave(Condition.text("Disabled"));
+    configurationTable.row(2).publicId().shouldHave(Condition.text("a"));
+    configurationTable.row(2).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(2).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(3).publicId().shouldHave(Condition.text("d"));
+    configurationTable.row(3).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(3).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(4).publicId().shouldHave(Condition.text("d"));
+    configurationTable.row(4).managerId().shouldHave(Condition.text("rm2"));
+    configurationTable.row(4).status().shouldHave(Condition.text("Disabled"));
+    configurationTable.row(5).publicId().shouldHave(Condition.text("c"));
+    configurationTable.row(5).managerId().shouldHave(Condition.text("rm2"));
+    configurationTable.row(5).status().shouldHave(Condition.text("Enabled"));
+  }
+
+  @Test
+  public void testRepositoryConfigurationTableSorting_multiSortBtnClicks() {
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    ConfigurationTable configurationTable = configurationTile.configurationTable();
+    setupDataForSorting();
+    refreshOrOpen(RepositoryResultsSummaryPage.url());
+
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().click();
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Repository descending"));
+
+    configurationTable.row(1).publicId().shouldHave(Condition.text("d"));
+    configurationTable.row(1).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(1).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(2).publicId().shouldHave(Condition.text("d"));
+    configurationTable.row(2).managerId().shouldHave(Condition.text("rm2"));
+    configurationTable.row(2).status().shouldHave(Condition.text("Disabled"));
+    configurationTable.row(3).publicId().shouldHave(Condition.text("c"));
+    configurationTable.row(3).managerId().shouldHave(Condition.text("rm2"));
+    configurationTable.row(3).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(4).publicId().shouldHave(Condition.text("b"));
+    configurationTable.row(4).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(4).status().shouldHave(Condition.text("Disabled"));
+    configurationTable.row(5).publicId().shouldHave(Condition.text("a"));
+    configurationTable.row(5).managerId().shouldHave(Condition.text("rm1"));
+    configurationTable.row(5).status().shouldHave(Condition.text("Enabled"));
   }
 
   @Test

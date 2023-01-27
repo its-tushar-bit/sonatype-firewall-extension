@@ -36,8 +36,8 @@ const RepositoriesConfigurationTile = () => {
   const loadRepositories = () => dispatch(actions.loadRepositories());
   const setShowDeleteModal = (isShown) => dispatch(actions.setShowDeleteModal(isShown));
   const deleteRepository = () => dispatch(actions.deleteRepository());
-  const setSort = (column) => dispatch(actions.setSort(column));
   const openDeleteModal = (modalInfo) => dispatch(actions.openDeleteModal(modalInfo));
+  const sortRepositories = (column) => dispatch(actions.sortRepositories(column));
 
   const repositories = useSelector(selectRepositories);
   const isLoading = useSelector(selectRepositoriesLoading);
@@ -114,6 +114,8 @@ const RepositoriesConfigurationTile = () => {
     );
   };
 
+  const showHighlight = (column) => (sortConfiguration[0].key === column ? sortConfiguration[0].dir : null);
+
   return (
     <NxTile id="repositories-pill-configuration" data-testid="repositories_configuration">
       <NxTile.Header>
@@ -126,23 +128,26 @@ const RepositoriesConfigurationTile = () => {
           <NxTable.Head>
             <NxTable.Row>
               <NxTable.Cell
+                id="repository-column-header"
                 isSortable
-                sortDir={sortConfiguration?.column === 'publicId' ? sortConfiguration.dir : null}
-                onClick={() => setSort('publicId')}
+                sortDir={showHighlight('publicId')}
+                onClick={() => sortRepositories('publicId')}
               >
                 Repository
               </NxTable.Cell>
               <NxTable.Cell
+                id="repository-manager-column-header"
                 isSortable
-                sortDir={sortConfiguration?.column === 'managerInstanceId' ? sortConfiguration.dir : null}
-                onClick={() => setSort('managerInstanceId')}
+                sortDir={showHighlight('managerInstanceId')}
+                onClick={() => sortRepositories('managerInstanceId')}
               >
                 Repository Manager
               </NxTable.Cell>
               <NxTable.Cell
+                id="status-column-header"
                 isSortable
-                sortDir={sortConfiguration?.column === 'enabled' ? sortConfiguration.dir : null}
-                onClick={() => setSort('enabled')}
+                sortDir={showHighlight('enabled')}
+                onClick={() => sortRepositories('enabled')}
               >
                 Status
               </NxTable.Cell>

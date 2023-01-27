@@ -48,6 +48,11 @@ public class TenantUtil
       return tenant;
     }
 
+    // Skip validation if clazz can be used in either a per-tenant or global context
+    if (GlobalTenantJob.class.isAssignableFrom(clazz) && TenantManaged.class.isAssignableFrom(clazz)) {
+      return tenant;
+    }
+
     if (GlobalTenantJob.class.isAssignableFrom(clazz) && !GLOBAL_TENANT.equals(tenant)) {
       logTenancyIssue("GlobalTenantJob was invoked which expects a global tenant to be set but instead a specific " +
           "tenant was set: " + clazz);

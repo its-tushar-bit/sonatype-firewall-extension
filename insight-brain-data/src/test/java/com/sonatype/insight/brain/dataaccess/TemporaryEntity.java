@@ -2730,6 +2730,27 @@ public class TemporaryEntity
   public VulnerabilityCustomDetail newVulnerabilityCustomDetail(
       String ownerId,
       String refId,
+      Float severity,
+      String cvssVector,
+      String cwe,
+      String remediation,
+      String comment)
+  {
+    VulnerabilityCustomDetail vulnerabilityCustomDetail =
+        new VulnerabilityCustomDetail(ownerId, refId, null, "username");
+    vulnerabilityCustomDetail.setSeverity(severity);
+    vulnerabilityCustomDetail.setCvssVector(cvssVector);
+    vulnerabilityCustomDetail.setCwe(cwe);
+    vulnerabilityCustomDetail.setRemediation(remediation);
+    vulnerabilityCustomDetail.setComment(comment);
+    vulnerabilityCustomDetailDAO.insert(vulnerabilityCustomDetail);
+    vulnerabilityCustomDetails.add(vulnerabilityCustomDetail);
+    return vulnerabilityCustomDetail;
+  }
+
+  public VulnerabilityCustomDetail newVulnerabilityCustomDetail(
+      String ownerId,
+      String refId,
       ComponentIdentifier componentIdentifier,
       float severity,
       String cvssVector,

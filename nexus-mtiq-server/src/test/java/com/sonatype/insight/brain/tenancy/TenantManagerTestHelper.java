@@ -13,6 +13,10 @@ package com.sonatype.insight.brain.tenancy;
 public class TenantManagerTestHelper
 {
   public static void setTestTenant(final TenantManager tenantManager, final String tenant) {
+    // First set the tenant so that validation is skipped during testing, then use the tenant manager so registration
+    // is performed.
+    TenantThreadLocal.setTenantWithoutValidation(new Tenant(tenant));
+
     tenantManager.setTenant(tenant);
   }
 

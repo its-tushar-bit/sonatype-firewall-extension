@@ -7,7 +7,7 @@ import * as enzymeUtils from '../enzymeUtils';
 import React from 'react';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxPageTitle, NxH1, NxH2, NxFontAwesomeIcon, NxTile } from '@sonatype/react-shared-components';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 describe('ListWaiversPage', function () {
@@ -105,8 +105,8 @@ describe('ListWaiversPage', function () {
 
   it('renders a page title', function () {
     const component = getShallowComponent();
-    expect(component.find('.nx-page-title')).toExist();
-    expect(component.find('.nx-h1')).toHaveText('Waivers for Violation');
+    expect(component.find(NxPageTitle)).toExist();
+    expect(component.find(NxH1)).toHaveText('Waivers for Violation');
   });
 
   it('does not have a ViolationExclamation without a threatLevelCategory', function () {
@@ -169,18 +169,20 @@ describe('ListWaiversPage', function () {
     const component = getShallowComponent({
       violationDetails: violationDetailsMock,
     });
-    const policyNameSpan = component.find('.list-waivers__threat-indicator span');
+    const policyNameSpan = component.find('.iq-threat-level');
     expect(policyNameSpan).toHaveText('policyName');
-    expect(policyNameSpan).toMatchSelector('.iq-threat-level');
     expect(policyNameSpan).toMatchSelector('.iq-threat-level--severe');
   });
 
   it('renders two nx-tiles', function () {
     const component = getShallowComponent();
-    const nxTiles = component.find('.nx-tile');
+    const nxTiles = component.find(NxTile);
+    const tileHeadings = component.find(NxH2);
+
     expect(nxTiles.length).toEqual(2);
-    expect(nxTiles.at(0).find('.nx-h2')).toHaveText('Violation Details');
-    expect(nxTiles.at(1).find('.nx-h2')).toHaveText('Applicable Waivers');
+    expect(tileHeadings.length).toEqual(2);
+    expect(tileHeadings.at(0)).toHaveText('Violation Details');
+    expect(tileHeadings.at(1)).toHaveText('Applicable Waivers');
   });
 
   it('properly renders the constraint section', function () {
@@ -194,7 +196,8 @@ describe('ListWaiversPage', function () {
     const component = getShallowComponent({
       violationDetails: violationDetailsMock,
     });
-    expect(component.find('#list-waivers-conditions')).toHaveText('reason');
+
+    expect(component.find('.list-waivers-condition')).toHaveText('reason');
   });
 
   it('properly renders the component name section', function () {
@@ -206,17 +209,16 @@ describe('ListWaiversPage', function () {
 
   it('shows a Request Waiver button on the waiver list table header', () => {
     const component = getShallowComponent();
-    const buttonSection = component.find('.nx-tile__actions');
-    const button = buttonSection.find(NxButton).at(0);
-    expect(button.find('span')).toHaveText('Request Waiver');
+    const requestWaiverButton = component.find('#request-waiver-btn');
+    expect(requestWaiverButton.find('span')).toHaveText('Request Waiver');
   });
 
   it('shows an Add Waiver button on the waiver list table header', () => {
     const component = getShallowComponent();
-    const buttonSection = component.find('.nx-tile__actions');
-    const button = buttonSection.find(NxButton).at(1);
-    expect(button.find('span')).toHaveText('Add Waiver');
-    const icon = button.find(NxFontAwesomeIcon);
+    const addWaiverButton = component.find('#add-waiver-btn');
+    const icon = addWaiverButton.find(NxFontAwesomeIcon);
+
+    expect(addWaiverButton.find('span')).toHaveText('Add Waiver');
     expect(icon).toHaveProp('icon', faPlus);
   });
 

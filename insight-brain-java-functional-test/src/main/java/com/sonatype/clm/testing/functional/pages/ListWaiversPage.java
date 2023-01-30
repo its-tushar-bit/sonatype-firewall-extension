@@ -46,11 +46,11 @@ public class ListWaiversPage
   }
 
   public SelenideElement waiverDetailsTitle() {
-    return child(".nx-tile-header--hrule h2");
+    return child("#list-waivers-details .nx-tile-header__title h2");
   }
 
   public SelenideElement waiverListTitle() {
-    return child(".nx-tile-header__title h2");
+    return child("#list-waivers-applicable .nx-tile-header__title h2");
   }
 
   public SelenideElement addWaiverButton() {
@@ -58,7 +58,7 @@ public class ListWaiversPage
   }
 
   public SelenideElement policyName() {
-    return child(".list-waivers__threat-indicator .iq-threat-level");
+    return child(".iq-threat-level");
   }
 
   public SelenideElement constraintName() {
@@ -66,11 +66,7 @@ public class ListWaiversPage
   }
 
   public ElementsCollection conditions() {
-    return children("#list-waivers-conditions span");
-  }
-
-  public SelenideElement condition(int index) {
-    return child("#list-waivers-conditions span", nthChild(index));
+    return children(".list-waivers-condition");
   }
 
   public SelenideElement componentName() {

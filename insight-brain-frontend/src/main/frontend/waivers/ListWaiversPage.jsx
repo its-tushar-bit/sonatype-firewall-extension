@@ -7,7 +7,16 @@ import React, { useEffect, Fragment } from 'react';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { NxButton, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxFontAwesomeIcon,
+  NxH1,
+  NxH2,
+  NxPageTitle,
+  NxReadOnly,
+  NxTile,
+  NxTooltip,
+} from '@sonatype/react-shared-components';
 
 import LoadWrapper from '../react/LoadWrapper';
 import ViolationExclamation from '../react/ViolationExclamation';
@@ -100,50 +109,47 @@ export default function ListWaiversPage(props) {
           retryHandler={load}
         >
           <ListWaiversBackButton {...backButtonProps} />
-          <div className="nx-page-title">
-            <h1 className="nx-h1">Waivers for Violation</h1>
-            <div className="list-waivers__threat-indicator">
-              {threatLevelCategory && <ViolationExclamation threatLevelCategory={threatLevelCategory} />}
-              <span className={policyClassnames}>{policyName}</span>
-            </div>
-          </div>
-          <div className="nx-tile">
-            <div className="nx-tile-header nx-tile-header--hrule">
-              <h2 className="nx-h2">Violation Details</h2>
-            </div>
-            <div className="nx-tile-content">
-              <div className="nx-form-group iq-read-only">
-                <label className="nx-label">
-                  <span className="nx-label__text">Constraint Name</span>
-                </label>
-                <div id="list-waivers-constraint-name" className="iq-read-only-data">
-                  {constraintName}
-                </div>
-              </div>
-              <div className="nx-form-group iq-read-only">
-                <label className="nx-label">
-                  <span className="nx-label__text">Conditions</span>
-                </label>
-                <div id="list-waivers-conditions" className="iq-read-only-data iq-read-only-data--vertical">
-                  {reasons && reasons.map((reason, index) => <span key={index}>{reason}</span>)}
-                </div>
-              </div>
-              <div className="nx-form-group iq-read-only">
-                <label className="nx-label">
-                  <span className="nx-label__text">Component Name</span>
-                </label>
-                <div id="list-waivers-component-name" className="iq-read-only-data">
-                  {componentName}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="nx-tile">
-            <div className="nx-tile-header">
-              <div className="nx-tile-header__title">
-                <h2 className="nx-h2">Applicable Waivers</h2>
-              </div>
-              <div className="nx-tile__actions">
+          <NxPageTitle>
+            <NxH1>Waivers for Violation</NxH1>
+            {threatLevelCategory && <ViolationExclamation threatLevelCategory={threatLevelCategory} />}
+            <span className={policyClassnames}>{policyName}</span>
+          </NxPageTitle>
+          <NxTile id="list-waivers-details">
+            <NxTile.Header>
+              <NxTile.HeaderTitle>
+                <NxH2>Violation Details</NxH2>
+              </NxTile.HeaderTitle>
+            </NxTile.Header>
+            <NxTile.Content>
+              {/* Constraints */}
+              <NxReadOnly className="list-waivers_constraints">
+                <NxReadOnly.Label>Constraint Name</NxReadOnly.Label>
+                <NxReadOnly.Data id="list-waivers-constraint-name">{constraintName}</NxReadOnly.Data>
+              </NxReadOnly>
+              {/* Conditions  */}
+              <NxReadOnly className="list-waivers_conditions">
+                <NxReadOnly.Label>Conditions</NxReadOnly.Label>
+                {reasons &&
+                  reasons.map((reason, index) => (
+                    <NxReadOnly.Data className="list-waivers-condition" key={index}>
+                      {reason}
+                    </NxReadOnly.Data>
+                  ))}
+                <NxReadOnly.Data></NxReadOnly.Data>
+              </NxReadOnly>
+              {/* Component  */}
+              <NxReadOnly className="list-waivers_component">
+                <NxReadOnly.Label>Component Name</NxReadOnly.Label>
+                <NxReadOnly.Data id="list-waivers-component-name">{componentName}</NxReadOnly.Data>
+              </NxReadOnly>
+            </NxTile.Content>
+          </NxTile>
+          <NxTile id="list-waivers-applicable">
+            <NxTile.Header>
+              <NxTile.HeaderTitle>
+                <NxH2>Applicable Waivers</NxH2>
+              </NxTile.HeaderTitle>
+              <NxTile.HeaderActions>
                 {!isCurrentRouteName && (
                   <NxButton
                     variant="tertiary"
@@ -169,9 +175,10 @@ export default function ListWaiversPage(props) {
                     <span>Add Waiver</span>
                   </NxButton>
                 </NxTooltip>
-              </div>
-            </div>
-            <div className="nx-tile-content">
+              </NxTile.HeaderActions>
+            </NxTile.Header>
+
+            <NxTile.Content>
               <ListWaiversTable
                 {...{
                   activeWaivers,
@@ -183,8 +190,8 @@ export default function ListWaiversPage(props) {
                   reloadApplicableWaivers,
                 }}
               />
-            </div>
-          </div>
+            </NxTile.Content>
+          </NxTile>
         </LoadWrapper>
       </div>
     </Fragment>

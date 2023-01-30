@@ -96,7 +96,7 @@ public class ListWaiversTest
     listWaiversPage.policyName().shouldHave(cssClass("iq-threat-level--severe"));
     listWaiversPage.constraintName().shouldHave(text("Test Constraint"));
     listWaiversPage.conditions().shouldHaveSize(1);
-    listWaiversPage.condition(1).shouldHave(text("sonatype-2017-0507"));
+    listWaiversPage.conditions().first().shouldHave(text("sonatype-2017-0507"));
     listWaiversPage.componentName().shouldHave(text("Group1 : Artifact1 : Version1"));
   }
 

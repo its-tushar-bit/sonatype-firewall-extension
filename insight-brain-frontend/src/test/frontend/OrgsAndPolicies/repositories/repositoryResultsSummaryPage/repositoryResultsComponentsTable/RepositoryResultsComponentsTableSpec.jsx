@@ -219,9 +219,9 @@ describe('RepositoryResultsComponentsTable', () => {
     it('sorts components by the selected field', () => {
       renderComponent();
 
-      const sortByThreatButton = screen.getByRole('button', { name: /threat descending/i });
+      const sortByThreatButton = screen.getByRole('button', { name: /threat unsorted/i });
       const sortByPolicyButton = screen.getByRole('button', { name: /policy unsorted/i });
-      const sortByQuarantinedButton = screen.getByRole('button', { name: /quarantined unsorted/i });
+      const sortByQuarantinedButton = screen.getByRole('button', { name: /quarantined descending/i });
       const sortByComponentButton = screen.getByRole('button', { name: /component unsorted/i });
 
       fireEvent.click(sortByThreatButton);
@@ -230,7 +230,7 @@ describe('RepositoryResultsComponentsTable', () => {
 
       fireEvent.click(sortByPolicyButton);
       expect(sortComponentsSpy).toHaveBeenCalledWith('POLICY_NAME');
-      expect(screen.getByRole('button', { name: /policy ascending/i })).toBeVisible();
+      expect(screen.getByRole('button', { name: /policy descending/i })).toBeVisible();
 
       fireEvent.click(sortByQuarantinedButton);
       expect(sortComponentsSpy).toHaveBeenCalledWith('QUARANTINE_TIME');
@@ -238,9 +238,9 @@ describe('RepositoryResultsComponentsTable', () => {
 
       fireEvent.click(sortByComponentButton);
       expect(sortComponentsSpy).toHaveBeenCalledWith('COMPONENT_COORDINATES');
-      expect(screen.getByRole('button', { name: /component ascending/i })).toBeVisible();
-      fireEvent.click(sortByComponentButton);
       expect(screen.getByRole('button', { name: /component descending/i })).toBeVisible();
+      fireEvent.click(sortByComponentButton);
+      expect(screen.getByRole('button', { name: /component ascending/i })).toBeVisible();
     });
 
     it('redirects to firewall component details page', () => {

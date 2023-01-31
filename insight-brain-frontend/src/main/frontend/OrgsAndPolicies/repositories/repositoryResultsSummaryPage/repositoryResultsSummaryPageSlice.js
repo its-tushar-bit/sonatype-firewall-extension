@@ -23,7 +23,6 @@ import { verifyFiltersAreValid } from 'MainRoot/util/validationUtil';
 const REDUCER_NAME = 'repositoryResultsSummaryPage';
 const PAGE_SIZE = 12;
 const FILTER_DEBOUNCE_TIME = 500;
-const DEFAULT_SORTED_FIELD = 'POLICY_THREAT_LEVEL';
 
 const initialState = {
   repositoryInfo: null,
@@ -50,9 +49,24 @@ const initialState = {
     searchFilters: [],
     sortFields: [
       {
-        sortableField: DEFAULT_SORTED_FIELD,
+        sortableField: 'QUARANTINE_TIME',
         asc: false,
         sortPriority: 1,
+      },
+      {
+        sortableField: 'POLICY_THREAT_LEVEL',
+        asc: false,
+        sortPriority: 2,
+      },
+      {
+        sortableField: 'POLICY_NAME',
+        asc: true,
+        sortPriority: 3,
+      },
+      {
+        sortableField: 'COMPONENT_COORDINATES',
+        asc: true,
+        sortPriority: 4,
       },
     ],
     matchStateFilters: [],
@@ -66,7 +80,6 @@ const initialState = {
   reEvaluateMaskSuccess: false,
   showMaskSuccessDialog: false,
 };
-
 const sortComponents = (sortData) => (dispatch, getState) => {
   const repository = selectRepositoryInformation(getState());
   dispatch(actions.setSorting(sortData));
@@ -74,13 +87,21 @@ const sortComponents = (sortData) => (dispatch, getState) => {
 };
 
 const setSorting = (state, { payload }) => {
-  let sortField = state.componentsRequestBody.sortFields[0];
-  if (sortField.sortableField === payload) {
-    sortField.asc = !sortField.asc;
-  } else {
-    sortField.sortableField = payload;
-    sortField.asc = true;
-  }
+  const sortOption = state.componentsRequestBody.sortFields.find((sortOption) => sortOption.sortableField === payload);
+
+  state.componentsRequestBody.sortFields = [
+    {
+      sortableField: sortOption.sortableField,
+      asc: !sortOption.asc,
+      sortPriority: 1,
+    },
+  ].concat(
+    state.componentsRequestBody.sortFields
+      .filter((option) => option.sortableField !== sortOption.sortableField)
+      .map(({ sortableField, asc }, index) => {
+        return { sortableField, asc, sortPriority: index + 2 };
+      })
+  );
   state.componentsRequestBody.page = 1;
 };
 

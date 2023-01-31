@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxSmallThreatCounter;
@@ -18,6 +19,7 @@ import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTable;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTableRow;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -141,7 +143,7 @@ public class RepositoryResultsSummaryTest
     RepositoryResultDetailPage.table().header().component().shouldHave(text("COMPONENT"));
 
     RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
-    testRow(RepositoryResultDetailPage.table().row(0), "10", "Test Policy", "", "g : a : v");
+    testRow(RepositoryResultDetailPage.table().row(0), "6", "Test Policy", "2020-06-01", "g : a : v");
     testRow(RepositoryResultDetailPage.table().row(1), "10", "Policy 2", "", "g : a : v");
 
     SelenideElement leftPagination = page.paginationButtons().get(0);
@@ -149,7 +151,7 @@ public class RepositoryResultsSummaryTest
     leftPagination.shouldNotBe(visible);
     rightPagination.shouldBe(visible).click();
     RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
-    testRow(RepositoryResultDetailPage.table().row(11), "6", "Test Policy", "2020-06-01", "g : a : v");
+    testRow(RepositoryResultDetailPage.table().row(11), "7", "Test Policy", "", "g : a : v");
 
     leftPagination.shouldBe(visible);
     rightPagination.shouldBe(visible).click();
@@ -160,7 +162,7 @@ public class RepositoryResultsSummaryTest
     rightPagination.shouldNotBe(visible);
     leftPagination.shouldBe(visible).click();
     RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
-    testRow(RepositoryResultDetailPage.table().row(11), "6", "Test Policy", "2020-06-01", "g : a : v");
+    testRow(RepositoryResultDetailPage.table().row(11), "7", "Test Policy", "", "g : a : v");
 
     leftPagination.shouldBe(visible);
     rightPagination.shouldBe(visible);
@@ -171,7 +173,8 @@ public class RepositoryResultsSummaryTest
     refreshOrOpen(RepositoryResultDetailPage.url(repo.getId()));
 
     RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
-    testRow(RepositoryResultDetailPage.table().row(0), "10", "Test Policy", "", "g : a : v");
+
+    testRow(RepositoryResultDetailPage.table().row(0), "6", "Test Policy", "2020-06-01", "g : a : v");
     testRow(RepositoryResultDetailPage.table().row(1), "10", "Policy 2", "", "g : a : v");
 
     RepositoryResultDetailPage.table().header().threat().click();
@@ -179,11 +182,8 @@ public class RepositoryResultsSummaryTest
     testRow(RepositoryResultDetailPage.table().row(11), "10", "Policy 2", "", "g : a : v");
 
     RepositoryResultDetailPage.table().header().policy().click();
-    testRow(RepositoryResultDetailPage.table().row(0), "3", "Policy 2", "", "g : a : v");
+    testRow(RepositoryResultDetailPage.table().row(0), "1", "Test Policy", "", "g : a : v");
     testRow(RepositoryResultDetailPage.table().row(11), "10", "Policy 2", "", "g : a : v");
-
-    RepositoryResultDetailPage.table().header().quarantined().click();
-    testRow(RepositoryResultDetailPage.table().row(0), "6", "Test Policy", "2020-06-01", "g : a : v");
   }
 
   @Test
@@ -192,7 +192,7 @@ public class RepositoryResultsSummaryTest
     RepositoryResultDetailPage page = new RepositoryResultDetailPage();
 
     RepositoryResultDetailPage.table().rows().shouldHaveSize(12);
-    testRow(RepositoryResultDetailPage.table().row(0), "10", "Test Policy", "", "g : a : v");
+    testRow(RepositoryResultDetailPage.table().row(0), "6", "Test Policy", "2020-06-01", "g : a : v");
     testRow(RepositoryResultDetailPage.table().row(1), "10", "Policy 2", "", "g : a : v");
     RepositoryResultDetailPage.table().policyName().input().shouldBe(visible);
     RepositoryResultDetailPage.table().policyName().input().sendKeys("Test");
@@ -283,6 +283,654 @@ public class RepositoryResultsSummaryTest
     repositoryResultsTable.policyName().input().sendKeys("Test");
     RepositoryResultDetailPage.table().rows().shouldHaveSize(9);
     repositoryResultsTable.policyNameClearFilterButton().click();
+  }
+
+  @Test
+  public void testDefaultSorting_QuarantinedComponentsWithPolicyViolations() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AF");
+    Repository repository = tempEntity.newRepository(repositoryManager, "maven-central");
+
+    addQuarantinedComponentsWithPolicyViolations(repository);
+    addComponentsWithoutPolicyViolations(repository);
+    addNotQuarantinedComponentsWithPolicyViolations(repository);
+
+    refreshOrOpen(RepositoryResultDetailPage.url(repository.getId()));
+
+    // Quarantined components should be at the top
+    RepositoryResultDetailPage page = new RepositoryResultDetailPage();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "10", "Policy Threat Level 10", "2020-06-10",
+        "groupId10 : artifactId10 : jar : classifier10 : version10");
+    testRow(RepositoryResultDetailPage.table().row(1), "9", "Policy Threat Level 9", "2020-06-09",
+        "groupId9 : artifactId9 : jar : classifier9 : version9");
+    testRow(RepositoryResultDetailPage.table().row(2), "8", "Policy Threat Level 8", "2020-06-08",
+        "groupId8 : artifactId8 : jar : classifier8 : version8");
+    testRow(RepositoryResultDetailPage.table().row(3), "7", "Policy Threat Level 7", "2020-06-07",
+        "groupId7 : artifactId7 : jar : classifier7 : version7");
+    testRow(RepositoryResultDetailPage.table().row(4), "6", "Policy Threat Level 6", "2020-06-06",
+        "groupId6 : artifactId6 : jar : classifier6 : version6");
+    testRow(RepositoryResultDetailPage.table().row(5), "10", "Policy Threat Level 10", "2020-06-05",
+        "groupId5 : artifactId5 : jar : classifier5 : version5");
+    testRow(RepositoryResultDetailPage.table().row(6), "9", "Policy Threat Level 9", "2020-06-05",
+        "groupId5 : artifactId5 : jar : classifier5 : version5");
+    testRow(RepositoryResultDetailPage.table().row(7), "5", "Policy Threat Level 5", "2020-06-05",
+        "groupId5 : artifactId5 : jar : classifier5 : version5");
+    testRow(RepositoryResultDetailPage.table().row(8), "5", "Policy Threat Level 5B", "2020-06-05",
+        "groupId5 : artifactId5 : jar : classifier5 : version5");
+    testRow(RepositoryResultDetailPage.table().row(9), "10", "Policy Threat Level 10", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+    testRow(RepositoryResultDetailPage.table().row(10), "9", "Policy Threat Level 9", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+    testRow(RepositoryResultDetailPage.table().row(11), "4", "Policy Threat Level 4", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+
+    SelenideElement rightPagination = page.paginationButtons().get(1);
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "4", "Policy Threat Level 4B", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+    testRow(RepositoryResultDetailPage.table().row(1), "10", "Policy Threat Level 10", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+    testRow(RepositoryResultDetailPage.table().row(2), "9", "Policy Threat Level 9", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+    testRow(RepositoryResultDetailPage.table().row(3), "3", "Policy Threat Level 3", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+    testRow(RepositoryResultDetailPage.table().row(4), "3", "Policy Threat Level 3B", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+    testRow(RepositoryResultDetailPage.table().row(5), "10", "Policy Threat Level 10", "2020-06-02",
+        "groupId2 : artifactId2 : jar : classifier2 : version2");
+    testRow(RepositoryResultDetailPage.table().row(6), "9", "Policy Threat Level 9", "2020-06-02",
+        "groupId2 : artifactId2 : jar : classifier2 : version2");
+    testRow(RepositoryResultDetailPage.table().row(7), "2", "Policy Threat Level 2", "2020-06-02",
+        "groupId2 : artifactId2 : jar : classifier2 : version2");
+    testRow(RepositoryResultDetailPage.table().row(8), "2", "Policy Threat Level 2B", "2020-06-02",
+        "groupId2 : artifactId2 : jar : classifier2 : version2");
+    testRow(RepositoryResultDetailPage.table().row(9), "10", "Policy Threat Level 10", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+    testRow(RepositoryResultDetailPage.table().row(10), "9", "Policy Threat Level 9", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+    testRow(RepositoryResultDetailPage.table().row(11), "1", "Policy Threat Level 1", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "1", "Policy Threat Level 1B", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+  }
+
+  @Test
+  public void testDefaultSorting_NotQuarantinedComponentsWithPolicyViolations() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AF");
+    Repository repository = tempEntity.newRepository(repositoryManager, "maven-central");
+
+    addQuarantinedComponentsWithPolicyViolations(repository);
+    addComponentsWithoutPolicyViolations(repository);
+    addNotQuarantinedComponentsWithPolicyViolations(repository);
+
+    refreshOrOpen(RepositoryResultDetailPage.url(repository.getId()));
+
+    RepositoryResultDetailPage page = new RepositoryResultDetailPage();
+
+    SelenideElement rightPagination = page.paginationButtons().get(1);
+    rightPagination.click();
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(1), "1", "Policy Threat Level 1", "",
+        "groupId11 : artifactId11 : jar : classifier11 : version11");
+
+    testRow(RepositoryResultDetailPage.table().row(2), "1", "Policy Threat Level 1", "",
+        "groupId12 : artifactId12 : jar : classifier12 : version12");
+
+    testRow(RepositoryResultDetailPage.table().row(3), "1", "Policy Threat Level 1", "",
+        "groupId13 : artifactId13 : jar : classifier13 : version13");
+
+    testRow(RepositoryResultDetailPage.table().row(4), "1", "Policy Threat Level 1", "",
+        "groupId14 : artifactId14 : jar : classifier14 : version14");
+
+    testRow(RepositoryResultDetailPage.table().row(5), "1", "Policy Threat Level 1", "",
+        "groupId15 : artifactId15 : jar : classifier15 : version15");
+
+    testRow(RepositoryResultDetailPage.table().row(6), "1", "Policy Threat Level 1", "",
+        "groupId16 : artifactId16 : jar : classifier16 : version16");
+  }
+
+  @Test
+  public void testDefaultSorting_ComponentsWithoutPolicyViolations() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AF");
+    Repository repository = tempEntity.newRepository(repositoryManager, "maven-central");
+
+    addQuarantinedComponentsWithPolicyViolations(repository);
+    addComponentsWithoutPolicyViolations(repository);
+    addNotQuarantinedComponentsWithPolicyViolations(repository);
+
+    refreshOrOpen(RepositoryResultDetailPage.url(repository.getId()));
+
+    RepositoryResultDetailPage page = new RepositoryResultDetailPage();
+
+    SelenideElement rightPagination = page.paginationButtons().get(1);
+    rightPagination.click();
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(7), "0", "No Violations", "",
+        "groupId20 : artifactId20 : jar : classifier20 : version20");
+    testRow(RepositoryResultDetailPage.table().row(8), "0", "No Violations", "",
+        "groupId21 : artifactId21 : jar : classifier21 : version21");
+    testRow(RepositoryResultDetailPage.table().row(9), "0", "No Violations", "",
+        "groupId22 : artifactId22 : jar : classifier22 : version22");
+    testRow(RepositoryResultDetailPage.table().row(10), "0", "No Violations", "",
+        "groupId23 : artifactId23 : jar : classifier23 : version23");
+    testRow(RepositoryResultDetailPage.table().row(11), "0", "No Violations", "",
+        "groupId24 : artifactId24 : jar : classifier24 : version24");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "0", "No Violations", "",
+        "groupId25 : artifactId25 : jar : classifier25 : version25");
+  }
+
+  @Test
+  public void testDefaultSorting_MultipleViolationsSameComponent() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AF");
+    Repository repository = tempEntity.newRepository(repositoryManager, "maven-central");
+
+    addQuarantinedComponentsWithPolicyViolations(repository);
+    addComponentsWithoutPolicyViolations(repository);
+    addNotQuarantinedComponentsWithPolicyViolations(repository);
+
+    refreshOrOpen(RepositoryResultDetailPage.url(repository.getId()));
+
+    RepositoryResultDetailPage page = new RepositoryResultDetailPage();
+
+    testRow(RepositoryResultDetailPage.table().row(5), "10", "Policy Threat Level 10", "2020-06-05",
+        "groupId5 : artifactId5 : jar : classifier5 : version5");
+    testRow(RepositoryResultDetailPage.table().row(6), "9", "Policy Threat Level 9", "2020-06-05",
+        "groupId5 : artifactId5 : jar : classifier5 : version5");
+    testRow(RepositoryResultDetailPage.table().row(7), "5", "Policy Threat Level 5", "2020-06-05",
+        "groupId5 : artifactId5 : jar : classifier5 : version5");
+    testRow(RepositoryResultDetailPage.table().row(8), "5", "Policy Threat Level 5B", "2020-06-05",
+        "groupId5 : artifactId5 : jar : classifier5 : version5");
+    testRow(RepositoryResultDetailPage.table().row(9), "10", "Policy Threat Level 10", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+    testRow(RepositoryResultDetailPage.table().row(10), "9", "Policy Threat Level 9", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+    testRow(RepositoryResultDetailPage.table().row(11), "4", "Policy Threat Level 4", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+
+    SelenideElement rightPagination = page.paginationButtons().get(1);
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "4", "Policy Threat Level 4B", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+    testRow(RepositoryResultDetailPage.table().row(1), "10", "Policy Threat Level 10", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+    testRow(RepositoryResultDetailPage.table().row(2), "9", "Policy Threat Level 9", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+    testRow(RepositoryResultDetailPage.table().row(3), "3", "Policy Threat Level 3", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+    testRow(RepositoryResultDetailPage.table().row(4), "3", "Policy Threat Level 3B", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+    testRow(RepositoryResultDetailPage.table().row(5), "10", "Policy Threat Level 10", "2020-06-02",
+        "groupId2 : artifactId2 : jar : classifier2 : version2");
+    testRow(RepositoryResultDetailPage.table().row(6), "9", "Policy Threat Level 9", "2020-06-02",
+        "groupId2 : artifactId2 : jar : classifier2 : version2");
+    testRow(RepositoryResultDetailPage.table().row(7), "2", "Policy Threat Level 2", "2020-06-02",
+        "groupId2 : artifactId2 : jar : classifier2 : version2");
+    testRow(RepositoryResultDetailPage.table().row(8), "2", "Policy Threat Level 2B", "2020-06-02",
+        "groupId2 : artifactId2 : jar : classifier2 : version2");
+    testRow(RepositoryResultDetailPage.table().row(9), "10", "Policy Threat Level 10", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+    testRow(RepositoryResultDetailPage.table().row(10), "9", "Policy Threat Level 9", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+    testRow(RepositoryResultDetailPage.table().row(11), "1", "Policy Threat Level 1", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "1", "Policy Threat Level 1B", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+  }
+
+  @Test
+  public void testThreatLevelSortingChangesDirection() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AF");
+    Repository repository = tempEntity.newRepository(repositoryManager, "maven-central");
+
+    addQuarantinedComponentsWithPolicyViolations(repository);
+    addComponentsWithoutPolicyViolations(repository);
+    addNotQuarantinedComponentsWithPolicyViolations(repository);
+
+    refreshOrOpen(RepositoryResultDetailPage.url(repository.getId()));
+
+    RepositoryResultDetailPage page = new RepositoryResultDetailPage();
+
+    SelenideElement rightPagination = page.paginationButtons().get(1);
+    SelenideElement leftPagination = page.paginationButtons().get(0);
+
+    // Sanity check - Threat level descending (default)
+    // Check first row of the table
+    testRow(RepositoryResultDetailPage.table().row(0), "10", "Policy Threat Level 10", "2020-06-10",
+        "groupId10 : artifactId10 : jar : classifier10 : version10");
+
+    // Check last row of the table
+    testRow(RepositoryResultDetailPage.table().row(11), "4", "Policy Threat Level 4", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+
+    rightPagination.click();
+
+    // Check first row of the table
+    testRow(RepositoryResultDetailPage.table().row(0), "4", "Policy Threat Level 4B", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+
+    // Check last row of the table
+    testRow(RepositoryResultDetailPage.table().row(11), "1", "Policy Threat Level 1", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+
+    rightPagination.click();
+
+    // Check first row of the table
+    testRow(RepositoryResultDetailPage.table().row(0), "1", "Policy Threat Level 1B", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+
+    // Check last row of the table
+    testRow(RepositoryResultDetailPage.table().row(11), "0", "No Violations", "",
+        "groupId24 : artifactId24 : jar : classifier24 : version24");
+
+    leftPagination.click();
+    leftPagination.click();
+
+    // Change Threat level ascending
+    RepositoryResultDetailPage.table().header().threat().click();
+
+    // Check first row of the table
+    testRow(RepositoryResultDetailPage.table().row(0), "1", "Policy Threat Level 1", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+
+    // Check last row of the table
+    testRow(RepositoryResultDetailPage.table().row(11), "3", "Policy Threat Level 3", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+
+    rightPagination.click();
+
+    // Check first row of the table
+    testRow(RepositoryResultDetailPage.table().row(0), "4", "Policy Threat Level 4", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+
+    // Check last row of the table
+    testRow(RepositoryResultDetailPage.table().row(11), "9", "Policy Threat Level 9", "2020-06-02",
+        "groupId2 : artifactId2 : jar : classifier2 : version2");
+
+    rightPagination.click();
+
+    // Check first row of the table
+    testRow(RepositoryResultDetailPage.table().row(0), "9", "Policy Threat Level 9", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+
+    // Check last row of the table
+    testRow(RepositoryResultDetailPage.table().row(11), "0", "No Violations", "",
+        "groupId24 : artifactId24 : jar : classifier24 : version24");
+  }
+
+  @Test
+  public void testSortingAfterClickingOnColumns() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AF");
+    Repository repository = tempEntity.newRepository(repositoryManager, "maven-central");
+
+    addQuarantinedComponentsWithPolicyViolations(repository);
+    addComponentsWithoutPolicyViolations(repository);
+    addNotQuarantinedComponentsWithPolicyViolations(repository);
+
+    refreshOrOpen(RepositoryResultDetailPage.url(repository.getId()));
+
+    RepositoryResultDetailPage page = new RepositoryResultDetailPage();
+
+    SelenideElement leftPagination = page.paginationButtons().get(0);
+    SelenideElement rightPagination = page.paginationButtons().get(1);
+
+    // Default Ordering
+    // 1: Quarantines Desc
+    // 2: Threat Desc
+    // 3: Policy Asc
+    // 4: Component Asc
+    testRow(RepositoryResultDetailPage.table().row(0), "10", "Policy Threat Level 10", "2020-06-10",
+        "groupId10 : artifactId10 : jar : classifier10 : version10");
+    testRow(RepositoryResultDetailPage.table().row(11), "4", "Policy Threat Level 4", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "4", "Policy Threat Level 4B", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+    testRow(RepositoryResultDetailPage.table().row(11), "1", "Policy Threat Level 1", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "1", "Policy Threat Level 1B", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+    testRow(RepositoryResultDetailPage.table().row(11), "0", "No Violations", "",
+        "groupId24 : artifactId24 : jar : classifier24 : version24");
+
+    leftPagination.click();
+    leftPagination.click();
+
+    // Clicks on quarantined column
+    RepositoryResultDetailPage.table().header().quarantined().click();
+
+    // 1: Quarantined Asc
+    // 2: Threat Desc
+    // 3: Policy Asc
+    // 4: Component Asc
+    testRow(RepositoryResultDetailPage.table().row(0), "1", "Policy Threat Level 1", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+    testRow(RepositoryResultDetailPage.table().row(11), "3", "Policy Threat Level 3", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "10", "Policy Threat Level 10", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+    testRow(RepositoryResultDetailPage.table().row(11), "9", "Policy Threat Level 9", "2020-06-09",
+        "groupId9 : artifactId9 : jar : classifier9 : version9");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "10", "Policy Threat Level 10", "2020-06-10",
+        "groupId10 : artifactId10 : jar : classifier10 : version10");
+    testRow(RepositoryResultDetailPage.table().row(11), "0", "No Violations", "",
+        "groupId24 : artifactId24 : jar : classifier24 : version24");
+
+    leftPagination.click();
+    leftPagination.click();
+
+    // Clicks on Threat column
+    RepositoryResultDetailPage.table().header().threat().click();
+
+    // 1: Threat Asc
+    // 2: Quarantined Asc
+    // 3: Policy Asc
+    // 4: Component Asc
+    testRow(RepositoryResultDetailPage.table().row(0), "1", "Policy Threat Level 1", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+    testRow(RepositoryResultDetailPage.table().row(11), "3", "Policy Threat Level 3", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "4", "Policy Threat Level 4", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+    testRow(RepositoryResultDetailPage.table().row(11), "9", "Policy Threat Level 9", "2020-06-05",
+        "groupId5 : artifactId5 : jar : classifier5 : version5");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "9", "Policy Threat Level 9", "2020-06-09",
+        "groupId9 : artifactId9 : jar : classifier9 : version9");
+    testRow(RepositoryResultDetailPage.table().row(11), "0", "No Violations", "",
+        "groupId24 : artifactId24 : jar : classifier24 : version24");
+
+    leftPagination.click();
+    leftPagination.click();
+
+    // Clicks on Policy
+    RepositoryResultDetailPage.table().header().policy().click();
+
+    // 1: Policy Desc
+    // 2: Threat Asc
+    // 3: Quarantined Asc
+    // 4: Component Asc
+    testRow(RepositoryResultDetailPage.table().row(0), "9", "Policy Threat Level 9", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+    testRow(RepositoryResultDetailPage.table().row(11), "4", "Policy Threat Level 4", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "4", "Policy Threat Level 4", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+    testRow(RepositoryResultDetailPage.table().row(11), "10", "Policy Threat Level 10", "2020-06-10",
+        "groupId10 : artifactId10 : jar : classifier10 : version10");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "1", "Policy Threat Level 1", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+    testRow(RepositoryResultDetailPage.table().row(11), "0", "No Violations", "",
+        "groupId24 : artifactId24 : jar : classifier24 : version24");
+
+    leftPagination.click();
+    leftPagination.click();
+
+    // Clicks on Component
+    RepositoryResultDetailPage.table().header().component().click();
+
+    // 1: Component Desc
+    // 2: Policy Desc
+    // 3: Threat Asc
+    // 4: Quarantined Asc
+    testRow(RepositoryResultDetailPage.table().row(0), "9", "Policy Threat Level 9", "2020-06-09",
+        "groupId9 : artifactId9 : jar : classifier9 : version9");
+    testRow(RepositoryResultDetailPage.table().row(11), "10", "Policy Threat Level 10", "2020-06-04",
+        "groupId4 : artifactId4 : jar : classifier4 : version4");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "9", "Policy Threat Level 9", "2020-06-03",
+        "groupId3 : artifactId3 : jar : classifier3 : version3");
+    testRow(RepositoryResultDetailPage.table().row(11), "2", "Policy Threat Level 2", "2020-06-02",
+        "groupId2 : artifactId2 : jar : classifier2 : version2");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "2", "Policy Threat Level 2", "2020-06-02",
+        "groupId2 : artifactId2 : jar : classifier2 : version2");
+    testRow(RepositoryResultDetailPage.table().row(11), "0", "Policy Threat Level 10", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+
+    leftPagination.click();
+    leftPagination.click();
+
+    // Clicks on Threat column
+    RepositoryResultDetailPage.table().header().threat().click();
+
+    // 1: Threat Desc
+    // 2: Component Desc
+    // 3: Policy Desc
+    // 4: Quarantined Asc
+    testRow(RepositoryResultDetailPage.table().row(0), "10", "Policy Threat Level 10", "2020-06-05",
+        "groupId5 : artifactId5 : jar : classifier5 : version5");
+    testRow(RepositoryResultDetailPage.table().row(11), "9", "Policy Threat Level 9", "2020-06-01",
+        "groupId1 : artifactId1 : jar : classifier1 : version1");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "8", "Policy Threat Level 8", "2020-06-08",
+        "groupId8 : artifactId8 : jar : classifier8 : version8");
+    testRow(RepositoryResultDetailPage.table().row(11), "1", "Policy Threat Level 1", "",
+        "groupId16 : artifactId16 : jar : classifier16 : version16");
+
+    rightPagination.click();
+
+    testRow(RepositoryResultDetailPage.table().row(0), "1", "Policy Threat Level 1", "",
+        "groupId15 : artifactId15 : jar : classifier15 : version15");
+    testRow(RepositoryResultDetailPage.table().row(11), "0", "No Violations", "",
+        "groupId21 : artifactId21 : jar : classifier21 : version21");
+  }
+
+  private void addNotQuarantinedComponentsWithPolicyViolations(Repository repository) {
+    // Add not quarantined components
+    RepositoryComponent component11 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path11", "hash11", ComponentIdentifier.createMavenCoordinates("groupId11",
+        "artifactId11", "version11", "classifier11", "jar"), false);
+
+    RepositoryComponent component12 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path12", "hash12", ComponentIdentifier.createMavenCoordinates("groupId12",
+        "artifactId12", "version12", "classifier12", "jar"), false);
+
+    RepositoryComponent component13 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path13", "hash13", ComponentIdentifier.createMavenCoordinates("groupId13",
+        "artifactId13", "version13", "classifier13", "jar"), false);
+
+    RepositoryComponent component14 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path14", "hash14", ComponentIdentifier.createMavenCoordinates("groupId14",
+        "artifactId14", "version14", "classifier14", "jar"), false);
+
+    RepositoryComponent component15 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path15", "hash15", ComponentIdentifier.createMavenCoordinates("groupId15",
+        "artifactId15", "version15", "classifier15", "jar"), false);
+
+    RepositoryComponent component16 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path16", "hash16", ComponentIdentifier.createMavenCoordinates("groupId16",
+        "artifactId16", "version16", "classifier16", "jar"), false);
+
+    // Add policy violations for not quarantined components
+    tempEntity.newRepositoryPolicyViolation(component11, 1, false, "Policy Threat Level 1", null);
+    tempEntity.newRepositoryPolicyViolation(component12, 1, false, "Policy Threat Level 1", null);
+    tempEntity.newRepositoryPolicyViolation(component13, 1, false, "Policy Threat Level 1", null);
+    tempEntity.newRepositoryPolicyViolation(component14, 1, false, "Policy Threat Level 1", null);
+    tempEntity.newRepositoryPolicyViolation(component15, 1, false, "Policy Threat Level 1", null);
+    tempEntity.newRepositoryPolicyViolation(component16, 1, false, "Policy Threat Level 1", null);
+  }
+
+  private void addComponentsWithoutPolicyViolations(Repository repository) {
+    // Add components without violations
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path20", "hash20",
+        ComponentIdentifier.createMavenCoordinates("groupId20","artifactId20", "version20",
+        "classifier20", "jar"), false);
+
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path21", "hash21",
+        ComponentIdentifier.createMavenCoordinates("groupId21", "artifactId21", "version21",
+        "classifier21", "jar"), false);
+
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path22", "hash22",
+        ComponentIdentifier.createMavenCoordinates("groupId22", "artifactId22", "version22",
+        "classifier22", "jar"), false);
+
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path23", "hash23",
+        ComponentIdentifier.createMavenCoordinates("groupId23", "artifactId23", "version23",
+        "classifier23", "jar"), false);
+
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path24", "hash24",
+        ComponentIdentifier.createMavenCoordinates("groupId24", "artifactId24", "version24",
+        "classifier24", "jar"), false);
+
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "path25", "hash25",
+        ComponentIdentifier.createMavenCoordinates("groupId25", "artifactId25", "version25",
+        "classifier25", "jar"), false);
+  }
+
+  private void addQuarantinedComponentsWithPolicyViolations(Repository repository) {
+    // Add quarantined components
+    Date june1st2020 = Date.from(LocalDateTime.of(2020, 6, 1, 11, 0)
+        .toInstant(ZoneOffset.UTC));
+    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path1", "hash1", ComponentIdentifier.createMavenCoordinates("groupId1",
+        "artifactId1", "version1", "classifier1", "jar"), june1st2020, june1st2020);
+
+    Date june2nd2020 = Date.from(LocalDateTime.of(2020, 6, 2, 10, 0)
+        .toInstant(ZoneOffset.UTC));
+    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path2", "hash2", ComponentIdentifier.createMavenCoordinates("groupId2",
+        "artifactId2", "version2", "classifier2", "jar"), june2nd2020, june2nd2020);
+
+    Date june3rd2020 = Date.from(LocalDateTime.of(2020, 6, 3, 13, 0)
+        .toInstant(ZoneOffset.UTC));
+    RepositoryComponent component3 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path3", "hash3", ComponentIdentifier.createMavenCoordinates("groupId3",
+        "artifactId3", "version3", "classifier3", "jar"), june3rd2020, june3rd2020);
+
+    Date june4th2020 = Date.from(LocalDateTime.of(2020, 6, 4, 15, 0)
+        .toInstant(ZoneOffset.UTC));
+    RepositoryComponent component4 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path4", "hash4", ComponentIdentifier.createMavenCoordinates("groupId4",
+        "artifactId4", "version4", "classifier4", "jar"), june4th2020, june4th2020);
+
+    Date june5th2020 = Date.from(LocalDateTime.of(2020, 6, 5, 5, 0)
+        .toInstant(ZoneOffset.UTC));
+    RepositoryComponent component5 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path5", "hash5", ComponentIdentifier.createMavenCoordinates("groupId5",
+        "artifactId5", "version5", "classifier5", "jar"), june5th2020, june5th2020);
+
+    Date june6th2020 = Date.from(LocalDateTime.of(2020, 6, 6, 10, 0)
+        .toInstant(ZoneOffset.UTC));
+    RepositoryComponent component6 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path6", "hash6", ComponentIdentifier.createMavenCoordinates("groupId6",
+        "artifactId6", "version6", "classifier6", "jar"), june6th2020, june6th2020);
+
+    Date june7th2020 = Date.from(LocalDateTime.of(2020, 6, 7, 10, 0)
+        .toInstant(ZoneOffset.UTC));
+    RepositoryComponent component7 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path7", "hash7", ComponentIdentifier.createMavenCoordinates("groupId7",
+        "artifactId7", "version7", "classifier7", "jar"), june7th2020, june7th2020);
+
+    Date june8th2020 = Date.from(LocalDateTime.of(2020, 6, 8, 10, 0)
+        .toInstant(ZoneOffset.UTC));
+    RepositoryComponent component8 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path8", "hash8", ComponentIdentifier.createMavenCoordinates("groupId8",
+        "artifactId8", "version8", "classifier8", "jar"), june8th2020, june8th2020);
+
+    Date june9th2020 = Date.from(LocalDateTime.of(2020, 6, 9, 10, 0)
+        .toInstant(ZoneOffset.UTC));
+    RepositoryComponent component9 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path9", "hash9", ComponentIdentifier.createMavenCoordinates("groupId9",
+        "artifactId9", "version9", "classifier9", "jar"), june9th2020, june9th2020);
+
+    Date june10th2020 = Date.from(LocalDateTime.of(2020, 6, 10, 10, 0)
+        .toInstant(ZoneOffset.UTC));
+    RepositoryComponent component10 = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "path10", "hash10", ComponentIdentifier.createMavenCoordinates("groupId10",
+        "artifactId10", "version10", "classifier10", "jar"), june10th2020, june10th2020);
+
+    // Add Policy Violations for quarantined components
+    // Component 1
+    tempEntity.newRepositoryPolicyViolation(component1, 1, false, "Policy Threat Level 1", null);
+    tempEntity.newRepositoryPolicyViolation(component1, 1, false, "Policy Threat Level 1B", null);
+    tempEntity.newRepositoryPolicyViolation(component1, 10, false, "Policy Threat Level 10", null);
+    tempEntity.newRepositoryPolicyViolation(component1, 9, false, "Policy Threat Level 9", null);
+
+    // Component 2
+    tempEntity.newRepositoryPolicyViolation(component2, 2, false, "Policy Threat Level 2", null);
+    tempEntity.newRepositoryPolicyViolation(component2, 2, false, "Policy Threat Level 2B", null);
+    tempEntity.newRepositoryPolicyViolation(component2, 10, false, "Policy Threat Level 10", null);
+    tempEntity.newRepositoryPolicyViolation(component2, 9, false, "Policy Threat Level 9", null);
+
+    // Component 3
+    tempEntity.newRepositoryPolicyViolation(component3, 3, false, "Policy Threat Level 3", null);
+    tempEntity.newRepositoryPolicyViolation(component3, 3, false, "Policy Threat Level 3B", null);
+    tempEntity.newRepositoryPolicyViolation(component3, 10, false, "Policy Threat Level 10", null);
+    tempEntity.newRepositoryPolicyViolation(component3, 9, false, "Policy Threat Level 9", null);
+
+    // Component 4
+    tempEntity.newRepositoryPolicyViolation(component4, 4, false, "Policy Threat Level 4", null);
+    tempEntity.newRepositoryPolicyViolation(component4, 4, false, "Policy Threat Level 4B", null);
+    tempEntity.newRepositoryPolicyViolation(component4, 10, false, "Policy Threat Level 10", null);
+    tempEntity.newRepositoryPolicyViolation(component4, 9, false, "Policy Threat Level 9", null);
+
+    // Component 5
+    tempEntity.newRepositoryPolicyViolation(component5, 5, false, "Policy Threat Level 5", null);
+    tempEntity.newRepositoryPolicyViolation(component5, 5, false, "Policy Threat Level 5B", null);
+    tempEntity.newRepositoryPolicyViolation(component5, 10, false, "Policy Threat Level 10", null);
+    tempEntity.newRepositoryPolicyViolation(component5, 9, false, "Policy Threat Level 9", null);
+
+    // Component 6
+    tempEntity.newRepositoryPolicyViolation(component6, 6, false, "Policy Threat Level 6", null);
+
+    // Component 7
+    tempEntity.newRepositoryPolicyViolation(component7, 7, false, "Policy Threat Level 7", null);
+
+    // Component 8
+    tempEntity.newRepositoryPolicyViolation(component8, 8, false, "Policy Threat Level 8", null);
+
+    // Component 9
+    tempEntity.newRepositoryPolicyViolation(component9, 9, false, "Policy Threat Level 9", null);
+
+    // Component 10
+    tempEntity.newRepositoryPolicyViolation(component10, 10, false, "Policy Threat Level 10", null);
   }
 
   private void testRow(RepositoryResultTableRow row,

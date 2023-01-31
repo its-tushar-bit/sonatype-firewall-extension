@@ -273,14 +273,29 @@ describe('repositoryResultsSummaryPageSlice', () => {
       expect(sortFields).toEqual(expectedSortFields);
     });
 
-    it('changes direction to asc if we sort different columns', () => {
+    it('changes the sorting priority and direction of the first element', () => {
       const state = Object.freeze({
         componentsRequestBody: {
           sortFields: [
             {
-              sortableField: 'POLICY_THREAT_LEVEL',
+              sortableField: 'QUARANTINE_TIME',
               asc: true,
               sortPriority: 1,
+            },
+            {
+              sortableField: 'POLICY_THREAT_LEVEL',
+              asc: false,
+              sortPriority: 2,
+            },
+            {
+              sortableField: 'POLICY_NAME',
+              asc: true,
+              sortPriority: 3,
+            },
+            {
+              sortableField: 'COMPONENT_COORDINATES',
+              asc: true,
+              sortPriority: 4,
             },
           ],
         },
@@ -288,9 +303,24 @@ describe('repositoryResultsSummaryPageSlice', () => {
 
       const expectedSortFields = [
         {
-          sortableField: 'COMPONENT_COORDINATES',
+          sortableField: 'POLICY_THREAT_LEVEL',
           asc: true,
           sortPriority: 1,
+        },
+        {
+          sortableField: 'QUARANTINE_TIME',
+          asc: true,
+          sortPriority: 2,
+        },
+        {
+          sortableField: 'POLICY_NAME',
+          asc: true,
+          sortPriority: 3,
+        },
+        {
+          sortableField: 'COMPONENT_COORDINATES',
+          asc: true,
+          sortPriority: 4,
         },
       ];
 
@@ -298,7 +328,7 @@ describe('repositoryResultsSummaryPageSlice', () => {
         componentsRequestBody: { sortFields },
       } = reducer(state, {
         type: 'repositoryResultsSummaryPage/setSorting',
-        payload: 'COMPONENT_COORDINATES',
+        payload: 'POLICY_THREAT_LEVEL',
       });
 
       expect(sortFields).toEqual(expectedSortFields);

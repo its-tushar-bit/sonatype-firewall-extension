@@ -1407,12 +1407,9 @@ public class FirewallComponentDetailsPageTest
     NxSubmitMask.seeAndWaitForDismissal();
   }
 
-  @Test
-  public void testLegalTab_overridenLicensesStatus() {
-    createAllTypePolicies();
-    RepositoryComponent component = setupAllTestData(overriddenLicense);
+  public void testLegalTab_overridenLicensesStatus(String url) {
+    refreshOrOpen(url);
 
-    refreshOrOpen(FirewallComponentDetailsPage.urlLegalTab(component));
     waitUntilSpinnersGone();
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
 
@@ -1450,6 +1447,20 @@ public class FirewallComponentDetailsPageTest
     effectiveLicenses.get(1).shouldHave(text("10tec-Company-License-Agreement"));
     
     licenseDetectionsTile.status().shouldHave(text("Overridden"));
+  }
+
+  @Test
+  public void testLegalTab_overridenLicensesStatusFromFirewallDashboard() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(overriddenLicense);
+    testLegalTab_overridenLicensesStatus(FirewallComponentDetailsPage.urlLegalTab(component));
+  }
+
+  @Test
+  public void testLegalTab_overridenLicensesStatusFromRepositoryResultsView() {
+    createAllTypePolicies();
+    RepositoryComponent component = setupAllTestData(overriddenLicense);
+    testLegalTab_overridenLicensesStatus(FirewallComponentDetailsPage.urlLegalTabFromRepositoryResultsView(component));
   }
 
   @Test

@@ -39,20 +39,17 @@ pipeline {
         )
       }
     }
-    /*
     stage('Verify IQ Server was deployed to Staging') {
       steps {
         build(
             job: 'insight/insight-brain/verifyIQServerDeployment',
             parameters: [
                 string(name: 'version', value: params.releaseVersion),
-                string(name: 'commitSha', value: env.GIT_COMMIT),
-                string(name: 'iqInstance', value: 'test.iq.sonatype.dev')
+                string(name: 'iqInstance', value: 'https://test.iq.sonatype.dev')
             ]
         )
       }
     }
-    */
     stage('Update IQ Server Production Instance') {
       steps {
         build(
@@ -72,20 +69,17 @@ pipeline {
         )
       }
     }
-    /*
     stage('Verify IQ Server was deployed to Production') {
       steps {
         build(
             job: 'insight/insight-brain/verifyIQServerDeployment',
             parameters: [
                 string(name: 'version', value: params.releaseVersion),
-                string(name: 'commitSha', value: env.GIT_COMMIT),
-                string(name: 'iqInstance', value: 'iq.sonatype.dev')
+                string(name: 'iqInstance', value: 'https://iq.sonatype.dev')
             ]
         )
       }
     }
-    */
     stage('Prepare IQ Server HA Helm Chart') {
       steps {
         build(

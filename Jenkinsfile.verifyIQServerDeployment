@@ -7,9 +7,9 @@
 
 properties([
     parameters([
-      string(name: 'version', defaultValue: '',description: 'The version number for the product to check for.'),
-      string(name: 'commitSha', defaultValue: '',description: 'The Git commit sha to check for.'),
-      choice(name: 'iqInstance', choices: ['test.iq.sonatype.dev', 'iq.sonatype.dev'], description: 'IQ Server to check deployment on.')
+        string(name: 'version', defaultValue: '',description: 'The version number for the product to check for.'),
+        choice(name: 'iqInstance', choices: ['https://test.iq.sonatype.dev', 'https://iq.sonatype.dev'],
+            description: 'IQ Server to check deployment on.')
     ])
 ])
 
@@ -22,7 +22,7 @@ pipeline {
   stages {
     stage('Verify Deployment') {
       steps {
-        verifyIQServerDeployment(params.version, params.commitSha, params.iqInstance)
+        verifyIQServerDeployment(params.version, params.iqInstance)
       }
     }
   }

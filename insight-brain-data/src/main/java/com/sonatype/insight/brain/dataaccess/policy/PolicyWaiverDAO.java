@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -224,61 +225,6 @@ public class PolicyWaiverDAO
     return getList(tx, sQuery, policyId, ownerIds);
   }
 
-  PolicyWaiver getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(
-      TransactionContext tx,
-      String hash,
-      String policyId,
-      String ownerId,
-      List<ConstraintFact> constraintFacts,
-      String associatedPackageUrl,
-      ComponentMatcherStrategyForWaiver componentMatchStrategy)
-  {
-    String sQuery = "SELECT entity FROM PolicyWaiver entity" + //
-        " WHERE entity.hash=?1 AND entity.policyId=?2 AND entity.ownerId=?3" + //
-        " AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)";
-    Function<String, PolicyWaiver> getFunction;
-    Function<String, List<PolicyWaiver>> getListFunction;
-    if (associatedPackageUrl != null && componentMatchStrategy != null) {
-      // Applies to exact or all versions waivers
-      sQuery += " AND entity.componentMatchStrategy=?4";
-      getFunction =
-          (String query) -> get(tx, query, hash, policyId, ownerId, componentMatchStrategy);
-      getListFunction =
-          (String query) -> getList(tx, query, hash, policyId, ownerId, componentMatchStrategy);
-    }
-    else if (componentMatchStrategy != null) {
-      // applies to all components waivers
-      sQuery += " AND entity.associatedPackageUrl IS NULL AND entity.componentMatchStrategy=?4";
-      getFunction = (String query) -> get(tx, query, hash, policyId, ownerId, componentMatchStrategy);
-      getListFunction = (String query) -> getList(tx, query, hash, policyId, ownerId, componentMatchStrategy);
-    }
-    else {
-      // default case for legacy waivers
-      sQuery += " AND entity.associatedPackageUrl IS NULL AND entity.componentMatchStrategy IS NULL";
-      getFunction = (String query) -> get(tx, query, hash, policyId, ownerId);
-      getListFunction = (String query) -> getList(tx, query, hash, policyId, ownerId);
-    }
-
-    if (constraintFacts == null) {
-      // Should apply only to legacy waivers
-      sQuery += " AND entity.constraintFactsJson IS NULL";
-      return getFunction.apply(sQuery);
-    }
-
-    List<PolicyWaiver> policyWaivers = getListFunction.apply(sQuery);
-    Predicate<PolicyWaiver> waiverFilter = policyWaiver -> policyWaiver.getConstraintFacts() != null && //
-        ConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(constraintFacts,
-            policyWaiver.getConstraintFacts()) == 0;
-    if (associatedPackageUrl != null && ALL_VERSIONS.equals(componentMatchStrategy)) {
-      final ComponentIdentifier wildcardVersionIdentifier =
-          new PackageUrlIdentifier(associatedPackageUrl).toComponentIdentifier().createAlternativeVersion("*");
-      Predicate<PolicyWaiver> purlFilter = policyWaiver -> policyWaiver.getComponentIdentifier() != null &&
-          policyWaiver.getComponentIdentifier().createAlternativeVersion("*").equals(wildcardVersionIdentifier);
-      waiverFilter = purlFilter.and(waiverFilter);
-    }
-    return policyWaivers.stream().filter(waiverFilter).findFirst().orElse(null);
-  }
-
   /**
    * @since 1.52
    */
@@ -364,5 +310,110 @@ public class PolicyWaiverDAO
   private PolicyWaiver getByIdAndOwnerId(TransactionContext tx, String policyWaiverId, String ownerId) {
     String sQuery = "SELECT waiver FROM PolicyWaiver waiver WHERE waiver.id=?1 AND waiver.ownerId=?2";
     return get(tx, sQuery, policyWaiverId, ownerId);
+  }
+
+  PolicyWaiver getActiveByHashAndPolicyIdAndOwnerIdAndConstraintFacts(
+      TransactionContext tx,
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String associatedPackageURL,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy)
+  {
+
+    String sQuery = getActivePolicyWaiverByHashAndPolicyIdAndOwnerIdAndConstraintFactsQuery(associatedPackageURL,
+        componentMatchStrategy, constraintFacts);
+
+    if (Objects.isNull(constraintFacts)) {
+      Function<String, PolicyWaiver> getFunction =
+          getPolicyWaiverFunction(tx, hash, policyId, ownerId, componentMatchStrategy);
+
+      return getFunction.apply(sQuery);
+    }
+
+    Function<String, List<PolicyWaiver>> getListFunction =
+        getPolicyWaiverListFunction(tx, hash, policyId, ownerId, componentMatchStrategy);
+    List<PolicyWaiver> policyWaivers = getListFunction.apply(sQuery);
+
+    Predicate<PolicyWaiver> waiverFilter = policyWaiver -> policyWaiver.getConstraintFacts() != null &&
+        ConstraintFactsListComparator.CONSTRAINT_FACTS_LIST_COMPARATOR.compare(constraintFacts,
+            policyWaiver.getConstraintFacts()) == 0;
+
+    if (associatedPackageURL != null && ALL_VERSIONS.equals(componentMatchStrategy)) {
+      final ComponentIdentifier wildcardVersionIdentifier =
+          new PackageUrlIdentifier(associatedPackageURL)
+              .toComponentIdentifier()
+              .createAlternativeVersion("*");
+
+      Predicate<PolicyWaiver> purlFilter = policyWaiver -> policyWaiver.getComponentIdentifier() != null &&
+          policyWaiver
+              .getComponentIdentifier()
+              .createAlternativeVersion("*")
+              .equals(wildcardVersionIdentifier);
+
+      waiverFilter = purlFilter.and(waiverFilter);
+    }
+    return policyWaivers.stream()
+        .filter(waiverFilter)
+        .findFirst()
+        .orElse(null);
+  }
+
+  private String getActivePolicyWaiverByHashAndPolicyIdAndOwnerIdAndConstraintFactsQuery(
+      String associatedPackageURL,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy,
+      List<ConstraintFact> constraintFacts)
+  {
+    String query = "SELECT entity FROM PolicyWaiver entity" + //
+        " WHERE entity.hash=?1 AND entity.policyId=?2 AND entity.ownerId=?3" + //
+        " AND (entity.expiryTime is null OR entity.expiryTime > CURRENT_TIMESTAMP)";
+
+    if (Objects.nonNull(associatedPackageURL) && Objects.nonNull(componentMatchStrategy)) {
+      // Applies to exact or all versions waivers
+      query += " AND entity.componentMatchStrategy=?4";
+    }
+    else if (Objects.nonNull(componentMatchStrategy)) {
+      // applies to all components waivers
+      query += " AND entity.associatedPackageUrl IS NULL AND entity.componentMatchStrategy=?4";
+    }
+    else {
+      // default case for legacy waivers
+      query += " AND entity.associatedPackageUrl IS NULL AND entity.componentMatchStrategy IS NULL";
+    }
+
+    if (Objects.isNull(constraintFacts)) {
+      // Should apply only to legacy waivers
+      query += " AND entity.constraintFactsJson IS NULL";
+    }
+    return query;
+  }
+
+  private Function<String, PolicyWaiver> getPolicyWaiverFunction(
+      TransactionContext tx,
+      String hash,
+      String policyId,
+      String ownerId,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy)
+  {
+    if (Objects.nonNull(componentMatchStrategy)) {
+      return (String query) -> get(tx, query, hash, policyId, ownerId, componentMatchStrategy);
+    }
+    // default case for legacy waivers
+    return (String query) -> get(tx, query, hash, policyId, ownerId);
+  }
+
+  private Function<String, List<PolicyWaiver>> getPolicyWaiverListFunction(
+      TransactionContext tx,
+      String hash,
+      String policyId,
+      String ownerId,
+      ComponentMatcherStrategyForWaiver componentMatchStrategy)
+  {
+    if (Objects.nonNull(componentMatchStrategy)) {
+      return (String query) -> getList(tx, query, hash, policyId, ownerId, componentMatchStrategy);
+    }
+    // default case for legacy waivers
+    return (String query) -> getList(tx, query, hash, policyId, ownerId);
   }
 }

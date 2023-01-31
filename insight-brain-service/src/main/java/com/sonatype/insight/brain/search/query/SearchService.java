@@ -221,44 +221,80 @@ public class SearchService
       }
 
       Map<String, String> groupFieldNamesByItemType = getGroupFieldNamesByItemType(fieldNames);
+      groupAllDocuments(documents, searchResultDTO, groupFieldNamesByItemType);
 
-      int startIndex = (page - 1) * pageSize;
-      int resultIndex = startIndex + 1;
-      for (int i = startIndex; i < startIndex + pageSize; i++) {
-        if (i >= documents.size()) {
-          break;
-        }
-        Document document = documents.get(i);
-        SearchResultItemDTO searchResultItemDTO = toDto(document);
-        if (searchResultItemDTO == null) {
-          continue;
-        }
-
-        String groupFieldName = groupFieldNamesByItemType.get(searchResultItemDTO.itemType);
-        FieldIdentifier groupIdentifier = getFieldIdentifier(groupFieldName);
-        String groupBy = document.get(groupFieldName);
-
-        if (searchResultDTO.groupingByDTOS.stream().noneMatch(dto -> dto.groupBy.equals(groupBy))) {
-          GroupingByDTO groupingByDTO = new GroupingByDTO();
-          groupingByDTO.groupBy = groupBy;
-          groupingByDTO.groupIdentifier = groupIdentifier;
-
-          if (groupIdentifier == VULNERABILITY_ID || groupIdentifier == VULNERABILITY_DESCRIPTION) {
-            groupingByDTO.additionalInfo = document.get(VULNERABILITY_DESCRIPTION.label);
-          }
-
-          searchResultDTO.groupingByDTOS.add(groupingByDTO);
-        }
-        GroupingByDTO groupingByDTO = searchResultDTO.groupingByDTOS.stream()
-            .filter(dto -> dto.groupBy.equals(groupBy)).findAny().get();
-
-        searchResultItemDTO.resultIndex = resultIndex++;
-        groupingByDTO.searchResultItemDTOS.add(searchResultItemDTO);
+      int resultRecordCount;
+      if (isExportable) {
+        resultRecordCount = (int) topDocs.totalHits.value;
       }
+      else {
+        resultRecordCount = filterResultsByPage(searchResultDTO, page, pageSize);
+      }
+
       searchResultDTO.totalNumberOfHits = (int) topDocs.totalHits.value;
       searchResultDTO.isExactTotalNumberOfHits = topDocs.totalHits.relation == Relation.EQUAL_TO;
-      AuditData.get().setData("resultRecordCount", resultIndex - startIndex - 1);
+      AuditData.get().setData("resultRecordCount", resultRecordCount);
       return searchResultDTO;
+    }
+  }
+
+  /**
+   * Filter the returned documents based on a result index range corresponding to the page and pageSize values.
+   */
+  private int filterResultsByPage(final SearchResultDTO searchResultDTO, final int page, final int pageSize) {
+    int startIndex = (page - 1) * pageSize + 1;
+    int endIndex = page * pageSize;
+    int resultRecordCount = 0;
+
+    // remove searchResultItemDTOs that done fit in the resultIndex range
+    for (GroupingByDTO groupingByDTO : searchResultDTO.groupingByDTOS) {
+      groupingByDTO.searchResultItemDTOS.removeIf(e -> e.resultIndex < startIndex || e.resultIndex > endIndex);
+      resultRecordCount += groupingByDTO.searchResultItemDTOS.size();
+    }
+
+    // remove possible empty groupingByDTOs
+    searchResultDTO.groupingByDTOS.removeIf(e -> e.searchResultItemDTOS.isEmpty());
+
+    return resultRecordCount;
+  }
+
+  /**
+   * Groups all returned documents by their groupBy field. The page and pageSize values play no role in this.
+   */
+  private void groupAllDocuments(
+      final List<Document> documents,
+      final SearchResultDTO searchResultDTO,
+      final Map<String, String> groupFieldNamesByItemType)
+  {
+    for (Document document : documents) {
+      SearchResultItemDTO searchResultItemDTO = toDto(document);
+      String groupFieldName = groupFieldNamesByItemType.get(searchResultItemDTO.itemType);
+      FieldIdentifier groupIdentifier = getFieldIdentifier(groupFieldName);
+      String groupBy = document.get(groupFieldName);
+
+      if (searchResultDTO.groupingByDTOS.stream().noneMatch(dto -> dto.groupBy.equals(groupBy))) {
+        GroupingByDTO groupingByDTO = new GroupingByDTO();
+        groupingByDTO.groupBy = groupBy;
+        groupingByDTO.groupIdentifier = groupIdentifier;
+
+        if (groupIdentifier == VULNERABILITY_ID || groupIdentifier == VULNERABILITY_DESCRIPTION) {
+          groupingByDTO.additionalInfo = document.get(VULNERABILITY_DESCRIPTION.label);
+        }
+        searchResultDTO.groupingByDTOS.add(groupingByDTO);
+      }
+      searchResultDTO.groupingByDTOS.stream().filter(dto -> dto.groupBy.equals(groupBy)).findAny().ifPresent(
+          groupingByDTO -> groupingByDTO.searchResultItemDTOS.add(searchResultItemDTO)
+      );
+    }
+    setResultIndexOnSearchResultItemDTOS(searchResultDTO);
+  }
+
+  private void setResultIndexOnSearchResultItemDTOS(final SearchResultDTO searchResultDTO) {
+    int resultIndex = 1;
+    for (GroupingByDTO groupingByDTO : searchResultDTO.groupingByDTOS) {
+      for (SearchResultItemDTO searchResultItemDTO : groupingByDTO.searchResultItemDTOS) {
+        searchResultItemDTO.resultIndex = resultIndex++;
+      }
     }
   }
 

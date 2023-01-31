@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -35,6 +36,7 @@ import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
+import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -463,6 +465,37 @@ public class SearchServiceTest
       configurationService.applyConfigurationToClients(
           SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER);
     }
+  }
+
+  @Test
+  public void testSearchIndex_ImprovedResultGrouping() throws Exception {
+    Role role = tempEntity.newRole(false, Permission.READ);
+
+    Organization org1 = tempEntity.newOrganization("org-01");
+    Application app1 = tempEntity.newApplication("app-01", org1.getId());
+    // there are 3 vulnerabilities for "CVE-2022-25857" in the report below
+    newAppReport(app1.getId(), Stage.ID_RELEASE, "report-1", "/SearchServiceTest/report-1");
+
+    Application app2 = tempEntity.newApplication("app-02", org1.getId());
+    // there is 1 vulnerability for "CVE-2022-25857" in the report below
+    newAppReport(app2.getId(), Stage.ID_RELEASE, "report-2", "/SearchServiceTest/report-2");
+
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+    tempEntity.newMembershipMapping(org1.getId(), role.getId(), userPrincipal.getUsername());
+
+    indexService.createSearchIndex();
+
+    SearchResultDTO searchResultDTO = searchService.searchIndex("vulnerabilitySeverity:[7 TO 8]", 10, 0, false);
+
+    // without improved grouping vulnerabilities for "CVE-2022-25857" would have appeared partially in
+    // the page 1 results and partially in the page 3 results
+
+    // with improved grouping all 4 vulnerabilities for "CVE-2022-25857" appear in the page 1 results
+    assertThat(searchResultDTO.totalNumberOfHits).isEqualTo(39);
+    Optional<GroupingByDTO> optionalGroupingByDTO =
+        searchResultDTO.groupingByDTOS.stream().filter(g -> g.groupBy.equals("CVE-2022-25857")).findFirst();
+    assertThat(optionalGroupingByDTO).isPresent();
+    assertThat(optionalGroupingByDTO.get().searchResultItemDTOS).hasSize(4);
   }
 
   private PolicyEvaluation newAppReport(String appId, String stageId, String reportId, String reportResourceName)

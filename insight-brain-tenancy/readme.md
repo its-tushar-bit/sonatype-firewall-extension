@@ -12,7 +12,7 @@ This module provides classes that support multi tenancy. To understand how tenan
 
 ## Vanity URLs
 
-Multi tenant mode makes use of vanity URLs to know which tenant is currently being used. 
+Multi tenant mode makes use of vanity URLs to know which tenant is currently being used.
 
 Note: localhost will not work in multi tenant mode, instead you will need to modify your hosts file or equivalent to
 access MTIQ. The list of allowed URLs is in TenantUtils.
@@ -33,7 +33,7 @@ Getting to our solution requires understanding two things:
    for TenantA can never read or update data from TenantB. We also control the access to the database and file system,
    and both of those routes must call `getTenant()` before they can get data for that specific tenant. So actually it is
    `getTenant()` where we need to do the check/validation.
-   
+
 * _There are likely other entry points that haven't yet been explored. For example, integrations like SCM and JIRA._
 
 ### Approach
@@ -75,8 +75,8 @@ The saving grace is that as soon as this situation is hit where the timing is of
 the runtime exception and notice very fast. This will only while the very first request hasn't been invalidated. As soon
 as it has we will see the exception.
 
-
 ### Valid tenant transitions
+
 To further guard against mistakes we define a set of allowed/disallowed tenant transitions. Essentially before changing
 from one tenant to another the current tenant _must be invalidated_. The only exception is when making use of Global.
 
@@ -89,7 +89,7 @@ from one tenant to another the current tenant _must be invalidated_. The only ex
 
 1. T1(V) → T1(In) → T2(V)
 2. T1(V) → G → T1(V)
-3. T1(V) → T1(V) 
+3. T1(V) → T1(V)
 
 #### Disallowed transitions
 
@@ -142,13 +142,15 @@ Work that needs to run on a schedule will need its own context. The best way to 
 which handles getting and setting the tenant. Custom scheduling outside of Quartz is not currently supported.
 
 #### Telemetry
+
 Telemetry has essentially 2 operating modes. The first is a mode that is predominantly sending cluster information such
-as environment variables and common data from the database, as such a periodic quartz job is scheduled for each 
+as environment variables and common data from the database, as such a periodic quartz job is scheduled for each
 registered tenant resulting in a single node picking up the task for each tenant.
 
-The second mode (`MultiTenantTelemetryScheduler`) in a multi tenant setup also makes use of a periodic quartz job with 
+The second mode (`MultiTenantTelemetryScheduler`) in a multi tenant setup also makes use of a periodic quartz job with
 the addition of immediately triggering a second job (`MultiTenantTelemetryTask`) across all the other nodes to also send
-Telemetry without re-triggering. This is currently a different mechanism to on-prem which uses an ExecutorService approach.
+Telemetry without re-triggering. This is currently a different mechanism to on-prem which uses an ExecutorService
+approach.
 
 ```mermaid
 sequenceDiagram
@@ -170,7 +172,7 @@ sequenceDiagram
 
 ### Configuration
 
-Configuration is per-tenant unless no value is found and then the system will fall back to the configuration table in 
+Configuration is per-tenant unless no value is found and then the system will fall back to the configuration table in
 the global tenant schema. This allows us to provide meaningful defaults but also to override configuration for a
 given tenant.
 
@@ -191,6 +193,7 @@ given tenant.
   per-tenant. Mainly used for updating global cache data (like information from HDS)
 
 ### User Sessions (Shiro)
+
 We use Shiro to manage user sessions which then get persisted in the database. 
 
 For MTIQ we need to make sure all sessions are managed per-tenant. The ShiroSessionDAO ensures that all database access 
@@ -204,3 +207,9 @@ a cached (wrong) and invalidated tenant. Session expiration is a truly asynchron
 request context and is therefore a type of [Periodic Work](#periodic-work). Following those recommendations we make use
 of Quartz for session expiration by creating a custom QuartzShiroSessionValidationScheduler that can be scheduled for
 each tenant.
+
+### Banning Implementations
+
+It may be desirable to ban some classes or packages, see
+this [readme](/nexus-mtiq-server/src/main/java/com/sonatype/insight/brain/service/banning/readme.md) to understand how
+that has been made possible for mtiq.

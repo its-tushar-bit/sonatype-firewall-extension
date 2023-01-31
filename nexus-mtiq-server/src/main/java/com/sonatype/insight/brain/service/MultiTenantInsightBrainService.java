@@ -29,14 +29,13 @@ import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.hds.MultiTenantTelemetryId;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
-import com.sonatype.insight.brain.repository.InactiveRepositoryViolationCleaner;
 import com.sonatype.insight.brain.scheduler.MultiTenantQuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
-import com.sonatype.insight.brain.telemetry.DefaultTelemetryScheduler;
+import com.sonatype.insight.brain.service.banning.BannedImplementationService;
 import com.sonatype.insight.brain.telemetry.MultiTenantTelemetryCollectorsProvider;
 import com.sonatype.insight.brain.telemetry.TelemetryCollectorsProvider;
 import com.sonatype.insight.brain.tenancy.MultiTenantExecutorThreadPools;
@@ -52,23 +51,12 @@ import com.google.inject.Module;
 import com.google.inject.Singleton;
 import io.dropwizard.cli.Command;
 import io.dropwizard.setup.Environment;
+import org.apache.shiro.guice.web.GuiceShiroFilter;
 
 public class MultiTenantInsightBrainService
     extends InsightBrainService
 {
-  /**
-   * SisuApplication#addManaged loads Managed beans outside the normal flow but does not respect the @Priority
-   * annotation however it does call SisuApplication#acceptComponent to check whether the component should be loaded or
-   * not. We make use of that functionality here to prevent Default* (i.e. on-prem implementations) being loaded in MTIQ
-   * and causing conflicting behaviour. InactiveRepositoryViolationCleaner is no longer needed as mtiq was created after
-   * version 1.90. See comments on the original ticket for context CLM-14555
-   */
-  private static final List<Class> BANNED_IMPLEMENTATIONS =
-      Arrays.asList(new Class[]{
-          DefaultTenantManagedInitializer.class,
-          DefaultTelemetryScheduler.class,
-          InactiveRepositoryViolationCleaner.class,
-          });
+  private BannedImplementationService bannedImplementationService = new BannedImplementationService();
 
   public static void main(final String[] args) {
     new TenantUtil().setGlobalTenant();
@@ -151,6 +139,8 @@ public class MultiTenantInsightBrainService
       protected void configure() {
         bind(com.sonatype.insight.jaxrs.error.ErrorResponseGenerator.class).to(ErrorResponseGenerator.class);
         bind(CsvMapper.class).toInstance(configureObjectMapper(new CsvMapper()));
+
+        bind(GuiceShiroFilter.class);
       }
     };
 
@@ -209,10 +199,14 @@ public class MultiTenantInsightBrainService
 
   @Override
   protected boolean acceptComponent(Class<?> type) {
-    if (BANNED_IMPLEMENTATIONS.contains(type)) {
+    if (bannedImplementationService.isBanned(type)) {
       return false;
     }
-
     return super.acceptComponent(type);
+  }
+
+  @Override
+  protected Module wire(final List<Module> modules) {
+    return bannedImplementationService.getBannedModule(modules);
   }
 }

@@ -82,7 +82,11 @@ public abstract class SisuApplication<T extends Configuration>
     ClassSpace space = new URLClassSpace(getClass().getClassLoader());
     modules.add(new SpaceModule(space, scanning(configuration)));
 
-    return Guice.createInjector(new WireModule(modules));
+    return Guice.createInjector(wire(modules));
+  }
+
+  protected Module wire(final List<Module> modules) {
+    return new WireModule(modules);
   }
 
   //

@@ -3,6 +3,13 @@
      xmlns="http://cyclonedx.org/schema/bom/1.4">
   <metadata>
     <timestamp>2022-12-09T15:06:10Z</timestamp>
+    <tools>
+      <tool>
+        <vendor>Sonatype Inc.</vendor>
+        <name>Nexus IQ Server</name>
+        <version>1.153.0</version>
+      </tool>
+    </tools>
   </metadata>
   <externalReferences>
     <reference type="bom">

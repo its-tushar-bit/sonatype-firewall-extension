@@ -2,6 +2,13 @@
 <bom serialNumber="urn:uuid:33dfc2b6-6d6f-4174-8f4f-2b09cd3ba363" version="1" xmlns="http://cyclonedx.org/schema/bom/1.2">
   <metadata>
     <timestamp>2022-10-10T16:50:51Z</timestamp>
+    <tools>
+      <tool>
+        <vendor>Sonatype Inc.</vendor>
+        <name>Nexus IQ Server</name>
+        <version>1.153.0</version>
+      </tool>
+    </tools>
     <component type="application" bom-ref="pkg:maven/com.sonatype.insight.scan/insight-scanner@2.36.19-SNAPSHOT?type=pom">
       <group>com.sonatype.insight.scan</group>
       <name>insight-scanner</name>

@@ -31,10 +31,12 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.util.SbomUtils;
 
+import com.google.inject.Binder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.codehaus.plexus.util.FileUtils;
@@ -59,10 +61,12 @@ import org.cyclonedx.parsers.Parser;
 import org.cyclonedx.util.LicenseResolver;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.when;
 
 public class ApiCycloneDxServiceV2Test
     extends AbstractComponentTest
@@ -76,6 +80,15 @@ public class ApiCycloneDxServiceV2Test
   private Application application;
 
   private String scanId;
+
+  @Mock
+  private VersionService versionService;
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(VersionService.class).toInstance(versionService);
+    super.configure(binder);
+  }
 
   @Before
   public void setup() {
@@ -164,6 +177,10 @@ public class ApiCycloneDxServiceV2Test
   }
 
   private void testGetByScanId(String contentType, Version version, boolean hasVulnerabilities) throws Exception {
+    if (version != Version.VERSION_11) {
+      when(versionService.getVersion()).thenReturn("1.0");
+    }
+
     createReportAndPolicyEvaluation();
     Response response = service.getByScanId(application.getId(), scanId, contentType, version);
     assertBom(response, version, hasVulnerabilities);
@@ -199,6 +216,9 @@ public class ApiCycloneDxServiceV2Test
   }
 
   public void testGetByScanId_mavenComponent(String contentType, Version version) throws Exception {
+    if (version != Version.VERSION_11) {
+      when(versionService.getVersion()).thenReturn("1.0");
+    }
     createMavenComponentReportAndPolicyEvaluation();
     Response response = service.getByScanId(application.getId(), scanId, contentType, version);
     assertBomMaven(response);
@@ -245,6 +265,9 @@ public class ApiCycloneDxServiceV2Test
   }
 
   public void testGetLatest(String contentType, Version version) throws Exception {
+    if (version != Version.VERSION_11) {
+      when(versionService.getVersion()).thenReturn("1.0");
+    }
     createReportAndPolicyEvaluation();
     Response response = service.getLatest(application.getId(), BuildStageType.ID, contentType, version);
     assertBom(response, version, false);
@@ -295,6 +318,7 @@ public class ApiCycloneDxServiceV2Test
     //The metadata component is the first dependency
     assertThat(bom.getMetadata().getComponent().getPurl()).isEqualTo(bom.getDependencies().get(0).getRef());
     assertComponentsVsDependencies(bom);
+    assertToolVendor(bom.getMetadata());
   }
 
   private void assertComponentsVsDependencies(Bom bom) {
@@ -406,7 +430,15 @@ public class ApiCycloneDxServiceV2Test
     else {
       assertThat(metadata).isNotNull();
       assertThat(metadata.getTimestamp()).isEqualToIgnoringMillis(policyEvaluation.getTime());
+      assertToolVendor(metadata);
     }
+  }
+
+  private void assertToolVendor(Metadata metadata) {
+    assertThat(metadata.getTools()).hasSize(1);
+    assertThat(metadata.getTools().get(0).getVersion()).isEqualTo("1.0");
+    assertThat(metadata.getTools().get(0).getVendor()).isEqualTo("Sonatype Inc.");
+    assertThat(metadata.getTools().get(0).getName()).isEqualTo("Nexus IQ Server");
   }
 
   private String toUuid(final String scanId) {

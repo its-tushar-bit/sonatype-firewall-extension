@@ -5,6 +5,13 @@
   "version": 1,
   "metadata": {
     "timestamp": "2022-10-10T16:50:51Z",
+    "tools" : [
+      {
+        "vendor" : "Sonatype Inc.",
+        "name" : "Nexus IQ Server",
+        "version" : "1.153.0"
+      }
+    ],
     "component": {
       "group": "com.sonatype.insight.scan",
       "name": "insight-scanner",

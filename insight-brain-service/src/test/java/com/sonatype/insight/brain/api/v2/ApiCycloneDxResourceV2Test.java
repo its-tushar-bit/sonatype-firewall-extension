@@ -330,7 +330,7 @@ public class ApiCycloneDxResourceV2Test
     parser = BomParserFactory.createParser(expectedBytes);
     Bom expectedBom = parser.parse(expectedBytes);
     assertThat(actualBom).usingRecursiveComparison()
-        .ignoringFieldsMatchingRegexes("(externalReferences|serialNumber|metadata.timestamp)")
+        .ignoringFields("externalReferences", "serialNumber", "metadata.timestamp", "metadata.tools.version")
         .isEqualTo(expectedBom);
   }
 
@@ -347,7 +347,7 @@ public class ApiCycloneDxResourceV2Test
     parser = BomParserFactory.createParser(expectedBytes);
     Bom expectedBom = parser.parse(expectedBytes);
     assertThat(actualBom).usingRecursiveComparison()
-        .ignoringFieldsMatchingRegexes("(externalReferences|serialNumber|metadata.timestamp)")
+        .ignoringFields("externalReferences", "serialNumber", "metadata.timestamp", "metadata.tools.version")
         .isEqualTo(expectedBom);
   }
 

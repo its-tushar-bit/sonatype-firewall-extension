@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
+import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -72,6 +73,7 @@ import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
+import org.cyclonedx.model.Tool;
 import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
@@ -102,17 +104,21 @@ public class ApiCycloneDxServiceV2
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
+  private final VersionService versionService;
+
   @Inject
   public ApiCycloneDxServiceV2(
       ApiReportDataServiceV2 apiReportDataServiceV2,
       ApplicationHelper applicationHelper,
       BaseUrl baseUrl,
-      PolicyEvaluationDAO policyEvaluationDAO)
+      PolicyEvaluationDAO policyEvaluationDAO,
+      VersionService versionService)
   {
     this.apiReportDataServiceV2 = apiReportDataServiceV2;
     this.applicationHelper = applicationHelper;
     this.baseUrl = baseUrl;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.versionService = versionService;
   }
 
   @Authorize(permission = Permission.READ)
@@ -229,8 +235,17 @@ public class ApiCycloneDxServiceV2
         Component parentComponent = createComponent(dependenciesData.getPackageUrl(), Type.APPLICATION);
         metadata.setComponent(parentComponent);
       }
+      addToolVendorInfo(metadata);
       bom.setMetadata(metadata);
     }
+  }
+
+  private void addToolVendorInfo(Metadata metadata) {
+    Tool tool = new Tool();
+    tool.setVendor("Sonatype Inc.");
+    tool.setName("Nexus IQ Server");
+    tool.setVersion(versionService.getVersion());
+    metadata.addTool(tool);
   }
 
   List<Dependency> convert(ApiDependencyTreeNodeDTO node, Set<String> components) {

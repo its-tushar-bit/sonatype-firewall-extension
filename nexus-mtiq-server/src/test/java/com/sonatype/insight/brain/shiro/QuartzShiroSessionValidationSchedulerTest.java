@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static com.sonatype.insight.brain.shiro.QuartzShiroSessionValidationScheduler.TASK_NAME;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -92,5 +93,12 @@ public class QuartzShiroSessionValidationSchedulerTest
     underTest.execute(null);
 
     verify(sessionManager).validateSessions();
+  }
+
+  @Test
+  public void testDeleteJob_onDeregister() {
+    underTest.deregister();
+
+    verify(taskScheduler).unscheduleTask(TASK_NAME);
   }
 }

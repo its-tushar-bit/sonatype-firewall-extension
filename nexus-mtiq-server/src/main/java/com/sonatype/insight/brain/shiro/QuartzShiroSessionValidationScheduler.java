@@ -12,6 +12,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
 import org.apache.shiro.session.mgt.SessionValidationScheduler;
@@ -20,14 +21,20 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Replaces the built-in Shiro session validation which uses an ExecutorService and instead makes use of Quartz.
+ * Note: This implements GlobalTenantJob because any requests via the API that access the global tenant will also
+ * create a Shiro session.
+ */
 @Named
 @Singleton
 public class QuartzShiroSessionValidationScheduler
-    implements SessionValidationScheduler, InsightJob
+    implements SessionValidationScheduler, InsightJob, GlobalTenantJob
 {
   private static final Logger log = LoggerFactory.getLogger(QuartzShiroSessionValidationScheduler.class);
 
-  private static final String TASK_NAME = "QuartzShiroSessionValidationScheduler";
+  //Visible for testing
+  static final String TASK_NAME = "QuartzShiroSessionValidationScheduler";
 
   private final TaskScheduler taskScheduler;
 
@@ -66,5 +73,14 @@ public class QuartzShiroSessionValidationScheduler
     sessionManager.validateSessions();
 
     log.debug("Shiro session validation Quartz job complete.");
+  }
+
+  /**
+   * This task exists for every tenant and runs very often. That means all tenants will be re-registered on startup
+   * if this job persists beyond shutdown. To prevent that we unschedule the job during shutdown/deregister.
+   */
+  @Override
+  public void deregister() {
+    taskScheduler.unscheduleTask(TASK_NAME);
   }
 }

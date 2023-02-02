@@ -532,12 +532,8 @@ public class RepositoryMatcher
     if (connection != null) {
       Set<ObjectNode> filteredNodes = filterMatchableNodes(bomJson);
       if (CollectionUtils.isNotEmpty(filteredNodes)) {
-        ArtifactoryClient artifactoryClient = artifactoryClientFactory.create()
-            .forArtifactory(connection.getBaseUrl(), connection.getUsername(),
-                passwordHandler.decryptPassword(connection.getPassword()));
 
-        Set<String> nodesToRemove =
-            matchWithRepository(identifiedComponents, connection, artifactoryClient, filteredNodes);
+        Set<String> nodesToRemove = matchWithRepository(identifiedComponents, connection, filteredNodes);
 
         //Remove nodes that only have sha256 (not coordinates) and were not matched by BFS
         removeUnknownComponentsWithSha256(bomJson, nodesToRemove);
@@ -592,7 +588,6 @@ public class RepositoryMatcher
   private Set<String> matchWithRepository(
       final Map<ComponentIdentifier, ObjectNode> identifiedComponents,
       final ArtifactoryConnection artifactoryConnection,
-      final ArtifactoryClient artifactoryClient,
       final Set<ObjectNode> nodes)
   {
     Map<String, ObjectNode> unresolvedNodesBySha256 = new HashMap<>();
@@ -608,8 +603,7 @@ public class RepositoryMatcher
     }
 
     Map<String, ComponentIdentifier> resolved =
-        resolveComponentIdentifierFromArtifactory(
-            artifactoryConnection, artifactoryClient, unresolvedNodesBySha256.keySet());
+        resolveComponentIdentifierFromArtifactory(artifactoryConnection, unresolvedNodesBySha256.keySet());
 
     resolved.forEach((key, value) -> {
       repositoryIdentifiedComponentCache.put(key, value);
@@ -629,12 +623,16 @@ public class RepositoryMatcher
 
   private Map<String, ComponentIdentifier> resolveComponentIdentifierFromArtifactory(
       ArtifactoryConnection artifactoryConnection,
-      ArtifactoryClient artifactoryClient,
       Set<String> sha256s)
   {
     Map<String, ComponentIdentifier> result = new HashMap<>();
     try {
       if (!sha256s.isEmpty()) {
+
+        ArtifactoryClient artifactoryClient = artifactoryClientFactory.create()
+            .forArtifactory(artifactoryConnection.getBaseUrl(), artifactoryConnection.getUsername(),
+                passwordHandler.decryptPassword(artifactoryConnection.getPassword()));
+
         Integer componentQueryLimit = configuration.getBfsComponentLimit();
         Set<String> repositories =
             new LinkedHashSet<>(Arrays.asList(

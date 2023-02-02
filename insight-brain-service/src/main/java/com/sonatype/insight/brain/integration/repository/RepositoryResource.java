@@ -112,6 +112,8 @@ public class RepositoryResource
   }
 
   /**
+   * Called from NXRM for npm audit. Maybe other usages?
+   * 
    * @since 1.89
    */
   @POST

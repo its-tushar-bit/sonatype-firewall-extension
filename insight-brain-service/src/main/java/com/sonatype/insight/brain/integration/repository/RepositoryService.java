@@ -69,6 +69,8 @@ public class RepositoryService extends AbstractRepositoryService
   }
 
   /**
+   * Called from NXRM for npm audit. Maybe other usages?
+   * 
    * @since 1.89
    */
   RepositoryComponentEvaluationDataList evaluateComponentsAdhoc(

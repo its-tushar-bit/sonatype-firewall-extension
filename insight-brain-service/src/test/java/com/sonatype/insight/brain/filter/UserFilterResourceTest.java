@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.filter;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -178,7 +177,7 @@ public class UserFilterResourceTest
     assertThat(actualFilter.getBasedOnFilterName()).isNull();
   }
 
-  private void assertFilter(UserFilterDTO actualFilter, UserFilter expectedFilter) throws IOException {
+  private void assertFilter(UserFilterDTO actualFilter, UserFilter expectedFilter) {
     assertThat(actualFilter).isNotNull();
     assertThat(actualFilter.getType()).isEqualTo(expectedFilter.getType());
     assertThat(actualFilter.getFilter()).isEqualTo(new UserFilterDTO(expectedFilter).getFilter());

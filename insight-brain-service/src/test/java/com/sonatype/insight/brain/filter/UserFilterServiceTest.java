@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.filter;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -103,7 +102,7 @@ public class UserFilterServiceTest
   }
 
   @Test
-  public void testGetActiveUserFilterForCurrentUser() throws IOException {
+  public void testGetActiveUserFilterForCurrentUser() {
     UserFilter userFilter = tempEntity.newUserFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME,
         ADVANCED_LEGAL_PACK_DASHBOARD, JsonUtils.format(new AdvancedLegalPackDashboardFilter()));
 
@@ -112,7 +111,7 @@ public class UserFilterServiceTest
   }
 
   @Test
-  public void testGetActiveUserFilterForCurrentUser_NonExisting() throws IOException {
+  public void testGetActiveUserFilterForCurrentUser_NonExisting() {
     UserFilter userFilter =
         new UserFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD);
 
@@ -121,7 +120,7 @@ public class UserFilterServiceTest
   }
 
   @Test
-  public void testGetNamedFiltersForCurrentUser() throws IOException {
+  public void testGetNamedFiltersForCurrentUser() {
     String filterString = JsonUtils.format(new AdvancedLegalPackDashboardFilter());
     UserFilter filter1 = tempEntity.newUserFilter(
         USERNAME, InternalRealm.ID, "filter1", ADVANCED_LEGAL_PACK_DASHBOARD, filterString);
@@ -160,7 +159,7 @@ public class UserFilterServiceTest
   }
 
   @Test
-  public void pruneDeletedApplication() throws IOException {
+  public void pruneDeletedApplication() {
     AdvancedLegalPackDashboardFilter advancedLegalPackDashboardFilter = new AdvancedLegalPackDashboardFilter();
     advancedLegalPackDashboardFilter.getApplicationFilters().add("appId1");
     advancedLegalPackDashboardFilter.getApplicationFilters().add("appId2");
@@ -212,7 +211,7 @@ public class UserFilterServiceTest
     }
   }
 
-  private void assertFilter(UserFilterDTO actualFilter, UserFilter expectedFilter) throws IOException {
+  private void assertFilter(UserFilterDTO actualFilter, UserFilter expectedFilter) {
     assertThat(actualFilter).isNotNull();
     assertThat(actualFilter.getType()).isEqualTo(expectedFilter.getType());
     if (expectedFilter.getFilter() == null) {

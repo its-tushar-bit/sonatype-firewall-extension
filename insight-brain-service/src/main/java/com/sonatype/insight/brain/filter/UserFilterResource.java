@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.filter;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -69,7 +68,7 @@ public class UserFilterResource
   @Path(ACTIVE_FILTERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @ExceptionMetered(name = "getActiveUserFilterForCurrentUserExceptionMeter")
-  public UserFilterDTO getActiveUserFilterForCurrentUser(@QueryParam("type") UserFilterType type) throws IOException {
+  public UserFilterDTO getActiveUserFilterForCurrentUser(@QueryParam("type") UserFilterType type) {
     return userFilterService.getActiveUserFilterForCurrentUser(type);
   }
 
@@ -77,7 +76,7 @@ public class UserFilterResource
   @Path(NAMED_FILTERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @ExceptionMetered(name = "getNamedFiltersForCurrentUserExceptionMeter")
-  public List<UserFilterDTO> getNamedFiltersForCurrentUser(@QueryParam("type") UserFilterType type) throws IOException {
+  public List<UserFilterDTO> getNamedFiltersForCurrentUser(@QueryParam("type") UserFilterType type) {
     return userFilterService.getNamedFiltersForCurrentUser(type);
   }
 

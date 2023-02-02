@@ -56,8 +56,8 @@ import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage.WaiverListTable;
-import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTable;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
+import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTable;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.IdentificationSource;
@@ -106,13 +106,13 @@ import org.openqa.selenium.support.ui.Wait;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -493,7 +493,7 @@ public class FirewallComponentDetailsPageTest
         createRepositoryComponent(componentDetails3.getHash(), componentDetails3.getComponentIdentifier(), date,
             yesterday);
 
-    ArrayList<RepositoryComponent> repositoryComponentList = new ArrayList<RepositoryComponent>();
+    ArrayList<RepositoryComponent> repositoryComponentList = new ArrayList<>();
     repositoryComponentList.add(mainRepositoryComponent);
     repositoryComponentList.add(secondaryRepositoryComponent);
     return repositoryComponentList;

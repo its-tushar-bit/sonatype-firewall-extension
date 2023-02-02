@@ -34,10 +34,11 @@ import {
 } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
 import LtgTransferList from './LtgTransferList';
 import ThreatDropdownSelector from 'MainRoot/react/ThreatDropdownSelector';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const getValidationMessage = (isDirty, validationError) => {
   if (!isDirty) {
-    return 'There are no changes to save';
+    return MSG_NO_CHANGES_TO_SAVE;
   }
 
   return validationError;

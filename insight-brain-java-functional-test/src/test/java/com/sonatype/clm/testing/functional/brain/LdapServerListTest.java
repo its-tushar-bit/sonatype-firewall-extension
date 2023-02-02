@@ -89,7 +89,7 @@ public class LdapServerListTest
     ldapServerListPage.reorderButton().shouldBe(disabled);
     ldapServerListPage.saveButton().shouldBe(visible).click();
     FormUtils.getAlertElement()
-        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save"));
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
 
     ldapServerListPage.listElements().shouldHave(texts("Fourth Server",
         "Third Server", "Second Server", "First Server"));

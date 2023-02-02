@@ -16,6 +16,7 @@ import {
 } from '@sonatype/react-shared-components';
 import { faPlus, faAngleRight, faPen } from '@fortawesome/pro-solid-svg-icons';
 import { faArrowDown, faArrowUp } from '@fortawesome/pro-regular-svg-icons';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 export default function LdapList({
   loadServers,
@@ -135,7 +136,7 @@ export default function LdapList({
               submitMaskState={saveServerOrderSuccess}
               submitError={saveServerOrderError}
               submitBtnText="Save Order"
-              validationErrors={isDirty ? undefined : 'There are no changes to save'}
+              validationErrors={isDirty ? undefined : MSG_NO_CHANGES_TO_SAVE}
             >
               {tileContent}
             </NxStatefulForm>

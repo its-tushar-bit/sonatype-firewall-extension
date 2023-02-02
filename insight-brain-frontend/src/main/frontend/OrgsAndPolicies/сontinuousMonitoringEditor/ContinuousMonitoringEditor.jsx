@@ -26,6 +26,7 @@ import {
 } from '../policyMonitoringSelectors';
 import { selectCliStagesWithInheritOrNoMonitorOption } from 'MainRoot/OrgsAndPolicies/stagesSelectors';
 import { selectIsMonitoringSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 export default function ContinuousMonitoringEditor() {
   const dispatch = useDispatch();
@@ -70,7 +71,7 @@ export default function ContinuousMonitoringEditor() {
               submitBtnText="Update"
               submitMaskState={submitMaskState}
               submitMaskMessage="Saving…"
-              validationErrors={isDirty ? undefined : 'There are no changes to save'}
+              validationErrors={isDirty ? undefined : MSG_NO_CHANGES_TO_SAVE}
               onSubmit={handleSubmit}
               doLoad={doLoad}
               loadError={loadError}

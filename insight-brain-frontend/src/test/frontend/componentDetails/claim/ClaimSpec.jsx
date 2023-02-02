@@ -6,6 +6,7 @@
 import * as enzymeUtils from 'TestRoot/enzymeUtils';
 import { NxStatefulForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import Claim from 'MainRoot/componentDetails/claim/Claim';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
@@ -134,7 +135,7 @@ describe('Claim', () => {
         const component = getShallow({ isDirty: false });
         const form = component.find(NxStatefulForm);
 
-        expect(form).toHaveProp('validationErrors', 'There are no changes to save');
+        expect(form).toHaveProp('validationErrors', MSG_NO_CHANGES_TO_SAVE);
       });
 
       it('has "Unable to save" error if form was not changed', () => {

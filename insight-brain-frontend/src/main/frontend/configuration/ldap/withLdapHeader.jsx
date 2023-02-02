@@ -12,10 +12,11 @@ import LdapTabs from './LdapTabs';
 import LdapServerNameForm from './LdapServerNameForm';
 import LdapRemoveServerModal, { ldapRemoveServerModalPropTypes } from './LdapRemoveServerModal';
 import CheckLogin from './checkLogin/CheckLogin';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const getValidationMessage = ({ isDirty, validationError, mustReenterPassword }) => {
   if (!isDirty) {
-    return 'There are no changes to save';
+    return MSG_NO_CHANGES_TO_SAVE;
   }
 
   if (mustReenterPassword) {

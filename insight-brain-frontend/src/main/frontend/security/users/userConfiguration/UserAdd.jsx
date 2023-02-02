@@ -7,10 +7,11 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxStatefulForm, NxTextInput, NxFormGroup } from '@sonatype/react-shared-components';
 import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const getValidationMessage = ({ isDirty, validationError }) => {
   if (!isDirty) {
-    return 'There are no changes to save';
+    return MSG_NO_CHANGES_TO_SAVE;
   }
 
   return validationError;

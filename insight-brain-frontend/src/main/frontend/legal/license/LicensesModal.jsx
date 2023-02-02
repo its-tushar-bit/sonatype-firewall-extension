@@ -20,6 +20,7 @@ import * as PropTypes from 'prop-types';
 import { availableScopesPropType, componentPropType, licenseLegalMetadataPropType } from '../advancedLegalPropTypes';
 import { createScopeOption, findSingleLicenseIndex, getStatusName } from '../legalUtility';
 import { EDIT_LICENSE_MODAL_STATUS_OPTIONS } from '../advancedLegalConstants';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 export default function LicensesModal(props) {
   const {
@@ -45,7 +46,7 @@ export default function LicensesModal(props) {
   const { initialState, userInput } = nxTextInputStateHelpers;
   const [commentsTextInput, setCommentsTextInput] = useState(initialState(''));
   const [scopeVal, setScopeVal] = useState('');
-  const [validationErrors, setValidationErrors] = useState('There are no changes to save.');
+  const [validationErrors, setValidationErrors] = useState(MSG_NO_CHANGES_TO_SAVE);
   const [statusVal, setStatusVal] = useState(effectiveLicenseStatus);
   const [licenseOptions, setLicenseOptions] = useState([]);
   const [showLicenseDiv, setShowLicenseDiv] = useState(

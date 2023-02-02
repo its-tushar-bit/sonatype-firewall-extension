@@ -100,7 +100,7 @@ public class LdapConfigurationTest
     createPage.cancel().shouldBe(enabled);
     createPage.save().shouldBe(enabled).click();
     FormUtils.getAlertElement(createPage)
-        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save"));
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
 
     serverNameInput.shouldBe(visible).setValue("Another Ldap Server");
     createPage.cancel().shouldBe(enabled);

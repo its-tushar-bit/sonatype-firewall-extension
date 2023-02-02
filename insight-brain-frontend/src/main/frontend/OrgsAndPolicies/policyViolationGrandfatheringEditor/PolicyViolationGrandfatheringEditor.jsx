@@ -26,6 +26,7 @@ import {
   NxInfoAlert,
   NxReadOnly,
 } from '@sonatype/react-shared-components';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 export default function PolicyViolationsGrandfatheringEditor() {
   const dispatch = useDispatch();
@@ -77,7 +78,7 @@ export default function PolicyViolationsGrandfatheringEditor() {
               submitBtnText="Update"
               submitMaskState={submitMaskState}
               submitMaskMessage="Saving…"
-              validationErrors={isDirty ? undefined : 'There are no changes to save'}
+              validationErrors={isDirty ? undefined : MSG_NO_CHANGES_TO_SAVE}
               onSubmit={handleSubmit}
               doLoad={doLoad}
               loadError={loadError}

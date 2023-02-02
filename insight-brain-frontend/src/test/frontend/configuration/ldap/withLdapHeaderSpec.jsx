@@ -11,6 +11,7 @@ import * as routerContext from 'MainRoot/react/RouterStateContext';
 import withLdapHeader from 'MainRoot/configuration/ldap/withLdapHeader';
 import LdapRemoveServerModal from 'MainRoot/configuration/ldap/LdapRemoveServerModal';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 describe('withLdapHeader', () => {
   function Wrapped() {
@@ -121,7 +122,7 @@ describe('withLdapHeader', () => {
         const component = getShallowComponent({ isDirty: false });
         const form = component.find(NxStatefulForm);
 
-        expect(form).toHaveProp('validationErrors', 'There are no changes to save');
+        expect(form).toHaveProp('validationErrors', MSG_NO_CHANGES_TO_SAVE);
       });
 
       it('has "Unable to save" error if form was not changed', () => {

@@ -8,6 +8,7 @@ import * as enzymeUtils from '../../../../frontend/enzymeUtils';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import UserFormAdd from 'MainRoot/security/users/userConfiguration/UserAdd';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
@@ -107,7 +108,7 @@ describe('UserAdd', () => {
         const shallowComponent = getShallowComponent({ isDirty: false });
         const form = shallowComponent.find(NxStatefulForm);
 
-        expect(form).toHaveProp('validationErrors', 'There are no changes to save');
+        expect(form).toHaveProp('validationErrors', MSG_NO_CHANGES_TO_SAVE);
       });
 
       it('has "Unable to save" error if form was not changed', function () {

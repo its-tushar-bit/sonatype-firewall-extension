@@ -8,6 +8,7 @@ import React from 'react';
 import { NxFieldset, NxStatefulForm, NxModal, NxToggle } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from './firewallConfigurationModalReducer';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 export default function FirewallConfigurationModal(props) {
   // Actions
@@ -37,7 +38,7 @@ export default function FirewallConfigurationModal(props) {
         submitError={saveConfigurationError}
         submitMaskState={submitMaskSuccessState}
         submitBtnText="Save Changes"
-        validationErrors={isDirty ? undefined : 'There are no changes to save.'}
+        validationErrors={isDirty ? undefined : MSG_NO_CHANGES_TO_SAVE}
         onCancel={closeConfigurationModal}
       >
         <header className="nx-modal-header">

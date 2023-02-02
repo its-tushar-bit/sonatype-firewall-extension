@@ -95,7 +95,7 @@ describe('PolicyEditorSpec', () => {
           expect(updateButton).toBeVisible();
           fireEvent.click(updateButton);
 
-          const alert = screen.getByText('There were validation errors. There are no changes to save');
+          const alert = screen.getByText('There were validation errors. There are no changes to save.');
           expect(alert).toBeVisible();
 
           expect(deleteButton).toBeVisible();
@@ -289,7 +289,7 @@ describe('PolicyEditorSpec', () => {
         expect(updateButton).toBeVisible();
         fireEvent.click(updateButton);
 
-        const alert = screen.getByText('There were validation errors. There are no changes to save');
+        const alert = screen.getByText('There were validation errors. There are no changes to save.');
         expect(alert).toBeVisible();
         expect(deleteButton).toBeNull();
       });
@@ -304,7 +304,7 @@ describe('PolicyEditorSpec', () => {
         expect(updateButton).toBeVisible();
         fireEvent.click(updateButton);
 
-        const alert = screen.getByText('There were validation errors. There are no changes to save');
+        const alert = screen.getByText('There were validation errors. There are no changes to save.');
         expect(alert).toBeVisible();
 
         const policyNameInput = await screen.findByLabelText('Policy Name');

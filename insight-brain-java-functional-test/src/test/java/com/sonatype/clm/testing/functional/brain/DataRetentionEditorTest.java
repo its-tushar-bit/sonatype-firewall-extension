@@ -155,7 +155,7 @@ public class DataRetentionEditorTest
     setInherit(Stage.ID_BUILD);
     updateDataRetention();
     FormUtils.getAlertElement(PAGE)
-        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save"));
+        .shouldHave(text(DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
 
     refreshOrOpen(DataRetentionEditorPage.url(organization.getId()));
 

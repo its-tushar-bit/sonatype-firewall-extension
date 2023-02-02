@@ -6,6 +6,7 @@
 import { NxLoadWrapper, NxPageMain } from '@sonatype/react-shared-components';
 import LdapList from '../../../../../main/frontend/configuration/ldap/ldapServersList/LdapList';
 import * as enzymeUtils from '../../../enzymeUtils';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 describe('LdapList', () => {
   let minimalProps, mockLoadServers, mockStateGo, getShallowComponent;
@@ -152,7 +153,7 @@ describe('LdapList', () => {
         props.isDirty = false;
         const component = getShallowComponent(props);
         const form = component.find('#reorder-ldap-servers-form');
-        expect(form).toHaveProp('validationErrors', 'There are no changes to save');
+        expect(form).toHaveProp('validationErrors', MSG_NO_CHANGES_TO_SAVE);
       });
 
       it('renders list using reorderedServers state', () => {

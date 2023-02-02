@@ -178,7 +178,7 @@ describe('Data Retention Editor component', () => {
 
       const alert = await screen.findByRole('alert');
 
-      expect(alert).toHaveTextContent('There were validation errors. There are no changes to save');
+      expect(alert).toHaveTextContent('There were validation errors. There are no changes to save.');
     });
   });
 
@@ -321,7 +321,7 @@ describe('Data Retention Editor component', () => {
 
           const alert = await screen.findByRole('alert');
 
-          expect(alert).toHaveTextContent('There were validation errors. There are no changes to save');
+          expect(alert).toHaveTextContent('There were validation errors. There are no changes to save.');
         });
 
         it('and time unit dropdown is changed, but no age input value', async () => {
@@ -435,7 +435,7 @@ describe('Data Retention Editor component', () => {
 
         const alert = await screen.findByRole('alert');
 
-        expect(alert).toHaveTextContent('There were validation errors. There are no changes to save');
+        expect(alert).toHaveTextContent('There were validation errors. There are no changes to save.');
       });
 
       describe('when multiple stages have custom purging and', () => {

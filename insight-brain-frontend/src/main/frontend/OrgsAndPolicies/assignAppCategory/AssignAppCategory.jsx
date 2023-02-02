@@ -19,6 +19,7 @@ import {
 } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
 import { selectSelectedOwnerName } from '../orgsAndPoliciesSelectors';
 import { IqAssociationEditor, FieldType } from 'MainRoot/react/IqAssociationEditor';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 export default function AssignAppCategory() {
   const dispatch = useDispatch();
@@ -61,7 +62,7 @@ export default function AssignAppCategory() {
             submitBtnText="Update"
             submitMaskState={submitMaskState}
             submitMaskMessage="Saving…"
-            validationErrors={!isDirty ? 'There are no changes to save' : null}
+            validationErrors={!isDirty ? MSG_NO_CHANGES_TO_SAVE : null}
             onSubmit={handleSubmit}
             doLoad={doLoad}
             loadError={loadError}

@@ -16,10 +16,11 @@ import { actions } from 'MainRoot/OrgsAndPolicies/retentionSlice';
 import DataRetentionEditorItem from './DataRetentionEditorItem';
 
 import { NxPageTitle, NxH1, NxH2, NxTile, NxStatefulForm, NxDivider } from '@sonatype/react-shared-components';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const getValidationMessage = (isDirty, validationErrors) => {
   if (!isDirty) {
-    return 'There are no changes to save';
+    return MSG_NO_CHANGES_TO_SAVE;
   }
   return validationErrors;
 };

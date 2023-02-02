@@ -64,6 +64,7 @@ import {
 import { selectIsWebhooksSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { RECIPIENT_TYPES } from 'MainRoot/OrgsAndPolicies/policySlice';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 describe('policySelectors', () => {
   describe('selectPolicySlice', () => {
@@ -680,7 +681,7 @@ describe('policySelectors', () => {
         policyName: { validationErrors: [], isPristine: false },
         isInherited: false,
         isActionOverrideEnabled: true,
-        result: 'There are no changes to save',
+        result: MSG_NO_CHANGES_TO_SAVE,
       },
       {
         validationError: 'Some validation error',

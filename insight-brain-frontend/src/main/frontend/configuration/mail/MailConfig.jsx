@@ -30,6 +30,7 @@ import {
 } from '@sonatype/react-shared-components';
 import { reject, isNil } from 'ramda';
 import LoadError from '../../react/LoadError';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const authErrorMessage =
   'It appears you do not have permission to access this page.  ' +
@@ -142,7 +143,7 @@ export default function MailConfig(props) {
   const formValidationErrors = reject(isNil, [
     mustReenterPassword ? 'Password must be provided when updating Hostname or Port.' : null,
     hasAllRequiredData ? null : 'Hostname, Port and System Email are required details.',
-    isDirty ? null : 'There are no changes to save',
+    isDirty ? null : MSG_NO_CHANGES_TO_SAVE,
   ]);
 
   /*

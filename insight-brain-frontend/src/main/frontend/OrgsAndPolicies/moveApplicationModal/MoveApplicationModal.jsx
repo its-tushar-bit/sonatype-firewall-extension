@@ -21,6 +21,7 @@ import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSel
 import SuccessMoveAppModal from 'MainRoot/OrgsAndPolicies/moveApplicationModal/SuccessMoveAppModal';
 import NoAvailableToMoveOrgsWarning from 'MainRoot/OrgsAndPolicies/moveApplicationModal/NoAvailableToMoveOrgsWarning';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const MoveApplicationModal = () => {
   const dispatch = useDispatch();
@@ -91,7 +92,7 @@ const MoveApplicationModal = () => {
                 loading={loading}
                 submitBtnText="Move"
                 submitMaskState={submitMaskState}
-                validationErrors={!isDirty ? 'There are no changes to save' : null}
+                validationErrors={!isDirty ? MSG_NO_CHANGES_TO_SAVE : null}
                 {...getErrorProps(submitError)}
               >
                 <NxModal.Content>

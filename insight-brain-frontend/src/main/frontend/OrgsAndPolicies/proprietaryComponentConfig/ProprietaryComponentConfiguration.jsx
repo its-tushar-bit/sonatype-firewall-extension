@@ -36,6 +36,7 @@ import {
   selectMatcherValue,
   selectProprietaryOtherConfigs,
 } from '../proprietarySelectors';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 export default function ProprietaryComponentConfiguration() {
   const dispatch = useDispatch();
@@ -120,7 +121,7 @@ export default function ProprietaryComponentConfiguration() {
             doLoad={doLoad}
             loadError={loadError}
             loading={loading}
-            validationErrors={!isDirty ? 'There are no changes to save' : undefined}
+            validationErrors={!isDirty ? MSG_NO_CHANGES_TO_SAVE : undefined}
             submitError={submitError}
           >
             <NxFormRow>

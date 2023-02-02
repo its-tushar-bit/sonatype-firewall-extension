@@ -7,6 +7,7 @@ import { NxStatefulForm, NxLoadError, NxModal, NxSubmitMask, NxToggle } from '@s
 import * as enzymeUtils from '../../enzymeUtils';
 import FirewallConfigurationModal from '../../../../main/frontend/firewall/config/FirewallConfigurationModal';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from '../../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 describe('FirewallConfigurationModal', function () {
   let minimalProps,
@@ -86,7 +87,7 @@ describe('FirewallConfigurationModal', function () {
     expect(form).toHaveProp('submitError', null);
     expect(form).toHaveProp('submitMaskState', null);
     expect(form).toHaveProp('submitBtnText', 'Save Changes');
-    expect(form).toHaveProp('validationErrors', 'There are no changes to save.');
+    expect(form).toHaveProp('validationErrors', MSG_NO_CHANGES_TO_SAVE);
     expect(form).toHaveProp('onCancel', closeConfigurationModalSpy);
 
     const modalTitle = component.find('.nx-modal-header');

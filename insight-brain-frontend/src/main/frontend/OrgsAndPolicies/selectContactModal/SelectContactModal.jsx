@@ -19,10 +19,11 @@ import { selectContactSlice } from './selectContactModalSelectors';
 
 import { actions } from './selectContactModalSlice';
 import UnsavedChangesModal from 'MainRoot/unsavedChangesModal/UnsavedChangesModal';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const getValidationMessage = (isDirty, isValid) => {
   if (!isDirty) {
-    return 'There are no changes to save';
+    return MSG_NO_CHANGES_TO_SAVE;
   } else if (!isValid) {
     return 'Select a user to save, or clear the text box to deselect a contact for this application';
   }

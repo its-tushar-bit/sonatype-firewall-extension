@@ -9,6 +9,7 @@ import * as routerContext from 'MainRoot/react/RouterStateContext';
 import CreateLdap from 'MainRoot/configuration/ldap/CreateLdap';
 import LdapServerNameForm from 'MainRoot/configuration/ldap/LdapServerNameForm';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
@@ -92,7 +93,7 @@ describe('CreateLdap', () => {
         const shallowComponent = getShallowComponent({ isDirty: false });
         const form = shallowComponent.find(NxStatefulForm);
 
-        expect(form).toHaveProp('validationErrors', 'There are no changes to save');
+        expect(form).toHaveProp('validationErrors', MSG_NO_CHANGES_TO_SAVE);
       });
 
       it('has "Unable to save" error if form was not changed', function () {

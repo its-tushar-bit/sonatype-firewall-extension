@@ -34,10 +34,11 @@ import {
   selectLabelsDeleteMaskState,
 } from '../labelsSelectors';
 import { angularToRscColorMap, rscToAngularColorMap } from '../utility/util';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const getValidationMessage = (isDirty, validationError) => {
   if (!isDirty) {
-    return 'There are no changes to save';
+    return MSG_NO_CHANGES_TO_SAVE;
   }
 
   return validationError;

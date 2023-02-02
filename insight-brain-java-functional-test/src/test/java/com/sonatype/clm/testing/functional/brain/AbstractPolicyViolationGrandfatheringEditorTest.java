@@ -177,7 +177,7 @@ public abstract class AbstractPolicyViolationGrandfatheringEditorTest
 
     PolicyViolationGrandfatheringEditorPage.updateButton().click();
     FormUtils.getAlertElement(PolicyViolationGrandfatheringEditorPage.form()).shouldBe(visible)
-        .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save"));
+        .shouldHave(text(FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX + " There are no changes to save."));
   }
 
   @Test

@@ -17,6 +17,7 @@ import { getActionsOverride } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { getDisabledConditions } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
 import { selectIsWebhooksSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { RECIPIENT_TYPES } from './policySlice';
+import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 export const selectPolicySlice = createSelector(selectOrgsAndPoliciesSlice, prop('policy'));
 
@@ -136,7 +137,7 @@ export const selectIfSubmitButtonShouldBeDisabled = createSelector(
     const hasUnsupportedConditions = any((condition) => includes(condition.conditionTypeId, disabled), conditions)
       ? 'Unable to save: unsupported conditions added'
       : null;
-    const isDirty = !isPolicyDirty ? 'There are no changes to save' : null;
+    const isDirty = !isPolicyDirty ? MSG_NO_CHANGES_TO_SAVE : null;
     const isNameValid =
       policyName.validationErrors?.length > 0 && !policyName.isPristine
         ? 'Unable to save: fields with invalid or missing data'

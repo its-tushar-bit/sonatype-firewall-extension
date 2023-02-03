@@ -26,7 +26,8 @@ function ApplicationReportRootController($state, $ngRedux, applicationReportActi
         !!$state.params.embeddable,
         $state.params.policyViolationId,
         $state.params.componentHash,
-        $state.params.tabId
+        $state.params.tabId,
+        true
       );
     },
 

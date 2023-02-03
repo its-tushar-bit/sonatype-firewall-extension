@@ -46,7 +46,7 @@ describe('applicationReportRoot', function () {
     });
 
     it('calls setReportParameters with the correct parameters', function () {
-      const vm = createController('testApp', 'testReport', false, true, undefined, undefined, undefined);
+      const vm = createController('testApp', 'testReport', false, true, undefined, undefined, undefined, true);
       expect(vm.setReportParameters).toHaveBeenCalledWith(
         'testApp',
         'testReport',
@@ -54,12 +54,22 @@ describe('applicationReportRoot', function () {
         true,
         undefined,
         undefined,
-        undefined
+        undefined,
+        true
       );
     });
 
     it('calls setReportParameters with the correct parameters when returning from addWaiver', function () {
-      const vm = createController('testApp', 'testReport', false, true, 'policyViolationId', undefined, undefined);
+      const vm = createController(
+        'testApp',
+        'testReport',
+        false,
+        true,
+        'policyViolationId',
+        undefined,
+        undefined,
+        true
+      );
 
       expect(vm.setReportParameters).toHaveBeenCalledWith(
         'testApp',
@@ -68,12 +78,22 @@ describe('applicationReportRoot', function () {
         true,
         'policyViolationId',
         undefined,
-        undefined
+        undefined,
+        true
       );
     });
 
     it('calls setReportParameters with the correct parameters when returning from the transitive violations page', function () {
-      const vm = createController('testApp', 'testReport', false, true, 'policyViolationId', 'componentHash', 'tabId');
+      const vm = createController(
+        'testApp',
+        'testReport',
+        false,
+        true,
+        'policyViolationId',
+        'componentHash',
+        'tabId',
+        true
+      );
 
       expect(vm.setReportParameters).toHaveBeenCalledWith(
         'testApp',
@@ -82,7 +102,8 @@ describe('applicationReportRoot', function () {
         true,
         'policyViolationId',
         'componentHash',
-        'tabId'
+        'tabId',
+        true
       );
     });
   });

@@ -114,6 +114,7 @@ describe('applicationReportReducer', function () {
           appId: 'appId',
           scanId: 'scanId',
           isUnknownJs: false,
+          isNotFiltered: true,
         },
       });
 
@@ -132,6 +133,7 @@ describe('applicationReportReducer', function () {
           appId: 'appId',
           scanId: 'scanId',
           isUnknownJs: false,
+          isNotFiltered: true,
         },
         substringFilters: {},
         rawDataSubstringFilters: {},
@@ -163,6 +165,52 @@ describe('applicationReportReducer', function () {
         displayedDependencyTree: null,
         reevaluateMaskState: null,
       });
+    });
+
+    it('sets the state to the current state value when isNotFiltered is undefined', () => {
+      const state = {
+        foo: 'bar',
+        changeMe: 'can haz overwrite plz?',
+        reportParameters: {
+          appId: 'appId',
+          scanId: 'scanId',
+          isUnknownJs: false,
+        },
+      };
+      const newState = reduce(state, {
+        type: 'SET_REPORT_PARAMETERS',
+        payload: {
+          appId: 'appId',
+          scanId: 'scanId',
+          isUnknownJs: false,
+        },
+      });
+
+      expect(newState).toEqual(state);
+    });
+
+    it('sets the state to the current state value when isNotFiltered is false', () => {
+      const state = {
+        foo: 'bar',
+        changeMe: 'can haz overwrite plz?',
+        reportParameters: {
+          appId: 'appId',
+          scanId: 'scanId',
+          isUnknownJs: false,
+          isNotFiltered: false,
+        },
+      };
+      const newState = reduce(state, {
+        type: 'SET_REPORT_PARAMETERS',
+        payload: {
+          appId: 'appId',
+          scanId: 'scanId',
+          isUnknownJs: false,
+          isNotFiltered: false,
+        },
+      });
+
+      expect(newState).toEqual(state);
     });
   });
 

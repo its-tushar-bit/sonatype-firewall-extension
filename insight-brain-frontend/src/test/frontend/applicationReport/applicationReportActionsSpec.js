@@ -64,7 +64,8 @@ describe('applicationReportActions', function () {
           false,
           'policyViolationId',
           'componentHash',
-          'tabId'
+          'tabId',
+          true
         )
       );
       expect(store.getActions().length).toBe(1);
@@ -78,6 +79,7 @@ describe('applicationReportActions', function () {
           policyViolationId: 'policyViolationId',
           componentHash: 'componentHash',
           tabId: 'tabId',
+          isNotFiltered: true,
         },
       });
 
@@ -93,6 +95,7 @@ describe('applicationReportActions', function () {
           policyViolationId: undefined,
           componentHash: undefined,
           tabId: undefined,
+          isNotFiltered: undefined,
         },
       });
     });

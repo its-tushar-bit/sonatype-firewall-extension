@@ -19,7 +19,6 @@ import com.sonatype.insight.jaxrs.error.ErrorResponse;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.keycloak.adapters.saml.SamlAuthenticator;
 import org.keycloak.adapters.saml.SamlDeployment;
@@ -41,8 +40,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-// CLM-23581
-@Ignore
 public class SamlFilterTest
     extends AbstractComponentTest
 {

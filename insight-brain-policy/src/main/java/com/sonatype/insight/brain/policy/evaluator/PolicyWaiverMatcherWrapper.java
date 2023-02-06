@@ -15,9 +15,12 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.util.ComponentIdentifierHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.util.ComponentIdentifierHelper.normalizeComponentIdentifier;
 
 /**
  * @since 1.140
@@ -92,6 +95,21 @@ public class PolicyWaiverMatcherWrapper
     return !waiverIdentif.getFormat().equals(compIdentif.getFormat());
   }
 
+  /**
+   * This method returns normalized component identifier with the * as version
+   *
+   * Note: the call to {@link ComponentIdentifierHelper#normalizeComponentIdentifier(ComponentIdentifier)}
+   * is necessary because some python components may differ in casing and underscores with the waiver PURL,
+   * the component identifier from the waiver does not require normalization because the normalization is already
+   * performed when turned into PURL before being stored in the DB
+   *
+   * @param componentIdentifier original component identifier
+   * @return all versions component identifier
+   */
+  private ComponentIdentifier getAllVersionsComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    return normalizeComponentIdentifier(componentIdentifier.createAlternativeVersion("*"));
+  }
+
   private boolean matchesAllVersionsOfComponent(ComponentFact componentFact) {
     if (policyWaiver.getComponentIdentifier() == null ||
         componentFact.getComponentIdentifier() == null ||
@@ -99,8 +117,8 @@ public class PolicyWaiverMatcherWrapper
       return false;
     }
 
-    ComponentIdentifier componentFactAllVersionsIdentifier =
-        componentFact.getComponentIdentifier().createAlternativeVersion("*");
+    ComponentIdentifier componentFactAllVersionsIdentifier = getAllVersionsComponentIdentifier(componentFact
+        .getComponentIdentifier());
 
     // FIXME This code block was introduced in CLM-22177 and it is dependant on the resolution of CLM-22252
     // FIXME After CLM-22252 task is done remove the try catch block and leave only the ensureComplete call

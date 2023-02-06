@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 
 import org.junit.Test;
 
+import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_PYPI;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -203,6 +204,29 @@ public class PolicyWaiverMatcherWrapperTest
     PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
 
     assertThatNoException().isThrownBy(() -> policyWaiverMatcherWrapper.matchesComponent(componentFact));
+  }
+
+  /**
+   * This case miss match only happen with pypi components
+   */
+  @Test
+  public void testMatcherWrapper_MatchesComponent_ALL_VERSIONS_caseMissMatch() {
+    String hash = "hash";
+    String associatedPackagedUrlAllVersions = "pkg:pypi/py-component@1.0?extension=whl&qualifier=py3-none-any";
+    PolicyWaiver policyWaiver =
+        new PolicyWaiverBuilder().setHash(hash).setComponentMatchStrategy(ALL_VERSIONS)
+            .setAssociatedPackagedUrl(associatedPackagedUrlAllVersions).build();
+
+    ComponentIdentifier componentIdentifier = new ComponentIdentifier(FORMAT_PYPI, new TreeMap<String, String>() {{
+        this.put("extension", "whl");
+        this.put("name", "Py-component");
+        this.put("qualifier", "py3-none-any");
+        this.put("version", "1.0");
+      }});
+    ComponentFact componentFact = new ComponentFact(componentIdentifier, "otherHash");
+    PolicyWaiverMatcherWrapper policyWaiverMatcherWrapper = new PolicyWaiverMatcherWrapper(policyWaiver);
+
+    assertThat(policyWaiverMatcherWrapper.matchesComponent(componentFact)).isTrue();
   }
 
   @Test

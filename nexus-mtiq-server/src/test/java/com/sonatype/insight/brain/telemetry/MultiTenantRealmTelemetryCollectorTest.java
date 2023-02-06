@@ -28,6 +28,7 @@ import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.telemetry.RealmTelemetryCollector.SAML_CONFIGURED;
 import static com.sonatype.insight.brain.tenancy.TenantManagerTestHelper.setTestTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,8 +54,8 @@ public class MultiTenantRealmTelemetryCollectorTest
 
   @Test
   public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() {
-    Tenant tenant1 = new Tenant("tenant1");
-    Tenant tenant2 = new Tenant("tenant2");
+    Tenant tenant1 = createTenant("tenant1");
+    Tenant tenant2 = createTenant("tenant2");
 
     testAs(tenant1, t1 -> {
       setTestTenant(tenantManager, tenant1);

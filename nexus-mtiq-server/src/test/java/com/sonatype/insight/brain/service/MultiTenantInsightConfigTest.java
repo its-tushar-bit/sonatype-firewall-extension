@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.service;
 
 import com.sonatype.insight.brain.tenancy.MultiTenantTest;
-import com.sonatype.insight.brain.tenancy.Tenant;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +37,7 @@ public class MultiTenantInsightConfigTest
   public void testGetSonatypeWork() {
     assertThat(underTest.getSonatypeWork().getPath()).isEqualTo(WORK_ROOT + "/global");
 
-    setTenant(new Tenant(TENANT_NAME));
+    setTenant(TENANT_NAME);
 
     assertThat(underTest.getSonatypeWork().getPath()).isEqualTo(WORK_ROOT + "/new-tenant");
   }
@@ -47,7 +46,7 @@ public class MultiTenantInsightConfigTest
   public void testGetClusterDirectory() {
     assertThat(underTest.getClusterDirectory().getPath()).isEqualTo(CLUSTER_ROOT + "/global");
 
-    setTenant(new Tenant(TENANT_NAME));
+    setTenant(TENANT_NAME);
 
     assertThat(underTest.getClusterDirectory().getPath()).isEqualTo(CLUSTER_ROOT + "/new-tenant");
   }

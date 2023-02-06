@@ -34,6 +34,7 @@ import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
 
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.doAnswer;
@@ -353,8 +354,8 @@ public class SamlDeploymentManagerTest
     SamlConfigurationDAO samlConfigurationDAO = mock(SamlConfigurationDAO.class);
     SamlDeploymentManager saml = new SamlDeploymentManager(samlMetadataTool, samlConfigurationDAO, taskSchedulerMock);
 
-    Tenant tenant1 = new Tenant("tenant1");
-    Tenant tenant2 = new Tenant("tenant2");
+    Tenant tenant1 = createTenant("tenant1");
+    Tenant tenant2 = createTenant("tenant2");
     String tenant1EntityId = "sp-entity-id";
     String tenant2EntityId = "sp-entity-id2";
 

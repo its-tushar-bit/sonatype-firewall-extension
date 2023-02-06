@@ -63,7 +63,7 @@ public class MultiTenantQuartzJobStoreTXTest
 
   @Test
   public void shouldUseGlobalTenant_whenDoCheckIn() throws Exception {
-    setTenant(new Tenant("Temporary-Tenant"));
+    setTenant("Temporary-Tenant");
 
     underTest.doCheckin();
 

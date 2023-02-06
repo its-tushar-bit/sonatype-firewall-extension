@@ -19,6 +19,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.telemetry.MultiTenantTelemetryScheduler.NAME;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
@@ -61,7 +62,7 @@ public class MultiTenantTelemetrySchedulerTest
 
   @Test
   public void testRegister_ScheduleForMultiTenant() throws Exception {
-    Tenant tenantA = new Tenant("TenantA");
+    Tenant tenantA = createTenant("TenantA");
 
     setTenant(tenantA);
 
@@ -79,7 +80,7 @@ public class MultiTenantTelemetrySchedulerTest
 
   @Test
   public void testExecute_ScheduleForMultiTenant() throws Exception {
-    Tenant tenantA = new Tenant("TenantA");
+    Tenant tenantA = createTenant("TenantA");
 
     setTenant(tenantA);
 

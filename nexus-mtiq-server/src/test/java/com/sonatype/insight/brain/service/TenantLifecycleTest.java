@@ -10,7 +10,6 @@ import java.io.File;
 import com.sonatype.insight.brain.migration.DataMigrator;
 import com.sonatype.insight.brain.product.license.CLMLicenseManager;
 import com.sonatype.insight.brain.tenancy.MultiTenantTest;
-import com.sonatype.insight.brain.tenancy.Tenant;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +50,7 @@ public class TenantLifecycleTest
 
   @Test
   public void shouldBootTenant() throws Exception {
-    setTenant(new Tenant("tenant"));
+    setTenant("tenant");
 
     underTest.bootTenant();
 
@@ -62,7 +61,7 @@ public class TenantLifecycleTest
 
   @Test
   public void shouldAttemptToLoadLicenseFile_whenLicenseSpecified() throws Exception {
-    setTenant(new Tenant("tenant"));
+    setTenant("tenant");
 
     String sonatypeWorkDir = "tenant/work";
     String licenseFile = "license.lic";

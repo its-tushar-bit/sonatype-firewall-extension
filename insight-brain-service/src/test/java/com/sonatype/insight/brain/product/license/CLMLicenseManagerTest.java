@@ -29,7 +29,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.DatabaseConfig;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -50,6 +49,7 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -1501,7 +1501,7 @@ public class CLMLicenseManagerTest
       verify(listener, never()).productLicenseChanged();
     });
 
-    testAs(new Tenant("tenant1"), t -> {
+    testAs(createTenant("tenant1"), t -> {
       clmLicenseManager.loadLicense();
       verify(listener).productLicenseChanged();
     });

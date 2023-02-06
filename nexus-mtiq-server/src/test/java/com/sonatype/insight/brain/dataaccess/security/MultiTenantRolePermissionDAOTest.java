@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.tenancy.TenantManagerTestHelper.setTestTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultiTenantRolePermissionDAOTest
@@ -41,8 +42,8 @@ public class MultiTenantRolePermissionDAOTest
         new TenantManager(tenantManagedBeans, multiTenantDatabaseTestRule.insightConfig, tenantLifecycleProvider,
             multiTenantDatabaseTestRule.databaseProvisionUtils, multiTenantDatabaseTestRule.databaseConfigProvider);
 
-    Tenant tenant1 = new Tenant("tenant1");
-    Tenant tenant2 = new Tenant("tenant2");
+    Tenant tenant1 = createTenant("tenant1");
+    Tenant tenant2 = createTenant("tenant2");
 
     setTestTenant(tenantManager, tenant1);
 

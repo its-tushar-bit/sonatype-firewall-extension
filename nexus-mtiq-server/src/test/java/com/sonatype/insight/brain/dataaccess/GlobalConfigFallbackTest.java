@@ -23,6 +23,7 @@ import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantManagerTestHelper.setTestTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -48,7 +49,7 @@ public class GlobalConfigFallbackTest
 
     testAs(GLOBAL_TENANT, t -> underTest.insert(new SystemConfigurationProperty(configKey, globalConfigValue)));
 
-    Tenant tenant1 = new Tenant("tenant1");
+    Tenant tenant1 = createTenant("tenant1");
     testAs(tenant1, t -> {
       setTestTenant(tenantManager, tenant1);
 

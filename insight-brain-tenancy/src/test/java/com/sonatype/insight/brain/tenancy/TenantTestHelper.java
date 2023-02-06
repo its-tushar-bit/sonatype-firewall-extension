@@ -15,6 +15,10 @@ public class TenantTestHelper
     TenantThreadLocal.setGlobalTenant();
   }
 
+  public static void setTenant(final String tenantSlug) {
+    setTenant(createTenant(tenantSlug));
+  }
+
   public static void setTenant(final Tenant tenant) {
     TenantThreadLocal.setTenantWithoutValidation(tenant);
   }
@@ -33,5 +37,9 @@ public class TenantTestHelper
     finally {
       setTenant(currentTenant);
     }
+  }
+
+  public static Tenant createTenant(String tenantSlug) {
+    return new Tenant(tenantSlug);
   }
 }

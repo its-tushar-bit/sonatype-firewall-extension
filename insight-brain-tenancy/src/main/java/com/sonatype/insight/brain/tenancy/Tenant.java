@@ -31,12 +31,12 @@ public class Tenant
 
   private boolean valid = true;
 
-  public Tenant(String tenantSlug) {
+  Tenant(String tenantSlug) {
     this.tenantSlug = tenantSlug;
     this.databaseSchema = setDbSchemaSlug(tenantSlug);
   }
 
-  private Tenant(String tenantSlug, String databaseSchema) {
+  Tenant(String tenantSlug, String databaseSchema) {
     this.tenantSlug = tenantSlug;
     this.databaseSchema = databaseSchema;
   }

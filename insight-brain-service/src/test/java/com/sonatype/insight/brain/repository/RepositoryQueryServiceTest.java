@@ -38,6 +38,7 @@ import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.repository.RepositoryQueryService.INNERSOURCE_REPOSITORY_FORMAT_KEY;
 import static com.sonatype.insight.brain.repository.RepositoryQueryService.INNERSOURCE_REPOSITORY_QUERY_COUNT_KEY;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -509,8 +510,8 @@ public class RepositoryQueryServiceTest
 
   @Test
   public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() throws Exception {
-    Tenant tenant1 = new Tenant("tenant1");
-    Tenant tenant2 = new Tenant("tenant2");
+    Tenant tenant1 = createTenant("tenant1");
+    Tenant tenant2 = createTenant("tenant2");
 
     RepositoryQueryService.REPOSITORY_QUERY_COUNT_PER_FORMAT.get().clear();
     //given

@@ -35,6 +35,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -101,8 +102,8 @@ public class MultiTenantConfigurationTest
 
   @Test
   public void testConfigurationIsRegistered_forEachTenant() {
-    Tenant tenant1 = new Tenant("tenant1");
-    Tenant tenant2 = new Tenant("tenant2");
+    Tenant tenant1 = createTenant("tenant1");
+    Tenant tenant2 = createTenant("tenant2");
 
     testAs(GLOBAL_TENANT, t -> assertThat(underTest.getHdsUrl()).isEqualTo(GLOBAL_TENANT.tenantSlug));
 

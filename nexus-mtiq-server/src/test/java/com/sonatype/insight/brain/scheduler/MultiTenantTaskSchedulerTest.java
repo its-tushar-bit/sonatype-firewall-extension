@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.scheduler;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -27,6 +26,7 @@ import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
 
 import static com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler.TASK_SCHEDULER_THREAD_POOL_SIZE;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -123,7 +123,7 @@ public class MultiTenantTaskSchedulerTest
   @Test
   public void shouldUnscheduleJobForSingleTenant_whenNotGlobal() throws Exception {
     String tenantSlug = "test-tenant";
-    when(tenantManager.getTenant()).thenReturn(new Tenant(tenantSlug));
+    when(tenantManager.getTenant()).thenReturn(createTenant(tenantSlug));
 
     when(tenantUtil.isGlobalTenant()).thenReturn(false);
 
@@ -135,7 +135,7 @@ public class MultiTenantTaskSchedulerTest
   @Test
   public void shouldIncludeTenantName_whenGetTriggerKey() {
     String tenantSlug = "test-tenant";
-    when(tenantManager.getTenant()).thenReturn(new Tenant(tenantSlug));
+    when(tenantManager.getTenant()).thenReturn(createTenant(tenantSlug));
 
     TriggerKey triggerKey = underTest.toTriggerKey(name.getMethodName());
 

@@ -27,6 +27,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.Tenant.SINGLE_TENANT;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,7 +44,7 @@ public class SystemConfigurationPropertyDAOMultiTenantTest
 
   static final String GLOBAL_TENANT_PROPERTY_VALUE = "global-tenant-value";
 
-  static final Tenant TENANT = new Tenant("individual-tenant");
+  static final Tenant TENANT = createTenant("individual-tenant");
 
   @Mock
   Query query;

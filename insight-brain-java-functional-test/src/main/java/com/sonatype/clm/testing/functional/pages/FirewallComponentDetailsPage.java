@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.componentdetails.FirewallPolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
@@ -228,5 +229,9 @@ public class FirewallComponentDetailsPage
 
   public ManageLabelsContentTab labelsContent() {
     return new ManageLabelsContentTab("#component-details-labels-tab-content");
+  }
+
+  public NxBackButton backButton() {
+    return new NxBackButton("#menu-bar__back-button-container");
   }
 }

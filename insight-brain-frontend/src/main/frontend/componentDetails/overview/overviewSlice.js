@@ -32,9 +32,8 @@ import { toggleBooleanProp } from '../../util/reduxUtil';
 import { SELECT_COMPONENT } from 'MainRoot/applicationReport/applicationReportActions';
 
 import {
-  selectVersionExplorerRequestData as firewallSelectVersionExplorerRequestData,
-  selectComponentDetailsRequestData as firewallSelectComponentDetailsRequestData,
   selectComponentDetailsSelectedRequestData as firewallSelectComponentDetailsSelectedRequestData,
+  selectComponentDetailsFromParams,
 } from 'MainRoot/firewall/firewallComponentDetailsPage/overview/firewallOverviewSelectors';
 
 export const HTTP_CLIENT_CLOSED_REQUEST = 499;
@@ -329,14 +328,12 @@ const firewallLoadVersionExplorerData = createAsyncThunk(
 const firewallLoadVersionExplorerDataWithCancelToken = createAsyncThunk(
   `${REDUCER_NAME}/firewallLoadVersionExplorerDataWithCancelToken`,
   (cancelToken, { getState, rejectWithValue }) => {
-    const requestData = firewallSelectComponentDetailsRequestData(getState());
+    const requestData = selectComponentDetailsFromParams(getState());
 
     const promises = [
-      axios.get(getVersionGraphUrl(firewallSelectVersionExplorerRequestData(getState()), { cancelToken })),
+      axios.get(getVersionGraphUrl(selectComponentDetailsFromParams(getState()), { cancelToken })),
       axios.get(getComponentDetailsUrl(requestData), { cancelToken }),
-      axios.get(getPolicyEvaluationTimestampUrl(requestData.ownerId, requestData.componentIdentifier), {
-        cancelToken,
-      }),
+      axios.get(getPolicyEvaluationTimestampUrl(requestData.ownerId, requestData.componentIdentifier), { cancelToken }),
     ];
 
     return Promise.all(promises)

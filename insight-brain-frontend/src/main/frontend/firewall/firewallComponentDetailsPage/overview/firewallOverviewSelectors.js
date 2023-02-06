@@ -7,7 +7,10 @@ import { createSelector } from '@reduxjs/toolkit';
 import { selectRouterCurrentParams } from '../../../reduxUiRouter/routerSelectors';
 import { stringifyComponentIdentifier } from 'MainRoot/util/componentIdentifierUtils';
 import { selectSelectedVersionDetailsByVersionId } from 'MainRoot/componentDetails/overview/overviewSelectors';
-import { selectFirewallComponentDetailsPage } from '../../firewallSelectors';
+import {
+  selectFirewallComponentDetailsPage,
+  selectFirewallComponentDetailsPageRouteParams,
+} from '../../firewallSelectors';
 
 export const selectSelectedComponent = createSelector(
   selectRouterCurrentParams,
@@ -57,3 +60,19 @@ export const selectVersionExplorerRequestData = createSelector(selectComponentDe
   ...data,
   stageId: 'proxy',
 }));
+
+export const selectComponentDetailsFromParams = createSelector(
+  selectFirewallComponentDetailsPageRouteParams,
+  (params) => {
+    return {
+      clientType: 'ci',
+      ownerType: 'repository',
+      ownerId: params.repositoryId,
+      matchState: params.matchState,
+      proprietary: params.proprietary,
+      componentIdentifier: params.componentIdentifier,
+      hash: params.componentHash,
+      stageId: 'proxy',
+    };
+  }
+);

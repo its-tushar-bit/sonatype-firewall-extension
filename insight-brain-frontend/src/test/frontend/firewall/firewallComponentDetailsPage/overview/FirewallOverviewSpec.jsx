@@ -13,16 +13,16 @@ import * as firewallSelectors from 'MainRoot/firewall/firewallSelectors';
 
 describe('FirewallOverview', () => {
   let originalSelectFirewallComponentDetailsPage = firewallSelectors.selectFirewallComponentDetailsPage,
-    originalCurrentFirewallComponentDetailsPageComponentVersion =
-      firewallSelectors.currentFirewallComponentDetailsPageComponentVersion,
+    originalSelectFirewallComponentDetailsPageRouteParams =
+      firewallSelectors.selectFirewallComponentDetailsPageRouteParams,
     minState;
 
   beforeEach(function () {
     spyOn(FirewallOverviewComponentInformationTile, 'default').and.callFake(() => (
       <div>FirewallOverviewComponentInformationTile</div>
     ));
-    spyOn(firewallSelectors, 'currentFirewallComponentDetailsPageComponentVersion').and.callFake(() => {
-      return originalCurrentFirewallComponentDetailsPageComponentVersion(minState);
+    spyOn(firewallSelectors, 'selectFirewallComponentDetailsPageRouteParams').and.callFake(() => {
+      return originalSelectFirewallComponentDetailsPageRouteParams(minState);
     });
 
     minState = {
@@ -79,6 +79,28 @@ describe('FirewallOverview', () => {
           componentDetailsError: null,
         },
       },
+      router: {
+        currentParams: {
+          repositoryId: 'abc',
+          componentIdentifier: JSON.stringify({
+            format: 'maven',
+            coordinates: {
+              artifactId: 'ant',
+              classifier: '',
+              extension: 'jar',
+              groupId: 'ant',
+              version: '1.6',
+            },
+          }),
+          componentHash: 'abc123456',
+          matchState: 'exact',
+          proprietary: 'false',
+          identificationSource: 'sonatype',
+          tabId: 'overview',
+          notValidProperty: 'notValidProperty',
+          pathname: 'pathname',
+        },
+      },
     };
   });
 
@@ -102,6 +124,28 @@ describe('FirewallOverview', () => {
               ...minState.firewall.componentDetailsPage.componentDetails,
               matchState: 'unknown',
             },
+          },
+        },
+        router: {
+          currentParams: {
+            repositoryId: 'abc',
+            componentIdentifier: JSON.stringify({
+              format: 'maven',
+              coordinates: {
+                artifactId: 'ant',
+                classifier: '',
+                extension: 'jar',
+                groupId: 'ant',
+                version: '1.6',
+              },
+            }),
+            componentHash: 'hash1',
+            matchState: 'exact',
+            proprietary: 'false',
+            identificationSource: 'sonatype',
+            tabId: 'overview',
+            notValidProperty: 'notValidProperty',
+            pathname: 'pathname',
           },
         },
       });

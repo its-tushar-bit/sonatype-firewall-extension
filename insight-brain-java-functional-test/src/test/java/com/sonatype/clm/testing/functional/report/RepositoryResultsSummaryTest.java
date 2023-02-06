@@ -5,24 +5,44 @@
  */
 package com.sonatype.clm.testing.functional.report;
 
+import java.io.UncheckedIOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import com.sonatype.clm.dto.model.component.ComponentDetails;
+import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.NxSmallThreatCounter;
+import com.sonatype.clm.testing.functional.elements.componentdetails.RiskRemediationTile;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTable;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultDetailPage.RepositoryResultTableRow;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
+import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.dependency.ComponentDependenciesDTO;
+import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
@@ -39,6 +59,7 @@ import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
+import static com.sonatype.clm.testing.functional.brain.FirewallComponentDetailsPageTest.toLicenseDTO;
 
 public class RepositoryResultsSummaryTest
     extends AbstractFunctionalTest
@@ -760,6 +781,130 @@ public class RepositoryResultsSummaryTest
         "groupId15 : artifactId15 : jar : classifier15 : version15");
     testRow(RepositoryResultDetailPage.table().row(11), "0", "No Violations", "",
         "groupId21 : artifactId21 : jar : classifier21 : version21");
+  }
+
+  @Test
+  public void testComponentDetailsPageShowsCorrectCurrentVersionWhenDifferentComponentAreOpen() {
+    RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager("5E7BCC8D-3FAB6390-83FF543B-ECD79639-D031F7AF");
+    Repository repository = tempEntity.newRepository(repositoryManager, "maven-central");
+
+    ComponentDetails componentDetails1 =
+        createComponentDetail("hash1", createComponentIdentifier("0.5.2"), "singleLicense");
+    ComponentDetails componentDetails2 =
+        createComponentDetail("hash2", createComponentIdentifier("0.5.3"), "singleLicense");
+
+    List<ComponentDetails> componentDetailsArrayList = Arrays.asList(componentDetails1, componentDetails2);
+
+    riskRemediationSetup(componentDetailsArrayList);
+
+    createRepositoryComponent(repository, componentDetails1.getHash(), componentDetails1.getComponentIdentifier(),
+        new Date(), null);
+    createRepositoryComponent(repository, componentDetails2.getHash(), componentDetails2.getComponentIdentifier(),
+        new Date(), null);
+
+    refreshOrOpen(RepositoryResultDetailPage.url(repository.getId()));
+
+    RepositoryResultTableRow row1 = RepositoryResultDetailPage.table().row(0);
+    row1.click();
+
+    waitUntilFirewallComponentDetailsPageSpinnersGone();
+
+    RiskRemediationTile riskRemediation = firewallComponentDetailsPage.getRiskRemediationTile();
+    riskRemediation.compareVersionsTitle().shouldBe(visible).shouldHave(text("Compare Versions"));
+    ScrollUtil.scrollIntoView(riskRemediation.compareVersionsTitle());
+    RiskRemediationTile.CompareVersionsTable table = riskRemediation.compareVersionsTable();
+    table.shouldBe(visible);
+    table.versionRow().get(1).shouldHave(text("0.5.2"));
+
+    firewallComponentDetailsPage.backButton().click();
+
+    RepositoryResultTableRow row2 = RepositoryResultDetailPage.table().row(1);
+    row2.click();
+
+    ScrollUtil.scrollIntoView(riskRemediation.compareVersionsTitle());
+    table.versionRow().get(1).shouldHave(text("0.5.3"));
+  }
+
+  private void riskRemediationSetup(List<ComponentDetails> componentDetailsArrayList) {
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
+    ComponentDetails mainComponentDetail = componentDetailsArrayList.get(0);
+
+    //addComponentDetailSecurityVulnerability(mainComponentDetail, (float) 9.1);
+    //addComponentDetailSecurityVulnerability(mainComponentDetail, (float) 4.3);
+    mainComponentDetail.setCatalogDate(new Date().getTime());
+
+    componentDetailsList.setList(componentDetailsArrayList);
+    ComponentDependenciesDTO componentDependenciesDTO = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+
+    try {
+      // Used when componentDetails are requested
+      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+          .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
+              + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8") + "&hash="
+              + mainComponentDetail.getHash());
+      // Used when multi license details are requested
+      testCLMServer.getHdsServer().respondWith(mainComponentDetail)
+          .atUri("/rest/ci/componentDetails?" + "componentIdentifier="
+              + URLEncoder.encode(JsonUtils.format(mainComponentDetail.getComponentIdentifier()), "UTF-8"));
+    }
+    catch (UnsupportedEncodingException e) {
+      throw new UncheckedIOException(e);
+    }
+    testCLMServer.getHdsServer().respondWith(componentDetailsList).atUri("/rest/ci/componentDetails/list");
+    testCLMServer.getHdsServer().respondWith(componentDependenciesDTO).atUri("/rest/component/dependencies");
+  }
+
+  private RepositoryComponent createRepositoryComponent(
+      Repository repository,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      Date lastEvaluationTime,
+      Date quarantineTime)
+  {
+    String componentVersion = componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION);
+    return tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT,
+        "com/lingocoder/abi.cli/" + componentVersion + "/abi.cli-" + componentVersion + ".jar", hash,
+        componentIdentifier, lastEvaluationTime, quarantineTime);
+  }
+
+  private ComponentDetails createComponentDetail(
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String licenseCondition)
+  {
+    MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+    ComponentDetails componentDetails = new ComponentDetails(componentIdentifier);
+    componentDetails.setHash(hash);
+    componentDetails.setMatchState(MatchState.EXACT.getId());
+
+    if (licenseCondition != "nonLicensed") {
+      // default license condition is singleLicense
+      componentDetails
+          .setDeclaredLicenses(Collections.singleton(toLicenseDTO(multiLicenseDAO.getByIdNotNull("Apache-2.0"))));
+
+      componentDetails.setObservedLicenses(Collections.singleton(toLicenseDTO(multiLicenseDAO.getByIdNotNull(
+          licenseCondition == "multiLicensed" ? "EPL-1.0" : "Apache-2.0"))));
+
+      if (licenseCondition == "overriddenLicense") {
+        tempEntity.newLicenseOverride(Organization.ROOT_ORGANIZATION_ID, componentDetails.getComponentIdentifier(),
+            LicenseOverrideStatus.OVERRIDDEN, "GPL-1.0");
+      }
+    }
+
+    componentDetails.setCatalogDate(new Date().getTime());
+    componentDetails.setWebsite("http://www.example.com");
+    componentDetails.setLicenseThreatLevel(2);
+    componentDetails.setIdentificationSource(IdentificationSource.SONATYPE.getId());
+    componentDetails.setIdentificationSourceComment("No comments");
+    componentDetails.setRelativePopularity(100);
+    return componentDetails;
+  }
+
+  private ComponentIdentifier createComponentIdentifier(String version) {
+    return ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", version, "", "jar");
   }
 
   private void addNotQuarantinedComponentsWithPolicyViolations(Repository repository) {

@@ -5,7 +5,7 @@
  */
 import React, { Fragment } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { currentFirewallComponentDetailsPageComponentVersion } from 'MainRoot/firewall/firewallSelectors';
+import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 import {
   selectSelectedVersionData,
   selectCurrentVersionComparisonData,
@@ -22,11 +22,15 @@ export default function FirewallOverview() {
   const matchState = componentDetails?.matchState;
   const isUnknown = !matchState || matchState === 'unknown';
   const versionExplorerData = useSelector(selectVersionExplorerData);
-  const currentVersion = useSelector(currentFirewallComponentDetailsPageComponentVersion);
   const currentVersionComparisonData = useSelector(selectCurrentVersionComparisonData);
   const selectedVersionComparisonData = useSelector(selectSelectedVersionComparisonData);
   const dispatch = useDispatch();
   const selectedVersionData = useSelector(selectSelectedVersionData);
+  // Always take component information from URL. There are some race conditions where the information required hasn't
+  // arrived the component takes old information from the redux store
+  const routeParams = useSelector(selectFirewallComponentDetailsPageRouteParams);
+  const componentIdentifier = JSON.parse(routeParams.componentIdentifier);
+  const currentVersion = componentIdentifier.coordinates.version;
 
   return (
     <Fragment>

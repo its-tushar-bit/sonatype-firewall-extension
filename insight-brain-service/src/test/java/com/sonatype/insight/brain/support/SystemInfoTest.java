@@ -58,6 +58,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -189,7 +190,7 @@ public class SystemInfoTest
     try (final InputStream reader = Files.newInputStream(configYml.toPath())) {
       obfuscatedYaml = systemInfo.getObfuscatedYaml(reader);
     }
-    final Map<String, Object> obufscatedMap = (Map<String, Object>) new Yaml().load(obfuscatedYaml);
+    final Map<String, Object> obufscatedMap = new Yaml(new SafeConstructor()).load(obfuscatedYaml);
 
     assertThat(obufscatedMap.get("sonatypeWork")).isEqualTo("./sonatype-work/clm-server");
     assertThat(obufscatedMap.get("clusterDirectory")).isEqualTo("./sonatype-work/cluster-directory");

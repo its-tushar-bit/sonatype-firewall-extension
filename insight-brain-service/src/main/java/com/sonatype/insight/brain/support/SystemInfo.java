@@ -67,6 +67,8 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.yaml.snakeyaml.representer.Representer;
 
 /**
  * @since 1.27
@@ -151,7 +153,7 @@ class SystemInfo
   String getObfuscatedYaml(final InputStream input) {
     DumperOptions dumperOptions = new DumperOptions();
     dumperOptions.setDefaultFlowStyle(FlowStyle.BLOCK);
-    final Yaml yaml = new Yaml(dumperOptions);
+    final Yaml yaml = new Yaml(new SafeConstructor(), new Representer(dumperOptions), dumperOptions);
     Object yamlObject = yaml.load(input);
     obfuscateYaml(yamlObject);
     return yaml.dump(yamlObject);

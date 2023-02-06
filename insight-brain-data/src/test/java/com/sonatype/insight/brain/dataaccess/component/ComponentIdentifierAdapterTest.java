@@ -217,4 +217,18 @@ public class ComponentIdentifierAdapterTest
         "{\"packageId\":\"package\",\"version\":\"1.0\"}");
     assertThat(result).isEqualTo(ComponentIdentifier.createNugetCoordinates("package", "1.0"));
   }
+
+  @Test
+  public void testFormatAndJsonToComponentIdentifier_NullFormat() {
+    ComponentIdentifier result = ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier(null /* format */,
+        "{\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"v\"}");
+    assertThat(result).isNull();
+  }
+
+  @Test
+  public void testFormatAndJsonToComponentIdentifier_NullCoordinates() {
+    ComponentIdentifier result =
+        ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier("maven", null /* coordinatesJson */);
+    assertThat(result).isNull();
+  }
 }

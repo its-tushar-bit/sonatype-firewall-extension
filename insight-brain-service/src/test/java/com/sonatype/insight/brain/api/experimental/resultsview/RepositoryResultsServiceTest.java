@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetailsFilter.SortField.SortableField;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -905,5 +906,48 @@ public class RepositoryResultsServiceTest
     assertThat(responseDtos.get(2).componentDisplayText).isEqualTo("g1 : a1 : e1 : c1 : v1");
     assertThat(responseDtos.get(2).quarantineTime).isEqualTo(date);
     assertThat(responseDtos.get(2).waived).isEqualTo(false);
+  }
+
+  @Test
+  public void testGetDetails_UnknownComponent_WithPolicyViolation() {
+    repository = tempEntity.newRepository();
+    RepositoryComponent unknownComponent = tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN,
+        "testpathname", null /* componentIdentifier */, false);
+    tempEntity.newRepositoryPolicyViolation(unknownComponent, "testPolicyId");
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+
+    List<RepositoryResultsDetailsResponseDto> responseDtos =
+        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+
+    assertThat(responseDtos).hasSize(1);
+    assertThat(responseDtos.get(0).threatLevel).isEqualTo(5);
+    assertThat(responseDtos.get(0).policyName).isEqualTo("policyName");
+    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("testpathname (testpathname)");
+    assertThat(responseDtos.get(0).quarantineTime).isNull();
+    assertThat(responseDtos.get(0).waived).isEqualTo(false);
+  }
+
+  @Test
+  public void testGetDetails_UnknownComponent_WithoutPolicyViolation() {
+    repository = tempEntity.newRepository();
+    tempEntity.newRepositoryComponent(repository.getId(), MatchState.UNKNOWN, "testpathname",
+        null /* componentIdentifier */, false);
+
+    RepositoryResultsDetailsRequestDto detailsRequest = new RepositoryResultsDetailsRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+
+    List<RepositoryResultsDetailsResponseDto> responseDtos =
+        repositoryResultsService.getDetails(repository.getId(), detailsRequest);
+
+    assertThat(responseDtos).hasSize(1);
+    assertThat(responseDtos.get(0).threatLevel).isNull();
+    assertThat(responseDtos.get(0).policyName).isNull();
+    assertThat(responseDtos.get(0).componentDisplayText).isEqualTo("testpathname (testpathname)");
+    assertThat(responseDtos.get(0).quarantineTime).isNull();
+    assertThat(responseDtos.get(0).waived).isNull();
   }
 }

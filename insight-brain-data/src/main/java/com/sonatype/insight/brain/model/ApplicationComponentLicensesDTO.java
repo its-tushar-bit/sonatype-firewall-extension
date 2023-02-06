@@ -57,9 +57,6 @@ public class ApplicationComponentLicensesDTO
   }
 
   public ComponentIdentifier getComponentIdentifier() {
-    if (StringUtils.isAnyBlank(componentIdFormat, componentIdCoordinatesJson)) {
-      return null;
-    }
     if (componentIdentifier == null) {
       componentIdentifier =
           ComponentIdentifierAdapter.formatAndJsonToComponentIdentifier(componentIdFormat, componentIdCoordinatesJson);

@@ -189,6 +189,10 @@ public class ComponentIdentifierAdapter
 
   @SuppressWarnings("unchecked")
   public static ComponentIdentifier formatAndJsonToComponentIdentifier(String format, String coordinatesJson) {
+    if (StringUtils.isAnyBlank(format, coordinatesJson)) {
+      return null;
+    }
+
     try {
       return new ComponentIdentifier(format, JsonUtils.parse(coordinatesJson, Map.class));
     }

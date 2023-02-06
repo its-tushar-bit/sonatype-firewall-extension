@@ -3,14 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { createAsyncThunk, createSlice, original } from '@reduxjs/toolkit';
+import { compose, createAsyncThunk, createSlice, original } from '@reduxjs/toolkit';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import axios from 'axios';
 import { getRepositoriesUrl, getRepositoryInfoUrl } from 'MainRoot/util/CLMLocation';
 import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectDeleteModalInfo } from './repositoriesConfigurationSelectors';
-import { ascend, descend, prop, path, sortWith } from 'ramda';
+import { ascend, descend, path, prop, sortWith, toLower } from 'ramda';
 
 const REDUCER_NAME = 'repositories';
 
@@ -60,7 +60,16 @@ const setSortConfiguration = (state, column) => {
   state.sortConfiguration = sortConfiguration;
 };
 
-const getSortKey = (key) => (key === 'managerInstanceId' ? prop(key) : path(['repository', key]));
+const getSortKey = (key) => {
+  switch (key) {
+    case 'managerInstanceId':
+      return compose(toLower, prop(key));
+    case 'publicId':
+      return compose(toLower, path(['repository', key]));
+    default:
+      return path(['repository', key]);
+  }
+};
 
 const sortRepositoriesByConfig = (repositories, sortConfiguration) => {
   const customSort = sortConfiguration.map((config) =>

@@ -271,6 +271,47 @@ public class RepositoriesSummaryViewTest
   }
 
   @Test
+  public void testRepositoryConfigurationTableSorting_CaseInsensitivity() {
+    List<Repository> repositories = new ArrayList<>();
+    RepositoryManager rm2 = tempEntity.newRepositoryManager("df");
+    RepositoryManager rm1 = tempEntity.newRepositoryManager("De");
+    RepositoryManager rm3 = tempEntity.newRepositoryManager("ee");
+    repositories.add(tempEntity.newRepository(rm2, "ac", true));
+    repositories.add(tempEntity.newRepository(rm3, "Ab", false));
+    repositories.add(tempEntity.newRepository(rm1, "bb", true));
+
+    RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
+    ConfigurationTable configurationTable = configurationTile.configurationTable();
+    refreshOrOpen(RepositoryResultsSummaryPage.url());
+
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryNameHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Repository ascending"));
+    configurationTable.row(1).publicId().shouldHave(Condition.text("Ab"));
+    configurationTable.row(1).managerId().shouldHave(Condition.text("ee"));
+    configurationTable.row(1).status().shouldHave(Condition.text("Disabled"));
+    configurationTable.row(2).publicId().shouldHave(Condition.text("ac"));
+    configurationTable.row(2).managerId().shouldHave(Condition.text("df"));
+    configurationTable.row(2).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(3).publicId().shouldHave(Condition.text("bb"));
+    configurationTable.row(3).managerId().shouldHave(Condition.text("De"));
+    configurationTable.row(3).status().shouldHave(Condition.text("Enabled"));
+
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().click();
+
+    RepositoryResultsSummaryPage.repositoriesTableRepositoryManagerHeaderSortBtn().shouldHave(
+        attribute("aria-label", "Repository Manager ascending"));
+    configurationTable.row(1).publicId().shouldHave(Condition.text("bb"));
+    configurationTable.row(1).managerId().shouldHave(Condition.text("De"));
+    configurationTable.row(1).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(2).publicId().shouldHave(Condition.text("ac"));
+    configurationTable.row(2).managerId().shouldHave(Condition.text("df"));
+    configurationTable.row(2).status().shouldHave(Condition.text("Enabled"));
+    configurationTable.row(3).publicId().shouldHave(Condition.text("Ab"));
+    configurationTable.row(3).managerId().shouldHave(Condition.text("ee"));
+    configurationTable.row(3).status().shouldHave(Condition.text("Disabled"));
+  }
+
+  @Test
   public void testRepositoryConfigurationTableSorting_Default() {
     RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
     ConfigurationTable configurationTable = configurationTile.configurationTable();

@@ -75,6 +75,14 @@ describe('repositoriesConfigurationSlice', () => {
             enabled: true,
           },
         },
+        {
+          managerInstanceId: '1',
+          repository: {
+            id: '3',
+            publicId: 'AA',
+            enabled: true,
+          },
+        },
       ];
 
       const { repositories, loading, loadError } = reducer(state, {
@@ -85,9 +93,12 @@ describe('repositoriesConfigurationSlice', () => {
       expect(repositories[0].repository.publicId).toBe('a');
       expect(repositories[0].managerInstanceId).toEqual('2');
       expect(repositories[0].repository.enabled).toBe(true);
-      expect(repositories[1].repository.publicId).toBe('b');
+      expect(repositories[1].repository.publicId).toBe('AA');
       expect(repositories[1].managerInstanceId).toBe('1');
       expect(repositories[1].repository.enabled).toBe(true);
+      expect(repositories[2].repository.publicId).toBe('b');
+      expect(repositories[2].managerInstanceId).toBe('1');
+      expect(repositories[2].repository.enabled).toBe(true);
       expect(loading).toBe(false);
       expect(loadError).toBeNull();
     });
@@ -295,6 +306,14 @@ describe('repositoriesConfigurationSlice', () => {
               enabled: false,
             },
           },
+          {
+            managerInstanceId: '2',
+            repository: {
+              id: '5',
+              publicId: 'AA',
+              enabled: true,
+            },
+          },
         ],
         sortConfiguration: initialSortConfiguration,
       });
@@ -321,6 +340,14 @@ describe('repositoriesConfigurationSlice', () => {
           repository: {
             id: '1',
             publicId: 'b',
+            enabled: true,
+          },
+        },
+        {
+          managerInstanceId: '2',
+          repository: {
+            id: '5',
+            publicId: 'AA',
             enabled: true,
           },
         },

@@ -138,19 +138,19 @@ public abstract class AbstractBrainServiceTest
   public TestName testName = new TestName();
 
   // by default license is always valid, to override, simply uninstall the license
-  private static final TestProductLicenseManager licenseManager = new TestProductLicenseManager();
+  protected static final TestProductLicenseManager licenseManager = new TestProductLicenseManager();
 
-  private static final TestProductLicense testProductLicense = new TestProductLicense(licenseManager);
+  protected static final TestProductLicense testProductLicense = new TestProductLicense(licenseManager);
 
   private static boolean productlicenseWasUninstalled;
 
-  private static final TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
+  protected static final TestLicenseFingerprinter licenseFingerprinter = new TestLicenseFingerprinter();
 
   private static String savedLicenseFingerprint;
 
-  private static HdsMockServerRule hdsMockServer;
+  protected static HdsMockServerRule hdsMockServer;
 
-  private static TestCLMServer testCLMServer;
+  protected static TestCLMServer testCLMServer;
 
   protected static JiraClient mockJiraClient;
 
@@ -170,6 +170,7 @@ public abstract class AbstractBrainServiceTest
     if (!isTestUsingManualServerInit()) {
       initServer();
     }
+
     setUpTestLicenseThreatGroups();
     if (testCLMServer != null) {
       ProxyServerConfiguration proxyServerConfiguration = getCLMServer().getProxyServerConfiguration();
@@ -181,7 +182,7 @@ public abstract class AbstractBrainServiceTest
     }
   }
 
-  private void initDatabaseContainer() {
+  protected void initDatabaseContainer() {
     if (databaseContainer == null) {
       DatabaseProvisionUtils databaseProvisionUtils =
           spy(new DatabaseProvisionUtils(OperationalDataStoreProvider.getInstance(),
@@ -311,7 +312,7 @@ public abstract class AbstractBrainServiceTest
     // hook for subclasses to perform further cleanup action after TemporaryEntity has reset the database
   }
 
-  private List<Module> getBrainModules() {
+  protected List<Module> getBrainModules() {
     List<Module> modules = new ArrayList<>();
     modules.add(new AbstractModule()
     {
@@ -334,7 +335,7 @@ public abstract class AbstractBrainServiceTest
     return modules;
   }
 
-  private boolean isProxyRequiredToReachHds() {
+  protected boolean isProxyRequiredToReachHds() {
     return getClass().getName().endsWith("ProxyTest");
   }
 

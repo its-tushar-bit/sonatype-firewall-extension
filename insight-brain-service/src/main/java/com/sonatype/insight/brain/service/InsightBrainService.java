@@ -456,14 +456,18 @@ public class InsightBrainService
   }
 
   protected void addServletFilters(Environment env) {
+    addServletFilters(env, false);
+  }
+
+  protected void addServletFilters(Environment env, boolean attachToAdminApi) {
     addServletFilter(env, true, ServerHeaderFilter.class, ServerHeaderFilter.URL_PATTERNS);
     addServletFilter(env, BaseUrlFilter.class, "/*");
-    addServletFilter(env, AuditFilter.class, AuditFilter.URL_PATTERNS);
-    addServletFilter(env, HttpHeaderValidatorFilter.class, HttpHeaderValidatorFilter.URL_PATTERN);
-    addServletFilter(env, ContentTypeOptionsHeaderFilter.class, "/*");
-    addServletFilter(env, GuiceShiroFilter.class, "/*");
+    addServletFilter(env, attachToAdminApi, AuditFilter.class, AuditFilter.URL_PATTERNS);
+    addServletFilter(env, attachToAdminApi, HttpHeaderValidatorFilter.class, HttpHeaderValidatorFilter.URL_PATTERN);
+    addServletFilter(env, attachToAdminApi, ContentTypeOptionsHeaderFilter.class, "/*");
+    addServletFilter(env, attachToAdminApi, GuiceShiroFilter.class, "/*");
     addServletFilter(env, IndexCacheControlFilter.class, IndexCacheControlFilter.URL_PATTERN);
-    addServletFilter(env, AuthenticationLoggingFilter.class, AuthenticationLoggingFilter.URL_PATTERN);
+    addServletFilter(env, attachToAdminApi, AuthenticationLoggingFilter.class, AuthenticationLoggingFilter.URL_PATTERN);
     addServletFilter(env, CspHeaderFilter.class, CspHeaderFilter.URL_PATTERN);
     addServletFilter(env, CspFrameHeaderFilter.class, CspFrameHeaderFilter.URL_PATTERN);
   }

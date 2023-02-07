@@ -10,10 +10,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
 import javax.ws.rs.Path;
 import javax.ws.rs.container.DynamicFeature;
 import javax.ws.rs.ext.Provider;
+
+import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 
 import com.codahale.metrics.health.HealthCheck;
 import com.google.inject.AbstractModule;
@@ -139,7 +140,7 @@ public abstract class SisuApplication<T extends Configuration>
     return true;
   }
 
-  private <C> Iterable<BeanEntry<Annotation, C>> locate(BeanLocator locator, Class<C> type) {
+  protected  <C> Iterable<BeanEntry<Annotation, C>> locate(BeanLocator locator, Class<C> type) {
     List<BeanEntry<Annotation, C>> components = new ArrayList<>();
     for (BeanEntry<Annotation, C> entry : locator.locate(Key.get(type))) {
       if (acceptComponent(entry.getImplementationClass())) {
@@ -190,7 +191,8 @@ public abstract class SisuApplication<T extends Configuration>
     //
     for (BeanEntry<Annotation, Object> resourceBeanEntry : locate(locator, Object.class)) {
       Class<?> impl = resourceBeanEntry.getImplementationClass();
-      if (impl != null && (impl.isAnnotationPresent(Path.class) || impl.isAnnotationPresent(Provider.class))) {
+      if (impl != null && !impl.isAnnotationPresent(MtiqAdminEndpoint.class) &&
+          (impl.isAnnotationPresent(Path.class) || impl.isAnnotationPresent(Provider.class))) {
         try {
           Object component = resourceBeanEntry.getValue();
           environment.jersey().register(component);

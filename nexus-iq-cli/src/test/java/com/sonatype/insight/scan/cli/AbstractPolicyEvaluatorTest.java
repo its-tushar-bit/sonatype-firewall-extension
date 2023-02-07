@@ -86,6 +86,7 @@ public abstract class AbstractPolicyEvaluatorTest
     scanReader = getCLMServer().getInstance(ScanReader.class);
   }
 
+  @Override
   protected List<Module> getBrainModules() {
     Module testModule = new AbstractModule()
     {

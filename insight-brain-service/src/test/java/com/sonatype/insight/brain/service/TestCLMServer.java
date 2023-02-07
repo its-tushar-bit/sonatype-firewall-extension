@@ -45,14 +45,27 @@ public class TestCLMServer
       HdsMockServerRule hdsMockServer,
       DatabaseContainer databaseContainer)
   {
+    this(isProxyRequiredToReachHds, hdsMockServer,
+        new TestInsightBrainServiceRule(
+            PortAllocator.nextFreePort(),
+            PortAllocator.nextFreePort(),
+            hdsMockServer.getHttpUrl(),
+            databaseContainer,
+            isProxyRequiredToReachHds,
+            modules).setConfigurator(configurator));
+  }
+
+  public TestCLMServer(
+      boolean isProxyRequiredToReachHds,
+      HdsMockServerRule hdsMockServer,
+      TestInsightBrainServiceRule brain)
+  {
     this.isProxyRequiredToReachHds = isProxyRequiredToReachHds;
 
     this.hdsMockServer = hdsMockServer;
     hdsMockServerOwned = false;
 
-    brain = new TestInsightBrainServiceRule(PortAllocator.nextFreePort(), PortAllocator.nextFreePort(),
-        hdsMockServer.getHttpUrl(), databaseContainer, isProxyRequiredToReachHds, modules).setConfigurator(
-        configurator);
+    this.brain = brain;
   }
 
   public TestCLMServer(

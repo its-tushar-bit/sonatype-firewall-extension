@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.List;
+import javax.ws.rs.Path;
 
+import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.component.MultiTenantRepositoryIdentifiedComponentCache;
 import com.sonatype.insight.brain.component.RepositoryIdentifiedComponentCache;
 import com.sonatype.insight.brain.db.AggregationDataStoreProvider;
@@ -44,19 +47,30 @@ import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
+import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
+import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.Singleton;
 import io.dropwizard.cli.Command;
+import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+
 import org.apache.shiro.guice.web.GuiceShiroFilter;
+import org.eclipse.sisu.BeanEntry;
+import org.eclipse.sisu.inject.BeanLocator;
 
 public class MultiTenantInsightBrainService
     extends InsightBrainService
 {
   private BannedImplementationService bannedImplementationService = new BannedImplementationService();
+
+  /**
+   * Instance of the admin resources bundle needed to register Admin APIs
+   */
+  private final AdminResourceBundle adminResourceBundle = new AdminResourceBundle("/api/*");
 
   public static void main(final String[] args) {
     new TenantUtil().setGlobalTenant();
@@ -125,10 +139,50 @@ public class MultiTenantInsightBrainService
   }
 
   @Override
+  public void initialize(final Bootstrap<InsightConfig> bootstrap) {
+    super.initialize(bootstrap);
+    bootstrap.addBundle(adminResourceBundle);
+  }
+
+  @Override
+  protected void customize(InsightConfig configuration, Environment environment) {
+    super.customize(configuration, environment);
+
+    // Ensuring we have the same jersey configuration we have for the application context
+    adminResourceBundle.jersey().register(new InsightJacksonMessageBodyProvider(environment.getObjectMapper()));
+    adminResourceBundle.jersey().register(new ComponentIdentifierParamConverterProvider(environment.getObjectMapper()));
+    JaxRsExceptionMapper jaxRsExceptionMapper = getInstance(JaxRsExceptionMapper.class);
+    adminResourceBundle.jersey().register(jaxRsExceptionMapper);
+
+    BeanLocator locator = getInjector().getInstance(BeanLocator.class);
+    addAdminApiEndpoints(locator);
+  }
+
+  private void addAdminApiEndpoints(BeanLocator locator) {
+    // Unfortunately JAX-RS annotations are not a qualifier in JSR-330, so we need to check all known bindings.
+    // (In practice this isn't that slow because of various caches in Sisu to optimize lookups.)
+    // We could always optimize this by introducing a marker interface for injectable resources.
+    //
+    for (BeanEntry<Annotation, Object> resourceBeanEntry : locate(locator, Object.class)) {
+      Class<?> impl = resourceBeanEntry.getImplementationClass();
+      if (impl != null && (impl.isAnnotationPresent(Path.class) && impl.isAnnotationPresent(MtiqAdminEndpoint.class))) {
+        try {
+          Object component = resourceBeanEntry.getValue();
+          adminResourceBundle.jersey().register(component);
+          log.debug("Added admin REST component: {}", component);
+        }
+        catch (Exception e) {
+          log.warn("Unable to add admin REST component: {}", impl, e);
+        }
+      }
+    }
+  }
+
+  @Override
   protected void addServletFilters(Environment env) {
     addServletFilter(env, TenantUrlFilter.class, "/*");
 
-    super.addServletFilters(env);
+    super.addServletFilters(env, true);
   }
 
   @Override
@@ -167,7 +221,7 @@ public class MultiTenantInsightBrainService
     return new MultiTenantDbMigrationCommand(databaseProvisionUtils);
   }
 
-  private Module buildMultiTenantModule() {
+  protected Module buildMultiTenantModule() {
     return new AbstractModule()
     {
       @Override

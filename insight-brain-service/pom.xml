@@ -799,6 +799,11 @@
                 <include>**/ReportTestUtils*</include>
                 <include>**/CrowdMockServerRule*</include>
                 <include>**/ArtifactoryMockServerRule*</include>
+                <include>**/AbstractAuditTest*</include>
+                <include>**/AbstractResourceAuthzTest*</include>
+                <include>**/AbstractComponentTest*</include>
+                <include>**/BrainInjectedTest*</include>
+                <include>**/AuditTestSupport*</include>
               </includes>
             </configuration>
           </execution>

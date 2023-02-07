@@ -61,7 +61,7 @@ public class RemediationPullRequestFeatureCheckTest
   private RemediationPullRequestFeatureCheck remediationPullRequestFeatureCheck;
 
   @Mock
-  private IqForScmLicenseChecker licenseChecker;
+  private DefaultIqForScmLicenseChecker licenseChecker;
 
   @Mock
   private PullRequestRepositoryValidator pullRequestRepositoryValidator;

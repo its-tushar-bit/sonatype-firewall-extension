@@ -19,11 +19,11 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class ApiSourceControlEvaluationServiceAuthzTest
+public class DefaultApiSourceControlEvaluationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
   @Inject
-  private ApiSourceControlEvaluationService service;
+  private DefaultApiSourceControlEvaluationService service;
 
   @Test
   public void testEvaluateSourceControl_Authorized() {

@@ -35,7 +35,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class SourceControlUtilsTest
+public class DefaultSourceControlUtilsTest
     extends AbstractComponentTest
 {
   private static final String VALID_URL = "https://example.com/organization/project";
@@ -55,7 +55,7 @@ public class SourceControlUtilsTest
   private Organization org;
 
   @Inject
-  private SourceControlUtils sourceControlUtils;
+  private DefaultSourceControlUtils sourceControlUtils;
 
   @Inject
   private InsightWork insightWork;
@@ -225,7 +225,7 @@ public class SourceControlUtilsTest
     GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
 
     // then : expect result to have default base branch
-    assertThat(value.baseBranch).isEqualTo(SourceControlUtils.DEFAULT_BASE_BRANCH);
+    assertThat(value.baseBranch).isEqualTo(DefaultSourceControlUtils.DEFAULT_BASE_BRANCH);
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getId());
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(eq(application.getOrganizationId()));
 

@@ -5,13 +5,7 @@
  */
 package com.sonatype.insight.brain.git;
 
-public interface IqForScmLicenseChecker
+public interface BranchMonitor
 {
-  boolean isIqForScmSupported();
-
-  boolean isPullRequestRemediationSupported();
-
-  boolean isPullRequestCommentingSupported();
-
-  boolean isCommitStatusSupported();
+  void scheduleDefaultBranchMonitoring();
 }

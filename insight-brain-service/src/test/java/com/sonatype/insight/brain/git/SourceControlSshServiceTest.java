@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
 import com.sonatype.nexus.scm.api.GitApiClient;
 
 import org.junit.Before;
@@ -48,7 +48,7 @@ public class SourceControlSshServiceTest
   private GitClientFactory gitClientFactory;
 
   @Mock
-  private SourceControlUtils sourceControlUtils;
+  private DefaultSourceControlUtils sourceControlUtils;
 
   @Mock
   private GitApiClient gitApiClient;

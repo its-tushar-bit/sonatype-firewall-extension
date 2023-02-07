@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 
@@ -406,7 +406,7 @@ public class PullRequestTargetCommitPolicyEvaluationResolverTest
     private GitApi gitApi;
 
     @Mock
-    private SourceControlUtils mockSourceControlUtils;
+    private DefaultSourceControlUtils mockSourceControlUtils;
 
     @Mock
     private PolicyEvaluationDAO mockPolicyEvaluationDAO;

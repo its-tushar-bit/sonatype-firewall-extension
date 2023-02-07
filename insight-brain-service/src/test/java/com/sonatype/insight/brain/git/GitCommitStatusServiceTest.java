@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -63,7 +63,7 @@ public class GitCommitStatusServiceTest
 
   private TestProductLicense testProductLicense;
 
-  private IqForScmLicenseChecker licenseChecker;
+  private DefaultIqForScmLicenseChecker licenseChecker;
 
   public GitCommitStatusServiceTest() {
     super(GitCommitStatusService.class);
@@ -78,7 +78,7 @@ public class GitCommitStatusServiceTest
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
     testProductLicense = new TestProductLicense(productLicenseManager);
 
-    licenseChecker = new IqForScmLicenseChecker(testProductLicense);
+    licenseChecker = new DefaultIqForScmLicenseChecker(testProductLicense);
   }
 
   @Test
@@ -439,7 +439,7 @@ public class GitCommitStatusServiceTest
     static final String FAIL_STATE = "no";
 
     @Mock
-    private SourceControlUtils mockSourceControlUtils;
+    private DefaultSourceControlUtils mockSourceControlUtils;
 
     @Mock
     private BaseUrl mockBaseUrl;

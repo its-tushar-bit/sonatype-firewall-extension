@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.PullRequestRepositoryValidator;
 import com.sonatype.insight.brain.git.SourceControlSshService;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.git.utils.api.NativeGitApi;
@@ -38,7 +38,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
 {
   public static final String SSH_REPOSITORY_URL = "git@localhost:org/repo.git";
 
-  private SourceControlUtils sourceControlUtils;
+  private DefaultSourceControlUtils sourceControlUtils;
 
   private GitClientFactory gitClientFactory;
 
@@ -52,7 +52,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
 
   @Before
   public void setup() {
-    sourceControlUtils = mock(SourceControlUtils.class);
+    sourceControlUtils = mock(DefaultSourceControlUtils.class);
     gitClientFactory = mock(GitClientFactory.class);
     gitApiFactory = mock(GitApiFactory.class);
     pullRequestRepositoryValidator = mock(PullRequestRepositoryValidator.class);

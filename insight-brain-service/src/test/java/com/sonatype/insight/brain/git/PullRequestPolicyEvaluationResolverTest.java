@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.model.CommitInformation;
@@ -55,7 +55,7 @@ public class PullRequestPolicyEvaluationResolverTest
   private SourceControlScanService mockSourceControlScanService;
 
   @Mock
-  private SourceControlUtils sourceControlUtils;
+  private DefaultSourceControlUtils sourceControlUtils;
 
   private Application application;
 

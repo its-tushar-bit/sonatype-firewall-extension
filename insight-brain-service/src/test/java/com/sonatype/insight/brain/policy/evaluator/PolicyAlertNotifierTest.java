@@ -50,13 +50,13 @@ public class PolicyAlertNotifierTest
   private JiraPolicyAlertNotifier jiraPolicyAlertNotifier;
 
   @Mock
-  private PolicyAlertScmNotifier policyAlertScmNotifier;
+  private DefaultPolicyAlertScmNotifier policyAlertScmNotifier;
 
   @Override
   public void configure(Binder binder) {
     binder.bind(PolicyAlertEmailer.class).toInstance(policyAlertEmailer);
     binder.bind(JiraPolicyAlertNotifier.class).toInstance(jiraPolicyAlertNotifier);
-    binder.bind(PolicyAlertScmNotifier.class).toInstance(policyAlertScmNotifier);
+    binder.bind(DefaultPolicyAlertScmNotifier.class).toInstance(policyAlertScmNotifier);
     super.configure(binder);
   }
 

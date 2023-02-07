@@ -30,8 +30,8 @@ import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ScanConfiguration;
@@ -80,7 +80,7 @@ public class SourceControlScanServiceTest
   @Mock
   private GitClientFactory mockGitClientFactory;
 
-  private SourceControlUtils spySourceControlUtils;
+  private DefaultSourceControlUtils spySourceControlUtils;
 
   @Mock
   private ApplicationDAO mockApplicationDAO;
@@ -127,7 +127,7 @@ public class SourceControlScanServiceTest
 
   private TestProductLicense testProductLicense;
 
-  private IqForScmLicenseChecker licenseChecker;
+  private DefaultIqForScmLicenseChecker licenseChecker;
 
   // subject
   private SourceControlScanService service;
@@ -159,12 +159,13 @@ public class SourceControlScanServiceTest
     sourceControlEvent.setApplicationId(APP_ID);
 
     spySourceControlUtils =
-        spy(new SourceControlUtils(null, mockApplicationDAO, mockInsightWork, fileCleaner, mockGitClientFactory));
+        spy(new DefaultSourceControlUtils(null, mockApplicationDAO, mockInsightWork, fileCleaner,
+            mockGitClientFactory));
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
     testProductLicense = new TestProductLicense(productLicenseManager);
 
-    licenseChecker = new IqForScmLicenseChecker(testProductLicense);
+    licenseChecker = new DefaultIqForScmLicenseChecker(testProductLicense);
 
     service = new SourceControlScanService(mockGitApiFactory, spySourceControlUtils, mockApplicationDAO, licenseChecker,
         proprietaryConfigService, policyEvaluateService, mockPolicyEvaluationPollingResultUtils, mockInsightWork,
@@ -338,7 +339,7 @@ public class SourceControlScanServiceTest
     PolicyEvaluation policyEvaluation = new PolicyEvaluation();
     when(policyEvaluateService.evaluateSynchronousNoAuth(any(Application.class), any(ClientScanType.class),
         any(File.class), eq(stage), eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST), eq(null)))
-            .thenReturn(policyEvaluation);
+        .thenReturn(policyEvaluation);
 
     // it evaluates the SCM repository content and it returns the expected policy evaluation
     assertThat(service.doSynchronousSourceControlScan(APP_ID, stage, "testBranchName")).isEqualTo(policyEvaluation);
@@ -369,7 +370,7 @@ public class SourceControlScanServiceTest
     PolicyEvaluation policyEvaluation = new PolicyEvaluation();
     when(policyEvaluateService.evaluateSynchronousNoAuth(any(Application.class), any(ClientScanType.class),
         any(File.class), eq(stage), eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST), eq(null)))
-            .thenReturn(policyEvaluation);
+        .thenReturn(policyEvaluation);
 
     // when: we do synchronous source control scan and evaluate the SCM repository content
     PolicyEvaluation returnedPolicyEvaluation =

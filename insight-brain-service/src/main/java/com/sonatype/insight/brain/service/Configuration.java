@@ -31,7 +31,9 @@ import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthentic
 import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.git.BranchMonitor;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
+import com.sonatype.insight.brain.git.DefaultPullRequestMonitor;
 import com.sonatype.insight.brain.git.PullRequestMonitor;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
@@ -83,7 +85,7 @@ public class Configuration
 
   private final TaskScheduler taskScheduler;
 
-  private final Provider<DefaultBranchMonitor> defaultBranchMonitorProvider;
+  private final Provider<BranchMonitor> defaultBranchMonitorProvider;
 
   private final Provider<PullRequestMonitor> pullRequestMonitorProvider;
 
@@ -105,7 +107,7 @@ public class Configuration
       Provider<List<HdsClient>> hdsClientsProvider,
       Provider<AsyncEventBus> asyncEventBusProvider,
       TaskScheduler taskScheduler,
-      Provider<DefaultBranchMonitor> defaultBranchMonitorProvider,
+      Provider<BranchMonitor> defaultBranchMonitorProvider,
       Provider<PullRequestMonitor> pullRequestMonitorProvider,
       Provider<ReleaseGraphCacheProvider> releaseGraphCacheProviderProvider,
       Provider<PolicyMonitorScheduler> policyMonitorSchedulerProvider,
@@ -293,7 +295,7 @@ public class Configuration
     if (!taskScheduler.isSchedulerInitialized()) {
       return;
     }
-    if (!taskScheduler.isTaskScheduled(PullRequestMonitor.TASK_NAME) ||
+    if (!taskScheduler.isTaskScheduled(DefaultPullRequestMonitor.TASK_NAME) ||
         currentSourceControlConfiguration.getPullRequestMonitoringIntervalSeconds() !=
             sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()) {
       pullRequestMonitorProvider.get().schedulePullRequestMonitor();

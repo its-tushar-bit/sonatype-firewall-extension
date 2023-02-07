@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 import com.sonatype.nexus.iq.location.discovery.LocationDiscoveryExecutor;
@@ -61,7 +61,7 @@ public class PullRequestLocationDiscoveryServiceTest
   private LocationDiscoveryExecutor locationDiscoveryExecutor;
 
   @Mock
-  private SourceControlUtils mockSourceControlUtils;
+  private DefaultSourceControlUtils mockSourceControlUtils;
 
   @Mock
   private ApplicationDAO applicationDAO;

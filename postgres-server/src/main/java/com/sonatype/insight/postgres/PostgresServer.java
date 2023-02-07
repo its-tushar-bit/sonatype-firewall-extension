@@ -19,7 +19,9 @@ import org.testcontainers.containers.Container.ExecResult;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
@@ -78,8 +80,11 @@ public class PostgresServer
     try {
       container = new GenericContainer<>(DockerImageName.parse(Utils.applyRegistry(IMAGE)));
       container.addExposedPort(DEFAULT_PORT);
-      container.waitingFor(Wait.forLogMessage(".*database system is ready to accept connections.*", 2));
-      container.withStartupTimeout(Duration.ofMinutes(2));
+      container.waitingFor(new WaitAllStrategy()
+          .withStrategy(Wait.forListeningPort())
+          .withStrategy((new LogMessageWaitStrategy())
+              .withRegEx(".*database system is ready to accept connections.*\\s").withTimes(2)
+              .withStartupTimeout(Duration.ofMinutes(2))));
       container.addEnv("POSTGRES_DB", name);
       container.addEnv("POSTGRES_USER", username);
       container.addEnv("POSTGRES_PASSWORD", password);

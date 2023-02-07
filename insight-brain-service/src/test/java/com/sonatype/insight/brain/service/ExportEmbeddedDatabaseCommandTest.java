@@ -52,8 +52,8 @@ public class ExportEmbeddedDatabaseCommandTest
         .withMessageContaining("can only be used when no external database is specified");
   }
 
-  private TestInsightBrainService newService() {
-    return new TestInsightBrainService().setWorkDir(tempDir.getRoot());
+  private DefaultTestInsightBrainService newService() {
+    return new DefaultTestInsightBrainService().setWorkDir(tempDir.getRoot());
   }
 
   private void initData(InsightConfig config) {
@@ -84,7 +84,7 @@ public class ExportEmbeddedDatabaseCommandTest
     try {
       File dumpFile = new File(tempDir.getRoot(), "dump.sql.gz");
 
-      TestInsightBrainService service = newService();
+      DefaultTestInsightBrainService service = newService();
       service.setConfigurator(this::initData);
 
       service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
@@ -106,7 +106,7 @@ public class ExportEmbeddedDatabaseCommandTest
     try (PostgresServer postgres = new PostgresServer()) {
       File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
-      TestInsightBrainService service = newService();
+      DefaultTestInsightBrainService service = newService();
       service.setConfigurator(this::initData);
 
       service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());

@@ -772,6 +772,7 @@
                 <include>**/PortAllocator*</include>
                 <include>**/AbstractBrainServiceTest*</include>
                 <include>**/HdsMockServerRule*</include>
+                <include>**/DefaultTestInsightBrainService*</include>
                 <include>**/TestInsightBrainService*</include>
                 <include>**/TestInsightBrainServiceRule*</include>
                 <include>**/TestCLMServer*</include>

@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.service.DefaultTestInsightBrainService.Configurator;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 import com.google.inject.Module;
@@ -44,7 +44,7 @@ public class TestInsightBrainServiceRule
 
   private Configurator configurator;
 
-  private TestInsightBrainService brain;
+  private DefaultTestInsightBrainService brain;
 
   public TestInsightBrainServiceRule(
       int port,
@@ -76,7 +76,7 @@ public class TestInsightBrainServiceRule
     long start = System.currentTimeMillis();
 
     log.info("Starting TestInsightBrainService on port {}, admin port {}", port, adminPort);
-    brain = new TestInsightBrainService();
+    brain = new DefaultTestInsightBrainService();
     brain.setHttpPort(port);
     brain.setHttpAdminPort(adminPort);
     if (hdsUrl != null) {

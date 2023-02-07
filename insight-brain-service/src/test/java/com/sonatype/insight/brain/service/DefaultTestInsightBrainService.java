@@ -64,10 +64,10 @@ import org.eclipse.sisu.space.BeanScanning;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestInsightBrainService
+public class DefaultTestInsightBrainService
     extends InsightBrainService
 {
-  private static final Logger log = LoggerFactory.getLogger(TestInsightBrainService.class);
+  private static final Logger log = LoggerFactory.getLogger(DefaultTestInsightBrainService.class);
 
   private static final String DEFAULT_CONFIG_FILE_PATH = "target/test-classes/config-test.yml";
 
@@ -148,7 +148,7 @@ public class TestInsightBrainService
     this.configurator = configurator;
   }
 
-  public TestInsightBrainService setWorkDir(File workDir) {
+  public DefaultTestInsightBrainService setWorkDir(File workDir) {
     this.workDir = workDir;
     return this;
   }
@@ -225,7 +225,7 @@ public class TestInsightBrainService
       args = new String[] { "server" };
     }
 
-    TestInsightBrainService.this.run(args);
+    DefaultTestInsightBrainService.this.run(args);
   }
 
   @Override

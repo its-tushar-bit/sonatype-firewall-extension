@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.function.BiConsumer;
-
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
@@ -21,8 +20,8 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
-import com.sonatype.insight.brain.git.PullRequestCommentPurger;
 import com.sonatype.insight.brain.git.DefaultPullRequestMonitor;
+import com.sonatype.insight.brain.git.PullRequestCommentPurger;
 import com.sonatype.insight.brain.git.PullRequestPollingScheduler;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventOrchestrator;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
@@ -46,7 +45,6 @@ import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
-
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import io.dropwizard.configuration.ConfigurationException;
@@ -66,21 +64,11 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultTestInsightBrainService
     extends InsightBrainService
+    implements TestInsightBrainService
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultTestInsightBrainService.class);
 
-  private static final String DEFAULT_CONFIG_FILE_PATH = "target/test-classes/config-test.yml";
-
   private static final String FORK_ID = System.getProperty("test.forkId", "");
-
-  public interface Configurator
-  {
-    void configure(InsightConfig config);
-
-    default String getConfigFilePath() {
-      return DEFAULT_CONFIG_FILE_PATH;
-    }
-  }
 
   private Configurator configurator;
 
@@ -106,10 +94,12 @@ public class DefaultTestInsightBrainService
 
   private BiConsumer<ServletRequest, ServletResponse> restRequestFilterHandler;
 
+  @Override
   public void setHttpPort(final int port) {
     testPort = port;
   }
 
+  @Override
   public void setHttpAdminPort(final int port) {
     testAdminPort = port;
   }
@@ -119,18 +109,22 @@ public class DefaultTestInsightBrainService
     testKeystorePassword = password;
   }
 
+  @Override
   public void setHdsUrl(final String hdsUrl) {
     testHdsUrl = hdsUrl;
   }
 
+  @Override
   public void setDatabaseContainer(final DatabaseContainer databaseContainer) {
     this.databaseContainer = databaseContainer;
   }
 
+  @Override
   public ProxyServerConfiguration getTestProxyServerConfiguration() {
     return testProxyServerConfiguration;
   }
 
+  @Override
   public void setProxyServerConfiguration(final String host, final int port, final String user, final String pass) {
     testProxyServerConfiguration = new ProxyServerConfiguration();
     testProxyServerConfiguration.setHostname(host);
@@ -140,10 +134,12 @@ public class DefaultTestInsightBrainService
         .setPassword(new PasswordHandler(new DefaultPlexusCipher()).encryptPassword(pass.toCharArray()));
   }
 
+  @Override
   public void clearProxyServerConfiguration() {
     testProxyServerConfiguration = null;
   }
 
+  @Override
   public void setConfigurator(Configurator configurator) {
     this.configurator = configurator;
   }
@@ -157,6 +153,7 @@ public class DefaultTestInsightBrainService
     return workDir;
   }
 
+  @Override
   public Configuration getClientConfiguration() {
     final Configuration configuration = new Configuration();
     configuration.setServerAuth(SimpleAuthentication.parse("admin:admin123"));
@@ -201,6 +198,7 @@ public class DefaultTestInsightBrainService
     return false;
   }
 
+  @Override
   public void start() throws Exception {
     if (testBrainServer != null) {
       throw new IllegalStateException("Brain server already started");
@@ -330,6 +328,7 @@ public class DefaultTestInsightBrainService
     return restRequestFilterHandler != null ? restRequestFilterHandler : (a, b) -> { };
   }
 
+  @Override
   public void disableForTesting() {
     getInstance(TaskScheduler.class).disableForTesting = true;
     getInstance(PolicyMonitorScheduler.class).disableForTesting = true;
@@ -357,6 +356,7 @@ public class DefaultTestInsightBrainService
     // noop
   }
 
+  @Override
   public void stop() throws Exception {
     if (testBrainServer != null) {
       testBrainServer.stop();
@@ -379,6 +379,7 @@ public class DefaultTestInsightBrainService
     };
   }
 
+  @Override
   public InsightConfig getConfiguration() {
     return insightConfig;
   }

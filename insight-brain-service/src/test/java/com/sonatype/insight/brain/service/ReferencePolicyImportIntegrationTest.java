@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
-import com.sonatype.insight.brain.service.DefaultTestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.After;

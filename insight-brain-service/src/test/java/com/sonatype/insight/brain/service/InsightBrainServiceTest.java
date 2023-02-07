@@ -34,7 +34,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.service.DefaultTestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
 import com.sonatype.insight.brain.telemetry.DatabaseTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.HierarchyMetricsTelemetryCollector;

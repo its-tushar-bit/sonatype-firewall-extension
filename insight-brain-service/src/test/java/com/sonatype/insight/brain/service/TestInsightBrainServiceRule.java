@@ -12,7 +12,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.service.DefaultTestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 
 import com.google.inject.Module;
@@ -30,21 +30,21 @@ public class TestInsightBrainServiceRule
 {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final int port;
+  protected final int port;
 
-  private final int adminPort;
+  protected final int adminPort;
 
-  private final String hdsUrl;
+  protected final String hdsUrl;
 
-  private final DatabaseContainer databaseContainer;
+  protected final DatabaseContainer databaseContainer;
 
-  private final boolean isHdsProxyRequired;
+  protected final boolean isHdsProxyRequired;
 
-  private final List<Module> modules;
+  protected final List<Module> modules;
 
-  private Configurator configurator;
+  protected Configurator configurator;
 
-  private DefaultTestInsightBrainService brain;
+  protected TestInsightBrainService brain;
 
   public TestInsightBrainServiceRule(
       int port,
@@ -72,7 +72,7 @@ public class TestInsightBrainServiceRule
     stop();
   }
 
-  void start() throws Exception {
+  public void start() throws Exception {
     long start = System.currentTimeMillis();
 
     log.info("Starting TestInsightBrainService on port {}, admin port {}", port, adminPort);
@@ -111,7 +111,7 @@ public class TestInsightBrainServiceRule
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.CSP_ENABLED);
   }
 
-  void stop() {
+  public void stop() {
     long start = System.currentTimeMillis();
 
     if (brain != null) {

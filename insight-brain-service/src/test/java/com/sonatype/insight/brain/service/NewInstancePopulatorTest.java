@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
-import com.sonatype.insight.brain.service.DefaultTestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.After;
 import org.junit.Test;

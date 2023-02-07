@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.service;
 import java.util.List;
 
 import com.sonatype.insight.brain.db.DatabaseContainer;
-import com.sonatype.insight.brain.service.DefaultTestInsightBrainService.Configurator;
+import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.test.networking.PortAllocator;
 
 import com.google.inject.Module;

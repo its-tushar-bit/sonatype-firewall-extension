@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -50,7 +50,7 @@ public class PullRequestRemediationServiceTest
   private ApplicationDAO mockApplicationDAO;
 
   @Mock
-  private DefaultSourceControlUtils mockSourceControlUtils;
+  private SourceControlUtils mockSourceControlUtils;
 
   @Mock
   private PullRequestTask mockPullRequestTask;

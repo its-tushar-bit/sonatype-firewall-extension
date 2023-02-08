@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -71,7 +71,7 @@ public class PullRequestCommentingEventHandlerTest
 
   private TestProductLicense testProductLicense;
 
-  private DefaultIqForScmLicenseChecker licenseChecker;
+  private IqForScmLicenseChecker licenseChecker;
 
   @Before
   @Override
@@ -81,7 +81,7 @@ public class PullRequestCommentingEventHandlerTest
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
     testProductLicense = new TestProductLicense(productLicenseManager);
-    licenseChecker = new DefaultIqForScmLicenseChecker(testProductLicense);
+    licenseChecker = new IqForScmLicenseChecker(testProductLicense);
   }
 
   @Test
@@ -580,7 +580,7 @@ public class PullRequestCommentingEventHandlerTest
   private class TestablePullRequestCommentingEventHandlerBuilder
   {
     @Mock
-    private DefaultSourceControlUtils mockSourceControlUtils;
+    private SourceControlUtils mockSourceControlUtils;
 
     @Mock
     private PullRequestPolicyEvaluationResolver mockPullRequestPolicyEvaluationResolver;

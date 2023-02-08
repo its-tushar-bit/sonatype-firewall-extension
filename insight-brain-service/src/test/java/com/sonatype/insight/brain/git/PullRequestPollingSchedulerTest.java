@@ -25,7 +25,7 @@ public class PullRequestPollingSchedulerTest
   private PullRequestPollingService pullRequestPollingService;
 
   @Mock
-  private DefaultIqForScmLicenseChecker licenseChecker;
+  private IqForScmLicenseChecker licenseChecker;
 
   public PullRequestPollingSchedulerTest() {
     super(PullRequestPollingScheduler.class);

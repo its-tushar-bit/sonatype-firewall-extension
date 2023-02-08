@@ -10,7 +10,7 @@ import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
@@ -40,7 +40,7 @@ public class UserEventManagerTest
   private SourceControlEventProcessor mockSourceControlEventProcessor;
 
   @Mock
-  private DefaultSourceControlUtils mockSourceControlUtils;
+  private SourceControlUtils mockSourceControlUtils;
 
   @Before
   public void setup() {

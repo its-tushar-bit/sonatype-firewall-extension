@@ -5,13 +5,51 @@
  */
 package com.sonatype.insight.brain.git;
 
-public interface IqForScmLicenseChecker
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.license.model.LicensedFeature;
+
+/**
+ * Used by the IQ for SCM feature to check if the required license feature is present for each IQ for SCM operation.
+ */
+@Named
+@Singleton
+public class IqForScmLicenseChecker
 {
-  boolean isIqForScmSupported();
+  private final ProductLicense productLicense;
 
-  boolean isPullRequestRemediationSupported();
+  @Inject
+  public IqForScmLicenseChecker(final ProductLicense productLicense) {
+    this.productLicense = productLicense;
+  }
 
-  boolean isPullRequestCommentingSupported();
+  public boolean isPullRequestCommentingSupported() {
+    return hasAutomationFeature();
+  }
 
-  boolean isCommitStatusSupported();
+  public boolean isPullRequestRemediationSupported() {
+    return hasAutomationFeature();
+  }
+
+  public boolean isCommitStatusSupported() {
+    return hasNotificationsFeature();
+  }
+
+  /**
+   * Use this method when you want to check if at least one of the license features required by IQ for SCM is enabled
+   */
+  public boolean isIqForScmSupported() {
+    return hasAutomationFeature() || hasNotificationsFeature();
+  }
+
+  private boolean hasAutomationFeature() {
+    return productLicense.hasFeature(LicensedFeature.AUTOMATION);
+  }
+
+  private boolean hasNotificationsFeature() {
+    return productLicense.hasFeature(LicensedFeature.NOTIFICATIONS);
+  }
 }

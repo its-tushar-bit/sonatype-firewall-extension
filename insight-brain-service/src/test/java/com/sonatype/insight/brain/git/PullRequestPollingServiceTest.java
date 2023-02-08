@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
@@ -593,7 +593,7 @@ public class PullRequestPollingServiceTest
     private SourceControlInstanceManager mockSourceControlInstanceManager;
 
     @Mock
-    private DefaultSourceControlUtils mockSourceControlUtils;
+    private SourceControlUtils mockSourceControlUtils;
 
     @Mock
     private GitClientFactory mockGitClientFactory;
@@ -602,7 +602,7 @@ public class PullRequestPollingServiceTest
     private PullRequestRepositoryValidator mockPullRequestRepositoryValidator;
 
     @Mock
-    private DefaultIqForScmLicenseChecker mockLicenseChecker;
+    private IqForScmLicenseChecker mockLicenseChecker;
 
     private Class<? extends Exception> thrownException;
 

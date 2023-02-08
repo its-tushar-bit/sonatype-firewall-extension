@@ -64,7 +64,7 @@ public class DefaultBranchMonitorTest
   private SourceControlEventPublisher sourceControlEventPublisherMock;
 
   @Mock
-  private DefaultIqForScmLicenseChecker mockLicenseChecker;
+  private IqForScmLicenseChecker mockLicenseChecker;
 
   @Inject
   private SourceControlConfigurationDAO sourceControlConfigurationDAO;
@@ -75,7 +75,7 @@ public class DefaultBranchMonitorTest
     lenient().when(taskSchedulerMock.isTaskScheduled(DefaultBranchMonitor.TASK_NAME)).thenReturn(true);
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     binder.bind(SourceControlEventPublisher.class).toInstance(sourceControlEventPublisherMock);
-    binder.bind(DefaultIqForScmLicenseChecker.class).toInstance(mockLicenseChecker);
+    binder.bind(IqForScmLicenseChecker.class).toInstance(mockLicenseChecker);
     super.configure(binder);
   }
 

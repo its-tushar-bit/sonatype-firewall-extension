@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class DefaultBranchMonitor
-    implements InsightJob, BranchMonitor
+    implements InsightJob
 {
   private static final Logger log = LoggerFactory.getLogger(DefaultBranchMonitor.class);
 
@@ -96,7 +96,6 @@ public class DefaultBranchMonitor
     scheduleDefaultBranchMonitoring();
   }
 
-  @Override
   public void scheduleDefaultBranchMonitoring() {
     taskScheduler.unscheduleTask(TASK_NAME);
 

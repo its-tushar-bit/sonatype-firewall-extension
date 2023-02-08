@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthentic
 import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
-import com.sonatype.insight.brain.git.BranchMonitor;
+import com.sonatype.insight.brain.git.DefaultBranchMonitor;
 import com.sonatype.insight.brain.git.PullRequestMonitor;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -70,7 +70,7 @@ public class MultiTenantConfigurationTest
   TaskScheduler taskScheduler;
 
   @Mock
-  Provider<BranchMonitor> defaultBranchMonitorProvider;
+  Provider<DefaultBranchMonitor> defaultBranchMonitorProvider;
 
   @Mock
   Provider<PullRequestMonitor> pullRequestMonitorProvider;

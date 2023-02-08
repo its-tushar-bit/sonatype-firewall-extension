@@ -12,12 +12,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
-import com.sonatype.insight.brain.git.DefaultIqForScmLicenseChecker;
+import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -54,10 +54,10 @@ public class SourceControlEventOrchestratorTest
   private SourceControlInstanceManager mockSourceControlInstanceManager;
 
   @Mock
-  private DefaultSourceControlUtils mockSourceControlUtils;
+  private SourceControlUtils mockSourceControlUtils;
 
   @Mock
-  private DefaultIqForScmLicenseChecker mockIqForScmLicenseChecker;
+  private IqForScmLicenseChecker mockIqForScmLicenseChecker;
 
   @Before
   public void setup() {

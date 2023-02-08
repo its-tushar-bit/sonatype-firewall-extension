@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.git.DefaultBranchMonitor;
-import com.sonatype.insight.brain.git.DefaultPullRequestMonitor;
 import com.sonatype.insight.brain.git.PullRequestCommentPurger;
+import com.sonatype.insight.brain.git.PullRequestMonitor;
 import com.sonatype.insight.brain.git.PullRequestPollingScheduler;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventOrchestrator;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternUpdater;
@@ -350,7 +350,7 @@ public class TestMultiTenantInsightBrainService
     getInstance(PersistedPolicyEvaluationPollingResultCleaner.class).disableForTesting = true;
     getInstance(PersistedScanTicketCleaner.class).disableForTesting = true;
     getInstance(FirewallReleaseIntegrityLicenseListener.class).disableForTesting = true;
-    getInstance(DefaultPullRequestMonitor.class).disableForTesting = true;
+    getInstance(PullRequestMonitor.class).disableForTesting = true;
     getInstance(DefaultBranchMonitor.class).disableForTesting = true;
     getInstance(SourceControlEventOrchestrator.class).disableForTesting = true;
     getInstance(PullRequestCommentPurger.class).disableForTesting = true;

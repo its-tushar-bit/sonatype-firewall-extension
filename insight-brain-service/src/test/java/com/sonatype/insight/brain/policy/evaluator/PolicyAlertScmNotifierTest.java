@@ -31,8 +31,8 @@ import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -52,7 +52,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-public class DefaultPolicyAlertScmNotifierTest
+public class PolicyAlertScmNotifierTest
     extends AbstractComponentTest
 {
   private static final String PUBLIC_ID = "abc123";
@@ -78,20 +78,19 @@ public class DefaultPolicyAlertScmNotifierTest
   SourceControlEventPublisher mockSourceControlEventPublisher;
 
   @Mock
-  DefaultSourceControlUtils sourceControlUtils;
+  SourceControlUtils sourceControlUtils;
 
-  private DefaultPolicyAlertScmNotifier scmNotifier;
+  private PolicyAlertScmNotifier scmNotifier;
 
   private Application application;
 
   @Rule
-  public LogOutput logOutput = new LogOutput(DefaultPolicyAlertScmNotifier.class);
+  public LogOutput logOutput = new LogOutput(PolicyAlertScmNotifier.class);
 
   @Before
   public void setup() {
     scmNotifier =
-        new DefaultPolicyAlertScmNotifier(remediationPullRequestFeatureCheck,
-            mockPullRequestCommentingRemediationService,
+        new PolicyAlertScmNotifier(remediationPullRequestFeatureCheck, mockPullRequestCommentingRemediationService,
             new PolicyAlertSourceCodeOrganizer(), baseUrl, sourceControlUtils, mockPullRequestRemediationService,
             mockSourceControlEventPublisher);
     Organization organization = tempEntity.newOrganization();

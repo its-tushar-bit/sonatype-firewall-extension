@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -108,7 +108,7 @@ public class PullRequestTaskTest
   private AuditRecorder mockAuditRecorder;
 
   @Mock
-  private DefaultSourceControlUtils mockSourceControlUtils;
+  private SourceControlUtils mockSourceControlUtils;
 
   @Mock
   private PullRequestExecutor mockPullRequestExecutor;
@@ -135,7 +135,7 @@ public class PullRequestTaskTest
     binder.bind(SourceControlPullRequestMetrics.class).toInstance(mockSourceControlPullRequestMetrics);
     binder.bind(GitApiFactory.class).toInstance(mockGitApiFactory);
     binder.bind(AuditRecorder.class).toInstance(mockAuditRecorder);
-    binder.bind(DefaultSourceControlUtils.class).toInstance(mockSourceControlUtils);
+    binder.bind(SourceControlUtils.class).toInstance(mockSourceControlUtils);
 
     binder.bind(FileCleaner.class).toInstance(mockFileCleaner);
     super.configure(binder);

@@ -28,7 +28,7 @@ import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -52,11 +52,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class DefaultPullRequestMonitorTest
+public class PullRequestMonitorTest
     extends AbstractComponentTest
 {
   @Inject
-  private DefaultPullRequestMonitor pullRequestMonitor;
+  private PullRequestMonitor pullRequestMonitor;
 
   private final SourceControlPullRequestDAO pullRequestDAO = new SourceControlPullRequestDAO();
 
@@ -73,10 +73,10 @@ public class DefaultPullRequestMonitorTest
   private SourceControlEventPublisher sourceControlEventPublisherMock;
 
   @Mock
-  private DefaultIqForScmLicenseChecker mockLicenseChecker;
+  private IqForScmLicenseChecker mockLicenseChecker;
 
   @Mock
-  private DefaultSourceControlUtils mockSourceControlUtils;
+  private SourceControlUtils mockSourceControlUtils;
 
   @Inject
   private SourceControlConfigurationDAO sourceControlConfigurationDAO;
@@ -91,8 +91,8 @@ public class DefaultPullRequestMonitorTest
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     binder.bind(GitApiFactory.class).toInstance(gitApiFactoryMock);
     binder.bind(SourceControlEventPublisher.class).toInstance(sourceControlEventPublisherMock);
-    binder.bind(DefaultIqForScmLicenseChecker.class).toInstance(mockLicenseChecker);
-    binder.bind(DefaultSourceControlUtils.class).toInstance(mockSourceControlUtils);
+    binder.bind(IqForScmLicenseChecker.class).toInstance(mockLicenseChecker);
+    binder.bind(SourceControlUtils.class).toInstance(mockSourceControlUtils);
     super.configure(binder);
   }
 
@@ -103,14 +103,14 @@ public class DefaultPullRequestMonitorTest
 
   @Test
   public void testDisallowConcurrentExecution() {
-    assertThat(JobBuilder.newJob(DefaultPullRequestMonitor.class).build().isConcurrentExectionDisallowed()).isTrue();
+    assertThat(JobBuilder.newJob(PullRequestMonitor.class).build().isConcurrentExectionDisallowed()).isTrue();
   }
 
   @Test
   public void testExecute() {
     when(mockLicenseChecker.isIqForScmSupported()).thenReturn(true);
 
-    DefaultPullRequestMonitor pullRequestMonitorSpy = spy(pullRequestMonitor);
+    PullRequestMonitor pullRequestMonitorSpy = spy(pullRequestMonitor);
     doAnswer(invocationOnMock -> {
       assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
       return null;
@@ -127,7 +127,7 @@ public class DefaultPullRequestMonitorTest
   public void testExecute_Unlicensed() {
     when(mockLicenseChecker.isIqForScmSupported()).thenReturn(false);
 
-    DefaultPullRequestMonitor pullRequestMonitorSpy = spy(pullRequestMonitor);
+    PullRequestMonitor pullRequestMonitorSpy = spy(pullRequestMonitor);
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
       pullRequestMonitorSpy.execute(mock(JobExecutionContext.class));
     }
@@ -350,7 +350,7 @@ public class DefaultPullRequestMonitorTest
   public void testSourceControlConfigurationChanged_NullConfiguration() {
     configuration.sourceControlConfigurationChanged();
 
-    verify(taskSchedulerMock).schedulePeriodicTask(DefaultPullRequestMonitor.class, DefaultPullRequestMonitor.TASK_NAME,
+    verify(taskSchedulerMock).schedulePeriodicTask(PullRequestMonitor.class, PullRequestMonitor.TASK_NAME,
         Duration.ofSeconds(new SourceControlConfiguration().getPullRequestMonitoringIntervalSeconds()));
   }
 
@@ -362,7 +362,7 @@ public class DefaultPullRequestMonitorTest
 
     configuration.sourceControlConfigurationChanged();
 
-    verify(taskSchedulerMock).schedulePeriodicTask(DefaultPullRequestMonitor.class, DefaultPullRequestMonitor.TASK_NAME,
+    verify(taskSchedulerMock).schedulePeriodicTask(PullRequestMonitor.class, PullRequestMonitor.TASK_NAME,
         Duration.ofSeconds(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()));
   }
 

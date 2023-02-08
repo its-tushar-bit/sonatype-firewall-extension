@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.git.event;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.sourcecontrol.DefaultSourceControlUtils;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +36,7 @@ public class SourceControlEventPublisherTest
   private SourceControlEventPublisher sourceControlEventPublisher;
 
   @Mock
-  private DefaultSourceControlUtils mockSourceControlUtils;
+  private SourceControlUtils mockSourceControlUtils;
 
   @Before
   public void setup() {

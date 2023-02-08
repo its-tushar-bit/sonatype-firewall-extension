@@ -33,11 +33,11 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class DefaultApiSourceControlEvaluationServiceTest
+public class ApiSourceControlEvaluationServiceTest
     extends AbstractComponentTest
 {
   @Inject
-  private DefaultApiSourceControlEvaluationService apiSourceControlEvaluationService;
+  private ApiSourceControlEvaluationService apiSourceControlEvaluationService;
 
   @Inject
   private PasswordHandler passwordHandler;

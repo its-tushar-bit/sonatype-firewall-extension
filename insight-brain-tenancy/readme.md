@@ -213,3 +213,9 @@ each tenant.
 It may be desirable to ban some classes or packages, see
 this [readme](/nexus-mtiq-server/src/main/java/com/sonatype/insight/brain/service/banning/readme.md) to understand how
 that has been made possible for mtiq.
+
+#### Banned REST implementations
+As a result of CLM-23906, CLM-23907 certain REST resources have been banned by two different banning implementations.
+PermanentlyBannedRestResources lists all REST resources that we currently believe will never make sense for MTIQ and
+MilestoneOneBannedRestResources bans resources that are just not needed for the initial Firewall release. When we come
+to re-enable the Lifecycle functionality MilestoneOneBannedRestResources will need changing.

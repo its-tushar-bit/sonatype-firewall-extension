@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.service.banning;
 import java.util.Arrays;
 import java.util.List;
 
+import com.sonatype.insight.brain.service.banning.rest.MilestoneOneBannedRestResources;
+import com.sonatype.insight.brain.service.banning.rest.PermanentlyBannedRestResources;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Module;
 import com.google.inject.spi.Elements;
@@ -16,7 +19,9 @@ import org.eclipse.sisu.wire.WireModule;
 public class BannedImplementationService
 {
   private static final List<BannedImplementation> DEFAULT_BANNED = Arrays.asList(
-      new DefaultBannedImplementation()
+      new DefaultBannedImplementation(),
+      new PermanentlyBannedRestResources(),
+      new MilestoneOneBannedRestResources()
   );
 
   private final List<BannedImplementation> listOfBannedTypes;

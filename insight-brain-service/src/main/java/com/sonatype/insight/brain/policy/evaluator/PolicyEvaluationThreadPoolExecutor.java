@@ -20,7 +20,7 @@ class PolicyEvaluationThreadPoolExecutor
   private static final Logger log = LoggerFactory.getLogger(PolicyEvaluationThreadPoolExecutor.class);
 
   // Visible for tests
-  static final int THREAD_POOL_SIZE = 100;
+  static final int THREAD_POOL_SIZE = 200;
 
   public PolicyEvaluationThreadPoolExecutor() {
     super(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 5L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),

@@ -35,7 +35,7 @@ public class PersistedPolicyEvaluationPollingResultCleaner
   static final Duration PERIOD = Duration.ofHours(1);
 
   // Visible for testing
-  static final Duration LIFESPAN = Duration.ofHours(2);
+  static final Duration LIFESPAN = Duration.ofHours(24);
 
   public static final String CLEANER_ERROR = "Policy evaluation polling result cleaner error";
 

@@ -62,13 +62,13 @@ public class ConfigFeaturesResource
   @Audited(AuditEvent.SET_FEATURES)
   @Path(FEATURE)
   public void enabledFeature(@PathParam("feature") String feature) {
-    apiConfigFeaturesService.enableFeature(feature);
+    apiConfigFeaturesService.enableFeatureNoAuthz(feature);
   }
 
   @DELETE
   @Audited(AuditEvent.UNSET_FEATURES)
   @Path(FEATURE)
   public void disableFeature(@PathParam("feature") String feature) {
-    apiConfigFeaturesService.disableFeature(feature);
+    apiConfigFeaturesService.disableFeatureNoAuthz(feature);
   }
 }

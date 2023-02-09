@@ -32,7 +32,7 @@ public class ConfigFeaturesResourceTest
 
   @Override
   protected HttpRequest restRequest() {
-    return super.adminRequest().path("api/").path(ADMIN_CONFIG_FEATURES_PATH);
+    return super.adminRequest().path("api/").path(ADMIN_CONFIG_FEATURES_PATH).query("tenant=global");
   }
 
   @Test

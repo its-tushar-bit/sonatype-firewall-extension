@@ -76,6 +76,14 @@ public class TenantManager
     setTenant(new Tenant(tenant));
   }
 
+  void setTenantForAdminRequest(final String tenant) {
+    if (tenant == null) {
+      throw new IllegalArgumentException("Tenant parameter cannot be null");
+    }
+
+    TenantThreadLocal.setTenant(new Tenant(tenant));
+  }
+
   void setTenant(final Tenant tenant) {
     if (tenant == null) {
       throw new IllegalArgumentException("Tenant parameter cannot be null.");

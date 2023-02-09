@@ -100,6 +100,19 @@ public class TenantManagerTest
   }
 
   @Test
+  public void shouldSetTenantForAdminRequest_whenNameProvided() {
+    underTest.setTenantForAdminRequest(TENANT_NAME);
+
+    assertThat(underTest.getTenant()).isEqualTo(tenant);
+  }
+
+  @Test
+  public void shouldThrowIllegalArgumentException_whenTenantNameForAdminRequestNull() {
+    assertThatThrownBy(() -> underTest.setTenantForAdminRequest(null)).isInstanceOf(IllegalArgumentException.class)
+        .withFailMessage("Tenant parameter cannot be null");
+  }
+
+  @Test
   public void shouldThrowIllegalArgumentException_whenTenantNameNull() {
     assertThatThrownBy(() -> underTest.setTenant((String) null)).isInstanceOf(IllegalArgumentException.class)
         .withFailMessage("Tenant parameter cannot be null");

@@ -7,7 +7,10 @@ package com.sonatype.insight.brain.service;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
+import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
 import javax.ws.rs.Path;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
@@ -41,6 +44,7 @@ import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.service.banning.BannedImplementationService;
 import com.sonatype.insight.brain.telemetry.MultiTenantTelemetryCollectorsProvider;
 import com.sonatype.insight.brain.telemetry.TelemetryCollectorsProvider;
+import com.sonatype.insight.brain.tenancy.AdminTenantFilter;
 import com.sonatype.insight.brain.tenancy.MultiTenantExecutorThreadPools;
 import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
 import com.sonatype.insight.brain.tenancy.TenantUrlFilter;
@@ -65,12 +69,14 @@ import org.eclipse.sisu.inject.BeanLocator;
 public class MultiTenantInsightBrainService
     extends InsightBrainService
 {
+  public static final String ADMIN_BASE_PATH = "/api/*";
+
   private BannedImplementationService bannedImplementationService = new BannedImplementationService();
 
   /**
    * Instance of the admin resources bundle needed to register Admin APIs
    */
-  private final AdminResourceBundle adminResourceBundle = new AdminResourceBundle("/api/*");
+  private final AdminResourceBundle adminResourceBundle = new AdminResourceBundle(ADMIN_BASE_PATH);
 
   public static void main(final String[] args) {
     new TenantUtil().setGlobalTenant();
@@ -156,6 +162,9 @@ public class MultiTenantInsightBrainService
 
     BeanLocator locator = getInjector().getInstance(BeanLocator.class);
     addAdminApiEndpoints(locator);
+
+    // Add tenant filter for Admin resources
+    addAdminServletFilter(environment, AdminTenantFilter.class, ADMIN_BASE_PATH);
   }
 
   private void addAdminApiEndpoints(BeanLocator locator) {
@@ -176,6 +185,16 @@ public class MultiTenantInsightBrainService
         }
       }
     }
+  }
+
+  private void addAdminServletFilter(
+      Environment env,
+      Class<? extends Filter> filterType,
+      String... urlPatterns)
+  {
+    Filter filter = getInstance(filterType);
+    env.admin().addFilter(filterType.getSimpleName(), filter)
+        .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, urlPatterns);
   }
 
   @Override

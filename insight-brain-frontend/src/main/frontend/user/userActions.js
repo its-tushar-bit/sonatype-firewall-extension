@@ -27,7 +27,8 @@ function userActions(
   telemetryService,
   PermissionService,
   messages,
-  pendoService
+  pendoService,
+  $window
 ) {
   function fetchUser() {
     const warningPromiseUrl = CLMLocations.getShouldDisplayDefaultPasswordWarning(),
@@ -91,6 +92,7 @@ function userActions(
         // continue the logout whether the pendo flush succeeds or fails
         .then(serverLogout, serverLogout)
         .then(function (response) {
+          $($window).unbind('beforeunload');
           $rootScope.$emit('logout', response.headers('Location'));
         });
     };
@@ -181,5 +183,6 @@ userActions.$inject = [
   'PermissionService',
   'Messages',
   'pendoService',
+  '$window',
 ];
 export default userActions;

@@ -14,6 +14,8 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.clm.testing.functional.pages.UserManagementPage;
+import com.sonatype.clm.testing.functional.pages.UserManagementPage.EditUserForm;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
@@ -197,6 +199,22 @@ public class LoginTest
   public void testLogout() {
     refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
+    logout();
+    SidebarNavigation.mainHeaderButtons().shouldBe(hidden);
+    loginModal.shouldBe(visible);
+  }
+
+  @Test
+  public void testTryToLogoutWhileFormHasUnsavedChanges() {
+    refreshOrOpen(UserManagementPage.url());
+
+    loginAsAdmin();
+
+    UserManagementPage userManagementPage = new UserManagementPage();
+    userManagementPage.userItems().get(0).shouldBe(visible).click();
+    EditUserForm editUserForm = userManagementPage.editUserForm();
+    editUserForm.firstNameInput().val("a");
+
     logout();
     SidebarNavigation.mainHeaderButtons().shouldBe(hidden);
     loginModal.shouldBe(visible);

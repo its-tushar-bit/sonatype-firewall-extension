@@ -63,6 +63,7 @@
 @use '../advancedSearch/advancedSearch';
 @use '../owner.manager/source.control/source.control.editor';
 @use '../report/react/report';
+@use '../report/report/report' as legacy-report;
 @use '../configuration/scmOnboarding/scmOnboarding';
 @use '../violation/violationPage';
 @use '../waivers/waiverDetails/waiverDetailsPage';

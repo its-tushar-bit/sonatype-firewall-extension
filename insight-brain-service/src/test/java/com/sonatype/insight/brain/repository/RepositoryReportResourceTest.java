@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.repository;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -81,69 +80,6 @@ public class RepositoryReportResourceTest
     assertResponseStatus(200, response);
     RepositorySummary repositorySummary = response.getBody(RepositorySummary.class);
     assertThat(repositorySummary).isNotNull();
-  }
-
-  /**
-   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
-   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Test
-  @Deprecated
-  public void testGetReportDetails() throws Exception {
-    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true);
-
-    final HttpResponse response = testGet(RepositoryReportResource.DETAILS_PATH, repository.getId(), 200);
-
-    final RepositoryReportDetail[] policyEvaluationDetail = response.getBody(RepositoryReportDetail[].class);
-    assertThat(policyEvaluationDetail).isNotNull();
-  }
-
-  /**
-   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
-   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Test
-  @Deprecated
-  public void testGetReportDetails_NoRepository() throws Exception {
-    final String repositoryId = "NonExistentRepositoryId";
-
-    final HttpResponse response = testGet(RepositoryReportResource.DETAILS_PATH, repositoryId, 404);
-
-    assertThat(response.getBodyText()).isEqualTo(getErrorMessage(repositoryId));
-  }
-
-  /**
-   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
-   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Test
-  @Deprecated
-  public void testGetReportDetails_RepositoryDisabled() throws Exception {
-    Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, false);
-
-    final HttpResponse response = testGet(RepositoryReportResource.DETAILS_PATH, repository.getId(), 200);
-
-    final RepositoryReportDetail[] policyEvaluationDetail = response.getBody(RepositoryReportDetail[].class);
-    assertThat(policyEvaluationDetail).isNotNull();
-  }
-
-  /**
-   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
-   *             completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Deprecated
-  @Test
-  public void testGetPolicyThreats() throws Exception {
-    Repository repository = tempEntity.newRepository();
-    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(repository.getId(), "dir/path");
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 8, repositoryComponent.getPathname(), false,
-        "policyId1", "policyName1", repositoryComponent.getComponentIdentifier());
-
-    HttpResponse response = restPolicyThreatRequest(repository.getId(), repositoryComponent.getPathname()).get();
-    assertResponseStatus(200, response);
-    DeprecatedRepositoryPolicyThreatDTO repositoryPolicyThreatDTO =
-        response.getBody(DeprecatedRepositoryPolicyThreatDTO.class);
-    assertThat(repositoryPolicyThreatDTO.activePolicyViolations).hasSize(1);
   }
 
   private String getErrorMessage(String repositoryId) {

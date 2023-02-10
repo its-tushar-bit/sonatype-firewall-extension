@@ -29,9 +29,7 @@ import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.policy.Action;
-import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternFilter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -224,60 +222,6 @@ public class RepositoryServiceTest extends AbstractComponentTest
             0 /* popularity */));
 
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
-  }
-
-  /**
-   * @deprecated The tested method is deprecated
-   */
-  @Deprecated
-  @Test
-  public void testGetPolicyThreats() {
-    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    String pathname = "path1";
-    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    RepositoryPolicyViolation repositoryPolicyViolation1 = tempEntity
-        .newRepositoryPolicyViolation(repository.getId(), 8, pathname, false, "policyId1", "policyName1",
-            componentIdentifier);
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 7, pathname, true, "policyId2", "policyName2",
-        componentIdentifier);
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 1, "path4", false, Action.ID_FAIL, "policyId4",
-        "policyName4", componentIdentifier);
-
-    repositoryPolicyViolation1.setConstraintFacts(Collections.singletonList(new ConstraintFact("id", "name", "op")));
-    new RepositoryPolicyViolationDAO().update(repositoryPolicyViolation1);
-
-    tempEntity.newRepositoryComponent(repository.getId(), pathname, new Date(), null);
-    tempEntity.newRepositoryComponent(repository.getId(), "path4", new Date(), null);
-
-    DeprecatedRepositoryPolicyThreatDTO repositoryPolicyThreatDTO = repositoryService
-        .getPolicyThreats(repository.getId(), pathname);
-
-    assertThat(repositoryPolicyThreatDTO.activePolicyViolations).hasSize(1);
-    DeprecatedRepositoryPolicyViolationDTO repositoryViolationDTO =
-        repositoryPolicyThreatDTO.activePolicyViolations.get(0);
-    assertThat(repositoryViolationDTO.policyId).isEqualTo("policyId1");
-    assertThat(repositoryViolationDTO.policyName).isEqualTo("policyName1");
-    assertThat(repositoryViolationDTO.policyThreatLevel).isEqualTo(8);
-    assertThat(repositoryViolationDTO.constraintFactsJson)
-        .isEqualTo(repositoryPolicyViolation1.getConstraintFactsJson());
-    assertThat(repositoryViolationDTO.blocksUnquarantine).isFalse();
-
-    repositoryViolationDTO = repositoryService.getPolicyThreats(repository.getId(), "path4").activePolicyViolations
-        .get(0);
-    assertThat(repositoryViolationDTO.blocksUnquarantine).isTrue();
-  }
-
-  /**
-   * @deprecated The tested method is deprecated
-   */
-  @SuppressWarnings("deprecation")
-  @Deprecated
-  @Test
-  public void testGetPolicyThreats_RepositoryComponentDoesNotExist() {
-    Repository repository = tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
-    assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> repositoryService.getPolicyThreats(repository.getId(), "pathDoesNotExist")).withMessage(
-            "Cannot find a component with path pathDoesNotExist in repository with ID " + repository.getId() + ".");
   }
 
   @Test
@@ -576,135 +520,6 @@ public class RepositoryServiceTest extends AbstractComponentTest
     return securityVulnerabilities;
   }
 
-  /**
-   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
-   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Test
-  @Deprecated
-  public void testTHREAT_LEVEL_DESC_PATHNAME_ASC() {
-    final RepositoryReportDetail detail1 = RepositoryReportDetail
-        .create(new RepositoryComponent(null, "z", null, null, null, null, null, null));
-    final RepositoryReportDetail detail2 = RepositoryReportDetail
-        .create(new RepositoryComponent(null, "a", null, null, null, null, null, null),
-            new RepositoryPolicyViolation(null, null, null, null, null, 9, null, null, null,
-                "[]" /* constraintFacts */), false);
-    assertThat(RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail2))
-        .as("Should sort ThreatLevel Descending").isPositive();
-
-    final RepositoryReportDetail detail3 = RepositoryReportDetail
-        .create(new RepositoryComponent(null, "a", null, null, null, null, null, null),
-            new RepositoryPolicyViolation(null, null, null, null, null, 0, null, null, null,
-                "[]" /* constraintFacts */), false);
-    assertThat(RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail3))
-        .as("Should sort Pathname Ascending").isPositive();
-
-    final RepositoryReportDetail detail4 = RepositoryReportDetail
-        .create(new RepositoryComponent(null, "z", null, null, null, null, null, null),
-            new RepositoryPolicyViolation(null, null, null, null, null, 0, null, null, null,
-                "[]" /* constraintFacts */), false);
-    assertThat(RepositoryService.THREAT_LEVEL_DESC_PATHNAME_ASC.compare(detail1, detail4))
-        .as("Equal ThreatLevel and pathname").isZero();
-  }
-
-  /**
-   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
-   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Test
-  @Deprecated
-  public void testGetReportDetails() {
-    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
-    final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
-
-    // component with 1 violation
-    final String pathname1 = "pathname1";
-    createRepositoryPolicyViolation(repository, pathname1, 5);
-
-    // component with no violation
-    final String pathname2 = "pathname2";
-    createRepositoryPolicyViolation(repository, pathname2);
-
-    // component with 2 violations
-    final String pathname3 = "pathname3";
-    createRepositoryPolicyViolation(repository, pathname3, 5, 9);
-
-    // component with 1 violation that is waived
-    final String pathname4 = "pathname4";
-    createRepositoryPolicyViolation(repository, pathname4, true, 1);
-
-    // add violations for a different repository, which should not be included in current repo details
-    final Repository repositoryOther = tempEntity.newRepository(repositoryManager, "otherRepoPublicId");
-    createRepositoryPolicyViolation(repositoryOther, pathname1, 6);
-
-    final List<RepositoryReportDetail> reportDetails = repositoryService
-        .getReportDetails(repository.getId(), null, null);
-
-    assertThat(reportDetails).hasSize(6);
-
-    int idx = 0;
-    // list should be sorted by 'threadLevel DESC', 'pathname ASC'
-    assertRepositoryReportDetail(reportDetails.get(idx++), pathname3, "policyName", 9, true, false);
-    assertRepositoryReportDetail(reportDetails.get(idx++), pathname1, "policyName", 5, true, false);
-    assertRepositoryReportDetail(reportDetails.get(idx++), pathname3, "policyName", 5, false, false);
-    assertRepositoryReportDetail(reportDetails.get(idx++), pathname4, "policyName", 1, true, true);
-    assertRepositoryReportDetail(reportDetails.get(idx++), pathname2, null, 0, true, false);
-    assertRepositoryReportDetail(reportDetails.get(idx), pathname4, null, 0, true, false);
-  }
-
-  /**
-   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
-   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Test
-  @Deprecated
-  public void testGetReportDetails_ByHash() {
-    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
-    final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
-
-    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repository, "hash1");
-    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository, "hash1");
-    tempEntity.newRepositoryComponent(repository, "hash2");
-
-    // Add a component for a different repository, which should not be included in current repo details
-    final Repository repositoryOther = tempEntity.newRepository(repositoryManager, "otherRepoPublicId");
-    tempEntity.newRepositoryComponent(repositoryOther, "hash1");
-
-    final List<RepositoryReportDetail> reportDetails = repositoryService
-        .getReportDetails(repository.getId(), "hash1", null);
-
-    assertThat(reportDetails).hasSize(2);
-
-    for (RepositoryReportDetail detail : reportDetails) {
-      assertThat(detail.getHash()).isEqualTo("hash1");
-      assertThat(detail.getPathname()).isIn(component1.getPathname(), component2.getPathname());
-    }
-  }
-
-  /**
-   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
-   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Test
-  @Deprecated
-  public void testGetReportDetails_ByPathname() {
-    final RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
-    final Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
-
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository, "hash1");
-    tempEntity.newRepositoryComponent(repository, "hash1");
-
-    // Add a component for a different repository, which should not be included in current repo details
-    final Repository repositoryOther = tempEntity.newRepository(repositoryManager, "otherRepoPublicId");
-    tempEntity.newRepositoryComponent(repositoryOther.getId(), component.getPathname());
-
-    final List<RepositoryReportDetail> reportDetails = repositoryService
-        .getReportDetails(repository.getId(), null, component.getPathname());
-
-    assertThat(reportDetails).hasSize(1);
-    assertThat(reportDetails.get(0).getPathname()).isEqualTo(component.getPathname());
-  }
-
   @Test
   public void testGetRepositoryById() {
     Repository repository = tempEntity.newRepository();
@@ -871,31 +686,6 @@ public class RepositoryServiceTest extends AbstractComponentTest
       tempEntity.newRepositoryPolicyViolation(repository.getId(), threatLevel, pathname, waived, null);
     }
     return component;
-  }
-
-  /**
-   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
-   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Deprecated
-  private void assertRepositoryReportDetail(final RepositoryReportDetail actualReportDetail,
-                                            final String expectedPathname,
-                                            final String expectedPolicyName,
-                                            final int expectedThreatLevel,
-                                            final boolean expectedHighestThreatLevel,
-                                            final boolean isWaived)
-  {
-    assertThat(actualReportDetail.getPathname()).isEqualTo(expectedPathname);
-    assertThat(actualReportDetail.getPolicyName()).isEqualTo(expectedPolicyName);
-    assertThat(actualReportDetail.getThreatLevel()).isEqualTo(expectedThreatLevel);
-    assertThat(actualReportDetail.isHighestThreatLevel()).isEqualTo(expectedHighestThreatLevel);
-
-    assertThat(actualReportDetail.getHash()).isEqualTo("hash");
-    assertThat(actualReportDetail.getMatchState()).isEqualTo("exact");
-    assertThat(actualReportDetail.getComponentDisplayText()).isEqualTo("g : a : v");
-    assertThat(actualReportDetail.getComponentIdentifier().getFormat()).isEqualTo("maven");
-    assertThat(actualReportDetail.isQuarantined()).isFalse();
-    assertThat(actualReportDetail.isWaived()).isEqualTo(isWaived);
   }
 
   private Policy createQuarantiningPolicy(Repository repository) {

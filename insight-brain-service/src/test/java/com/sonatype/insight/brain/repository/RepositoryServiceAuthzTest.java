@@ -95,43 +95,6 @@ public class RepositoryServiceAuthzTest
     repositoryService.unquarantineComponent(repository.getId(), "path", null);
   }
 
-  /**
-   * @deprecated The tested method is deprecated
-   */
-  @Deprecated
-  @Test
-  public void testGetPolicyThreats_Authorized() {
-    Repository repo = createRepository();
-    String path = "path";
-    tempEntity.newRepositoryComponent(repo.getId(), path, new Date(), null);
-
-    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    repositoryService.getPolicyThreats(repo.getId(), path);
-  }
-
-  /**
-   * @deprecated The tested method is deprecated
-   */
-  @Deprecated
-  @Test(expected = UnauthenticatedException.class)
-  public void testGetPolicyThreats_Unauthenticated() {
-    Repository repo = createRepository();
-
-    repositoryService.getPolicyThreats(repo.getId(), "path");
-  }
-
-  /**
-   * @deprecated The tested method is deprecated
-   */
-  @Deprecated
-  @Test(expected = UnauthorizedException.class)
-  public void testGetPolicyThreats_Unauthorized() {
-    Repository repo = createRepository();
-
-    login();
-    repositoryService.getPolicyThreats(repo.getId(), "path");
-  }
-
   @Test
   public void testGetPolicyViolations_Authorized() {
     Repository repo = createRepository();
@@ -207,41 +170,6 @@ public class RepositoryServiceAuthzTest
     Repository repo = createRepository();
 
     repositoryService.getRepositorySummary(repo.getId());
-  }
-
-  /**
-   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
-   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Test
-  @Deprecated
-  public void testGetReportDetails_Authorized() {
-    Repository repo = createRepository();
-    grantReadPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID);
-    repositoryService.getReportDetails(repo.getId(), null, null);
-  }
-
-  /**
-   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
-   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Test(expected = UnauthenticatedException.class)
-  @Deprecated
-  public void testGetReportDetails_Unauthenticated() {
-    Repository repo = createRepository();
-    repositoryService.getReportDetails(repo.getId(), null, null);
-  }
-
-  /**
-   * @deprecated The tested method is deprecated. To be removed when the Repository Results View migration to React is
-   * completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Test(expected = UnauthorizedException.class)
-  @Deprecated
-  public void testGetReportDetails_Unauthorized() {
-    grantWritePermission();
-    Repository repo = createRepository();
-    repositoryService.getReportDetails(repo.getId(), null, null);
   }
 
   @Test

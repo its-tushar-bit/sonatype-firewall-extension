@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.repository;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -26,7 +24,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -151,45 +148,6 @@ public class RepositoryService
     AuditData.get().setData("componentPathname", pathname);
   }
 
-  /**
-   * @deprecated Use {@link getPolicyViolations(String, String)} instead.
-   *             To be removed when the Repository Results View migration to React is
-   *             completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Deprecated
-  @Authorize(permission = Permission.READ)
-  DeprecatedRepositoryPolicyThreatDTO getPolicyThreats(
-      @AuthzContext(Key.REPOSITORY_ID) final String repositoryId,
-      final String pathname)
-  {
-    auditComponentPath(pathname);
-    RepositoryComponent repositoryComponent =
-        repositoryComponentDAO.getByRepositoryIdAndPathname(repositoryId, pathname);
-    if (repositoryComponent == null) {
-      throw new NotFoundException("Cannot find a component with path " + pathname + " in repository with ID "
-          + repositoryId + ".");
-    }
-    AuditData.get()
-        .setComponentIdentifier(repositoryComponent.getComponentIdentifier())
-        .setComponentHash(repositoryComponent.getHash());
-
-    List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
-        .getActiveByRepositoryIdAndPathnameAndWaived(repositoryId, repositoryComponent.getPathname(), false);
-
-    List<DeprecatedRepositoryPolicyViolationDTO> activeRepositoryViolationDTOs = new ArrayList<>();
-    for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-      List<PolicyThreats.PolicyConstraint> constraints =
-          PolicyThreatsAdapter.toPolicyThreatsPolicyConstraints(repositoryPolicyViolation.getConstraintFacts());
-      activeRepositoryViolationDTOs
-          .add(new DeprecatedRepositoryPolicyViolationDTO(repositoryPolicyViolation.getPolicyId(),
-              repositoryPolicyViolation.getPolicyName(), repositoryPolicyViolation.getThreatLevel(),
-              Action.ID_FAIL.equals(repositoryPolicyViolation.getActionTypeId()), constraints,
-              repositoryPolicyViolation.getConstraintFactsJson()));
-    }
-
-    return new DeprecatedRepositoryPolicyThreatDTO(activeRepositoryViolationDTOs);
-  }
-
   @Authorize(permission = Permission.READ)
   RepositorySummary getRepositorySummary(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
     long start = System.currentTimeMillis();
@@ -227,98 +185,6 @@ public class RepositoryService
 
     return summary;
   }
-
-  /**
-   * @deprecated The related API endpoint is deprecated. To be removed when the Repository Results View migration to
-   * React is completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Deprecated
-  public List<RepositoryReportDetail> getReportDetails(final String repositoryId, String hash, String pathname) {
-    final Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
-
-    log.debug("Get report details for repository {}:{} ({})", repository.getRepositoryManagerId(),
-        repository.getPublicId(), repository.getId());
-
-    return getReportDetails(repository, hash, pathname);
-  }
-
-  /**
-   * @deprecated The related API endpoint is deprecated. To be removed when the Repository Results View migration to
-   * React is completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Authorize(permission = Permission.READ)
-  @Deprecated
-  List<RepositoryReportDetail> getReportDetails(@AuthzContext(Key.REPOSITORY) final Repository repository,
-                                                String hash,
-                                                String pathname)
-  {
-    final List<RepositoryReportDetail> details = new ArrayList<>();
-
-    final List<RepositoryComponent> componentList;
-    if (hash != null) {
-      if (pathname != null) {
-        throw new BadRequestException("Either a pathname or a hash is supported, not both.");
-      }
-      componentList = repositoryComponentDAO.getByRepositoryIdAndHash(repository.getId(), hash);
-    }
-    else if (pathname != null) {
-      componentList = Collections
-          .singletonList(repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), pathname));
-    }
-    else {
-      componentList = repositoryComponentDAO.getByRepositoryId(repository.getId());
-    }
-
-    for (final RepositoryComponent component : componentList) {
-
-      final List<RepositoryPolicyViolation> componentViolations = repositoryPolicyViolationDAO
-          // violations are sorted by 'ThreatLevel DESC, policyId', so highestThreatLevel per component is first
-          .getActiveByRepositoryIdAndPathname(repository.getId(), component.getPathname());
-      boolean highestThreatLevel = true;
-
-      if (componentViolations.size() > 0) {
-        boolean allWaived = true;
-        for (final RepositoryPolicyViolation violation : componentViolations) {
-          details.add(RepositoryReportDetail.create(component, violation, highestThreatLevel));
-          // like the CI report, we choose one of the violations and use it as the highest.
-          highestThreatLevel = violation.isWaived() ? highestThreatLevel : false;
-          allWaived = allWaived && violation.isWaived();
-        }
-        // if all violations of this component are waived, we still want to return a 'no violation' entry
-        if (allWaived) {
-          details.add(RepositoryReportDetail.create(component));
-        }
-      }
-      else {
-        details.add(RepositoryReportDetail.create(component));
-      }
-    }
-
-    // sort by threatLevel DESC, pathname ASC
-    // note the UI is dependant on this sort order
-    details.sort(THREAT_LEVEL_DESC_PATHNAME_ASC);
-
-    return details;
-  }
-
-  /**
-   * Sort by threatLevel DESC, pathname ASC.
-   *
-   * @deprecated The related API endpoint is deprecated.
-   *             To be removed when the Repository Results View migration to
-   *             React is completed (Epic: https://issues.sonatype.org/browse/CLM-20597)
-   */
-  @Deprecated
-  static final Comparator<RepositoryReportDetail> THREAT_LEVEL_DESC_PATHNAME_ASC = (detail1, detail2) -> {
-    // sort ThreatLevel Descending
-    final int cmpThreatLevel = detail2.getThreatLevel() - detail1.getThreatLevel();
-    if (cmpThreatLevel != 0) {
-      return cmpThreatLevel;
-    }
-
-    // sort pathname Ascending
-    return detail1.getPathname().compareTo(detail2.getPathname());
-  };
 
   /**
    * @since 1.18.0

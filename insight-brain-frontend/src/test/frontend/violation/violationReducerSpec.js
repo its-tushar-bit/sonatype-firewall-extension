@@ -27,7 +27,7 @@ describe('violationReducer', function () {
       const newState = reducer(undefined, action);
       expect(newState.violationDetails).toBe(null);
       expect(newState.selectedViolationId).toBe(null);
-      expect(newState.loading).toBe(true);
+      expect(newState.loading).toBe(false);
       expect(newState.violationDetailsError).toBe(null);
       expect(newState.vulnerabilityDetailsLoading).toBe(false);
       expect(newState.vulnerabilityDetails).toBe(null);
@@ -68,8 +68,8 @@ describe('violationReducer', function () {
     });
   });
 
-  describe('VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED action', function () {
-    it('resets to default state and sets the loading flag to true', function () {
+  describe('VIOLATION_RESET_VIOLATION_DETAILS_REQUESTED action', function () {
+    it('clears the store to its initial state', function () {
       const initialState = {
         violationDetails: {},
         selectedViolationId: '123',
@@ -79,6 +79,43 @@ describe('violationReducer', function () {
         vulnerabilityDetails: {},
         vulnerabilityDetailsError: 'bla',
         otherProp: 'asdf',
+        activeWaivers: [123],
+        expiredWaivers: [321],
+        hasPermissionForAppWaivers: false,
+      };
+
+      const newState = reducer(initialState, {
+        type: 'VIOLATION_RESET_VIOLATION_DETAILS_REQUESTED',
+      });
+
+      expect(newState).toEqual({
+        violationDetails: null,
+        loading: false,
+        violationDetailsError: null,
+        vulnerabilityDetailsLoading: false,
+        vulnerabilityDetails: null,
+        vulnerabilityDetailsError: null,
+        activeWaivers: [],
+        expiredWaivers: [],
+        selectedViolationId: null,
+        hasPermissionForAppWaivers: false,
+      });
+    });
+  });
+
+  describe('VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED action', function () {
+    it('sets the loading flag to true and clear violationDetailsError flag', function () {
+      const initialState = {
+        violationDetails: {},
+        selectedViolationId: '123',
+        violationDetailsError: 'foo',
+        loading: false,
+        vulnerabilityDetailsLoading: true,
+        vulnerabilityDetails: {},
+        vulnerabilityDetailsError: 'bla',
+        otherProp: 'asdf',
+        activeWaivers: [123],
+        expiredWaivers: [321],
         hasPermissionForAppWaivers: false,
       };
 
@@ -89,13 +126,14 @@ describe('violationReducer', function () {
       expect(newState).toEqual({
         loading: true,
         violationDetailsError: null,
-        violationDetails: null,
-        selectedViolationId: null,
-        vulnerabilityDetailsLoading: false,
-        vulnerabilityDetails: null,
-        vulnerabilityDetailsError: null,
-        activeWaivers: [],
-        expiredWaivers: [],
+        violationDetails: {},
+        selectedViolationId: '123',
+        vulnerabilityDetailsLoading: true,
+        vulnerabilityDetails: {},
+        vulnerabilityDetailsError: 'bla',
+        otherProp: 'asdf',
+        activeWaivers: [123],
+        expiredWaivers: [321],
         hasPermissionForAppWaivers: false,
       });
     });
@@ -209,22 +247,6 @@ describe('violationReducer', function () {
         vulnerabilityDetails: null,
         otherProp: 'asdf',
       });
-    });
-  });
-
-  describe('UI_ROUTER_ON_FINISH', function () {
-    it('resets loading to true but keeps violationDetails', function () {
-      const currentState = {
-        loading: false,
-        violationDetails: { prop: 'foo' },
-      };
-
-      const newState = reducer(currentState, {
-        type: '@@reduxUiRouter/onFinish',
-      });
-
-      expect(newState.loading).toBe(true);
-      expect(newState.violationDetails).toBe(currentState.violationDetails);
     });
   });
 

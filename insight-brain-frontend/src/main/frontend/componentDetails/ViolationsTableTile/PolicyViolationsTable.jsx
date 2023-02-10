@@ -39,6 +39,7 @@ export default function PolicyViolationsTable({
   toggleComponentWaiversPopover,
   waiverToDelete,
   setWaiverToDelete,
+  resetViolationDetails,
 }) {
   useEffect(() => {
     loadPolicyViolationsInformation();
@@ -47,6 +48,11 @@ export default function PolicyViolationsTable({
   const orderedViolations = violations ? sortByThreatLevelAndWaiverStatus(violations) : [];
 
   const containsOldViolations = orderedViolations.some((violation) => isNil(violation.policyViolationId));
+
+  const toggleShowViolationsDetail = () => {
+    resetViolationDetails();
+    toggleShowViolationsDetailPopover();
+  };
 
   return (
     <Fragment>
@@ -76,7 +82,7 @@ export default function PolicyViolationsTable({
             <PolicyViolationsTableRow
               key={violation.policyViolationId}
               violation={violation}
-              toggleShowViolationsDetailPopover={toggleShowViolationsDetailPopover}
+              toggleShowViolationsDetailPopover={toggleShowViolationsDetail}
               setSelectedPolicyViolationId={setSelectedPolicyViolationId}
             />
           ))}
@@ -84,7 +90,7 @@ export default function PolicyViolationsTable({
       </NxTable>
       {!loading && !error && (
         <Fragment>
-          {showViolationsDetailPopover && <PolicyViolationDetailsPopover onClose={toggleShowViolationsDetailPopover} />}
+          {showViolationsDetailPopover && <PolicyViolationDetailsPopover onClose={toggleShowViolationsDetail} />}
           {showComponentWaiversPopover && (
             <ComponentWaiversPopover
               componentName={componentName}
@@ -113,6 +119,7 @@ PolicyViolationsTable.propTypes = {
   loading: PropTypes.bool,
   showComponentWaiversPopover: PropTypes.bool.isRequired,
   toggleComponentWaiversPopover: PropTypes.func.isRequired,
+  resetViolationDetails: PropTypes.func.isRequired,
   setSelectedPolicyViolationId: PropTypes.func.isRequired,
   setWaiverToDelete: PropTypes.func.isRequired,
   waiverToDelete: PropTypes.shape(waiverType),

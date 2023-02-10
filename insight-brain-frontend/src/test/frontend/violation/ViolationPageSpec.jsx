@@ -167,6 +167,8 @@ describe('ViolationPage', function () {
       loadFirewallViolationDetails: loadFirewallViolationDetailsSpy,
       loadApplicableWaivers: loadApplicableWaiversSpy,
       hasPermissionForAppWaivers: true,
+      activeWaivers: [],
+      expiredWaivers: [],
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ViolationPage, minimalProps);
@@ -218,6 +220,27 @@ describe('ViolationPage', function () {
 
   it('calls loadViolation whenever the selectedViolationId prop changes', function () {
     const component = getMountedComponent();
+
+    expect(loadViolationSpy).toHaveBeenCalledWith('foo');
+    expect(loadViolationSpy).not.toHaveBeenCalledWith('bar');
+
+    component.setProps({ selectedViolationId: 'bar' });
+
+    expect(loadViolationSpy).toHaveBeenCalledWith('bar');
+  });
+
+  it('calls loadViolation whenever the violation details is null and isFirewallContext is false', function () {
+    const violationDetails = null,
+      isFirewallContext = false,
+      stageTypes = {},
+      stateGo = () => {},
+      component = getMountedComponent({
+        ...minimalProps,
+        violationDetails,
+        isFirewallContext,
+        stageTypes,
+        stateGo,
+      });
 
     expect(loadViolationSpy).toHaveBeenCalledWith('foo');
     expect(loadViolationSpy).not.toHaveBeenCalledWith('bar');

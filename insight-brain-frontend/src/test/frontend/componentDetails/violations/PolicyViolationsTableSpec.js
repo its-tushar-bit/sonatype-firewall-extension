@@ -28,7 +28,8 @@ describe('PolicyViolationsTable', () => {
       loading: false,
       error: null,
       loadPolicyViolationsInformation: jasmine.createSpy('loadPolicyViolationsInformation'),
-      toggleShowViolationsDetailPopover: () => {},
+      toggleShowViolationsDetailPopover: jasmine.createSpy('toggleShowViolationsDetailPopover'),
+      resetViolationDetails: jasmine.createSpy('resetViolationDetails'),
       setSelectedPolicyViolationId: () => {},
       showViolationsDetailPopover: false,
       showComponentWaiversPopover: false,
@@ -198,7 +199,7 @@ describe('PolicyViolationsTable', () => {
 
       violationsDetail = getShallow({ showViolationsDetailPopover: true }).find(PolicyViolationDetailsPopover);
       expect(violationsDetail).toExist();
-      expect(violationsDetail).toHaveProp('onClose', minimalProps.toggleShowViolationsDetailPopover);
+      expect(violationsDetail).toHaveProp('onClose');
     });
   });
 });

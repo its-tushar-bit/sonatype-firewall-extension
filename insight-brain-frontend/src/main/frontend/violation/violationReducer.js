@@ -13,12 +13,12 @@ import {
   VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED,
   VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED,
   VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED,
+  VIOLATION_RESET_VIOLATION_DETAILS_REQUESTED,
 } from './violationActions';
-import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
 const initialState = Object.freeze({
   violationDetails: null,
-  loading: true,
+  loading: false,
   violationDetailsError: null,
   vulnerabilityDetailsLoading: false,
   vulnerabilityDetails: null,
@@ -30,6 +30,7 @@ const initialState = Object.freeze({
 });
 
 const reducerActionMap = {
+  [VIOLATION_RESET_VIOLATION_DETAILS_REQUESTED]: resetViolation,
   [VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED]: loadViolationRequested,
   [VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED]: fetchCrossStageViolationFulfilled,
   [VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED]: fetchApplicableWaiversFulfilled,
@@ -38,13 +39,19 @@ const reducerActionMap = {
   [VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED]: propSetConst('vulnerabilityDetailsLoading', true),
   [VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED]: loadVulnerabilityDetailsFulfilled,
   [VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED]: loadVulnerabilityDetailsFailed,
-  [UI_ROUTER_ON_FINISH]: propSetConst('loading', true),
 };
 
-function loadViolationRequested() {
+function resetViolation() {
   return {
     ...initialState,
+  };
+}
+
+function loadViolationRequested(_, state) {
+  return {
+    ...state,
     loading: true,
+    violationDetailsError: null,
   };
 }
 

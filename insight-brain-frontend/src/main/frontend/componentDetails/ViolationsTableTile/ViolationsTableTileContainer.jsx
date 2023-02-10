@@ -23,6 +23,7 @@ import { setWaiverToDelete } from '../../waivers/waiverActions';
 import { stateGo } from '../../reduxUiRouter/routerActions';
 import { selectSelectedComponent } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { getComponentNameWithoutVersion } from 'MainRoot/util/componentNameUtils';
+import { resetViolationDetails } from '../../violation/violationActions';
 
 function mapStateToProps(state) {
   const {
@@ -70,6 +71,7 @@ const mapDispatchToProps = {
   setSelectedPolicyViolationId: actions.setSelectedPolicyViolationId,
   setViolationType: actions.setViolationType,
   setWaiverToDelete,
+  resetViolationDetails,
   stateGo,
 };
 

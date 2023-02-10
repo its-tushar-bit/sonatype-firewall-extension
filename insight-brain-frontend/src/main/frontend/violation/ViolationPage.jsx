@@ -51,7 +51,7 @@ export default function ViolationPage(props) {
   const constraintViolations = isFirewallContext ? policyDetail.constraints : detailViolations;
 
   const violationLoading = isFirewallContext
-    ? !loading || !policyViolations
+    ? loading || !policyViolations
     : loading || !(violationDetails && stageTypes);
 
   const conditionTriggerReference = isFirewallContext
@@ -69,7 +69,9 @@ export default function ViolationPage(props) {
 
   function load() {
     if (!isFirewallContext) {
-      loadViolation(selectedViolationId);
+      if (selectedViolationId && violationDetails?.policyViolationId !== selectedViolationId) {
+        loadViolation(selectedViolationId);
+      }
     } else {
       loadFirewallViolationDetails(selectPolicyId);
       loadApplicableWaivers(selectPolicyId);

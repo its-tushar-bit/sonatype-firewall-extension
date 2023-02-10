@@ -24,6 +24,8 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
+import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 import com.sonatype.insight.db.DatabaseConfig;
@@ -110,6 +112,11 @@ public class MultiTenantDatabaseTestRule
 
   public void initializeDatabase() {
     databaseProvisionUtils.initializeDatabases(insightConfig, databaseConfigProvider);
+  }
+
+  public void provisionDatabaseForTenant(Tenant tenant) {
+    TenantTestHelper.setTenant(tenant);
+    initializeDatabase();
   }
 
   private static <T extends Annotation> T isAnnotatedWith(final Description description, Class<T> clazz) {

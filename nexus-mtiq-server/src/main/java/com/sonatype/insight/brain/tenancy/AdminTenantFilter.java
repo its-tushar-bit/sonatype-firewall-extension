@@ -48,7 +48,7 @@ public class AdminTenantFilter
   {
     final String tenantName = request.getParameter(TENANT_PARAMETER);
 
-    if (StringUtils.isEmpty(tenantName)) {
+    if (StringUtils.isBlank(tenantName)) {
       createErrorResponse(response);
       log.debug("Invalid tenant parameter");
       return;

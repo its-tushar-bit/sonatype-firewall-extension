@@ -12,7 +12,6 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -23,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.TenantManagerTestHelper.setTestTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,9 +52,6 @@ public class MultiTenantRepositoryConfigurationCollectorTest
 
   @Test
   public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() {
-    Tenant tenant1 = createTenant("tenant1");
-    Tenant tenant2 = createTenant("tenant2");
-
     when(productLicense.hasFeature(any())).thenReturn(true);
 
     testAs(tenant1, t1 -> {

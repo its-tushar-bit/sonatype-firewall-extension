@@ -14,8 +14,10 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.net.InetAddresses;
+import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,24 +46,35 @@ public class TenantUrlFilter
   {
     final String serverName = request.getServerName();
 
-    if (InetAddresses.isInetAddress(serverName)) {
-      // the application health check comes in as an IP Address
-      tenantUtil.setGlobalTenant();
-    }
-    else {
-      String tenantName = tenantUtil.getTenantName(serverName);
-
-      tenantManager.setTenant(tenantName);
-    }
-
-    log.debug("Tenant context set to: " + tenantManager.getTenant().tenantSlug);
-
     try {
+      if (InetAddresses.isInetAddress(serverName)) {
+        // the application health check comes in as an IP Address
+        tenantUtil.setGlobalTenant();
+      }
+      else {
+        String tenantName = tenantUtil.getTenantName(serverName);
+
+        tenantManager.setTenant(tenantName);
+      }
+
+      log.debug("Tenant context set to: {}", tenantManager.getTenant().tenantSlug);
+
       chain.doFilter(request, response);
+    }
+    catch (IllegalArgumentException exception) {
+      createTenantNotFoundResponse(response);
+      log.debug("Error registering tenant: {} Error: ", serverName, exception.getMessage());
     }
     finally {
       TenantThreadLocal.invalidateTenant();
     }
+  }
+
+  private void createTenantNotFoundResponse(final ServletResponse response) throws IOException {
+    HttpServletResponse httpResponse = (HttpServletResponse) response;
+    httpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+    httpResponse.setContentType(ContentType.TEXT_PLAIN.getMimeType());
+    httpResponse.getWriter().print("Not Found");
   }
 
   @Override

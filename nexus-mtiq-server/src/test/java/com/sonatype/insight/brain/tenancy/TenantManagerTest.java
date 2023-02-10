@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.tenancy;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
@@ -21,11 +20,11 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
+import static com.sonatype.insight.brain.tenancy.TenantManager.TENANT_PARAMETER_CANNOT_BE_NULL;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.inOrder;
@@ -54,7 +53,7 @@ public class TenantManagerTest
   DatabaseProvisionUtils databaseProvisionUtils;
 
   @Mock
-  DatabaseConfigProvider databaseConfigProvider;
+  TenantValidator tenantValidator;
 
   List<TenantManaged> tenantManagedBeans;
 
@@ -70,9 +69,9 @@ public class TenantManagerTest
     tenantManagedBeans = new ArrayList<>();
     tenantManagedBeans.add(job);
 
-    underTest =
-        new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils,
-            databaseConfigProvider);
+    underTest = new TenantManager(tenantManagedBeans, config, () -> lifecycle, databaseProvisionUtils, tenantValidator);
+
+    when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
   }
 
   @Test
@@ -108,20 +107,30 @@ public class TenantManagerTest
 
   @Test
   public void shouldThrowIllegalArgumentException_whenTenantNameForAdminRequestNull() {
-    assertThatThrownBy(() -> underTest.setTenantForAdminRequest(null)).isInstanceOf(IllegalArgumentException.class)
-        .withFailMessage("Tenant parameter cannot be null");
+    assertThatThrownBy(() -> underTest.setTenantForAdminRequest(null))
+        .withFailMessage(TENANT_PARAMETER_CANNOT_BE_NULL)
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   public void shouldThrowIllegalArgumentException_whenTenantNameNull() {
-    assertThatThrownBy(() -> underTest.setTenant((String) null)).isInstanceOf(IllegalArgumentException.class)
-        .withFailMessage("Tenant parameter cannot be null");
+    assertThatThrownBy(() -> underTest.setTenant((String) null))
+        .withFailMessage(TENANT_PARAMETER_CANNOT_BE_NULL)
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void shouldThrowIllegalArgumentException_whenTenantNameEmpty() {
+    assertThatThrownBy(() -> underTest.setTenant(""))
+        .withFailMessage(TENANT_PARAMETER_CANNOT_BE_NULL)
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   public void shouldThrowIllegalArgumentException_whenTenantNull() {
-    assertThatThrownBy(() -> underTest.setTenant((Tenant) null)).isInstanceOf(IllegalArgumentException.class)
-        .withFailMessage("Tenant parameter cannot be null");
+    assertThatThrownBy(() -> underTest.setTenant((Tenant) null))
+        .withFailMessage(TENANT_PARAMETER_CANNOT_BE_NULL)
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
@@ -178,6 +187,15 @@ public class TenantManagerTest
     order.verifyNoMoreInteractions();
   }
 
+  @Test
+  public void shouldThrowIllegalArgumentException_whenTenantDoesntExist() {
+    when(tenantValidator.validateTenantExists(tenant)).thenReturn(false);
+
+    assertThatThrownBy(() -> underTest.setTenant(tenant))
+        .withFailMessage("Tenant doesn't exists")
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
   private void setTenantAndAssertRegistration() throws Exception {
     doAnswer(invocationOnMock -> {
       assertTenantSet(tenant);
@@ -188,7 +206,7 @@ public class TenantManagerTest
 
     verify(job).register();
     verify(lifecycle).bootTenant();
-    verify(databaseProvisionUtils).initializeDatabases(eq(config), any(DatabaseConfigProvider.class));
+    verify(databaseProvisionUtils).initializeDatabasesWithoutMigration(eq(config));
   }
 
   private static class MockTenantManaged

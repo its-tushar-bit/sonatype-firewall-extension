@@ -15,14 +15,12 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.tenancy.TenantManagerTestHelper.setTestTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,9 +51,6 @@ public class MultiTenantHierarchyMetricsTelemetryCollectorTest
 
   @Test
   public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() {
-    Tenant tenant1 = createTenant("tenant1");
-    Tenant tenant2 = createTenant("tenant2");
-
     setTenant(tenant1);
     setTestTenant(tenantManager, tenant1);
     createAppsAndOrgs(2);

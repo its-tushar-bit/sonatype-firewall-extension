@@ -14,11 +14,11 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +36,8 @@ public class TenantManager
 {
   private static final Logger log = LoggerFactory.getLogger(TenantManager.class);
 
+  static final String TENANT_PARAMETER_CANNOT_BE_NULL = "Tenant parameter cannot be null";
+
   private final Map<Tenant, Boolean> registeredTenants = new ConcurrentHashMap<>();
 
   private final Collection<TenantManaged> tenantManagedBeans;
@@ -47,7 +49,7 @@ public class TenantManager
 
   private final DatabaseProvisionUtils databaseProvisionUtils;
 
-  private final DatabaseConfigProvider databaseConfigProvider;
+  private final TenantValidator tenantValidator;
 
   @Inject
   public TenantManager(
@@ -55,13 +57,13 @@ public class TenantManager
       final InsightConfig insightConfig,
       final Provider<TenantLifecycle> tenantLifecycle,
       final DatabaseProvisionUtils databaseProvisionUtils,
-      final DatabaseConfigProvider databaseConfigProvider)
+      final TenantValidator tenantValidator)
   {
     this.tenantManagedBeans = tenantManagedBeans;
     this.insightConfig = insightConfig;
     this.tenantLifecycle = tenantLifecycle;
     this.databaseProvisionUtils = databaseProvisionUtils;
-    this.databaseConfigProvider = databaseConfigProvider;
+    this.tenantValidator = tenantValidator;
   }
 
   public Tenant getTenant() {
@@ -69,8 +71,8 @@ public class TenantManager
   }
 
   void setTenant(final String tenant) {
-    if (tenant == null) {
-      throw new IllegalArgumentException("Tenant parameter cannot be null");
+    if (StringUtils.isBlank(tenant)) {
+      throw new IllegalArgumentException(TENANT_PARAMETER_CANNOT_BE_NULL);
     }
 
     setTenant(new Tenant(tenant));
@@ -86,7 +88,7 @@ public class TenantManager
 
   void setTenant(final Tenant tenant) {
     if (tenant == null) {
-      throw new IllegalArgumentException("Tenant parameter cannot be null.");
+      throw new IllegalArgumentException(TENANT_PARAMETER_CANNOT_BE_NULL);
     }
 
     TenantThreadLocal.setTenant(tenant);
@@ -102,8 +104,15 @@ public class TenantManager
 
     try {
       if (registeredTenants.putIfAbsent(tenant, true) == null) {
-        runAndLogTime("registration", tenant, System.currentTimeMillis(), () -> performRegistration(tenant));
+        long start = runAndLogTime("validate tenant", tenant, System.currentTimeMillis(),
+            () -> validateTenant(tenant));
+
+        runAndLogTime("registration", tenant, start, () -> performRegistration(tenant));
       }
+    }
+    catch (IllegalArgumentException e) {
+      registeredTenants.remove(tenant);
+      throw e;
     }
     catch (Exception e) {
       throw new RuntimeException(e);
@@ -117,11 +126,21 @@ public class TenantManager
     log.info("Registering tenant {}", tenant.tenantSlug);
 
     long start = runAndLogTime("database init", tenant, System.currentTimeMillis(),
-        () -> databaseProvisionUtils.initializeDatabases(insightConfig, databaseConfigProvider));
+        () -> databaseProvisionUtils.initializeDatabasesWithoutMigration(insightConfig));
 
     start = runAndLogTime("jobs init", tenant, start, this::setupTenantJobs);
 
     runAndLogTime("app boot", tenant, start, tenantLifecycle.get()::bootTenant);
+  }
+
+  /**
+   * Validates a tenant before registration
+   */
+  private void validateTenant(final Tenant tenant) {
+    if (!tenantValidator.validateTenantExists(tenant)) {
+      log.debug("Tenant doesn't exist: {}", tenant.tenantSlug);
+      throw new IllegalArgumentException("Tenant doesn't exist");
+    }
   }
 
   private void setupTenantJobs() {

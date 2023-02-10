@@ -5,10 +5,12 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
+import java.io.PrintWriter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
 
+import org.apache.http.entity.ContentType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,6 +21,8 @@ import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,10 +41,13 @@ public class TenantUrlFilterTest
   ServletRequest request;
 
   @Mock
-  ServletResponse response;
+  HttpServletResponse response;
 
   @Mock
   FilterChain chain;
+
+  @Mock
+  PrintWriter printWriter;
 
   TenantUrlFilter underTest;
 
@@ -86,6 +93,29 @@ public class TenantUrlFilterTest
     underTest.doFilter(request, response, chain);
 
     verify(chain).doFilter(request, response);
+  }
+
+  @Test
+  public void shouldCreateErrorResponse_whenErrorRegisteringTenant() throws Exception {
+    doThrow(new IllegalArgumentException("Error registering tenant")).when(tenantManager).setTenant(TENANT_NAME);
+    when(response.getWriter()).thenReturn(printWriter);
+
+    underTest.doFilter(request, response, chain);
+
+    verify(response).setStatus(HttpServletResponse.SC_NOT_FOUND);
+    verify(response).setContentType(ContentType.TEXT_PLAIN.getMimeType());
+    verify(response).getWriter();
+    verify(printWriter).print("Not Found");
+  }
+
+  @Test
+  public void shouldNotPassRequestDownChain_whenErrorRegisteringTenant() throws Exception {
+    doThrow(new IllegalArgumentException("Error registering tenant")).when(tenantManager).setTenant(TENANT_NAME);
+    when(response.getWriter()).thenReturn(printWriter);
+
+    underTest.doFilter(request, response, chain);
+
+    verify(chain, never()).doFilter(request, response);
   }
 
   private void underTestDoFilter() {

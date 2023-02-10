@@ -16,8 +16,10 @@ import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantManager;
+import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.test.MultiTenantDatabaseTestRule;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -30,20 +32,30 @@ public class MultiTenantRolePermissionDAOTest
 {
   private final RolePermissionDAO permDAO = new RolePermissionDAO();
 
+  private Tenant tenant1;
+
+  private Tenant tenant2;
+
   @Rule
   public MultiTenantDatabaseTestRule multiTenantDatabaseTestRule = new MultiTenantDatabaseTestRule();
+
+  @Before
+  public void setUp() {
+    tenant1 = createTenant("tenant1");
+    tenant2 = createTenant("tenant2");
+    multiTenantDatabaseTestRule.provisionDatabaseForTenant(tenant1);
+    multiTenantDatabaseTestRule.provisionDatabaseForTenant(tenant2);
+  }
 
   @Test
   public void testRolePermissionDao_doesNotLeakDataBetweenTenants() {
     Collection<TenantManaged> tenantManagedBeans = Collections.emptyList();
     Provider<TenantLifecycle> tenantLifecycleProvider = () -> Mockito.mock(TenantLifecycle.class);
+    TenantValidator tenantValidator = new TenantValidator(multiTenantDatabaseTestRule.operationalDataStore);
 
     TenantManager tenantManager =
         new TenantManager(tenantManagedBeans, multiTenantDatabaseTestRule.insightConfig, tenantLifecycleProvider,
-            multiTenantDatabaseTestRule.databaseProvisionUtils, multiTenantDatabaseTestRule.databaseConfigProvider);
-
-    Tenant tenant1 = createTenant("tenant1");
-    Tenant tenant2 = createTenant("tenant2");
+            multiTenantDatabaseTestRule.databaseProvisionUtils, tenantValidator);
 
     setTestTenant(tenantManager, tenant1);
 

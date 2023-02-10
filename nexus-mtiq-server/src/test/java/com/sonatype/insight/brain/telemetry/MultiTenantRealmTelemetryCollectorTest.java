@@ -15,9 +15,9 @@ import javax.inject.Provider;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.service.TenantLifecycle;
-import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantManager;
+import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -28,7 +28,6 @@ import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.telemetry.RealmTelemetryCollector.SAML_CONFIGURED;
 import static com.sonatype.insight.brain.tenancy.TenantManagerTestHelper.setTestTenant;
-import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,10 +42,11 @@ public class MultiTenantRealmTelemetryCollectorTest
   public void setup() {
     Collection<TenantManaged> tenantManagedBeans = Collections.emptyList();
     Provider<TenantLifecycle> tenantLifecycleProvider = () -> Mockito.mock(TenantLifecycle.class);
+    TenantValidator tenantValidator = new TenantValidator(multiTenantDatabaseTestRule.operationalDataStore);
 
     tenantManager =
         new TenantManager(tenantManagedBeans, multiTenantDatabaseTestRule.insightConfig, tenantLifecycleProvider,
-            multiTenantDatabaseTestRule.databaseProvisionUtils, multiTenantDatabaseTestRule.databaseConfigProvider);
+            multiTenantDatabaseTestRule.databaseProvisionUtils, tenantValidator);
 
     samlConfigurationDAO = new SamlConfigurationDAO();
     telemetryCollector = new RealmTelemetryCollector(samlConfigurationDAO);
@@ -54,9 +54,6 @@ public class MultiTenantRealmTelemetryCollectorTest
 
   @Test
   public void testShouldNotLeakDataBetweenTenants_whenMultiTenantMode() {
-    Tenant tenant1 = createTenant("tenant1");
-    Tenant tenant2 = createTenant("tenant2");
-
     testAs(tenant1, t1 -> {
       setTestTenant(tenantManager, tenant1);
     });

@@ -15,8 +15,10 @@ import com.sonatype.insight.brain.service.TenantLifecycle;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantManager;
+import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.test.MultiTenantDatabaseTestRule;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -34,6 +36,14 @@ public class GlobalConfigFallbackTest
 
   private final SystemConfigurationPropertyDAO underTest = new SystemConfigurationPropertyDAO();
 
+  private Tenant tenant1;
+
+  @Before
+  public void setUp() {
+    tenant1 = createTenant("tenant1");
+    multiTenantDatabaseTestRule.provisionDatabaseForTenant(tenant1);
+  }
+
   @Test
   public void testConfigFallbackToGlobal_whenTenantValueNotSet() {
     String configKey = "key";
@@ -42,14 +52,14 @@ public class GlobalConfigFallbackTest
 
     Collection<TenantManaged> tenantManagedBeans = Collections.emptyList();
     Provider<TenantLifecycle> tenantLifecycleProvider = () -> Mockito.mock(TenantLifecycle.class);
+    TenantValidator tenantValidator = new TenantValidator(multiTenantDatabaseTestRule.operationalDataStore);
 
     TenantManager tenantManager =
         new TenantManager(tenantManagedBeans, multiTenantDatabaseTestRule.insightConfig, tenantLifecycleProvider,
-            multiTenantDatabaseTestRule.databaseProvisionUtils, multiTenantDatabaseTestRule.databaseConfigProvider);
+            multiTenantDatabaseTestRule.databaseProvisionUtils, tenantValidator);
 
     testAs(GLOBAL_TENANT, t -> underTest.insert(new SystemConfigurationProperty(configKey, globalConfigValue)));
 
-    Tenant tenant1 = createTenant("tenant1");
     testAs(tenant1, t -> {
       setTestTenant(tenantManager, tenant1);
 

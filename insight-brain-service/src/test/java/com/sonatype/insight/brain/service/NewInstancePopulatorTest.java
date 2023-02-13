@@ -114,7 +114,7 @@ public class NewInstancePopulatorTest
 
   @Test
   @ManualServerInit
-  public void testPopulateIfNewInstance_RIPolicyAutoCreated_SampleDataEnabled_CreatesSampleData()
+  public void testPopulateIfNewInstance_IRFeatureEnabled_SampleDataEnabled_CreatesSampleData()
       throws Exception
   {
     enableIntegrityRatingLicenseConfigFlag();
@@ -124,7 +124,7 @@ public class NewInstancePopulatorTest
 
   @Test
   @ManualServerInit
-  public void testPopulateIfNewInstance_RIPolicyAutoCreated_SampleDataDisabled_SampleDataNotCreated()
+  public void testPopulateIfNewInstance_IRFeatureEnabled_SampleDataDisabled_SampleDataNotCreated()
       throws Exception
   {
     enableIntegrityRatingLicenseConfigFlag();
@@ -170,7 +170,7 @@ public class NewInstancePopulatorTest
 
   @Test
   @ManualServerInit
-  public void testPopulateIfNewInstance_RIPolicyAutoCreated_PolicyImportEnabled_ImportsReferencePolicies()
+  public void testPopulateIfNewInstance_IRFeatureEnabled_PolicyImportEnabled_ImportsReferencePolicies()
       throws Exception
   {
     enableIntegrityRatingLicenseConfigFlag();
@@ -180,7 +180,7 @@ public class NewInstancePopulatorTest
 
   @Test
   @ManualServerInit
-  public void testPopulateIfNewInstance_RIPolicyAutoCreated_PolicyImportDisabled_ReferencePoliciesNotImported()
+  public void testPopulateIfNewInstance_IRFeatureEnabled_PolicyImportDisabled_ReferencePoliciesNotImported()
       throws Exception
   {
     enableIntegrityRatingLicenseConfigFlag();

@@ -32,22 +32,9 @@ public class RepositoryReportResourceTest
     return restRequest().path(RepositoryReportResource.SUMMARY);
   }
 
-  private HttpRequest restPolicyThreatRequest(final String repositoryId, final String pathname) {
-    return restRequest().path(RepositoryReportResource.POLICY_THREAT_PATH).parameter(repositoryId, pathname);
-  }
-
   @Before
   public void createRepositoryManager() {
     repositoryManager = tempEntity.newRepositoryManager();
-  }
-
-  private HttpResponse testGet(final String subPath, final String repositoryId, final int expectedStatus)
-      throws Exception
-  {
-    final HttpResponse response = restRequest().path(subPath).parameter(repositoryId).get();
-
-    assertResponseStatus(expectedStatus, response);
-    return response;
   }
 
   @Test

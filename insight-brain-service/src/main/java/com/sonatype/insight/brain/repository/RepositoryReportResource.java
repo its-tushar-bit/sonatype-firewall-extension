@@ -26,13 +26,9 @@ import com.codahale.metrics.annotation.Timed;
 @Path(RepositoryReportResource.RESOURCE_PATH)
 public class RepositoryReportResource
 {
-  public static final String SUMMARY = "summary";
+  static final String SUMMARY = "summary";
 
-  static final String DETAILS_PATH = "details";
-
-  static final String POLICY_THREAT_PATH = "policyThreat/{pathname: .+}";
-
-  public static final String RESOURCE_PATH = "rest/repositories/{repositoryId}/report";
+  static final String RESOURCE_PATH = "rest/repositories/{repositoryId}/report";
 
   private final RepositoryService repositoryService;
 

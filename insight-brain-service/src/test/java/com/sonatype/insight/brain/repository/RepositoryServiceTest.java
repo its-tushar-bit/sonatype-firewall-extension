@@ -669,25 +669,6 @@ public class RepositoryServiceTest extends AbstractComponentTest
     actual.forEach(repo -> assertThat(repo.getId()).isIn(repoIds));
   }
 
-  private RepositoryComponent createRepositoryPolicyViolation(final Repository repository,
-                                                              final String pathname,
-                                                              int... threatLevels)
-  {
-    return createRepositoryPolicyViolation(repository, pathname, false, threatLevels);
-  }
-
-  private RepositoryComponent createRepositoryPolicyViolation(final Repository repository,
-                                                              final String pathname,
-                                                              final boolean waived,
-                                                              int... threatLevels)
-  {
-    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), pathname);
-    for (final int threatLevel : threatLevels) {
-      tempEntity.newRepositoryPolicyViolation(repository.getId(), threatLevel, pathname, waived, null);
-    }
-    return component;
-  }
-
   private Policy createQuarantiningPolicy(Repository repository) {
     Policy policy = tempEntity.newPolicy(repository.getParentOwnerId());
     policy.setAction(ProxyStageType.ID, Action.ID_FAIL);

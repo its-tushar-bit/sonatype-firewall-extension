@@ -270,11 +270,11 @@ public class ProprietaryComponentNamePatternDAOTest
   public void testGetByFilter_SortOnNamespaceAndName() {
     // Create patterns in reverse order so the creation order doesn't match the sorting
     ProprietaryComponentNamePattern pattern3 = tempEntity.newProprietaryComponentNamePattern(repoManId, repoId, "maven",
-        "testNamespacePattern3", "testNamePattern3");
+        "testNamespacePattern3", null);
     ProprietaryComponentNamePattern pattern2 = tempEntity.newProprietaryComponentNamePattern(repoManId, repoId, "maven",
-        "testNamespacePattern2", "testNamePattern2");
+        null, "testNamePattern2");
     ProprietaryComponentNamePattern pattern1 = tempEntity.newProprietaryComponentNamePattern(repoManId, repoId, "maven",
-        "testNamespacePattern1", "testNamePattern1");
+        "testNamespacePattern1", null);
 
     ProprietaryComponentNamePatternFilter filter = new ProprietaryComponentNamePatternFilter();
     filter.page = 1;
@@ -286,8 +286,8 @@ public class ProprietaryComponentNamePatternDAOTest
         true /* asc */, 1 /* sortPriority */));
     List<ProprietaryComponentNamePattern> result = dao.getByFilter(filter);
     assertThat(result).hasSize(3);
-    assertPattern(result.get(0), pattern1);
-    assertPattern(result.get(1), pattern2);
+    assertPattern(result.get(0), pattern2);
+    assertPattern(result.get(1), pattern1);
     assertPattern(result.get(2), pattern3);
 
     // Sort on namespace+name DESC
@@ -297,8 +297,8 @@ public class ProprietaryComponentNamePatternDAOTest
     result = dao.getByFilter(filter);
     assertThat(result).hasSize(3);
     assertPattern(result.get(0), pattern3);
-    assertPattern(result.get(1), pattern2);
-    assertPattern(result.get(2), pattern1);
+    assertPattern(result.get(1), pattern1);
+    assertPattern(result.get(2), pattern2);
   }
 
   @Test

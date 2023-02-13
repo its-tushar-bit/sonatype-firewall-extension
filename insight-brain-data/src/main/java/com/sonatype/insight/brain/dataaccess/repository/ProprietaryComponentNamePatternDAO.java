@@ -63,7 +63,7 @@ public class ProprietaryComponentNamePatternDAO
         "format, " + //
         "namespace_pattern, " + //
         "name_pattern, " + //
-        "CONCAT(namespace_pattern, '|', name_pattern) as pattern, " + // to be able to sort and filter on both fields
+        "CONCAT(namespace_pattern, name_pattern) as pattern, " + // to be able to sort and filter on both fields
         "repository_manager_instance_id, " + //
         "repository_public_id" + //
         " FROM " + OperationalDataStoreProvider.getDatabaseSchema() + ".proprietary_component_name_pattern";

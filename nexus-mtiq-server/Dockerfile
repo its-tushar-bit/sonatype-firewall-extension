@@ -4,13 +4,13 @@
 # "Sonatype" is a trademark of Sonatype, Inc.
 #
 # MTIQ Docker image:
-# - To build locally: docker build --tag docker-all.repo.sonatype.com/mtiq/snapshot .
+# - To build locally: docker build --tag docker-all.repo.sonatype.com/mtiq/server .
 # - To run locally: docker run -it --rm --name mtiq-docker \
 #   --user $(id -u):$(id -g) \  # So files created in the image are owned by your user
 #   --net collin-local-dev \    # Optional. Put on the same Docker network as your postgres
 #   -v /path/to/your/config-mtiq-docker.yml:/etc/nexus-iq-server/config.yaml
 #   -v $HOME/dev/work/bin/sonatype-work:/sonatype-work \
-#   docker-all.repo.sonatype.com/mtiq/snapshot:latest
+#   docker-all.repo.sonatype.com/mtiq:latest
 
 ARG SONATYPE_PRIVATE_REGISTRY=docker-all.repo.sonatype.com
 

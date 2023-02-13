@@ -143,7 +143,7 @@ void pushDockerImageIfDeployBranch() {
     // Build MTIQ
     dir("nexus-mtiq-server") {
       withSonatypeDockerRegistry() {
-        imageName = 'mtiq/snapshot'
+        imageName = 'mtiq/server'
         fullImage = "${sonatypeDockerRegistryId()}/${imageName}:${imageVersion}"
 
         sh "docker build --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} --tag ${imageName}:${imageVersion} ."

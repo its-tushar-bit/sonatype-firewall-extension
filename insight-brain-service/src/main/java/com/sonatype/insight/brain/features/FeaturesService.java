@@ -36,7 +36,7 @@ public class FeaturesService
 
   private final ProductLicense productLicense;
 
-  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+  protected final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   private final Configuration configuration;
 

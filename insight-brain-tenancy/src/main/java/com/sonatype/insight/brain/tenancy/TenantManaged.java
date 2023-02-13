@@ -48,4 +48,12 @@ public interface TenantManaged
   default int registrationPriority() {
     return 99;
   }
+
+  /**
+   * In certain circumstances we need the ability to also "register" the global tenant. An example is setting up
+   * default configuration, we want that to run for Global and every other tenant.
+   */
+  default boolean includeGlobalTenantDuringRegistration() {
+    return false;
+  }
 }

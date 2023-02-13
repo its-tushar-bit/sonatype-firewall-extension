@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.api.admin;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.license.model.Feature;
 
 import org.slf4j.Logger;
@@ -23,7 +25,11 @@ public class ConfigFeaturesService
 {
   private static final Logger log = LoggerFactory.getLogger(ConfigFeaturesService.class);
 
-  public ConfigFeaturesService() {
+  MTIQFeatureService mtiqFeatureService;
+
+  @Inject
+  public ConfigFeaturesService(MTIQFeatureService mtiqFeatureService) {
+    this.mtiqFeatureService = mtiqFeatureService;
   }
 
   /**
@@ -31,9 +37,10 @@ public class ConfigFeaturesService
    */
   public Set<Feature> getAllFeatures() {
     Set<Feature> features = Arrays.stream(SystemConfigurationPropertyFeature.values())
+        .filter(feature -> mtiqFeatureService.isEnabled(feature))
         .collect(Collectors.toSet());
 
-    log.debug("Found features: {}", features);
+    log.debug("Found all features: {}", features);
     return features;
   }
 
@@ -42,8 +49,9 @@ public class ConfigFeaturesService
    */
   public Set<Feature> getFeatures() {
     Set<Feature> features = Arrays.stream(SystemConfigurationPropertyFeature.values())
-          .filter(SystemConfigurationPropertyFeature::isEnabled)
-          .collect(Collectors.toSet());
+        .filter(SystemConfigurationPropertyFeature::isEnabled)
+        .filter(feature -> mtiqFeatureService.isEnabled(feature))
+        .collect(Collectors.toSet());
 
     log.debug("Found features: {}", features);
     return features;

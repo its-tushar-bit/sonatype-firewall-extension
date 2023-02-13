@@ -13,6 +13,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class MultiTenantTenantManagedInitializerTest
     extends MultiTenantTest
@@ -81,6 +82,23 @@ public class MultiTenantTenantManagedInitializerTest
     initializer.stop();
 
     verify(job).deregister();
+  }
+
+  @Test
+  public void shouldCallRegisterOnStart_whenNotGlobalTenantJob_butGlobalTenantRegistration() throws Exception {
+    TenantManaged job1 = mock(TenantManaged.class);
+    when(job1.includeGlobalTenantDuringRegistration()).thenReturn(true);
+
+    TenantManaged job2 = mock(TenantManaged.class);
+    when(job2.includeGlobalTenantDuringRegistration()).thenReturn(false);
+
+    MultiTenantTenantManagedInitializer initializer =
+        new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2));
+
+    initializer.start();
+
+    verify(job1).register();
+    verify(job2, never()).register();
   }
 
   private static class MockTenantManaged

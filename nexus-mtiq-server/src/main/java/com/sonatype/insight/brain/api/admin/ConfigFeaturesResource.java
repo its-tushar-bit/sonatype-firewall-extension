@@ -18,9 +18,9 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.license.model.Feature;
 
 @Named
@@ -32,16 +32,13 @@ public class ConfigFeaturesResource
 
   public static final String ALL = "all";
 
-  private final ApiConfigFeaturesService apiConfigFeaturesService;
+  private final MTIQFeatureService mtiqFeatureService;
 
   private final ConfigFeaturesService configFeaturesService;
 
   @Inject
-  public ConfigFeaturesResource(
-      ApiConfigFeaturesService apiConfigFeaturesService,
-      ConfigFeaturesService configFeaturesService)
-  {
-    this.apiConfigFeaturesService = apiConfigFeaturesService;
+  public ConfigFeaturesResource(MTIQFeatureService mtiqFeatureService, ConfigFeaturesService configFeaturesService) {
+    this.mtiqFeatureService = mtiqFeatureService;
     this.configFeaturesService = configFeaturesService;
   }
 
@@ -62,13 +59,13 @@ public class ConfigFeaturesResource
   @Audited(AuditEvent.SET_FEATURES)
   @Path(FEATURE)
   public void enabledFeature(@PathParam("feature") String feature) {
-    apiConfigFeaturesService.enableFeatureNoAuthz(feature);
+    mtiqFeatureService.enableFeature(feature);
   }
 
   @DELETE
   @Audited(AuditEvent.UNSET_FEATURES)
   @Path(FEATURE)
   public void disableFeature(@PathParam("feature") String feature) {
-    apiConfigFeaturesService.disableFeatureNoAuthz(feature);
+    mtiqFeatureService.disableFeature(feature);
   }
 }

@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
+import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.hds.MultiTenantTelemetryId;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
@@ -42,6 +43,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
 import com.sonatype.insight.brain.service.banning.BannedImplementationService;
+import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.brain.telemetry.MultiTenantTelemetryCollectorsProvider;
 import com.sonatype.insight.brain.telemetry.TelemetryCollectorsProvider;
 import com.sonatype.insight.brain.tenancy.AdminTenantFilter;
@@ -61,7 +63,6 @@ import com.google.inject.Singleton;
 import io.dropwizard.cli.Command;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-
 import org.apache.shiro.guice.web.GuiceShiroFilter;
 import org.eclipse.sisu.BeanEntry;
 import org.eclipse.sisu.inject.BeanLocator;
@@ -261,6 +262,8 @@ public class MultiTenantInsightBrainService
         bind(TelemetryCollectorsProvider.class).to(MultiTenantTelemetryCollectorsProvider.class);
 
         bind(RepositoryIdentifiedComponentCache.class).to(MultiTenantRepositoryIdentifiedComponentCache.class);
+
+        bind(FeaturesService.class).to(MTIQFeatureService.class);
       }
     };
   }

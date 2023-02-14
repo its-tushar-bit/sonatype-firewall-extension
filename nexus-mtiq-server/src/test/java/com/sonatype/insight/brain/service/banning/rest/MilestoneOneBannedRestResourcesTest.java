@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service.banning.rest;
 
+import com.sonatype.insight.brain.api.v2.ApiCrowdConfigurationResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiCycloneDxResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiEvaluationResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiJiraConfigurationResource;
@@ -13,6 +14,7 @@ import com.sonatype.insight.brain.api.v2.ApiLegalReportResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiMailConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiMetricsReportingResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiOrganizationResourceV2;
+import com.sonatype.insight.brain.api.v2.ApiProxyServerConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiReportResourceV2;
 import com.sonatype.insight.brain.api.v2.ApiRepositoryConnectionResourceV2;
@@ -38,6 +40,13 @@ import com.sonatype.insight.brain.api.v2.DefaultApiSourceControlResource;
 import com.sonatype.insight.brain.api.v2.DefaultApiVulnerabilityDetailsResourceV2;
 import com.sonatype.insight.brain.api.v2.DefaultRepositoryConnectionResource;
 import com.sonatype.insight.brain.api.v2.DefaultRepositoryIdentifiedComponentResource;
+import com.sonatype.insight.brain.configuration.AutomaticApplicationsConfigurationResource;
+import com.sonatype.insight.brain.configuration.AutomaticSourceControlConfigurationResource;
+import com.sonatype.insight.brain.configuration.SystemNoticeResource;
+import com.sonatype.insight.brain.configuration.ldap.LdapResource;
+import com.sonatype.insight.brain.configuration.webhook.WebhookResource;
+import com.sonatype.insight.brain.search.AdvancedSearchResource;
+import com.sonatype.insight.brain.successmetrics.SuccessMetricsResource;
 
 import org.junit.Test;
 
@@ -82,5 +91,15 @@ public class MilestoneOneBannedRestResourcesTest
     assertThat(underTest.isBanned(DefaultApiVulnerabilityDetailsResourceV2.class)).isTrue();
     assertThat(underTest.isBanned(ApiMailConfigurationResource.class)).isTrue();
     assertThat(underTest.isBanned(DefaultApiMailConfigurationResource.class)).isTrue();
+    assertThat(underTest.isBanned(LdapResource.class)).isTrue();
+    assertThat(underTest.isBanned(ApiMailConfigurationResource.class)).isTrue();
+    assertThat(underTest.isBanned(ApiProxyServerConfigurationResource.class)).isTrue();
+    assertThat(underTest.isBanned(SystemNoticeResource.class)).isTrue();
+    assertThat(underTest.isBanned(SuccessMetricsResource.class)).isTrue();
+    assertThat(underTest.isBanned(AutomaticApplicationsConfigurationResource.class)).isTrue();
+    assertThat(underTest.isBanned(AdvancedSearchResource.class)).isTrue();
+    assertThat(underTest.isBanned(AutomaticSourceControlConfigurationResource.class)).isTrue();
+    assertThat(underTest.isBanned(ApiCrowdConfigurationResourceV2.class)).isTrue();
+    assertThat(underTest.isBanned(WebhookResource.class)).isTrue();
   }
 }

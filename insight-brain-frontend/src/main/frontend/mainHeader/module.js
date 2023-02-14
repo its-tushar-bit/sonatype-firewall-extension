@@ -48,6 +48,16 @@ export default angular
         'isLoggedIn',
         'shouldShowLoginButton',
         'isCrowdIntegrationEnabled',
+        'isWebhookConfigurationEnabled',
+        'isProductLicenseConfigurationEnabled',
+        'isLdapConfigurationEnabled',
+        'isEmailConfigurationEnabled',
+        'isProxyConfigurationEnabled',
+        'isSystemNoticeConfigurationEnabled',
+        'isSuccessMetricsConfigurationEnabled',
+        'isAutomaticApplicationConfigurationEnabled',
+        'isAutomaticScmConfigurationEnabled',
+        'isAdvancedSearchConfigurationEnabled',
       ],
       ['$ngRedux', 'userActions', '$state']
     )

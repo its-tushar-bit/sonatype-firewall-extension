@@ -21,6 +21,16 @@ export const MenuBar = ({
   isLoggedIn = false,
   shouldShowLoginButton = false,
   isCrowdIntegrationEnabled,
+  isWebhookConfigurationEnabled,
+  isProductLicenseConfigurationEnabled,
+  isLdapConfigurationEnabled,
+  isEmailConfigurationEnabled,
+  isProxyConfigurationEnabled,
+  isSystemNoticeConfigurationEnabled,
+  isSuccessMetricsConfigurationEnabled,
+  isAutomaticApplicationConfigurationEnabled,
+  isAutomaticScmConfigurationEnabled,
+  isAdvancedSearchConfigurationEnabled,
 }) => {
   const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0;
 
@@ -50,6 +60,16 @@ export const MenuBar = ({
             isWebhooksSupported={isWebhooksSupported}
             isSourceControlSupported={isSourceControlSupported}
             isCrowdIntegrationEnabled={isCrowdIntegrationEnabled}
+            isWebhookConfigurationEnabled={isWebhookConfigurationEnabled}
+            isProductLicenseConfigurationEnabled={isProductLicenseConfigurationEnabled}
+            isLdapConfigurationEnabled={isLdapConfigurationEnabled}
+            isEmailConfigurationEnabled={isEmailConfigurationEnabled}
+            isProxyConfigurationEnabled={isProxyConfigurationEnabled}
+            isSystemNoticeConfigurationEnabled={isSystemNoticeConfigurationEnabled}
+            isSuccessMetricsConfigurationEnabled={isSuccessMetricsConfigurationEnabled}
+            isAutomaticApplicationConfigurationEnabled={isAutomaticApplicationConfigurationEnabled}
+            isAutomaticScmConfigurationEnabled={isAutomaticScmConfigurationEnabled}
+            isAdvancedSearchConfigurationEnabled={isAdvancedSearchConfigurationEnabled}
           />
         )}
         <UserMenu userActions={userActions} />
@@ -72,6 +92,16 @@ MenuBar.propTypes = {
   isLoggedIn: PropTypes.bool,
   shouldShowLoginButton: PropTypes.bool,
   isCrowdIntegrationEnabled: PropTypes.bool,
+  isWebhookConfigurationEnabled: PropTypes.bool,
+  isProductLicenseConfigurationEnabled: PropTypes.bool,
+  isLdapConfigurationEnabled: PropTypes.bool,
+  isEmailConfigurationEnabled: PropTypes.bool,
+  isProxyConfigurationEnabled: PropTypes.bool,
+  isSystemNoticeConfigurationEnabled: PropTypes.bool,
+  isSuccessMetricsConfigurationEnabled: PropTypes.bool,
+  isAutomaticApplicationConfigurationEnabled: PropTypes.bool,
+  isAutomaticScmConfigurationEnabled: PropTypes.bool,
+  isAdvancedSearchConfigurationEnabled: PropTypes.bool,
 };
 
 export default MenuBar;

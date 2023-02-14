@@ -14,6 +14,16 @@ export const SystemPreferencesMenu = ({
   isWebhooksSupported = false,
   isSourceControlSupported = false,
   isCrowdIntegrationEnabled = false,
+  isWebhookConfigurationEnabled = false,
+  isProductLicenseConfigurationEnabled = false,
+  isLdapConfigurationEnabled = false,
+  isEmailConfigurationEnabled = false,
+  isProxyConfigurationEnabled = false,
+  isSystemNoticeConfigurationEnabled = false,
+  isSuccessMetricsConfigurationEnabled = false,
+  isAutomaticApplicationConfigurationEnabled = false,
+  isAutomaticScmConfigurationEnabled = false,
+  isAdvancedSearchConfigurationEnabled = false,
 }) => {
   const {
     CONFIGURE_SYSTEM = false,
@@ -34,10 +44,18 @@ export const SystemPreferencesMenu = ({
       <NavLink stateName="administrators" id="system-configuration-administrators" showIf={CONFIGURE_SYSTEM}>
         Administrators
       </NavLink>
-      <NavLink stateName="productlicense" id="system-configuration-product-license" showIf={CONFIGURE_SYSTEM}>
+      <NavLink
+        stateName="productlicense"
+        id="system-configuration-product-license"
+        showIf={CONFIGURE_SYSTEM && isProductLicenseConfigurationEnabled}
+      >
         Product License
       </NavLink>
-      <NavLink stateName="ldap-list" id="system-configuration-ldap" showIf={CONFIGURE_SYSTEM}>
+      <NavLink
+        stateName="ldap-list"
+        id="system-configuration-ldap"
+        showIf={CONFIGURE_SYSTEM && isLdapConfigurationEnabled}
+      >
         LDAP
       </NavLink>
       <NavLink stateName="saml" showIf={CONFIGURE_SYSTEM}>
@@ -46,42 +64,66 @@ export const SystemPreferencesMenu = ({
       <NavLink stateName="atlassianCrowdConfiguration" showIf={CONFIGURE_SYSTEM && isCrowdIntegrationEnabled}>
         Atlassian Crowd
       </NavLink>
-      <NavLink stateName="mailConfig" id="system-configuration-email" showIf={CONFIGURE_SYSTEM}>
+      <NavLink
+        stateName="mailConfig"
+        id="system-configuration-email"
+        showIf={CONFIGURE_SYSTEM && isEmailConfigurationEnabled}
+      >
         Email
       </NavLink>
-      <NavLink stateName="proxyConfig" id="system-configuration-proxy" showIf={CONFIGURE_SYSTEM}>
+      <NavLink
+        stateName="proxyConfig"
+        id="system-configuration-proxy"
+        showIf={CONFIGURE_SYSTEM && isProxyConfigurationEnabled}
+      >
         Proxy
       </NavLink>
       {CONFIGURE_SYSTEM && (
         <NxTooltip title={isWebhooksSupported ? undefined : 'Webhooks feature is not supported by your license'}>
           <span>
-            <NavLink stateName="listWebhooks" id="system-configuration-webhooks" disabled={!isWebhooksSupported}>
+            <NavLink
+              stateName="listWebhooks"
+              id="system-configuration-webhooks"
+              disabled={!isWebhooksSupported}
+              showIf={isWebhookConfigurationEnabled}
+            >
               Webhooks
             </NavLink>
           </span>
         </NxTooltip>
       )}
-      <NavLink stateName="systemNoticeConfiguration" id="system-configuration-system-notice" showIf={CONFIGURE_SYSTEM}>
+      <NavLink
+        stateName="systemNoticeConfiguration"
+        id="system-configuration-system-notice"
+        showIf={CONFIGURE_SYSTEM && isSystemNoticeConfigurationEnabled}
+      >
         System Notice
       </NavLink>
       <NavLink
         stateName="successMetricsConfiguration"
         id="system-configuration-success-metrics"
-        showIf={CONFIGURE_SYSTEM}
+        showIf={CONFIGURE_SYSTEM && isSuccessMetricsConfigurationEnabled}
       >
         Success Metrics
       </NavLink>
       <NavLink
         stateName="automaticApplicationsConfiguration"
         id="system-configuration-automatic-applications"
-        showIf={MANAGE_AUTOMATIC_APPLICATION_CREATION}
+        showIf={MANAGE_AUTOMATIC_APPLICATION_CREATION && isAutomaticApplicationConfigurationEnabled}
       >
         Automatic Applications
       </NavLink>
-      <NavLink stateName="automaticSourceControlConfiguration" showIf={MANAGE_AUTOMATIC_SCM_CONFIGURATION}>
+      <NavLink
+        stateName="automaticSourceControlConfiguration"
+        showIf={MANAGE_AUTOMATIC_SCM_CONFIGURATION && isAutomaticScmConfigurationEnabled}
+      >
         Automatic SCM Configuration
       </NavLink>
-      <NavLink stateName="advancedSearchConfig" id="system-configuration-advanced-search" showIf={CONFIGURE_SYSTEM}>
+      <NavLink
+        stateName="advancedSearchConfig"
+        id="system-configuration-advanced-search"
+        showIf={CONFIGURE_SYSTEM && isAdvancedSearchConfigurationEnabled}
+      >
         Advanced Search
       </NavLink>
       <EarlyAccessLinks></EarlyAccessLinks>
@@ -100,6 +142,16 @@ SystemPreferencesMenu.propTypes = {
   isWebhooksSupported: PropTypes.bool,
   isSourceControlSupported: PropTypes.bool,
   isCrowdIntegrationEnabled: PropTypes.bool,
+  isWebhookConfigurationEnabled: PropTypes.bool,
+  isProductLicenseConfigurationEnabled: PropTypes.bool,
+  isLdapConfigurationEnabled: PropTypes.bool,
+  isEmailConfigurationEnabled: PropTypes.bool,
+  isProxyConfigurationEnabled: PropTypes.bool,
+  isSystemNoticeConfigurationEnabled: PropTypes.bool,
+  isSuccessMetricsConfigurationEnabled: PropTypes.bool,
+  isAutomaticApplicationConfigurationEnabled: PropTypes.bool,
+  isAutomaticScmConfigurationEnabled: PropTypes.bool,
+  isAdvancedSearchConfigurationEnabled: PropTypes.bool,
 };
 
 const EarlyAccessLinks = ({ children }) => {

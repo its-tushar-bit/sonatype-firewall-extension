@@ -9,6 +9,16 @@ import {
   selectIsSourceControlSupported,
   selectIsWebhooksSupported,
   selectIsCrowdIntegrationSupported,
+  selectIsWebhookConfigurationEnabled,
+  selectIsProductLicenseConfigurationEnabled,
+  selectIsLdapConfigurationEnabled,
+  selectIsEmailConfigurationEnabled,
+  selectIsProxyConfigurationEnabled,
+  selectIsSystemNoticeConfigurationEnabled,
+  selectIsSuccessMetricsConfigurationEnabled,
+  selectIsAutomaticApplicationConfigurationEnabled,
+  selectIsAutomaticScmConfigurationEnabled,
+  selectIsAdvancedSearchConfigurationEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 /* global clmServerVersion */
@@ -76,6 +86,16 @@ export const mapStateToThis = (state) => ({
   isWebhooksSupported: selectIsWebhooksSupported(state),
   isSourceControlSupported: selectIsSourceControlSupported(state),
   isCrowdIntegrationEnabled: selectIsCrowdIntegrationSupported(state),
+  isWebhookConfigurationEnabled: selectIsWebhookConfigurationEnabled(state),
+  isProductLicenseConfigurationEnabled: selectIsProductLicenseConfigurationEnabled(state),
+  isLdapConfigurationEnabled: selectIsLdapConfigurationEnabled(state),
+  isEmailConfigurationEnabled: selectIsEmailConfigurationEnabled(state),
+  isProxyConfigurationEnabled: selectIsProxyConfigurationEnabled(state),
+  isSystemNoticeConfigurationEnabled: selectIsSystemNoticeConfigurationEnabled(state),
+  isSuccessMetricsConfigurationEnabled: selectIsSuccessMetricsConfigurationEnabled(state),
+  isAutomaticApplicationConfigurationEnabled: selectIsAutomaticApplicationConfigurationEnabled(state),
+  isAutomaticScmConfigurationEnabled: selectIsAutomaticScmConfigurationEnabled(state),
+  isAdvancedSearchConfigurationEnabled: selectIsAdvancedSearchConfigurationEnabled(state),
 });
 
 MainHeaderController.$inject = [

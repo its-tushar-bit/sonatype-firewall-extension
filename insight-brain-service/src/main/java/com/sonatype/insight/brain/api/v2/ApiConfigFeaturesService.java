@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.Arrays;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -99,6 +98,16 @@ public class ApiConfigFeaturesService
         SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED, true, true),
     BUILT_FROM_SOURCE(SystemConfigurationProperty.BUILT_FROM_SOURCE, false),
     CROWD_INTEGRATION(SystemConfigurationProperty.CROWD_INTEGRATION, true),
+    WEBHOOK_CONFIGURATION(SystemConfigurationProperty.WEBHOOK_CONFIGURATION, true),
+    PRODUCT_LICENSE_CONFIGURATION(SystemConfigurationProperty.PRODUCT_LICENSE_CONFIGURATION, true),
+    LDAP_CONFIGURATION(SystemConfigurationProperty.LDAP_CONFIGURATION, true),
+    EMAIL_CONFIGURATION(SystemConfigurationProperty.EMAIL_CONFIGURATION, true),
+    PROXY_CONFIGURATION(SystemConfigurationProperty.PROXY_CONFIGURATION, true),
+    SYSTEM_NOTICE_CONFIGURATION(SystemConfigurationProperty.SYSTEM_NOTICE_CONFIGURATION, true),
+    SUCCESS_METRICS_CONFIGURATION(SystemConfigurationProperty.SUCCESS_METRICS_CONFIGURATION, true),
+    AUTOMATIC_APPLICATION_CONFIGURATION(SystemConfigurationProperty.AUTOMATIC_APPLICATION_CONFIGURATION, true),
+    AUTOMATIC_SCM_CONFIGURATION(SystemConfigurationProperty.AUTOMATIC_SCM_CONFIGURATION, true),
+    ADVANCED_SEARCH_CONFIGURATION(SystemConfigurationProperty.ADVANCED_SEARCH_CONFIGURATION, true),
     TRANSITIVE_SOLVER(SystemConfigurationProperty.TRANSITIVE_SOLVER_DISABLED, false),
     CODE_INSIGHTS(SystemConfigurationProperty.CODE_INSIGHTS, true),
     COMPONENT_SEARCH_API_WITH_INNERSOURCE(SystemConfigurationProperty.COMPONENT_SEARCH_API_WITH_INNERSOURCE, true),

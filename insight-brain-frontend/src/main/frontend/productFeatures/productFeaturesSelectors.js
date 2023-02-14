@@ -58,3 +58,31 @@ export const selectIsAllowExternalHyperlinksSupported = createSelector(
   prop('allow-external-hyperlinks')
 );
 export const selectIsApiPageSupported = createSelector(selectProductFeatures, prop('api-page'));
+export const selectIsWebhookConfigurationEnabled = createSelector(selectProductFeatures, prop('webhook-configuration'));
+export const selectIsProductLicenseConfigurationEnabled = createSelector(
+  selectProductFeatures,
+  prop('product-license-configuration')
+);
+export const selectIsLdapConfigurationEnabled = createSelector(selectProductFeatures, prop('ldap-configuration'));
+export const selectIsEmailConfigurationEnabled = createSelector(selectProductFeatures, prop('email-configuration'));
+export const selectIsProxyConfigurationEnabled = createSelector(selectProductFeatures, prop('proxy-configuration'));
+export const selectIsSystemNoticeConfigurationEnabled = createSelector(
+  selectProductFeatures,
+  prop('system-notice-configuration')
+);
+export const selectIsSuccessMetricsConfigurationEnabled = createSelector(
+  selectProductFeatures,
+  prop('success-metrics-configuration')
+);
+export const selectIsAutomaticApplicationConfigurationEnabled = createSelector(
+  selectProductFeatures,
+  prop('automatic-application-configuration')
+);
+export const selectIsAutomaticScmConfigurationEnabled = createSelector(
+  selectProductFeatures,
+  prop('automatic-scm-configuration')
+);
+export const selectIsAdvancedSearchConfigurationEnabled = createSelector(
+  selectProductFeatures,
+  prop('advanced-search-configuration')
+);

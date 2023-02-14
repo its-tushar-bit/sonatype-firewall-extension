@@ -55,4 +55,9 @@ public class PolicyMonitoringTask
     execute(policyMonitor::run, log, "Policy monitoring error");
     log.info("Next Policy Monitor execution scheduled for {}", context.getNextFireTime());
   }
+
+  @Override
+  public String getJobName() {
+    return NAME;
+  }
 }

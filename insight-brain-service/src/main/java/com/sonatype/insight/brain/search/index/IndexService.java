@@ -56,11 +56,11 @@ import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
 import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.tenancy.TenantAwareFunction;
 import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
-import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -77,7 +77,6 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.store.Directory;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +90,7 @@ import static java.util.stream.Collectors.toList;
 @Singleton
 @DisallowConcurrentExecution
 public class IndexService
-    implements TenantManaged, Job
+    implements InsightJob
 {
   static final String TASK_NAME = "SearchIndexUpdate";
 
@@ -134,6 +133,11 @@ public class IndexService
   public boolean disableForTesting;
 
   private final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO;
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
+  }
 
   class IndexingContext
   {
@@ -204,7 +208,7 @@ public class IndexService
     if (disableForTesting) {
       return;
     }
-    taskScheduler.schedulePeriodicTask(IndexService.class, TASK_NAME, Duration.ofSeconds(3));
+    taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(3));
   }
 
   @Override
@@ -214,7 +218,7 @@ public class IndexService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void createSearchIndexAsync() {
-    taskScheduler.triggerTaskNow(TASK_NAME, Collections.singletonMap(TASK_PARAM_INDEX_ALL, "true"));
+    taskScheduler.triggerTaskNow(this, Collections.singletonMap(TASK_PARAM_INDEX_ALL, "true"));
   }
 
   @Override
@@ -240,7 +244,7 @@ public class IndexService
   }
 
   public boolean isFullIndexTriggered() {
-    return taskScheduler.isJobTriggered(TASK_NAME, Collections.singletonMap(TASK_PARAM_INDEX_ALL, "true"));
+    return taskScheduler.isJobTriggered(this, Collections.singletonMap(TASK_PARAM_INDEX_ALL, "true"));
   }
 
   public void createSearchIndex() throws IOException {

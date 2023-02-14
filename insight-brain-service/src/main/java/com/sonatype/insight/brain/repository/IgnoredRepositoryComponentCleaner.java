@@ -71,7 +71,7 @@ public class IgnoredRepositoryComponentCleaner
       log.debug("Ignored repository components already deleted.");
       return;
     }
-    taskScheduler.scheduleOneTimeTask(getClass(), TASK_NAME);
+    taskScheduler.scheduleOneTimeTask(this);
   }
 
   @Override
@@ -94,5 +94,10 @@ public class IgnoredRepositoryComponentCleaner
     migrationTrackerDAO.insert(new MigrationTracker(MIGRATION_ID));
     log.info("Deleted ignored repository components for {} repositories in {} ms.", repositories.size(),
         System.currentTimeMillis() - start);
+  }
+  
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

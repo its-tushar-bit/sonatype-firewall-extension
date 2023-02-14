@@ -73,6 +73,11 @@ public class ReportPurger
 
   private static final String PURGE_ERROR = "Report Purging error";
 
+  @Override
+  public String getJobName() {
+    return NAME;
+  }
+
   private static class TrashBucket
   {
     private static final int MAX_COUNT = 5000;
@@ -149,8 +154,8 @@ public class ReportPurger
       return;
     }
 
-    taskScheduler.scheduleDailyTask(ReportPurger.class, NAME, LocalTime.of(1, 0));
-    Date nextExecutionTime = taskScheduler.getNextExecutionTime(NAME);
+    taskScheduler.scheduleDailyTask(this, LocalTime.of(1, 0));
+    Date nextExecutionTime = taskScheduler.getNextExecutionTime(this);
     log.debug("Scheduled periodic purging of obsolete reports for {}", nextExecutionTime);
   }
 
@@ -165,7 +170,7 @@ public class ReportPurger
   @Override
   public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
     log.debug("Triggering purging of obsolete reports");
-    taskScheduler.triggerTaskNow(NAME, null);
+    taskScheduler.triggerTaskNow(this, null);
     output.println("Triggered purging of obsolete reports");
   }
 

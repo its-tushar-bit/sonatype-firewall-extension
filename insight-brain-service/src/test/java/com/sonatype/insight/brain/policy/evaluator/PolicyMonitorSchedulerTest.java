@@ -22,7 +22,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -74,7 +74,7 @@ public class PolicyMonitorSchedulerTest
     policyMonitorScheduler.register();
 
     ArgumentCaptor<LocalTime> startTimeCaptor = ArgumentCaptor.forClass(LocalTime.class);
-    verify(taskSchedulerMock).scheduleDailyTask(eq(PolicyMonitoringTask.class), eq(PolicyMonitoringTask.NAME),
+    verify(taskSchedulerMock).scheduleDailyTask(any(PolicyMonitoringTask.class),
         startTimeCaptor.capture());
     assertThat(startTimeCaptor.getValue()).isBetween(LocalTime.of(configuration.getPolicyMonitoringHour(), 0),
         LocalTime.of(configuration.getPolicyMonitoringHour(), 15));
@@ -91,7 +91,7 @@ public class PolicyMonitorSchedulerTest
     policyMonitorScheduler.productLicenseChanged();
 
     ArgumentCaptor<LocalTime> startTimeCaptor = ArgumentCaptor.forClass(LocalTime.class);
-    verify(taskSchedulerMock).scheduleDailyTask(eq(PolicyMonitoringTask.class), eq(PolicyMonitoringTask.NAME),
+    verify(taskSchedulerMock).scheduleDailyTask(any(PolicyMonitoringTask.class),
         startTimeCaptor.capture());
     assertThat(startTimeCaptor.getValue()).isBetween(LocalTime.of(configuration.getPolicyMonitoringHour(), 0),
         LocalTime.of(configuration.getPolicyMonitoringHour(), 15));
@@ -101,6 +101,6 @@ public class PolicyMonitorSchedulerTest
   public void testProductLicenseChanged_MonitoringWasRemoved() {
     policyMonitorScheduler.productLicenseChanged();
 
-    verify(taskSchedulerMock).unscheduleTask(PolicyMonitoringTask.NAME);
+    verify(taskSchedulerMock).unscheduleTask(any(PolicyMonitoringTask.class));
   }
 }

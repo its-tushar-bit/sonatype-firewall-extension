@@ -82,8 +82,8 @@ public class SuccessMetricsPurger
     if (disableForTesting) {
       return;
     }
-    taskScheduler.scheduleDailyTask(SuccessMetricsPurger.class, NAME, LocalTime.of(1, 30));
-    Date nextExecutionTime = taskScheduler.getNextExecutionTime(NAME);
+    taskScheduler.scheduleDailyTask(this, LocalTime.of(1, 30));
+    Date nextExecutionTime = taskScheduler.getNextExecutionTime(this);
     log.debug("Scheduled periodic purging of obsolete success metrics for {}", nextExecutionTime);
   }
 
@@ -98,7 +98,7 @@ public class SuccessMetricsPurger
   @Override
   public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
     log.debug("Triggering purging of obsolete success metrics");
-    taskScheduler.triggerTaskNow(NAME, null);
+    taskScheduler.triggerTaskNow(this, null);
     output.println("Triggered purging of obsolete success merics");
   }
 
@@ -177,5 +177,10 @@ public class SuccessMetricsPurger
 
   Duration getDelayForRetry(int retry) {
     return Duration.ofSeconds(1 << retry);
+  }
+
+  @Override
+  public String getJobName() {
+    return NAME;
   }
 }

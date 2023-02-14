@@ -300,8 +300,7 @@ public class ApiSourceControlConfigurationServiceTest
     spy.updateAllClusterNodesFromConfiguration();
 
     verify(spy).applySourceControlConfigurationToClients();
-    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(ApiSourceControlConfigurationService.class,
-        ApiSourceControlConfigurationService.TASK_NAME);
+    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(spy);
   }
 
   @Test

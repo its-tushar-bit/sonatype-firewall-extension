@@ -739,11 +739,16 @@ public class CLMLicenseManager
 
   // Visible for testing
   void loadProductLicenseOnAllOtherClusterNodes() {
-    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(getClass(), TASK_NAME);
+    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this);
   }
 
   @Override
   public void execute(JobExecutionContext context) {
     execute(this::updateLicenseCacheFromDatabase, log, LICENSE_LOADING_ERROR);
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

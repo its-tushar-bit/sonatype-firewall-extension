@@ -118,7 +118,7 @@ public class DefaultLicenseDataUpdater
   }
 
   private void loadLicensesOnAllOtherClusterNodes() {
-    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(getClass(), TASK_NAME);
+    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this);
   }
 
   @Override
@@ -139,5 +139,10 @@ public class DefaultLicenseDataUpdater
     public Collection<MultiLicense> multiLicenses;
 
     public Map<String, Set<String>> multiLicenseMappings;
+  }
+  
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

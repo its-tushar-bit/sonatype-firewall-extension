@@ -22,7 +22,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -73,8 +73,7 @@ public class AutomaticQuarantineReleaseSchedulerTest
 
     ArgumentCaptor<Date> startTimeCaptor = ArgumentCaptor.forClass(Date.class);
     ArgumentCaptor<Duration> timeIntervalCaptor = ArgumentCaptor.forClass(Duration.class);
-    verify(taskSchedulerMock).schedulePeriodicTask(eq(AutomaticQuarantineReleaseTask.class),
-        eq(AutomaticQuarantineReleaseTask.NAME),
+    verify(taskSchedulerMock).schedulePeriodicTask(any(AutomaticQuarantineReleaseTask.class),
         timeIntervalCaptor.capture(), startTimeCaptor.capture());
     assertThat(startTimeCaptor.getValue()).isBetween(beforeSchedulingTime, afterSchedulingTime, true, true);
     assertThat(timeIntervalCaptor.getValue()).isEqualTo(
@@ -92,8 +91,7 @@ public class AutomaticQuarantineReleaseSchedulerTest
 
     ArgumentCaptor<Date> startTimeCaptor = ArgumentCaptor.forClass(Date.class);
     ArgumentCaptor<Duration> timeIntervalCaptor = ArgumentCaptor.forClass(Duration.class);
-    verify(taskSchedulerMock).schedulePeriodicTask(eq(AutomaticQuarantineReleaseTask.class),
-        eq(AutomaticQuarantineReleaseTask.NAME),
+    verify(taskSchedulerMock).schedulePeriodicTask(any(AutomaticQuarantineReleaseTask.class),
         timeIntervalCaptor.capture(), startTimeCaptor.capture());
     assertThat(startTimeCaptor.getValue()).isBetween(beforeSchedulingTime, afterSchedulingTime, true, true);
     assertThat(timeIntervalCaptor.getValue()).isEqualTo(
@@ -103,6 +101,6 @@ public class AutomaticQuarantineReleaseSchedulerTest
   @Test
   public void testProductLicenseChanged_AutomaticQuarantineReleaseWasRemoved() {
     automaticQuarantineReleaseScheduler.productLicenseChanged();
-    verify(taskSchedulerMock).unscheduleTask(AutomaticQuarantineReleaseTask.NAME);
+    verify(taskSchedulerMock).unscheduleTask(any(AutomaticQuarantineReleaseTask.class));
   }
 }

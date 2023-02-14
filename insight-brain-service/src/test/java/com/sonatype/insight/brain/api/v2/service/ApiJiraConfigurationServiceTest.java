@@ -320,8 +320,7 @@ public class ApiJiraConfigurationServiceTest
     spy.updateAllClusterNodesFromConfiguration();
 
     verify(spy).applyJiraConfigurationToClients();
-    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(ApiJiraConfigurationService.class,
-        ApiJiraConfigurationService.TASK_NAME);
+    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(spy);
   }
 
   @Test

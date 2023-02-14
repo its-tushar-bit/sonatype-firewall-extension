@@ -58,7 +58,7 @@ public class ClusterTelemetryTask
     if (disableForTesting) {
       return;
     }
-    taskScheduler.schedulePeriodicTask(ClusterTelemetryTask.class, NAME, Duration.ofDays(1));
+    taskScheduler.schedulePeriodicTask(this, Duration.ofDays(1));
   }
 
   @Override
@@ -68,5 +68,10 @@ public class ClusterTelemetryTask
         telemetrySender.send(clusterTelemetryCollector.collectAllData());
       }
     }, log, TELEMETRY_SEND_ERROR);
+  }
+  
+  @Override
+  public String getJobName() {
+    return NAME;
   }
 }

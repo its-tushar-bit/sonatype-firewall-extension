@@ -86,8 +86,8 @@ public class ScanFileCleaner
       return;
     }
 
-    taskScheduler.scheduleOneTimeTask(ScanFileCleaner.class, NAME, LocalTime.of(23, 0));
-    log.info("Scan file cleaner scheduled for {}.", taskScheduler.getNextExecutionTime(NAME));
+    taskScheduler.scheduleOneTimeTask(this, LocalTime.of(23, 0));
+    log.info("Scan file cleaner scheduled for {}.", taskScheduler.getNextExecutionTime(this));
   }
 
   @Override
@@ -181,5 +181,10 @@ public class ScanFileCleaner
   // Visible for tests
   Path getObsoleteMarkerFile() {
     return insightWork.getWorkDir().toPath().resolve("obsoletescanfiles-cleaned");
+  }
+
+  @Override
+  public String getJobName() {
+    return NAME;
   }
 }

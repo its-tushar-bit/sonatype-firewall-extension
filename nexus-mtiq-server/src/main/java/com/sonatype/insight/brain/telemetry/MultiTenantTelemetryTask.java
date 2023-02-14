@@ -19,6 +19,8 @@ public class MultiTenantTelemetryTask
     extends TelemetryScheduler
     implements InsightJob
 {
+  static final String NAME = "MultiTenantTelemetryTask";
+
   @Inject
   public MultiTenantTelemetryTask(
       TelemetryCollectorsProvider telemetryCollectorsProvider,
@@ -30,5 +32,10 @@ public class MultiTenantTelemetryTask
   @Override
   public void execute(JobExecutionContext jobExecutionContext) {
     sendTelemetry(telemetryCollectors);
+  }
+
+  @Override
+  public String getJobName() {
+    return NAME;
   }
 }

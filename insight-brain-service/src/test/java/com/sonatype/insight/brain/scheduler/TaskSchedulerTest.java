@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
@@ -64,6 +65,9 @@ public class TaskSchedulerTest
 
   @Inject
   private TestJob testJob;
+
+  @Inject
+  private NonConcurrentTestJob nonConcurrentTestJob;
 
   @Override
   public void configure(Binder binder) {
@@ -160,19 +164,19 @@ public class TaskSchedulerTest
   @Test
   public void testTriggerTaskNow() throws Exception {
     taskScheduler.start();
-    taskScheduler.scheduleDailyTask(TestJob.class, TestJob.NAME, LocalTime.now().plusHours(4));
+    taskScheduler.scheduleDailyTask(testJob, LocalTime.now().plusHours(4));
     assertThat(TestJob.getExecutions()).isZero();
-    taskScheduler.triggerTaskNow(TestJob.NAME, null);
+    taskScheduler.triggerTaskNow(testJob, null);
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(TestJob.getExecutions()).isOne());
   }
 
   @Test
   public void testTriggerTaskNow_WithParameters() throws Exception {
     taskScheduler.start();
-    taskScheduler.scheduleDailyTask(TestJob.class, TestJob.NAME, LocalTime.now().plusHours(4));
+    taskScheduler.scheduleDailyTask(testJob, LocalTime.now().plusHours(4));
     assertThat(TestJob.getExecutions()).isZero();
     Map<String, String> params = Collections.singletonMap("testKey", "testValue");
-    taskScheduler.triggerTaskNow(TestJob.NAME, params);
+    taskScheduler.triggerTaskNow(testJob, params);
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
       assertThat(TestJob.getExecutions()).isOne();
       assertThat(TestJob.getJobParameters(0)).containsAllEntriesOf(params);
@@ -184,7 +188,7 @@ public class TaskSchedulerTest
     String name = "TestJob";
     Scheduler scheduler = taskScheduler.createScheduler();
 
-    taskScheduler.scheduleDailyTask(getTestJobClass(), name, LocalTime.of(1, 0));
+    taskScheduler.scheduleDailyTask(testJob, LocalTime.of(1, 0));
 
     JobKey jobKey = JobKey.jobKey(name);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -207,7 +211,7 @@ public class TaskSchedulerTest
     scheduler.start();
 
     String name = "TestJob";
-    taskScheduler.scheduleDailyTask(TestJob.class, name, LocalTime.now().plusHours(1));
+    taskScheduler.scheduleDailyTask(testJob, LocalTime.now().plusHours(1));
     scheduler.triggerJob(JobKey.jobKey(name));
 
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(testJobListener.getExecutions()).isEqualTo(1));
@@ -222,7 +226,7 @@ public class TaskSchedulerTest
     Scheduler scheduler = taskScheduler.createScheduler();
     Date now = new Date();
 
-    taskScheduler.scheduleOneTimeTask(getTestJobClass(), name);
+    taskScheduler.scheduleOneTimeTask(testJob);
 
     JobKey jobKey = JobKey.jobKey(name);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -238,12 +242,11 @@ public class TaskSchedulerTest
 
   @Test
   public void testGetNextExecutionTime() {
-    String name = "TestJob";
     ZonedDateTime now = ZonedDateTime.now().withSecond(0).withNano(0);
     taskScheduler.createScheduler();
-    taskScheduler.scheduleDailyTask(TestJob.class, name, LocalTime.of(now.plusHours(1).getHour(), now.getMinute()));
+    taskScheduler.scheduleDailyTask(testJob, LocalTime.of(now.plusHours(1).getHour(), now.getMinute()));
 
-    Date nextExecutionTime = taskScheduler.getNextExecutionTime(name);
+    Date nextExecutionTime = taskScheduler.getNextExecutionTime(testJob);
 
     ZonedDateTime nextExecution = ZonedDateTime.ofInstant(nextExecutionTime.toInstant(), ZoneId.systemDefault());
     assertThat(nextExecution).isEqualTo(now.plusHours(1));
@@ -253,13 +256,13 @@ public class TaskSchedulerTest
   public void testUnscheduleTask() throws Exception {
     String name = "TestJob";
     Scheduler scheduler = taskScheduler.createScheduler();
-    taskScheduler.scheduleDailyTask(TestJob.class, name, LocalTime.of(1, 0));
+    taskScheduler.scheduleDailyTask(testJob, LocalTime.of(1, 0));
     JobKey jobKey = JobKey.jobKey(name);
     TriggerKey triggerKey = TriggerKey.triggerKey(jobKey.getName(), jobKey.getGroup());
     assertThat(scheduler.getJobDetail(jobKey)).isNotNull();
     assertThat(scheduler.getTrigger(triggerKey)).isNotNull();
 
-    taskScheduler.unscheduleTask(name);
+    taskScheduler.unscheduleTask(testJob);
 
     assertThat(scheduler.getJobDetail(jobKey)).isNull();
     assertThat(scheduler.getTrigger(triggerKey)).isNull();
@@ -270,7 +273,7 @@ public class TaskSchedulerTest
     Scheduler scheduler = taskScheduler.createScheduler();
     Date now = new Date();
 
-    taskScheduler.scheduleOneTimeTask(getTestJobClass(), TestJob.NAME, LocalTime.of(23, 0));
+    taskScheduler.scheduleOneTimeTask(testJob, LocalTime.of(23, 0));
 
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -292,7 +295,7 @@ public class TaskSchedulerTest
     Scheduler scheduler = taskScheduler.createScheduler();
     int intervalMillis = 10000;
 
-    taskScheduler.schedulePeriodicTask(getTestJobClass(), TestJob.NAME, Duration.ofMillis(intervalMillis));
+    taskScheduler.schedulePeriodicTask(testJob, Duration.ofMillis(intervalMillis));
 
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -317,7 +320,7 @@ public class TaskSchedulerTest
     int desiredJobExecutions = 10;
     scheduler.start();
     scheduler.standby();
-    taskScheduler.schedulePeriodicTask(TestJob.class, TestJob.NAME, Duration.ofMillis(intervalMillis));
+    taskScheduler.schedulePeriodicTask(testJob, Duration.ofMillis(intervalMillis));
     // we want to miss desiredJobExecutions in total
     Thread.sleep(intervalMillis * (desiredJobExecutions - 1));
 
@@ -339,7 +342,7 @@ public class TaskSchedulerTest
     TestJob.setDurations(execution -> execution == 0 ? overlongExecution : 0);
     Scheduler scheduler = taskScheduler.createScheduler();
     scheduler.start();
-    taskScheduler.schedulePeriodicTask(NonConcurrentTestJob.class, TestJob.NAME, Duration.ofMillis(intervalMillis));
+    taskScheduler.schedulePeriodicTask(nonConcurrentTestJob, Duration.ofMillis(intervalMillis));
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(TestJob.getExecutions()).isGreaterThan(1));
     scheduler.standby();
     assertThat(TestJob.getExecutions()).isEqualTo(2);
@@ -350,14 +353,14 @@ public class TaskSchedulerTest
     TestJob.setDurations(execution -> 5000);
     Scheduler scheduler = taskScheduler.createScheduler();
     scheduler.start();
-    taskScheduler.scheduleDailyTask(TestJob.class, TestJob.NAME, LocalTime.now().plusHours(4));
-    assertThat(taskScheduler.isJobTriggered(TestJob.NAME, Collections.emptyMap())).isTrue();
+    taskScheduler.scheduleDailyTask(testJob, LocalTime.now().plusHours(4));
+    assertThat(taskScheduler.isJobTriggered(testJob, Collections.emptyMap())).isTrue();
     assertThat(TestJob.getExecutions()).isZero();
-    taskScheduler.triggerTaskNow(TestJob.NAME, Collections.singletonMap("key", "true"));
-    assertThat(taskScheduler.isJobTriggered(TestJob.NAME, Collections.singletonMap("key", "false"))).isFalse();
-    assertThat(taskScheduler.isJobTriggered(TestJob.NAME, Collections.singletonMap("key", "true"))).isTrue();
+    taskScheduler.triggerTaskNow(testJob, Collections.singletonMap("key", "true"));
+    assertThat(taskScheduler.isJobTriggered(testJob, Collections.singletonMap("key", "false"))).isFalse();
+    assertThat(taskScheduler.isJobTriggered(testJob, Collections.singletonMap("key", "true"))).isTrue();
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() ->
-        assertThat(taskScheduler.isJobTriggered(TestJob.NAME, Collections.singletonMap("key", "true"))).isFalse());
+        assertThat(taskScheduler.isJobTriggered(testJob, Collections.singletonMap("key", "true"))).isFalse());
   }
 
   @Test
@@ -367,7 +370,7 @@ public class TaskSchedulerTest
     TestJobListener testJobListener = new TestJobListener();
     scheduler.getListenerManager().addJobListener(testJobListener);
 
-    taskScheduler.schedulePeriodicTask(TestJob.class, TestJob.NAME, Duration.ofSeconds(1));
+    taskScheduler.schedulePeriodicTask(testJob, Duration.ofSeconds(1));
 
     scheduler.start();
     await().atMost(10, TimeUnit.SECONDS)
@@ -410,7 +413,7 @@ public class TaskSchedulerTest
     Set<String> nodeIds = Sets.newHashSet("node1", "node2");
     when(taskSchedulerSpy.getOtherNodeIds()).thenReturn(nodeIds);
 
-    taskSchedulerSpy.scheduleOneTimeTaskForAllOtherNodes(getTestJobClass(), TestJob.NAME);
+    taskSchedulerSpy.scheduleOneTimeTaskForAllOtherNodes(testJob);
 
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -444,7 +447,7 @@ public class TaskSchedulerTest
     parameters.put("key1", "value1");
     parameters.put("key2", "value2");
 
-    taskSchedulerSpy.scheduleOneTimeTaskForAllOtherNodes(getTestJobClass(), TestJob.NAME, parameters);
+    taskSchedulerSpy.scheduleOneTimeTaskForAllOtherNodes(testJob, parameters);
 
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
     JobDetail job = scheduler.getJobDetail(jobKey);

@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
@@ -87,7 +88,6 @@ public class PullRequestMonitorTest
   @Override
   public void configure(Binder binder) {
     lenient().when(taskSchedulerMock.isSchedulerInitialized()).thenReturn(true);
-    lenient().when(taskSchedulerMock.isTaskScheduled(DefaultBranchMonitor.TASK_NAME)).thenReturn(true);
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     binder.bind(GitApiFactory.class).toInstance(gitApiFactoryMock);
     binder.bind(SourceControlEventPublisher.class).toInstance(sourceControlEventPublisherMock);
@@ -350,7 +350,7 @@ public class PullRequestMonitorTest
   public void testSourceControlConfigurationChanged_NullConfiguration() {
     configuration.sourceControlConfigurationChanged();
 
-    verify(taskSchedulerMock).schedulePeriodicTask(PullRequestMonitor.class, PullRequestMonitor.TASK_NAME,
+    verify(taskSchedulerMock).schedulePeriodicTask(pullRequestMonitor,
         Duration.ofSeconds(new SourceControlConfiguration().getPullRequestMonitoringIntervalSeconds()));
   }
 
@@ -362,19 +362,20 @@ public class PullRequestMonitorTest
 
     configuration.sourceControlConfigurationChanged();
 
-    verify(taskSchedulerMock).schedulePeriodicTask(PullRequestMonitor.class, PullRequestMonitor.TASK_NAME,
+    verify(taskSchedulerMock).schedulePeriodicTask(pullRequestMonitor,
         Duration.ofSeconds(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()));
   }
 
   @Test
   public void testSourceControlConfigurationChanged_NoRelevantUpdate() {
+    lenient().when(taskSchedulerMock.isTaskScheduled(any())).thenReturn(true);
     SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
     sourceControlConfiguration.setGitImplementation(GitImplementation.JAVA);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
 
     configuration.sourceControlConfigurationChanged();
 
-    verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any(), any());
+    verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any());
   }
 
   private void testUpdatePullRequestDetails_DoesNotSendEventIfEventExists(String eventStatus) throws Exception {

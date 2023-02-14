@@ -202,7 +202,7 @@ public class ApiConfigurationService
     applyConfigurationToClients(propertyNames);
     Map<String, String> parameters = new HashMap<>();
     parameters.put(TASK_PARAM_PROPERTIES, StringUtils.join(propertyNames, TASK_PARAM_PROPERTIES_DELIMITER));
-    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(getClass(), TASK_NAME, parameters);
+    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this, parameters);
   }
 
   private void validatePropertyName(String propertyName) {
@@ -237,5 +237,10 @@ public class ApiConfigurationService
             TASK_PARAM_PROPERTIES_DELIMITER));
       }
     }, log, CONFIG_APPLY_ERROR);
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

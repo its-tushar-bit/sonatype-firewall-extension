@@ -60,7 +60,7 @@ public class PersistedPolicyEvaluationPollingResultCleaner
       return;
     }
     // Note executing every PERIOD means the oldest a PolicyEvaluationPollingResult can be is PERIOD + LIFESPAN
-    taskScheduler.schedulePeriodicTask(PersistedPolicyEvaluationPollingResultCleaner.class, TASK_NAME, PERIOD);
+    taskScheduler.schedulePeriodicTask(this, PERIOD);
   }
 
   @Override
@@ -76,5 +76,10 @@ public class PersistedPolicyEvaluationPollingResultCleaner
   private void deleteExpiredPolicyEvaluationPollingResults() {
     persistedPolicyEvaluationPollingResultDAO
         .deleteBeforeOrOn(new Date(System.currentTimeMillis() - LIFESPAN.toMillis()));
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

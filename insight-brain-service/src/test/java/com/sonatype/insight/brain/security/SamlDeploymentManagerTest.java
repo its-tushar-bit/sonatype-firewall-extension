@@ -340,8 +340,7 @@ public class SamlDeploymentManagerTest
     samlDeploymentManagerSpy.updateAllClusterNodesFromConfiguration();
 
     verify(samlDeploymentManagerSpy).updateFromConfiguration();
-    verify(taskSchedulerMock).scheduleOneTimeTaskForAllOtherNodes(samlDeploymentManagerSpy.getClass(),
-        SamlDeploymentManager.TASK_NAME);
+    verify(taskSchedulerMock).scheduleOneTimeTaskForAllOtherNodes(samlDeploymentManagerSpy);
   }
 
   @Test

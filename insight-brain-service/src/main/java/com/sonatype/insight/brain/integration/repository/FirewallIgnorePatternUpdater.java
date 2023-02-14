@@ -61,7 +61,7 @@ public class FirewallIgnorePatternUpdater
     if (disableForTesting) {
       return;
     }
-    taskScheduler.schedulePeriodicTask(FirewallIgnorePatternUpdater.class, TASK_NAME, Duration.ofHours(6));
+    taskScheduler.schedulePeriodicTask(this, Duration.ofHours(6));
   }
 
   @Override
@@ -82,5 +82,10 @@ public class FirewallIgnorePatternUpdater
     catch (BadGatewayException e) {
       throw new RuntimeException("Failed to get ignore patterns from remote: " + e.getMessage(), e);
     }
+  }
+  
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

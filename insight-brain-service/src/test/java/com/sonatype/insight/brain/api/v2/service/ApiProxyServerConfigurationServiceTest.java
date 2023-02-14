@@ -509,7 +509,6 @@ public class ApiProxyServerConfigurationServiceTest
     proxyServerConfigurationServiceSpy.updateAllClusterNodesFromConfiguration();
 
     verify(proxyServerConfigurationServiceSpy).applyProxyServerConfigurationToClients();
-    verify(taskSchedulerMock).scheduleOneTimeTaskForAllOtherNodes(proxyServerConfigurationServiceSpy.getClass(),
-        ApiProxyServerConfigurationService.TASK_NAME);
+    verify(taskSchedulerMock).scheduleOneTimeTaskForAllOtherNodes(proxyServerConfigurationServiceSpy);
   }
 }

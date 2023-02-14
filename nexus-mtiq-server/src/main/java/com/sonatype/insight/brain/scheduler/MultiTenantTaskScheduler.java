@@ -6,17 +6,18 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 
-import org.quartz.Job;
 import org.quartz.JobBuilder;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
@@ -90,7 +91,7 @@ public class MultiTenantTaskScheduler
   }
 
   @Override
-  public boolean unscheduleTask(String name) {
+  public boolean unscheduleTask(InsightJob insightJob) {
     // When no tenant is specified (e.g. global) unschedule this task for all tenants
     if (tenantUtil.isGlobalTenant()) {
       try {
@@ -98,7 +99,7 @@ public class MultiTenantTaskScheduler
 
         boolean unscheduled = false;
         for (String tenantSlug : tenantSlugs) {
-          boolean result = unscheduleTask(toJobKey(name, tenantSlug));
+          boolean result = unscheduleTask(toJobKey(insightJob, tenantSlug));
 
           if (result) {
             unscheduled = true;
@@ -112,27 +113,27 @@ public class MultiTenantTaskScheduler
       }
     }
     else {
-      return unscheduleTask(toJobKey(name));
+      return unscheduleTask(toJobKey(insightJob));
     }
   }
 
   @Override
-  protected JobBuilder newJob(Class<? extends Job> jobClass, String name) {
-    return JobBuilder.newJob(normalizeJobClass(jobClass))
-        .withIdentity(toJobKey(name));
+  protected JobBuilder newJob(InsightJob insightJob) {
+    return JobBuilder.newJob(normalizeJobClass(insightJob.getClass()))
+        .withIdentity(toJobKey(insightJob));
   }
 
   @Override
-  protected JobKey toJobKey(String name) {
-    return toJobKey(name, tenantManager.getTenant().tenantSlug);
+  protected JobKey toJobKey(InsightJob insightJob) {
+    return toJobKey(insightJob, tenantManager.getTenant().tenantSlug);
   }
 
-  protected JobKey toJobKey(String name, String tenantSlug) {
-    return JobKey.jobKey(name, tenantSlug);
+  protected JobKey toJobKey(InsightJob insightJob, String tenantSlug) {
+    return JobKey.jobKey(insightJob.getJobName(), tenantSlug);
   }
 
   @Override
-  protected TriggerKey toTriggerKey(String name) {
-    return TriggerKey.triggerKey(name, tenantManager.getTenant().tenantSlug);
+  protected TriggerKey toTriggerKey(InsightJob insightJob) {
+    return TriggerKey.triggerKey(insightJob.getJobName(), tenantManager.getTenant().tenantSlug);
   }
 }

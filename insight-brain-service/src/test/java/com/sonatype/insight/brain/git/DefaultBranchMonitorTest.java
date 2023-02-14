@@ -72,7 +72,7 @@ public class DefaultBranchMonitorTest
   @Override
   public void configure(Binder binder) {
     lenient().when(taskSchedulerMock.isSchedulerInitialized()).thenReturn(true);
-    lenient().when(taskSchedulerMock.isTaskScheduled(DefaultBranchMonitor.TASK_NAME)).thenReturn(true);
+    lenient().when(taskSchedulerMock.isTaskScheduled(any())).thenReturn(true);
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     binder.bind(SourceControlEventPublisher.class).toInstance(sourceControlEventPublisherMock);
     binder.bind(IqForScmLicenseChecker.class).toInstance(mockLicenseChecker);
@@ -118,7 +118,7 @@ public class DefaultBranchMonitorTest
     Date expectedStartTime = defaultBranchMonitor.getDefaultBranchMonitorStartTime(new SourceControlConfiguration());
     defaultBranchMonitor.register();
 
-    verify(taskSchedulerMock).schedulePeriodicTask(DefaultBranchMonitor.class, DefaultBranchMonitor.TASK_NAME,
+    verify(taskSchedulerMock).schedulePeriodicTask(defaultBranchMonitor,
         Duration.ofHours(12),
         expectedStartTime);
   }
@@ -149,7 +149,7 @@ public class DefaultBranchMonitorTest
     defaultBranchMonitor.register();
 
     verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any());
-    verify(taskSchedulerMock).unscheduleTask(DefaultBranchMonitor.TASK_NAME);
+    verify(taskSchedulerMock).unscheduleTask(defaultBranchMonitor);
   }
 
   @Test
@@ -198,7 +198,7 @@ public class DefaultBranchMonitorTest
   public void testSourceControlConfigurationChanged_NullConfiguration() {
     defaultBranchMonitor.register();
 
-    verify(taskSchedulerMock).schedulePeriodicTask(DefaultBranchMonitor.class, DefaultBranchMonitor.TASK_NAME,
+    verify(taskSchedulerMock).schedulePeriodicTask(defaultBranchMonitor,
         Duration.ofHours(12),
         defaultBranchMonitor.getDefaultBranchMonitorStartTime(new SourceControlConfiguration()));
   }
@@ -211,7 +211,7 @@ public class DefaultBranchMonitorTest
 
     configuration.sourceControlConfigurationChanged();
 
-    verify(taskSchedulerMock).schedulePeriodicTask(DefaultBranchMonitor.class, DefaultBranchMonitor.TASK_NAME,
+    verify(taskSchedulerMock).schedulePeriodicTask(defaultBranchMonitor,
         Duration.ofHours(12),
         defaultBranchMonitor.getDefaultBranchMonitorStartTime(sourceControlConfiguration));
   }
@@ -224,7 +224,7 @@ public class DefaultBranchMonitorTest
 
     configuration.sourceControlConfigurationChanged();
 
-    verify(taskSchedulerMock).schedulePeriodicTask(DefaultBranchMonitor.class, DefaultBranchMonitor.TASK_NAME,
+    verify(taskSchedulerMock).schedulePeriodicTask(defaultBranchMonitor,
         Duration.ofHours(6),
         defaultBranchMonitor.getDefaultBranchMonitorStartTime(sourceControlConfiguration));
   }
@@ -237,7 +237,7 @@ public class DefaultBranchMonitorTest
 
     configuration.sourceControlConfigurationChanged();
 
-    verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any(), any());
+    verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any());
   }
 
   private Date toDate(LocalDateTime localDateTime) {

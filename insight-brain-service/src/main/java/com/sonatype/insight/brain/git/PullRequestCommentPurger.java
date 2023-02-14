@@ -83,7 +83,7 @@ public class PullRequestCommentPurger
       return;
     }
     LocalTime startTime = LocalTime.of(2, 0);
-    taskScheduler.scheduleDailyTask(getClass(), TASK_NAME, startTime);
+    taskScheduler.scheduleDailyTask(this, startTime);
     Duration initialDelay = Duration.between(LocalTime.now(), startTime);
     while (initialDelay.isNegative()) {
       initialDelay = initialDelay.plusDays(1);
@@ -99,7 +99,7 @@ public class PullRequestCommentPurger
 
   @Override
   public void deregister() {
-    if (!disableForTesting && taskScheduler.unscheduleTask(TASK_NAME)) {
+    if (!disableForTesting && taskScheduler.unscheduleTask(this)) {
       log.debug("Stopped periodic purging of obsolete pull request comments");
     }
   }
@@ -146,5 +146,10 @@ public class PullRequestCommentPurger
     if (deletedRows > 0) {
       log.info("Purged {} obsolete source control events older than {}", deletedRows, cutoffDate);
     }
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

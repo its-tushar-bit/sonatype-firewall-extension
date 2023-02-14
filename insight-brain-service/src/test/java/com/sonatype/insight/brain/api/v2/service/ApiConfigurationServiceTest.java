@@ -238,8 +238,7 @@ public class ApiConfigurationServiceTest
     Map<String, String> parameters = new HashMap<>();
     parameters.put(ApiConfigurationService.TASK_PARAM_PROPERTIES,
         StringUtils.join(propertyNames, ApiConfigurationService.TASK_PARAM_PROPERTIES_DELIMITER));
-    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(ApiConfigurationService.class,
-        ApiConfigurationService.TASK_NAME, parameters);
+    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(spy, parameters);
   }
 
   @Test

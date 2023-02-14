@@ -125,7 +125,7 @@ public class SamlDeploymentManager
 
   public void updateAllClusterNodesFromConfiguration() {
     updateFromConfiguration();
-    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this.getClass(), TASK_NAME);
+    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this);
   }
 
   public SamlDeployment parse(SamlConfiguration samlConfiguration) {
@@ -243,5 +243,10 @@ public class SamlDeploymentManager
   @Override
   public void execute(JobExecutionContext context) {
     execute(this::updateFromConfiguration, log, DEPLOYMENT_ERROR);
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

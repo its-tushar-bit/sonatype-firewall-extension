@@ -40,8 +40,7 @@ public class MultiTenantTelemetryScheduler
 
   @Override
   public void register() {
-    taskScheduler.schedulePeriodicTask(MultiTenantTelemetryScheduler.class,
-        NAME, Duration.ofDays(1), randomStartTimeInNext24Hours());
+    taskScheduler.schedulePeriodicTask(this, Duration.ofDays(1), randomStartTimeInNext24Hours());
   }
 
   /**
@@ -52,7 +51,7 @@ public class MultiTenantTelemetryScheduler
   @Override
   public void execute(JobExecutionContext jobExecutionContext) {
     multiTenantTelemetryTask.execute(null);
-    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(MultiTenantTelemetryTask.class, NAME);
+    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(multiTenantTelemetryTask);
   }
 
   private static Date randomStartTimeInNext24Hours() {
@@ -60,5 +59,10 @@ public class MultiTenantTelemetryScheduler
     long endMillis = new Date(now + TimeUnit.HOURS.toMillis(24)).getTime();
     long randomMillisSinceEpoch = ThreadLocalRandom.current().nextLong(now, endMillis);
     return new Date(randomMillisSinceEpoch);
+  }
+
+  @Override
+  public String getJobName() {
+    return NAME;
   }
 }

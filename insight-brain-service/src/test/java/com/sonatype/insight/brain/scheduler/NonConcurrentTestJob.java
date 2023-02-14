@@ -14,4 +14,10 @@ import org.quartz.DisallowConcurrentExecution;
 public class NonConcurrentTestJob
     extends TestJob
 {
+  public static final String NAME = "NonConcurrentTestJob";
+
+  @Override
+  public String getJobName() {
+    return NAME;
+  }
 }

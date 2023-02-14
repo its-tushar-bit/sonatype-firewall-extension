@@ -60,7 +60,7 @@ public class PersistedScanTicketCleaner
       return;
     }
     // Note executing every PERIOD means the oldest a PersistedScanTicket can be is PERIOD + LIFESPAN
-    taskScheduler.schedulePeriodicTask(PersistedScanTicketCleaner.class, TASK_NAME, PERIOD);
+    taskScheduler.schedulePeriodicTask(this, PERIOD);
   }
 
   @Override
@@ -75,5 +75,10 @@ public class PersistedScanTicketCleaner
 
   private void deleteExpiredPersistedScanTickets() {
     persistedScanTicketDAO.deleteBeforeOrOn(new Date(System.currentTimeMillis() - LIFESPAN.toMillis()));
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

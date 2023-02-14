@@ -18,6 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -145,7 +146,7 @@ public class PullRequestMonitor
   public void schedulePullRequestMonitor() {
     SourceControlConfiguration sourceControlConfiguration = configuration.getSourceControlConfigurationOrDefault();
     int intervalInSeconds = sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds();
-    taskScheduler.schedulePeriodicTask(PullRequestMonitor.class, TASK_NAME, Duration.ofSeconds(intervalInSeconds));
+    taskScheduler.schedulePeriodicTask(this, Duration.ofSeconds(intervalInSeconds));
     log.debug("Scheduled PullRequestMonitor, interval={} seconds.", intervalInSeconds);
   }
 
@@ -187,8 +188,13 @@ public class PullRequestMonitor
   @Override
   public void deregister() {
     if (!disableForTesting) {
-      taskScheduler.unscheduleTask(TASK_NAME);
+      taskScheduler.unscheduleTask(this);
     }
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 
   private class PullRequestMonitorTask

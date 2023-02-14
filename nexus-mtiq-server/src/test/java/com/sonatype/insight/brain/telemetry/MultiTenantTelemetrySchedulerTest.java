@@ -17,7 +17,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.telemetry.MultiTenantTelemetryScheduler.NAME;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.setTenant;
@@ -48,7 +47,7 @@ public class MultiTenantTelemetrySchedulerTest
   public void testRegister_Schedule() {
     multiTenantTelemetryScheduler.register();
 
-    verify(taskScheduler).schedulePeriodicTask(eq(MultiTenantTelemetryScheduler.class), eq(NAME),
+    verify(taskScheduler).schedulePeriodicTask(eq(multiTenantTelemetryScheduler),
         eq(Duration.ofDays(1)), any());
   }
 
@@ -57,7 +56,7 @@ public class MultiTenantTelemetrySchedulerTest
     multiTenantTelemetryScheduler.execute(null);
 
     verify(multiTenantTelemetryTask).execute(eq(null));
-    verify(taskScheduler).scheduleOneTimeTaskForAllOtherNodes(MultiTenantTelemetryTask.class, NAME);
+    verify(taskScheduler).scheduleOneTimeTaskForAllOtherNodes(multiTenantTelemetryTask);
   }
 
   @Test
@@ -69,13 +68,11 @@ public class MultiTenantTelemetrySchedulerTest
     doAnswer( unused -> {
       assertTenantSet(tenantA);
       return null;
-    }).when(taskScheduler).schedulePeriodicTask(eq(MultiTenantTelemetryScheduler.class),
-        eq(NAME), eq(Duration.ofDays(1)), any());
+    }).when(taskScheduler).schedulePeriodicTask(eq(multiTenantTelemetryScheduler), eq(Duration.ofDays(1)), any());
 
     multiTenantTelemetryScheduler.register();
 
-    verify(taskScheduler).schedulePeriodicTask(eq(MultiTenantTelemetryScheduler.class),
-        eq(NAME), eq(Duration.ofDays(1)), any());
+    verify(taskScheduler).schedulePeriodicTask(eq(multiTenantTelemetryScheduler), eq(Duration.ofDays(1)), any());
   }
 
   @Test

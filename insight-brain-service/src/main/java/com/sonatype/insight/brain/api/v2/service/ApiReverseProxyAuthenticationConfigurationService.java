@@ -120,12 +120,17 @@ public class ApiReverseProxyAuthenticationConfigurationService
   // Visible for testing
   void updateAllClusterNodesFromConfiguration() {
     applyReverseProxyAuthenticationConfigurationToClients();
-    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(getClass(), TASK_NAME);
+    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this);
   }
 
   @Override
   public void execute(JobExecutionContext context) throws JobExecutionException {
     execute(this::applyReverseProxyAuthenticationConfigurationToClients, log,
         CONFIG_APPLY_ERROR);
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

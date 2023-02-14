@@ -55,4 +55,9 @@ public class AutomaticQuarantineReleaseTask
     execute(automaticQuarantineRelease::run, log, "Error executing automatic quarantine release");
     log.info("Next automatic quarantine release execution scheduled for {}", context.getNextFireTime());
   }
+  
+  @Override
+  public String getJobName() {
+    return NAME;
+  }
 }

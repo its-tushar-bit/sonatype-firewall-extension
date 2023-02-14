@@ -29,4 +29,9 @@ public interface InsightJob
       System.exit(1);
     }
   }
+
+  /**
+   * @return the job name to store in the qrtz_job_details table, this should not change without a migrator
+   */
+  String getJobName();
 }

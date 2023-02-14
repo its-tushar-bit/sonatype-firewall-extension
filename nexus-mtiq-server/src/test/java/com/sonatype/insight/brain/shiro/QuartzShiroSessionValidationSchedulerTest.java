@@ -18,13 +18,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.shiro.QuartzShiroSessionValidationScheduler.TASK_NAME;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.assertTenantSet;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
@@ -80,12 +78,12 @@ public class QuartzShiroSessionValidationSchedulerTest
       doAnswer(i -> {
         assertTenantSet(tenant1);
         return null;
-      }).when(taskScheduler).schedulePeriodicTask(any(), any(), any());
+      }).when(taskScheduler).schedulePeriodicTask(any(), any());
 
       underTest.enableSessionValidation();
 
       verify(taskScheduler)
-          .schedulePeriodicTask(eq(QuartzShiroSessionValidationScheduler.class), anyString(), any(Duration.class));
+          .schedulePeriodicTask(eq(underTest), any(Duration.class));
     });
   }
 
@@ -100,6 +98,6 @@ public class QuartzShiroSessionValidationSchedulerTest
   public void testDeleteJob_onDeregister() {
     underTest.deregister();
 
-    verify(taskScheduler).unscheduleTask(TASK_NAME);
+    verify(taskScheduler).unscheduleTask(underTest);
   }
 }

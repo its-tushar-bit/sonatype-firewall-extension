@@ -83,7 +83,7 @@ public class ComponentCategoryUpdater
   }
 
   private void loadComponentCategoriesOnAllOtherClusterNodes() {
-    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(getClass(), TASK_NAME);
+    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this);
   }
 
   @Override
@@ -94,5 +94,10 @@ public class ComponentCategoryUpdater
   // Visible for testing
   void doLoadComponentCategories() {
     loadComponentCategories();
+  }
+  
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

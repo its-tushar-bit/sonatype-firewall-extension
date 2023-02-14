@@ -277,12 +277,13 @@ public class Configuration
     if (!taskScheduler.isSchedulerInitialized()) {
       return;
     }
-    if (!taskScheduler.isTaskScheduled(DefaultBranchMonitor.TASK_NAME) ||
+    DefaultBranchMonitor defaultBranchMonitor = defaultBranchMonitorProvider.get();
+    if (!taskScheduler.isTaskScheduled(defaultBranchMonitor) ||
         !Objects.equals(currentSourceControlConfiguration.getDefaultBranchMonitoringStartTime(),
             sourceControlConfiguration.getDefaultBranchMonitoringStartTime()) ||
         currentSourceControlConfiguration.getDefaultBranchMonitoringIntervalHours() !=
             sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours()) {
-      defaultBranchMonitorProvider.get().scheduleDefaultBranchMonitoring();
+      defaultBranchMonitor.scheduleDefaultBranchMonitoring();
     }
   }
 
@@ -293,10 +294,11 @@ public class Configuration
     if (!taskScheduler.isSchedulerInitialized()) {
       return;
     }
-    if (!taskScheduler.isTaskScheduled(PullRequestMonitor.TASK_NAME) ||
+    PullRequestMonitor pullRequestMonitor = pullRequestMonitorProvider.get();
+    if (!taskScheduler.isTaskScheduled(pullRequestMonitor) ||
         currentSourceControlConfiguration.getPullRequestMonitoringIntervalSeconds() !=
             sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()) {
-      pullRequestMonitorProvider.get().schedulePullRequestMonitor();
+      pullRequestMonitor.schedulePullRequestMonitor();
     }
   }
 

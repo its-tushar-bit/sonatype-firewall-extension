@@ -98,7 +98,6 @@ public class ClusterTelemetryTaskTest
   public void testRegister() {
     clusterTelemetryTask.register();
 
-    verify(taskSchedulerMock)
-        .schedulePeriodicTask(ClusterTelemetryTask.class, ClusterTelemetryTask.NAME, Duration.ofDays(1));
+    verify(taskSchedulerMock).schedulePeriodicTask(clusterTelemetryTask, Duration.ofDays(1));
   }
 }

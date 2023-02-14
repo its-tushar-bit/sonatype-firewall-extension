@@ -156,7 +156,7 @@ public class ApiRepositoryIdentifiedComponentService
     if (componentIdentifier != null) {
       parameters.put(TASK_PARAM_COMPONENT_IDENTIFIER, JsonUtils.writeUnformatted(componentIdentifier));
     }
-    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(getClass(), TASK_NAME, parameters);
+    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this, parameters);
   }
 
   @Override
@@ -181,5 +181,10 @@ public class ApiRepositoryIdentifiedComponentService
       log.error(t.getMessage(), t);
       System.exit(1);
     }
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

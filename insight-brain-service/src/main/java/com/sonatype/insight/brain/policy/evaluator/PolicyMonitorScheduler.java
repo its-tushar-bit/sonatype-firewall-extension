@@ -40,17 +40,21 @@ public class PolicyMonitorScheduler
 
   private final TaskScheduler taskScheduler;
 
+  private final PolicyMonitoringTask policyMonitoringTask;
+
   public boolean disableForTesting;
 
   @Inject
   public PolicyMonitorScheduler(
       Configuration configuration,
       ProductLicense productLicense,
-      TaskScheduler taskScheduler)
+      TaskScheduler taskScheduler,
+      PolicyMonitoringTask policyMonitoringTask)
   {
     this.configuration = configuration;
     this.productLicense = productLicense;
     this.taskScheduler = taskScheduler;
+    this.policyMonitoringTask = policyMonitoringTask;
   }
 
   private synchronized void startMonitoring() {
@@ -68,13 +72,13 @@ public class PolicyMonitorScheduler
     log.info("Policy Monitor is licensed");
     // randomize minute to avoid coordinated load spike for HDS scan processing
     LocalTime startTime = LocalTime.of(configuration.getPolicyMonitoringHour(), new Random().nextInt(15));
-    taskScheduler.scheduleDailyTask(PolicyMonitoringTask.class, PolicyMonitoringTask.NAME, startTime);
+    taskScheduler.scheduleDailyTask(policyMonitoringTask, startTime);
     log.info("Next Policy Monitor execution scheduled for {}",
-        taskScheduler.getNextExecutionTime(PolicyMonitoringTask.NAME));
+        taskScheduler.getNextExecutionTime(policyMonitoringTask));
   }
 
   private synchronized void stopMonitoring() {
-    if (!disableForTesting && taskScheduler.unscheduleTask(PolicyMonitoringTask.NAME)) {
+    if (!disableForTesting && taskScheduler.unscheduleTask(policyMonitoringTask)) {
       log.info("Policy Monitor stopped");
     }
   }

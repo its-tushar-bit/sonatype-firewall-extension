@@ -314,7 +314,6 @@ public class ApiRepositoryIdentifiedComponentServiceTest
           JsonUtils.writeUnformatted(componentIdentifier));
     }
     verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(
-        ApiRepositoryIdentifiedComponentService.class, ApiRepositoryIdentifiedComponentService.TASK_NAME,
-        expectedParameters);
+        repositoryIdentifiedComponentService, expectedParameters);
   }
 }

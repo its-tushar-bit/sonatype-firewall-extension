@@ -128,9 +128,7 @@ public class ApiReverseProxyAuthenticationConfigurationServiceTest
     spy.updateAllClusterNodesFromConfiguration();
 
     verify(spy).applyReverseProxyAuthenticationConfigurationToClients();
-    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(
-        ApiReverseProxyAuthenticationConfigurationService.class,
-        ApiReverseProxyAuthenticationConfigurationService.TASK_NAME);
+    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(spy);
   }
 
   @Test

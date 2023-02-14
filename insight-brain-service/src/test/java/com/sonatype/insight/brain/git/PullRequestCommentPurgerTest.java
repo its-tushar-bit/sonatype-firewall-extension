@@ -66,8 +66,7 @@ public class PullRequestCommentPurgerTest
   public void testStart() {
     pullRequestCommentPurger.register();
 
-    verify(mockTaskScheduler).scheduleDailyTask(PullRequestCommentPurger.class, PullRequestCommentPurger.TASK_NAME,
-        LocalTime.of(2, 0));
+    verify(mockTaskScheduler).scheduleDailyTask(pullRequestCommentPurger, LocalTime.of(2, 0));
   }
 
   @Test

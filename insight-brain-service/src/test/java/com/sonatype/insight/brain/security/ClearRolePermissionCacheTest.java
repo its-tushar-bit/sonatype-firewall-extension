@@ -48,8 +48,7 @@ public class ClearRolePermissionCacheTest
   public void testScheduleClearRolePermissionCacheForAllOtherNodes() {
     clearRolePermissionCache.scheduleClearRolePermissionCacheForAllOtherNodes();
 
-    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(ClearRolePermissionCache.class,
-        ClearRolePermissionCache.TASK_NAME);
+    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(clearRolePermissionCache);
   }
 
   @Test
@@ -62,15 +61,13 @@ public class ClearRolePermissionCacheTest
 
       // Insert should trigger the job
       Role role = tempEntity.newRole(true, Permission.READ);
-      verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(ClearRolePermissionCache.class,
-          ClearRolePermissionCache.TASK_NAME);
+      verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(clearRolePermissionCache);
 
       Mockito.reset(mockTaskScheduler);
 
       // Delete should trigger the job
       new RoleDAO().delete(role);
-      verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(ClearRolePermissionCache.class,
-          ClearRolePermissionCache.TASK_NAME);
+      verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(clearRolePermissionCache);
     }
     finally {
       RolePermissionDAO.setClearRolePermissionCacheForAllOtherNodes(original);

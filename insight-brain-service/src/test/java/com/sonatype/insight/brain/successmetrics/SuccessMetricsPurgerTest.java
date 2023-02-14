@@ -241,6 +241,6 @@ public class SuccessMetricsPurgerTest
   @Test
   public void testExecute_AdminTask() {
     successMetricsPurger.execute(null, new PrintWriter(new StringWriter()));
-    verify(taskSchedulerMock).triggerTaskNow(SuccessMetricsPurger.NAME, null);
+    verify(taskSchedulerMock).triggerTaskNow(successMetricsPurger, null);
   }
 }

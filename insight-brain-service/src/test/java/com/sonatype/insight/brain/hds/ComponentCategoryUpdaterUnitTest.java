@@ -58,8 +58,7 @@ public class ComponentCategoryUpdaterUnitTest
 
     componentCategoryUpdater.doUpdate();
 
-    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(ComponentCategoryUpdater.class,
-        ComponentCategoryUpdater.TASK_NAME);
+    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(componentCategoryUpdater);
   }
 
   @Test

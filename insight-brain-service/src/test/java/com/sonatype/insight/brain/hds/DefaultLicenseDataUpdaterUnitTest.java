@@ -60,8 +60,7 @@ public class DefaultLicenseDataUpdaterUnitTest
 
     defaultLicenseDataUpdater.doUpdate();
 
-    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(DefaultLicenseDataUpdater.class,
-        DefaultLicenseDataUpdater.TASK_NAME);
+    verify(mockTaskScheduler).scheduleOneTimeTaskForAllOtherNodes(defaultLicenseDataUpdater);
   }
 
   @Test

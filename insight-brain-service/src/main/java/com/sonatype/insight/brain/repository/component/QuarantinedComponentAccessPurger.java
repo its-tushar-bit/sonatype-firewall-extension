@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -62,9 +63,8 @@ public class QuarantinedComponentAccessPurger
 
   @Override
   public void register() {
-    taskScheduler.schedulePeriodicTask(QuarantinedComponentAccessPurger.class, NAME,
-        Duration.ofDays(1));
-    Date nextExecutionTime = taskScheduler.getNextExecutionTime(NAME);
+    taskScheduler.schedulePeriodicTask(this, Duration.ofDays(1));
+    Date nextExecutionTime = taskScheduler.getNextExecutionTime(this);
     log.debug("Scheduled periodic purging of obsolete quarantined component report access entries for {}",
         nextExecutionTime);
   }
@@ -77,7 +77,7 @@ public class QuarantinedComponentAccessPurger
   @Override
   public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
     log.debug("Triggering purging of obsolete quarantined component report access entries");
-    taskScheduler.triggerTaskNow(NAME, null);
+    taskScheduler.triggerTaskNow(this, null);
     output.println("Triggered purging of obsolete quarantined component report access entries");
   }
 
@@ -93,5 +93,10 @@ public class QuarantinedComponentAccessPurger
     if (deletedRows > 0) {
       log.info("Purged {} obsolete quarantined component access entries older than {}", deletedRows, cutoffDate);
     }
+  }
+
+  @Override
+  public String getJobName() {
+    return NAME;
   }
 }

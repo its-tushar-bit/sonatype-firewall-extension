@@ -57,13 +57,13 @@ public class QuartzShiroSessionValidationScheduler
 
   @Override
   public void enableSessionValidation() {
-    taskScheduler.schedulePeriodicTask(QuartzShiroSessionValidationScheduler.class, TASK_NAME, Duration.ofMinutes(30L));
+    taskScheduler.schedulePeriodicTask(this, Duration.ofMinutes(30L));
     enabled.set(true);
   }
 
   @Override
   public void disableSessionValidation() {
-    taskScheduler.unscheduleTask(TASK_NAME);
+    taskScheduler.unscheduleTask(this);
   }
 
   @Override
@@ -81,6 +81,11 @@ public class QuartzShiroSessionValidationScheduler
    */
   @Override
   public void deregister() {
-    taskScheduler.unscheduleTask(TASK_NAME);
+    taskScheduler.unscheduleTask(this);
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

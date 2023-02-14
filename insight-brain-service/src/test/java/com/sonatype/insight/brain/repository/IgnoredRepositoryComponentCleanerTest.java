@@ -76,8 +76,7 @@ public class IgnoredRepositoryComponentCleanerTest
 
     ignoredRepositoryComponentMigrator.register();
 
-    verify(mockTaskScheduler).scheduleOneTimeTask(IgnoredRepositoryComponentCleaner.class,
-        IgnoredRepositoryComponentCleaner.TASK_NAME);
+    verify(mockTaskScheduler).scheduleOneTimeTask(ignoredRepositoryComponentMigrator);
   }
 
   @Test

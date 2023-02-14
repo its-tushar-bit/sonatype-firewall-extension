@@ -1400,8 +1400,7 @@ public class CLMLicenseManagerTest
 
     clmLicenseManagerSpy.loadProductLicenseOnAllOtherClusterNodes();
 
-    verify(taskSchedulerMock)
-        .scheduleOneTimeTaskForAllOtherNodes(clmLicenseManagerSpy.getClass(), CLMLicenseManager.TASK_NAME);
+    verify(taskSchedulerMock).scheduleOneTimeTaskForAllOtherNodes(clmLicenseManagerSpy);
   }
 
   @Test

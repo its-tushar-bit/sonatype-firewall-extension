@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.scheduler;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -28,6 +29,7 @@ import org.quartz.spi.JobFactory;
 import static com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler.TASK_SCHEDULER_THREAD_POOL_SIZE;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.createTenant;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -112,11 +114,13 @@ public class MultiTenantTaskSchedulerTest
 
     when(tenantUtil.isGlobalTenant()).thenReturn(true);
     when(scheduler.getJobGroupNames()).thenReturn(tenants);
+    InsightJob mockInsightJob = mock(InsightJob.class);
+    when(mockInsightJob.getJobName()).thenReturn(name.getMethodName());
 
-    underTest.unscheduleTask(name.getMethodName());
+    underTest.unscheduleTask(mockInsightJob);
 
     for (String tenant : tenants) {
-      verify(scheduler).deleteJob(underTest.toJobKey(name.getMethodName(), tenant));
+      verify(scheduler).deleteJob(underTest.toJobKey(mockInsightJob, tenant));
     }
   }
 
@@ -126,18 +130,22 @@ public class MultiTenantTaskSchedulerTest
     when(tenantManager.getTenant()).thenReturn(createTenant(tenantSlug));
 
     when(tenantUtil.isGlobalTenant()).thenReturn(false);
+    InsightJob mockInsightJob = mock(InsightJob.class);
+    when(mockInsightJob.getJobName()).thenReturn(name.getMethodName());
 
-    underTest.unscheduleTask(name.getMethodName());
+    underTest.unscheduleTask(mockInsightJob);
 
-    verify(scheduler).deleteJob(underTest.toJobKey(name.getMethodName(), tenantSlug));
+    verify(scheduler).deleteJob(underTest.toJobKey(mockInsightJob, tenantSlug));
   }
 
   @Test
   public void shouldIncludeTenantName_whenGetTriggerKey() {
     String tenantSlug = "test-tenant";
     when(tenantManager.getTenant()).thenReturn(createTenant(tenantSlug));
+    InsightJob mockInsightJob = mock(InsightJob.class);
+    when(mockInsightJob.getJobName()).thenReturn(name.getMethodName());
 
-    TriggerKey triggerKey = underTest.toTriggerKey(name.getMethodName());
+    TriggerKey triggerKey = underTest.toTriggerKey(mockInsightJob);
 
     assertThat(triggerKey.getGroup()).isEqualTo(tenantSlug);
   }

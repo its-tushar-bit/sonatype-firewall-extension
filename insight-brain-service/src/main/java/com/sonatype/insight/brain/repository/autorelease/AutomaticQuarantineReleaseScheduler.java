@@ -39,17 +39,21 @@ public class AutomaticQuarantineReleaseScheduler
 
   private final TaskScheduler taskScheduler;
 
+  private final AutomaticQuarantineReleaseTask automaticQuarantineReleaseTask;
+
   public boolean disableForTesting;
 
   @Inject
   public AutomaticQuarantineReleaseScheduler(
       Configuration configuration,
       ProductLicense productLicense,
-      TaskScheduler taskScheduler)
+      TaskScheduler taskScheduler,
+      AutomaticQuarantineReleaseTask automaticQuarantineReleaseTask)
   {
     this.configuration = configuration;
     this.productLicense = productLicense;
     this.taskScheduler = taskScheduler;
+    this.automaticQuarantineReleaseTask = automaticQuarantineReleaseTask;
   }
 
   private synchronized void startAutomaticQuarantineRelease() {
@@ -66,10 +70,10 @@ public class AutomaticQuarantineReleaseScheduler
     }
     log.info("Licensed for Firewall Automatic Quarantine Release.");
     Duration timeInterval = Duration.ofMinutes(configuration.getAutomaticQuarantineReleaseTimeIntervalInMinutes());
-    taskScheduler.schedulePeriodicTask(AutomaticQuarantineReleaseTask.class, AutomaticQuarantineReleaseTask.NAME,
+    taskScheduler.schedulePeriodicTask(automaticQuarantineReleaseTask,
         timeInterval, getAutomaticQuarantineReleaseStartTime());
     log.info("Next Automatic Quarantine Release execution scheduled for {}",
-        taskScheduler.getNextExecutionTime(AutomaticQuarantineReleaseTask.NAME));
+        taskScheduler.getNextExecutionTime(automaticQuarantineReleaseTask));
   }
 
   private Date getAutomaticQuarantineReleaseStartTime() {
@@ -79,7 +83,7 @@ public class AutomaticQuarantineReleaseScheduler
   }
 
   private synchronized void stopAutomaticQuarantineRelease() {
-    if (!disableForTesting && taskScheduler.unscheduleTask(AutomaticQuarantineReleaseTask.NAME)) {
+    if (!disableForTesting && taskScheduler.unscheduleTask(automaticQuarantineReleaseTask)) {
       log.info("Automatic Quarantine Release stopped");
     }
   }

@@ -55,8 +55,7 @@ public class PersistedScanTicketCleanerTest
   public void testStart() {
     persistedScanTicketCleaner.register();
 
-    verify(taskSchedulerMock).schedulePeriodicTask(PersistedScanTicketCleaner.class,
-        PersistedScanTicketCleaner.TASK_NAME, PersistedScanTicketCleaner.PERIOD);
+    verify(taskSchedulerMock).schedulePeriodicTask(persistedScanTicketCleaner, PersistedScanTicketCleaner.PERIOD);
   }
 
   @Test

@@ -67,8 +67,8 @@ public class RepositoryIdentifiedComponentPurger
       return;
     }
 
-    taskScheduler.scheduleDailyTask(RepositoryIdentifiedComponentPurger.class, NAME, EXECUTION_TIME);
-    Date nextExecutionTime = taskScheduler.getNextExecutionTime(NAME);
+    taskScheduler.scheduleDailyTask(this, EXECUTION_TIME);
+    Date nextExecutionTime = taskScheduler.getNextExecutionTime(this);
     log.debug("Scheduled periodic {} for {}.", DESCRIPTION, nextExecutionTime);
   }
 
@@ -83,7 +83,7 @@ public class RepositoryIdentifiedComponentPurger
   @Override
   public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
     log.debug("Triggering {}.", DESCRIPTION);
-    taskScheduler.triggerTaskNow(NAME, null);
+    taskScheduler.triggerTaskNow(this, null);
     output.println(String.format("Triggered %s.", DESCRIPTION));
   }
 
@@ -96,5 +96,10 @@ public class RepositoryIdentifiedComponentPurger
     log.debug("Starting {}.", DESCRIPTION);
     repositoryIdentifiedComponentDAO.deleteInfrequentlyAccessed(MAX_LAST_ACCESSED);
     log.info("Finished {}.", DESCRIPTION);
+  }
+
+  @Override
+  public String getJobName() {
+    return NAME;
   }
 }

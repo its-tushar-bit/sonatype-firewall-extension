@@ -83,6 +83,6 @@ public class QuarantinedComponentAccessPurgerTest
   @Test
   public void testExecute_AdminTask() {
     quarantinedComponentAccessPurger.execute(null, new PrintWriter(new StringWriter()));
-    verify(taskSchedulerMock).triggerTaskNow(QuarantinedComponentAccessPurger.NAME, null);
+    verify(taskSchedulerMock).triggerTaskNow(quarantinedComponentAccessPurger, null);
   }
 }

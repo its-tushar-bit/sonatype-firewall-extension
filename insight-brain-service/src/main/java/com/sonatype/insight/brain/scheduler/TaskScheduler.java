@@ -20,6 +20,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.service.InsightJob;
+
 import io.dropwizard.lifecycle.Managed;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.DailyTimeIntervalScheduleBuilder;
@@ -120,16 +122,16 @@ public class TaskScheduler
     }
   }
 
-  public void triggerTaskNow(String name, Map<String, String> parameters) {
+  public void triggerTaskNow(InsightJob insightJob, Map<String, String> parameters) {
     try {
-      getScheduler().triggerJob(toJobKey(name), parameters != null ? new JobDataMap(parameters) : null);
+      getScheduler().triggerJob(toJobKey(insightJob), parameters != null ? new JobDataMap(parameters) : null);
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);
     }
   }
 
-  Class<? extends Job> normalizeJobClass(Class<? extends Job> jobClass) {
+  public static Class<? extends Job> normalizeJobClass(Class<? extends Job> jobClass) {
     if (jobClass.getName().contains("Guice$$")) {
       // components employing AOP have runtime-generated subclasses, those aren't persistable for jobs
       jobClass = jobClass.getSuperclass().asSubclass(Job.class);
@@ -137,15 +139,15 @@ public class TaskScheduler
     return jobClass;
   }
 
-  protected JobBuilder newJob(Class<? extends Job> jobClass, String name) {
-    return JobBuilder.newJob(normalizeJobClass(jobClass))
-        .withIdentity(name);
+  protected JobBuilder newJob(InsightJob insightJob) {
+    return JobBuilder.newJob(normalizeJobClass(insightJob.getClass()))
+        .withIdentity(insightJob.getJobName());
   }
 
-  public void scheduleDailyTask(Class<? extends Job> jobClass, String name, LocalTime localTime) {
+  public void scheduleDailyTask(InsightJob insightJob, LocalTime localTime) {
     CronScheduleBuilder schedule = CronScheduleBuilder.dailyAtHourAndMinute(localTime.getHour(), localTime.getMinute())
         .withMisfireHandlingInstructionDoNothing();
-    JobDetail job = newJob(jobClass, name) //
+    JobDetail job = newJob(insightJob) //
         .build();
 
     Trigger trigger = TriggerBuilder.newTrigger() //
@@ -155,8 +157,8 @@ public class TaskScheduler
     scheduleTask(job, trigger);
   }
 
-  public void scheduleOneTimeTask(Class<? extends Job> jobClass, String name) {
-    JobDetail job = newJob(jobClass, name)
+  public void scheduleOneTimeTask(InsightJob insightJob) {
+    JobDetail job = newJob(insightJob)
         .build();
     Trigger trigger = TriggerBuilder.newTrigger()
         .withIdentity(job.getKey().getName(), job.getKey().getGroup())
@@ -165,8 +167,8 @@ public class TaskScheduler
     scheduleTask(job, trigger);
   }
 
-  public void scheduleOneTimeTask(Class<? extends Job> jobClass, String name, LocalTime localTime) {
-    JobDetail job = newJob(jobClass, name) //
+  public void scheduleOneTimeTask(InsightJob insightJob, LocalTime localTime) {
+    JobDetail job = newJob(insightJob) //
         .build();
     Trigger trigger = TriggerBuilder.newTrigger() //
         .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
@@ -178,9 +180,9 @@ public class TaskScheduler
     scheduleTask(job, trigger);
   }
 
-  public boolean isJobTriggered(String name, Map<String, Object> data) {
+  public boolean isJobTriggered(InsightJob insightJob, Map<String, Object> data) {
     try {
-      for (Trigger trigger : getScheduler().getTriggersOfJob(toJobKey(name))) {
+      for (Trigger trigger : getScheduler().getTriggersOfJob(toJobKey(insightJob))) {
         if (data.equals(trigger.getJobDataMap().getWrappedMap())) {
           return true;
         }
@@ -192,12 +194,12 @@ public class TaskScheduler
     }
   }
 
-  public void schedulePeriodicTask(Class<? extends Job> jobClass, String name, Duration interval) {
-    schedulePeriodicTask(jobClass, name, interval, null);
+  public void schedulePeriodicTask(InsightJob insightJob, Duration interval) {
+    schedulePeriodicTask(insightJob, interval, null);
   }
 
-  public void schedulePeriodicTask(Class<? extends Job> jobClass, String name, Duration interval, Date startTime) {
-    JobDetail job = newJob(jobClass, name) //
+  public void schedulePeriodicTask(InsightJob insightJob, Duration interval, Date startTime) {
+    JobDetail job = newJob(insightJob) //
         .build();
     TriggerBuilder triggerBuilder = TriggerBuilder.newTrigger() //
         .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
@@ -215,13 +217,12 @@ public class TaskScheduler
     scheduleTask(job, trigger);
   }
 
-  public void scheduleOneTimeTaskForAllOtherNodes(Class<? extends Job> jobClass, String name) {
-    scheduleOneTimeTaskForAllOtherNodes(jobClass, name, Collections.emptyMap());
+  public void scheduleOneTimeTaskForAllOtherNodes(InsightJob insightJob) {
+    scheduleOneTimeTaskForAllOtherNodes(insightJob, Collections.emptyMap());
   }
 
   public void scheduleOneTimeTaskForAllOtherNodes(
-      Class<? extends Job> jobClass,
-      String name,
+      InsightJob insightJob,
       Map<String, String> parameters)
   {
     Set<String> otherNodeIds = getOtherNodeIds();
@@ -229,7 +230,7 @@ public class TaskScheduler
       return;
     }
 
-    JobDetail job = newJob(jobClass, name) //
+    JobDetail job = newJob(insightJob) //
         // non-durable for automatic removal once last trigger is gone
         // recovery/retry by another node doesn't make sense when binding execution to specific node
         .build();
@@ -239,7 +240,7 @@ public class TaskScheduler
         SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionIgnoreMisfires();
 
     // create one trigger for each node
-    log.debug("Scheduling {} to be executed once on nodes {}.", name, otherNodeIds);
+    log.debug("Scheduling {} to be executed once on nodes {}.", insightJob.getJobName(), otherNodeIds);
     for (String nodeId : otherNodeIds) {
       JobDataMap jobDataMap = new JobDataMap(parameters);
       jobDataMap.put(QUARTZ_NODE_ID, nodeId); // bind to node
@@ -278,8 +279,8 @@ public class TaskScheduler
     }
   }
 
-  public boolean unscheduleTask(String name) {
-    return unscheduleTask(toJobKey(name));
+  public boolean unscheduleTask(InsightJob insightJob) {
+    return unscheduleTask(toJobKey(insightJob));
   }
 
   protected boolean unscheduleTask(JobKey jobKey) {
@@ -291,8 +292,8 @@ public class TaskScheduler
     }
   }
 
-  public Date getNextExecutionTime(String name) {
-    return getTrigger(toTriggerKey(name)).getNextFireTime();
+  public Date getNextExecutionTime(InsightJob insightJob) {
+    return getTrigger(toTriggerKey(insightJob)).getNextFireTime();
   }
 
   private Trigger getTrigger(TriggerKey triggerKey) {
@@ -342,8 +343,8 @@ public class TaskScheduler
     return getScheduler() != null;
   }
 
-  public boolean isTaskScheduled(String name) {
-    return isTaskScheduled(toJobKey(name));
+  public boolean isTaskScheduled(InsightJob insightJob) {
+    return isTaskScheduled(toJobKey(insightJob));
   }
 
   private boolean isTaskScheduled(JobKey jobKey) {
@@ -355,11 +356,11 @@ public class TaskScheduler
     }
   }
 
-  protected JobKey toJobKey(String name) {
-    return JobKey.jobKey(name);
+  protected JobKey toJobKey(InsightJob insightJob) {
+    return JobKey.jobKey(insightJob.getJobName());
   }
 
-  protected TriggerKey toTriggerKey(String name) {
-    return TriggerKey.triggerKey(name);
+  protected TriggerKey toTriggerKey(InsightJob insightJob) {
+    return TriggerKey.triggerKey(insightJob.getJobName());
   }
 }

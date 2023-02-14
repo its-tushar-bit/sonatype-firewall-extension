@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.component;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
@@ -63,14 +64,14 @@ public class RepositoryIdentifiedComponentPurgerTest
   public void testStart() {
     repositoryIdentifiedComponentPurger.register();
 
-    verify(mockTaskScheduler).scheduleDailyTask(RepositoryIdentifiedComponentPurger.class,
-        RepositoryIdentifiedComponentPurger.NAME, RepositoryIdentifiedComponentPurger.EXECUTION_TIME);
+    verify(mockTaskScheduler).scheduleDailyTask(repositoryIdentifiedComponentPurger,
+        RepositoryIdentifiedComponentPurger.EXECUTION_TIME);
   }
 
   @Test
   public void testExecute_AdminTask() {
     repositoryIdentifiedComponentPurger.execute(null, new PrintWriter(new StringWriter()));
-    verify(mockTaskScheduler).triggerTaskNow(RepositoryIdentifiedComponentPurger.NAME, null);
+    verify(mockTaskScheduler).triggerTaskNow(repositoryIdentifiedComponentPurger, null);
   }
 
   @Test

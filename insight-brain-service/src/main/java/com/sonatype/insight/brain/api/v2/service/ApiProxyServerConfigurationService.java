@@ -179,11 +179,16 @@ public class ApiProxyServerConfigurationService
   // Visible for testing
   void updateAllClusterNodesFromConfiguration() {
     applyProxyServerConfigurationToClients();
-    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(getClass(), TASK_NAME);
+    taskScheduler.scheduleOneTimeTaskForAllOtherNodes(this);
   }
 
   @Override
   public void execute(JobExecutionContext context) {
     execute(this::applyProxyServerConfigurationToClients, log, CONFIG_APPLY_ERROR);
+  }
+
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

@@ -13,12 +13,13 @@ import java.util.function.IntUnaryOperator;
 
 import javax.inject.Named;
 
-import org.quartz.Job;
+import com.sonatype.insight.brain.service.InsightJob;
+
 import org.quartz.JobExecutionContext;
 
 @Named
 public class TestJob
-    implements Job
+    implements InsightJob
 {
   public static final String NAME = "TestJob";
 
@@ -37,7 +38,7 @@ public class TestJob
     if (durations != null) {
       int duration = durations.applyAsInt(execution);
       if (duration > 0) {
-        for (long start = System.currentTimeMillis(); System.currentTimeMillis() - start < duration;) {
+        for (long start = System.currentTimeMillis(); System.currentTimeMillis() - start < duration; ) {
           Thread.yield();
         }
       }
@@ -68,5 +69,10 @@ public class TestJob
     executions.set(0);
     jobParamsByExecution.clear();
     durations = null;
+  }
+
+  @Override
+  public String getJobName() {
+    return NAME;
   }
 }

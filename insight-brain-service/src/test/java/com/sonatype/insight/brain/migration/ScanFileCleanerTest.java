@@ -84,7 +84,7 @@ public class ScanFileCleanerTest
     assertMarkerDoesNotExist();
     scanFileCleaner.register();
 
-    verify(taskSchedulerMock).scheduleOneTimeTask(ScanFileCleaner.class, ScanFileCleaner.NAME, LocalTime.of(23, 0));
+    verify(taskSchedulerMock).scheduleOneTimeTask(scanFileCleaner, LocalTime.of(23, 0));
   }
 
   @Test

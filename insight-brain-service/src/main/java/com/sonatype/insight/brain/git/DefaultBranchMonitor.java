@@ -97,7 +97,7 @@ public class DefaultBranchMonitor
   }
 
   public void scheduleDefaultBranchMonitoring() {
-    taskScheduler.unscheduleTask(TASK_NAME);
+    taskScheduler.unscheduleTask(this);
 
     if (!SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING.isEnabled()) {
       return;
@@ -112,8 +112,7 @@ public class DefaultBranchMonitor
     intervalInMinutes = sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours() * 60 / 2;
 
     Date defaultBranchMonitorStartTime = getDefaultBranchMonitorStartTime(sourceControlConfiguration);
-    taskScheduler.schedulePeriodicTask(DefaultBranchMonitor.class, TASK_NAME, Duration.ofMinutes(intervalInMinutes),
-        defaultBranchMonitorStartTime);
+    taskScheduler.schedulePeriodicTask(this, Duration.ofMinutes(intervalInMinutes), defaultBranchMonitorStartTime);
 
     log.debug("DefaultBranchMonitor scheduled to start at {} and repeat every {} hours.", defaultBranchMonitorStartTime,
         (double) intervalInMinutes / 60);
@@ -210,5 +209,10 @@ public class DefaultBranchMonitor
   @VisibleForTesting
   int getIntervalInMinutes() {
     return intervalInMinutes;
+  }
+  
+  @Override
+  public String getJobName() {
+    return TASK_NAME;
   }
 }

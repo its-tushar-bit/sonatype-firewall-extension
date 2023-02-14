@@ -301,14 +301,10 @@ export default function applicationReportReducer(state = initState, { type, payl
 function setReportParameters(state, payload) {
   // if the report is filtered, then we need to keep the current filter settings
   const isNotFiltered = payload.isNotFiltered;
-  if (isNotFiltered) {
-    return {
-      ...initState,
-      reportParameters: payload,
-    };
-  }
   return {
-    ...state,
+    ...initState,
+    substringFilters: isNotFiltered ? initState.substringFilters : state.substringFilters,
+    exactValueFilters: isNotFiltered ? initState.exactValueFilters : state.exactValueFilters,
     reportParameters: payload,
   };
 }

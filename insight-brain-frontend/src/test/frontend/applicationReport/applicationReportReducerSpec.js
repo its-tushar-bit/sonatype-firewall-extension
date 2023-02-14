@@ -167,10 +167,12 @@ describe('applicationReportReducer', function () {
       });
     });
 
-    it('sets the state to the current state value when isNotFiltered is undefined', () => {
+    it('sets the state to the new state containing same filters when isNotFiltered is undefined', () => {
       const state = {
         foo: 'bar',
         changeMe: 'can haz overwrite plz?',
+        exactValueFilters: { derivedViolationState: {}, policyThreatLevel: {} },
+        substringFilters: { derivedComponentName: 'test' },
         reportParameters: {
           appId: 'appId',
           scanId: 'scanId',
@@ -186,13 +188,19 @@ describe('applicationReportReducer', function () {
         },
       });
 
-      expect(newState).toEqual(state);
+      expect(newState).toEqual({
+        ...newState,
+        exactValueFilters: { derivedViolationState: {}, policyThreatLevel: {} },
+        substringFilters: { derivedComponentName: 'test' },
+      });
     });
 
-    it('sets the state to the current state value when isNotFiltered is false', () => {
+    it('sets the state to the new state containing same filters when isNotFiltered is false', () => {
       const state = {
         foo: 'bar',
         changeMe: 'can haz overwrite plz?',
+        exactValueFilters: { derivedViolationState: {}, policyThreatLevel: {} },
+        substringFilters: { derivedComponentName: 'test' },
         reportParameters: {
           appId: 'appId',
           scanId: 'scanId',
@@ -210,7 +218,11 @@ describe('applicationReportReducer', function () {
         },
       });
 
-      expect(newState).toEqual(state);
+      expect(newState).toEqual({
+        ...newState,
+        exactValueFilters: { derivedViolationState: {}, policyThreatLevel: {} },
+        substringFilters: { derivedComponentName: 'test' },
+      });
     });
   });
 

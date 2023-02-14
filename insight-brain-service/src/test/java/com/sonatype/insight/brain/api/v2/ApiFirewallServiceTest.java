@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomRemediationConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityResearchConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -378,6 +379,9 @@ public class ApiFirewallServiceTest
     assertThat(releaseQuarantineConfig.get(LicenseThreatGroupConditionType.ID).autoReleaseQuarantineEnabled)
         .isFalse();
     assertThat(releaseQuarantineConfig.get(SecurityVulnerabilityResearchConditionType.ID).autoReleaseQuarantineEnabled)
+        .isFalse();
+    assertThat(releaseQuarantineConfig
+        .get(SecurityVulnerabilityCustomRemediationConditionType.ID).autoReleaseQuarantineEnabled)
         .isFalse();
 
     verify(telemetrySenderMock, times(1)).send(argCaptor.capture());

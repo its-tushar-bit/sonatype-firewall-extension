@@ -27,6 +27,8 @@ public class TenantValidatorTest
 {
   static final String TENANT_DB_SCHEMA = "t_tenant";
 
+  static final String TENANT_NAME = "tenant";
+
   @Mock
   OperationalDataStore operationalDataStore;
 
@@ -62,8 +64,40 @@ public class TenantValidatorTest
   }
 
   @Test
+  public void shouldThrowIllegalArgumentException_whenTenantNull() {
+    assertThatThrownBy(() -> underTest.validateTenantExists((Tenant)null))
+        .withFailMessage("Invalid tenant parameter")
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void shouldReturnTrue_whenTenantNameExists() {
+    when(operationalDataStore.getDataSourceWithoutInit()).thenReturn(dataSource);
+
+    boolean result = runValidateTenantNameExists(TENANT_DB_SCHEMA, true);
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void shouldReturnFalse_whenTenantNameDoesntExists() {
+    when(operationalDataStore.getDataSourceWithoutInit()).thenReturn(dataSource);
+
+    boolean result = runValidateTenantNameExists(TENANT_DB_SCHEMA, false);
+
+    assertThat(result).isFalse();
+  }
+
+  @Test
   public void shouldThrowIllegalArgumentException_whenTenantNameNull() {
-    assertThatThrownBy(() -> underTest.validateTenantExists(null))
+    assertThatThrownBy(() -> underTest.validateTenantExists((String)null))
+        .withFailMessage("Invalid tenant parameter")
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void shouldThrowIllegalArgumentException_whenTenantNameEmpty() {
+    assertThatThrownBy(() -> underTest.validateTenantExists(""))
         .withFailMessage("Invalid tenant parameter")
         .isInstanceOf(IllegalArgumentException.class);
   }
@@ -72,6 +106,13 @@ public class TenantValidatorTest
     try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
       dataBaseUtil.when(() -> DatabaseUtil.schemaExists(dataSource, schema)).thenReturn(expected);
       return underTest.validateTenantExists(tenant);
+    }
+  }
+
+  private boolean runValidateTenantNameExists(String schema, boolean expected) {
+    try (MockedStatic<DatabaseUtil> dataBaseUtil = mockStatic(DatabaseUtil.class)) {
+      dataBaseUtil.when(() -> DatabaseUtil.schemaExists(dataSource, schema)).thenReturn(expected);
+      return underTest.validateTenantExists(TENANT_NAME);
     }
   }
 }

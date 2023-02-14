@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.tenancy;
 
 import java.io.PrintWriter;
 import javax.servlet.FilterChain;
-import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.entity.ContentType;
@@ -28,13 +28,13 @@ import static org.mockito.Mockito.when;
 public class AdminTenantFilterTest
     extends MultiTenantTest
 {
-  private static final String TENANT_NAME = "tenant";
+  private static final String TENANT_NAME = "tenant1";
 
   @Mock
   private TenantManager tenantManager;
 
   @Mock
-  private ServletRequest request;
+  private HttpServletRequest request;
 
   @Mock
   private HttpServletResponse response;
@@ -53,11 +53,14 @@ public class AdminTenantFilterTest
     super.setup();
 
     underTest = new AdminTenantFilter(tenantManager, new TenantUtil());
-    when(request.getParameter(AdminTenantFilter.TENANT_PARAMETER)).thenReturn(TENANT_NAME);
+
+    when(request.getRequestURI()).thenReturn("/api/admin/other");
   }
 
   @Test
-  public void shouldSetTenant_whenTenantParameterIsSent() throws Exception {
+  public void shouldSetTenant_whenTenantPathParameterIsSent() throws Exception {
+    when(request.getRequestURI()).thenReturn(String.format("/api/admin/tenant/%s/", TENANT_NAME));
+
     underTest.doFilter(request, response, chain);
 
     verify(tenantManager).setTenantForAdminRequest(TENANT_NAME);
@@ -65,8 +68,48 @@ public class AdminTenantFilterTest
   }
 
   @Test
-  public void shouldSetGlobalTenant_whenTenantParameterIsGlobal() throws Exception {
-    when(request.getParameter(AdminTenantFilter.TENANT_PARAMETER)).thenReturn("global");
+  public void shouldSetTenant_whenTenantPathParameterIsSentOnMiddle() throws Exception {
+    when(request.getRequestURI()).thenReturn(String.format("/api/admin/tenant/%s/feature/api-update", TENANT_NAME));
+
+    underTest.doFilter(request, response, chain);
+
+    verify(tenantManager).setTenantForAdminRequest(TENANT_NAME);
+    verify(chain).doFilter(request, response);
+  }
+
+  @Test
+  public void shouldSetGlobalTenant_whenTenantPathParameterIsGlobal() throws Exception {
+    when(request.getRequestURI()).thenReturn(String.format("/api/admin/tenant/%s", GLOBAL_TENANT.tenantSlug));
+
+    underTest.doFilter(request, response, chain);
+
+    assertThat(TenantThreadLocal.getTenant()).isEqualTo(GLOBAL_TENANT);
+    verify(chain).doFilter(request, response);
+  }
+
+  @Test
+  public void shouldThrowException_whenTenantPathParameterIsEmpty() throws Exception {
+    when(response.getWriter()).thenReturn(printWriter);
+    when(request.getRequestURI()).thenReturn(String.format("/api/admin/tenant/%s", ""));
+
+    underTest.doFilter(request, response, chain);
+
+    assertErrorResponseIsCreated();
+  }
+
+  @Test
+  public void shouldSetTenant_whenTenantQueryParameterIsSent() throws Exception {
+    when(request.getParameter(AdminTenantFilter.TENANT_PARAMETER)).thenReturn(TENANT_NAME);
+
+    underTest.doFilter(request, response, chain);
+
+    verify(tenantManager).setTenantForAdminRequest(TENANT_NAME);
+    verify(chain).doFilter(request, response);
+  }
+
+  @Test
+  public void shouldSetGlobalTenant_whenTenantQueryParameterIsGlobal() throws Exception {
+    when(request.getParameter(AdminTenantFilter.TENANT_PARAMETER)).thenReturn(GLOBAL_TENANT.tenantSlug);
 
     underTest.doFilter(request, response, chain);
 
@@ -76,32 +119,14 @@ public class AdminTenantFilterTest
 
   @Test
   public void shouldInvalidateTenant_whenRequestFinished() {
+    when(request.getRequestURI()).thenReturn(String.format("/api/admin/tenant/%s", TENANT_NAME));
+
     testAs(createTenant(TENANT_NAME), t -> {
       underTestDoFilter();
 
       assertThat(TenantThreadLocal.getTenantWithoutValidation().isInvalid()).isTrue();
       assertRequestIsPassedDownChain();
     });
-  }
-
-  @Test
-  public void shouldThrowException_whenTenantParameterIsNotSent() throws Exception {
-    when(request.getParameter(AdminTenantFilter.TENANT_PARAMETER)).thenReturn(null);
-    when(response.getWriter()).thenReturn(printWriter);
-
-    underTest.doFilter(request, response, chain);
-
-    assertErrorResponseIsCreated();
-  }
-
-  @Test
-  public void shouldThrowException_whenTenantParameterIsBlank() throws Exception {
-    when(request.getParameter(AdminTenantFilter.TENANT_PARAMETER)).thenReturn("");
-    when(response.getWriter()).thenReturn(printWriter);
-
-    underTest.doFilter(request, response, chain);
-
-    assertErrorResponseIsCreated();
   }
 
   public void assertErrorResponseIsCreated() throws Exception {

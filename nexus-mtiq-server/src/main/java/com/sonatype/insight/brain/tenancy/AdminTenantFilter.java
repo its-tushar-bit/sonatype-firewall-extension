@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.tenancy;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.Filter;
@@ -14,6 +16,7 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +35,8 @@ public class AdminTenantFilter
 
   static final String TENANT_PARAMETER = "tenant";
 
+  static final Pattern TENANT_PARAMETER_REGEX = Pattern.compile(".*\\/tenant\\/([^\\/]+)");
+
   private final TenantManager tenantManager;
 
   private final TenantUtil tenantUtil;
@@ -46,7 +51,7 @@ public class AdminTenantFilter
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException
   {
-    final String tenantName = request.getParameter(TENANT_PARAMETER);
+    final String tenantName = getTenantParameter(request);
 
     if (StringUtils.isBlank(tenantName)) {
       createErrorResponse(response);
@@ -81,6 +86,26 @@ public class AdminTenantFilter
   @Override
   public void destroy() {
     // noop
+  }
+
+  private static String getTenantParameter(final ServletRequest request) {
+    String tenantName = getTenantParameterFromPath(request);
+    if (StringUtils.isBlank(tenantName)) {
+      tenantName = request.getParameter(TENANT_PARAMETER);
+    }
+    return tenantName;
+  }
+
+  private static String getTenantParameterFromPath(final ServletRequest request) {
+    HttpServletRequest req = (HttpServletRequest) request;
+
+    Matcher matcher = TENANT_PARAMETER_REGEX.matcher(req.getRequestURI());
+
+    if (matcher.find()) {
+      return matcher.group(1);
+    }
+
+    return null;
   }
 
   private void createErrorResponse(final ServletResponse response) throws IOException {

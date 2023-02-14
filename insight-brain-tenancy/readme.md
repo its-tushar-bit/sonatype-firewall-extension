@@ -215,7 +215,48 @@ this [readme](/nexus-mtiq-server/src/main/java/com/sonatype/insight/brain/servic
 that has been made possible for mtiq.
 
 #### Banned REST implementations
+
 As a result of CLM-23906, CLM-23907 certain REST resources have been banned by two different banning implementations.
 PermanentlyBannedRestResources lists all REST resources that we currently believe will never make sense for MTIQ and
 MilestoneOneBannedRestResources bans resources that are just not needed for the initial Firewall release. When we come
 to re-enable the Lifecycle functionality MilestoneOneBannedRestResources will need changing.
+
+## Admin Endpoints
+
+In a multi tenant environment, we need a mechanism to let us configure/manage the different tenants that may
+exist, and additionally the same mechanism should let us configure/manage, the multi tenant environment itself. 
+Here are some examples:
+- We need a way to provision a tenant
+- We need to get information of a tenant for support purposes 
+- We also need to modify/manage common configurations
+
+For that purpose we have defined what we call the Admin Endpoints. These are REST resources that will be 
+available under the admin port for MTIQ(8071).
+
+The admin endpoints are designed to live in a separate Jersey environment, which means that we cannot
+access the app endpoints from the admin port, and we cannot access the admin endpoints from the app 
+port. This level of isolation give us a couple of benefits:
+- We can ensure the admin endpoints are only for internal use
+- We can create admin endpoints that can configure multiple tenants or system level aspects in a simpler way
+- We avoid any accidental exposure of the admin endpoints thorough the vanity URLs
+
+To check the existing Admin Endpoints, you can check the resources 
+[here](../nexus-mtiq-server/src/main/java/com/sonatype/insight/brain/api/admin)
+
+### Tenant Provisioning
+
+For MTIQ the initial step for on-boarding any new customer, will be to ensure the DB is set up for them.
+This includes the schema creation and the proper creation and population of the tables, this is what
+we call the tenant provisioning process.
+
+For tenant provisioning we have created a new admin endpoint. You can run the next command to provision a
+new tenant:
+```bash
+curl -X POST http://{mtiq-ip-address}:8071/api/admin/tenant/{tenant-name}
+
+# Here is an example
+
+curl -X POST http://127.0.0.1:8071/api/admin/tenant/cubs
+
+# This will provision tenant with name "cubs"
+```

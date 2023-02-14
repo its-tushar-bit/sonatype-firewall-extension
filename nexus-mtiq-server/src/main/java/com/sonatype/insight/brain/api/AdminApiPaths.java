@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.api;
 
-/**
- * @since 1.11.0
- */
 public class AdminApiPaths
 {
   public static final String ADMIN_PATH = "admin/";

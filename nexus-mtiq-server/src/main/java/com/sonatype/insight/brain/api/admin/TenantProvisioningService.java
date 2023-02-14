@@ -9,8 +9,6 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.DatabaseConfigProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.tenancy.Tenant;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.utils.DatabaseProvisionUtils;
@@ -40,36 +38,36 @@ public class TenantProvisioningService
   @Inject
   public TenantProvisioningService(
       InsightConfig insightConfig,
-      DatabaseConfigProvider databaseConfigProvider,
       DatabaseProvisionUtils databaseProvisionUtils,
+      DatabaseConfigProvider databaseConfigProvider,
       TenantUtil tenantUtil,
       TenantValidator tenantValidator)
   {
     this.insightConfig = insightConfig;
-    this.databaseConfigProvider = databaseConfigProvider;
     this.databaseProvisionUtils = databaseProvisionUtils;
     this.tenantUtil = tenantUtil;
     this.tenantValidator = tenantValidator;
+    this.databaseConfigProvider = databaseConfigProvider;
   }
 
   /**
    * Provision a new tenant. This means creates the schema and executes the init scripts for the new schema
    *
-   * @see com.sonatype.insight.brain.tenancy.AdminTenantFilter to check how the tenant is set
+   * @see com.sonatype.insight.brain.tenancy.AdminTenantFilter to check how the tenant is set.
    */
-  public void provisionTenant() {
-    final Tenant tenant = TenantThreadLocal.getTenant();
-
+  public void provisionTenant(String tenantSlug) {
+    /* Proper validations for the tenant name were executed as part of the AdminTenantFilter.
+     * Here we are just checking we are not using the global tenant */
     if (tenantUtil.isGlobalTenant()) {
       throw new BadRequestException("Invalid tenant");
     }
 
-    if (tenantValidator.validateTenantExists(tenant)) {
-      log.debug("Tenant {} already exists", tenant.tenantSlug);
+    if (tenantValidator.validateTenantExists(tenantSlug)) {
+      log.debug("Tenant {} already exists", tenantSlug.replaceAll("[\n\r]", "_"));
       throw new ConflictException("Tenant already exists");
     }
 
     databaseProvisionUtils.initializeDatabases(insightConfig, databaseConfigProvider);
-    log.debug("New Tenant Provisioned: {}", tenant.tenantSlug);
+    log.debug("New Tenant Provisioned: {}", tenantSlug.replaceAll("[\n\r]", "_"));
   }
 }

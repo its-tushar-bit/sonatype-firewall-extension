@@ -54,16 +54,16 @@ public class TenantProvisioningServiceTest
   public void setup() {
     super.setup();
     tenantUtil = new TenantUtil();
-    underTest = new TenantProvisioningService(insightConfig, databaseConfigProvider, databaseProvisionUtils, tenantUtil,
+    underTest = new TenantProvisioningService(insightConfig, databaseProvisionUtils, databaseConfigProvider, tenantUtil,
         tenantValidator);
   }
 
   @Test
   public void shouldProvisionNewTenant() {
     testAs(createTenant(TENANT_NAME), tenant -> {
-      when(tenantValidator.validateTenantExists(tenant)).thenReturn(false);
+      when(tenantValidator.validateTenantExists(TENANT_NAME)).thenReturn(false);
 
-      underTest.provisionTenant();
+      underTest.provisionTenant(TENANT_NAME);
 
       verify(databaseProvisionUtils).initializeDatabases(insightConfig, databaseConfigProvider);
     });
@@ -74,9 +74,9 @@ public class TenantProvisioningServiceTest
     final String errorMessage = "Tenant already exists";
 
     testAs(createTenant(TENANT_NAME), tenant -> {
-      when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
+      when(tenantValidator.validateTenantExists(TENANT_NAME)).thenReturn(true);
 
-      assertThatThrownBy(() -> underTest.provisionTenant()).isInstanceOf(ConflictException.class)
+      assertThatThrownBy(() -> underTest.provisionTenant(TENANT_NAME)).isInstanceOf(ConflictException.class)
           .withFailMessage(errorMessage);
     });
   }
@@ -86,7 +86,7 @@ public class TenantProvisioningServiceTest
     final String errorMessage = "Invalid tenant";
 
     testAs(Tenant.GLOBAL_TENANT, tenant -> {
-      assertThatThrownBy(() -> underTest.provisionTenant()).isInstanceOf(BadRequestException.class)
+      assertThatThrownBy(() -> underTest.provisionTenant(TENANT_NAME)).isInstanceOf(BadRequestException.class)
           .withFailMessage(errorMessage);
     });
   }

@@ -23,14 +23,6 @@ public class TenantProvisioningResourceTest
   }
 
   @Test
-  public void shouldSend400_whenTenantIsGlobal() throws Exception {
-    HttpResponse response = provisionTenant("global").post();
-
-    assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
-  }
-
-  @Test
   public void shouldProvisionTenant() throws Exception {
     HttpResponse response = provisionTenant("tenant1").post();
 
@@ -47,25 +39,9 @@ public class TenantProvisioningResourceTest
     assertThat(response.getBodyText()).isEqualTo("Tenant already exists");
   }
 
-  @Test
-  public void shouldSend400_whenTenantIsEmpty() throws Exception {
-    HttpResponse response = provisionTenant("").post();
-
-    assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
-  }
-
-  @Test
-  public void shouldSend400_whenTenantIsNull() throws Exception {
-    HttpResponse response = provisionTenant(null).post();
-
-    assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
-  }
-
   private HttpRequest provisionTenant(String tenant) {
     if (tenant != null) {
-      return restRequest().query(String.format("tenant=%s", tenant));
+      return restRequest().path(tenant);
     }
     return restRequest();
   }

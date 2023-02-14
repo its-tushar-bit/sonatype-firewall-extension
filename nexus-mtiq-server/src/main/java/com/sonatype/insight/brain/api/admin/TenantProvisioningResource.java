@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
@@ -26,7 +27,8 @@ public class TenantProvisioningResource
   }
 
   @POST
-  public void provisionTenant() {
-    tenantProvisioningService.provisionTenant();
+  @Path("{tenantSlug}")
+  public void provisionTenant(@PathParam("tenantSlug") String tenantSlug) {
+    tenantProvisioningService.provisionTenant(tenantSlug);
   }
 }

@@ -12,6 +12,8 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 
+import org.apache.commons.lang3.StringUtils;
+
 @Named
 @Singleton
 public class TenantValidator
@@ -21,6 +23,14 @@ public class TenantValidator
   @Inject
   public TenantValidator(OperationalDataStore operationalDataStore) {
     this.operationalDataStore = operationalDataStore;
+  }
+
+  public boolean validateTenantExists(String tenant) {
+    if (StringUtils.isBlank(tenant)) {
+      throw new IllegalArgumentException("Invalid tenant parameter");
+    }
+
+    return validateTenantExists(new Tenant(tenant));
   }
 
   public boolean validateTenantExists(Tenant tenant) {

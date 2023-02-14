@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
@@ -55,6 +56,8 @@ public class MTIQFeatureService
    * features so that any new features don't automatically get released in MTIQ.
    */
   public static final Set<Feature> ENABLED_FEATURES = ImmutableSet.of(
+      DASHBOARD,
+      DASHBOARD_CAN_BE_ENABLED,
       HYGIENE,
       FIREWALL,
       BREAKING_CHANGE,

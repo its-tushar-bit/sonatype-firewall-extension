@@ -5,7 +5,10 @@
  */
 package com.sonatype.insight.brain.service.banning;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature;
@@ -14,7 +17,6 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.Feature;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_APPLICATION_CREATION_ENABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED;
@@ -61,7 +64,7 @@ public class MTIQFeatureServiceTest
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    for (SystemConfigurationPropertyFeature feature : SystemConfigurationPropertyFeature.values()) {
+    for (SystemConfigurationPropertyFeature feature : getDisabledSystemConfigurationPropertyFeatures()) {
       verify(service).disableFeatureNoAuthz(feature.getPropertyName());
     }
   }
@@ -82,6 +85,8 @@ public class MTIQFeatureServiceTest
     Set<Feature> features = underTest.getFeatures();
 
     assertThat(features).containsExactlyInAnyOrder(
+        DASHBOARD,
+        DASHBOARD_CAN_BE_ENABLED,
         HYGIENE,
         FIREWALL,
         BREAKING_CHANGE,
@@ -137,6 +142,12 @@ public class MTIQFeatureServiceTest
         .hasMessage("Feature not supported: " + featureName);
   }
 
+  private List<SystemConfigurationPropertyFeature> getDisabledSystemConfigurationPropertyFeatures() {
+    return Arrays.stream(SystemConfigurationPropertyFeature.values())
+        .filter(f -> !f.equals(DASHBOARD_CAN_BE_ENABLED))
+        .collect(Collectors.toList());
+  }
+
   /**
    * The super class to MTIQFeatureService (FeatureService) has a getFeatures call that ultimately calls out to a DAO
    * needing database access. That is not needed for this test and FeatureService is tested elsewhere so this impl is
@@ -156,7 +167,12 @@ public class MTIQFeatureServiceTest
 
     @Override
     Set<Feature> getBaseFeatures() {
-      return stream(LicensedFeature.values()).collect(toSet());
+      Set<Feature> features = stream(values())
+          .collect(toSet());
+
+      features.add(DASHBOARD_CAN_BE_ENABLED);
+
+      return features;
     }
   }
 }

@@ -28,7 +28,8 @@ public class ConfigFeaturesResourceTest
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
-    assertThat(features).isEmpty();
+
+    assertThat(features).containsExactly(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId());
   }
 
   @Test
@@ -36,8 +37,7 @@ public class ConfigFeaturesResourceTest
     HttpResponse response = restRequest().path("all").get();
     assertResponseStatus(200, response);
     String[] features = response.getBody(String[].class);
-    SystemConfigurationPropertyFeature.values();
 
-    assertThat(features).isEmpty();
+    assertThat(features).containsExactly(SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED.getId());
   }
 }

@@ -282,6 +282,7 @@ public class ApiLabelResourceTest
     assertLabelsByOwner(org, 0, applicableLabels.labelsByOwner.get(1));
     assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(2));
     assertThat(applicableLabels.labelsByOwner.get(0).labels.get(0).id).isEqualTo(appLabel.getId());
+    assertThat(applicableLabels.labelsByOwner.get(0).labels.get(0).ownerType).isEqualTo(OwnerType.APPLICATION.name());
 
     // Verify the applicable labels for the organization
     response = restRequest(OwnerType.ORGANIZATION, orgId).path("applicable").get();
@@ -307,6 +308,7 @@ public class ApiLabelResourceTest
     assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(2));
     assertThat(applicableLabels.labelsByOwner.get(0).labels.get(0).id).isEqualTo(appLabel.getId());
     assertThat(applicableLabels.labelsByOwner.get(1).labels.get(0).id).isEqualTo(orgLabel.getId());
+    assertThat(applicableLabels.labelsByOwner.get(1).labels.get(0).ownerType).isEqualTo(OwnerType.ORGANIZATION.name());
 
     // Verify the applicable labels for the organization
     response = restRequest(OwnerType.ORGANIZATION, orgId).path("applicable").get();
@@ -318,6 +320,7 @@ public class ApiLabelResourceTest
     assertLabelsByOwner(org, 1, applicableLabels.labelsByOwner.get(0));
     assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(1));
     assertThat(applicableLabels.labelsByOwner.get(0).labels.get(0).id).isEqualTo(orgLabel.getId());
+    assertThat(applicableLabels.labelsByOwner.get(0).labels.get(0).ownerType).isEqualTo(OwnerType.ORGANIZATION.name());
 
     // Create a label for the parent organization
     Label rootOrgLabel = tempEntity.newLabel(parentOrg.getId(), "testGetApplicableLabels_ParentOrg_label");
@@ -332,8 +335,13 @@ public class ApiLabelResourceTest
     assertLabelsByOwner(org, 1, applicableLabels.labelsByOwner.get(1));
     assertLabelsByOwner(parentOrg, 1, applicableLabels.labelsByOwner.get(2));
     assertThat(applicableLabels.labelsByOwner.get(0).labels.get(0).id).isEqualTo(appLabel.getId());
+    assertThat(applicableLabels.labelsByOwner.get(0).labels.get(0).ownerType).isEqualTo(OwnerType.APPLICATION.name());
+
     assertThat(applicableLabels.labelsByOwner.get(1).labels.get(0).id).isEqualTo(orgLabel.getId());
+    assertThat(applicableLabels.labelsByOwner.get(1).labels.get(0).ownerType).isEqualTo(OwnerType.ORGANIZATION.name());
+
     assertThat(applicableLabels.labelsByOwner.get(2).labels.get(0).id).isEqualTo(rootOrgLabel.getId());
+    assertThat(applicableLabels.labelsByOwner.get(2).labels.get(0).ownerType).isEqualTo(OwnerType.ORGANIZATION.name());
 
     // Verify the applicable labels for the organization
     response = restRequest(OwnerType.ORGANIZATION, orgId).path("applicable").get();

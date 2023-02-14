@@ -140,7 +140,7 @@ public class LabelService
       labelsByOwner.ownerType = owner.getType();
       labelsByOwner.labels = labelDAO.getByOwnerId(owner.getId())
           .stream()
-          .map(label -> toDTO(label, ownerType))
+          .map(label -> toDTO(label, owner.getType()))
           .collect(Collectors.toList());
       result.labelsByOwner.add(labelsByOwner);
     }

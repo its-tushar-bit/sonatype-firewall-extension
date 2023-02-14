@@ -1979,7 +1979,7 @@ public class ScanPolicyEvaluatorTest
     Condition securityVulnerabilitySourceCondition = new Condition(SecurityVulnerabilitySourceConditionType.ID,
         "is not", SecurityVulnerabilitySource.NATIONAL_VULNERABILITY_DATABASE.getId());
     Condition securityVulnerabilityCustomRemediationCondition =
-        new Condition(SecurityVulnerabilityCustomRemediationConditionType.ID, "has custom remediation", null);
+        new Condition(SecurityVulnerabilityCustomRemediationConditionType.ID, "exists", null);
 
     List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,

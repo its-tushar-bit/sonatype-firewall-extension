@@ -15,9 +15,12 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -90,32 +93,60 @@ public class ReferencePolicyImportIntegrationTest
   @Test
   @ManualServerInit
   public void testImportCurrentReferencePolicies() throws Exception {
+    // Sanity checks
+    assertThat(policyDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).isEmpty();
+    assertThat(licenseThreatGroupDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).isEmpty();
+    assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).isEmpty();
+    assertThat(labelDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).isEmpty();
+    assertThat(tagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID)).isEmpty();
+    assertThat(policyTagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID)).isEmpty();
+
     Configurator configurator = config -> config.setImportRefrencePoliciesFromHDS(true);
 
     hdsRespondWith(referencePolicyUrl).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
 
-    initServer(configurator);
+    try {
+      initServer(configurator);
 
-    PolicyExportResult importData = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
-    int policyCount = importData.policies.size();
-    int ltgCount = importData.licenseThreatGroups.size();
-    int ltgLicenseCount = importData.licenseThreatGroupLicenses.size();
-    int labelCount = importData.labels.size();
-    int tagCount = importData.tags.size();
-    int policyTagCount = importData.policyTags.size();
+      PolicyExportResult importData = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
+      int policyCount = importData.policies.size();
+      int ltgCount = importData.licenseThreatGroups.size();
+      int ltgLicenseCount = importData.licenseThreatGroupLicenses.size();
+      int labelCount = importData.labels.size();
+      int tagCount = importData.tags.size();
+      int policyTagCount = importData.policyTags.size();
 
-    assertThat(policyCount).isGreaterThan(0);
-    assertThat(ltgCount).isGreaterThan(0);
-    assertThat(ltgLicenseCount).isGreaterThan(0);
-    assertThat(labelCount).isGreaterThan(0);
-    assertThat(tagCount).isGreaterThan(0);
-    assertThat(policyTagCount).isGreaterThan(0);
+      assertThat(policyCount).isGreaterThan(0);
+      assertThat(ltgCount).isGreaterThan(0);
+      assertThat(ltgLicenseCount).isGreaterThan(0);
+      assertThat(labelCount).isGreaterThan(0);
+      assertThat(tagCount).isGreaterThan(0);
+      assertThat(policyTagCount).isGreaterThan(0);
 
-    assertThat(policyDAO.getAll()).hasSize(policyCount);
-    assertThat(licenseThreatGroupDAO.getAll()).hasSize(ltgCount);
-    assertThat(licenseThreatGroupLicenseDAO.getAll()).hasSize(ltgLicenseCount);
-    assertThat(labelDAO.getAll()).hasSize(labelCount);
-    assertThat(tagDAO.getAll()).hasSize(tagCount);
-    assertThat(policyTagDAO.getAll()).hasSize(policyTagCount);
+      assertThat(policyDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).hasSize(policyCount);
+      assertThat(licenseThreatGroupDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).hasSize(ltgCount);
+      assertThat(licenseThreatGroupLicenseDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).hasSize(ltgLicenseCount);
+      assertThat(labelDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)).hasSize(labelCount);
+      assertThat(tagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID)).hasSize(tagCount);
+      assertThat(policyTagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID)).hasSize(policyTagCount);
+
+      Policy integrityRatingPolicy =
+          policyDAO.getByOwnerIdAndName(Organization.ROOT_ORGANIZATION_ID, "Integrity-Rating");
+      assertThat(integrityRatingPolicy.getActions()).containsEntry(ProxyStageType.ID, FailActionType.ID);
+      Policy namespaceConflictRatingPolicy =
+          policyDAO.getByOwnerIdAndName(Organization.ROOT_ORGANIZATION_ID, "Security-Namespace Conflict");
+      assertThat(namespaceConflictRatingPolicy.getActions()).containsEntry(ProxyStageType.ID, FailActionType.ID);
+    }
+    finally {
+      policyDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).forEach(entity -> policyDAO.delete(entity));
+      licenseThreatGroupDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)
+          .forEach(entity -> licenseThreatGroupDAO.delete(entity));
+      licenseThreatGroupLicenseDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID)
+          .forEach(entity -> licenseThreatGroupLicenseDAO.delete(entity));
+      labelDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID).forEach(entity -> labelDAO.delete(entity));
+      tagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID).forEach(entity -> tagDAO.delete(entity));
+      policyTagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID)
+          .forEach(entity -> policyTagDAO.delete(entity));
+    }
   }
 }

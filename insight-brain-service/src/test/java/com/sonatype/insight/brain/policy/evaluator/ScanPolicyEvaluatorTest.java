@@ -88,7 +88,6 @@ import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomRemediationConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCweConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityResearchConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
@@ -1944,8 +1943,6 @@ public class ScanPolicyEvaluatorTest
         "sonatype-2007-0004", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
     VulnerabilityGroup vg = tempEntity.newVulnerabilityGroup("Test Group Name 1", Organization.ROOT_ORGANIZATION_ID);
     tempEntity.newVulnerabilityGroupVulnerability(vg.getId(), "sonatype-2007-0004");
-    tempEntity.newVulnerabilityCustomDetail(Organization.ROOT_ORGANIZATION_ID, "sonatype-2007-0004", 8.0F, "", "",
-        "test remediation", "");
 
     Condition ageCondition = new Condition(AgeInDaysConditionType.ID, "older than", "1");
     Condition coordinatesCondition = new Condition(CoordinatesConditionType.ID, "match", "maven:*:*:*:*:*");
@@ -1978,8 +1975,6 @@ public class ScanPolicyEvaluatorTest
     Condition integrityCondition = new Condition(IntegrityRatingConditionType.ID, "is not", "0");
     Condition securityVulnerabilitySourceCondition = new Condition(SecurityVulnerabilitySourceConditionType.ID,
         "is not", SecurityVulnerabilitySource.NATIONAL_VULNERABILITY_DATABASE.getId());
-    Condition securityVulnerabilityCustomRemediationCondition =
-        new Condition(SecurityVulnerabilityCustomRemediationConditionType.ID, "has custom remediation", null);
 
     List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
@@ -1988,7 +1983,7 @@ public class ScanPolicyEvaluatorTest
         vulnerabilityGroupCondition, securityVulnerabilityResearchCondition, packageUrlCondition,
         componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
         componentFormatCondition, vulnerabilityCategoryCondition, integrityCondition,
-        securityVulnerabilitySourceCondition, securityVulnerabilityCustomRemediationCondition);
+        securityVulnerabilitySourceCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);

@@ -42,8 +42,7 @@ public class ScanFileCleaner
 {
   private static final Logger log = LoggerFactory.getLogger(ScanFileCleaner.class);
 
-  // Visible for testing
-  static final String NAME = "ScanFileCleaner";
+  public static final String NAME = "ScanFileCleaner";
 
   // Visible for testing
   static final String MARKER_ID = "obsoletescanfiles-cleaned";
@@ -167,7 +166,9 @@ public class ScanFileCleaner
       }
     }
 
-    migrationTrackerDAO.insertTracker(MARKER_ID);
+    if (!migrationTrackerDAO.isTrackerPresent(MARKER_ID)) {
+      migrationTrackerDAO.insertTracker(MARKER_ID);
+    }
 
     log.info("Deleted {} obsolete scan files for {} applications in {} ms.", deletedFilesCount, apps.size(),
         System.currentTimeMillis() - start);

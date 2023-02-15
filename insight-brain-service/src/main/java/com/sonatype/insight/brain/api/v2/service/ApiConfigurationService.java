@@ -18,6 +18,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -39,6 +40,8 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.PURGE_SCAN_FILES;
 
 @Named
 @Singleton
@@ -187,6 +190,9 @@ public class ApiConfigurationService
           property.getStringToValue()
               .apply(new Object[]{insightConfig}, systemConfigurationPropertyDAO.get(tx, propertyName)));
       systemConfigurationPropertyDAO.set(tx, propertyName, null);
+      if (propertyName.equals(PURGE_SCAN_FILES)) {
+        taskScheduler.scheduleOneTimeTask(ScanFileCleaner.class, ScanFileCleaner.NAME);
+      }
     }
   }
 

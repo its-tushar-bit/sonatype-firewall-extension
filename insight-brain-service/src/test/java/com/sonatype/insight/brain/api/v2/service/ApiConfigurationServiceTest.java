@@ -16,7 +16,6 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.db.DatabaseMigrator;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
-import com.sonatype.insight.brain.migration.ScanFileCleaner;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -225,16 +224,6 @@ public class ApiConfigurationServiceTest
 
     assertThat(dao.getByName(SystemConfigurationProperty.BASE_URL)).isNull();
     assertThat(dao.getByName(SystemConfigurationProperty.FORCE_BASE_URL)).isNull();
-  }
-
-  @Test
-  public void testDeleteConfiguration_PurgeScanFiles_Deleted() {
-    dao.set(SystemConfigurationProperty.PURGE_SCAN_FILES, "withReports");
-
-    service.deleteConfiguration(SetUtils.hashSet(SystemConfigurationProperty.PURGE_SCAN_FILES));
-
-    assertThat(dao.getByName(SystemConfigurationProperty.PURGE_SCAN_FILES)).isNull();
-    verify(mockTaskScheduler).scheduleOneTimeTask(ScanFileCleaner.class, ScanFileCleaner.NAME);
   }
 
   @Test

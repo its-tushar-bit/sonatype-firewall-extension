@@ -30,8 +30,8 @@ import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 
 public class FirewallConfigurationModalTest
     extends AbstractFunctionalTest
@@ -82,7 +82,7 @@ public class FirewallConfigurationModalTest
     firewallAutoUnquarantineStatus.statusIndicatorIconActive().shouldBe(hidden);
     firewallAutoUnquarantineStatus.statusLabel().shouldHave(Condition.text("Inactive"));
     firewallAutoUnquarantineStatus.statusDescription()
-        .shouldHave(Condition.text("releasing 0 of 8 policy condition types"));
+        .shouldHave(Condition.text("releasing 0 of 7 policy condition types"));
 
     //open modal
     firewallAutoUnquarantineStatus.configureLink().click();
@@ -127,7 +127,7 @@ public class FirewallConfigurationModalTest
     firewallAutoUnquarantineStatus.statusIndicatorIconActive().shouldBe(hidden);
     firewallAutoUnquarantineStatus.statusLabel().shouldHave(Condition.text("Inactive"));
     firewallAutoUnquarantineStatus.statusDescription()
-        .shouldHave(Condition.text("releasing 0 of 8 policy condition types"));
+        .shouldHave(Condition.text("releasing 0 of 7 policy condition types"));
 
     //open modal
     firewallAutoUnquarantineStatus.configureLink().click();
@@ -162,7 +162,7 @@ public class FirewallConfigurationModalTest
     firewallAutoUnquarantineStatus.statusIndicatorIconActive().shouldBe(visible);
     firewallAutoUnquarantineStatus.statusLabel().shouldHave(Condition.text("Active"));
     firewallAutoUnquarantineStatus.statusDescription()
-        .shouldHave(Condition.text("releasing 1 of 8 policy condition types"));
+        .shouldHave(Condition.text("releasing 1 of 7 policy condition types"));
   }
 
   @Test
@@ -182,7 +182,7 @@ public class FirewallConfigurationModalTest
     firewallAutoUnquarantineStatus.statusIndicatorIconActive().shouldBe(hidden);
     firewallAutoUnquarantineStatus.statusLabel().shouldHave(Condition.text("Inactive"));
     firewallAutoUnquarantineStatus.statusDescription()
-        .shouldHave(Condition.text("releasing 0 of 8 policy condition types"));
+        .shouldHave(Condition.text("releasing 0 of 7 policy condition types"));
 
     //open modal
     firewallAutoUnquarantineStatus.configureLink().click();
@@ -219,7 +219,7 @@ public class FirewallConfigurationModalTest
     firewallAutoUnquarantineStatus.statusIndicatorIconActive().shouldBe(visible);
     firewallAutoUnquarantineStatus.statusLabel().shouldHave(Condition.text("Active"));
     firewallAutoUnquarantineStatus.statusDescription()
-        .shouldHave(Condition.text("releasing 1 of 8 policy condition types"));
+        .shouldHave(Condition.text("releasing 1 of 7 policy condition types"));
   }
 
   @Test

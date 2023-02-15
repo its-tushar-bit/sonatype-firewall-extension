@@ -388,7 +388,7 @@ public class ApiFirewallServiceTest
         .hasSize(1)
         .containsOnly(IntegrityRatingConditionType.ID);
     assertThat(telemetrySent.disabledConditionTypes)
-        .hasSize(7)
+        .hasSize(6)
         .containsExactlyInAnyOrder(SecurityVulnerabilityCategoryConditionType.ID,
             SecurityVulnerabilitySeverityConditionType.ID, LicenseConditionType.ID, LicenseThreatGroupConditionType.ID,
                 MatchStateConditionType.ID, SecurityVulnerabilityResearchConditionType.ID);

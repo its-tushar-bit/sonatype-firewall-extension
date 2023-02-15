@@ -175,11 +175,7 @@ export const fieldTypeToPlaceholder = {
   name: 'Name',
 };
 
-export const conditionsWithoutValue = [
-  'Proprietary',
-  'ProprietaryNameConflict',
-  'SecurityVulnerabilityCustomRemediation',
-];
+export const conditionsWithoutValue = ['Proprietary', 'ProprietaryNameConflict'];
 
 export const getDisabledConditions = (conditionTypesMap) => {
   const keyPairs = mapObjIndexed(prop('enabled'), conditionTypesMap);

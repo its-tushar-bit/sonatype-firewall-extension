@@ -86,9 +86,6 @@ public class ConditionTypes
   public static final SecurityVulnerabilityCweConditionType SecurityVulnerabilityCweConditionType =
       new SecurityVulnerabilityCweConditionType();
 
-  public static final SecurityVulnerabilityCustomRemediationConditionType SecurityVulnerabilityCustomRemediationConditionType =
-      new SecurityVulnerabilityCustomRemediationConditionType();
-
   public static final IacControlConditionType IacControlConditionType = new IacControlConditionType();
 
   public static final VulnerabilityGroupConditionType VulnerabilityGroupConditionType =
@@ -117,7 +114,6 @@ public class ConditionTypes
     add(SecurityVulnerabilityStatusConditionType);
     add(SecurityVulnerabilityCategoryConditionType);
     add(SecurityVulnerabilityCweConditionType);
-    add(SecurityVulnerabilityCustomRemediationConditionType);
     add(SecurityVulnerabilitySourceConditionType);
     add(VulnerabilityGroupConditionType);
     add(SecurityVulnerabilityResearchConditionType);

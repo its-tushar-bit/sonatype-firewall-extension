@@ -92,7 +92,6 @@
     color: var(--nx-color-text);
     height: auto;
     line-height: var(--nx-line-height);
-    margin: 0;
     padding: 0;
     transition: none;
     vertical-align: initial;
@@ -101,6 +100,7 @@
   &:not(.nx-filter-input) {
     .nx-text-input__input {
       padding: 0;
+      margin: 0;
     }
   }
 }

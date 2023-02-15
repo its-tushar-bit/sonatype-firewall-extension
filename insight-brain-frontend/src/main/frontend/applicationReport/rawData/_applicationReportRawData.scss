@@ -13,6 +13,9 @@ application-report-raw-data {
     input {
       width: 100%;
     }
+    .nx-text-input__input {
+      margin-right: 0;
+    }
     &.nx-filter-input:nth-child(1) {
       max-width: 94px;
       margin-right: 8px;

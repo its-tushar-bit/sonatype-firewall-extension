@@ -392,10 +392,10 @@ public class ApiFirewallServiceTest
         .hasSize(1)
         .containsOnly(IntegrityRatingConditionType.ID);
     assertThat(telemetrySent.disabledConditionTypes)
-        .hasSize(7)
-        .containsExactlyInAnyOrder(SecurityVulnerabilityCategoryConditionType.ID,
+        .hasSize(7).containsExactlyInAnyOrder(SecurityVulnerabilityCategoryConditionType.ID,
             SecurityVulnerabilitySeverityConditionType.ID, LicenseConditionType.ID, LicenseThreatGroupConditionType.ID,
-                MatchStateConditionType.ID, SecurityVulnerabilityResearchConditionType.ID);
+            MatchStateConditionType.ID, SecurityVulnerabilityResearchConditionType.ID,
+            SecurityVulnerabilityCustomRemediationConditionType.ID);
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.AUTO_RELEASE_FROM_QUARANTINE_CONFIGURATION);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
   }

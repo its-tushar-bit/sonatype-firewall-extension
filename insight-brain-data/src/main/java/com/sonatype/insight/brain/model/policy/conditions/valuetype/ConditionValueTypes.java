@@ -40,6 +40,7 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new SecurityVulnerabilityResearchValueType());
     allConditionValueTypes.add(new IacControlValueType());
     allConditionValueTypes.add(new VulnerabilityGroupValueType(ownerId));
+    allConditionValueTypes.add(new SecurityVulnerabilityCustomDetailsCVSSVectorStringValueType());
     return allConditionValueTypes;
   }
 }

@@ -66,34 +66,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.ComponentFormatConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
-import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.IacControlConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupLevelConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.PackageUrlConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.ProprietaryConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCweConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityResearchConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySourceConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.*;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.SecurityVulnerabilityResearch;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
@@ -1943,6 +1916,13 @@ public class ScanPolicyEvaluatorTest
         "sonatype-2007-0004", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
     VulnerabilityGroup vg = tempEntity.newVulnerabilityGroup("Test Group Name 1", Organization.ROOT_ORGANIZATION_ID);
     tempEntity.newVulnerabilityGroupVulnerability(vg.getId(), "sonatype-2007-0004");
+    tempEntity.newVulnerabilityCustomDetail(Organization.ROOT_ORGANIZATION_ID,
+        "sonatype-2007-0004",
+        8.0F,
+        "cvssVector",
+        "",
+        "",
+        "");
 
     Condition ageCondition = new Condition(AgeInDaysConditionType.ID, "older than", "1");
     Condition coordinatesCondition = new Condition(CoordinatesConditionType.ID, "match", "maven:*:*:*:*:*");
@@ -1975,6 +1955,8 @@ public class ScanPolicyEvaluatorTest
     Condition integrityCondition = new Condition(IntegrityRatingConditionType.ID, "is not", "0");
     Condition securityVulnerabilitySourceCondition = new Condition(SecurityVulnerabilitySourceConditionType.ID,
         "is not", SecurityVulnerabilitySource.NATIONAL_VULNERABILITY_DATABASE.getId());
+    Condition securityVulnerabilityCustomCVSSVectorCondition =
+        new Condition(SecurityVulnerabilityCustomCVSSVectorStringConditionType.ID, "matches", "cvss");
 
     List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
@@ -1983,7 +1965,7 @@ public class ScanPolicyEvaluatorTest
         vulnerabilityGroupCondition, securityVulnerabilityResearchCondition, packageUrlCondition,
         componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
         componentFormatCondition, vulnerabilityCategoryCondition, integrityCondition,
-        securityVulnerabilitySourceCondition);
+        securityVulnerabilitySourceCondition, securityVulnerabilityCustomCVSSVectorCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);

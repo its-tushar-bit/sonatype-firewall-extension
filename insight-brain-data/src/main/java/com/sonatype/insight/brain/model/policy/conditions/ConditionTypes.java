@@ -91,6 +91,10 @@ public class ConditionTypes
   public static final VulnerabilityGroupConditionType VulnerabilityGroupConditionType =
       new VulnerabilityGroupConditionType();
 
+  public static final SecurityVulnerabilityCustomCVSSVectorStringConditionType
+      SecurityVulnerabilityCustomCVSSVectorStringConditionType =
+      new SecurityVulnerabilityCustomCVSSVectorStringConditionType();
+
   static {
     // Don't add DeprecatedSecurityVulnerabilityConditionType
     add(AgeInDaysConditionType);
@@ -101,6 +105,7 @@ public class ConditionTypes
     addDisabledConditionType(HygieneRatingConditionType);
     addDisabledConditionType(IntegrityRatingConditionType);
     add(IdentificationSourceConditionType);
+    add(SecurityVulnerabilityCustomCVSSVectorStringConditionType);
     add(LabelConditionType);
     add(LicenseConditionType);
     add(LicenseStatusConditionType);

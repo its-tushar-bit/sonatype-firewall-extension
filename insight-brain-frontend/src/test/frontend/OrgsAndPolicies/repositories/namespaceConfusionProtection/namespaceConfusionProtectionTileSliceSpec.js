@@ -1,0 +1,309 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import reducer from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/namespaceConfusionProtectionTileSlice';
+
+describe('namespaceConfusionProtectionTileSlice', () => {
+  describe('NamespaceConfusionProtectionTile/getComponentNamePatterns/pending action', () => {
+    it('sets the loading flag to true, unsets loading error', () => {
+      const state = Object.freeze({
+        loadingComponentNamePatterns: false,
+        errorComponentsTable: 'Loading error',
+      });
+
+      const { loadingComponentNamePatterns, errorComponentsTable } = reducer(state, {
+        type: 'namespaceConfusionProtectionTile/getComponentNamePatterns/pending',
+      });
+
+      expect(loadingComponentNamePatterns).toBe(true);
+      expect(errorComponentsTable).toBeNull();
+    });
+  });
+
+  describe('namespaceConfusionProtectionTile/getComponentNamePatterns/fulfilled action', () => {
+    it('sets loading flag to false, unsets the error and fills in the repository components details', () => {
+      const state = Object.freeze({
+        componentNamePatterns: [],
+        hasNextPage: null,
+        loadingComponentNamePatterns: true,
+        errorComponentsTable: 'Loading error',
+        namePatternsTableConfig: {
+          page: 1,
+          pageSize: 2,
+        },
+      });
+
+      const payload = {
+        proprietaryComponentNamePatterns: [
+          {
+            id: 'ea481e4a1eb347b5b1ee5dbecce663df',
+            format: 'maven',
+            namespacePattern: 'test-org-names',
+            namePattern: 'intellij-dependencies',
+            repositoryManagerInstanceId: '2fbfdad21dd94de69b17ab8c4565e99d',
+            repositoryPublicId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+          },
+          {
+            id: '0bb3dc7f90cf4deaa63bc524c3114c9b',
+            format: 'maven',
+            namespacePattern: 'numberslist',
+            namePattern: 'maven-central',
+            repositoryManagerInstanceId: 'c8d574691e664d908829fb72f04de655',
+            repositoryPublicId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+          },
+        ],
+      };
+
+      const expectedState = [
+        {
+          id: 'ea481e4a1eb347b5b1ee5dbecce663df',
+          format: 'maven',
+          namespacePattern: 'test-org-names',
+          namePattern: 'intellij-dependencies',
+          repositoryManagerInstanceId: '2fbfdad21dd94de69b17ab8c4565e99d',
+          repositoryPublicId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+        },
+        {
+          id: '0bb3dc7f90cf4deaa63bc524c3114c9b',
+          format: 'maven',
+          namespacePattern: 'numberslist',
+          namePattern: 'maven-central',
+          repositoryManagerInstanceId: 'c8d574691e664d908829fb72f04de655',
+          repositoryPublicId: '8098fb28cfc84ff99b3c34e66d2b9ccf',
+        },
+      ];
+
+      const { componentNamePatterns, loadingComponentNamePatterns, errorComponentsTable } = reducer(state, {
+        type: 'namespaceConfusionProtectionTile/getComponentNamePatterns/fulfilled',
+        payload,
+      });
+
+      expect(componentNamePatterns).toEqual(expectedState);
+      expect(loadingComponentNamePatterns).toBe(false);
+      expect(errorComponentsTable).toBeNull();
+    });
+  });
+
+  describe('namespaceConfusionProtectionTile/getComponentNamePatterns/rejected action', () => {
+    it('sets the error to the payload and the loading flag to false', () => {
+      const state = Object.freeze({
+        loadingComponentNamePatterns: true,
+        errorComponentsTable: null,
+      });
+
+      const { loadingComponentNamePatterns, errorComponentsTable } = reducer(state, {
+        type: 'namespaceConfusionProtectionTile/getComponentNamePatterns/rejected',
+        payload: 'Loading error',
+      });
+
+      expect(loadingComponentNamePatterns).toBe(false);
+      expect(errorComponentsTable).toBe('Loading error');
+    });
+  });
+
+  describe('namespaceConfusionProtectionTile/setSorting action', () => {
+    it('changes sorting direction to the opposite if we sort the same column', () => {
+      const state = Object.freeze({
+        namePatternsTableConfig: {
+          sortFields: [
+            {
+              columnName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+              dir: 'asc',
+            },
+          ],
+        },
+      });
+
+      const expectedSortFields = [
+        {
+          columnName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+          dir: 'desc',
+        },
+      ];
+
+      const {
+        namePatternsTableConfig: { sortFields },
+      } = reducer(state, {
+        type: 'namespaceConfusionProtectionTile/setSorting',
+        payload: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+      });
+
+      expect(sortFields).toEqual(expectedSortFields);
+    });
+
+    it('changes direction to asc if we sort different columns', () => {
+      const state = Object.freeze({
+        namePatternsTableConfig: {
+          sortFields: [
+            {
+              columnName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+              dir: 'asc',
+            },
+          ],
+        },
+      });
+
+      const expectedSortFields = [
+        {
+          columnName: 'REPOSITORY_MANAGER_INSTANCE_ID',
+          dir: 'asc',
+        },
+        {
+          columnName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+          dir: 'asc',
+        },
+      ];
+
+      const {
+        namePatternsTableConfig: { sortFields },
+      } = reducer(state, {
+        type: 'namespaceConfusionProtectionTile/setSorting',
+        payload: 'REPOSITORY_MANAGER_INSTANCE_ID',
+      });
+
+      expect(sortFields).toEqual(expectedSortFields);
+    });
+  });
+
+  describe('namespaceConfusionProtectionTile/increasePage action', () => {
+    it('increases page counter', () => {
+      const state = Object.freeze({
+        namePatternsTableConfig: {
+          page: 1,
+        },
+      });
+
+      const {
+        namePatternsTableConfig: { page },
+      } = reducer(state, {
+        type: 'namespaceConfusionProtectionTile/increasePage',
+      });
+
+      expect(page).toEqual(2);
+    });
+  });
+
+  describe('namespaceConfusionProtectionTile/decreasePage action', () => {
+    it('decrease page counter', () => {
+      const state = Object.freeze({
+        namePatternsTableConfig: {
+          page: 3,
+        },
+      });
+
+      const {
+        namePatternsTableConfig: { page },
+      } = reducer(state, {
+        type: 'namespaceConfusionProtectionTile/decreasePage',
+      });
+
+      expect(page).toEqual(2);
+    });
+  });
+
+  describe('namespaceConfusionProtectionTile/setFilter action', () => {
+    it('sets new search filter value if filter does not exist', () => {
+      const state = Object.freeze({
+        namePatternsTableConfig: {
+          searchFilters: [],
+        },
+        searchFiltersValues: {
+          PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME: '',
+        },
+      });
+
+      const payload = {
+        filterName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+        filterValue: 'Filter',
+      };
+
+      const expectedFilters = [
+        {
+          filterableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+          value: 'Filter',
+        },
+      ];
+
+      const {
+        namePatternsTableConfig: { searchFilters },
+      } = reducer(state, {
+        type: 'namespaceConfusionProtectionTile/setFilter',
+        payload,
+      });
+
+      expect(searchFilters).toEqual(expectedFilters);
+    });
+  });
+
+  it('changes search filter value if filter already exist', () => {
+    const state = Object.freeze({
+      namePatternsTableConfig: {
+        searchFilters: [
+          {
+            filterableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+            value: 'Old namespace value',
+          },
+        ],
+      },
+      searchFiltersValues: {
+        PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME: '',
+      },
+    });
+
+    const payload = {
+      filterName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+      filterValue: 'New namespace value',
+    };
+
+    const expectedFilters = [
+      {
+        filterableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+        value: 'New namespace value',
+      },
+    ];
+
+    const {
+      namePatternsTableConfig: { searchFilters },
+    } = reducer(state, {
+      type: 'namespaceConfusionProtectionTile/setFilter',
+      payload,
+    });
+
+    expect(searchFilters).toEqual(expectedFilters);
+  });
+
+  it('removes search filter value if filter values is empty string', () => {
+    const state = Object.freeze({
+      namePatternsTableConfig: {
+        searchFilters: [
+          {
+            filterableField: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+            value: 'namespace',
+          },
+        ],
+      },
+      searchFiltersValues: {
+        PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME: '',
+      },
+    });
+
+    const payload = {
+      filterName: 'PROPRIETARY_COMPONENT_NAMESPACE_OR_NAME',
+      filterValue: '',
+    };
+
+    const expectedFilters = [];
+
+    const {
+      namePatternsTableConfig: { searchFilters },
+    } = reducer(state, {
+      type: 'namespaceConfusionProtectionTile/setFilter',
+      payload,
+    });
+
+    expect(searchFilters).toEqual(expectedFilters);
+  });
+});

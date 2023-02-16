@@ -8,10 +8,18 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.elements.AccessTile;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
+import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
+
+import com.codeborne.selenide.ElementsCollection;
+
+import static com.codeborne.selenide.Selenide.$$;
 
 public class RepositoryResultsSummaryPage
 {
+  private RepositoryResultsSummaryPage() {
+  }
+
   public static String url() {
     return BaseUrl.resolvePageUrl("/management/view/repositories");
   }
@@ -28,6 +36,10 @@ public class RepositoryResultsSummaryPage
     return new AccessTile("#repositories-pill-access");
   }
 
+  public static NamespaceConfusionProtectionTile namespaceConfusionProtectionTile() {
+    return new NamespaceConfusionProtectionTile();
+  }
+
   public static AccessTile configurationTile() {
     return new AccessTile("#repositories-pill-configuration");
   }
@@ -42,5 +54,9 @@ public class RepositoryResultsSummaryPage
 
   public static AccessTile repositoriesTableStatusHeaderSortBtn() {
     return new AccessTile("#status-column-header .nx-cell__sort-btn");
+  }
+
+  public static ElementsCollection getAllLoadingSpinners() {
+    return $$(".nx-loading-spinner");
   }
 }

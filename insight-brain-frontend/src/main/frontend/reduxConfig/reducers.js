@@ -82,6 +82,7 @@ import originalSourcesFormReducer from 'MainRoot/legal/originalSources/originalS
 import atlassianCrowdConfigurationSlice from '../configuration/crowd/atlassianCrowdConfigurationSlice';
 import repositoriesConfigurationSlice from '../OrgsAndPolicies/repositories/repositoriesConfigurationSlice';
 import repositoryResultsSummaryPageSlice from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSlice';
+import namespaceConfusionProtectionTileSlice from 'MainRoot/OrgsAndPolicies/repositories/namespaceConfusionProtectionTile/namespaceConfusionProtectionTileSlice';
 import apiPageSlice from 'MainRoot/api/apiPageSlice';
 import waiverDetailsSlice from 'MainRoot/waivers/waiverDetails/waiverDetailsSlice';
 import toastSlice from '../toastContainer/toastSlice';
@@ -167,6 +168,7 @@ export default combineReducers({
   atlassianCrowdConfiguration: atlassianCrowdConfigurationSlice,
   repositories: repositoriesConfigurationSlice,
   repositoryResultsSummaryPage: repositoryResultsSummaryPageSlice,
+  namespaceConfusionProtectionTile: namespaceConfusionProtectionTileSlice,
   apiPage: apiPageSlice,
   waiverDetails: waiverDetailsSlice,
   toast: toastSlice,

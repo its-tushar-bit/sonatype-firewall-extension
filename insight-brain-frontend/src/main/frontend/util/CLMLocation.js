@@ -1125,6 +1125,8 @@ export const getImportPoliciesUrl = (appId) => uriTemplate`/rest/policy/organiza
 export const getRepositoryPolicyViolationUrl = (repositoryId, repositoryPolicyId) =>
   uriTemplate`/rest/repositories/${repositoryId}/policyViolation/${repositoryPolicyId}`;
 
+export const getRepositoryComponentNameUrl = () => uriTemplate`/rest/repositories/proprietaryComponentNamePatterns`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

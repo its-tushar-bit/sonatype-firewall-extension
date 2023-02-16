@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.Duration;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -20,17 +21,18 @@ import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
+import com.sonatype.clm.testing.functional.elements.NamespaceConfusionProtectionTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.ConfigurationTable.ConfigurationTableRow;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportContainerPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryResultsSummaryPage;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -46,7 +48,13 @@ import com.codeborne.selenide.Selenide;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
 
+import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
@@ -55,6 +63,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile.EMPTY_LIST_TEXT;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepositoriesSummaryViewTest
@@ -219,6 +228,467 @@ public class RepositoriesSummaryViewTest
 
     inheritedList.ownerName().shouldBe(hidden);
     inheritedList.elements().shouldHaveSize(0);
+  }
+
+  @Test
+  public void testNamespaceConfusionProtection_EmptyTable() {
+    NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
+        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+
+    namespaceConfusionProtectionTile.shouldBe(visible).shouldHave(text("Namespace Confusion Protection"));
+    namespaceConfusionProtectionTile.emptyDescriptor().shouldBe(visible).shouldHave(text("No results"));
+    namespaceConfusionProtectionTile.previousPageBtn().shouldNotBe(visible);
+    namespaceConfusionProtectionTile.nextPageBtn().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testNamespaceConfusionProtection_FilterRows() {
+    String repositoryManagerId = "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
+    tempEntity.newRepositoryManager(repositoryManagerId);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerId, "functional-theory-release", "maven",
+        "shiedlytics", null);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerId, "jsPlugin-release", "maven", "acceronix", null);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerId, "bigdestero-release", "maven", "maven-center",
+        null);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerId, "lifecycle-release", "maven", null,
+        "blue-space");
+
+    refresh();
+
+    NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
+        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(4);
+
+    namespaceConfusionProtectionTile.namespaceFilterInput().setValue("claimed");
+    namespaceConfusionProtectionTile.resultRows().shouldHaveSize(1);
+    namespaceConfusionProtectionTile.resultRow(1).shouldHave(text("No Results"));
+
+    namespaceConfusionProtectionTile.namespaceFilterInput().setValue("maven-center");
+    namespaceConfusionProtectionTile.resultRow(1).shouldHave(text("maven-center"));
+    namespaceConfusionProtectionTile.previousPageBtn().shouldNotBe(visible);
+    namespaceConfusionProtectionTile.nextPageBtn().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testNamespaceConfusionProtection_sortTableByComponentNamespaces() {
+    String[] componentNameSpaces = {"z", "a", "m"};
+    String repositoryManagerInstanceId = "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
+    tempEntity.newRepositoryManager(repositoryManagerInstanceId);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "hosted-npm", "npm", null,
+        componentNameSpaces[0]);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "custom-hosted-maven", "maven",
+        componentNameSpaces[1], null);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceId, "my-hosted-maven", "maven",
+        componentNameSpaces[2], null);
+
+    refresh();
+
+    NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
+        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNameSpaces[1]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNameSpaces[2]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNameSpaces[0]));
+
+    namespaceConfusionProtectionTile.componentNamespaceHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Component Namespaces ascending"));
+
+    namespaceConfusionProtectionTile.componentNamespaceHeaderSortBtn().click();
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNameSpaces[0]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNameSpaces[2]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNameSpaces[1]));
+    namespaceConfusionProtectionTile.componentNamespaceHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Component Namespaces descending"));
+    namespaceConfusionProtectionTile.previousPageBtn().shouldNotBe(visible);
+    namespaceConfusionProtectionTile.nextPageBtn().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testNamespaceConfusionProtection_sortTableByRepository() {
+    String[] repositoryManagerInstanceIds = {"1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB",
+        "2E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "3E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"};
+    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[0]);
+    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[1]);
+    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[2]);
+
+    String[] repositories = {"my-hosted-maven", "hosted-npm", "custom-hosted-maven"};
+
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[0], repositories[0], "maven", "ant",
+        null);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[1], repositories[1], "maven", "b-social",
+        null);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[2], repositories[2], "npm", null,
+        "moment");
+
+    refreshOrOpen(RepositoryResultsSummaryPage.url());
+    NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
+        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
+
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repositories[0]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(1).shouldHave(text(repositories[1]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(2).shouldHave(text(repositories[2]));
+
+    namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Repository unsorted"));
+
+    namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn().click();
+    namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Repository ascending"));
+
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repositories[2]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(1).shouldHave(text(repositories[1]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(2).shouldHave(text(repositories[0]));
+
+    namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn().click();
+    namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Repository descending"));
+
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repositories[0]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(1).shouldHave(text(repositories[1]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(2).shouldHave(text(repositories[2]));
+  }
+
+  @Test
+  public void testNamespaceConfusionProtection_sortTableByRepoManagerInstanceId() {
+    String[] componentNamespaces = {"ant", "b-social", "moment"};
+    String[] repositoryManagerInstanceIds = {"2E111629-6B9EDCBA-B5989887-132718F9-8C354DFB",
+        "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "3E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"};
+    String[] repositoryPublicIds = {"custom-maven-hosted", "my-maven-hosted", "custom-npm-hosted"};
+
+    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[0]);
+    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[1]);
+    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[2]);
+
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[0], repositoryPublicIds[0], "maven",
+        componentNamespaces[0], null);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[1], repositoryPublicIds[1], "maven",
+        componentNamespaces[1], null);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[2], repositoryPublicIds[2], "npm",
+        null, componentNamespaces[2]);
+
+    refresh();
+    NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
+        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(3);
+
+    namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Repository Manager unsorted"));
+
+    namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn().click();
+
+    namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Repository Manager ascending"));
+
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(0)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(1)
+        .shouldHave(text(repositoryManagerInstanceIds[0]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(2)
+        .shouldHave(text(repositoryManagerInstanceIds[2]));
+
+    namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn().click();
+
+    namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Repository Manager descending"));
+
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(0)
+        .shouldHave(text(repositoryManagerInstanceIds[2]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(1)
+        .shouldHave(text(repositoryManagerInstanceIds[0]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(2)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+  }
+
+  private void waitUntilSpinnersGone() {
+    Wait<WebDriver> wait = new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(240))
+        .pollingEvery(Duration.ofSeconds(2)).ignoring(NoSuchElementException.class);
+    wait.until(ExpectedConditions.invisibilityOf(RepositoryResultsSummaryPage.getAllLoadingSpinners().get(0)));
+    RepositoryResultsSummaryPage.getAllLoadingSpinners().shouldHave(size(0));
+  }
+
+  @Test
+  public void testNamespaceConfusionProtection_Pagination() {
+    String[] componentNamespaces = {"@testing-library/react", "ant", "b-social", "express", "high-c", "itext", "jproc",
+        "lodash", "moment", "net.ju-n.compile-command-annotations", "underscore", "v-core", "z-com"};
+    String mvnRepositoryManagerId = "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
+    String npmRepositoryManagerId = "9E111629-6B9EDCBA-B5989887-132718F9-8C354DFB";
+    tempEntity.newRepositoryManager(mvnRepositoryManagerId);
+    tempEntity.newRepositoryManager(npmRepositoryManagerId);
+    String mvnRepositoryPublicName = "hosted-mvn";
+    String npmRepositoryPublicName = "hosted-npm";
+
+    tempEntity.newProprietaryComponentNamePattern(npmRepositoryManagerId, npmRepositoryPublicName, "npm", null,
+        componentNamespaces[0]);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
+        componentNamespaces[1], null);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
+        componentNamespaces[2], null);
+    tempEntity.newProprietaryComponentNamePattern(npmRepositoryManagerId, npmRepositoryPublicName, "npm", null,
+        componentNamespaces[3]);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
+        componentNamespaces[4], null);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
+        componentNamespaces[5], null);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
+        componentNamespaces[6], null);
+    tempEntity.newProprietaryComponentNamePattern(npmRepositoryManagerId, npmRepositoryPublicName, "npm", null,
+        componentNamespaces[7]);
+    tempEntity.newProprietaryComponentNamePattern(npmRepositoryManagerId, npmRepositoryPublicName, "npm", null,
+        componentNamespaces[8]);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
+        componentNamespaces[9], null);
+    tempEntity.newProprietaryComponentNamePattern(npmRepositoryManagerId, npmRepositoryPublicName, "npm", null,
+        componentNamespaces[10]);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
+        componentNamespaces[11], null);
+    tempEntity.newProprietaryComponentNamePattern(mvnRepositoryManagerId, mvnRepositoryPublicName, "maven",
+        componentNamespaces[12], null);
+
+    refresh();
+
+    NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
+        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+
+    waitUntilSpinnersGone();
+
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[0]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNamespaces[1]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNamespaces[2]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3).shouldHave(text(componentNamespaces[3]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(4).shouldHave(text(componentNamespaces[4]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[5]));
+
+    namespaceConfusionProtectionTile.shouldBe(visible);
+    namespaceConfusionProtectionTile.previousPageBtn().shouldNotBe(visible);
+    namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
+
+    namespaceConfusionProtectionTile.nextPageBtn().click();
+    waitUntilSpinnersGone();
+
+    namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
+        .shouldHave(attribute("aria-label", "previous page"));
+    namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[6]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNamespaces[7]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNamespaces[8]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3).shouldHave(text(componentNamespaces[9]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(4).shouldHave(text(componentNamespaces[10]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[11]));
+
+    namespaceConfusionProtectionTile.nextPageBtn().click();
+    waitUntilSpinnersGone();
+
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(1);
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[12]));
+    namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
+        .shouldHave(attribute("aria-label", "previous page"));
+    namespaceConfusionProtectionTile.nextPageBtn().shouldNotBe(visible);
+
+    namespaceConfusionProtectionTile.previousPageBtn().click();
+    waitUntilSpinnersGone();
+
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
+    namespaceConfusionProtectionTile.previousPageBtn().shouldBe(visible)
+        .shouldHave(attribute("aria-label", "previous page"));
+    namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[6]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNamespaces[7]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNamespaces[8]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3).shouldHave(text(componentNamespaces[9]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(4).shouldHave(text(componentNamespaces[10]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[11]));
+
+    namespaceConfusionProtectionTile.previousPageBtn().click();
+    waitUntilSpinnersGone();
+
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
+    namespaceConfusionProtectionTile.previousPageBtn().shouldNotBe(visible);
+    namespaceConfusionProtectionTile.nextPageBtn().shouldBe(visible).shouldHave(attribute("aria-label", "next page"));
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[0]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNamespaces[1]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNamespaces[2]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3).shouldHave(text(componentNamespaces[3]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(4).shouldHave(text(componentNamespaces[4]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[5]));
+  }
+
+  @Test
+  public void testNamespaceConfusionProtection_MultiSorting() {
+    String[] componentNamespaces = {"b-social", "underscore", "lodash", "moment", "express", "ant"};
+    String[] repositoryManagerInstanceIds =
+        {"9E111629-6B9EDCBA-B5989887-132718F9-8C354DFB", "1E111629-6B9EDCBA-B5989887-132718F9-8C354DFB"};
+    String[] repositoryPublicIds = {"my-hosted-npm", "custom-hosted-maven", "custom-hosted-npm"};
+
+    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[0]);
+    tempEntity.newRepositoryManager(repositoryManagerInstanceIds[1]);
+
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[0], repositoryPublicIds[1], "maven",
+        componentNamespaces[0], null);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[1], repositoryPublicIds[0], "npm", null,
+        componentNamespaces[1]);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[1], repositoryPublicIds[0], "npm", null,
+        componentNamespaces[2]);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[1], repositoryPublicIds[2], "npm", null,
+        componentNamespaces[3]);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[1], repositoryPublicIds[2], "npm", null,
+        componentNamespaces[4]);
+    tempEntity.newProprietaryComponentNamePattern(repositoryManagerInstanceIds[0], repositoryPublicIds[1], "maven",
+        componentNamespaces[5], null);
+
+    refresh();
+
+    NamespaceConfusionProtectionTile namespaceConfusionProtectionTile =
+        RepositoryResultsSummaryPage.namespaceConfusionProtectionTile();
+
+    namespaceConfusionProtectionTile.tableBodyRows().shouldHaveSize(6);
+
+    namespaceConfusionProtectionTile.componentNamespaceHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Component Namespaces ascending"));
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[5]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNamespaces[0]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNamespaces[4]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3).shouldHave(text(componentNamespaces[2]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(4).shouldHave(text(componentNamespaces[3]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[1]));
+
+    namespaceConfusionProtectionTile.componentNamespaceHeaderSortBtn().click();
+    namespaceConfusionProtectionTile.componentNamespaceHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Component Namespaces descending"));
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[1]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNamespaces[3]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNamespaces[2]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3).shouldHave(text(componentNamespaces[4]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(4).shouldHave(text(componentNamespaces[0]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[5]));
+
+    namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Repository Manager unsorted"));
+
+    namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn().click();
+    namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Repository Manager ascending"));
+
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(0)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(1)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(2)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(3)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(4)
+        .shouldHave(text(repositoryManagerInstanceIds[0]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(5)
+        .shouldHave(text(repositoryManagerInstanceIds[0]));
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[1]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNamespaces[3]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNamespaces[2]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3).shouldHave(text(componentNamespaces[4]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(4).shouldHave(text(componentNamespaces[0]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[5]));
+
+    namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn().click();
+    namespaceConfusionProtectionTile.repositoryManagerHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Repository Manager descending"));
+
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(0)
+        .shouldHave(text(repositoryManagerInstanceIds[0]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(1)
+        .shouldHave(text(repositoryManagerInstanceIds[0]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(2)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(3)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(4)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(5)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[0]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNamespaces[5]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNamespaces[1]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3).shouldHave(text(componentNamespaces[3]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(4).shouldHave(text(componentNamespaces[2]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[4]));
+
+    namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Repository unsorted"));
+
+    namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn().click();
+    namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Repository ascending"));
+
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repositoryPublicIds[1]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(1).shouldHave(text(repositoryPublicIds[1]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(2).shouldHave(text(repositoryPublicIds[2]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(3).shouldHave(text(repositoryPublicIds[2]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(4).shouldHave(text(repositoryPublicIds[0]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(5).shouldHave(text(repositoryPublicIds[0]));
+
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(0)
+        .shouldHave(text(repositoryManagerInstanceIds[0]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(1)
+        .shouldHave(text(repositoryManagerInstanceIds[0]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(2)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(3)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(4)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(5)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[0]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNamespaces[5]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNamespaces[3]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3).shouldHave(text(componentNamespaces[4]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(4).shouldHave(text(componentNamespaces[1]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[2]));
+
+    namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn().click();
+    namespaceConfusionProtectionTile.hostedRepositoryNameHeaderSortBtn()
+        .shouldHave(attribute("aria-label", "Repository descending"));
+
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(0).shouldHave(text(repositoryPublicIds[0]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(1).shouldHave(text(repositoryPublicIds[0]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(2).shouldHave(text(repositoryPublicIds[2]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(3).shouldHave(text(repositoryPublicIds[2]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(4).shouldHave(text(repositoryPublicIds[1]));
+    namespaceConfusionProtectionTile.hostedRepositoryNameColumnCells().get(5).shouldHave(text(repositoryPublicIds[1]));
+
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(0)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(1)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(2)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(3)
+        .shouldHave(text(repositoryManagerInstanceIds[1]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(4)
+        .shouldHave(text(repositoryManagerInstanceIds[0]));
+    namespaceConfusionProtectionTile.repositoryManagerIdColumnCells().get(5)
+        .shouldHave(text(repositoryManagerInstanceIds[0]));
+
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(0).shouldHave(text(componentNamespaces[1]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(1).shouldHave(text(componentNamespaces[2]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(2).shouldHave(text(componentNamespaces[3]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(3).shouldHave(text(componentNamespaces[4]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(4).shouldHave(text(componentNamespaces[0]));
+    namespaceConfusionProtectionTile.componentNamespaceColumnCells().get(5).shouldHave(text(componentNamespaces[5]));
   }
 
   @Test

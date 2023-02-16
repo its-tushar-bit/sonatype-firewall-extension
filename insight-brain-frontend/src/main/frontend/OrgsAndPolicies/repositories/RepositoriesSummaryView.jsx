@@ -7,6 +7,7 @@ import React from 'react';
 import { NxPageMain, NxPageTitle, NxH1 } from '@sonatype/react-shared-components';
 import RepositoriesConfigurationTile from './RepositoriesConfigurationTile';
 import AccessTile from 'MainRoot/react/accessTile/AccessTile';
+import NamespaceConfusionProtectionTile from './namespaceConfusionProtectionTile/NamespaceConfusionProtectionTile';
 import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
 
 export default function RepositoriesSummaryView() {
@@ -19,6 +20,7 @@ export default function RepositoriesSummaryView() {
       <RepositoriesConfigurationTile />
       <PoliciesTile />
       <AccessTile />
+      <NamespaceConfusionProtectionTile />
     </NxPageMain>
   );
 }

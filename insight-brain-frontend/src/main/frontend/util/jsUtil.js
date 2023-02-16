@@ -181,3 +181,54 @@ export function copyToClipboard(textToCopy) {
   selection.removeAllRanges();
   window.document.body.removeChild(node);
 }
+
+/**
+ * Changes the multi-column criteria of a collection of objects
+ * based on its index/position, taking the first element as the
+ * highest priority and the last one as the least priority.
+ *
+ * If the column name passed as argument is not the highest priority, then
+ * the refered column object in the collection will be shifted from the current
+ * position to the top of the list, similarly in the way a priority queue works,
+ * in the way the previous highest priority column will be shifted to the second,
+ * the second to third and so on.
+ *
+ * If the refered column is already at the highest priority, then sort direction
+ * will be changed from asc to desc or vice versa.
+ *
+ * If columnName is refering to an unexisting column in sortConfigurationCollection,
+ * then a new object setting sort direction as `asc` by default.
+ *
+ * @typedef {Array.<{columnName: string, dir: ('asc'|'desc')}>} sortConfigurationCollectionType
+ * @param {string} columnName - Column to switch
+ * @param {sortConfigurationCollectionType} sortConfigurationCollection
+ * @returns {sortConfigurationCollectionType}
+ */
+export const changeMultiColumnSortCriteria = (columnName, [...sortConfigurationCollection]) => {
+  if (typeof columnName !== 'string') throw Error('columnName should be a string');
+  if (!Array.isArray(sortConfigurationCollection))
+    throw Error(
+      'sortConfigurationCollection should be an array of objects like this: {columnName: string, dir: ("asc"|"desc")}'
+    );
+  const columnObjIndex = sortConfigurationCollection.findIndex(
+    (currentColObj) => currentColObj.columnName === columnName
+  );
+  if (columnObjIndex === -1) {
+    // the column object does not exist in sortConfigurationCollection, so its added into it
+    sortConfigurationCollection = [{ columnName, dir: 'asc' }, ...sortConfigurationCollection];
+  } else if (columnObjIndex === 0) {
+    // the column is in the highest priority, so sort direction must change
+    // falsy value  -> asc
+    // asc          -> desc
+    // desc         -> asc
+    sortConfigurationCollection[columnObjIndex].dir =
+      sortConfigurationCollection[columnObjIndex]?.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    // the column does exist in sortConfigurationCollection, so the priority must change
+    sortConfigurationCollection = [
+      sortConfigurationCollection.splice(columnObjIndex, 1)[0],
+      ...sortConfigurationCollection,
+    ];
+  }
+  return sortConfigurationCollection;
+};

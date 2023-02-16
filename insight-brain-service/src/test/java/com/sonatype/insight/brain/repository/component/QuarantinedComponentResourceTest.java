@@ -138,7 +138,6 @@ public class QuarantinedComponentResourceTest
     assertThat(quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount).isEqualTo(1);
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo("repositoryPublicId");
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
-    assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.componentVersion).isEqualTo("0.5.2");
     assertThat(quarantinedComponentOverviewDto.tokenExpiryTime).isEqualTo(expirationTime);
   }
@@ -175,7 +174,6 @@ public class QuarantinedComponentResourceTest
     assertThat(quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount).isEqualTo(1);
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo("repositoryPublicId");
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
-    assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.componentVersion).isEqualTo("0.5.2");
     assertThat(quarantinedComponentOverviewDto.tokenExpiryTime).isEqualTo(expirationTime);
   }

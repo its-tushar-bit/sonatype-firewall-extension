@@ -31,11 +31,6 @@ export default function QuarantineComponentOverviewTile(props) {
         <dt className="nx-read-only__label">First Quarantined</dt>
         <dd className="nx-read-only__data">{formatTimeAgo(new Date(componentOverview.quarantinedDate))}</dd>
       </div>
-
-      <div className="nx-read-only__item">
-        <dt className="nx-read-only__label">Catalogued Date</dt>
-        <dd className="nx-read-only__data">{formatTimeAgo(new Date(componentOverview.cataloguedDate))}</dd>
-      </div>
     </dl>
   );
 
@@ -77,6 +72,5 @@ QuarantineComponentOverviewTile.propTypes = {
     quarantinedPolicyViolationsCount: PropTypes.number.isRequired,
     repositoryName: PropTypes.string.isRequired,
     quarantinedDate: PropTypes.string.isRequired,
-    cataloguedDate: PropTypes.string.isRequired,
   }).isRequired,
 };

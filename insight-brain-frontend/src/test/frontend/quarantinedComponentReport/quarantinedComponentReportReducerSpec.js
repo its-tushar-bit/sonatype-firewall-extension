@@ -16,7 +16,6 @@ describe('quarantinedComponentReportReducer', function () {
         quarantinedPolicyViolationsCount: 0,
         repositoryName: '',
         quarantinedDate: '',
-        cataloguedDate: '',
         componentVersion: '',
       },
       violations: [],
@@ -85,7 +84,6 @@ describe('quarantinedComponentReportReducer', function () {
         quarantinedPolicyViolationsCount: null,
         repositoryName: null,
         quarantinedDate: null,
-        cataloguedDate: null,
       };
 
       expect(

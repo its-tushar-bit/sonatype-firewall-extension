@@ -664,8 +664,6 @@ public class QuarantineComponentReportTest
     quarantineReportPage.getQuarantineReportComponentOverviewTileReadOnlyItemData(2)
         .shouldHave(text("seconds ago"));
     quarantineReportPage.getQuarantineReportComponentOverviewTileReadOnlyItemData(3)
-        .shouldHave(text("seconds ago"));
-    quarantineReportPage.getQuarantineReportComponentOverviewTileReadOnlyItemData(4)
         .shouldHave(text("repositoryPublicId"));
   }
 

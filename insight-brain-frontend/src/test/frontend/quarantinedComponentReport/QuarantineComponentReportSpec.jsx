@@ -101,7 +101,6 @@ describe('QuarantineComponentReport', () => {
 
   it('renders the component overview tile', async () => {
     const date = new Date();
-    const minus1Day = new Date(date).setDate(date.getDate() - 1);
     const minus2Day = new Date(date).setDate(date.getDate() - 2);
     const plus1Day = new Date(date).setDate(date.getDate() + 1);
 
@@ -117,7 +116,6 @@ describe('QuarantineComponentReport', () => {
         // the following dates need to be different, otherwise the asserttion should change getByText for getAllByText
         // toBeVisible() is used for single elements not for an array of them.
         quarantinedDate: minus2Day,
-        cataloguedDate: minus1Day,
         componentVersion: '',
       },
     };
@@ -136,9 +134,6 @@ describe('QuarantineComponentReport', () => {
 
     expect(screen.getByText(/first quarantined/i)).toBeVisible();
     expect(screen.getByText(formatTimeAgo(componentOverview.quarantinedDate))).toBeVisible();
-
-    expect(screen.getByText(/catalogued date/i)).toBeVisible();
-    expect(screen.getByText(formatTimeAgo(componentOverview.cataloguedDate))).toBeVisible();
 
     expect(screen.getByText(/repository/i)).toBeVisible();
     expect(screen.getByText(componentOverview.repositoryName)).toBeVisible();

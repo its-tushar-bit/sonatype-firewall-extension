@@ -18,7 +18,6 @@ describe('QuarantineComponentOverviewTile', () => {
         isQuarantined: true,
         quarantinedPolicyViolationsCount: 3,
         quarantinedDate: '2022-01-23T21:29:13.162+0000',
-        cataloguedDate: '2022-01-23T21:29:13.162+0000',
         repositoryName: 'maven-central',
       },
     };

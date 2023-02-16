@@ -136,7 +136,6 @@ public class QuarantinedComponentService
         getQuarantinedPolicyViolationsCount(repositoryComponent);
     quarantinedComponentOverviewDto.repositoryName = getRepositoryName(repositoryComponent);
     quarantinedComponentOverviewDto.quarantinedDate = repositoryComponent.getQuarantineTime();
-    quarantinedComponentOverviewDto.cataloguedDate = repositoryComponent.getTime();
     quarantinedComponentOverviewDto.tokenExpiryTime = quarantinedComponentAccessManager
         .getTokenExpiryTime(quarantinedComponentAccess.getGenerateTime());
 

@@ -70,7 +70,6 @@ describe('quarantinedComponentReportActions', function () {
                 quarantinedPolicyViolationsCount: 123,
                 repositoryName: 'maven-central',
                 quarantinedDate: '2021-11-18T16:31:17.192+0000',
-                cataloguedDate: '2021-11-18T16:31:17.192+0000',
               },
             },
           }),
@@ -96,7 +95,6 @@ describe('quarantinedComponentReportActions', function () {
                 quarantinedPolicyViolationsCount: 123,
                 repositoryName: 'maven-central',
                 quarantinedDate: '2021-11-18T16:31:17.192+0000',
-                cataloguedDate: '2021-11-18T16:31:17.192+0000',
               },
             }),
           },
@@ -114,7 +112,6 @@ describe('quarantinedComponentReportActions', function () {
             quarantinedPolicyViolationsCount: 123,
             repositoryName: 'maven-central',
             quarantinedDate: '2021-11-18T16:31:17.192+0000',
-            cataloguedDate: '2021-11-18T16:31:17.192+0000',
           });
           done();
         });

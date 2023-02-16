@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -163,7 +164,6 @@ public class QuarantinedComponentServiceTest
     assertThat(quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount).isEqualTo(2);
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo(repository.getPublicId());
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
-    assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.componentVersion).isEqualTo("0.5.2");
     assertThat(quarantinedComponentOverviewDto.tokenExpiryTime).isEqualTo(expirationTime);
     assertTelemetry(encodedToken, quarantinedComponentAccess.getGenerateTime(), "testHash");
@@ -191,7 +191,6 @@ public class QuarantinedComponentServiceTest
     assertThat(quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount).isEqualTo(2);
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo(repository.getPublicId());
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isNull();
-    assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.componentVersion).isEqualTo("0.5.2");
     assertThat(quarantinedComponentOverviewDto.tokenExpiryTime).isEqualTo(expirationTime);
     assertTelemetry(encodedToken, quarantinedComponentAccess.getGenerateTime(), "testHash");
@@ -219,7 +218,6 @@ public class QuarantinedComponentServiceTest
     assertThat(quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount).isEqualTo(2);
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo(repository.getPublicId());
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
-    assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.componentVersion).isEqualTo("0.5.2");
     assertThat(quarantinedComponentOverviewDto.tokenExpiryTime).isEqualTo(expirationTime);
     assertTelemetry(encodedToken, quarantinedComponentAccess.getGenerateTime(), "testHash");
@@ -243,7 +241,6 @@ public class QuarantinedComponentServiceTest
     assertThat(quarantinedComponentOverviewDto.quarantinedPolicyViolationsCount).isEqualTo(2);
     assertThat(quarantinedComponentOverviewDto.repositoryName).isEqualTo(repository.getPublicId());
     assertThat(quarantinedComponentOverviewDto.quarantinedDate).isEqualTo(date);
-    assertThat(quarantinedComponentOverviewDto.cataloguedDate).isEqualTo(date);
     assertThat(quarantinedComponentOverviewDto.componentVersion).isNull();
     assertThat(quarantinedComponentOverviewDto.tokenExpiryTime).isEqualTo(expirationTime);
     assertTelemetry(encodedToken, quarantinedComponentAccess.getGenerateTime(), "testHash");
